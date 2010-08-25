@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
+
+  <info organisation="pentaho" module="pentaho-hdfs-vfs" revision="${project.revision}" />
+    
+  <configurations>
+    <conf name="default" />
+    <conf name="runtime" visibility="public" />
+    <conf name="test" visibility="private" />
+    <conf name="source" />
+  </configurations>
+
+  <publications>
+  	<artifact name="pentaho-s3-vfs" type="jar"  conf="default" ext="jar"/>
+   	<artifact name="pentaho-s3-vfs" m:classifier="sources" type="source" ext="jar" conf="source"/>
+  </publications>
+
+  <dependencies defaultconf="default->default">
+
+    <!--  external dependencies -->
+   	<dependency org="commons-vfs" name="commons-vfs" rev="1.0" transitive="true" />
+    <dependency org="net.java.dev.jets3t" name="jets3t" rev="0.7.4" transitive="true" />
+
+	<!-- test -->
+    <dependency org="commons-io" name="commons-io" rev="1.4" conf="test->default"/>
+    <dependency org="junit" name="junit" rev="4.4" conf="test->default" />
+
+
+  </dependencies>
+</ivy-module>

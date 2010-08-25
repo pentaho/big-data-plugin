@@ -1,0 +1,6 @@
+<!--===========================================================================
+Pentaho common_build.xml compatibility targets.
+============================================================================-->
+<project name="common_build_compatibility">
+    <target name="publish-pentaho" depends="publish"/>
+</project>
