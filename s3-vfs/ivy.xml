@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0" xmlns:m="http://ant.apache.org/ivy/maven">
 
-  <info organisation="pentaho" module="pentaho-hdfs-vfs" revision="${project.revision}" />
+  <info organisation="pentaho" module="pentaho-s3-vfs" revision="${project.revision}" />
     
   <configurations>
     <conf name="default" />
