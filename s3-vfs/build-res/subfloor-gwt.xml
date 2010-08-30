@@ -27,8 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!--===========================================================================
     == SUBFLOOR-GWT ==
     
-    $Rev: 65 $
-    $Date: 2009-05-26 14:56:40 -0400 (Tue, 26 May 2009) $
+    $Rev: 107 $
+    $Date: 2010-08-30 11:50:20 -0400 (Mon, 30 Aug 2010) $
     Project Home: http://code.google.com/p/subfloor/
     
     Provides default targets for building GWT applications.
@@ -46,15 +46,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <property name="gwt.output.dir"
             value="${bin.dir}/gwt/output"
             description="Base directory that holds all gwt generated files" />
-  <property name="gwt-dev.revision" value="1.7.1" description="The release of GWT-dev to download and install" />
+  <property name="gwt-dev.revision" value="1.6.4" description="The release of GWT-dev to download and install" />
   <property name="gwt-log-level" value="INFO" description="The log level for GWT Compile" />
   <property name="gwt-style" value="OBF" description="Style in which javascript should be generated, options include OBF[uscated], PRETTY, and DETAILED"/>
-  <property name="gwt-dev.zipfile"
-            value="${devlib.dir}/gwt-dev-libs.zip"
-            description="The download location of the GWT-dev zip file" />
-  <property name="gwt-dev.jarfile"
-            value="${devlib.dir}/gwt-dev-${gwt-dev.revision}.jar"
-            description="The download location of the GWT-dev jar file" />
   <property name="codegenlib.dir"
             value="${basedir}/codegen-lib"
             description="Location of the libraries needed for code generation" />
@@ -62,19 +56,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <property name="gwt-compile.localWorkers" value="4" description="number of threads to use for running parallel compilation" />
   <property name="gwt-compile.maxstack" value="1024k" description="vm stack size setting" />
 
-	<path id="classpath">
+  <!-- setup the classpath used for gwt-compile -->
+  <path id="codegen.classpath">
     <fileset dir="${codegenlib.dir}">
       <include name="*.jar" />
     </fileset>
+    <path refid="classpath"/>
+    <pathelement path="${src.dir}" />
+  </path>
+
+  <!-- override the compile classpath so client source 
+    can be compiled with javac (even though strictly speaking, this is
+    not necessary, it is helpful because it will fish out errors much quicker
+    than waiting until gwt-compile -->
+  <path id="classpath">
     <fileset dir="${devlib.dir}">
       <include name="*.jar" />
     </fileset>
     <fileset dir="${lib.dir}">
       <include name="*.jar" />
     </fileset>
-    <pathelement path="${src.dir}" />
-  </path>	
-	
+    <fileset dir="${codegenlib.dir}">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
   <!--=======================================================================
 	    init (override)
 	    
@@ -100,7 +106,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       using the ivy dependencies.
       ====================================================================-->
   <target name="clean-jars" depends="clean-codegen,subfloor.clean-jars"/>
-  
+
   <!--=======================================================================
       clean-codegen
       
@@ -125,8 +131,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       Override to use OS-specific IVY configurations
       ====================================================================-->
   <target name="resolve-codegen" depends="resolve-init">
-    <ivy:resolve file="ivy.xml" conf="codegen-${os.classifier}" />
-    <ivy:retrieve conf="codegen-${os.classifier}" pattern="${codegenlib.dir}/[module]-[revision](-[classifier]).[ext]" />
+    <ivy:resolve file="ivy.xml" conf="codegen" />
+    <ivy:retrieve conf="codegen" pattern="${codegenlib.dir}/[module]-[revision](-[classifier]).[ext]" />
   </target>
 
 
@@ -140,8 +146,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           unless="gwtBuild.notRequired"
           description="Perform GWT Compile">
     <java classname="com.google.gwt.dev.Compiler" fork="true" failonerror="true" maxmemory="${gwt-compile.maxmemory}">
- 	  <classpath refid="classpath"/>
-      <jvmarg value="-Xss${gwt-compile.maxstack}"/>    	
+      <classpath refid="codegen.classpath"/>
+      <jvmarg value="-Xss${gwt-compile.maxstack}"/>
       <arg value="-war" />
       <arg value="${gwt.output.dir}" />
       <arg value="${gwt-module.path}" />
@@ -155,7 +161,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <touch file="${bin.dir}/.gwtBuild-${gwt-module.path}" />
   </target>
 
-  
+
   <!--=======================================================================
       gwt-compile.check
       
@@ -168,7 +174,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     </uptodate>
   </target>
 
-  
+
   <!--=======================================================================
       assemble (override)
       
@@ -181,49 +187,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <exclude name="*-aux/" />
       </fileset>
     </copy>
-  </target>
-
-
-  <!--=======================================================================
-      install-gwt-dev
-      
-      Downloads and installs gwt-dev jars and native libraries
-      ====================================================================-->
-  <target name="install-gwt-dev" depends="gwt-dev.download" description="Installs gwt-dev jar and native libraries">
-    <unzip src="${gwt-dev.zipfile}" dest="${devlib.dir}" />
-    <delete file="${gwt-dev.zipfile}" />
-
-    <echo>
-      *************************************************************************************************
-      ** Gwt dev files have been installed to ${devlib.dir}.
-      ** Make sure ${gwt-dev.jarfile} 
-      ** appears before other jars in your IDE's classpath, 
-      ** otherwise running in hosted mode may fail.
-      *************************************************************************************************
-    </echo>
-  </target>
-
-
-  <!--=======================================================================
-      gwt-dev.download
-      
-      Downloads GWT dev libraries if they don't already exist
-      ====================================================================-->
-  <target name="gwt-dev.download" depends="install-ivy,init">
-    <condition property="maven.classifier" value="windows">
-      <isset property="isWindows" />
-    </condition>
-    <condition property="maven.classifier" value="linux">
-      <isset property="isLinux" />
-    </condition>
-    <condition property="maven.classifier" value="mac">
-      <isset property="isMac" />
-    </condition>
-
-    <get src="http://repo1.maven.org/maven2/com/google/gwt/gwt-dev/${gwt-dev.revision}/gwt-dev-${gwt-dev.revision}-${maven.classifier}-libs.zip"
-         dest="${gwt-dev.zipfile}" />
-    <get src="http://repo1.maven.org/maven2/com/google/gwt/gwt-dev/${gwt-dev.revision}/gwt-dev-${gwt-dev.revision}-${maven.classifier}.jar"
-         dest="${gwt-dev.jarfile}" />
   </target>
 
 </project>
