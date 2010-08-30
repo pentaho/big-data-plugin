@@ -72,6 +72,12 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
       if (!name.equals("")) {
         try {
           S3Object object = service.getObject(getS3Bucket(), name);
+          if (deleteIfAlreadyExists) {
+            bucket = getS3Bucket();
+            bucket = service.createBucket(getS3BucketName());
+            service.deleteObject(getS3Bucket(), name);
+            object = new S3Object(name);
+          }
           return object;
         } catch (Exception e) {
           S3Object object = new S3Object(name);
