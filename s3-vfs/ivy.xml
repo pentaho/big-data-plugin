@@ -18,11 +18,11 @@
   <dependencies defaultconf="default->default">
 
     <!--  external dependencies -->
+    <dependency org="commons-io" name="commons-io" rev="1.4" conf="default->default"/>
    	<dependency org="commons-vfs" name="commons-vfs" rev="1.0" transitive="true" />
     <dependency org="net.java.dev.jets3t" name="jets3t" rev="0.7.4" transitive="true" />
 
 	<!-- test -->
-    <dependency org="commons-io" name="commons-io" rev="1.4" conf="test->default"/>
     <dependency org="junit" name="junit" rev="4.4" conf="test->default" />
 
 
