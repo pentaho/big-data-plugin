@@ -27,8 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!--===========================================================================
     == SUBFLOOR ==
     
-    $Rev: 106 $
-    $Date: 2010-08-25 13:21:34 -0400 (Wed, 25 Aug 2010) $
+    $Rev: 108 $
+    $Date: 2010-08-31 09:57:12 -0400 (Tue, 31 Aug 2010) $
     Project Home: http://code.google.com/p/subfloor/
     
     This file contains the default implementation of the ant tasks to 
@@ -1511,6 +1511,11 @@ TYPICAL TARGET SEQUENCE
   <target name="cobertura.test-instrumented"
           depends="init-test-reports,install-cobertura,compile,compile-tests,cobertura.instrument-classes">
     <mkdir dir="${instrumented.classes.dir}" />
+    <path id="cobertura.classpath">
+      <fileset dir="${subfloor.resources.dir}/cobertura">
+        <include name="*.jar" />
+      </fileset>
+    </path>
     <junit fork="yes"
            maxmemory="${junit.maxmemory}"
            failureProperty="test.failed"
@@ -1528,7 +1533,9 @@ TYPICAL TARGET SEQUENCE
       <classpath location="${classes.dir}" />
       <classpath location="${testclasses.dir}" />
       <classpath refid="test.classpath" />
-      <classpath refid="cobertura.classpath" />
+      <fileset dir="${subfloor.resources.dir}/cobertura">
+        <include name="*.jar" />
+      </fileset>
 
       <formatter type="xml" />
       <test name="${testcase}" todir="${testreports.xml.dir}" if="testcase" />
