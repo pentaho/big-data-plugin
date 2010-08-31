@@ -118,27 +118,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     t.start();
 
     final PipedOutputStream pos = new PipedOutputStream() {
-
-      public void write(byte[] b) throws IOException {
-        System.out.println("3 writing begin");
-        super.write(b);
-        System.out.println("3writing end");
-      }
-
-      public void write(byte[] b, int off, int len) throws IOException {
-        System.out.println("2writing begin");
-        super.write(b, off, len);
-        System.out.println("2writing end");
-      }
-
-      public void write(int b) throws IOException {
-        System.out.println("1writing begin");
-        super.write(b);
-        System.out.println("1writing end");
-      }
-
       public void close() throws IOException {
-        System.out.println("------ closing begin --------");
         super.close();
         try {
           // wait for reader to finish
@@ -151,7 +131,6 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
         } catch (Exception e) {
           e.printStackTrace();
         }
-        System.out.println("------ closing end --------");
       }
     };
     pis.connect(pos);
@@ -161,7 +140,6 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
 
   public void close() throws FileSystemException {
     try {
-      System.out.println("closing " + getName().getURI());
       getS3Object(false).closeDataInputStream();
       super.close();
     } catch (Exception e) {
@@ -199,7 +177,11 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   }
 
   public void doCreateFolder() throws Exception {
-    bucket = service.createBucket(getS3BucketName());
+    if (getS3Object(false) == null) {
+      bucket = service.createBucket(getS3BucketName());
+    } else {
+      throw new FileSystemException("vfs.provider/create-folder-not-supported.error");
+    }
   }
 
   public boolean canRenameTo(FileObject newfile) {
@@ -226,7 +208,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
 
   protected void doRename(FileObject newfile) throws Exception {
     if (getType().equals(FileType.FOLDER)) {
-      throw new UnsupportedOperationException("Bucket renaming is not permitted");
+      throw new FileSystemException("vfs.provider/rename-not-supported.error");
     }
     S3Object s3Object = getS3Object(false);
     s3Object.setKey(newfile.getName().getBaseName());
