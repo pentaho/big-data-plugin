@@ -27,8 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!--===========================================================================
     == SUBFLOOR ==
     
-    $Rev: 108 $
-    $Date: 2010-08-31 09:57:12 -0400 (Tue, 31 Aug 2010) $
+    $Rev: 109 $
+    $Date: 2010-08-31 09:59:52 -0400 (Tue, 31 Aug 2010) $
     Project Home: http://code.google.com/p/subfloor/
     
     This file contains the default implementation of the ant tasks to 
@@ -1533,9 +1533,6 @@ TYPICAL TARGET SEQUENCE
       <classpath location="${classes.dir}" />
       <classpath location="${testclasses.dir}" />
       <classpath refid="test.classpath" />
-      <fileset dir="${subfloor.resources.dir}/cobertura">
-        <include name="*.jar" />
-      </fileset>
 
       <formatter type="xml" />
       <test name="${testcase}" todir="${testreports.xml.dir}" if="testcase" />
