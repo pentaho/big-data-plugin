@@ -17,12 +17,15 @@
  */
 package org.pentaho.s3.vfs;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs.FileName;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
@@ -100,39 +103,67 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   }
 
   protected OutputStream doGetOutputStream(final boolean append) throws Exception {
+    final ByteArrayOutputStream output = new ByteArrayOutputStream();
     final PipedInputStream pis = new PipedInputStream();
+
+    final Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          IOUtils.copy(pis, output);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+    t.start();
+
     final PipedOutputStream pos = new PipedOutputStream() {
+
+      public void write(byte[] b) throws IOException {
+        System.out.println("3 writing begin");
+        super.write(b);
+        System.out.println("3writing end");
+      }
+
+      public void write(byte[] b, int off, int len) throws IOException {
+        System.out.println("2writing begin");
+        super.write(b, off, len);
+        System.out.println("2writing end");
+      }
+
+      public void write(int b) throws IOException {
+        System.out.println("1writing begin");
+        super.write(b);
+        System.out.println("1writing end");
+      }
+
       public void close() throws IOException {
+        System.out.println("------ closing begin --------");
         super.close();
         try {
+          // wait for reader to finish
+          t.join();
           S3Object s3Object = getS3Object(true);
-          s3Object.setDataInputStream(pis);
+          byte[] bytes = output.toByteArray();
+          s3Object.setContentLength(bytes.length);
+          s3Object.setDataInputStream(new ByteArrayInputStream(bytes));
           service.putObject(getS3Bucket(), s3Object);
         } catch (Exception e) {
           e.printStackTrace();
         }
+        System.out.println("------ closing end --------");
       }
     };
     pis.connect(pos);
+
     return pos;
-
-    // final PipedInputStream pis = new PipedInputStream();
-    // final PipedOutputStream pos = new PipedOutputStream();
-    // pis.connect(pos);
-    //
-    // S3Object s3Object = getS3Object(true);
-    // s3Object.setDataInputStream(pis);
-    // service.putObject(getS3Bucket(), s3Object);
-    //
-    // return pos;
-
   }
 
   public void close() throws FileSystemException {
-    super.close();
     try {
       System.out.println("closing " + getName().getURI());
       getS3Object(false).closeDataInputStream();
+      super.close();
     } catch (Exception e) {
     }
   }
@@ -161,13 +192,25 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
       return FileType.IMAGINARY;
     } else if (bucket != null && object == null) {
       return FileType.FOLDER;
-    } else {
+    } else if (object.getBucketName() != null && object.getLastModifiedDate() != null) {
       return FileType.FILE;
     }
+    return FileType.IMAGINARY;
   }
 
   public void doCreateFolder() throws Exception {
     bucket = service.createBucket(getS3BucketName());
+  }
+
+  public boolean canRenameTo(FileObject newfile) {
+    try {
+      // we cannot rename buckets
+      if (getType().equals(FileType.FOLDER)) {
+        return false;
+      }
+    } catch (Exception e) {
+    }
+    return super.canRenameTo(newfile);
   }
 
   public void doDelete() throws Exception {
@@ -182,7 +225,12 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   }
 
   protected void doRename(FileObject newfile) throws Exception {
-    service.renameObject(newfile.getName().getPath(), newfile.getName().getBaseName(), getS3Object(false));
+    if (getType().equals(FileType.FOLDER)) {
+      throw new UnsupportedOperationException("Bucket renaming is not permitted");
+    }
+    S3Object s3Object = getS3Object(false);
+    s3Object.setKey(newfile.getName().getBaseName());
+    service.renameObject(getS3BucketName(), getName().getBaseName(), s3Object);
   }
 
   protected long doGetLastModifiedTime() throws Exception {
