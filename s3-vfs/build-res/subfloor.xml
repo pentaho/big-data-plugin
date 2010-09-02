@@ -27,8 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!--===========================================================================
     == SUBFLOOR ==
     
-    $Rev: 110 $
-    $Date: 2010-08-31 10:42:49 -0400 (Tue, 31 Aug 2010) $
+    $Rev: 111 $
+    $Date: 2010-09-02 10:47:04 -0400 (Thu, 02 Sep 2010) $
     Project Home: http://code.google.com/p/subfloor/
     
     This file contains the default implementation of the ant tasks to 
@@ -1663,11 +1663,11 @@ TYPICAL TARGET SEQUENCE
                         organisation="@{organisation}"
                         module="@{module}"
                         revision="@{revision}"
-                        pattern="${subfloor.resources.dir}/@{module}/[module]-|-[revision](-[classifier]).[ext]" />
+                        pattern="${subfloor.resources.dir}/@{module}/[module]-__-[revision](-[classifier]).[ext]" />
           <!-- in case the artifact pulls in an ant jar, remove it. they cause runtime conflicts -->
           <delete>
             <fileset dir="${subfloor.resources.dir}/@{module}">
-              <include name="ant-|-*.jar" />
+              <include name="ant-__-*.jar" />
             </fileset>
           </delete>
         </then>
