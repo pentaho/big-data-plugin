@@ -1735,7 +1735,7 @@ TYPICAL TARGET SEQUENCE
               <echo message="downloading library @{name} [@{name}.@{extension} from @{url}]" />
               <mkdir dir="${subfloor.tmp.dir}" />
               <get src="@{url}" dest="${subfloor.tmp.dir}/@{name}.@{extension}" usetimestamp="true" />
-              <unzip src="${tmp.subfloor.resources.dir}/@{name}.@{extension}"
+              <unzip src="${subfloor.tmp.dir}/@{name}.@{extension}"
                      dest="${subfloor.resources.dir}/@{name}"
                      overwrite="true" />
             </then>
