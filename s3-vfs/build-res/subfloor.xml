@@ -27,8 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <!--===========================================================================
     == SUBFLOOR ==
     
-    $Rev: 111 $
-    $Date: 2010-09-02 10:47:04 -0400 (Thu, 02 Sep 2010) $
+    $Rev: 113 $
+    $Date: 2010-09-03 15:02:57 -0400 (Fri, 03 Sep 2010) $
     Project Home: http://code.google.com/p/subfloor/
     
     This file contains the default implementation of the ant tasks to 
@@ -170,9 +170,6 @@ TYPICAL TARGET SEQUENCE
   <property name="antcontrib.build.cache.dir"
             value="${subfloor.resources.dir}/ant-contrib"
             description="Directory where the Ant-Contrib jar (and dependencies) is placed after it is auto-downloaded by the build" />
-  <property name="svnant.url"
-            value="http://subclipse.tigris.org/files/documents/906/46267/svnant-1.3.0.zip"
-            description="The URL to the current release of SVN Ant" />
   <property name="svnant.use-javahl"
             value="false"
             description="Prefer JNI JavaHL binding over the command line client for native svn support" />
@@ -442,25 +439,18 @@ TYPICAL TARGET SEQUENCE
     
     (Fetches and) installs the SVN ANT for use by this ant script
     ====================================================================-->
-  <target name="install-svnant" depends="install-antcontrib">
+  <target name="install-svnant" depends="install-ivy">
     <if>
       <istrue value="${svnant.isinstalled}" />
       <then>
         <echo message="Skipping SVN ANT install.  SVN ANT has already been configured by the build" />
       </then>
       <else>
-        <echo message="Installing SVN ANT..." />
-        <!-- svnant is not in the maven repo at this time.  If so, it would be better
-         to use taskdef-with-ivy here -->
-        <download-antlib name="svnant"
-                         url="${svnant.url}"
-                         classname="org.tigris.subversion.svnant.SvnTask"
-                         extension="zip" />
-        <taskdef resource="org/tigris/subversion/svnant/svnantlib.xml">
-          <classpath>
-            <fileset dir="${subfloor.resources.dir}/svnant" includes="**/*.jar" />
-          </classpath>
-        </taskdef>
+        <taskdef-with-ivy organisation="tigris"
+                          module="svnant"
+                          revision="1.3.0"
+                          resource="org/tigris/subversion/svnant/svnantlib.xml"
+                          classname="org.tigris.subversion.svnant.SvnTask" />
         <property name="svnant.isinstalled" value="true" />
       </else>
     </if>
@@ -1660,6 +1650,7 @@ TYPICAL TARGET SEQUENCE
         </not>
         <then>
           <ivy:retrieve inline="true"
+		  				conf="default"
                         organisation="@{organisation}"
                         module="@{module}"
                         revision="@{revision}"
