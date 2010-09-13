@@ -32,4 +32,7 @@ public class S3FileNameParser extends URLFileNameParser {
   public static FileNameParser getInstance() {
     return INSTANCE;
   }
+  
+  
+  
 }

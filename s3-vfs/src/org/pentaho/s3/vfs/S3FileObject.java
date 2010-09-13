@@ -24,6 +24,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs.FileName;
@@ -49,7 +53,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     String bucketName = getName().getPath();
     if (bucketName.indexOf("/", 1) > 1) {
       // this file is a file, to get the bucket, remove the name from the path
-      bucketName = bucketName.substring(1, bucketName.indexOf(getName().getBaseName()) - 1);
+      bucketName = bucketName.substring(1, bucketName.indexOf("/", 1));
     } else {
       // this file is a bucket
       bucketName = bucketName.replaceAll("/", "");
@@ -72,6 +76,14 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
         return null;
       }
       String name = getName().getPath().substring(getName().getPath().indexOf("/", 1) + 1);
+      
+//      S3Object[] children = s3ChildrenMap.get(getS3BucketName());
+//      for (S3Object child : children) {
+//        if (child.getKey().equals(name)) {
+//          return child;
+//        }
+//      }
+      
       if (!name.equals("")) {
         try {
           S3Object object = service.getObject(getS3Bucket(), name);
@@ -151,6 +163,15 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   }
 
   protected FileType doGetType() throws Exception {
+
+    if (getName().getPath().equals("") || getName().getPath().equals("/")) {
+      return FileType.FOLDER;
+    }
+
+    if (((S3FileObject) getParent()).folders.contains(getName().getBaseName())) {
+      return FileType.FOLDER;
+    }
+    
     S3Bucket bucket = null;
     S3Object object = null;
     try {
@@ -160,10 +181,6 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     try {
       object = getS3Object(false);
     } catch (Exception ex) {
-    }
-
-    if (getName().getPath().equals("") || getName().getPath().equals("/")) {
-      return FileType.FOLDER;
     }
 
     if (bucket == null && object == null) {
@@ -180,7 +197,17 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     if (getS3Object(false) == null) {
       bucket = service.createBucket(getS3BucketName());
     } else {
-      throw new FileSystemException("vfs.provider/create-folder-not-supported.error");
+      // create fake folder
+      bucket = service.createBucket(getS3BucketName());
+      String name = getName().getPath().substring(getName().getPath().indexOf("/", 1) + 1) + "/";
+
+      S3Object obj = new S3Object(bucket, name);
+      service.putObject(bucket, obj);
+
+      ((S3FileObject) getParent()).folders.add(getName().getBaseName());
+      s3ChildrenMap.remove(getS3BucketName());
+
+      // throw new FileSystemException("vfs.provider/create-folder-not-supported.error");
     }
   }
 
@@ -204,6 +231,8 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     } else if (getType() == FileType.FOLDER) {
       service.deleteBucket(getS3Bucket());
     }
+    ((S3FileObject) getParent()).folders.remove(getName().getBaseName());
+    s3ChildrenMap.remove(getS3BucketName());
   }
 
   protected void doRename(FileObject newfile) throws Exception {
@@ -225,6 +254,9 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   protected void doSetLastModifiedTime(long modtime) throws Exception {
   }
 
+  protected Set<String> folders = new HashSet<String>();
+  protected static Map<String, S3Object[]> s3ChildrenMap = new HashMap<String, S3Object[]>();
+
   protected String[] doListChildren() throws Exception {
     S3Bucket bucket = getS3Bucket();
     if (bucket == null && (getName().getPath().equals("") || getName().getPath().equals("/"))) {
@@ -235,12 +267,44 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
       }
       return children;
     } else {
-      S3Object[] s3Children = service.listObjects(getS3Bucket());
-      String[] children = new String[s3Children.length];
-      for (int i = 0; i < s3Children.length; i++) {
-        children[i] = s3Children[i].getKey();
+      if (s3ChildrenMap.get(getS3BucketName()) == null) {
+        s3ChildrenMap.put(getS3BucketName(), service.listObjects(getS3Bucket()));
       }
-      return children;
+      S3Object[] s3Children = s3ChildrenMap.get(getS3BucketName());
+      Set<String> vfsChildren = new HashSet<String>();
+
+      if (s3Children != null && getName().getPath().indexOf("/", 1) >= 0) {
+        String s3Path = getName().getPath().substring(getName().getPath().indexOf("/", 1) + 1);
+        // let's see what we have in folders
+        for (S3Object obj : s3Children) {
+          String key = obj.getKey();
+          if (key.startsWith(s3Path)) {
+            // go from end of key match to next slash or end of key, whichever comes first
+            String pathSegment = key.substring(s3Path.length() + 1);
+            int slashIndex = pathSegment.indexOf("/");
+            if (slashIndex > 0) {
+              String child = pathSegment.substring(0, slashIndex);
+              vfsChildren.add(child);
+              folders.add(child);
+            } else {
+              vfsChildren.add(pathSegment);
+            }
+          }
+        }
+      } else {
+        for (int i = 0; i < s3Children.length; i++) {
+          String key = s3Children[i].getKey();
+          int slashIndex = key.indexOf("/");
+          if (slashIndex > 0) {
+            String child = key.substring(0, slashIndex);
+            vfsChildren.add(child);
+            folders.add(child);
+          } else {
+            vfsChildren.add(key);
+          }
+        }
+      }
+      return vfsChildren.toArray(new String[] {});
     }
   }
 
