@@ -286,7 +286,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
               String child = pathSegment.substring(0, slashIndex);
               vfsChildren.add(child);
               folders.add(child);
-            } else {
+            } else if (!"".equalsIgnoreCase(pathSegment) && pathSegment != null) {
               vfsChildren.add(pathSegment);
             }
           }
