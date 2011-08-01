@@ -162,8 +162,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg value="${gwt-style}" />
     </java>
     <touch file="${bin.dir}/.gwtBuild-${gwt-module.path}" />
-  	
-  	<replace casesensitive="no" summary="on" dir="${gwt.output.dir}" includes="**/*.cache.html" token="&lt;html&gt;" value="&lt;!--${pentaho-copyright}--&gt;${line.separator}&lt;html&gt;"/>
+
+    <!-- replace the Start of File (^^) with the copyright -->
+    <replaceregexp match="^^" replace="&lt;!--${pentaho-copyright}--&gt;${line.separator}">
+      <fileset dir="${gwt.output.dir}" includes="**/*.cache.html" />
+    </replaceregexp>
   	
   </target>
 
