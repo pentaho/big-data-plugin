@@ -2,18 +2,45 @@ package org.pentaho.di.job.entries.hadoopjobexecutor;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 public class JarUtility {
 
+  public static Class<?> getMainClassFromManifest(URL jarUrl, ClassLoader parentClassLoader) throws IOException, ClassNotFoundException {
+    JarFile jarFile;
+    try {
+      jarFile = new JarFile(new File(jarUrl.toURI()));
+    } catch (URISyntaxException ex) {
+      throw new IOException("Error locating jar: " + jarUrl);
+    } catch(IOException ex) {
+      throw new IOException("Error opening job jar: " + jarUrl, ex);
+    }
+    try {
+      Manifest manifest = jarFile.getManifest();
+      String className = manifest == null ? null : manifest.getMainAttributes().getValue("Main-Class");
+      if (className != null) {
+        URLClassLoader cl = new URLClassLoader(new URL[] {jarUrl}, parentClassLoader);
+        return cl.loadClass(className);
+      } else {
+        return null;
+      }
+    } finally {
+      jarFile.close();
+    }
+  }
+  
   public static List<Class<?>> getClassesInJarWithMain(String jarUrl, ClassLoader parentClassloader) throws MalformedURLException {
     ArrayList<Class<?>> mainClasses = new ArrayList<Class<?>>();
     List<Class<?>> allClasses = JarUtility.getClassesInJar(jarUrl, parentClassloader);

@@ -24,7 +24,6 @@ import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.WindowProperty;
-import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulEventSourceAdapter;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulVbox;
@@ -61,6 +60,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     jobEntry.setSimple(isSimple);
     jobEntry.setJarUrl(jarUrl);
     jobEntry.setCmdLineArgs(sConf.getCommandLineArgs());
+    jobEntry.setSimpleBlocking(sConf.isSimpleBlocking());
+    jobEntry.setSimpleLoggingInterval(sConf.getSimpleLoggingInterval());
     // advanced config
     jobEntry.setBlocking(aConf.isBlocking());
     jobEntry.setLoggingInterval(aConf.getLoggingInterval());
@@ -96,6 +97,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       setSimple(jobEntry.isSimple());
       setJarUrl(jobEntry.getJarUrl());
       sConf.setCommandLineArgs(jobEntry.getCmdLineArgs());
+      sConf.setSimpleBlocking(jobEntry.isSimpleBlocking());
+      sConf.setSimpleLoggingInterval(jobEntry.getSimpleLoggingInterval());
       // advanced config
       userDefined.clear();
       if (jobEntry.getUserDefined() != null) {
@@ -253,6 +256,10 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     firePropertyChange(JobEntryHadoopJobExecutorController.IS_SIMPLE, previousVal, newVal);
   }
 
+  public void invertSimpleBlocking() {
+    sConf.setSimpleBlocking(!sConf.isSimpleBlocking());
+  }
+
   public void invertBlocking() {
     aConf.setBlocking(!aConf.isBlocking());
   }
@@ -267,8 +274,12 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   public class SimpleConfiguration extends XulEventSourceAdapter {
     public static final String CMD_LINE_ARGS = "commandLineArgs"; //$NON-NLS-1$
+    public static final String BLOCKING = "simpleBlocking"; //$NON-NLS-1$
+    public static final String LOGGING_INTERVAL = "simpleLoggingInterval"; //$NON-NLS-1$
 
     private String cmdLineArgs;
+    private boolean simpleBlocking;
+    private int simpleLoggingInterval = 60;
 
     public String getCommandLineArgs() {
       return cmdLineArgs;
@@ -281,6 +292,26 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       this.cmdLineArgs = cmdLineArgs;
 
       firePropertyChange(SimpleConfiguration.CMD_LINE_ARGS, previousVal, newVal);
+    }
+
+    public boolean isSimpleBlocking() {
+      return simpleBlocking;
+    }
+
+    public void setSimpleBlocking(boolean simpleBlocking) {
+      boolean old = this.simpleBlocking;
+      this.simpleBlocking = simpleBlocking;
+      firePropertyChange(SimpleConfiguration.BLOCKING, old, this.simpleBlocking);
+    }
+
+    public int getSimpleLoggingInterval() {
+      return simpleLoggingInterval;
+    }
+
+    public void setSimpleLoggingInterval(int simpleLoggingInterval) {
+      int old = this.simpleLoggingInterval;
+      this.simpleLoggingInterval = simpleLoggingInterval;
+      firePropertyChange(SimpleConfiguration.LOGGING_INTERVAL, old, this.simpleLoggingInterval);
     }
   }
 

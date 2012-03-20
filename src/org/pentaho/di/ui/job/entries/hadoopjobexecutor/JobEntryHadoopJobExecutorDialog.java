@@ -112,8 +112,10 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     bf.createBinding("num-map-tasks", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.NUM_MAP_TASKS, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$ 
     bf.createBinding("num-reduce-tasks", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.NUM_REDUCE_TASKS, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$ 
 
-    bf.createBinding("blocking", "selected", controller.getAdvancedConfiguration(), AdvancedConfiguration.BLOCKING); //$NON-NLS-1$ //$NON-NLS-2$ 
-    bf.createBinding("logging-interval", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.LOGGING_INTERVAL, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$ 
+    bf.createBinding("simple-blocking", "selected", controller.getSimpleConfiguration(), SimpleConfiguration.BLOCKING); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding("blocking", "selected", controller.getAdvancedConfiguration(), AdvancedConfiguration.BLOCKING); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding("simple-logging-interval", "value", controller.getSimpleConfiguration(), SimpleConfiguration.LOGGING_INTERVAL, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding("logging-interval", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.LOGGING_INTERVAL, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding("input-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.INPUT_PATH); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding("output-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.OUTPUT_PATH); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -127,6 +129,9 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     ((XulRadio) container.getDocumentRoot().getElementById("advancedRadioButton")).setSelected(!this.jobEntry.isSimple()); //$NON-NLS-1$
 
     ((XulVbox) container.getDocumentRoot().getElementById("advanced-configuration")).setVisible(!this.jobEntry.isSimple()); //$NON-NLS-1$
+
+    XulTextbox simpleLoggingInterval = (XulTextbox) container.getDocumentRoot().getElementById("simple-logging-interval");
+    simpleLoggingInterval.setValue("" + controller.getSimpleConfiguration().getSimpleLoggingInterval());
 
     XulTextbox loggingInterval = (XulTextbox) container.getDocumentRoot().getElementById("logging-interval");
     loggingInterval.setValue("" + controller.getAdvancedConfiguration().getLoggingInterval());
