@@ -364,7 +364,9 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
                   restoreSecurityManager(threads, sm);
                   if (simpleBlocking) {
                     // Only log if we're blocking and waiting for this to complete
-                    logError(BaseMessages.getString(JobEntryHadoopJobExecutor.class, "JobEntryHadoopJobExecutor.FailedToExecuteClass"), e);
+                    logError(BaseMessages.getString(JobEntryHadoopJobExecutor.class, "JobEntryHadoopJobExecutor.FailedToExecuteClass", clazz.getName()), e);
+                    result.setNrErrors(result.getNrErrors() + 1);
+                    result.setResult(false);
                   }
                 }
               });
