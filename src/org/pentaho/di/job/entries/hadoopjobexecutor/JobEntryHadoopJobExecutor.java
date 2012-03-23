@@ -317,78 +317,71 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         final SecurityManager sm = System.getSecurityManager();
         final NoExitSecurityManager nesm = new NoExitSecurityManager(sm);
         System.setSecurityManager(nesm);
-        try {
-          if (log.isDetailed())
-            logDetailed(BaseMessages.getString(PKG, "JobEntryHadoopJobExecutor.SimpleMode"));
+        if (log.isDetailed())
+          logDetailed(BaseMessages.getString(PKG, "JobEntryHadoopJobExecutor.SimpleMode"));
 
-          List<Class<?>> classesWithMains = new ArrayList<Class<?>>();
-          if (mainClass == null) {
-            classesWithMains.addAll(JarUtility.getClassesInJarWithMain(resolvedJarUrl.toExternalForm(), getClass().getClassLoader()));
-          } else {
-            classesWithMains.add(mainClass);
-          }
-          if (!classesWithMains.isEmpty()) {
-            final AtomicInteger threads = new AtomicInteger(classesWithMains.size());
-            for (final Class<?> clazz : classesWithMains) {
-              Runnable r = new Runnable() {
-                public void run() {
+        List<Class<?>> classesWithMains = new ArrayList<Class<?>>();
+        if (mainClass == null) {
+          classesWithMains.addAll(JarUtility.getClassesInJarWithMain(resolvedJarUrl.toExternalForm(), getClass().getClassLoader()));
+        } else {
+          classesWithMains.add(mainClass);
+        }
+        if (!classesWithMains.isEmpty()) {
+          final AtomicInteger threads = new AtomicInteger(classesWithMains.size());
+          for (final Class<?> clazz : classesWithMains) {
+            Runnable r = new Runnable() {
+              public void run() {
+                try {
                   try {
-                    try {
-                      executeMainMethod(clazz);
-                    } finally {
-                      restoreSecurityManager(threads, sm);
-                    }
-                  } catch (NoExitSecurityManager.NoJvmExitSecurityException ex) {
+                    executeMainMethod(clazz);
+                  } finally {
+                    restoreSecurityManager(threads, sm);
+                  }
+                } catch (NoExitSecurityManager.NoJvmExitSecurityException ex) {
+                  // Only log if we're blocking and waiting for this to complete
+                  if (simpleBlocking) {
+                    logExitStatus(result, mainClass, ex);
+                  }
+                } catch (InvocationTargetException ex) {
+                  if (ex.getTargetException() instanceof NoExitSecurityManager.NoJvmExitSecurityException) {
                     // Only log if we're blocking and waiting for this to complete
                     if (simpleBlocking) {
-                      logExitStatus(result, mainClass, ex);
+                      logExitStatus(result, mainClass, (NoExitSecurityManager.NoJvmExitSecurityException) ex.getTargetException());
                     }
-                  } catch (InvocationTargetException ex) {
-                    if (ex.getTargetException() instanceof NoExitSecurityManager.NoJvmExitSecurityException) {
-                      // Only log if we're blocking and waiting for this to complete
-                      if (simpleBlocking) {
-                        logExitStatus(result, mainClass, (NoExitSecurityManager.NoJvmExitSecurityException) ex.getTargetException());
-                      }
-                    } else {
-                      throw new RuntimeException(ex);
-                    }
-                  } catch (Exception ex) {
+                  } else {
                     throw new RuntimeException(ex);
                   }
-                }
-              };
-              Thread t = new Thread(r);
-              t.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-                @Override
-                public void uncaughtException(Thread t, Throwable e) {
-                  restoreSecurityManager(threads, sm);
-                  if (simpleBlocking) {
-                    // Only log if we're blocking and waiting for this to complete
-                    logError(BaseMessages.getString(JobEntryHadoopJobExecutor.class, "JobEntryHadoopJobExecutor.FailedToExecuteClass", clazz.getName()), e);
-                    result.setNrErrors(result.getNrErrors() + 1);
-                    result.setResult(false);
-                  }
-                }
-              });
-              t.start();
-              
-              if (simpleBlocking) {
-                // wait until the thread is done
-                do {
-                  logDetailed(BaseMessages.getString(JobEntryHadoopJobExecutor.class, "JobEntryHadoopJobExecutor.Blocking", clazz.getName()));
-                  t.join(simpleLoggingInterval * 1000);
-                } while(!parentJob.isStopped() && t.isAlive());
-                if (t.isAlive()) {
-                  // Kill thread if it's still running. The job must have been stopped.
-                  t.interrupt();
+                } catch (Exception ex) {
+                  throw new RuntimeException(ex);
                 }
               }
+            };
+            Thread t = new Thread(r);
+            t.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+              @Override
+              public void uncaughtException(Thread t, Throwable e) {
+                restoreSecurityManager(threads, sm);
+                if (simpleBlocking) {
+                  // Only log if we're blocking and waiting for this to complete
+                  logError(BaseMessages.getString(JobEntryHadoopJobExecutor.class, "JobEntryHadoopJobExecutor.FailedToExecuteClass", clazz.getName()), e);
+                  result.setNrErrors(result.getNrErrors() + 1);
+                  result.setResult(false);
+                }
+              }
+            });
+            t.start();
+
+            if (simpleBlocking) {
+              // wait until the thread is done
+              do {
+                logDetailed(BaseMessages.getString(JobEntryHadoopJobExecutor.class, "JobEntryHadoopJobExecutor.Blocking", clazz.getName()));
+                t.join(simpleLoggingInterval * 1000);
+              } while(!parentJob.isStopped() && t.isAlive());
+              if (t.isAlive()) {
+                // Kill thread if it's still running. The job must have been stopped.
+                t.interrupt();
+              }
             }
-          }
-        } finally {
-          // Make sure we restore the security manager!
-          if (nesm.equals(System.getSecurityManager())) {
-            System.setSecurityManager(sm);
           }
         }
       } else {
