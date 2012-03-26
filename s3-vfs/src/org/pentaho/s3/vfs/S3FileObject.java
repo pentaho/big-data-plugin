@@ -223,13 +223,28 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   }
 
   public void doDelete() throws Exception {
+    S3Object s3obj = getS3Object(false);
+    bucket = getS3Bucket();
+    if (s3obj == null) {     // If the selected object is null, getName() will cause exception. 
+      if (bucket != null) {  // Therefore, take care of the delete bucket case, first.
+          service.deleteBucket(bucket);
+      }  
+      return;
+    }
+    
     if (getName().getPath().equals("") || getName().getPath().equals("/")) {
       return;
     }
-    if (getType() == FileType.FILE) {
-      service.deleteObject(getS3Bucket(), getName().getBaseName());
-    } else if (getType() == FileType.FOLDER) {
-      service.deleteBucket(getS3Bucket());
+
+    String key = s3obj.getKey();
+    FileType filetype = getName().getType();
+    if (filetype.equals(FileType.FILE)) {
+      service.deleteObject(bucket, key);          // Delete a file.
+    } else if (filetype.equals(FileType.FOLDER)) {
+      key = key + "/";                            // Delete a folder.
+      service.deleteObject(bucket, key);          // The folder will not get deleted if its key does not end with "/".
+    } else {
+      return;
     }
     ((S3FileObject) getParent()).folders.remove(getName().getBaseName());
     s3ChildrenMap.remove(getS3BucketName());

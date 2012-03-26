@@ -86,25 +86,8 @@ public class S3Test {
       } catch (Throwable t) {
       }
     }
-
-    for (S3Bucket bucket : myBuckets) {
-      try {
-        S3Object[] objs = service.listObjects(bucket);
-        for (S3Object obj : objs) {
-          try {
-            service.deleteObject(bucket, obj.getKey());
-          } catch (Throwable t) {
-          }
-        }
-      } catch (Throwable t) {
-      }
-      try {
-        service.deleteBucket(bucket);
-      } catch (Throwable t) {
-      }
-    }
   }
-
+    
   @AfterClass
   public static void afterClass() throws Exception {
   }
@@ -151,7 +134,47 @@ public class S3Test {
     bucket.delete(deleteFileSelector);
     assertEquals(false, bucket.exists());
   }
+  
+  @Test
+  public void deleteFileAndFolder() throws Exception {
+    assertNotNull("FileSystemManager is null", fsManager);
 
+    FileObject bucket = fsManager.resolveFile(buildS3URL("/pentaho_pks_bucket_test"));
+    bucket.createFolder();
+    
+    FileObject file1 = fsManager.resolveFile(buildS3URL("/pentaho_pks_bucket_test/file1"));
+    OutputStream out1 = file1.getContent().getOutputStream();
+    out1.write(HELLO_S3_STR.getBytes());
+    out1.close();
+
+    FileObject folder1 = fsManager.resolveFile(buildS3URL("/pentaho_pks_bucket_test/folder1"));
+    folder1.createFolder();
+
+    FileObject s3FileOut2 = fsManager.resolveFile(buildS3URL("/pentaho_pks_bucket_test/folder1/file2"));
+    OutputStream out2 = s3FileOut2.getContent().getOutputStream();
+    out2.write(HELLO_S3_STR.getBytes());
+    out2.close();
+
+    FileObject folder2 = fsManager.resolveFile(buildS3URL("/pentaho_pks_bucket_test/folder2"));
+    folder2.createFolder();
+
+    FileObject folder3 = fsManager.resolveFile(buildS3URL("/pentaho_pks_bucket_test/folder1/folder3"));
+    folder3.createFolder();
+
+    file1.delete(deleteFileSelector);        // Delete a file.
+    assertEquals(false, file1.exists());
+
+    folder1.delete(deleteFileSelector);      // Delete a non-empty folder.
+    assertEquals(false, folder1.exists());
+
+    folder1.createFolder();
+    folder1.delete(deleteFileSelector);      // Delete an empty folder.
+    assertEquals(false, folder1.exists());
+    
+    bucket.delete(deleteFileSelector);       // Delete a bucket
+    assertEquals(false, bucket.exists());
+  }
+  
   @Test
   public void createBucket() throws Exception {
     assertNotNull("FileSystemManager is null", fsManager);
@@ -224,7 +247,7 @@ public class S3Test {
     out.write(HELLO_S3_STR.getBytes());
     out.close();
 
-    bucket = fsManager.resolveFile(buildS3URL("/"));
+    bucket = fsManager.resolveFile(buildS3URL("/mdamour_list_children_test"));
     printFileObject(bucket, 0);
 
     bucket.delete(deleteFileSelector);
