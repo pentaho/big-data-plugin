@@ -19,10 +19,8 @@ package org.pentaho.s3.vfs;
 
 import java.util.Collection;
 
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystem;
-import org.apache.commons.vfs.FileSystemOptions;
+import org.apache.commons.vfs.*;
+import org.apache.commons.vfs.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs.provider.AbstractFileSystem;
 import org.apache.commons.vfs.provider.URLFileName;
 import org.jets3t.service.S3Service;
@@ -47,9 +45,21 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
   }
 
   public S3Service getS3Service() {
-    if (service == null) {
-      String awsAccessKey = ((URLFileName) getRootName()).getUserName();
-      String awsSecretKey = ((URLFileName) getRootName()).getPassword();
+    if (service == null || service.getAWSCredentials() == null || service.getAWSCredentials().getAccessKey() == null) {
+
+      UserAuthenticator userAuthenticator = DefaultFileSystemConfigBuilder.getInstance().getUserAuthenticator(getFileSystemOptions());
+
+      String awsAccessKey = null;
+      String awsSecretKey = null;
+
+      if(userAuthenticator != null) {
+        UserAuthenticationData data = userAuthenticator.requestAuthentication(S3FileProvider.AUTHENTICATOR_TYPES);
+        awsAccessKey = String.valueOf(data.getData(UserAuthenticationData.USERNAME));
+        awsSecretKey = String.valueOf(data.getData(UserAuthenticationData.PASSWORD));
+      } else {
+        awsAccessKey = ((URLFileName) getRootName()).getUserName();
+        awsSecretKey = ((URLFileName) getRootName()).getPassword();
+      }
       AWSCredentials awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey);
       try {
         service = new RestS3Service(awsCredentials);
