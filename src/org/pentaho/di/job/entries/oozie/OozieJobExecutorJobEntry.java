@@ -20,26 +20,25 @@
 
 package org.pentaho.di.job.entries.oozie;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.VFS;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
 import org.apache.oozie.client.WorkflowJob;
 import org.apache.oozie.util.PropertiesUtils;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.AbstractJobEntry;
 import org.pentaho.di.job.JobEntryUtils;
 import org.pentaho.di.job.entry.JobEntryInterface;
 
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -57,14 +56,45 @@ import java.util.Properties;
 public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorConfig> implements Cloneable, JobEntryInterface {
 
 
+  private OozieClient oozieClient = null;
+
   @Override
   protected OozieJobExecutorConfig createJobConfig() {
     return new OozieJobExecutorConfig();
   }
 
   @Override
-  protected boolean isValid(OozieJobExecutorConfig config) {
-    return true; // TODO, implement this
+  public List<String> getValidationWarnings(OozieJobExecutorConfig config) {
+    List<String> messages = new ArrayList<String>();
+
+    // verify there is a job name
+    if(StringUtil.isEmpty(config.getJobEntryName())) {
+      messages.add(BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.JobName"));
+    }
+
+    if(StringUtil.isEmpty(config.getOozieUrl())) {
+      messages.add(BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL"));
+    } else {
+      try {
+        // oozie url is valid and client & ws versions are compatible
+        oozieClient = getOozieClient(config);
+        oozieClient.getProtocolUrl();
+        oozieClient.validateWSVersion();
+      } catch (OozieClientException e) {
+        if(e.getCause() != null && e.getCause() instanceof MalformedURLException) {
+          messages.add(BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL"));
+        } else {
+          messages.add(BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationMessages.Incompatible.Oozie.Versions", oozieClient.getClientBuildVersion()));
+        }
+      }
+    }
+
+    // path to oozie workflow properties file
+    if(StringUtil.isEmpty(config.getOozieWorkflowConfig())) {
+      messages.add(BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Workflow.Properties"));
+    }
+
+    return messages;
   }
 
   @Override
@@ -73,55 +103,55 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       @Override
       public void run() {
 
-        OozieClient oozieClient = new OozieClient(jobConfig.getOozieUrl());
+        OozieClient oozieClient = getOozieClient();
         try {
           oozieClient.validateWSVersion();
         } catch (OozieClientException e) {
-          e.printStackTrace();
-          // TODO: invalid web service version, log the error
           setJobResultFailed(jobResult);
+          logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.InvalidWSVersion", oozieClient.getClientBuildVersion()), e);
         }
 
+        String jobId = null;
+
         try {
-          InputStreamReader reader = new InputStreamReader(KettleVFS.getInputStream(jobConfig.getOozieWorkflowConfig()));
-          Properties jobProps = PropertiesUtils.readProperties(reader, 1024);
+          InputStreamReader reader = new InputStreamReader(KettleVFS.getInputStream(getVariableSpace().environmentSubstitute(jobConfig.getOozieWorkflowConfig())));
+          Properties jobProps = PropertiesUtils.readProperties(reader, 100*1024);
 
           // make sure we supply the current user name
           if(!jobProps.containsKey("user.name")) {
             jobProps.setProperty("user.name", variables.environmentSubstitute("${user.name}"));
           }
 
-          String jobId = oozieClient.run(jobProps);
+          jobId = oozieClient.run(jobProps);
           if (JobEntryUtils.asBoolean(getJobConfig().getBlockingExecution(), variables)) {
             while(oozieClient.getJobInfo(jobId).getStatus().equals(WorkflowJob.Status.RUNNING)) {
               System.out.println("Still running...");
-              Thread.sleep(10 * 1000);
+              long interval = JobEntryUtils.asLong(jobConfig.getBlockingPollingInterval(), variables);
+              Thread.sleep(interval);
             }
+            String logDetail = oozieClient.getJobLog(jobId);
             if(oozieClient.getJobInfo(jobId).getStatus().equals(WorkflowJob.Status.SUCCEEDED)) {
-              // TODO: log the results back to kettle
-              jobResult.setLogText(oozieClient.getJobLog(jobId));
+              jobResult.setResult(true);
+              logDetailed(logDetail);
             } else {
               // it failed
               setJobResultFailed(jobResult);
+              logError(logDetail);
             }
           }
 
         } catch (KettleFileException e) {
-          e.printStackTrace();
-          // TODO: handle the case where we have a file resolution failure
           setJobResultFailed(jobResult);
+          logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.File.Resolution"), e);
         } catch (IOException e) {
-          e.printStackTrace();
-          // TODO: handle the case where we can't load the props file
           setJobResultFailed(jobResult);
+          logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.Props.Loading"), e);
         } catch (OozieClientException e) {
-          e.printStackTrace();
-          // TODO: handle an oozie failure
           setJobResultFailed(jobResult);
+          logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.OozieClient"), e);
         } catch (InterruptedException e) {
-          e.printStackTrace();
-          // TODO: handle thread issue
           setJobResultFailed(jobResult);
+          logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.Threading"), e);
         }
 
       }
@@ -130,6 +160,17 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
 
   @Override
   protected void handleUncaughtThreadException(Thread t, Throwable e, Result jobResult) {
-    // TODO, log the error
+    logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.Generic"), e);
+    setJobResultFailed(jobResult);
   }
+
+
+  public OozieClient getOozieClient() {
+    return new OozieClient(getVariableSpace().environmentSubstitute(jobConfig.getOozieUrl()));
+  }
+
+  public OozieClient getOozieClient(OozieJobExecutorConfig config) {
+    return new OozieClient(getVariableSpace().environmentSubstitute(config.getOozieUrl()));
+  }
+
 }
