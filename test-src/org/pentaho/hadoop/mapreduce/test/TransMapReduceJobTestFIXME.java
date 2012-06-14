@@ -144,7 +144,7 @@ public class TransMapReduceJobTestFIXME {
 
     JobClient jobClient = new JobClient(conf);
     ClusterStatus status = jobClient.getClusterStatus();
-    assertEquals(State.RUNNING, status.getJobTrackerState());
+    assertEquals(State.RUNNING, status.getJobTrackerStatus());
 
     RunningJob runningJob = jobClient.submitJob(conf);
     System.out.print("Running " + runningJob.getJobName() + "");
