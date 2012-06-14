@@ -86,10 +86,10 @@ public class VfsFileChooserHelper {
     FileObject selectedFile = null;
     if(initialFile != null) {
       selectedFile = fileChooserDialog.open(shell, getSchemeRestriction(), getDefaultScheme(), showFileScheme(), initialFile.getName().getPath(),
-          fileFilters, fileFilterNames, fileDialogMode, returnsUserAuthenticatedFileObjects());
+          fileFilters, fileFilterNames, fileDialogMode);
     } else {
       selectedFile = fileChooserDialog.open(shell, getSchemeRestriction(), getDefaultScheme(), showFileScheme(), null, fileFilters, fileFilterNames,
-          fileDialogMode, returnsUserAuthenticatedFileObjects());
+          fileDialogMode);
     }
 
     return selectedFile;
