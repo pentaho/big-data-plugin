@@ -304,6 +304,8 @@ public class OozieJobExecutorJobEntryTest {
     @Override
     public String getGroup() {return null;}
     @Override
+    public String getAcl() {return null;}
+    @Override
     public int getRun() {return 0;}
     @Override
     public String getConsoleUrl() {return null;}
@@ -311,6 +313,8 @@ public class OozieJobExecutorJobEntryTest {
     public String getParentId() {return null;}
     @Override
     public List<WorkflowAction> getActions() {return null;}
+    @Override
+    public String getExternalId() {return null;}
   }
 
 }
