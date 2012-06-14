@@ -36,23 +36,28 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.cassandra.config.ConfigurationException;
 import org.apache.cassandra.db.marshal.AbstractType;
 import org.apache.cassandra.db.marshal.AsciiType;
 import org.apache.cassandra.db.marshal.BooleanType;
+import org.apache.cassandra.db.marshal.CompositeType;
 import org.apache.cassandra.db.marshal.DateType;
 import org.apache.cassandra.db.marshal.DecimalType;
 import org.apache.cassandra.db.marshal.DoubleType;
+import org.apache.cassandra.db.marshal.DynamicCompositeType;
 import org.apache.cassandra.db.marshal.FloatType;
 import org.apache.cassandra.db.marshal.Int32Type;
 import org.apache.cassandra.db.marshal.IntegerType;
 import org.apache.cassandra.db.marshal.LexicalUUIDType;
 import org.apache.cassandra.db.marshal.LongType;
+import org.apache.cassandra.db.marshal.TypeParser;
 import org.apache.cassandra.db.marshal.UTF8Type;
 import org.apache.cassandra.db.marshal.UUIDType;
 import org.apache.cassandra.thrift.CfDef;
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnDef;
 import org.apache.cassandra.thrift.CqlRow;
+import org.apache.cassandra.thrift.KeySlice;
 import org.apache.cassandra.thrift.KsDef;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
@@ -70,7 +75,7 @@ import org.pentaho.di.core.row.ValueMetaInterface;
  */
 public class CassandraColumnMetaData {
   public static final String UTF8 = "UTF-8";
-  public static final String ASCII = "US-ASCII";
+  /* public static final String ASCII = "US-ASCII"; */
   
 //  public static final String CASSANDRA_CQL_DATE_FORMAT = "yyyy-MM-dd HH:mm:ssZ";
   
@@ -118,6 +123,10 @@ public class CassandraColumnMetaData {
     refresh(conn);
   }
   
+  public String getDefaultValidationClass() {
+    return m_defaultValidationClass;
+  }
+  
   /**
    * Refreshes the encapsulated meta data for the column family.
    * 
@@ -150,30 +159,40 @@ public class CassandraColumnMetaData {
         m_columnComparator = fam.getComparator_type(); // column names encoded as
         m_defaultValidationClass = fam.getDefault_validation_class(); // default column type
         m_schemaDescription.append("\n\tKey validator: " 
-            + m_keyValidator.substring(m_keyValidator.lastIndexOf(".")+1, m_keyValidator.length()));
+            + m_keyValidator);
+/*        m_schemaDescription.append("\n\tKey validator: " 
+            + m_keyValidator.substring(m_keyValidator.lastIndexOf(".")+1, m_keyValidator.length())); */
+        
+        /*m_schemaDescription.append("\n\tColumn comparator: " 
+            + m_columnComparator.substring(m_columnComparator.lastIndexOf(".")+1, m_columnComparator.length())); */
+        
         m_schemaDescription.append("\n\tColumn comparator: " 
-            + m_columnComparator.substring(m_columnComparator.lastIndexOf(".")+1, m_columnComparator.length()));
+            + m_columnComparator);
+                
         m_schemaDescription.append("\n\tDefault column validator: " 
+            + m_defaultValidationClass);
+        /*m_schemaDescription.append("\n\tDefault column validator: " 
             + m_defaultValidationClass.substring(m_defaultValidationClass.lastIndexOf(".")+1, 
-                m_defaultValidationClass.length()));
+                m_defaultValidationClass.length())); */
         
         // these seem to have disappeared between 0.8.6 and 1.0.0!
         /*m_schemaDescription.append("\n\tMemtable operations: " + fam.getMemtable_operations_in_millions());
         m_schemaDescription.append("\n\tMemtable throughput: " + fam.getMemtable_throughput_in_mb());
         m_schemaDescription.append("\n\tMemtable flush after: " + fam.getMemtable_flush_after_mins()); */
-        
-        m_schemaDescription.append("\n\tRows cached: " + fam.getRow_cache_size());
-        m_schemaDescription.append("\n\tRow cache save period: " + fam.getRow_cache_save_period_in_seconds());
-        m_schemaDescription.append("\n\tKeys cached: " + fam.getKey_cache_size());
-        m_schemaDescription.append("\n\tKey cached save period: " + fam.getKey_cache_save_period_in_seconds());
+  
+        // these have disappeared between 1.0.8 and 1.1.0!!
+//        m_schemaDescription.append("\n\tRows cached: " + fam.getRow_cache_size());
+//        m_schemaDescription.append("\n\tRow cache save period: " + fam.getRow_cache_save_period_in_seconds());
+//        m_schemaDescription.append("\n\tKeys cached: " + fam.getKey_cache_size());
+//        m_schemaDescription.append("\n\tKey cached save period: " + fam.getKey_cache_save_period_in_seconds());
         m_schemaDescription.append("\n\tRead repair chance: " + fam.getRead_repair_chance());
         m_schemaDescription.append("\n\tGC grace: " + fam.getGc_grace_seconds());
         m_schemaDescription.append("\n\tMin compaction threshold: " + fam.getMin_compaction_threshold());
         m_schemaDescription.append("\n\tMax compaction threshold: " + fam.getMax_compaction_threshold());
         m_schemaDescription.append("\n\tReplicate on write: " + fam.replicate_on_write);
-        String rowCacheP = fam.getRow_cache_provider();
-        m_schemaDescription.append("\n\tRow cache provider: " 
-            + rowCacheP.substring(rowCacheP.lastIndexOf(".")+1, rowCacheP.length()));
+//        String rowCacheP = fam.getRow_cache_provider();
+/*        m_schemaDescription.append("\n\tRow cache provider: " 
+            + rowCacheP.substring(rowCacheP.lastIndexOf(".")+1, rowCacheP.length())); */
         m_schemaDescription.append("\n\n\tColumn metadata:");
         
         colDefs = fam;
@@ -186,13 +205,15 @@ public class CassandraColumnMetaData {
           + m_columnFamilyName + "' in keyspace '" + conn.m_keyspaceName + "'");
     }
     
-    if (m_columnComparator.indexOf("UTF8Type") > 0) {
+    m_columnNameEncoding = m_columnComparator;
+    
+/*    if (m_columnComparator.indexOf("UTF8Type") > 0) {
       m_columnNameEncoding = UTF8;
     } else if (m_columnComparator.indexOf("AsciiType") > 0) {
       m_columnNameEncoding = ASCII;
     } else {
       throw new Exception("Column names are neither UTF-8 or ASCII!");
-    }
+    } */
     
     // set up our meta data map
     m_columnMeta = new TreeMap<String, String>();
@@ -209,16 +230,25 @@ public class CassandraColumnMetaData {
       // for (int i = 0; i < colMetaData.size(); i++) {
       while (colMetaData.hasNext()) {
         ColumnDef currentDef = colMetaData.next();
-        String colName = new String(currentDef.getName(), 
-            Charset.forName(m_columnNameEncoding));
+        ByteBuffer b = ByteBuffer.wrap(currentDef.getName());
+        
+        String colName = getColumnValue(b, m_columnComparator).toString(); 
+        
+        /*String colName = new String(currentDef.getName(), 
+            Charset.forName(m_columnNameEncoding)); */
+        
+        
         //      System.out.println("Col name: " + colName);
         String colType = currentDef.getValidation_class();
         //      System.out.println("Validation (type): " + colType);
         m_columnMeta.put(colName, colType);
         
         m_schemaDescription.append("\n\tColumn name: " + colName);
+        
         m_schemaDescription.append("\n\t\tColumn validator: " 
-            + colType.substring(colType.lastIndexOf(".")+1, colType.length()));
+            + colType);
+        /*m_schemaDescription.append("\n\t\tColumn validator: " 
+            + colType.substring(colType.lastIndexOf(".")+1, colType.length())); */
         String indexName = currentDef.getIndex_name();
         if (!Const.isEmpty(indexName)) {
           m_schemaDescription.append("\n\t\tIndex name: " + currentDef.getIndex_name());
@@ -498,6 +528,71 @@ public class CassandraColumnMetaData {
   }
   
   /**
+   * Encode a string representation of a column name using the
+   * serializer for the default comparator.
+   * 
+   * @param colName the textual column name to serialze
+   * @return a ByteBuffer encapsulating the serialized column name
+   * @throws KettleException if a problem occurs during serialization
+   */
+  public ByteBuffer columnNameToByteBuffer(String colName) 
+    throws KettleException {
+    // TODO
+    
+    AbstractType serializer = null;
+    String fullEncoder = m_columnComparator;
+    String encoder = fullEncoder;
+    
+    // if it's a composite type make sure that we check only against the
+    // primary type
+    if (encoder.indexOf('(') > 0) {
+      encoder = encoder.substring(0, encoder.indexOf('('));
+    }
+    
+    if (encoder.indexOf("UTF8Type") > 0) {
+      serializer = UTF8Type.instance;
+    } else if (encoder.indexOf("AsciiType") > 0) {
+      serializer = AsciiType.instance;
+    } else if (encoder.indexOf("LongType") > 0) {
+      serializer = LongType.instance;      
+    } else if (encoder.indexOf("DoubleType") > 0) {
+      serializer = DoubleType.instance;
+    } else if (encoder.indexOf("DateType") > 0) {
+      serializer = DateType.instance;
+    } else if (encoder.indexOf("IntegerType") > 0) {
+      serializer = IntegerType.instance;
+    }  else if (encoder.indexOf("FloatType") > 0) {
+      serializer = FloatType.instance;      
+    } else if (encoder.indexOf("LexicalUUIDType") > 0) {
+      serializer = LexicalUUIDType.instance;            
+    } else if (encoder.indexOf("UUIDType") > 0) {
+      serializer = UUIDType.instance;      
+    } else if (encoder.indexOf("BooleanType") > 0) {
+      serializer = BooleanType.instance;
+    } else if (encoder.indexOf("Int32Type") > 0) {
+      serializer = Int32Type.instance;      
+    } else if (encoder.indexOf("DecimalType") > 0) {
+      serializer = DecimalType.instance;
+    }  else if (encoder.indexOf("DynamicCompositeType") > 0) {
+      try {
+        serializer = TypeParser.parse(fullEncoder);        
+      } catch (ConfigurationException e) {
+        throw new KettleException(e.getMessage(), e);
+      }
+    } else if (encoder.indexOf("CompositeType") > 0) {
+      try {
+        serializer = TypeParser.parse(fullEncoder);        
+      } catch (ConfigurationException e) {
+        throw new KettleException(e.getMessage(), e);
+      }
+    }
+    
+    ByteBuffer result = serializer.fromString(colName);
+    
+    return result;
+  }
+  
+  /**
    * Encodes and object via serialization
    * 
    * @param obj the object to encode
@@ -546,7 +641,7 @@ public class CassandraColumnMetaData {
     
     int kettleType = 0;
     if (type.indexOf("UTF8Type") > 0 || type.indexOf("AsciiType") > 0 ||
-        type.indexOf("UUIDType") > 0) {
+        type.indexOf("UUIDType") > 0 || type.indexOf("CompositeType") > 0) {
       kettleType = ValueMetaInterface.TYPE_STRING;
     } else if (type.indexOf("LongType") > 0 || type.indexOf("IntegerType") > 0 ||
         type.indexOf("Int32Type") > 0) {
@@ -655,9 +750,35 @@ public class CassandraColumnMetaData {
     return getColumnValue(key, m_keyValidator);
   }
   
-  public String getColumnName(Column aCol) {
-    byte[] colName = aCol.getName();
-    String decodedColName = new String(colName, Charset.forName(m_columnNameEncoding));
+  /**
+   * Return the decoded key value of a row. Assumes that the supplied
+   * row comes from the column family that this meta data represents!!
+   * 
+   * @param row a Cassandra row
+   * @return the decoded key value
+   * @throws KettleException if a deserializer can't be determined
+   */
+  public Object getKeyValue(KeySlice row) throws KettleException {
+    ByteBuffer key = row.bufferForKey();
+    
+    if (m_keyValidator.indexOf("BytesType") > 0) {
+      //return aCol.getValue(); // raw bytes
+      return row.getKey();
+    }
+    
+    return getColumnValue(key, m_keyValidator);
+  }
+  
+  public String getColumnName(Column aCol) throws KettleException {
+  //  byte[] colName = aCol.getName();
+//    ByteBuffer b = ByteBuffer.wrap(colName);
+//    System.out.println("Number of bytes in col name " + colName.length);
+    ByteBuffer b = aCol.bufferForName();
+    
+    String decodedColName = getColumnValue(b, m_columnComparator).toString();
+    //String decodedColName = "A column";
+    
+//    String decodedColName = new String(colName, Charset.forName(m_columnNameEncoding));
     
     // assmue that any columns that are not in the schema contain values that
     // are compatible with the default column validator
@@ -674,7 +795,14 @@ public class CassandraColumnMetaData {
     }
     
     Object result = null;
-    AbstractType deserializer = null;    
+    AbstractType deserializer = null;
+    String fullDecoder = decoder;
+    
+    // if it's a composite type make sure that we check only against the
+    // primary type
+    if (decoder.indexOf('(') > 0) {
+      decoder = decoder.substring(0, decoder.indexOf('('));
+    }
     
     if (decoder.indexOf("UTF8Type") > 0) {
      deserializer = UTF8Type.instance;
@@ -715,10 +843,32 @@ public class CassandraColumnMetaData {
       return result;
     } else if (decoder.indexOf("DecimalType") > 0) {
       deserializer = DecimalType.instance;      
+    } else if (decoder.indexOf("DynamicCompositeType") > 0) {
+      try {
+        deserializer = TypeParser.parse(fullDecoder);
+        
+        // now return the string representation of the composite value
+        result = ((DynamicCompositeType)deserializer).getString(valueBuff);
+        return result;
+      } catch (ConfigurationException e) {
+        throw new KettleException(e.getMessage(), e);
+      }
+    } else if (decoder.indexOf("CompositeType") > 0) {
+      try {
+        deserializer = TypeParser.parse(fullDecoder);        
+/*        System.out.println("********** Deserializer is : " + deserializer.toString());
+        System.out.println("ByteBuffer length " + valueBuff.remaining()); */
+        
+        // now return the string representation of the composite value
+        result = ((CompositeType)deserializer).getString(valueBuff);
+        return result;
+      } catch (ConfigurationException e) {
+        throw new KettleException(e.getMessage(), e);
+      }
     }
     
     if (deserializer == null) {
-      throw new KettleException("Can't find deserializer for type '" + decoder + "'");
+      throw new KettleException("Can't find deserializer for type '" + fullDecoder + "'");
     }
     
     result = deserializer.compose(valueBuff);    
@@ -754,12 +904,17 @@ public class CassandraColumnMetaData {
     
     */
     
+    String fullDecoder = decoder;
+    if (decoder.indexOf('(') > 0) {
+      decoder = decoder.substring(0, decoder.indexOf('('));
+    }
+    
     if (decoder.indexOf("BytesType") > 0) {
       return aCol.getValue(); // raw bytes
     }
     
     ByteBuffer valueBuff = aCol.bufferForValue();
-    Object result = getColumnValue(valueBuff, decoder);
+    Object result = getColumnValue(valueBuff, fullDecoder);
     
     // check for indexed values
     if (m_indexedVals.containsKey(colName)) {
