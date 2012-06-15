@@ -51,6 +51,7 @@
       changing="false" />
     <dependency org="org.apache.pig" name="pig" rev="${dependency.pig.revision}" transitive="false" conf="default->default"
       changing="false"/>
+    <dependency org="org.antlr" name="antlr-runtime" rev="${dependency.antlr.revision}" conf="test->default"/>
     <dependency org="org.apache.sqoop" name="sqoop" rev="${dependency.apache-sqoop.revision}" changing="true" transitive="false"/>
 
     <dependency org="org.apache.oozie" name="oozie-core" rev="${dependency.apache-oozie.revision}" changing="true" transitive="false"/>

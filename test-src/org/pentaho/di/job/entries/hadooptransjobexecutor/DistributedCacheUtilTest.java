@@ -171,8 +171,7 @@ public class DistributedCacheUtilTest {
 
     // Stage files then make sure we can find them in HDFS
     DistributedCacheUtil ch = new DistributedCacheUtil();
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
     HDFSFileSystem.setMockHDFSFileSystem(fs);
 
     // Must use absolute paths so the HDFS VFS FileSystem can resolve the URL properly (can't do relative paths when
@@ -206,8 +205,7 @@ public class DistributedCacheUtilTest {
     // Copy the contents of test folder
     FileObject source = createTestFolderWithContent();
     Path root = new Path("bin/test/stageArchiveForCacheTest");
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
     Path dest = new Path(root, "org/pentaho/mapreduce/");
     try {
       try {
@@ -269,8 +267,7 @@ public class DistributedCacheUtilTest {
       Path root = new Path("bin/test/stageArchiveForCacheTest");
       Path dest = new Path(root, "org/pentaho/mapreduce/");
 
-      Configuration conf = new Configuration();
-      org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+      FileSystem fs = getLocalFilesystem();
 
       stageForCacheTester(ch, source, fs, root, dest, 3, 2);
     } finally {
@@ -278,12 +275,20 @@ public class DistributedCacheUtilTest {
     }
   }
 
+  private FileSystem getLocalFilesystem() throws IOException {
+    Configuration conf = new Configuration();
+    FileSystem fs = FileSystem.getLocal(conf);
+    // Make sure no matter what FileSystem implementation is used across different Hadoop versions we don't write
+    // checksum files that will throw off our file counts
+    fs.setWriteChecksum(false);
+    return fs;
+  }
+
   @Test
   public void stageForCache_missing_source() throws Exception {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     Path dest = new Path("bin/test/bogus-destination");
     FileObject bogusSource = KettleVFS.getFileObject("bogus");
@@ -299,8 +304,7 @@ public class DistributedCacheUtilTest {
   public void stageForCache_destination_no_overwrite() throws Exception {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     FileObject source = createTestFolderWithContent();
     try {
@@ -326,8 +330,7 @@ public class DistributedCacheUtilTest {
   public void stageForCache_destination_exists() throws Exception {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     FileObject source = createTestFolderWithContent();
     try {
@@ -365,8 +368,7 @@ public class DistributedCacheUtilTest {
   public void ispmrInstalledAt() throws IOException {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     Path root = new Path("bin/test/ispmrInstalledAt");
     Path lib = new Path(root, "lib");
@@ -424,8 +426,7 @@ public class DistributedCacheUtilTest {
   public void installKettleEnvironment() throws Exception {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     // This "empty pmr" contains a lib/ folder but with no content
     FileObject pmrArchive = KettleVFS.getFileObject("test-res/empty-pmr.zip");
@@ -446,8 +447,7 @@ public class DistributedCacheUtilTest {
   public void installKettleEnvironment_additional_plugins() throws Exception {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     // This "empty pmr" contains a lib/ folder but with no content
     FileObject pmrArchive = KettleVFS.getFileObject("test-res/empty-pmr.zip");
@@ -471,8 +471,7 @@ public class DistributedCacheUtilTest {
   public void stagePluginsForCache() throws Exception {
     DistributedCacheUtil ch = new DistributedCacheUtil();
 
-    Configuration conf = new Configuration();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(conf);
+    FileSystem fs = getLocalFilesystem();
 
     Path pluginsDir = new Path("bin/test/plugins-installation-dir");
 
