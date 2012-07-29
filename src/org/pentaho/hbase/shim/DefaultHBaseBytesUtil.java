@@ -23,4 +23,8 @@ public class DefaultHBaseBytesUtil implements HBaseBytesUtil {
   public byte[] toBytes(double aDouble) {
     return Bytes.toBytes(aDouble);
   }
+
+  public byte[] toBytesBinary(String value) {
+    return Bytes.toBytesBinary(value);
+  }
 }

@@ -12,6 +12,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.CompareFilter;
@@ -36,6 +37,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   protected HTable m_sourceTable;
   protected Scan m_sourceScan;
   protected ResultScanner m_resultSet;
+  protected Result m_currentResultSetRow;
   protected HTable m_targetTable;
 
   @Override
@@ -136,6 +138,18 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     }
   }
 
+  protected void checkSourceTable() throws Exception {
+    if (m_sourceTable == null) {
+      throw new Exception("No source table has been specified!");
+    }
+  }
+
+  protected void checkSourceScan() throws Exception {
+    if (m_sourceScan == null) {
+      throw new Exception("No scan has been defined!");
+    }
+  }
+
   @Override
   public void createTable(String tableName, List<String> colFamilyNames,
       Properties creationProps) throws Exception {
@@ -157,11 +171,10 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   }
 
   @Override
-  public void newSourceTableScan(byte[] keyLowerBound, byte[] keyUpperBound)
-      throws Exception {
-    if (m_sourceTable == null) {
-      throw new Exception("No source table has been specified!");
-    }
+  public void newSourceTableScan(byte[] keyLowerBound, byte[] keyUpperBound,
+      int cacheSize) throws Exception {
+
+    checkSourceTable();
     closeSourceResultSet();
 
     if (keyLowerBound != null) {
@@ -173,6 +186,25 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     } else {
       m_sourceScan = new Scan();
     }
+
+    if (cacheSize > 0) {
+      m_sourceScan.setCaching(cacheSize);
+    }
+  }
+
+  @Override
+  public void addColumnToScan(String colFamilyName, String colName,
+      boolean colNameIsBinary) throws Exception {
+    if (m_sourceScan == null) {
+      throw new Exception("No scan has been defined!");
+    }
+
+    HBaseBytesUtil bytesUtil = getBytesUtil();
+
+    m_sourceScan.addColumn(
+        bytesUtil.toBytes(colFamilyName),
+        (colNameIsBinary) ? bytesUtil.toBytesBinary(colName) : bytesUtil
+            .toBytes(colName));
   }
 
   /**
@@ -189,9 +221,9 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   @Override
   public void addColumnFilterToScan(ColumnFilter cf, HBaseValueMeta columnMeta,
       VariableSpace vars, boolean matchAny) throws Exception {
-    if (m_sourceScan == null) {
-      throw new Exception("No scan has been defined!");
-    }
+
+    checkSourceScan();
+
     if (m_sourceScan.getFilter() == null) {
       // create a new FilterList
       FilterList fl = new FilterList(
@@ -232,7 +264,6 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     String comparisonString = cf.getConstant().trim();
     comparisonString = vars.environmentSubstitute(comparisonString);
 
-    // TODO
     if (comp != null) {
 
       byte[] comparisonRaw = null;
@@ -356,14 +387,22 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     }
   }
 
+  protected void checkResultSet() throws Exception {
+    if (m_resultSet == null) {
+      throw new Exception("No current result set!");
+    }
+  }
+
+  protected void checkForCurrentResultSetRow() throws Exception {
+    if (m_currentResultSetRow == null) {
+      throw new Exception("At end of result set!");
+    }
+  }
+
   @Override
   public void executeSourceTableScan() throws Exception {
-    if (m_sourceTable == null) {
-      throw new Exception("No source table has been specified!");
-    }
-    if (m_sourceScan == null) {
-      throw new Exception("No scan has been defined!");
-    }
+    checkSourceTable();
+    checkSourceScan();
 
     if (m_sourceScan.getFilter() != null) {
       if (((FilterList) m_sourceScan.getFilter()).getFilters().size() == 0) {
@@ -372,6 +411,42 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     }
 
     m_resultSet = m_sourceTable.getScanner(m_sourceScan);
+  }
+
+  @Override
+  public boolean resultSetNextRow() throws Exception {
+
+    checkResultSet();
+
+    m_currentResultSetRow = m_resultSet.next();
+
+    return (m_currentResultSetRow != null);
+  }
+
+  @Override
+  public byte[] getResultSetCurrentRowKey() throws Exception {
+
+    checkSourceScan();
+    checkResultSet();
+    checkForCurrentResultSetRow();
+
+    return m_currentResultSetRow.getRow();
+  }
+
+  @Override
+  public byte[] getResultSetCurrentRowColumnLatest(String colFamilyName,
+      String colName, boolean colNameIsBinary) throws Exception {
+    checkSourceScan();
+    checkResultSet();
+    checkForCurrentResultSetRow();
+
+    HBaseBytesUtil bytesUtil = getBytesUtil();
+    byte[] result = m_currentResultSetRow.getValue(
+        bytesUtil.toBytes(colFamilyName),
+        colNameIsBinary ? bytesUtil.toBytesBinary(colName) : bytesUtil
+            .toBytes(colName));
+
+    return result;
   }
 
   @Override
@@ -410,6 +485,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     if (m_resultSet != null) {
       m_resultSet.close();
       m_resultSet = null;
+      m_currentResultSetRow = null;
     }
   }
 

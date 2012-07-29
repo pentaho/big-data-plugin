@@ -659,10 +659,12 @@ public class HBaseInput extends BaseStep implements StepInterface {
                 (binaryColName) ? Bytes.toBytesBinary(qualifier) : Bytes
                     .toBytes(qualifier));
 
-            if (kv == null) {
-              logError(BaseMessages.getString(HBaseInputMeta.PKG,
-                  "HBaseInput.Error.UnableToLookupQualifier", qualifier));
-            }
+            // THIS TEST SHOULD NOT HAVE BEEN HERE
+            /*
+             * if (kv == null) {
+             * logError(BaseMessages.getString(HBaseInputMeta.PKG,
+             * "HBaseInput.Error.UnableToLookupQualifier", qualifier)); }
+             */
 
             int outputIndex = m_data.getOutputRowMeta().indexOfValue(
                 currentCol.getAlias());
@@ -673,8 +675,8 @@ public class HBaseInput extends BaseStep implements StepInterface {
                   currentCol.getAlias()));
             }
 
-            Object decodedVal = HBaseValueMeta
-                .decodeColumnValue(kv, currentCol);
+            Object decodedVal = HBaseValueMeta.decodeColumnValue(
+                (kv == null) ? null : kv.getValue(), currentCol);
             outputRowData[outputIndex] = decodedVal;
           }
         }
@@ -727,7 +729,8 @@ public class HBaseInput extends BaseStep implements StepInterface {
                 "HBaseInput.Error.ColumnNotDefinedInOutput", name));
           }
 
-          Object decodedVal = HBaseValueMeta.decodeColumnValue(kv, currentCol);
+          Object decodedVal = HBaseValueMeta.decodeColumnValue(
+              (kv == null) ? null : kv.getValue(), currentCol);
           outputRowData[outputIndex] = decodedVal;
         }
       }

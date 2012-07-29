@@ -56,7 +56,7 @@ public abstract class HBaseAdmin {
   public abstract void newSourceTable(String tableName) throws Exception;
 
   public abstract void newSourceTableScan(byte[] keyLowerBound,
-      byte[] keyUpperBound) throws Exception;
+      byte[] keyUpperBound, int cacheSize) throws Exception;
 
   /**
    * Add a column filter to the list of filters that the scanner will apply to
@@ -72,7 +72,31 @@ public abstract class HBaseAdmin {
       HBaseValueMeta columnMeta, VariableSpace vars, boolean matchAny)
       throws Exception;
 
+  public abstract void addColumnToScan(String colFamilyName, String colName,
+      boolean colNameIsBinary) throws Exception;
+
   public abstract void executeSourceTableScan() throws Exception;
+
+  public abstract boolean resultSetNextRow() throws Exception;
+
+  public abstract byte[] getResultSetCurrentRowKey() throws Exception;
+
+  /**
+   * Gets the value of a column from the current row in the result set
+   * 
+   * @param colFamilyName the name of the column family to look for the column
+   *          in
+   * @param colName the name of the column
+   * @param colNameIsBinary true if the column name is binary
+   * 
+   * @return the value of the column or null if the column is not in the row (or
+   *         in the subset of columns specified in the scan for the current
+   *         row).
+   * @throws Exception if a problem occurs
+   */
+  public abstract byte[] getResultSetCurrentRowColumnLatest(
+      String colFamilyName, String colName, boolean colNameIsBinary)
+      throws Exception;
 
   public abstract void closeSourceTable() throws Exception;
 

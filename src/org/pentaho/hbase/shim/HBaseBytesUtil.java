@@ -12,4 +12,6 @@ public interface HBaseBytesUtil {
 
   byte[] toBytes(double aDouble);
 
+  byte[] toBytesBinary(String value);
+
 }
