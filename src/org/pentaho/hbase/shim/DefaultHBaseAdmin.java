@@ -452,13 +452,43 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   }
 
   @Override
+  public boolean checkForHBaseRow(Object rowToCheck) {
+    return (rowToCheck instanceof Result);
+  }
+
+  @Override
+  public byte[] getRowKey(Object aRow) throws Exception {
+    if (!checkForHBaseRow(aRow)) {
+      throw new Exception("The supplied object is not an HBase row object!");
+    }
+
+    return ((Result) aRow).getRow();
+  }
+
+  @Override
   public byte[] getResultSetCurrentRowKey() throws Exception {
 
     checkSourceScan();
     checkResultSet();
     checkForCurrentResultSetRow();
 
-    return m_currentResultSetRow.getRow();
+    return getRowKey(m_currentResultSetRow);
+  }
+
+  @Override
+  public byte[] getRowColumnLatest(Object aRow, String colFamilyName,
+      String colName, boolean colNameIsBinary) throws Exception {
+
+    if (!checkForHBaseRow(aRow)) {
+      throw new Exception("The supplied object is not an HBase row object!");
+    }
+
+    byte[] result = ((Result) aRow).getValue(
+        m_bytesUtil.toBytes(colFamilyName),
+        colNameIsBinary ? m_bytesUtil.toBytesBinary(colName) : m_bytesUtil
+            .toBytes(colName));
+
+    return result;
   }
 
   @Override
@@ -468,12 +498,19 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     checkResultSet();
     checkForCurrentResultSetRow();
 
-    byte[] result = m_currentResultSetRow.getValue(
-        m_bytesUtil.toBytes(colFamilyName),
-        colNameIsBinary ? m_bytesUtil.toBytesBinary(colName) : m_bytesUtil
-            .toBytes(colName));
+    return getRowColumnLatest(m_currentResultSetRow, colFamilyName, colName,
+        colNameIsBinary);
+  }
 
-    return result;
+  @Override
+  public NavigableMap<byte[], byte[]> getRowFamilyMap(Object aRow,
+      String familyName) throws Exception {
+
+    if (!checkForHBaseRow(aRow)) {
+      throw new Exception("The supplied object is not an HBase row object!");
+    }
+
+    return ((Result) aRow).getFamilyMap(m_bytesUtil.toBytes(familyName));
   }
 
   @Override
@@ -483,16 +520,27 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     checkResultSet();
     checkForCurrentResultSetRow();
 
-    return m_currentResultSetRow.getFamilyMap(m_bytesUtil.toBytes(familyName));
+    return getRowFamilyMap(m_currentResultSetRow, familyName);
   }
 
+  @Override
+  public NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> getRowMap(
+      Object aRow) throws Exception {
+    if (!checkForHBaseRow(aRow)) {
+      throw new Exception("The supplied object is not an HBase row object!");
+    }
+
+    return ((Result) aRow).getMap();
+  }
+
+  @Override
   public NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> getResultSetCurrentRowMap()
       throws Exception {
     checkSourceScan();
     checkResultSet();
     checkForCurrentResultSetRow();
 
-    return m_currentResultSetRow.getMap();
+    return getRowMap(m_currentResultSetRow);
   }
 
   protected void checkTargetTable() throws Exception {

@@ -24,9 +24,6 @@ package org.pentaho.di.trans.steps.hbaserowdecoder;
 
 import java.util.List;
 
-import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
@@ -42,6 +39,7 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.hbase.HBaseRowToKettleTuple;
 import org.pentaho.hbase.mapping.HBaseValueMeta;
 import org.pentaho.hbase.mapping.Mapping;
+import org.pentaho.hbase.shim.HBaseAdmin;
 
 /**
  * Step for decoding incoming HBase Result objects using a supplied mapping. Can
@@ -81,6 +79,8 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
    */
   protected HBaseRowToKettleTuple m_tupleHandler;
 
+  protected HBaseAdmin m_hbAdmin;
+
   @Override
   public boolean processRow(StepMetaInterface smi, StepDataInterface sdi)
       throws KettleException {
@@ -97,6 +97,13 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
       first = false;
       m_meta = (HBaseRowDecoderMeta) smi;
       m_data = (HBaseRowDecoderData) sdi;
+
+      try {
+        m_hbAdmin = HBaseAdmin.createHBaseAdmin();
+      } catch (Exception ex) {
+        // TODO add an i18n error message to the exception
+        throw new KettleException(ex.getMessage(), ex);
+      }
 
       m_tableMapping = m_meta.getMapping();
 
@@ -141,20 +148,25 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
         throw new KettleException(BaseMessages.getString(PKG,
             "HBaseRowDecoder.Error.UnableToFindHBaseRow", inResult));
       }
-      if (!(inputRow[m_resultInIndex] instanceof Result)) {
+      /*
+       * if (!(inputRow[m_resultInIndex] instanceof Result)) { throw new
+       * KettleException(BaseMessages.getString(PKG,
+       * "HBaseRowDecoder.Error.NotResult", m_meta.getIncomingResultField())); }
+       */
+
+      if (!m_hbAdmin.checkForHBaseRow(inputRow[m_resultInIndex])) {
         throw new KettleException(BaseMessages.getString(PKG,
             "HBaseRowDecoder.Error.NotResult", m_meta.getIncomingResultField()));
       }
     }
 
-    // ImmutableBytesWritable key =
-    // (ImmutableBytesWritable)inputRow[m_keyInIndex];
-    Result hRow = (Result) inputRow[m_resultInIndex];
+    /* Result hRow = (Result) inputRow[m_resultInIndex]; */
+    Object hRow = inputRow[m_resultInIndex];
     if (inputRow[m_keyInIndex] != null && hRow != null) {
 
       if (m_tableMapping.isTupleMapping()) {
         List<Object[]> hrowToKettleRow = m_tupleHandler
-            .hbaseRowToKettleTupleMode(hRow, m_tableMapping,
+            .hbaseRowToKettleTupleMode(hRow, m_hbAdmin, m_tableMapping,
                 m_tableMapping.getMappedColumns(), m_data.getOutputRowMeta());
 
         for (Object[] tuple : hrowToKettleRow) {
@@ -165,7 +177,14 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
         Object[] outputRowData = RowDataUtil
             .allocateRowData(m_outputColumns.length + 1); // + 1 for key
 
-        byte[] rowKey = hRow.getRow();
+        // byte[] rowKey = hRow.getRow();
+        byte[] rowKey = null;
+        try {
+          rowKey = m_hbAdmin.getRowKey(hRow);
+        } catch (Exception ex) {
+          // TODO add an i18n error message to the exception
+          throw new KettleException(ex.getMessage(), ex);
+        }
         Object decodedKey = HBaseValueMeta.decodeKeyValue(rowKey,
             m_tableMapping);
         outputRowData[0] = decodedKey;
@@ -176,10 +195,24 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
           String colFamilyName = current.getColumnFamily();
           String qualifier = current.getColumnName();
 
-          KeyValue kv = hRow.getColumnLatest(Bytes.toBytes(colFamilyName),
-              Bytes.toBytes(qualifier));
+          byte[] kv = null;
+          try {
+            kv = m_hbAdmin.getRowColumnLatest(hRow, colFamilyName, qualifier,
+                false);
+          } catch (Exception ex) {
+            // TODO add an i18n error message to the exception
+            throw new KettleException(ex.getMessage(), ex);
+          }
+          /*
+           * KeyValue kv = hRow.getColumnLatest(Bytes.toBytes(colFamilyName),
+           * Bytes.toBytes(qualifier));
+           */
+          /*
+           * Object decodedVal = HBaseValueMeta.decodeColumnValue( (kv == null)
+           * ? null : kv.getValue(), current);
+           */
           Object decodedVal = HBaseValueMeta.decodeColumnValue(
-              (kv == null) ? null : kv.getValue(), current);
+              (kv == null) ? null : kv, current);
           outputRowData[i + 1] = decodedVal;
         }
 

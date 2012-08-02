@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 
-import org.apache.hadoop.hbase.util.Bytes;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
@@ -36,6 +35,7 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hbase.mapping.HBaseValueMeta;
 import org.pentaho.hbase.mapping.Mapping;
 import org.pentaho.hbase.shim.HBaseAdmin;
+import org.pentaho.hbase.shim.HBaseBytesUtil;
 
 /**
  * Class for decoding HBase rows to a <key, family, column, value, time stamp>
@@ -80,6 +80,16 @@ public class HBaseRowToKettleTuple {
 
   protected List<HBaseValueMeta> m_tupleColsFromAliasMap;
 
+  protected HBaseBytesUtil m_bytesUtil;
+
+  public HBaseRowToKettleTuple() {
+    try {
+      m_bytesUtil = HBaseAdmin.getBytesUtil();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+  }
+
   public void reset() {
     m_decodedTuples = null;
 
@@ -106,8 +116,8 @@ public class HBaseRowToKettleTuple {
    * @return a list of Kettle rows in tuple format
    * @throws KettleException if a problem occurs
    */
-  public List<Object[]> hbaseRowToKettleTupleMode(
-  /* Result hRow */HBaseAdmin admin, Mapping mapping,
+  public List<Object[]> hbaseRowToKettleTupleMode(Object hRow,
+      HBaseAdmin admin, Mapping mapping,
       Map<String, HBaseValueMeta> tupleColsMappedByAlias,
       RowMetaInterface outputRowMeta) throws KettleException {
 
@@ -132,8 +142,8 @@ public class HBaseRowToKettleTuple {
      * return hbaseRowToKettleTupleMode(hRow, mapping, m_tupleColsFromAliasMap,
      * outputRowMeta);
      */
-    return hbaseRowToKettleTupleMode(admin, mapping, m_tupleColsFromAliasMap,
-        outputRowMeta);
+    return hbaseRowToKettleTupleMode(hRow, admin, mapping,
+        m_tupleColsFromAliasMap, outputRowMeta);
   }
 
   /**
@@ -147,10 +157,9 @@ public class HBaseRowToKettleTuple {
    * @return a list of Kettle rows in tuple format
    * @throws KettleException if a problem occurs
    */
-  public List<Object[]> hbaseRowToKettleTupleMode(
-  /* Result hRow */HBaseAdmin admin, Mapping mapping,
-      List<HBaseValueMeta> tupleCols, RowMetaInterface outputRowMeta)
-      throws KettleException {
+  public List<Object[]> hbaseRowToKettleTupleMode(Object hRow,
+      HBaseAdmin admin, Mapping mapping, List<HBaseValueMeta> tupleCols,
+      RowMetaInterface outputRowMeta) throws KettleException {
 
     if (m_decodedTuples == null) {
       m_decodedTuples = new ArrayList<Object[]>();
@@ -168,7 +177,7 @@ public class HBaseRowToKettleTuple {
 
         for (String family : familiesS) {
           m_userSpecifiedFamiliesHumanReadable.add(family);
-          m_userSpecifiedFamilies.add(Bytes.toBytes(family.trim()));
+          m_userSpecifiedFamilies.add(m_bytesUtil.toBytes(family.trim()));
         }
       }
     } else {
@@ -178,7 +187,11 @@ public class HBaseRowToKettleTuple {
     /* byte[] rawKey = hRow.getRow(); */
     byte[] rawKey = null;
     try {
-      rawKey = admin.getResultSetCurrentRowKey();
+      if (hRow == null) {
+        rawKey = admin.getResultSetCurrentRowKey();
+      } else {
+        rawKey = admin.getRowKey(hRow);
+      }
     } catch (Exception ex) {
       throw new KettleException(ex);
     }
@@ -186,9 +199,18 @@ public class HBaseRowToKettleTuple {
 
     /*
      * NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>
-     * rowData = hRow .getMap();
+     * rowData = hRow.getMap();
      */
     NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> rowData = null;
+    try {
+      if (hRow == null) {
+        rowData = admin.getResultSetCurrentRowMap();
+      } else {
+        rowData = admin.getRowMap(hRow);
+      }
+    } catch (Exception ex) {
+      throw new KettleException(ex);
+    }
 
     try {
       admin.getResultSetCurrentRowMap();

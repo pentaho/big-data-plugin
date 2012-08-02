@@ -101,7 +101,14 @@ public abstract class HBaseAdmin {
 
   public abstract boolean resultSetNextRow() throws Exception;
 
+  public abstract byte[] getRowKey(Object aRow) throws Exception;
+
   public abstract byte[] getResultSetCurrentRowKey() throws Exception;
+
+  public abstract byte[] getRowColumnLatest(Object aRow, String colFamilyName,
+      String colName, boolean colNameIsBinary) throws Exception;
+
+  public abstract boolean checkForHBaseRow(Object rowToCheck);
 
   /**
    * Gets the value of a column from the current row in the result set
@@ -120,8 +127,14 @@ public abstract class HBaseAdmin {
       String colFamilyName, String colName, boolean colNameIsBinary)
       throws Exception;
 
+  public abstract NavigableMap<byte[], byte[]> getRowFamilyMap(Object aRow,
+      String familyName) throws Exception;
+
   public abstract NavigableMap<byte[], byte[]> getResultSetCurrentRowFamilyMap(
       String familyName) throws Exception;
+
+  public abstract NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> getRowMap(
+      Object aRow) throws Exception;
 
   public abstract NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> getResultSetCurrentRowMap()
       throws Exception;
@@ -157,7 +170,8 @@ public abstract class HBaseAdmin {
    */
   public static HBaseBytesUtil getBytesUtil() throws Exception {
     if (s_bytesUtil == null) {
-      s_bytesUtil = new DefaultHBaseBytesUtil();
+      s_bytesUtil = (HBaseBytesUtil) Class.forName(
+          "org.pentaho.hbase.shim.DefaultHbaseBytesUtil").newInstance();
     }
 
     return s_bytesUtil;

@@ -624,7 +624,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
          */
 
         List<Object[]> hrowToKettleRow = m_tupleHandler
-            .hbaseRowToKettleTupleMode(m_hbAdmin, m_tableMapping,
+            .hbaseRowToKettleTupleMode(null, m_hbAdmin, m_tableMapping,
                 m_userOutputColumns, m_data.getOutputRowMeta());
         for (Object[] tuple : hrowToKettleRow) {
           putRow(m_data.getOutputRowMeta(), tuple);
@@ -708,7 +708,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
          */
 
         List<Object[]> hrowToKettleRow = m_tupleHandler
-            .hbaseRowToKettleTupleMode(m_hbAdmin, m_tableMapping,
+            .hbaseRowToKettleTupleMode(null, m_hbAdmin, m_tableMapping,
                 m_columnsMappedByAlias, m_data.getOutputRowMeta());
 
         for (Object[] tuple : hrowToKettleRow) {
