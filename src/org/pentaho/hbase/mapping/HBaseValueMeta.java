@@ -32,11 +32,12 @@ import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import org.apache.hadoop.hbase.util.Bytes;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.hbase.shim.HBaseAdmin;
+import org.pentaho.hbase.shim.HBaseBytesUtil;
 
 /**
  * Class that extends ValueMeta to add a few fields specific to HBase and a
@@ -66,6 +67,8 @@ public class HBaseValueMeta extends ValueMeta {
   protected String m_columnName;
 
   protected boolean m_isKey;
+
+  protected static HBaseBytesUtil s_bytesUtil;
 
   /**
    * In HBase, for filtering on unsigned columns, we need to know if a number is
@@ -102,6 +105,14 @@ public class HBaseValueMeta extends ValueMeta {
       setAlias(name);
     } else {
       setAlias(parts[2]);
+    }
+
+    try {
+      if (s_bytesUtil == null) {
+        s_bytesUtil = HBaseAdmin.getBytesUtil();
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
     }
   }
 
@@ -376,7 +387,7 @@ public class HBaseValueMeta extends ValueMeta {
     if (keyType == Mapping.KeyType.UNSIGNED_LONG
         || keyType == Mapping.KeyType.UNSIGNED_DATE) {
       if (keyValue == null) {
-        return Bytes.toBytes(0L); // minimum positive long
+        return s_bytesUtil.toBytes(0L); // minimum positive long
       } else {
         long longVal;
         if (keyType == Mapping.KeyType.UNSIGNED_LONG) {
@@ -390,44 +401,44 @@ public class HBaseValueMeta extends ValueMeta {
                   + ", but incoming long/date value is negative.");
         }
 
-        return Bytes.toBytes(longVal);
+        return s_bytesUtil.toBytes(longVal);
       }
     }
 
     if (keyType == Mapping.KeyType.UNSIGNED_INTEGER) {
       if (keyValue == null) {
-        return Bytes.toBytes(0);
+        return s_bytesUtil.toBytes(0);
       } else {
         if (((Number) keyValue).intValue() < 0) {
           throw new KettleException(
               "Key for mapping is UNSIGNED_INTEGER, but incoming "
                   + "integer value is negative.");
         }
-        return Bytes.toBytes(((Number) keyValue).intValue());
+        return s_bytesUtil.toBytes(((Number) keyValue).intValue());
       }
     }
 
     if (keyType == Mapping.KeyType.INTEGER) {
       if (keyValue == null) {
-        return Bytes.toBytes(0);
+        return s_bytesUtil.toBytes(0);
       } else {
         int bound = ((Number) keyValue).intValue();
         // to ensure correct sort order we need to flip the sign bit
         bound ^= (1 << 31);
-        return Bytes.toBytes(bound);
+        return s_bytesUtil.toBytes(bound);
       }
     }
 
     if (keyType == Mapping.KeyType.LONG || keyType == Mapping.KeyType.DATE) {
       if (keyValue == null) {
-        return Bytes.toBytes(0L);
+        return s_bytesUtil.toBytes(0L);
       } else {
         long bound = (keyType == Mapping.KeyType.DATE) ? ((Date) keyValue)
             .getTime() : ((Number) keyValue).longValue();
 
         // to ensure correct sort order we need to flip the sign bit
         bound ^= (1L << 63);
-        return Bytes.toBytes(bound);
+        return s_bytesUtil.toBytes(bound);
       }
     }
 
@@ -451,9 +462,9 @@ public class HBaseValueMeta extends ValueMeta {
 
     if (keyType == Mapping.KeyType.STRING) {
       if (Const.isEmpty(keyValue)) {
-        return Bytes.toBytes("");
+        return s_bytesUtil.toBytes("");
       } else {
-        return Bytes.toBytes(keyValue);
+        return s_bytesUtil.toBytes(keyValue);
       }
     }
 
@@ -463,13 +474,13 @@ public class HBaseValueMeta extends ValueMeta {
       }
 
       // assume we've been given a hex encoded string
-      return Bytes.toBytesBinary(keyValue);
+      return s_bytesUtil.toBytesBinary(keyValue);
     }
 
     if (keyType == Mapping.KeyType.UNSIGNED_LONG
         || keyType == Mapping.KeyType.UNSIGNED_DATE) {
       if (Const.isEmpty(keyValue)) {
-        return Bytes.toBytes(0L); // minimum positive long
+        return s_bytesUtil.toBytes(0L); // minimum positive long
       } else {
         if (keyType == Mapping.KeyType.UNSIGNED_DATE) {
           throw new KettleException(
@@ -477,32 +488,32 @@ public class HBaseValueMeta extends ValueMeta {
                   + "no format available");
         }
 
-        return Bytes.toBytes(Long.parseLong(keyValue));
+        return s_bytesUtil.toBytes(Long.parseLong(keyValue));
       }
     }
 
     if (keyType == Mapping.KeyType.UNSIGNED_INTEGER) {
       if (Const.isEmpty(keyValue)) {
-        return Bytes.toBytes(0);
+        return s_bytesUtil.toBytes(0);
       } else {
-        return Bytes.toBytes(Integer.parseInt(keyValue));
+        return s_bytesUtil.toBytes(Integer.parseInt(keyValue));
       }
     }
 
     if (keyType == Mapping.KeyType.INTEGER) {
       if (Const.isEmpty(keyValue)) {
-        return Bytes.toBytes(0);
+        return s_bytesUtil.toBytes(0);
       } else {
         int bound = Integer.parseInt(keyValue);
         // to ensure correct sort order we need to flip the sign bit
         bound ^= (1 << 31);
-        return Bytes.toBytes(bound);
+        return s_bytesUtil.toBytes(bound);
       }
     }
 
     if (keyType == Mapping.KeyType.LONG || keyType == Mapping.KeyType.DATE) {
       if (Const.isEmpty(keyValue)) {
-        return Bytes.toBytes(0L);
+        return s_bytesUtil.toBytes(0L);
       } else {
         if (keyType == Mapping.KeyType.DATE) {
           throw new KettleException(
@@ -513,7 +524,7 @@ public class HBaseValueMeta extends ValueMeta {
         long bound = Long.parseLong(keyValue);
         // to ensure correct sort order we need to flip the sign bit
         bound ^= (1L << 63);
-        return Bytes.toBytes(bound);
+        return s_bytesUtil.toBytes(bound);
       }
     }
 
@@ -543,30 +554,30 @@ public class HBaseValueMeta extends ValueMeta {
     }
 
     if (keyType == Mapping.KeyType.STRING) {
-      return Bytes.toString(rawKey);
+      return s_bytesUtil.toString(rawKey);
     }
 
     if (keyType == Mapping.KeyType.UNSIGNED_LONG
         || keyType == Mapping.KeyType.UNSIGNED_DATE) {
       if (keyType == Mapping.KeyType.UNSIGNED_DATE) {
-        return new Date(Bytes.toLong(rawKey));
+        return new Date(s_bytesUtil.toLong(rawKey));
       }
-      return new Long(Bytes.toLong(rawKey));
+      return new Long(s_bytesUtil.toLong(rawKey));
     }
 
     if (keyType == Mapping.KeyType.UNSIGNED_INTEGER) {
-      return new Long(Bytes.toInt(rawKey));
+      return new Long(s_bytesUtil.toInt(rawKey));
     }
 
     if (keyType == Mapping.KeyType.INTEGER) {
-      int tempInt = Bytes.toInt(rawKey);
+      int tempInt = s_bytesUtil.toInt(rawKey);
       // flip the sign bit
       tempInt ^= (1 << 31);
       return new Long(tempInt); // Kettle uses longs
     }
 
     if (keyType == Mapping.KeyType.LONG || keyType == Mapping.KeyType.DATE) {
-      long tempLong = Bytes.toLong(rawKey);
+      long tempLong = s_bytesUtil.toLong(rawKey);
       // flip the sign bit
       tempLong ^= (1L << 63);
 
@@ -588,37 +599,37 @@ public class HBaseValueMeta extends ValueMeta {
     switch (mappingColMeta.getType()) {
     case TYPE_STRING:
       String toEncode = colMeta.getString(columnValue);
-      encoded = Bytes.toBytes(toEncode);
+      encoded = s_bytesUtil.toBytes(toEncode);
       break;
     case TYPE_INTEGER:
       Long l = colMeta.getInteger(columnValue);
       if (mappingColMeta.getIsLongOrDouble()) {
-        encoded = Bytes.toBytes(l.longValue());
+        encoded = s_bytesUtil.toBytes(l.longValue());
       } else {
-        encoded = Bytes.toBytes(l.intValue());
+        encoded = s_bytesUtil.toBytes(l.intValue());
       }
       break;
     case TYPE_NUMBER:
       Double d = colMeta.getNumber(columnValue);
       if (mappingColMeta.getIsLongOrDouble()) {
-        encoded = Bytes.toBytes(d.doubleValue());
+        encoded = s_bytesUtil.toBytes(d.doubleValue());
       } else {
-        encoded = Bytes.toBytes(d.floatValue());
+        encoded = s_bytesUtil.toBytes(d.floatValue());
       }
       break;
     case TYPE_DATE:
       Date date = colMeta.getDate(columnValue);
-      encoded = Bytes.toBytes(date.getTime());
+      encoded = s_bytesUtil.toBytes(date.getTime());
       break;
     case TYPE_BOOLEAN:
       Boolean b = colMeta.getBoolean(columnValue);
       String boolString = (b.booleanValue()) ? "Y" : "N";
-      encoded = Bytes.toBytes(boolString);
+      encoded = s_bytesUtil.toBytes(boolString);
       break;
     case TYPE_BIGNUMBER:
       BigDecimal bd = colMeta.getBigNumber(columnValue);
       String bds = bd.toString();
-      encoded = Bytes.toBytes(bds);
+      encoded = s_bytesUtil.toBytes(bds);
       break;
     case TYPE_SERIALIZABLE:
       try {
@@ -657,7 +668,7 @@ public class HBaseValueMeta extends ValueMeta {
     }
 
     if (columnMeta.isString()) {
-      String convertedString = Bytes.toString(rawColValue);
+      String convertedString = s_bytesUtil.toString(rawColValue);
       if (columnMeta.getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED) {
         // need to return the integer index of this value
         Object[] legalVals = columnMeta.getIndex();
@@ -681,30 +692,30 @@ public class HBaseValueMeta extends ValueMeta {
     }
 
     if (columnMeta.isNumber()) {
-      if (rawColValue.length == Bytes.SIZEOF_FLOAT) {
-        float floatResult = Bytes.toFloat(rawColValue);
+      if (rawColValue.length == s_bytesUtil.getSizeOfFloat()) {
+        float floatResult = s_bytesUtil.toFloat(rawColValue);
         return new Double(floatResult);
       }
 
-      if (rawColValue.length == Bytes.SIZEOF_DOUBLE) {
-        return new Double(Bytes.toDouble(rawColValue));
+      if (rawColValue.length == s_bytesUtil.getSizeOfDouble()) {
+        return new Double(s_bytesUtil.toDouble(rawColValue));
       }
     }
 
     if (columnMeta.isInteger()) {
-      if (rawColValue.length == Bytes.SIZEOF_INT) {
-        int intResult = Bytes.toInt(rawColValue);
+      if (rawColValue.length == s_bytesUtil.getSizeOfInt()) {
+        int intResult = s_bytesUtil.toInt(rawColValue);
         return new Long(intResult);
       }
 
-      if (rawColValue.length == Bytes.SIZEOF_LONG) {
-        return new Long(Bytes.toLong(rawColValue));
+      if (rawColValue.length == s_bytesUtil.getSizeOfLong()) {
+        return new Long(s_bytesUtil.toLong(rawColValue));
       }
-      if (rawColValue.length == Bytes.SIZEOF_SHORT) {
+      if (rawColValue.length == s_bytesUtil.getSizeOfShort()) {
         // be lenient on reading from HBase - accept and convert shorts
         // even though our mapping defines only longs and integers
         // TODO add short to the types that can be mapped?
-        short tempShort = Bytes.toShort(rawColValue);
+        short tempShort = s_bytesUtil.toShort(rawColValue);
         return new Long(tempShort);
       }
 
@@ -755,11 +766,11 @@ public class HBaseValueMeta extends ValueMeta {
     }
 
     if (columnMeta.isDate()) {
-      if (rawColValue.length != Bytes.SIZEOF_LONG) {
+      if (rawColValue.length != s_bytesUtil.getSizeOfLong()) {
         throw new KettleException("Length of date column value must equal "
             + "to the length of a long!");
       }
-      long millis = Bytes.toLong(rawColValue);
+      long millis = s_bytesUtil.toLong(rawColValue);
       Date d = new Date(millis);
       return d;
     }
@@ -798,7 +809,7 @@ public class HBaseValueMeta extends ValueMeta {
   public static BigDecimal decodeBigDecimal(byte[] rawEncoded) {
 
     // try string first
-    String tempString = Bytes.toString(rawEncoded);
+    String tempString = s_bytesUtil.toString(rawEncoded);
     try {
       BigDecimal result = new BigDecimal(tempString);
       return result;

@@ -22,16 +22,16 @@
 
 package org.pentaho.di.trans.steps.hbaseinput;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.Properties;
 
-import org.apache.hadoop.conf.Configuration;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
+import org.pentaho.hbase.shim.HBaseAdmin;
 
 /**
  * Class providing an input step for reading data from an HBase table according
@@ -66,6 +66,22 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
     m_outputRowMeta = rmi;
   }
 
+  public static HBaseAdmin getHBaseConnection(String zookeeperHosts,
+      String zookeeperPort, String siteConfig, String defaultConfig,
+      List<String> logging) throws Exception {
+
+    Properties connProps = new Properties();
+    connProps.setProperty(HBaseAdmin.ZOOKEEPER_QUORUM_KEY, zookeeperHosts);
+    connProps.setProperty(HBaseAdmin.ZOOKEEPER_PORT_KEY, zookeeperPort);
+    connProps.setProperty(HBaseAdmin.SITE_KEY, siteConfig);
+    connProps.setProperty(HBaseAdmin.DEFAULTS_KEY, defaultConfig);
+
+    HBaseAdmin admin = HBaseAdmin.createHBaseAdmin();
+    admin.configureConnection(connProps, logging);
+
+    return admin;
+  }
+
   /**
    * Get a configured connection to HBase. A connection can be obtained via a
    * list of host(s) that zookeeper is running on or via the hbase-site.xml (and
@@ -80,42 +96,29 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
    * @return a Configuration object that can be used ot access HBase.
    * @throws IOException if a problem occurs.
    */
-  public static Configuration getHBaseConnection(String zookeeperHosts,
-      String zookeeperPort, URL coreConfig, URL defaultConfig)
-      throws IOException {
-    Configuration con = new Configuration();
-
-    if (defaultConfig != null) {
-      con.addResource(defaultConfig);
-    } else {
-      // hopefully it's in the classpath
-      con.addResource("hbase-default.xml");
-    }
-
-    if (coreConfig != null) {
-      con.addResource(coreConfig);
-    } else {
-      // hopefully it's in the classpath
-      con.addResource("hbase-site.xml");
-    }
-
-    if (!Const.isEmpty(zookeeperHosts)) {
-      // override default and site with this
-      con.set("hbase.zookeeper.quorum", zookeeperHosts);
-    }
-
-    if (!Const.isEmpty(zookeeperPort)) {
-      try {
-        int port = Integer.parseInt(zookeeperPort);
-        con.setInt("hbase.zookeeper.property.clientPort", port);
-      } catch (NumberFormatException e) {
-        System.err.println(BaseMessages.getString(HBaseInputMeta.PKG,
-            "HBaseInput.Error.UnableToParseZookeeperPort"));
-      }
-    }
-
-    return con;
-  }
+  /*
+   * public static Configuration getHBaseConnection(String zookeeperHosts,
+   * String zookeeperPort, URL coreConfig, URL defaultConfig) throws IOException
+   * { Configuration con = new Configuration();
+   * 
+   * if (defaultConfig != null) { con.addResource(defaultConfig); } else { //
+   * hopefully it's in the classpath con.addResource("hbase-default.xml"); }
+   * 
+   * if (coreConfig != null) { con.addResource(coreConfig); } else { //
+   * hopefully it's in the classpath con.addResource("hbase-site.xml"); }
+   * 
+   * if (!Const.isEmpty(zookeeperHosts)) { // override default and site with
+   * this con.set("hbase.zookeeper.quorum", zookeeperHosts); }
+   * 
+   * if (!Const.isEmpty(zookeeperPort)) { try { int port =
+   * Integer.parseInt(zookeeperPort);
+   * con.setInt("hbase.zookeeper.property.clientPort", port); } catch
+   * (NumberFormatException e) {
+   * System.err.println(BaseMessages.getString(HBaseInputMeta.PKG,
+   * "HBaseInput.Error.UnableToParseZookeeperPort")); } }
+   * 
+   * return con; }
+   */
 
   /**
    * Utility method to covert a string to a URL object.

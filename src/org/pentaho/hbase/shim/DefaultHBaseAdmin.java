@@ -5,13 +5,17 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.NavigableMap;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
@@ -39,6 +43,9 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   protected ResultScanner m_resultSet;
   protected Result m_currentResultSetRow;
   protected HTable m_targetTable;
+  protected Put m_currentTargetPut;
+
+  protected HBaseBytesUtil m_bytesUtil;
 
   @Override
   public void configureConnection(Properties connProps, List<String> logMessages)
@@ -49,20 +56,18 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     String zookeeperQuorum = connProps.getProperty(ZOOKEEPER_QUORUM_KEY);
     String zookeeperPort = connProps.getProperty(ZOOKEEPER_PORT_KEY);
 
-    if ((isEmpty(defaultConfig) && isEmpty(siteConfig))
-        || (isEmpty(zookeeperQuorum))) {
-      throw new IllegalArgumentException(
-          "Not enough connection details supplied!");
-    }
-
     m_config = new Configuration();
     try {
       if (!isEmpty(defaultConfig)) {
         m_config.addResource(stringToURL(defaultConfig));
+      } else {
+        m_config.addResource("hbase-default.xml");
       }
 
       if (!isEmpty(siteConfig)) {
         m_config.addResource(stringToURL(siteConfig));
+      } else {
+        m_config.addResource("hbase-site.xml");
       }
     } catch (MalformedURLException e) {
       throw new IllegalArgumentException(
@@ -83,6 +88,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     }
 
     m_admin = new org.apache.hadoop.hbase.client.HBaseAdmin(m_config);
+    m_bytesUtil = getBytesUtil();
   }
 
   @Override
@@ -97,6 +103,21 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   @Override
   public void disableTable(String tableName) throws Exception {
     m_admin.disableTable(tableName);
+  }
+
+  @Override
+  public void enableTable(String tableName) throws Exception {
+    m_admin.enableTable(tableName);
+  }
+
+  @Override
+  public boolean isTableDisabled(String tableName) throws Exception {
+    return m_admin.isTableDisabled(tableName);
+  }
+
+  @Override
+  public boolean isTableAvailable(String tableName) throws Exception {
+    return m_admin.isTableAvailable(tableName);
   }
 
   @Override
@@ -171,6 +192,16 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   }
 
   @Override
+  public boolean sourceTableRowExists(byte[] rowKey) throws Exception {
+
+    checkSourceTable();
+    Get g = new Get(rowKey);
+    Result r = m_sourceTable.get(g);
+
+    return (!r.isEmpty());
+  }
+
+  @Override
   public void newSourceTableScan(byte[] keyLowerBound, byte[] keyUpperBound,
       int cacheSize) throws Exception {
 
@@ -199,11 +230,9 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
       throw new Exception("No scan has been defined!");
     }
 
-    HBaseBytesUtil bytesUtil = getBytesUtil();
-
     m_sourceScan.addColumn(
-        bytesUtil.toBytes(colFamilyName),
-        (colNameIsBinary) ? bytesUtil.toBytesBinary(colName) : bytesUtil
+        m_bytesUtil.toBytes(colFamilyName),
+        (colNameIsBinary) ? m_bytesUtil.toBytesBinary(colName) : m_bytesUtil
             .toBytes(colName));
   }
 
@@ -234,10 +263,9 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
     FilterList fl = (FilterList) m_sourceScan.getFilter();
 
-    HBaseBytesUtil bytesUtil = getBytesUtil();
     CompareFilter.CompareOp comp = null;
-    byte[] family = bytesUtil.toBytes(columnMeta.getColumnFamily());
-    byte[] qualifier = bytesUtil.toBytes(columnMeta.getColumnName());
+    byte[] family = m_bytesUtil.toBytes(columnMeta.getColumnFamily());
+    byte[] qualifier = m_bytesUtil.toBytes(columnMeta.getColumnName());
     ColumnFilter.ComparisonType op = cf.getComparisonOperator();
 
     switch (op) {
@@ -282,15 +310,15 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
         if (columnMeta.isInteger()) {
           if (!columnMeta.getIsLongOrDouble()) {
-            comparisonRaw = bytesUtil.toBytes(num.intValue());
+            comparisonRaw = m_bytesUtil.toBytes(num.intValue());
           } else {
-            comparisonRaw = bytesUtil.toBytes(num.longValue());
+            comparisonRaw = m_bytesUtil.toBytes(num.longValue());
           }
         } else {
           if (!columnMeta.getIsLongOrDouble()) {
-            comparisonRaw = bytesUtil.toBytes(num.floatValue());
+            comparisonRaw = m_bytesUtil.toBytes(num.floatValue());
           } else {
-            comparisonRaw = bytesUtil.toBytes(num.doubleValue());
+            comparisonRaw = m_bytesUtil.toBytes(num.doubleValue());
           }
         }
 
@@ -338,7 +366,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
         long dateAsMillis = d.getTime();
         if (!cf.getSignedComparison()) {
-          comparisonRaw = bytesUtil.toBytes(dateAsMillis);
+          comparisonRaw = m_bytesUtil.toBytes(dateAsMillis);
 
           SingleColumnValueFilter scf = new SingleColumnValueFilter(family,
               qualifier, comp, comparisonRaw);
@@ -357,7 +385,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
         // temporarily encode it so that we can use the utility routine in
         // HBaseValueMeta
-        byte[] tempEncoded = bytesUtil.toBytes(comparisonString);
+        byte[] tempEncoded = m_bytesUtil.toBytes(comparisonString);
         Boolean decodedB = HBaseValueMeta.decodeBoolFromString(tempEncoded);
         // skip if we can't parse the comparison value
         if (decodedB == null) {
@@ -440,13 +468,43 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
     checkResultSet();
     checkForCurrentResultSetRow();
 
-    HBaseBytesUtil bytesUtil = getBytesUtil();
     byte[] result = m_currentResultSetRow.getValue(
-        bytesUtil.toBytes(colFamilyName),
-        colNameIsBinary ? bytesUtil.toBytesBinary(colName) : bytesUtil
+        m_bytesUtil.toBytes(colFamilyName),
+        colNameIsBinary ? m_bytesUtil.toBytesBinary(colName) : m_bytesUtil
             .toBytes(colName));
 
     return result;
+  }
+
+  @Override
+  public NavigableMap<byte[], byte[]> getResultSetCurrentRowFamilyMap(
+      String familyName) throws Exception {
+    checkSourceScan();
+    checkResultSet();
+    checkForCurrentResultSetRow();
+
+    return m_currentResultSetRow.getFamilyMap(m_bytesUtil.toBytes(familyName));
+  }
+
+  public NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> getResultSetCurrentRowMap()
+      throws Exception {
+    checkSourceScan();
+    checkResultSet();
+    checkForCurrentResultSetRow();
+
+    return m_currentResultSetRow.getMap();
+  }
+
+  protected void checkTargetTable() throws Exception {
+    if (m_targetTable == null) {
+      throw new Exception("No target table has been specified!");
+    }
+  }
+
+  protected void checkTargetPut() throws Exception {
+    if (m_currentTargetPut == null) {
+      throw new Exception("No current target table put available!");
+    }
   }
 
   @Override
@@ -470,12 +528,58 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   }
 
   @Override
+  public void newTargetTablePut(byte[] key, boolean writeToWAL)
+      throws Exception {
+    checkTargetTable();
+
+    m_currentTargetPut = new Put(key);
+    m_currentTargetPut.setWriteToWAL(writeToWAL);
+  }
+
+  @Override
+  public void executeTargetTablePut() throws Exception {
+    checkTargetTable();
+    checkTargetPut();
+
+    m_targetTable.put(m_currentTargetPut);
+  }
+
+  @Override
+  public void executeTargetTableDelete(byte[] rowKey) throws Exception {
+    checkTargetTable();
+
+    Delete d = new Delete(rowKey);
+    m_targetTable.delete(d);
+  }
+
+  @Override
+  public void flushCommitsTargetTable() throws Exception {
+    checkTargetTable();
+
+    m_targetTable.flushCommits();
+  }
+
+  @Override
+  public void addColumnToTargetPut(String columnFamily, String columnName,
+      boolean colNameIsBinary, byte[] colValue) throws Exception {
+
+    checkTargetTable();
+    checkTargetPut();
+
+    m_currentTargetPut.add(
+        m_bytesUtil.toBytes(columnFamily),
+        colNameIsBinary ? m_bytesUtil.toBytesBinary(columnName) : m_bytesUtil
+            .toBytes(columnName), colValue);
+  }
+
+  @Override
   public void closeTargetTable() throws Exception {
     if (m_targetTable != null) {
       if (!m_targetTable.isAutoFlush()) {
-        m_targetTable.flushCommits();
+        flushCommitsTargetTable();
       }
       m_targetTable.close();
+      m_targetTable = null;
     }
   }
 

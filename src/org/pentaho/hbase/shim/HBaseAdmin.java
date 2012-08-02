@@ -3,6 +3,7 @@ package org.pentaho.hbase.shim;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.NavigableMap;
 import java.util.Properties;
 
 import org.pentaho.di.core.variables.VariableSpace;
@@ -46,17 +47,38 @@ public abstract class HBaseAdmin {
 
   public abstract boolean tableExists(String tableName) throws Exception;
 
+  public abstract boolean isTableDisabled(String tableName) throws Exception;
+
+  public abstract boolean isTableAvailable(String tableName) throws Exception;
+
   public abstract void disableTable(String tableName) throws Exception;
 
+  public abstract void enableTable(String tableName) throws Exception;
+
   public abstract void deleteTable(String tableName) throws Exception;
+
+  public abstract void executeTargetTableDelete(byte[] rowKey) throws Exception;
 
   public abstract void createTable(String tableName,
       List<String> colFamilyNames, Properties creationProps) throws Exception;
 
   public abstract void newSourceTable(String tableName) throws Exception;
 
+  public abstract boolean sourceTableRowExists(byte[] rowKey) throws Exception;
+
   public abstract void newSourceTableScan(byte[] keyLowerBound,
       byte[] keyUpperBound, int cacheSize) throws Exception;
+
+  public abstract void newTargetTablePut(byte[] key, boolean writeToWAL)
+      throws Exception;
+
+  public abstract void executeTargetTablePut() throws Exception;
+
+  public abstract void flushCommitsTargetTable() throws Exception;
+
+  public abstract void addColumnToTargetPut(String columnFamily,
+      String columnName, boolean colNameIsBinary, byte[] colValue)
+      throws Exception;
 
   /**
    * Add a column filter to the list of filters that the scanner will apply to
@@ -98,6 +120,12 @@ public abstract class HBaseAdmin {
       String colFamilyName, String colName, boolean colNameIsBinary)
       throws Exception;
 
+  public abstract NavigableMap<byte[], byte[]> getResultSetCurrentRowFamilyMap(
+      String familyName) throws Exception;
+
+  public abstract NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> getResultSetCurrentRowMap()
+      throws Exception;
+
   public abstract void closeSourceTable() throws Exception;
 
   public abstract void closeSourceResultSet() throws Exception;
@@ -117,7 +145,8 @@ public abstract class HBaseAdmin {
    */
   public static HBaseAdmin createHBaseAdmin() throws Exception {
 
-    return new DefaultHBaseAdmin();
+    return (HBaseAdmin) Class.forName(
+        "org.pentaho.hbase.shim.DefaultHBaseAdmin").newInstance();
   }
 
   /**
