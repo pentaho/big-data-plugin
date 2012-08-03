@@ -42,8 +42,8 @@ import org.pentaho.hbase.mapping.Mapping;
 import org.pentaho.hbase.shim.HBaseAdmin;
 
 /**
- * Step for decoding incoming HBase Result objects using a supplied mapping. Can
- * be used in a Hadoop MR job for processing tables split by
+ * Step for decoding incoming HBase row objects using a supplied mapping. Can be
+ * used in a Hadoop MR job for processing tables split by
  * org.pentaho.hbase.mapred.PentahoTableInputFormat (see the javadoc for this
  * class for properties that can be set in the job to control the query)
  * 
@@ -100,6 +100,10 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
 
       try {
         m_hbAdmin = HBaseAdmin.createHBaseAdmin();
+
+        // no configuration needed here because we don't need access to the
+        // actual database, just a few utility routines from HBaseAdmin for
+        // decoding row objects handed to us by the table input format
       } catch (Exception ex) {
         // TODO add an i18n error message to the exception
         throw new KettleException(ex.getMessage(), ex);

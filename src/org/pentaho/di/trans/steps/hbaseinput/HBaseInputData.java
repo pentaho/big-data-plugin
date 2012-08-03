@@ -71,10 +71,18 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
       List<String> logging) throws Exception {
 
     Properties connProps = new Properties();
-    connProps.setProperty(HBaseAdmin.ZOOKEEPER_QUORUM_KEY, zookeeperHosts);
-    connProps.setProperty(HBaseAdmin.ZOOKEEPER_PORT_KEY, zookeeperPort);
-    connProps.setProperty(HBaseAdmin.SITE_KEY, siteConfig);
-    connProps.setProperty(HBaseAdmin.DEFAULTS_KEY, defaultConfig);
+    if (!Const.isEmpty(zookeeperHosts)) {
+      connProps.setProperty(HBaseAdmin.ZOOKEEPER_QUORUM_KEY, zookeeperHosts);
+    }
+    if (!Const.isEmpty(zookeeperPort)) {
+      connProps.setProperty(HBaseAdmin.ZOOKEEPER_PORT_KEY, zookeeperPort);
+    }
+    if (!Const.isEmpty(siteConfig)) {
+      connProps.setProperty(HBaseAdmin.SITE_KEY, siteConfig);
+    }
+    if (!Const.isEmpty(defaultConfig)) {
+      connProps.setProperty(HBaseAdmin.DEFAULTS_KEY, defaultConfig);
+    }
 
     HBaseAdmin admin = HBaseAdmin.createHBaseAdmin();
     admin.configureConnection(connProps, logging);

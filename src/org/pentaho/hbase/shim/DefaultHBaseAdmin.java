@@ -1,8 +1,32 @@
+/*******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2012 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
 package org.pentaho.hbase.shim;
 
 import java.net.MalformedURLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.NavigableMap;
@@ -83,46 +107,97 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
         int port = Integer.parseInt(zookeeperPort);
         m_config.setInt(ZOOKEEPER_PORT_KEY, port);
       } catch (NumberFormatException e) {
-        logMessages.add("Unable to parse zookeeper port - using default");
+        if (logMessages != null) {
+          logMessages.add("Unable to parse zookeeper port - using default");
+        }
       }
     }
 
-    m_admin = new org.apache.hadoop.hbase.client.HBaseAdmin(m_config);
     m_bytesUtil = getBytesUtil();
+    m_admin = new org.apache.hadoop.hbase.client.HBaseAdmin(m_config);
+  }
+
+  protected void checkConfiguration() throws Exception {
+    if (m_admin == null) {
+      throw new Exception("Connection has not been configured yet");
+    }
+  }
+
+  @Override
+  public void checkHBaseAvailable() throws Exception {
+    checkConfiguration();
+
+    m_admin.checkHBaseAvailable(m_config);
+  }
+
+  @Override
+  public List<String> listTableNames() throws Exception {
+    checkConfiguration();
+
+    HTableDescriptor[] tables = m_admin.listTables();
+    List<String> tableNames = new ArrayList<String>();
+    for (HTableDescriptor h : tables) {
+      tableNames.add(h.getNameAsString());
+    }
+
+    return tableNames;
   }
 
   @Override
   public boolean tableExists(String tableName) throws Exception {
-    if (m_admin == null) {
-      throw new Exception("Connection has not been configured yet");
-    }
+    checkConfiguration();
 
     return m_admin.tableExists(tableName);
   }
 
   @Override
   public void disableTable(String tableName) throws Exception {
+    checkConfiguration();
+
     m_admin.disableTable(tableName);
   }
 
   @Override
   public void enableTable(String tableName) throws Exception {
+    checkConfiguration();
+
     m_admin.enableTable(tableName);
   }
 
   @Override
   public boolean isTableDisabled(String tableName) throws Exception {
+    checkConfiguration();
+
     return m_admin.isTableDisabled(tableName);
   }
 
   @Override
   public boolean isTableAvailable(String tableName) throws Exception {
+    checkConfiguration();
+
     return m_admin.isTableAvailable(tableName);
   }
 
   @Override
   public void deleteTable(String tableName) throws Exception {
+    checkConfiguration();
+
     m_admin.deleteTable(tableName);
+  }
+
+  @Override
+  public List<String> getTableFamiles(String tableName) throws Exception {
+    checkConfiguration();
+
+    HTableDescriptor descriptor = m_admin.getTableDescriptor(m_bytesUtil
+        .toBytes(tableName));
+    Collection<HColumnDescriptor> families = descriptor.getFamilies();
+    List<String> famList = new ArrayList<String>();
+    for (HColumnDescriptor h : families) {
+      famList.add(h.getNameAsString());
+    }
+
+    return famList;
   }
 
   protected void configureColumnDescriptor(HColumnDescriptor h, Properties p) {
@@ -174,6 +249,8 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   @Override
   public void createTable(String tableName, List<String> colFamilyNames,
       Properties creationProps) throws Exception {
+    checkConfiguration();
+
     HTableDescriptor tableDescription = new HTableDescriptor(tableName);
 
     for (String familyName : colFamilyNames) {
@@ -187,6 +264,8 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void newSourceTable(String tableName) throws Exception {
+    checkConfiguration();
+
     closeSourceTable();
     m_sourceTable = new HTable(m_config, tableName);
   }
@@ -194,6 +273,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   @Override
   public boolean sourceTableRowExists(byte[] rowKey) throws Exception {
 
+    checkConfiguration();
     checkSourceTable();
     Get g = new Get(rowKey);
     Result r = m_sourceTable.get(g);
@@ -205,6 +285,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   public void newSourceTableScan(byte[] keyLowerBound, byte[] keyUpperBound,
       int cacheSize) throws Exception {
 
+    checkConfiguration();
     checkSourceTable();
     closeSourceResultSet();
 
@@ -429,6 +510,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void executeSourceTableScan() throws Exception {
+    checkConfiguration();
     checkSourceTable();
     checkSourceScan();
 
@@ -443,7 +525,6 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public boolean resultSetNextRow() throws Exception {
-
     checkResultSet();
 
     m_currentResultSetRow = m_resultSet.next();
@@ -558,6 +639,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   @Override
   public void newTargetTable(String tableName, Properties props)
       throws Exception {
+    checkConfiguration();
     closeTargetTable();
 
     m_targetTable = new HTable(m_config, tableName);
@@ -576,6 +658,13 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
   }
 
   @Override
+  public boolean targetTableIsAutoFlush() throws Exception {
+    checkTargetTable();
+
+    return m_targetTable.isAutoFlush();
+  }
+
+  @Override
   public void newTargetTablePut(byte[] key, boolean writeToWAL)
       throws Exception {
     checkTargetTable();
@@ -586,6 +675,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void executeTargetTablePut() throws Exception {
+    checkConfiguration();
     checkTargetTable();
     checkTargetPut();
 
@@ -594,6 +684,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void executeTargetTableDelete(byte[] rowKey) throws Exception {
+    checkConfiguration();
     checkTargetTable();
 
     Delete d = new Delete(rowKey);
@@ -602,6 +693,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void flushCommitsTargetTable() throws Exception {
+    checkConfiguration();
     checkTargetTable();
 
     m_targetTable.flushCommits();
@@ -622,6 +714,8 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void closeTargetTable() throws Exception {
+    checkConfiguration();
+
     if (m_targetTable != null) {
       if (!m_targetTable.isAutoFlush()) {
         flushCommitsTargetTable();
@@ -633,6 +727,8 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void closeSourceResultSet() throws Exception {
+    checkConfiguration();
+
     // An open result set?
     if (m_resultSet != null) {
       m_resultSet.close();
@@ -643,7 +739,7 @@ public class DefaultHBaseAdmin extends HBaseAdmin {
 
   @Override
   public void closeSourceTable() throws Exception {
-
+    checkConfiguration();
     closeSourceResultSet();
 
     if (m_sourceTable != null) {

@@ -796,7 +796,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
     }
     super.setStopped(stopped);
 
-    if (stopped) {
+    if (stopped && m_hbAdmin != null) {
       logBasic(BaseMessages.getString(HBaseInputMeta.PKG,
           "HBaseInput.ClosingConnection"));
       try {
