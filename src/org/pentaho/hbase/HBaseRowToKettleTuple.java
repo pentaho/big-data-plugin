@@ -138,10 +138,6 @@ public class HBaseRowToKettleTuple {
       }
     }
 
-    /*
-     * return hbaseRowToKettleTupleMode(hRow, mapping, m_tupleColsFromAliasMap,
-     * outputRowMeta);
-     */
     return hbaseRowToKettleTupleMode(hRow, admin, mapping,
         m_tupleColsFromAliasMap, outputRowMeta);
   }
@@ -184,7 +180,6 @@ public class HBaseRowToKettleTuple {
       m_decodedTuples.clear();
     }
 
-    /* byte[] rawKey = hRow.getRow(); */
     byte[] rawKey = null;
     try {
       if (hRow == null) {
@@ -197,10 +192,6 @@ public class HBaseRowToKettleTuple {
     }
     Object decodedKey = HBaseValueMeta.decodeKeyValue(rawKey, mapping);
 
-    /*
-     * NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>
-     * rowData = hRow.getMap();
-     */
     NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> rowData = null;
     try {
       if (hRow == null) {
