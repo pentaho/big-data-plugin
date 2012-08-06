@@ -54,6 +54,18 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
     m_outputRowMeta = rmi;
   }
 
+  /**
+   * Get an administrative connection to HBase.
+   * 
+   * @param zookeeperHosts the list of zookeeper host(s)
+   * @param zookeeperPort the zookeeper port (null for default)
+   * @param siteConfig optional path to site config
+   * @param defaultConfig optional path to default config
+   * @param logging a list for holding log messages generated when obtaining the
+   *          connection
+   * @return an administrative connection to HBase
+   * @throws Exception if a problem occurs
+   */
   public static HBaseAdmin getHBaseConnection(String zookeeperHosts,
       String zookeeperPort, String siteConfig, String defaultConfig,
       List<String> logging) throws Exception {
@@ -77,30 +89,6 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
 
     return admin;
   }
-
-  /*
-   * public static Configuration getHBaseConnection(String zookeeperHosts,
-   * String zookeeperPort, URL coreConfig, URL defaultConfig) throws IOException
-   * { Configuration con = new Configuration();
-   * 
-   * if (defaultConfig != null) { con.addResource(defaultConfig); } else { //
-   * hopefully it's in the classpath con.addResource("hbase-default.xml"); }
-   * 
-   * if (coreConfig != null) { con.addResource(coreConfig); } else { //
-   * hopefully it's in the classpath con.addResource("hbase-site.xml"); }
-   * 
-   * if (!Const.isEmpty(zookeeperHosts)) { // override default and site with
-   * this con.set("hbase.zookeeper.quorum", zookeeperHosts); }
-   * 
-   * if (!Const.isEmpty(zookeeperPort)) { try { int port =
-   * Integer.parseInt(zookeeperPort);
-   * con.setInt("hbase.zookeeper.property.clientPort", port); } catch
-   * (NumberFormatException e) {
-   * System.err.println(BaseMessages.getString(HBaseOutputMeta.PKG,
-   * "HBaseOutput.Error.UnableToParseZookeeperPort")); } }
-   * 
-   * return con; }
-   */
 
   public static URL stringToURL(String pathOrURL) throws MalformedURLException {
     URL result = null;

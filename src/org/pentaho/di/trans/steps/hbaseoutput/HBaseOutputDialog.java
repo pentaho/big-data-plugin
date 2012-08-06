@@ -780,21 +780,11 @@ public class HBaseOutputDialog extends BaseStepDialog implements
 
     if (!Const.isEmpty(m_coreConfigText.getText())) {
       coreConf = transMeta.environmentSubstitute(m_coreConfigText.getText());
-
-      /*
-       * coreConf = HBaseOutputData.stringToURL(transMeta
-       * .environmentSubstitute(m_coreConfigText.getText()));
-       */
     }
 
     if (!Const.isEmpty(m_defaultConfigText.getText())) {
       defaultConf = transMeta.environmentSubstitute(m_defaultConfigText
           .getText());
-
-      /*
-       * defaultConf = HBaseOutputData.stringToURL(transMeta
-       * .environmentSubstitute(m_defaultConfigText.getText()));
-       */
     }
 
     if (!Const.isEmpty(m_zookeeperQuorumText.getText())) {
@@ -819,7 +809,6 @@ public class HBaseOutputDialog extends BaseStepDialog implements
     try {
       MappingAdmin admin = new MappingAdmin();
 
-      /* Configuration connection = getHBaseConnection(); */
       HBaseAdmin connection = getHBaseConnection();
       admin.setConnection(connection);
       Set<String> tableNames = admin.getMappedTables();
@@ -845,7 +834,6 @@ public class HBaseOutputDialog extends BaseStepDialog implements
       try {
         MappingAdmin admin = new MappingAdmin();
 
-        /* Configuration connection = getHBaseConnection(); */
         HBaseAdmin connection = getHBaseConnection();
         admin.setConnection(connection);
 

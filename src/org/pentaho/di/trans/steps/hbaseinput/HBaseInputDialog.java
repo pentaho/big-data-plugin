@@ -91,7 +91,7 @@ public class HBaseInputDialog extends BaseStepDialog implements
 
   // The tabs of the dialog
   private CTabFolder m_wTabFolder;
-  private CTabItem m_wConfigTab;/* , m_wFieldsTab, m_wModelTab; */
+  private CTabItem m_wConfigTab;
 
   private CTabItem m_wFilterTab;
 
@@ -1223,12 +1223,8 @@ public class HBaseInputDialog extends BaseStepDialog implements
   }
 
   public HBaseAdmin getHBaseConnection() throws Exception {
-    // Configuration conf = null;
     HBaseAdmin conf = null;
 
-    /*
-     * URL coreConf = null; URL defaultConf = null;
-     */
     String coreConf = "";
     String defaultConf = "";
     String zookeeperHosts = "";
@@ -1236,19 +1232,11 @@ public class HBaseInputDialog extends BaseStepDialog implements
 
     if (!Const.isEmpty(m_coreConfigText.getText())) {
       coreConf = transMeta.environmentSubstitute(m_coreConfigText.getText());
-      /*
-       * coreConf = HBaseInputData.stringToURL(transMeta
-       * .environmentSubstitute(m_coreConfigText.getText()));
-       */
     }
 
     if (!Const.isEmpty(m_defaultConfigText.getText())) {
       defaultConf = transMeta.environmentSubstitute(m_defaultConfigText
           .getText());
-      /*
-       * defaultConf = HBaseInputData.stringToURL(transMeta
-       * .environmentSubstitute(m_defaultConfigText.getText()));
-       */
     }
 
     if (!Const.isEmpty(m_zookeeperQuorumText.getText())) {
@@ -1291,7 +1279,6 @@ public class HBaseInputDialog extends BaseStepDialog implements
         boolean filterAliasesDone = false;
         try {
           if (displayFieldsMappingFromHBase) {
-            /* Configuration connection = getHBaseConnection(); */
             HBaseAdmin connection = getHBaseConnection();
             admin.setConnection(connection);
             current = admin.getMapping(transMeta
@@ -1509,7 +1496,6 @@ public class HBaseInputDialog extends BaseStepDialog implements
     try {
       MappingAdmin admin = new MappingAdmin();
 
-      /* Configuration connection = getHBaseConnection(); */
       HBaseAdmin connection = getHBaseConnection();
       admin.setConnection(connection);
       Set<String> tableNames = admin.getMappedTables();
@@ -1535,8 +1521,6 @@ public class HBaseInputDialog extends BaseStepDialog implements
     if (!Const.isEmpty(m_mappedTableNamesCombo.getText())) {
       try {
         MappingAdmin admin = new MappingAdmin();
-
-        /* Configuration connection = getHBaseConnection(); */
         HBaseAdmin connection = getHBaseConnection();
         admin.setConnection(connection);
 

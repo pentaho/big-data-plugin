@@ -79,6 +79,10 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
    */
   protected HBaseRowToKettleTuple m_tupleHandler;
 
+  /**
+   * Administrative connection to HBase (used just for the utility routines for
+   * extracting info from HBase row objects)
+   */
   protected HBaseAdmin m_hbAdmin;
 
   @Override
@@ -105,7 +109,6 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
         // actual database, just a few utility routines from HBaseAdmin for
         // decoding row objects handed to us by the table input format
       } catch (Exception ex) {
-        // TODO add an i18n error message to the exception
         throw new KettleException(ex.getMessage(), ex);
       }
 
@@ -152,11 +155,6 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
         throw new KettleException(BaseMessages.getString(PKG,
             "HBaseRowDecoder.Error.UnableToFindHBaseRow", inResult));
       }
-      /*
-       * if (!(inputRow[m_resultInIndex] instanceof Result)) { throw new
-       * KettleException(BaseMessages.getString(PKG,
-       * "HBaseRowDecoder.Error.NotResult", m_meta.getIncomingResultField())); }
-       */
 
       if (!m_hbAdmin.checkForHBaseRow(inputRow[m_resultInIndex])) {
         throw new KettleException(BaseMessages.getString(PKG,
@@ -164,7 +162,6 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
       }
     }
 
-    /* Result hRow = (Result) inputRow[m_resultInIndex]; */
     Object hRow = inputRow[m_resultInIndex];
     if (inputRow[m_keyInIndex] != null && hRow != null) {
 
@@ -181,13 +178,12 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
         Object[] outputRowData = RowDataUtil
             .allocateRowData(m_outputColumns.length + 1); // + 1 for key
 
-        // byte[] rowKey = hRow.getRow();
         byte[] rowKey = null;
         try {
           rowKey = m_hbAdmin.getRowKey(hRow);
         } catch (Exception ex) {
-          // TODO add an i18n error message to the exception
-          throw new KettleException(ex.getMessage(), ex);
+          throw new KettleException(BaseMessages.getString(PKG,
+              "HBaseRowDecoder.Error.UnableToGetRowKey"), ex);
         }
         Object decodedKey = HBaseValueMeta.decodeKeyValue(rowKey,
             m_tableMapping);
@@ -204,17 +200,10 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
             kv = m_hbAdmin.getRowColumnLatest(hRow, colFamilyName, qualifier,
                 false);
           } catch (Exception ex) {
-            // TODO add an i18n error message to the exception
-            throw new KettleException(ex.getMessage(), ex);
+            throw new KettleException(BaseMessages.getString(PKG,
+                "HBaseRowDecoder.Error.UnableToGetColumnValue"), ex);
           }
-          /*
-           * KeyValue kv = hRow.getColumnLatest(Bytes.toBytes(colFamilyName),
-           * Bytes.toBytes(qualifier));
-           */
-          /*
-           * Object decodedVal = HBaseValueMeta.decodeColumnValue( (kv == null)
-           * ? null : kv.getValue(), current);
-           */
+
           Object decodedVal = HBaseValueMeta.decodeColumnValue(
               (kv == null) ? null : kv, current);
           outputRowData[i + 1] = decodedVal;

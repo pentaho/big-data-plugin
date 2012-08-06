@@ -36,6 +36,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.hbase.shim.HBaseAdmin;
 import org.pentaho.hbase.shim.HBaseBytesUtil;
 
@@ -55,6 +56,9 @@ import org.pentaho.hbase.shim.HBaseBytesUtil;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseValueMeta extends ValueMeta {
+
+  private static Class<?> PKG = HBaseValueMeta.class;
+
   public static final String SEPARATOR = ",";
 
   /** The table name that this particular column mapping is for */
@@ -86,15 +90,13 @@ public class HBaseValueMeta extends ValueMeta {
     String[] parts = name.split(SEPARATOR);
 
     if (parts.length < 2) {
-      throw new IllegalArgumentException(
-          "A HBaseValueMeta must have at least a "
-              + "column family name and a column name");
+      throw new IllegalArgumentException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.ConfigError"));
     }
 
     if (parts.length > 3) {
-      throw new IllegalArgumentException(
-          "Problem parsing HBaseValueMeta column "
-              + "description. Can't have more than three parts!");
+      throw new IllegalArgumentException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.ProblemParsingColumnDesc"));
     }
 
     setColumnFamily(parts[0]);
@@ -238,7 +240,8 @@ public class HBaseValueMeta extends ValueMeta {
     // default
     int type = ValueMeta.getType(hbaseType);
     if (type == ValueMetaInterface.TYPE_NONE) {
-      throw new IllegalArgumentException("Unknown type \"" + hbaseType + "\"");
+      throw new IllegalArgumentException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.UnknownType", hbaseType));
     }
 
     setType(type);
@@ -325,9 +328,8 @@ public class HBaseValueMeta extends ValueMeta {
     case UNSIGNED_DATE:
       Date dateKey = keyMeta.getDate(keyValue);
       if (keyType == Mapping.KeyType.UNSIGNED_DATE && dateKey.getTime() < 0) {
-        throw new KettleException(
-            "Key for mapping is UNSIGNED_DATE, but incoming "
-                + "date value is negative (i.e. < 1st Jan 1970)");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.UnsignedDate"));
       }
       result = encodeKeyValue(dateKey, keyType);
       break;
@@ -335,9 +337,8 @@ public class HBaseValueMeta extends ValueMeta {
     case UNSIGNED_INTEGER:
       int keyInt = keyMeta.getInteger(keyValue).intValue();
       if (keyType == Mapping.KeyType.UNSIGNED_INTEGER && keyInt < 0) {
-        throw new KettleException(
-            "Key for mapping is UNSIGNED_INTEGER, but incoming "
-                + "integer value is negative.");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.UnsignedIngteger"));
       }
       result = encodeKeyValue(new Integer(keyInt), keyType);
       break;
@@ -345,9 +346,8 @@ public class HBaseValueMeta extends ValueMeta {
     case UNSIGNED_LONG:
       long keyLong = keyMeta.getInteger(keyValue).longValue();
       if (keyType == Mapping.KeyType.UNSIGNED_LONG && keyLong < 0) {
-        throw new KettleException(
-            "Key for mapping is UNSIGNED_LONG, but incoming "
-                + "long value is negative.");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.UnsignedLong"));
       }
       result = encodeKeyValue(new Long(keyLong), keyType);
       break;
@@ -358,7 +358,8 @@ public class HBaseValueMeta extends ValueMeta {
     }
 
     if (result == null) {
-      throw new KettleException("Unknown type for table key!");
+      throw new KettleException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.UnknownTableKeyType"));
     }
 
     return result;
@@ -396,9 +397,8 @@ public class HBaseValueMeta extends ValueMeta {
           longVal = ((Date) keyValue).getTime();
         }
         if (longVal < 0) {
-          throw new KettleException(
-              "Key for mapping is UNSIGNED_LONG/UNSIGNED_DATE"
-                  + ", but incoming long/date value is negative.");
+          throw new KettleException(BaseMessages.getString(PKG,
+              "HBaseValueMeta.Error.UnsignedDateLong"));
         }
 
         return s_bytesUtil.toBytes(longVal);
@@ -410,9 +410,8 @@ public class HBaseValueMeta extends ValueMeta {
         return s_bytesUtil.toBytes(0);
       } else {
         if (((Number) keyValue).intValue() < 0) {
-          throw new KettleException(
-              "Key for mapping is UNSIGNED_INTEGER, but incoming "
-                  + "integer value is negative.");
+          throw new KettleException(BaseMessages.getString(PKG,
+              "HBaseValueMeta.Error.UnsignedIngteger"));
         }
         return s_bytesUtil.toBytes(((Number) keyValue).intValue());
       }
@@ -442,7 +441,8 @@ public class HBaseValueMeta extends ValueMeta {
       }
     }
 
-    throw new KettleException("Unknown type for table key!");
+    throw new KettleException(BaseMessages.getString(PKG,
+        "HBaseValueMeta.Error.UnknownTableKeyType"));
   }
 
   /**
@@ -483,9 +483,8 @@ public class HBaseValueMeta extends ValueMeta {
         return s_bytesUtil.toBytes(0L); // minimum positive long
       } else {
         if (keyType == Mapping.KeyType.UNSIGNED_DATE) {
-          throw new KettleException(
-              "Can't parse a date from a string if there is "
-                  + "no format available");
+          throw new KettleException(BaseMessages.getString(PKG,
+              "HBaseValueMeta.Error.CantParseDateNoFormat"));
         }
 
         return s_bytesUtil.toBytes(Long.parseLong(keyValue));
@@ -516,9 +515,8 @@ public class HBaseValueMeta extends ValueMeta {
         return s_bytesUtil.toBytes(0L);
       } else {
         if (keyType == Mapping.KeyType.DATE) {
-          throw new KettleException(
-              "Can't parse a date from a string if there is "
-                  + "no format available");
+          throw new KettleException(BaseMessages.getString(PKG,
+              "HBaseValueMeta.Error.CantParseDateNoFormat"));
         }
 
         long bound = Long.parseLong(keyValue);
@@ -528,7 +526,8 @@ public class HBaseValueMeta extends ValueMeta {
       }
     }
 
-    throw new KettleException("Unknown type for table key!");
+    throw new KettleException(BaseMessages.getString(PKG,
+        "HBaseValueMeta.Error.UnknownTableKeyType"));
 
   }
 
@@ -588,7 +587,8 @@ public class HBaseValueMeta extends ValueMeta {
       return new Long(tempLong);
     }
 
-    throw new KettleException("Unknown type for table key!");
+    throw new KettleException(BaseMessages.getString(PKG,
+        "HBaseValueMeta.Error.UnknownTableKeyType"));
   }
 
   public static byte[] encodeColumnValue(Object columnValue,
@@ -635,8 +635,8 @@ public class HBaseValueMeta extends ValueMeta {
       try {
         encoded = encodeObject(columnValue);
       } catch (IOException e) {
-        throw new KettleException("Unable to serialize serializable type \""
-            + colMeta.getName() + "\"", e);
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.UnableToSerialize", colMeta.getName()), e);
       }
       break;
     case TYPE_BINARY:
@@ -645,7 +645,8 @@ public class HBaseValueMeta extends ValueMeta {
     }
 
     if (encoded == null) {
-      throw new KettleException("Unknown type for column!");
+      throw new KettleException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.UnknownTypeForColumn"));
     }
 
     return encoded;
@@ -682,10 +683,9 @@ public class HBaseValueMeta extends ValueMeta {
         if (foundIndex >= 0) {
           return new Integer(foundIndex);
         }
-        throw new KettleException("Value \"" + convertedString
-            + "\" is not in the "
-            + "list of legal values for indexed column \""
-            + columnMeta.getAlias() + "\"");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.IllegalIndexedColumnValue", convertedString,
+            columnMeta.getAlias()));
       } else {
         return convertedString;
       }
@@ -719,8 +719,9 @@ public class HBaseValueMeta extends ValueMeta {
         return new Long(tempShort);
       }
 
-      throw new KettleException("Length of integer column value "
-          + "is not equal to the " + "defined length of an short, int or long!");
+      throw new KettleException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.IllegalIntegerLength"));
+
     }
 
     if (columnMeta.isBoolean()) {
@@ -735,15 +736,16 @@ public class HBaseValueMeta extends ValueMeta {
         return result;
       }
 
-      throw new KettleException("Unable to decode boolean value!");
+      throw new KettleException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.UnableToDecodeBoolean"));
     }
 
     if (columnMeta.isBigNumber()) {
       BigDecimal result = decodeBigDecimal(rawColValue);
 
       if (result == null) {
-        throw new KettleException("Unable to decode a BigDecimal from "
-            + "either a String or a serialized Java object.");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.UnableToDecodeBigDecimal"));
       }
 
       return result;
@@ -753,8 +755,8 @@ public class HBaseValueMeta extends ValueMeta {
       Object result = decodeObject(rawColValue);
 
       if (result == null) {
-        throw new KettleException("Unable to de-serialize Object from raw "
-            + "column value.");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.UnableToDeserializeObject"));
       }
 
       return result;
@@ -767,15 +769,16 @@ public class HBaseValueMeta extends ValueMeta {
 
     if (columnMeta.isDate()) {
       if (rawColValue.length != s_bytesUtil.getSizeOfLong()) {
-        throw new KettleException("Length of date column value must equal "
-            + "to the length of a long!");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "HBaseValueMeta.Error.DateValueLengthNotEqualToLong"));
       }
       long millis = s_bytesUtil.toLong(rawColValue);
       Date d = new Date(millis);
       return d;
     }
 
-    throw new KettleException("Unsupported column type!");
+    throw new KettleException(BaseMessages.getString(PKG,
+        "HBaseValueMeta.Error.UnknownTypeForColumn"));
   }
 
   /**
@@ -869,21 +872,77 @@ public class HBaseValueMeta extends ValueMeta {
    *         array of bytes.
    */
   public static Boolean decodeBoolFromString(byte[] rawEncoded) {
+    String tempString = s_bytesUtil.toString(rawEncoded);
+    if (tempString.equalsIgnoreCase("Y") || tempString.equalsIgnoreCase("N")
+        || tempString.equalsIgnoreCase("YES")
+        || tempString.equalsIgnoreCase("NO")
+        || tempString.equalsIgnoreCase("TRUE")
+        || tempString.equalsIgnoreCase("FALSE")
+        || tempString.equalsIgnoreCase("T") || tempString.equalsIgnoreCase("F")
+        || tempString.equalsIgnoreCase("1") || tempString.equalsIgnoreCase("0")) {
 
-    // delegate to the special comparator for this. Delegate this way
-    // rather than have the comparator delegate to us so that HBase
-    // installations don't have to drag in the Kettle libraries just
-    // so that our comparator can be used.
-    return DeserializedBooleanComparator.decodeBoolFromString(rawEncoded);
+      return Boolean.valueOf(tempString.equalsIgnoreCase("Y")
+          || tempString.equalsIgnoreCase("YES")
+          || tempString.equalsIgnoreCase("TRUE")
+          || tempString.equalsIgnoreCase("T")
+          || tempString.equalsIgnoreCase("1"));
+    }
+    return null;
   }
 
+  /**
+   * Decodes a boolean value from an array of bytes that is assumed to hold a
+   * number.
+   * 
+   * @param rawEncoded an array of bytes holding the numerical representation of
+   *          a boolean value
+   * @return a Boolean object or null if it can't be decoded from the supplied
+   *         array of bytes.
+   */
   public static Boolean decodeBoolFromNumber(byte[] rawEncoded) {
+    if (rawEncoded.length == s_bytesUtil.getSizeOfByte()) {
+      byte val = rawEncoded[0];
+      if (val == 0 || val == 1) {
+        return new Boolean(val == 1);
+      }
+    }
 
-    // delegate to the special comparator for this. Delegate this way
-    // rather than have the comparator delegate to us so that HBase
-    // installations don't have to drag in the Kettle libraries just
-    // so that our comparator can be used.
-    return DeserializedBooleanComparator.decodeBoolFromNumber(rawEncoded);
+    if (rawEncoded.length == s_bytesUtil.getSizeOfShort()) {
+      short tempShort = s_bytesUtil.toShort(rawEncoded);
+
+      if (tempShort == 0 || tempShort == 1) {
+        return new Boolean(tempShort == 1);
+      }
+    }
+
+    if (rawEncoded.length == s_bytesUtil.getSizeOfInt()
+        || rawEncoded.length == s_bytesUtil.getSizeOfFloat()) {
+      int tempInt = s_bytesUtil.toInt(rawEncoded);
+      if (tempInt == 1 || tempInt == 0) {
+        return new Boolean(tempInt == 1);
+      }
+
+      float tempFloat = s_bytesUtil.toFloat(rawEncoded);
+      if (tempFloat == 0.0f || tempFloat == 1.0f) {
+        return new Boolean(tempFloat == 1.0f);
+      }
+    }
+
+    if (rawEncoded.length == s_bytesUtil.getSizeOfLong()
+        || rawEncoded.length == s_bytesUtil.getSizeOfDouble()) {
+      long tempLong = s_bytesUtil.toLong(rawEncoded);
+      if (tempLong == 0L || tempLong == 1L) {
+        return new Boolean(tempLong == 1L);
+      }
+
+      double tempDouble = s_bytesUtil.toDouble(rawEncoded);
+      if (tempDouble == 0.0 || tempDouble == 1.0) {
+        return new Boolean(tempDouble == 1.0);
+      }
+    }
+
+    // not identifiable from a number
+    return null;
   }
 
   /**
@@ -899,8 +958,9 @@ public class HBaseValueMeta extends ValueMeta {
       throws IllegalArgumentException {
     String[] labels = list.replace("{", "").replace("}", "").split(",");
     if (labels.length < 1) {
-      throw new IllegalArgumentException(
-          "Indexed/nominal type must have at least one " + "label declared");
+      throw new IllegalArgumentException(BaseMessages.getString(PKG,
+          "HBaseValueMeta.Error.IndexedColumnZeroLabels"));
+
     }
     for (int i = 0; i < labels.length; i++) {
       labels[i] = labels[i].trim();

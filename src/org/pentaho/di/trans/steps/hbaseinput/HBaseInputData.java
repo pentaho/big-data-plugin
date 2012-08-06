@@ -66,6 +66,18 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
     m_outputRowMeta = rmi;
   }
 
+  /**
+   * Get an administrative connection to HBase.
+   * 
+   * @param zookeeperHosts the list of zookeeper host(s)
+   * @param zookeeperPort the zookeeper port (null for default)
+   * @param siteConfig optional path to site config
+   * @param defaultConfig optional path to default config
+   * @param logging a list for holding log messages generated when obtaining the
+   *          connection
+   * @return an administrative connection to HBase
+   * @throws Exception if a problem occurs
+   */
   public static HBaseAdmin getHBaseConnection(String zookeeperHosts,
       String zookeeperPort, String siteConfig, String defaultConfig,
       List<String> logging) throws Exception {
@@ -89,44 +101,6 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
 
     return admin;
   }
-
-  /**
-   * Get a configured connection to HBase. A connection can be obtained via a
-   * list of host(s) that zookeeper is running on or via the hbase-site.xml (and
-   * optionally hbase-default.xml) file.
-   * 
-   * @param zookeeperHosts a comma separated list of hosts that zookeeper is
-   *          running on
-   * @param zookeeperPort an (optional) port that zookeeper is listening on. If
-   *          not specified, then the default for zookeeper is used
-   * @param coreConfig URL to the hbase-site.xml (may be null)
-   * @param defaultConfig URL to the hbase-default.xml (may be null)
-   * @return a Configuration object that can be used ot access HBase.
-   * @throws IOException if a problem occurs.
-   */
-  /*
-   * public static Configuration getHBaseConnection(String zookeeperHosts,
-   * String zookeeperPort, URL coreConfig, URL defaultConfig) throws IOException
-   * { Configuration con = new Configuration();
-   * 
-   * if (defaultConfig != null) { con.addResource(defaultConfig); } else { //
-   * hopefully it's in the classpath con.addResource("hbase-default.xml"); }
-   * 
-   * if (coreConfig != null) { con.addResource(coreConfig); } else { //
-   * hopefully it's in the classpath con.addResource("hbase-site.xml"); }
-   * 
-   * if (!Const.isEmpty(zookeeperHosts)) { // override default and site with
-   * this con.set("hbase.zookeeper.quorum", zookeeperHosts); }
-   * 
-   * if (!Const.isEmpty(zookeeperPort)) { try { int port =
-   * Integer.parseInt(zookeeperPort);
-   * con.setInt("hbase.zookeeper.property.clientPort", port); } catch
-   * (NumberFormatException e) {
-   * System.err.println(BaseMessages.getString(HBaseInputMeta.PKG,
-   * "HBaseInput.Error.UnableToParseZookeeperPort")); } }
-   * 
-   * return con; }
-   */
 
   /**
    * Utility method to covert a string to a URL object.

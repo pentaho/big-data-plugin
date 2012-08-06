@@ -69,9 +69,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
     super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
   }
 
-  /** Configuration object for connecting to HBase */
-  // protected Configuration m_connection;
-
   /** Admin object for interacting with HBase */
   protected HBaseAdmin m_hbAdmin;
 
@@ -86,12 +83,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
 
   /** User-selected columns from the mapping (null indicates output all columns) */
   protected List<HBaseValueMeta> m_userOutputColumns;
-
-  /** Table object for the table to read from */
-  // protected HTable m_sourceTable;
-
-  /** Scanner over the result rows */
-  // protected ResultScanner m_resultSet;
 
   /**
    * Used when decoding columns to <key, family, column, value, time stamp>
@@ -123,15 +114,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
             logBasic(m);
           }
         }
-
-        /*
-         * m_connection = HBaseInputData.getHBaseConnection(
-         * environmentSubstitute(m_meta.getZookeeperHosts()),
-         * environmentSubstitute(m_meta.getZookeeperPort()), HBaseInputData
-         * .stringToURL(environmentSubstitute(m_meta.getCoreConfigURL())),
-         * HBaseInputData.stringToURL(environmentSubstitute(m_meta
-         * .getDefaultConfigURL())));
-         */
       } catch (Exception ex) {
         throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
             "HBaseInput.Error.UnableToObtainConnection"), ex);
@@ -144,13 +126,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
       }
 
       // check on the existence and readiness of the target table
-      /*
-       * HBaseAdmin admin = null; try { admin = new HBaseAdmin(m_connection); }
-       * catch (Exception ex) { throw new
-       * KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
-       * "HBaseInput.Error.UnableToObtainConnection"), ex); }
-       */
-
       String sourceName = environmentSubstitute(m_meta.getSourceTableName());
       if (StringUtil.isEmpty(sourceName)) {
         throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
@@ -187,8 +162,10 @@ public class HBaseInput extends BaseStep implements StepInterface {
               environmentSubstitute(m_meta.getSourceTableName()),
               environmentSubstitute(m_meta.getSourceMappingName()));
         } catch (Exception ex) {
-          // TODO add an i18n error message to the exception
-          throw new KettleException(ex.getMessage(), ex);
+          throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
+              "HBaseInput.Error.UnableToRetrieveMapping",
+              environmentSubstitute(m_meta.getSourceMappingName()),
+              environmentSubstitute(m_meta.getSourceTableName())), ex);
         }
       }
       m_columnsMappedByAlias = m_tableMapping.getMappedColumns();
@@ -227,20 +204,14 @@ public class HBaseInput extends BaseStep implements StepInterface {
       try {
         m_hbAdmin.newSourceTable(sourceName);
       } catch (Exception ex) {
-        // TODO add an i18n error message to the exception
-        throw new KettleException(ex);
+        throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
+            "HBaseInput.Error.UnableToSetSourceTableForScan"), ex);
       }
       byte[] keyLowerBound = null;
       byte[] keyUpperBound = null;
 
       // Set up the scan
-      /*
-       * Scan s = null; if (Const.isEmpty(m_meta.getKeyStartValue()) &&
-       * Const.isEmpty(m_meta.getKeyStopValue())) { s = new Scan(); // scan all
-       * rows } else
-       */
       if (!Const.isEmpty(m_meta.getKeyStartValue())) {
-        /* byte[] keyLowerBound = null; */
         String keyStartS = environmentSubstitute(m_meta.getKeyStartValue());
         String convM = dateOrNumberConversionMaskForKey;
 
@@ -302,12 +273,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
               m_tableMapping.getKeyType());
         }
 
-        /*
-         * if (Const.isEmpty(m_meta.getKeyStopValue())) { s = new
-         * Scan(keyLowerBound); } else
-         */
         if (!Const.isEmpty(m_meta.getKeyStopValue())) {
-          /* byte[] keyUpperBound = null; */
           String keyStopS = environmentSubstitute(m_meta.getKeyStopValue());
           convM = dateOrNumberConversionMaskForKey;
 
@@ -368,7 +334,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
             keyUpperBound = HBaseValueMeta.encodeKeyValue(keyStopS,
                 m_tableMapping.getKeyType());
           }
-          /* s = new Scan(keyLowerBound, keyUpperBound); */
         }
       }
 
@@ -377,19 +342,16 @@ public class HBaseInput extends BaseStep implements StepInterface {
       // set any user-specified scanner caching
       if (!Const.isEmpty(m_meta.getScannerCacheSize())) {
         String temp = environmentSubstitute(m_meta.getScannerCacheSize());
-        /* int sc = Integer.parseInt(temp); */
-
         cacheSize = Integer.parseInt(temp);
 
-        /* s.setCaching(sc); */
-
-        logBasic("Set scanner caching to " + cacheSize + " rows.");
+        logBasic(BaseMessages.getString(HBaseInputMeta.PKG,
+            "HBaseInput.Message.SettingScannerCaching", cacheSize));
       }
       try {
         m_hbAdmin.newSourceTableScan(keyLowerBound, keyUpperBound, cacheSize);
       } catch (Exception ex) {
-        // TODO add an i18n error message to the exception
-        throw new KettleException(ex);
+        throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
+            "HBaseInput.Error.UnableToConfigureSourceTableScan"), ex);
       }
 
       // LIMIT THE SCAN TO JUST THE COLUMNS IN THE MAPPING
@@ -411,14 +373,10 @@ public class HBaseInput extends BaseStep implements StepInterface {
               m_hbAdmin
                   .addColumnToScan(colFamilyName, qualifier, binaryColName);
             } catch (Exception ex) {
-              // TODO add an i18n error message to the exception
-              throw new KettleException(ex);
+              throw new KettleException(BaseMessages.getString(
+                  HBaseInputMeta.PKG,
+                  "HBaseInput.Error.UnableToAddColumnToScan"), ex);
             }
-
-            /*
-             * s.addColumn( Bytes.toBytes(colFamilyName), (binaryColName) ?
-             * Bytes.toBytesBinary(qualifier) : Bytes .toBytes(qualifier));
-             */
           }
         }
       }
@@ -426,11 +384,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
       // set any filters
       if (m_meta.getColumnFilters() != null
           && m_meta.getColumnFilters().size() > 0) {
-        /*
-         * FilterList fl = null; if (m_meta.getMatchAnyFilter()) { fl = new
-         * FilterList(FilterList.Operator.MUST_PASS_ONE); } else { fl = new
-         * FilterList(FilterList.Operator.MUST_PASS_ALL); }
-         */
 
         for (ColumnFilter cf : m_meta.getColumnFilters()) {
           String fieldAliasS = environmentSubstitute(cf.getFieldAlias());
@@ -456,124 +409,18 @@ public class HBaseInput extends BaseStep implements StepInterface {
             m_hbAdmin.addColumnFilterToScan(cf, mappedCol, this,
                 m_meta.getMatchAnyFilter());
           } catch (Exception ex) {
-            // TODO add an i18n error message to the exception
-            throw new KettleException(ex);
+            throw new KettleException(BaseMessages.getString(
+                HBaseInputMeta.PKG,
+                "HBaseInput.Error.UnableToAddColumnFilterToScan"), ex);
           }
-
-          /*
-           * CompareFilter.CompareOp comp = null; byte[] family =
-           * Bytes.toBytes(mappedCol.getColumnFamily()); byte[] qualifier =
-           * Bytes.toBytes(mappedCol.getColumnName());
-           * ColumnFilter.ComparisonType op = cf.getComparisonOperator();
-           * 
-           * switch (op) { case EQUAL: comp = CompareFilter.CompareOp.EQUAL;
-           * break; case NOT_EQUAL: comp = CompareFilter.CompareOp.NOT_EQUAL;
-           * break; case GREATER_THAN: comp = CompareFilter.CompareOp.GREATER;
-           * break; case GREATER_THAN_OR_EQUAL: comp =
-           * CompareFilter.CompareOp.GREATER_OR_EQUAL; break; case LESS_THAN:
-           * comp = CompareFilter.CompareOp.LESS; break; case
-           * LESS_THAN_OR_EQUAL: comp = CompareFilter.CompareOp.LESS_OR_EQUAL;
-           * break; }
-           * 
-           * String comparisonString = cf.getConstant().trim(); comparisonString
-           * = environmentSubstitute(comparisonString);
-           * 
-           * if (comp != null) {
-           * 
-           * byte[] comparisonRaw = null;
-           * 
-           * // do the numeric comparison stuff if (mappedCol.isNumeric()) {
-           * 
-           * // Double/Float or Long/Integer DecimalFormat df = new
-           * DecimalFormat(); String formatS =
-           * environmentSubstitute(cf.getFormat()); if (!Const.isEmpty(formatS))
-           * { df.applyPattern(formatS); }
-           * 
-           * Number num = null; try { num = df.parse(comparisonString); } catch
-           * (ParseException e) { throw new KettleException(e.getMessage(), e);
-           * }
-           * 
-           * if (mappedCol.isInteger()) { if (!mappedCol.getIsLongOrDouble()) {
-           * comparisonRaw = Bytes.toBytes(num.intValue()); } else {
-           * comparisonRaw = Bytes.toBytes(num.longValue()); } } else { if
-           * (!mappedCol.getIsLongOrDouble()) { comparisonRaw =
-           * Bytes.toBytes(num.floatValue()); } else { comparisonRaw =
-           * Bytes.toBytes(num.doubleValue()); } }
-           * 
-           * if (!cf.getSignedComparison()) { SingleColumnValueFilter scf = new
-           * SingleColumnValueFilter( family, qualifier, comp, comparisonRaw);
-           * scf.setFilterIfMissing(true); fl.addFilter(scf); } else { // custom
-           * comparator for signed comparison DeserializedNumericComparator
-           * comparator = null; if (mappedCol.isInteger()) { if
-           * (mappedCol.getIsLongOrDouble()) { comparator = new
-           * DeserializedNumericComparator( mappedCol.isInteger(),
-           * mappedCol.getIsLongOrDouble(), num.longValue()); } else {
-           * comparator = new DeserializedNumericComparator(
-           * mappedCol.isInteger(), mappedCol.getIsLongOrDouble(),
-           * num.intValue()); } } else { if (mappedCol.getIsLongOrDouble()) {
-           * comparator = new DeserializedNumericComparator(
-           * mappedCol.isInteger(), mappedCol.getIsLongOrDouble(),
-           * num.doubleValue()); } else { comparator = new
-           * DeserializedNumericComparator( mappedCol.isInteger(),
-           * mappedCol.getIsLongOrDouble(), num.floatValue()); } }
-           * SingleColumnValueFilter scf = new SingleColumnValueFilter( family,
-           * qualifier, comp, comparator); scf.setFilterIfMissing(true);
-           * fl.addFilter(scf); } } else if (mappedCol.isDate()) {
-           * SimpleDateFormat sdf = new SimpleDateFormat(); String formatS =
-           * environmentSubstitute(cf.getFormat()); if (!Const.isEmpty(formatS))
-           * { sdf.applyPattern(formatS); } Date d = null; try { d =
-           * sdf.parse(comparisonString); } catch (ParseException e) { throw new
-           * KettleException(e.getMessage(), e); }
-           * 
-           * long dateAsMillis = d.getTime(); if (!cf.getSignedComparison()) {
-           * comparisonRaw = Bytes.toBytes(dateAsMillis);
-           * 
-           * SingleColumnValueFilter scf = new SingleColumnValueFilter( family,
-           * qualifier, comp, comparisonRaw); scf.setFilterIfMissing(true);
-           * fl.addFilter(scf); } else { // custom comparator for signed
-           * comparison DeserializedNumericComparator comparator = new
-           * DeserializedNumericComparator( true, true, dateAsMillis);
-           * SingleColumnValueFilter scf = new SingleColumnValueFilter( family,
-           * qualifier, comp, comparator); scf.setFilterIfMissing(true);
-           * fl.addFilter(scf); } } else if (mappedCol.isBoolean()) {
-           * 
-           * // temporarily encode it so that we can use the utility routine in
-           * // HBaseValueMeta byte[] tempEncoded =
-           * Bytes.toBytes(comparisonString); Boolean decodedB = HBaseValueMeta
-           * .decodeBoolFromString(tempEncoded); // skip if we can't parse the
-           * comparison value if (decodedB == null) { continue; }
-           * 
-           * DeserializedBooleanComparator comparator = new
-           * DeserializedBooleanComparator( decodedB.booleanValue());
-           * SingleColumnValueFilter scf = new SingleColumnValueFilter(family,
-           * qualifier, comp, comparator); scf.setFilterIfMissing(true);
-           * fl.addFilter(scf); } } else { WritableByteArrayComparable
-           * comparator = null; comp = CompareFilter.CompareOp.EQUAL; if
-           * (cf.getComparisonOperator() ==
-           * ColumnFilter.ComparisonType.SUBSTRING) { comparator = new
-           * SubstringComparator(comparisonString); } else { comparator = new
-           * RegexStringComparator(comparisonString); }
-           * 
-           * SingleColumnValueFilter scf = new SingleColumnValueFilter(family,
-           * qualifier, comp, comparator); scf.setFilterIfMissing(true);
-           * fl.addFilter(scf); }
-           */
         }
-
-        /*
-         * if (fl != null && fl.getFilters().size() > 0) { s.setFilter(fl); }
-         */
       }
 
       try {
         m_hbAdmin.executeSourceTableScan();
-
-        /*
-         * m_sourceTable = new HTable(m_connection, sourceName); m_resultSet =
-         * m_sourceTable.getScanner(s);
-         */
       } catch (Exception e) {
-        throw new KettleException(e.getMessage(), e);
+        throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
+            "HBaseInput.Error.UnableToExecuteSourceTableScan"), e);
       }
 
       // set up the output fields (using the mapping)
@@ -582,23 +429,16 @@ public class HBaseInput extends BaseStep implements StepInterface {
           this);
     }
 
-    // Result r = null;
     boolean hasNext = false;
     try {
       hasNext = m_hbAdmin.resultSetNextRow();
-      // r = m_resultSet.next();
     } catch (Exception e) {
       throw new KettleException(e.getMessage(), e);
     }
 
-    // if (r == null) {
     if (!hasNext) {
-
-      // m_resultSet.close();
       try {
         m_hbAdmin.closeSourceTable();
-
-        // m_sourceTable.close();
       } catch (Exception e) {
         throw new KettleException(BaseMessages.getString(HBaseInputMeta.PKG,
             "HBaseInput.Error.ProblemClosingConnection", e.getMessage()), e);
@@ -617,12 +457,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
     // User-selected output columns?
     if (m_userOutputColumns != null && m_userOutputColumns.size() > 0) {
       if (m_tableMapping.isTupleMapping()) {
-        /*
-         * List<Object[]> hrowToKettleRow = m_tupleHandler
-         * .hbaseRowToKettleTupleMode(r, m_tableMapping, m_userOutputColumns,
-         * m_data.getOutputRowMeta());
-         */
-
         List<Object[]> hrowToKettleRow = m_tupleHandler
             .hbaseRowToKettleTupleMode(null, m_hbAdmin, m_tableMapping,
                 m_userOutputColumns, m_data.getOutputRowMeta());
@@ -633,7 +467,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
       } else {
         for (HBaseValueMeta currentCol : m_userOutputColumns) {
           if (currentCol.isKey()) {
-            // byte[] rawKey = r.getRow();
             byte[] rawKey = null;
             try {
               rawKey = m_hbAdmin.getResultSetCurrentRowKey();
@@ -664,19 +497,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
               throw new KettleException(e);
             }
 
-            /*
-             * KeyValue kv = r.getColumnLatest( Bytes.toBytes(colFamilyName),
-             * (binaryColName) ? Bytes.toBytesBinary(qualifier) : Bytes
-             * .toBytes(qualifier));
-             */
-
-            // THIS TEST SHOULD NOT HAVE BEEN HERE
-            /*
-             * if (kv == null) {
-             * logError(BaseMessages.getString(HBaseInputMeta.PKG,
-             * "HBaseInput.Error.UnableToLookupQualifier", qualifier)); }
-             */
-
             int outputIndex = m_data.getOutputRowMeta().indexOfValue(
                 currentCol.getAlias());
             if (outputIndex < 0) {
@@ -689,10 +509,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
             Object decodedVal = HBaseValueMeta.decodeColumnValue(
                 (kv == null) ? null : kv, currentCol);
 
-            /*
-             * Object decodedVal = HBaseValueMeta.decodeColumnValue( (kv ==
-             * null) ? null : kv.getValue(), currentCol);
-             */
             outputRowData[outputIndex] = decodedVal;
           }
         }
@@ -701,12 +517,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
 
       // all the columns in the mapping
       if (m_tableMapping.isTupleMapping()) {
-        /*
-         * List<Object[]> hrowToKettleRow = m_tupleHandler
-         * .hbaseRowToKettleTupleMode(r, m_tableMapping, m_columnsMappedByAlias,
-         * m_data.getOutputRowMeta());
-         */
-
         List<Object[]> hrowToKettleRow = m_tupleHandler
             .hbaseRowToKettleTupleMode(null, m_hbAdmin, m_tableMapping,
                 m_columnsMappedByAlias, m_data.getOutputRowMeta());
@@ -718,7 +528,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
       } else {
 
         // do the key first
-        // byte[] rawKey = r.getRow();
         byte[] rawKey = null;
         try {
           rawKey = m_hbAdmin.getResultSetCurrentRowKey();
@@ -754,12 +563,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
             throw new KettleException(e);
           }
 
-          /*
-           * KeyValue kv = r.getColumnLatest( Bytes.toBytes(colFamilyName),
-           * (binaryColName) ? Bytes.toBytesBinary(qualifier) : Bytes
-           * .toBytes(qualifier));
-           */
-
           int outputIndex = m_data.getOutputRowMeta().indexOfValue(name);
           if (outputIndex < 0) {
             throw new KettleException(BaseMessages.getString(
@@ -770,10 +573,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
           Object decodedVal = HBaseValueMeta.decodeColumnValue(
               (kv == null) ? null : kv, currentCol);
 
-          /*
-           * Object decodedVal = HBaseValueMeta.decodeColumnValue( (kv == null)
-           * ? null : kv.getValue(), currentCol);
-           */
           outputRowData[outputIndex] = decodedVal;
         }
       }
@@ -805,15 +604,6 @@ public class HBaseInput extends BaseStep implements StepInterface {
         logError(BaseMessages.getString(HBaseInputMeta.PKG,
             "HBaseInput.Error.ProblemClosingConnection1", ex.getMessage()));
       }
-
-      /*
-       * if (m_resultSet != null) {
-       * logBasic(BaseMessages.getString(HBaseInputMeta.PKG,
-       * "HBaseInput.ClosingConnection")); m_resultSet.close(); try {
-       * m_sourceTable.close(); } catch (IOException e) {
-       * logError(BaseMessages.getString(HBaseInputMeta.PKG,
-       * "HBaseInput.Error.ProblemClosingConnection1", e.getMessage())); } }
-       */
     }
   }
 }

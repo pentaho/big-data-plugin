@@ -34,6 +34,8 @@ public interface HBaseBytesUtil {
 
   int getSizeOfShort();
 
+  int getSizeOfByte();
+
   byte[] toBytes(String aString);
 
   byte[] toBytes(int anInt);

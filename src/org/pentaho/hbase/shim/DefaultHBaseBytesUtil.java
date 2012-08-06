@@ -46,6 +46,10 @@ public class DefaultHBaseBytesUtil implements HBaseBytesUtil {
     return Bytes.SIZEOF_SHORT;
   }
 
+  public int getSizeOfByte() {
+    return Bytes.SIZEOF_BYTE;
+  }
+
   public byte[] toBytes(String aString) {
     return Bytes.toBytes(aString);
   }

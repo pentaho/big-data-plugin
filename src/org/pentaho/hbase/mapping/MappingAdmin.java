@@ -83,7 +83,7 @@ public class MappingAdmin {
       m_bytesUtil = HBaseAdmin.getBytesUtil();
     } catch (Exception ex) {
       // catastrophic failure if we can't obtain a concrete implementation
-      ex.printStackTrace();
+      throw new RuntimeException(ex);
     }
   }
 
@@ -127,18 +127,6 @@ public class MappingAdmin {
    */
 
   /**
-   * Check to see if HBase is available
-   * 
-   * @param conf the connection configuration to use
-   * @throws MasterNotRunningException
-   * @throws ZooKeeperConnectionException
-   * 
-   *           public static void checkHBaseAvailable(Configuration conf) throws
-   *           MasterNotRunningException, ZooKeeperConnectionException {
-   *           HBaseAdmin.checkHBaseAvailable(conf); }
-   */
-
-  /**
    * Get the configuration being used for the connection
    * 
    * @return the configuration encapsulating connection information
@@ -170,10 +158,6 @@ public class MappingAdmin {
 
   // create a test table in the same format as the test mapping
   public void createTestTable() throws Exception {
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
 
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
@@ -183,7 +167,6 @@ public class MappingAdmin {
       // drop/delete the table and re-create
       m_admin.disableTable("MarksTestTable");
       m_admin.deleteTable("MarksTestTable");
-      // throw new IOException("MarksTestTable already exists!");
     }
 
     List<String> colFamilies = new ArrayList<String>();
@@ -191,29 +174,10 @@ public class MappingAdmin {
     colFamilies.add("Family2");
     m_admin.createTable("MarksTestTable", colFamilies, null);
 
-    /*
-     * HTableDescriptor tableDescription = new
-     * HTableDescriptor("MarksTestTable");
-     * 
-     * // two column families HColumnDescriptor mappingColumnFamily = new
-     * HColumnDescriptor("Family1");
-     * tableDescription.addFamily(mappingColumnFamily); mappingColumnFamily =
-     * new HColumnDescriptor("Family2");
-     * tableDescription.addFamily(mappingColumnFamily);
-     * 
-     * m_admin.createTable(tableDescription);
-     */
-
     Properties props = new Properties();
     props.setProperty(HBaseAdmin.HTABLE_WRITE_BUFFER_SIZE_KEY, ""
         + (1024 * 1024 * 12));
     m_admin.newTargetTable("MarksTestTable", props);
-
-    /*
-     * HTable testTable = new HTable(m_connection, "MarksTestTable");
-     * testTable.setAutoFlush(false); testTable.setWriteBufferSize(1024 * 1024 *
-     * 12);
-     */
 
     // insert 200 test rows of random stuff
     Random r = new Random();
@@ -228,29 +192,13 @@ public class MappingAdmin {
           HBaseValueMeta.encodeKeyValue(new Long(key), Mapping.KeyType.LONG),
           false);
 
-      /*
-       * Put p = null; try { p = new Put(HBaseValueMeta.encodeKeyValue(new
-       * Long(key), Mapping.KeyType.LONG)); p.setWriteToWAL(false); } catch
-       * (Exception ex) { ex.printStackTrace(); return; }
-       */
-
       // unsigned (positive) integer column
       m_admin.addColumnToTargetPut("Family1", "first_integer_column", false,
           m_bytesUtil.toBytes((int) key / 10));
 
-      /*
-       * p.add(Bytes.toBytes("Family1"), Bytes.toBytes("first_integer_column"),
-       * Bytes.toBytes((int) key / 10));
-       */
-
       // String column
       m_admin.addColumnToTargetPut("Family1", "first_string_column", false,
           m_bytesUtil.toBytes("StringValue_" + key));
-
-      /*
-       * p.add(Bytes.toBytes("Family1"), Bytes.toBytes("first_string_column"),
-       * Bytes.toBytes("StringValue_" + key));
-       */
 
       // have some null values - every 10th row has no value for the indexed
       // column
@@ -259,11 +207,6 @@ public class MappingAdmin {
         String nomVal = nomVals[index];
         m_admin.addColumnToTargetPut("Family2", "first_indexed_column", false,
             m_bytesUtil.toBytes(nomVal));
-
-        /*
-         * p.add(Bytes.toBytes("Family2"),
-         * Bytes.toBytes("first_indexed_column"), Bytes.toBytes(nomVal));
-         */
       }
 
       // signed integer column
@@ -275,20 +218,10 @@ public class MappingAdmin {
       m_admin.addColumnToTargetPut("Family2", ",first_unsigned_int_column",
           false, m_bytesUtil.toBytes(signedInt));
 
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_signed_int_column"), Bytes.toBytes(signedInt));
-       */
-
       // unsigned (positive) float column
       float f = r.nextFloat() * 1000.0f;
       m_admin.addColumnToTargetPut("Family2", ",first_unsigned_float_column",
           false, m_bytesUtil.toBytes(f));
-
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_unsigned_float_column"), Bytes.toBytes(f));
-       */
 
       // signed float column
       if (d > 0.5) {
@@ -297,20 +230,10 @@ public class MappingAdmin {
       m_admin.addColumnToTargetPut("Family2", "first_signed_float_column",
           false, m_bytesUtil.toBytes(f));
 
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_signed_float_column"), Bytes.toBytes(f));
-       */
-
       // unsigned double column
       double dd = d * 10000 * r.nextDouble();
       m_admin.addColumnToTargetPut("Family2", "first_unsigned_double_column",
           false, m_bytesUtil.toBytes(dd));
-
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_unsigned_double_column"), Bytes.toBytes(dd));
-       */
 
       // signed double
       if (d > 0.5) {
@@ -319,31 +242,16 @@ public class MappingAdmin {
       m_admin.addColumnToTargetPut("Family2", "first_signed_double_column",
           false, m_bytesUtil.toBytes(dd));
 
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_signed_double_column"), Bytes.toBytes(dd));
-       */
-
       // unsigned long
       long l = r.nextInt(300);
       m_admin.addColumnToTargetPut("Family2", "first_unsigned_long_column",
           false, m_bytesUtil.toBytes(l));
-
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_unsigned_long_column"), Bytes.toBytes(l));
-       */
 
       if (d < 0.5) {
         l = -l;
       }
       m_admin.addColumnToTargetPut("Family2", "first_signed_long_column",
           false, m_bytesUtil.toBytes(l));
-
-      /*
-       * p.add(Bytes.toBytes("Family2"),
-       * Bytes.toBytes("first_signed_long_column"), Bytes.toBytes(l));
-       */
 
       // unsigned date (vals >= 1st Jan 1970)
       c.add(Calendar.DAY_OF_YEAR, 1);
@@ -352,22 +260,12 @@ public class MappingAdmin {
       m_admin.addColumnToTargetPut("Family1", "first_unsigned_date_column",
           false, m_bytesUtil.toBytes(longd));
 
-      /*
-       * p.add(Bytes.toBytes("Family1"),
-       * Bytes.toBytes("first_unsigned_date_column"), Bytes.toBytes(longd));
-       */
-
       // signed date (vals < 1st Jan 1970)
       c2.add(Calendar.DAY_OF_YEAR, -1);
       longd = c2.getTimeInMillis();
 
       m_admin.addColumnToTargetPut("Family1", "first_signed_date_column",
           false, m_bytesUtil.toBytes(longd));
-
-      /*
-       * p.add(Bytes.toBytes("Family1"),
-       * Bytes.toBytes("first_signed_date_column"), Bytes.toBytes(longd));
-       */
 
       // boolean column
       String bVal = "";
@@ -379,56 +277,22 @@ public class MappingAdmin {
       m_admin.addColumnToTargetPut("Family1", "first_boolean_column", false,
           m_bytesUtil.toBytes(bVal));
 
-      /*
-       * p.add(Bytes.toBytes("Family1"), Bytes.toBytes("first_boolean_column"),
-       * Bytes.toBytes(bVal));
-       */
-
       // serialized objects
       byte[] serialized = HBaseValueMeta.encodeObject(new Double(d));
-      // System.err.println(":::::::  " + serialized.length);
-      // Object decoded = HBaseValueMeta.decodeObject(serialized);
+
       m_admin.addColumnToTargetPut("Family1", "first_serialized_column", false,
           serialized);
 
-      /*
-       * p.add(Bytes.toBytes("Family1"),
-       * Bytes.toBytes("first_serialized_column"), serialized);
-       */
-
       // binary (raw bytes)
-      /* byte[] rawStuff = Bytes.toBytes(5034555); */
       byte[] rawStuff = m_bytesUtil.toBytes(5034555);
       m_admin.addColumnToTargetPut("Family1", "first_binary_column", false,
           rawStuff);
 
-      /*
-       * p.add(Bytes.toBytes("Family1"), Bytes.toBytes("first_binary_column"),
-       * rawStuff);
-       */
-
       m_admin.executeTargetTablePut();
-      // testTable.put(p);
     }
 
     m_admin.flushCommitsTargetTable();
     m_admin.closeTargetTable();
-    /*
-     * testTable.flushCommits(); testTable.close();
-     */
-
-    // -----
-
-    /*
-     * Put p = new Put(Bytes.toBytes(5)); p.add(Bytes.toBytes("dummy"),
-     * Bytes.toBytes("col"), Bytes.toBytes("dummyVal")); testTable.put(p);
-     * 
-     * p = new Put(Bytes.toBytes(1)); p.add(Bytes.toBytes("dummy"),
-     * Bytes.toBytes("col"), Bytes.toBytes("dummyVal")); testTable.put(p);
-     * 
-     * p = new Put(Bytes.toBytes(-6)); p.add(Bytes.toBytes("dummy"),
-     * Bytes.toBytes("col"), Bytes.toBytes("dummyVal")); testTable.put(p);
-     */
   }
 
   /**
@@ -438,10 +302,7 @@ public class MappingAdmin {
    *           already exists.
    */
   public void createMappingTable() throws Exception {
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
+
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
     }
@@ -449,19 +310,6 @@ public class MappingAdmin {
     if (m_admin.tableExists(m_mappingTableName)) {
       throw new IOException("Mapping table already exists!");
     }
-
-    /*
-     * HTableDescriptor tableDescription = new
-     * HTableDescriptor(m_mappingTableName);
-     * 
-     * // One column family for the mapped columns meta data HColumnDescriptor
-     * mappingColumnFamily = new HColumnDescriptor( COLUMNS_FAMILY_NAME);
-     * tableDescription.addFamily(mappingColumnFamily);
-     * 
-     * // One column family for the key meta data HColumnDescriptor
-     * keyColumnFamily = new HColumnDescriptor(KEY_FAMILY_NAME);
-     * tableDescription.addFamily(keyColumnFamily);
-     */
 
     List<String> colFamNames = new ArrayList<String>();
     colFamNames.add(COLUMNS_FAMILY_NAME);
@@ -480,10 +328,6 @@ public class MappingAdmin {
    */
   public boolean mappingExists(String tableName, String mappingName)
       throws Exception {
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
 
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
@@ -492,7 +336,6 @@ public class MappingAdmin {
     if (m_admin.tableExists(m_mappingTableName)) {
       m_admin.newSourceTable(m_mappingTableName);
 
-      // String paddedTableName = pad(tableName, " ", TABLE_NAME_LENGTH, true);
       String compoundKey = tableName + HBaseValueMeta.SEPARATOR + mappingName;
 
       boolean result = m_admin.sourceTableRowExists(m_bytesUtil
@@ -500,14 +343,6 @@ public class MappingAdmin {
       m_admin.closeSourceTable();
 
       return result;
-
-      /*
-       * HTable mappingTable = new HTable(m_connection, m_mappingTableName); Get
-       * g = new Get(Bytes.toBytes(compoundKey)); Result r =
-       * mappingTable.get(g); boolean result = r.isEmpty();
-       * 
-       * mappingTable.close(); // return (!r.isEmpty()); return (!result);
-       */
     }
     return false;
   }
@@ -520,11 +355,6 @@ public class MappingAdmin {
    * @throws IOException if something goes wrong
    */
   public Set<String> getMappedTables() throws Exception {
-
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
 
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
@@ -548,22 +378,6 @@ public class MappingAdmin {
         tableNames.add(tableName.trim());
       }
 
-      /*
-       * KeyOnlyFilter f = new KeyOnlyFilter(); Scan s = new
-       * Scan(Bytes.toBytes(""), f); HTable mappingTable = new
-       * HTable(m_connection, m_mappingTableName); ResultScanner rs =
-       * mappingTable.getScanner(s);
-       * 
-       * for (Result r : rs) { byte[] rawKey = r.getRow(); String decodedKey =
-       * Bytes.toString(rawKey);
-       * 
-       * // extract the table name String tableName = decodedKey.substring(0,
-       * decodedKey.indexOf(HBaseValueMeta.SEPARATOR));
-       * tableNames.add(tableName.trim()); }
-       * 
-       * rs.close(); mappingTable.close();
-       */
-
       m_admin.closeSourceTable();
     }
 
@@ -580,24 +394,9 @@ public class MappingAdmin {
    */
   public List<String> getMappingNames(String tableName) throws Exception {
 
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
-
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
     }
-
-    // String paddedTableName = pad(tableName, " ", TABLE_NAME_LENGTH, true);
-
-    // TODO may have to use a RowFilter (with BinaryPrefixComparator) instead
-    // FilterList fl = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-    // FilterList fl = new FilterList();
-    // fl.addFilter(new KeyOnlyFilter());
-    // fl.addFilter(new PrefixFilter(Bytes.toBytes(paddedTableName)));
-
-    // Scan s = new Scan(Bytes.toBytes(paddedTableName), fl);
 
     List<String> mappingsForTable = new ArrayList<String>();
     if (m_admin.tableExists(m_mappingTableName)) {
@@ -619,22 +418,6 @@ public class MappingAdmin {
           mappingsForTable.add(mappingName);
         }
       }
-
-      /*
-       * Scan s = new Scan(); HTable mappingTable = new HTable(m_connection,
-       * m_mappingTableName); ResultScanner rs = mappingTable.getScanner(s);
-       * 
-       * for (Result r : rs) { byte[] rawKey = r.getRow(); String decodedKey =
-       * Bytes.toString(rawKey); String tableN = decodedKey.substring(0,
-       * decodedKey.indexOf(HBaseValueMeta.SEPARATOR)).trim();
-       * 
-       * if (tableName.equals(tableN)) { // extract out the mapping name String
-       * mappingName = decodedKey.substring(
-       * decodedKey.indexOf(HBaseValueMeta.SEPARATOR) + 1, decodedKey.length());
-       * mappingsForTable.add(mappingName); } }
-       * 
-       * rs.close(); mappingTable.close();
-       */
 
       m_admin.closeSourceTable();
     }
@@ -663,8 +446,6 @@ public class MappingAdmin {
       return false; // no mapping table so nothing to delete!
     }
 
-    /* HTable mappingTable = new HTable(m_connection, m_mappingTableName); */
-
     if (m_admin.isTableDisabled(m_mappingTableName)) {
       m_admin.enableTable(m_mappingTableName);
     }
@@ -678,11 +459,6 @@ public class MappingAdmin {
     byte[] key = m_bytesUtil.toBytes(compoundKey);
 
     m_admin.executeTargetTableDelete(key);
-
-    /*
-     * Delete d = new Delete(Bytes.toBytes(compoundKey));
-     * mappingTable.delete(d);
-     */
 
     return true;
   }
@@ -725,17 +501,10 @@ public class MappingAdmin {
     boolean isTupleMapping = theMapping.isTupleMapping();
     String tupleFamilies = theMapping.getTupleFamilies();
 
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
     }
 
-    // String paddedTableName = pad(tableName, " ", TABLE_NAME_LENGTH, true);
-    // String compoundKey = paddedTableName + HBaseValueMeta.SEPARATOR +
-    // mappingName;
     String compoundKey = tableName + HBaseValueMeta.SEPARATOR + mappingName;
 
     if (!m_admin.tableExists(m_mappingTableName)) {
@@ -743,8 +512,6 @@ public class MappingAdmin {
       // create the mapping table
       createMappingTable();
     }
-
-    /* HTable mappingTable = new HTable(m_connection, m_mappingTableName); */
 
     m_admin.newTargetTable(m_mappingTableName, null);
 
@@ -761,17 +528,10 @@ public class MappingAdmin {
     if (mappingExists) {
       // delete it first before adding the new one
       m_admin.executeTargetTableDelete(m_bytesUtil.toBytes(compoundKey));
-
-      /*
-       * Delete d = new Delete(Bytes.toBytes(compoundKey));
-       * mappingTable.delete(d);
-       */
     }
 
     // add the new mapping
     m_admin.newTargetTablePut(m_bytesUtil.toBytes(compoundKey), true);
-
-    /* Put p = new Put(Bytes.toBytes(compoundKey)); */
 
     String family = COLUMNS_FAMILY_NAME;
     Set<String> aliases = mapping.keySet();
@@ -795,13 +555,6 @@ public class MappingAdmin {
         }
       }
 
-      // check to see if we are storing a string date or date as
-      // a long
-      /*
-       * if (vm.isDate() && !Const.isEmpty(vm.getConversionMask())) { valueType
-       * += " " + vm.getConversionMask(); }
-       */
-
       // check for nominal/indexed
       if (vm.getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED
           && vm.isString()) {
@@ -822,11 +575,6 @@ public class MappingAdmin {
       // add this mapped column in
       m_admin.addColumnToTargetPut(family, qualifier, false,
           m_bytesUtil.toBytes(valueType));
-
-      /*
-       * p.add(Bytes.toBytes(family), Bytes.toBytes(qualifier),
-       * Bytes.toBytes(valueType));
-       */
     }
 
     // now do the key
@@ -846,21 +594,10 @@ public class MappingAdmin {
     m_admin.addColumnToTargetPut(family, qualifier, false,
         m_bytesUtil.toBytes(valueType));
 
-    /*
-     * p.add(Bytes.toBytes(family), Bytes.toBytes(qualifier),
-     * Bytes.toBytes(valueType));
-     */
-
     // add the row
     m_admin.executeTargetTablePut();
     m_admin.flushCommitsTargetTable();
     m_admin.closeTargetTable();
-
-    /*
-     * mappingTable.put(p);
-     * 
-     * mappingTable.flushCommits(); mappingTable.close();
-     */
   }
 
   /**
@@ -901,17 +638,10 @@ public class MappingAdmin {
   public Mapping getMapping(String tableName, String mappingName)
       throws Exception {
 
-    /*
-     * if (m_connection == null) { throw new
-     * IOException("No connection exists yet!"); }
-     */
     if (m_admin == null) {
       throw new IOException("No connection exists yet!");
     }
 
-    // String paddedTableName = pad(tableName, " ", TABLE_NAME_LENGTH, true);
-    // String compoundKey = paddedTableName + HBaseValueMeta.SEPARATOR +
-    // mappingName;
     String compoundKey = tableName + HBaseValueMeta.SEPARATOR + mappingName;
 
     if (!m_admin.tableExists(m_mappingTableName)) {
@@ -931,21 +661,8 @@ public class MappingAdmin {
       throw new IOException("Mapping \"" + compoundKey + "\" does not exist!");
     }
 
-    /*
-     * HTable mappingTable = new HTable(m_connection, m_mappingTableName); Get g
-     * = new Get(Bytes.toBytes(compoundKey)); Result r = mappingTable.get(g);
-     * 
-     * if (r.isEmpty()) { throw new IOException("Mapping \"" + compoundKey +
-     * "\" does not exist!"); }
-     */
-
     NavigableMap<byte[], byte[]> colsInKeyFamily = m_admin
         .getResultSetCurrentRowFamilyMap(KEY_FAMILY_NAME);
-
-    /*
-     * NavigableMap<byte[], byte[]> colsInKeyFamily = r.getFamilyMap(Bytes
-     * .toBytes(KEY_FAMILY_NAME));
-     */
 
     Set<byte[]> keyCols = colsInKeyFamily.keySet();
     // should only be one key defined!!
@@ -955,12 +672,9 @@ public class MappingAdmin {
     }
 
     byte[] keyNameB = keyCols.iterator().next();
-    /* String decodedKeyName = Bytes.toString(keyNameB); */
     String decodedKeyName = m_bytesUtil.toString(keyNameB);
     byte[] keyTypeB = colsInKeyFamily.get(keyNameB);
-    /* String decodedKeyType = Bytes.toString(keyTypeB); */
     String decodedKeyType = m_bytesUtil.toString(keyTypeB);
-    // String dateFormatString = null;
     Mapping.KeyType keyType = null;
 
     for (Mapping.KeyType t : Mapping.KeyType.values()) {
@@ -1001,15 +715,9 @@ public class MappingAdmin {
     NavigableMap<byte[], byte[]> colsInMapping = m_admin
         .getResultSetCurrentRowFamilyMap(COLUMNS_FAMILY_NAME);
 
-    /*
-     * NavigableMap<byte[], byte[]> colsInMapping = r.getFamilyMap(Bytes
-     * .toBytes(COLUMNS_FAMILY_NAME));
-     */
-
     Set<byte[]> colNames = colsInMapping.keySet();
 
     for (byte[] b : colNames) {
-      /* String decodedName = Bytes.toString(b); */
       String decodedName = m_bytesUtil.toString(b);
       byte[] c = colsInMapping.get(b);
       if (c == null) {
@@ -1018,7 +726,6 @@ public class MappingAdmin {
       }
 
       String decodedType = m_bytesUtil.toString(c);
-      /* String decodedType = Bytes.toString(c); */
 
       HBaseValueMeta newMeta = null;
       if (decodedType.equalsIgnoreCase("Float")) {
@@ -1092,22 +799,8 @@ public class MappingAdmin {
 
     m_admin.closeSourceTable();
 
-    /* mappingTable.close(); */
-
     return resultMapping;
   }
-
-  /*
-   * private static String pad(String source, String padChar, int length,
-   * boolean leftPad) { StringBuffer temp = new StringBuffer(); length = length
-   * - source.length();
-   * 
-   * if (length > 0) { if (leftPad) { for (int i = 0; i < length; i++) {
-   * temp.append(padChar); } temp.append(source); } else { temp.append(source);
-   * for (int i = 0; i < length; i++) { temp.append(padChar); } } } else { //
-   * truncate over-long strings temp.append(source.subSequence(0, length)); }
-   * return temp.toString(); }
-   */
 
   /**
    * Main method for testing this class. Provides a very simple command-line
@@ -1121,13 +814,6 @@ public class MappingAdmin {
       String mappingName = "MarksTestMapping";
       MappingAdmin admin = new MappingAdmin();
       admin.setConnection(HBaseAdmin.createHBaseAdmin());
-
-      /*
-       * Configuration connection = new Configuration();
-       * connection.addResource("hbase-default.xml");
-       * connection.addResource("hbase-site.xml");
-       * admin.setConnection(connection);
-       */
 
       if (args.length == 0 || args[0].equalsIgnoreCase("-h")
           || args[0].endsWith("help")) {
