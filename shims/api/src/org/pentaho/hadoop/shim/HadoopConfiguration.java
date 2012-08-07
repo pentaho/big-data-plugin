@@ -26,35 +26,42 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
 import org.pentaho.hadoop.shim.spi.SnappyShim;
 import org.pentaho.hadoop.shim.spi.SqoopShim;
+import org.pentaho.hbase.shim.spi.HBaseShim;
 
 /**
- * A collection of Hadoop shim implementations for interactive with a Hadoop cluster.
+ * A collection of Hadoop shim implementations for interactive with a Hadoop
+ * cluster.
  */
 public class HadoopConfiguration {
-  private String identifier;
+  private final String identifier;
 
-  private String name;
+  private final String name;
 
-  private HadoopShim hadoopShim;
+  private final HadoopShim hadoopShim;
 
-  private SqoopShim sqoopShim;
+  private final SqoopShim sqoopShim;
 
-  private PigShim pigShim;
+  private final PigShim pigShim;
 
-  private SnappyShim snappyShim;
+  private final SnappyShim snappyShim;
+
+  private final HBaseShim hbaseShim;
 
   /**
-   * Create a new Hadoop configuration with the provided shims. Only 
+   * Create a new Hadoop configuration with the provided shims. Only
+   * 
    * @param identifier Unique identifier for this configuration
    * @param name Friendly name for this configuration
    * @param hadoopShim Hadoop shim
    * @param sqoopShim Sqoop shim (optional)
    * @param pigShim Pig shim (optional)
    * @param snappyShim Snappy shim (optional)
-   * @throws NullPointerException when {@code identifier}, {@code name}, or {@code hadoopShim} are {@code null}.
+   * @throws NullPointerException when {@code identifier}, {@code name}, or
+   *           {@code hadoopShim} are {@code null}.
    */
-  public HadoopConfiguration(String identifier, String name, HadoopShim hadoopShim, SqoopShim sqoopShim,
-      PigShim pigShim, SnappyShim snappyShim) {
+  public HadoopConfiguration(String identifier, String name,
+      HadoopShim hadoopShim, SqoopShim sqoopShim, PigShim pigShim,
+      SnappyShim snappyShim, HBaseShim hbaseShim) {
     if (identifier == null || name == null || hadoopShim == null) {
       throw new NullPointerException();
     }
@@ -64,6 +71,7 @@ public class HadoopConfiguration {
     this.sqoopShim = sqoopShim;
     this.pigShim = pigShim;
     this.snappyShim = snappyShim;
+    this.hbaseShim = hbaseShim;
   }
 
   /**
@@ -89,8 +97,10 @@ public class HadoopConfiguration {
 
   /**
    * Retrieve the Sqoop shim for this configuration if it's available
+   * 
    * @return the Sqoop shim
-   * @throws ConfigurationException No Sqoop shim available for this configuration
+   * @throws ConfigurationException No Sqoop shim available for this
+   *           configuration
    */
   public SqoopShim getSqoopShim() throws ConfigurationException {
     if (sqoopShim == null) {
@@ -101,6 +111,7 @@ public class HadoopConfiguration {
 
   /**
    * Retrieve the Pig shim for this configuration if it's available
+   * 
    * @return the Pig shim
    * @throws ConfigurationException No Pig shim available for this configuration
    */
@@ -113,14 +124,31 @@ public class HadoopConfiguration {
 
   /**
    * Retrieve the Snappy shim for this configuration if it's available
+   * 
    * @return the Snappy shim
-   * @throws ConfigurationException No Snappy shim available for this configuration
+   * @throws ConfigurationException No Snappy shim available for this
+   *           configuration
    */
   public SnappyShim getSnappyShim() throws ConfigurationException {
     if (snappyShim == null) {
       throw new ConfigurationException("Snappy not supported");
     }
     return snappyShim;
+  }
+
+  /**
+   * Retrieve the HBase shim for this configuration if it's available
+   * 
+   * @return the HBase shim
+   * @throws ConfigurationException No HBase shim available for this
+   *           configuration
+   */
+  public HBaseShim getHBaseShim() throws ConfigurationException {
+    if (hbaseShim == null) {
+      throw new ConfigurationException("HBase not supported");
+    }
+
+    return hbaseShim;
   }
 
   /**
