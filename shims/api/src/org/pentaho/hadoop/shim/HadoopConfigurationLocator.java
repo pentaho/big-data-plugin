@@ -40,6 +40,7 @@ import org.apache.commons.vfs.FileSelector;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
 import org.apache.commons.vfs.impl.DefaultFileSystemManager;
+import org.apache.commons.vfs.provider.FileProvider;
 import org.pentaho.hadoop.shim.api.ActiveHadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.api.HadoopConfigurationFileSystemManager;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
@@ -47,6 +48,7 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
 import org.pentaho.hadoop.shim.spi.SnappyShim;
 import org.pentaho.hadoop.shim.spi.SqoopShim;
+import org.pentaho.hbase.shim.spi.HBaseShim;
 
 /**
  * Singleton that knows how to load Hadoop configurations from disk. This class
@@ -82,28 +84,36 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   private ActiveHadoopConfigurationLocator activeLocator;
 
   /**
-   * The file system manager used to provide shims a way to register their {@link FileProvider} implementations.
+   * The file system manager used to provide shims a way to register their
+   * {@link FileProvider} implementations.
    */
   private HadoopConfigurationFileSystemManager fsm;
 
   /**
-   * Initialize this factory with a directory of where to look for cluster 
+   * Initialize this factory with a directory of where to look for cluster
    * configurations.
    * 
    * @param baseDir Directory to look for Hadoop configurations in
-   * @param activeLocator A locator for resolving the current active Hadoop configuration
-   * @param fsm A file system manager to inject VFS file providers into from any loaded Hadoop configuration
+   * @param activeLocator A locator for resolving the current active Hadoop
+   *          configuration
+   * @param fsm A file system manager to inject VFS file providers into from any
+   *          loaded Hadoop configuration
    */
-  public void init(FileObject baseDir, ActiveHadoopConfigurationLocator activeLocator, DefaultFileSystemManager fsm)
-      throws ConfigurationException {
+  public void init(FileObject baseDir,
+      ActiveHadoopConfigurationLocator activeLocator,
+      DefaultFileSystemManager fsm) throws ConfigurationException {
     if (baseDir == null) {
-      throw new NullPointerException(FileObject.class.getSimpleName() + " is required");
+      throw new NullPointerException(FileObject.class.getSimpleName()
+          + " is required");
     }
     if (activeLocator == null) {
-      throw new NullPointerException(ActiveHadoopConfigurationLocator.class.getSimpleName() + " is required");
+      throw new NullPointerException(
+          ActiveHadoopConfigurationLocator.class.getSimpleName()
+              + " is required");
     }
     if (fsm == null) {
-      throw new NullPointerException(DefaultFileSystemManager.class.getSimpleName() + " is required");
+      throw new NullPointerException(
+          DefaultFileSystemManager.class.getSimpleName() + " is required");
     }
     this.fsm = new HadoopConfigurationFileSystemManager(this, fsm);
     findHadoopConfigurations(baseDir);
@@ -112,26 +122,31 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   }
 
   /**
-   * Attempt to find any Hadoop configuration as a direct descendant of the provided
-   * directory.
+   * Attempt to find any Hadoop configuration as a direct descendant of the
+   * provided directory.
    * 
    * @param baseDir Directory to look for Hadoop configurations in
-   * @throws ConfigurationException 
+   * @throws ConfigurationException
    */
-  private void findHadoopConfigurations(FileObject baseDir) throws ConfigurationException {
+  private void findHadoopConfigurations(FileObject baseDir)
+      throws ConfigurationException {
     configurations = new HashMap<String, HadoopConfiguration>();
     try {
       if (!baseDir.exists()) {
-        throw new ConfigurationException("Hadoop configurations directory does not exist: " + baseDir.getURL());
+        throw new ConfigurationException(
+            "Hadoop configurations directory does not exist: "
+                + baseDir.getURL());
       }
       for (FileObject f : baseDir.findFiles(new FileSelector() {
         @Override
         public boolean includeFile(FileSelectInfo info) throws Exception {
-          return info.getDepth() == 1 && FileType.FOLDER.equals(info.getFile().getType());
+          return info.getDepth() == 1
+              && FileType.FOLDER.equals(info.getFile().getType());
         }
 
         @Override
-        public boolean traverseDescendents(FileSelectInfo info) throws Exception {
+        public boolean traverseDescendents(FileSelectInfo info)
+            throws Exception {
           return info.getDepth() == 0;
         }
       })) {
@@ -141,13 +156,15 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
             configurations.put(config.getIdentifier(), config);
           }
         } catch (ConfigurationException ex) {
-          System.err.println("Unable to load Hadoop Configuration from " + f.getURL());
+          System.err.println("Unable to load Hadoop Configuration from "
+              + f.getURL());
           ex.printStackTrace();
         }
       }
     } catch (FileSystemException ex) {
       throw new ConfigurationException(
-          "Error loading Hadoop configurations from " + baseDir.getName().getFriendlyURI(), ex);
+          "Error loading Hadoop configurations from "
+              + baseDir.getName().getFriendlyURI(), ex);
     }
   }
 
@@ -156,10 +173,12 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
    * 
    * @param path Path to search for jar files within
    * @param maxdepth Maximum traversal depth (1-based)
-   * @return All jars found within {@code path} in at most {@code maxdepth} subdirectories.
+   * @return All jars found within {@code path} in at most {@code maxdepth}
+   *         subdirectories.
    * @throws FileSystemException
    */
-  private List<URL> findJarsIn(FileObject path, final int maxdepth) throws FileSystemException {
+  private List<URL> findJarsIn(FileObject path, final int maxdepth)
+      throws FileSystemException {
     FileObject[] jars = path.findFiles(new FileSelector() {
       @Override
       public boolean includeFile(FileSelectInfo info) throws Exception {
@@ -186,8 +205,9 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   }
 
   /**
-   * Locates an implementation of {@code service} using the {@link ServiceLoader}.
-   *
+   * Locates an implementation of {@code service} using the
+   * {@link ServiceLoader}.
+   * 
    * @param cl Class loader to look for implementations in
    * @return The first implementation found.
    */
@@ -204,19 +224,25 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
    * Create a ClassLoader to load resources for a {@code HadoopConfiguration}.
    * 
    * @param root Configuration root directory
-   * @param parent Parent class loader to delegate to if resources cannot be found in the configuration's directory or provided classpath
-   * @param classpathUrls Additional URLs to add to the class loader. These will be added before any internal resources.
-   * @param ignoredClasses Classes (or packages) that should not be loaded by the class loader
-   * @return A class loader capable of loading a Hadoop configuration located at {@code root}.
-   * @throws ConfigurationException Error creating a class loader for the Hadoop configuration located at {@code root}
+   * @param parent Parent class loader to delegate to if resources cannot be
+   *          found in the configuration's directory or provided classpath
+   * @param classpathUrls Additional URLs to add to the class loader. These will
+   *          be added before any internal resources.
+   * @param ignoredClasses Classes (or packages) that should not be loaded by
+   *          the class loader
+   * @return A class loader capable of loading a Hadoop configuration located at
+   *         {@code root}.
+   * @throws ConfigurationException Error creating a class loader for the Hadoop
+   *           configuration located at {@code root}
    */
-  protected ClassLoader createConfigurationLoader(FileObject root, ClassLoader parent, List<URL> classpathUrls,
-      String... ignoredClasses) throws ConfigurationException {
+  protected ClassLoader createConfigurationLoader(FileObject root,
+      ClassLoader parent, List<URL> classpathUrls, String... ignoredClasses)
+      throws ConfigurationException {
     try {
       if (root == null || !FileType.FOLDER.equals(root.getType())) {
         throw new IllegalArgumentException("root must be a folder: " + root);
       }
-      // Find all jar files in the 
+      // Find all jar files in the
       List<URL> jars = findJarsIn(root, 2);
 
       // Add the root of the configuration
@@ -226,15 +252,17 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
         jars.addAll(0, classpathUrls);
       }
 
-      return new HadoopConfigurationClassLoader(jars.toArray(EMPTY_URL_ARRAY), parent, ignoredClasses);
+      return new HadoopConfigurationClassLoader(jars.toArray(EMPTY_URL_ARRAY),
+          parent, ignoredClasses);
     } catch (Exception ex) {
       throw new ConfigurationException("Could not create class loader", ex);
     }
   }
 
   /**
-   * Parse a set of URLs from a comma-separated list of URLs. If the URL points 
-   * to a directory all jar files within that directory will be returned as well.
+   * Parse a set of URLs from a comma-separated list of URLs. If the URL points
+   * to a directory all jar files within that directory will be returned as
+   * well.
    * 
    * @param urlString Comma-separated list of URLs (relative or absolute)
    * @return List of URLs resolved from {@code urlString}
@@ -249,7 +277,8 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
       try {
         FileObject file = root.resolveFile(path.trim());
         if (FileType.FOLDER.equals(file.getType())) {
-          // Add directories with a trailing / so the URL ClassLoader interprets them as directories
+          // Add directories with a trailing / so the URL ClassLoader interprets
+          // them as directories
           urls.add(new URL(file.getURL().toExternalForm() + "/"));
           // Also add all jars within this directory
           urls.addAll(findJarsIn(file, 1));
@@ -268,10 +297,12 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
    * Attempt to discover a valid Hadoop configuration from the provided folder.
    * 
    * @param folder Folder that may represent a Hadoop configuration
-   * @return A Hadoop configuration for the folder provided or null if none is found.
+   * @return A Hadoop configuration for the folder provided or null if none is
+   *         found.
    * @throws ConfigurationException Error when loading the Hadoop configuration.
    */
-  private HadoopConfiguration loadHadoopConfiguration(FileObject folder) throws ConfigurationException {
+  private HadoopConfiguration loadHadoopConfiguration(FileObject folder)
+      throws ConfigurationException {
     Properties configurationProperties = new Properties();
     try {
       FileObject configFile = folder.getChild(CONFIG_PROPERTIES_FILE);
@@ -279,24 +310,31 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
         configurationProperties.putAll(loadProperties(configFile));
       }
     } catch (Exception ex) {
-      throw new ConfigurationException("Unable to load configuration properties from " + CONFIG_PROPERTIES_FILE);
+      throw new ConfigurationException(
+          "Unable to load configuration properties from "
+              + CONFIG_PROPERTIES_FILE);
     }
 
     try {
-      registerNativeLibraryPaths(configurationProperties.getProperty(CONFIG_PROPERTY_LIBRARY_PATH));
+      registerNativeLibraryPaths(configurationProperties
+          .getProperty(CONFIG_PROPERTY_LIBRARY_PATH));
       // Parse all URLs from an optional classpath from the configuration file
-      List<URL> classpathElements = parseURLs(folder, configurationProperties.getProperty(CONFIG_PROPERTY_CLASSPATH));
+      List<URL> classpathElements = parseURLs(folder,
+          configurationProperties.getProperty(CONFIG_PROPERTY_CLASSPATH));
 
-      // Allow external configuration of classes to ignore 
-      String ignoredClassesProperty = configurationProperties.getProperty(CONFIG_PROPERTY_IGNORE_CLASSES);
+      // Allow external configuration of classes to ignore
+      String ignoredClassesProperty = configurationProperties
+          .getProperty(CONFIG_PROPERTY_IGNORE_CLASSES);
       String[] ignoredClasses = null;
       if (ignoredClassesProperty != null) {
         ignoredClasses = ignoredClassesProperty.split(",");
       }
 
-      // Pass our class loader in to the configurations' CL as its parent so it can find the same
+      // Pass our class loader in to the configurations' CL as its parent so it
+      // can find the same
       // API classes we're using
-      ClassLoader cl = createConfigurationLoader(folder, getClass().getClassLoader(), classpathElements, ignoredClasses);
+      ClassLoader cl = createConfigurationLoader(folder, getClass()
+          .getClassLoader(), classpathElements, ignoredClasses);
 
       // Attempt to locate a shim within this folder
       HadoopShim hadoopShim = locateServiceImpl(cl, HadoopShim.class);
@@ -307,10 +345,13 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
       SqoopShim sqoopShim = locateServiceImpl(cl, SqoopShim.class);
       PigShim pigShim = locateServiceImpl(cl, PigShim.class);
       SnappyShim snappyShim = locateServiceImpl(cl, SnappyShim.class);
+      HBaseShim hbaseShim = locateServiceImpl(cl, HBaseShim.class);
       String id = folder.getName().getBaseName();
-      String name = configurationProperties.getProperty(CONFIG_PROPERTY_NAME, id);
+      String name = configurationProperties.getProperty(CONFIG_PROPERTY_NAME,
+          id);
 
-      HadoopConfiguration config = new HadoopConfiguration(id, name, hadoopShim, sqoopShim, pigShim, snappyShim);
+      HadoopConfiguration config = new HadoopConfiguration(id, name,
+          hadoopShim, sqoopShim, pigShim, snappyShim, hbaseShim);
       hadoopShim.onLoad(config, fsm);
       return config;
     } catch (Throwable t) {
@@ -319,7 +360,8 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   }
 
   /**
-   * Register a comma-separated list of native library paths. 
+   * Register a comma-separated list of native library paths.
+   * 
    * @param paths Comma-separated list of libraries
    */
   protected void registerNativeLibraryPaths(String paths) {
@@ -335,9 +377,9 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   }
 
   /**
-   * Dynamically register a native library path. This relies on a specific 
+   * Dynamically register a native library path. This relies on a specific
    * implementation detail of ClassLoader: it's usr_paths property.
-   *  
+   * 
    * @param path Library path to add
    * @return {@code true} if the library path could be added successfully
    */
@@ -377,12 +419,14 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
 
   /**
    * Load the properties file located at {@code file}
+   * 
    * @param file Location of a properties file to load
    * @return Loaded properties file
    * @throws IOException Error loading properties from file
    * @throws FileSystemException Error locating input stream for file
    */
-  protected Properties loadProperties(FileObject file) throws FileSystemException, IOException {
+  protected Properties loadProperties(FileObject file)
+      throws FileSystemException, IOException {
     Properties p = new Properties();
     p.load(file.getContent().getInputStream());
     return p;
@@ -391,7 +435,8 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   public List<HadoopConfiguration> getConfigurations() {
     checkInitialized();
     List<HadoopConfiguration> configs = new ArrayList<HadoopConfiguration>();
-    for (Map.Entry<String, HadoopConfiguration> entry : configurations.entrySet()) {
+    for (Map.Entry<String, HadoopConfiguration> entry : configurations
+        .entrySet()) {
       configs.add(entry.getValue());
     }
     return configs;
@@ -402,7 +447,8 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
     return configurations.containsKey(id);
   }
 
-  public HadoopConfiguration getConfiguration(String id) throws ConfigurationException {
+  public HadoopConfiguration getConfiguration(String id)
+      throws ConfigurationException {
     checkInitialized();
     HadoopConfiguration config = configurations.get(id);
     if (config == null) {
@@ -412,7 +458,8 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
   }
 
   @Override
-  public HadoopConfiguration getActiveConfiguration() throws ConfigurationException {
+  public HadoopConfiguration getActiveConfiguration()
+      throws ConfigurationException {
     return getConfiguration(activeLocator.getActiveConfigurationId());
   }
 }
