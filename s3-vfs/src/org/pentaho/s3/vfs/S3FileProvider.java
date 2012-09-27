@@ -30,6 +30,12 @@ import org.apache.commons.vfs.UserAuthenticationData;
 import org.apache.commons.vfs.provider.AbstractOriginatingFileProvider;
 
 public class S3FileProvider extends AbstractOriginatingFileProvider {
+  
+  /**
+   * The scheme this provider was designed to support
+   */
+  public static final String SCHEME = "s3";
+
   /** User Information. */
   public static final String ATTR_USER_INFO = "UI";
 
