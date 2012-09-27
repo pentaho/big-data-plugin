@@ -170,6 +170,12 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
       return FileType.FOLDER;
     }
 
+    S3FileObject parent = (S3FileObject) getParent();
+    if (parent.folders == null || parent.folders.isEmpty()) {
+      // Refresh the list of children from our parent so we can determine if we're a folder or not
+      // TODO This should be cleaned up so we don't have to fetch all children. Ideally within #getS3Object().
+      parent.doListChildren();
+    }
     if (((S3FileObject) getParent()).folders.contains(getName().getBaseName())) {
       return FileType.FOLDER;
     }
