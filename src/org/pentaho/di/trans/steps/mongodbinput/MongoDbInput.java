@@ -40,107 +40,128 @@ import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.mongodb.util.JSON;
 
-public class MongoDbInput extends BaseStep implements StepInterface
-{
-	private static Class<?> PKG = MongoDbInputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+public class MongoDbInput extends BaseStep implements StepInterface {
+  private static Class<?> PKG = MongoDbInputMeta.class; // for i18n purposes,
+                                                        // needed by
+                                                        // Translator2!!
+                                                        // $NON-NLS-1$
 
-	private MongoDbInputMeta meta;
-	private MongoDbInputData data;
-	
-	public MongoDbInput(StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans)
-	{
-		super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
-	}
+  private MongoDbInputMeta meta;
+  private MongoDbInputData data;
 
-	public boolean processRow(StepMetaInterface smi, StepDataInterface sdi) throws KettleException
-	{
-	  if (first) {
-	    first=false;
-	    
-	    data.outputRowMeta = new RowMeta();
-	    meta.getFields(data.outputRowMeta,getStepname(), null, null, this);
-	    
-	    String query = environmentSubstitute(meta.getJsonQuery());
-	    String fields = environmentSubstitute(meta.getFieldsName());
-	    if (Const.isEmpty(query) && Const.isEmpty(fields)) {
-	      data.cursor = data.collection.find();
-	    } else {
-	      DBObject dbObject = (DBObject)JSON.parse(Const.isEmpty(query) ? "{}" : query);
-	      DBObject dbObject2 = (DBObject)JSON.parse(fields);
-	      data.cursor = data.collection.find(dbObject,dbObject2);     
-	    }
-	  }
+  public MongoDbInput(StepMeta stepMeta, StepDataInterface stepDataInterface,
+      int copyNr, TransMeta transMeta, Trans trans) {
+    super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
+  }
 
-	  if (data.cursor.hasNext() && !isStopped()) {
-	    String json = data.cursor.next().toString();
-	    Object[] row = RowDataUtil.allocateRowData(data.outputRowMeta.size());
-	    int index=0;
-	    
-	    row[index++] = json;
+  @Override
+  public boolean processRow(StepMetaInterface smi, StepDataInterface sdi)
+      throws KettleException {
+    if (first) {
+      first = false;
 
-	    // putRow will send the row on to the default output hop.
-	    //
+      data.outputRowMeta = new RowMeta();
+      meta.getFields(data.outputRowMeta, getStepname(), null, null, this);
 
-	    putRow(data.outputRowMeta, row);
-	    
-	    return true;
-	  } else {
+      String query = environmentSubstitute(meta.getJsonQuery());
+      String fields = environmentSubstitute(meta.getFieldsName());
+      if (Const.isEmpty(query) && Const.isEmpty(fields)) {
+        data.cursor = data.collection.find();
+      } else {
+        DBObject dbObject = (DBObject) JSON.parse(Const.isEmpty(query) ? "{}"
+            : query);
+        DBObject dbObject2 = (DBObject) JSON.parse(fields);
+        data.cursor = data.collection.find(dbObject, dbObject2);
+      }
+    }
 
-	    setOutputDone();
-  
-  	  return false;
-	  }
-	}
+    if (data.cursor.hasNext() && !isStopped()) {
+      DBObject nextDoc = data.cursor.next();
+      Object row[];
+      if (meta.getOutputJson()) {
+        String json = nextDoc.toString();
+        row = RowDataUtil.allocateRowData(data.outputRowMeta.size());
+        int index = 0;
 
-	@SuppressWarnings("deprecation")
-  public boolean init(StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface)
-	{
-	  if (super.init(stepMetaInterface, stepDataInterface)) {
-  	  meta = (MongoDbInputMeta) stepMetaInterface;
-  	  data = (MongoDbInputData) stepDataInterface;
-      
+        row[index++] = json;
+
+        // putRow will send the row on to the default output hop.
+        //
+      } else {
+        row = data.mongoDocumentToKettle(nextDoc, this);
+      }
+
+      putRow(data.outputRowMeta, row);
+
+      return true;
+    } else {
+
+      setOutputDone();
+
+      return false;
+    }
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
+  public boolean init(StepMetaInterface stepMetaInterface,
+      StepDataInterface stepDataInterface) {
+    if (super.init(stepMetaInterface, stepDataInterface)) {
+      meta = (MongoDbInputMeta) stepMetaInterface;
+      data = (MongoDbInputData) stepDataInterface;
+
       String hostname = environmentSubstitute(meta.getHostname());
       int port = Const.toInt(environmentSubstitute(meta.getPort()), 27017);
       String db = environmentSubstitute(meta.getDbName());
       String collection = environmentSubstitute(meta.getCollection());
-        
+
       try {
-    	     	 
-  
+
         data.mongo = new Mongo(hostname, port);
-        data.mongo.slaveOk(); //slaveOK for ce;
+        data.mongo.slaveOk(); // slaveOK for ce;
         data.db = data.mongo.getDB(db);
-        
+
         String realUser = environmentSubstitute(meta.getAuthenticationUser());
-        String realPass = Encr.decryptPasswordOptionallyEncrypted(environmentSubstitute(meta.getAuthenticationPassword()));
-        
+        String realPass = Encr
+            .decryptPasswordOptionallyEncrypted(environmentSubstitute(meta
+                .getAuthenticationPassword()));
+
         if (!Const.isEmpty(realUser) || !Const.isEmpty(realPass)) {
           if (!data.db.authenticate(realUser, realPass.toCharArray())) {
-            throw new KettleException(BaseMessages.getString(PKG, "MongoDbInput.ErrorAuthenticating.Exception"));
+            throw new KettleException(BaseMessages.getString(PKG,
+                "MongoDbInput.ErrorAuthenticating.Exception"));
           }
         }
         data.collection = data.db.getCollection(collection);
-  
+
+        if (!((MongoDbInputMeta) stepMetaInterface).getOutputJson()) {
+          ((MongoDbInputData) stepDataInterface)
+              .setMongoFields(((MongoDbInputMeta) stepMetaInterface)
+                  .getMongoFields());
+        }
+
         return true;
       } catch (Exception e) {
-        logError(BaseMessages.getString(PKG, "MongoDbInput.ErrorConnectingToMongoDb.Exception", hostname, ""+port, db, collection), e);
+        logError(BaseMessages.getString(PKG,
+            "MongoDbInput.ErrorConnectingToMongoDb.Exception", hostname, ""
+                + port, db, collection), e);
         return false;
       }
-	  } else {
-	    return false;
-	  }
-	}
-	
-	@Override
-	public void dispose(StepMetaInterface smi, StepDataInterface sdi) {
-	  if (data.cursor!=null) {
-	    data.cursor.close();
-	  }
-	  if (data.mongo!=null) {
-	    data.mongo.close();
-	  }
-	  
-	  super.dispose(smi, sdi);
-	}
-	
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void dispose(StepMetaInterface smi, StepDataInterface sdi) {
+    if (data.cursor != null) {
+      data.cursor.close();
+    }
+    if (data.mongo != null) {
+      data.mongo.close();
+    }
+
+    super.dispose(smi, sdi);
+  }
+
 }

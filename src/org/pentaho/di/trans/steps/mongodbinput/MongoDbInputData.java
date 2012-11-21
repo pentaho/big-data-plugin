@@ -22,36 +22,562 @@
 
 package org.pentaho.di.trans.steps.mongodbinput;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.bson.types.BSONTimestamp;
+import org.bson.types.Binary;
+import org.bson.types.Code;
+import org.bson.types.ObjectId;
+import org.bson.types.Symbol;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMeta;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
-
+import com.mongodb.util.JSON;
 
 /**
  * @author Matt
  * @since 24-jan-2005
  */
-public class MongoDbInputData extends BaseStepData implements StepDataInterface
-{
+public class MongoDbInputData extends BaseStepData implements StepDataInterface {
+
   public RowMetaInterface outputRowMeta;
-  
+
   public Mongo mongo;
   public DB db;
   public DBCollection collection;
 
   public DBCursor cursor;
-  
-	/**
-	 * 
-	 */
-	public MongoDbInputData()
-	{
-		super();
-	}
 
+  private List<MongoField> m_userFields;
+
+  public static class MongoField {
+
+    /** The name the the field will take in the outputted kettle stream */
+    public String m_fieldName = "";
+
+    /** The path to the field in the Mongo object */
+    public String m_fieldPath = "";
+
+    /** The kettle type for this field */
+    public String m_kettleType = "";
+
+    /** User-defined indexed values for String types */
+    public List<String> m_indexedVals;
+
+    /** The index that this field is in the output row structure */
+    protected int m_outputIndex;
+
+    private ValueMeta m_tempValueMeta;
+
+    private List<String> m_pathParts;
+    private List<String> m_tempParts;
+
+    public MongoField copy() {
+      MongoField newF = new MongoField();
+      newF.m_fieldName = m_fieldName;
+      newF.m_fieldPath = m_fieldPath;
+      newF.m_kettleType = m_kettleType;
+
+      // reference doesn't matter here as this list is read only at runtime
+      newF.m_indexedVals = m_indexedVals;
+
+      return newF;
+    }
+
+    public void init(int outputIndex) throws KettleException {
+      if (Const.isEmpty(m_fieldPath)) {
+        throw new KettleException("No path set!");
+      }
+
+      if (m_pathParts != null) {
+        return;
+      }
+
+      String fieldPath = cleansePath(m_fieldPath);
+
+      String[] temp = fieldPath.split("\\.");
+      m_pathParts = new ArrayList<String>();
+      for (String part : temp) {
+        m_pathParts.add(part);
+      }
+
+      if (m_pathParts.get(0).equals("$")) {
+        m_pathParts.remove(0); // root record indicator
+      } else if (m_pathParts.get(0).startsWith("$[")) {
+
+        // strip leading $ off of array
+        String r = m_pathParts.get(0).substring(1, m_pathParts.get(0).length());
+        m_pathParts.set(0, r);
+      }
+
+      m_tempParts = new ArrayList<String>();
+      m_tempValueMeta = new ValueMeta();
+      m_tempValueMeta.setType(ValueMeta.getType(m_kettleType));
+      m_outputIndex = outputIndex;
+    }
+
+    public void reset(VariableSpace space) {
+      // first clear because there may be stuff left over from processing
+      // the previous mongo document object (especially if a path exited early
+      // due to non-existent field or array index out of bounds)
+      m_tempParts.clear();
+
+      for (String part : m_pathParts) {
+        m_tempParts.add(space.environmentSubstitute(part));
+      }
+    }
+
+    /**
+     * Perform Kettle type conversions for the Avro leaf field value.
+     * 
+     * @param fieldValue the leaf value from the Avro structure
+     * @return an Object of the appropriate Kettle type
+     * @throws KettleException if a problem occurs
+     */
+    protected Object getKettleValue(Object fieldValue) throws KettleException {
+
+      switch (m_tempValueMeta.getType()) {
+      case ValueMetaInterface.TYPE_BIGNUMBER:
+        return m_tempValueMeta.getBigNumber(fieldValue);
+      case ValueMetaInterface.TYPE_BINARY:
+        return m_tempValueMeta.getBinary(fieldValue);
+      case ValueMetaInterface.TYPE_BOOLEAN:
+        return m_tempValueMeta.getBoolean(fieldValue);
+      case ValueMetaInterface.TYPE_DATE:
+        return m_tempValueMeta.getDate(fieldValue);
+      case ValueMetaInterface.TYPE_INTEGER:
+        return m_tempValueMeta.getInteger(fieldValue);
+      case ValueMetaInterface.TYPE_NUMBER:
+        return m_tempValueMeta.getNumber(fieldValue);
+      case ValueMetaInterface.TYPE_STRING:
+        return m_tempValueMeta.getString(fieldValue);
+      default:
+        return null;
+      }
+    }
+
+    protected Object getPrimitive(Object fieldValue) throws KettleException {
+      if (fieldValue == null) {
+        return null;
+      }
+
+      if (fieldValue instanceof Number || fieldValue instanceof Date
+          || fieldValue instanceof String) {
+        return getKettleValue(fieldValue);
+      }
+
+      if (fieldValue instanceof Binary) {
+        return getKettleValue(((Binary) fieldValue).getData());
+      }
+
+      if (fieldValue instanceof Symbol) {
+        return getKettleValue(((Symbol) fieldValue).getSymbol());
+      }
+
+      if (fieldValue instanceof BSONTimestamp) {
+        return getKettleValue(new Long(((BSONTimestamp) fieldValue).getTime()));
+      }
+
+      if (fieldValue instanceof Code) {
+        return getKettleValue(((Code) fieldValue).getCode());
+      }
+
+      if (fieldValue instanceof ObjectId) {
+        return getKettleValue(((ObjectId) fieldValue).toString());
+      }
+
+      return null;
+
+      /*
+       * throw new KettleException("Can't handle Mongo type: " +
+       * fieldValue.getClass().toString());
+       */
+    }
+
+    public Object convertToKettleValue(BasicDBObject mongoObject)
+        throws KettleException {
+
+      if (mongoObject == null) {
+        return null;
+      }
+
+      if (m_tempParts.size() == 0) {
+        throw new KettleException("Malformed path for a record");
+      }
+
+      String part = m_tempParts.remove(0);
+
+      if (part.charAt(0) == '[') {
+        // we're not expecting an array at this point - this document does not
+        // contain our field
+        return null;
+      }
+
+      if (part.indexOf('[') > 0) {
+        String arrayPart = part.substring(part.indexOf('['));
+        part = part.substring(0, part.indexOf('['));
+
+        // put the array section back into location zero
+        m_tempParts.add(0, arrayPart);
+      }
+
+      // part is a named field of this record
+      Object fieldValue = mongoObject.get(part);
+      if (fieldValue == null) {
+        return null;
+      }
+
+      // what have we got
+      if (m_tempParts.size() == 0) {
+        // we're expecting a leaf primitive - lets see if that's what we have
+        // here...
+        return getPrimitive(fieldValue);
+      }
+
+      if (fieldValue instanceof BasicDBObject) {
+        return convertToKettleValue(((BasicDBObject) fieldValue));
+      }
+
+      if (fieldValue instanceof BasicDBList) {
+        return convertToKettleValue(((BasicDBList) fieldValue));
+      }
+
+      // must mean we have a primitive here, but we're expecting to process more
+      // path so this doesn't match us - return null
+      return null;
+    }
+
+    public Object convertToKettleValue(BasicDBList mongoList)
+        throws KettleException {
+
+      if (mongoList == null) {
+        return null;
+      }
+
+      if (m_tempParts.size() == 0) {
+        throw new KettleException("Malformed path for an array");
+      }
+
+      String part = m_tempParts.remove(0);
+      if (!(part.charAt(0) == '[')) {
+        // we're expecting an array at this point - this document does not
+        // contain our field
+        return null;
+      }
+
+      String index = part.substring(1, part.indexOf(']'));
+      int arrayI = 0;
+      try {
+        arrayI = Integer.parseInt(index.trim());
+      } catch (NumberFormatException e) {
+        throw new KettleException("Unable to parse array indexL: " + index);
+      }
+
+      if (part.indexOf(']') < part.length() - 1) {
+        // more dimensions to the array
+        part = part.substring(part.indexOf(']') + 1, part.length());
+        m_tempParts.add(0, part);
+      }
+
+      if (arrayI >= mongoList.size() || arrayI < 0) {
+        return null;
+      }
+
+      Object element = mongoList.get(arrayI);
+
+      if (element == null) {
+        return null;
+      }
+
+      if (m_tempParts.size() == 0) {
+        // we're expecting a leaf primitive - let's see if that's what we have
+        // here...
+        return getPrimitive(element);
+      }
+
+      if (element instanceof BasicDBObject) {
+        return convertToKettleValue(((BasicDBObject) element));
+      }
+
+      if (element instanceof BasicDBList) {
+        return convertToKettleValue(((BasicDBList) element));
+      }
+
+      // must mean we have a primitive here, but we're expecting to process more
+      // path so this doesn't match us - return null
+      return null;
+    }
+  }
+
+  public MongoDbInputData() {
+    super();
+  }
+
+  public void init() throws KettleException {
+    if (m_userFields != null) {
+      for (MongoField f : m_userFields) {
+        int outputIndex = outputRowMeta.indexOfValue(f.m_fieldName);
+        f.init(outputIndex);
+      }
+    }
+  }
+
+  public Object[] mongoDocumentToKettle(DBObject mongo, VariableSpace space)
+      throws KettleException {
+    Object[] result = RowDataUtil.allocateRowData(outputRowMeta.size());
+
+    Object value;
+    for (MongoField f : m_userFields) {
+      value = null;
+      f.reset(space);
+
+      if (mongo instanceof BasicDBObject) {
+        value = f.convertToKettleValue((BasicDBObject) mongo);
+      } else if (mongo instanceof BasicDBList) {
+        value = f.convertToKettleValue((BasicDBList) mongo);
+      }
+
+      result[f.m_outputIndex] = value;
+    }
+
+    return result;
+  }
+
+  /**
+   * Cleanses a string path by ensuring that any variables names present in the
+   * path do not contain "."s (replaces any dots with underscores).
+   * 
+   * @param path the path to cleanse
+   * @return the cleansed path
+   */
+  public static String cleansePath(String path) {
+    // look for variables and convert any "." to "_"
+
+    int index = path.indexOf("${");
+
+    int endIndex = 0;
+    String tempStr = path;
+    while (index >= 0) {
+      index += 2;
+      endIndex += tempStr.indexOf("}");
+      if (endIndex > 0 && endIndex > index + 1) {
+        String key = path.substring(index, endIndex);
+
+        String cleanKey = key.replace('.', '_');
+        path = path.replace(key, cleanKey);
+      } else {
+        break;
+      }
+
+      if (endIndex + 1 < path.length()) {
+        tempStr = path.substring(endIndex + 1, path.length());
+      } else {
+        break;
+      }
+
+      index = tempStr.indexOf("${");
+
+      if (index > 0) {
+        index += endIndex;
+      }
+    }
+
+    return path;
+  }
+
+  public void setMongoFields(List<MongoField> fields) {
+    // copy this list
+    m_userFields = new ArrayList<MongoField>();
+
+    for (MongoField f : fields) {
+      m_userFields.add(f.copy());
+    }
+  }
+
+  protected static int mongoToKettleType(Object fieldValue) {
+    if (fieldValue == null) {
+      return ValueMetaInterface.TYPE_STRING;
+    }
+
+    if (fieldValue instanceof Symbol || fieldValue instanceof String
+        || fieldValue instanceof Code || fieldValue instanceof ObjectId) {
+      return ValueMetaInterface.TYPE_STRING;
+    } else if (fieldValue instanceof Date) {
+      return ValueMetaInterface.TYPE_DATE;
+    } else if (fieldValue instanceof Number) {
+      // try to parse as an Integer
+      try {
+        Integer.parseInt(fieldValue.toString());
+        return ValueMetaInterface.TYPE_INTEGER;
+      } catch (NumberFormatException e) {
+        return ValueMetaInterface.TYPE_NUMBER;
+      }
+    } else if (fieldValue instanceof Binary) {
+      return ValueMetaInterface.TYPE_BINARY;
+    } else if (fieldValue instanceof BSONTimestamp) {
+      return ValueMetaInterface.TYPE_INTEGER;
+    }
+
+    return ValueMetaInterface.TYPE_STRING;
+  }
+
+  protected static void docToFields(DBObject doc, Map<String, MongoField> lookup) {
+    String root = "$";
+
+    if (doc instanceof BasicDBObject) {
+      processRecord((BasicDBObject) doc, root, lookup);
+    } else if (doc instanceof BasicDBList) {
+      processList((BasicDBList) doc, root, lookup);
+    }
+  }
+
+  protected static void processRecord(BasicDBObject rec, String path,
+      Map<String, MongoField> lookup) {
+    for (String key : rec.keySet()) {
+      Object fieldValue = rec.get(key);
+
+      if (fieldValue instanceof BasicDBObject) {
+        processRecord((BasicDBObject) fieldValue, path + "." + key, lookup);
+      } else if (fieldValue instanceof BasicDBList) {
+        processList((BasicDBList) fieldValue, path + "." + key, lookup);
+      } else {
+        // some sort of primitive
+        String finalPath = path + "." + key;
+        if (!lookup.containsKey(finalPath)) {
+          MongoField newField = new MongoField();
+          int kettleType = mongoToKettleType(fieldValue);
+          newField.m_fieldName = finalPath;
+          newField.m_fieldPath = finalPath;
+          newField.m_kettleType = ValueMeta.getTypeDesc(kettleType);
+
+          lookup.put(finalPath, newField);
+        }
+      }
+    }
+  }
+
+  protected static void processList(BasicDBList list, String path,
+      Map<String, MongoField> lookup) {
+
+    if (list.size() == 0) {
+      return; // can't infer anything about an empty list
+    }
+
+    String nonPrimitivePath = path + "[*]";
+    String primitivePath = path;
+
+    for (int i = 0; i < list.size(); i++) {
+      Object element = list.get(i);
+
+      if (element instanceof BasicDBObject) {
+        processRecord((BasicDBObject) element, nonPrimitivePath, lookup);
+      } else if (element instanceof BasicDBList) {
+        processList((BasicDBList) element, nonPrimitivePath, lookup);
+      } else {
+        // some sort of primitive
+        String finalPath = primitivePath + "[" + i + "]";
+        if (!lookup.containsKey(finalPath)) {
+          MongoField newField = new MongoField();
+          int kettleType = mongoToKettleType(element);
+          newField.m_fieldName = finalPath;
+          newField.m_fieldPath = finalPath;
+          newField.m_kettleType = ValueMeta.getTypeDesc(kettleType);
+
+          lookup.put(finalPath, newField);
+        }
+      }
+    }
+  }
+
+  @SuppressWarnings("deprecation")
+  public static boolean discoverFields(MongoDbInputMeta meta,
+      TransMeta transMeta, int numDocsToSample) throws KettleException {
+
+    if (numDocsToSample < 1) {
+      numDocsToSample = 100; // default
+    }
+
+    String hostname = transMeta.environmentSubstitute(meta.getHostname());
+    int port = Const.toInt(transMeta.environmentSubstitute(meta.getPort()),
+        27017);
+    String db = transMeta.environmentSubstitute(meta.getDbName());
+    String collection = transMeta.environmentSubstitute(meta.getCollection());
+
+    List<MongoField> discoveredFields = new ArrayList<MongoField>();
+    Map<String, MongoField> fieldLookup = new HashMap<String, MongoField>();
+    try {
+      Mongo mongo = new Mongo(hostname, port);
+      mongo.slaveOk();
+      DB database = mongo.getDB(db);
+
+      String realUser = transMeta.environmentSubstitute(meta
+          .getAuthenticationUser());
+      String realPass = Encr.decryptPasswordOptionallyEncrypted(transMeta
+          .environmentSubstitute(meta.getAuthenticationPassword()));
+
+      if (!Const.isEmpty(realUser) || !Const.isEmpty(realPass)) {
+        if (!database.authenticate(realUser, realPass.toCharArray())) {
+          throw new KettleException(BaseMessages.getString(
+              MongoDbInputMeta.PKG,
+              "MongoDbInput.ErrorAuthenticating.Exception"));
+        }
+      }
+      DBCollection dbcollection = database.getCollection(collection);
+
+      String query = transMeta.environmentSubstitute(meta.getJsonQuery());
+      String fields = transMeta.environmentSubstitute(meta.getFieldsName());
+      DBCursor cursor = null;
+      if (Const.isEmpty(query) && Const.isEmpty(fields)) {
+        cursor = dbcollection.find().limit(numDocsToSample);
+      } else {
+        DBObject dbObject = (DBObject) JSON.parse(Const.isEmpty(query) ? "{}"
+            : query);
+        DBObject dbObject2 = (DBObject) JSON.parse(fields);
+        cursor = dbcollection.find(dbObject, dbObject2).limit(numDocsToSample);
+      }
+
+      while (cursor.hasNext()) {
+        DBObject nextDoc = cursor.next();
+        docToFields(nextDoc, fieldLookup);
+      }
+
+      for (String key : fieldLookup.keySet()) {
+        MongoField m = fieldLookup.get(key);
+        discoveredFields.add(m);
+      }
+
+      // return true if query resulted in documents being returned and fields
+      // getting extracted
+      if (discoveredFields.size() > 0) {
+        meta.setMongoFields(discoveredFields);
+
+        return true;
+      }
+    } catch (Exception e) {
+      throw new KettleException(e);
+    }
+
+    return false;
+  }
 }
