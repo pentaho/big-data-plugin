@@ -73,12 +73,15 @@ public class MongoDbInput extends BaseStep implements StepInterface {
         DBObject dbObject2 = (DBObject) JSON.parse(fields);
         data.cursor = data.collection.find(dbObject, dbObject2);
       }
+
+      data.init();
     }
 
     if (data.cursor.hasNext() && !isStopped()) {
       DBObject nextDoc = data.cursor.next();
       Object row[];
-      if (meta.getOutputJson()) {
+      if (meta.getOutputJson() || meta.getMongoFields() == null
+          || meta.getMongoFields().size() == 0) {
         String json = nextDoc.toString();
         row = RowDataUtil.allocateRowData(data.outputRowMeta.size());
         int index = 0;
@@ -111,7 +114,8 @@ public class MongoDbInput extends BaseStep implements StepInterface {
       data = (MongoDbInputData) stepDataInterface;
 
       String hostname = environmentSubstitute(meta.getHostname());
-      int port = Const.toInt(environmentSubstitute(meta.getPort()), 27017);
+      int port = Const.toInt(environmentSubstitute(meta.getPort()),
+          MongoDbInputData.MONGO_DEFAULT_PORT);
       String db = environmentSubstitute(meta.getDbName());
       String collection = environmentSubstitute(meta.getCollection());
 

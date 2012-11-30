@@ -22,10 +22,12 @@
 
 package org.pentaho.di.trans.steps.mongodbinput;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.pentaho.di.core.CheckResultInterface;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Counter;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -59,9 +61,9 @@ import org.w3c.dom.Node;
 @Step(id = "MongoDbInput", image = "mongodb-input.png", name = "MongoDb Input", description = "Reads from a Mongo DB collection", categoryDescription = "Big Data")
 public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface {
   protected static Class<?> PKG = MongoDbInputMeta.class; // for i18n purposes,
-                                                        // needed by
-                                                        // Translator2!!
-                                                        // $NON-NLS-1$
+  // needed by
+  // Translator2!!
+  // $NON-NLS-1$
 
   private String hostname;
   private String port;
@@ -122,7 +124,39 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
       authenticationUser = XMLHandler.getTagValue(stepnode, "auth_user"); //$NON-NLS-1$
       authenticationPassword = Encr
           .decryptPasswordOptionallyEncrypted(XMLHandler.getTagValue(stepnode,
-              "auth_password")); //$NON-NLS-1$ 
+              "auth_password")); //$NON-NLS-1$
+
+      m_outputJson = true; // default to true for backwards compatibility
+      String outputJson = XMLHandler.getTagValue(stepnode, "output_json");
+      if (!Const.isEmpty(outputJson)) {
+        m_outputJson = outputJson.equalsIgnoreCase("Y");
+      }
+
+      Node fields = XMLHandler.getSubNode(stepnode, "mongo_fields");
+      if (fields != null && XMLHandler.countNodes(fields, "mongo_field") > 0) {
+        int nrfields = XMLHandler.countNodes(fields, "mongo_field");
+
+        m_fields = new ArrayList<MongoDbInputData.MongoField>();
+        for (int i = 0; i < nrfields; i++) {
+          Node fieldNode = XMLHandler.getSubNodeByNr(fields, "mongo_field", i);
+
+          MongoDbInputData.MongoField newField = new MongoDbInputData.MongoField();
+          newField.m_fieldName = XMLHandler
+              .getTagValue(fieldNode, "field_name");
+          newField.m_fieldPath = XMLHandler
+              .getTagValue(fieldNode, "field_path");
+          newField.m_kettleType = XMLHandler.getTagValue(fieldNode,
+              "field_type");
+          String indexedVals = XMLHandler
+              .getTagValue(fieldNode, "indexed_vals");
+          if (indexedVals != null && indexedVals.length() > 0) {
+            newField.m_indexedVals = MongoDbInputData
+                .indexedValsList(indexedVals);
+          }
+
+          m_fields.add(newField);
+        }
+      }
     } catch (Exception e) {
       throw new KettleXMLException(BaseMessages.getString(PKG,
           "MongoDbInputMeta.Exception.UnableToLoadStepInfo"), e); //$NON-NLS-1$
@@ -142,23 +176,21 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
       RowMetaInterface[] info, StepMeta nextStep, VariableSpace space)
       throws KettleStepException {
 
-    if (m_outputJson) {
+    if (m_outputJson || m_fields == null || m_fields.size() == 0) {
       ValueMetaInterface jsonValueMeta = new ValueMeta(jsonFieldName,
           ValueMetaInterface.TYPE_STRING);
       jsonValueMeta.setOrigin(origin);
       rowMeta.addValueMeta(jsonValueMeta);
     } else {
-      if (m_fields != null) {
-        for (MongoDbInputData.MongoField f : m_fields) {
-          ValueMetaInterface vm = new ValueMeta();
-          vm.setName(f.m_fieldName);
-          vm.setOrigin(origin);
-          vm.setType(ValueMeta.getType(f.m_kettleType));
-          if (f.m_indexedVals != null) {
-            vm.setIndex(f.m_indexedVals.toArray()); // indexed values
-          }
-          rowMeta.addValueMeta(vm);
+      for (MongoDbInputData.MongoField f : m_fields) {
+        ValueMetaInterface vm = new ValueMeta();
+        vm.setName(f.m_fieldName);
+        vm.setOrigin(origin);
+        vm.setType(ValueMeta.getType(f.m_kettleType));
+        if (f.m_indexedVals != null) {
+          vm.setIndex(f.m_indexedVals.toArray()); // indexed values
         }
+        rowMeta.addValueMeta(vm);
       }
     }
   }
@@ -182,6 +214,31 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
     retval.append("    ").append(
         XMLHandler.addTagValue("auth_password",
             Encr.encryptPasswordIfNotUsingVariables(authenticationPassword)));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("output_json", m_outputJson));
+
+    if (m_fields != null && m_fields.size() > 0) {
+      retval.append("\n    ").append(XMLHandler.openTag("mongo_fields"));
+
+      for (MongoDbInputData.MongoField f : m_fields) {
+        retval.append("\n      ").append(XMLHandler.openTag("mongo_field"));
+
+        retval.append("\n        ").append(
+            XMLHandler.addTagValue("field_name", f.m_fieldName));
+        retval.append("\n        ").append(
+            XMLHandler.addTagValue("field_path", f.m_fieldPath));
+        retval.append("\n        ").append(
+            XMLHandler.addTagValue("field_type", f.m_kettleType));
+        if (f.m_indexedVals != null && f.m_indexedVals.size() > 0) {
+          retval.append("\n        ").append(
+              XMLHandler.addTagValue("indexed_vals",
+                  MongoDbInputData.indexedValsList(f.m_indexedVals)));
+        }
+        retval.append("\n      ").append(XMLHandler.closeTag("mongo_field"));
+      }
+
+      retval.append("\n    ").append(XMLHandler.closeTag("mongo_fields"));
+    }
 
     return retval.toString();
   }
@@ -201,6 +258,32 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
       authenticationUser = rep.getStepAttributeString(id_step, "auth_user");
       authenticationPassword = Encr.decryptPasswordOptionallyEncrypted(rep
           .getStepAttributeString(id_step, "auth_password"));
+
+      m_outputJson = rep.getStepAttributeBoolean(id_step, 0, "output_json");
+
+      int nrfields = rep.countNrStepAttributes(id_step, "field_name");
+      if (nrfields > 0) {
+        m_fields = new ArrayList<MongoDbInputData.MongoField>();
+
+        for (int i = 0; i < nrfields; i++) {
+          MongoDbInputData.MongoField newField = new MongoDbInputData.MongoField();
+
+          newField.m_fieldName = rep.getStepAttributeString(id_step, i,
+              "field_name");
+          newField.m_fieldPath = rep.getStepAttributeString(id_step, i,
+              "field_path");
+          newField.m_kettleType = rep.getStepAttributeString(id_step, i,
+              "field_type");
+          String indexedVals = rep.getStepAttributeString(id_step, i,
+              "indexed_vals");
+          if (indexedVals != null && indexedVals.length() > 0) {
+            newField.m_indexedVals = MongoDbInputData
+                .indexedValsList(indexedVals);
+          }
+
+          m_fields.add(newField);
+        }
+      }
     } catch (Exception e) {
       throw new KettleException(BaseMessages.getString(PKG,
           "MongoDbInputMeta.Exception.UnexpectedErrorWhileReadingStepInfo"), e); //$NON-NLS-1$
@@ -224,6 +307,28 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
           authenticationUser);
       rep.saveStepAttribute(id_transformation, id_step, "auth_password",
           Encr.encryptPasswordIfNotUsingVariables(authenticationPassword));
+      rep.saveStepAttribute(id_transformation, id_step, 0, "output_json",
+          m_outputJson);
+
+      if (m_fields != null && m_fields.size() > 0) {
+        for (int i = 0; i < m_fields.size(); i++) {
+          MongoDbInputData.MongoField f = m_fields.get(i);
+
+          rep.saveStepAttribute(id_transformation, id_step, i, "field_name",
+              f.m_fieldName);
+          rep.saveStepAttribute(id_transformation, id_step, i, "field_path",
+              f.m_fieldPath);
+          rep.saveStepAttribute(id_transformation, id_step, i, "field_type",
+              f.m_kettleType);
+          if (f.m_indexedVals != null && f.m_indexedVals.size() > 0) {
+            String indexedVals = MongoDbInputData
+                .indexedValsList(f.m_indexedVals);
+
+            rep.saveStepAttribute(id_transformation, id_step, i,
+                "indexed_vals", indexedVals);
+          }
+        }
+      }
     } catch (KettleException e) {
       throw new KettleException(BaseMessages.getString(PKG,
           "MongoDbInputMeta.Exception.UnableToSaveStepInfo") + id_step, e); //$NON-NLS-1$

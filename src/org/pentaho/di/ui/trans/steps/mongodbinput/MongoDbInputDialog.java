@@ -22,7 +22,12 @@
 
 package org.pentaho.di.ui.trans.steps.mongodbinput;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -33,245 +38,270 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.Props;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.trans.steps.mongodbinput.MongoDbInputData;
 import org.pentaho.di.trans.steps.mongodbinput.MongoDbInputMeta;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
+import org.pentaho.di.ui.core.widget.ColumnInfo;
+import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
+public class MongoDbInputDialog extends BaseStepDialog implements
+    StepDialogInterface {
+  private static Class<?> PKG = MongoDbInputMeta.class; // for i18n purposes,
+                                                        // needed by
+                                                        // Translator2!!
+                                                        // $NON-NLS-1$
 
-public class MongoDbInputDialog extends BaseStepDialog implements StepDialogInterface
-{
-  private static Class<?> PKG = MongoDbInputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+  private CTabFolder m_wTabFolder;
+  private CTabItem m_wConfigTab;
+  private CTabItem m_wMongoFieldsTab;
 
-  private TextVar      wHostname;
-  private TextVar      wPort;
-  private TextVar      wDbName;
-  private TextVar      wFieldsName;
-  private TextVar      wCollection;
-  private TextVar      wJsonField;
-  private TextVar      wJsonQuery;
-  
+  private TextVar wHostname;
+  private TextVar wPort;
+  private TextVar wDbName;
+  private TextVar wFieldsName;
+  private TextVar wCollection;
+  private TextVar wJsonField;
+  private TextVar wJsonQuery;
+
   private TextVar wAuthUser;
   private TextVar wAuthPass;
 
-  private MongoDbInputMeta input;
+  private Button m_outputAsJson;
+  private TableView m_fieldsView;
 
-  public MongoDbInputDialog(Shell parent,  Object in, TransMeta tr, String sname)
-  {
-    super(parent, (BaseStepMeta)in, tr, sname);
-    input=(MongoDbInputMeta)in;
+  private final MongoDbInputMeta input;
+
+  public MongoDbInputDialog(Shell parent, Object in, TransMeta tr, String sname) {
+    super(parent, (BaseStepMeta) in, tr, sname);
+    input = (MongoDbInputMeta) in;
   }
 
-  public String open()
-  {
+  public String open() {
     Shell parent = getParent();
     Display display = parent.getDisplay();
 
     shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX | SWT.MIN);
     props.setLook(shell);
-        setShellImage(shell, input);
+    setShellImage(shell, input);
 
-    ModifyListener lsMod = new ModifyListener() 
-    {
-      public void modifyText(ModifyEvent e) 
-      {
+    ModifyListener lsMod = new ModifyListener() {
+      public void modifyText(ModifyEvent e) {
         input.setChanged();
       }
     };
     changed = input.hasChanged();
 
-    FormLayout formLayout = new FormLayout ();
-    formLayout.marginWidth  = Const.FORM_MARGIN;
+    FormLayout formLayout = new FormLayout();
+    formLayout.marginWidth = Const.FORM_MARGIN;
     formLayout.marginHeight = Const.FORM_MARGIN;
 
     shell.setLayout(formLayout);
-    shell.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Shell.Title")); //$NON-NLS-1$
-    
+    shell
+        .setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Shell.Title")); //$NON-NLS-1$
+
     int middle = props.getMiddlePct();
     int margin = Const.MARGIN;
 
     // Stepname line
-    wlStepname=new Label(shell, SWT.RIGHT);
-    wlStepname.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Stepname.Label")); //$NON-NLS-1$
+    wlStepname = new Label(shell, SWT.RIGHT);
+    wlStepname.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.Stepname.Label")); //$NON-NLS-1$
     props.setLook(wlStepname);
-    fdlStepname=new FormData();
+    fdlStepname = new FormData();
     fdlStepname.left = new FormAttachment(0, 0);
-    fdlStepname.right= new FormAttachment(middle, -margin);
-    fdlStepname.top  = new FormAttachment(0, margin);
+    fdlStepname.right = new FormAttachment(middle, -margin);
+    fdlStepname.top = new FormAttachment(0, margin);
     wlStepname.setLayoutData(fdlStepname);
-    wStepname=new Text(shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wStepname = new Text(shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
     wStepname.setText(stepname);
     props.setLook(wStepname);
     wStepname.addModifyListener(lsMod);
-    fdStepname=new FormData();
+    fdStepname = new FormData();
     fdStepname.left = new FormAttachment(middle, 0);
-    fdStepname.top  = new FormAttachment(0, margin);
-    fdStepname.right= new FormAttachment(100, 0);
+    fdStepname.top = new FormAttachment(0, margin);
+    fdStepname.right = new FormAttachment(100, 0);
     wStepname.setLayoutData(fdStepname);
-    Control lastControl = wStepname; 
+    Control lastControl = wStepname;
+
+    m_wTabFolder = new CTabFolder(shell, SWT.BORDER);
+    props.setLook(m_wTabFolder, Props.WIDGET_STYLE_TAB);
+    m_wTabFolder.setSimple(false);
+
+    // start of the config tab
+    m_wConfigTab = new CTabItem(m_wTabFolder, SWT.NONE);
+    m_wConfigTab.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.ConfigTab.TabTitle"));
+
+    Composite wConfigComp = new Composite(m_wTabFolder, SWT.NONE);
+    props.setLook(wConfigComp);
+
+    FormLayout configLayout = new FormLayout();
+    configLayout.marginWidth = 3;
+    configLayout.marginHeight = 3;
+    wConfigComp.setLayout(configLayout);
 
     // Hostname input ...
     //
-    Label wlHostname = new Label(shell, SWT.RIGHT);
-    wlHostname.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Hostname.Label")); //$NON-NLS-1$
+    Label wlHostname = new Label(wConfigComp, SWT.RIGHT);
+    wlHostname.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.Hostname.Label")); //$NON-NLS-1$
     props.setLook(wlHostname);
     FormData fdlHostname = new FormData();
     fdlHostname.left = new FormAttachment(0, 0);
-    fdlHostname.right= new FormAttachment(middle, -margin);
-    fdlHostname.top  = new FormAttachment(lastControl, margin);
+    fdlHostname.right = new FormAttachment(middle, -margin);
+    fdlHostname.top = new FormAttachment(0, margin);
     wlHostname.setLayoutData(fdlHostname);
-    wHostname=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wHostname = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
     props.setLook(wHostname);
     wHostname.addModifyListener(lsMod);
     FormData fdHostname = new FormData();
     fdHostname.left = new FormAttachment(middle, 0);
-    fdHostname.top  = new FormAttachment(lastControl, margin);
-    fdHostname.right= new FormAttachment(100, 0);
+    fdHostname.top = new FormAttachment(0, margin);
+    fdHostname.right = new FormAttachment(100, 0);
     wHostname.setLayoutData(fdHostname);
     lastControl = wHostname;
 
     // Port input ...
     //
-    Label wlPort = new Label(shell, SWT.RIGHT);
-    wlPort.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Port.Label")); //$NON-NLS-1$
+    Label wlPort = new Label(wConfigComp, SWT.RIGHT);
+    wlPort
+        .setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Port.Label")); //$NON-NLS-1$
     props.setLook(wlPort);
     FormData fdlPort = new FormData();
     fdlPort.left = new FormAttachment(0, 0);
-    fdlPort.right= new FormAttachment(middle, -margin);
-    fdlPort.top  = new FormAttachment(lastControl, margin);
+    fdlPort.right = new FormAttachment(middle, -margin);
+    fdlPort.top = new FormAttachment(lastControl, margin);
     wlPort.setLayoutData(fdlPort);
-    wPort=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wPort = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
     props.setLook(wPort);
     wPort.addModifyListener(lsMod);
     FormData fdPort = new FormData();
     fdPort.left = new FormAttachment(middle, 0);
-    fdPort.top  = new FormAttachment(lastControl, margin);
-    fdPort.right= new FormAttachment(100, 0);
+    fdPort.top = new FormAttachment(lastControl, margin);
+    fdPort.right = new FormAttachment(100, 0);
     wPort.setLayoutData(fdPort);
     lastControl = wPort;
 
     // DbName input ...
     //
-    Label wlDbName = new Label(shell, SWT.RIGHT);
-    wlDbName.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.DbName.Label")); //$NON-NLS-1$
+    Label wlDbName = new Label(wConfigComp, SWT.RIGHT);
+    wlDbName.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.DbName.Label")); //$NON-NLS-1$
     props.setLook(wlDbName);
     FormData fdlDbName = new FormData();
     fdlDbName.left = new FormAttachment(0, 0);
-    fdlDbName.right= new FormAttachment(middle, -margin);
-    fdlDbName.top  = new FormAttachment(lastControl, margin);
+    fdlDbName.right = new FormAttachment(middle, -margin);
+    fdlDbName.top = new FormAttachment(lastControl, margin);
     wlDbName.setLayoutData(fdlDbName);
-    wDbName=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wDbName = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
     props.setLook(wDbName);
     wDbName.addModifyListener(lsMod);
     FormData fdDbName = new FormData();
     fdDbName.left = new FormAttachment(middle, 0);
-    fdDbName.top  = new FormAttachment(lastControl, margin);
-    fdDbName.right= new FormAttachment(100, 0);
+    fdDbName.top = new FormAttachment(lastControl, margin);
+    fdDbName.right = new FormAttachment(100, 0);
     wDbName.setLayoutData(fdDbName);
     lastControl = wDbName;
 
     // Collection input ...
     //
-    Label wlCollection = new Label(shell, SWT.RIGHT);
-    wlCollection.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.Collection.Label")); //$NON-NLS-1$
+    Label wlCollection = new Label(wConfigComp, SWT.RIGHT);
+    wlCollection.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.Collection.Label")); //$NON-NLS-1$
     props.setLook(wlCollection);
     FormData fdlCollection = new FormData();
     fdlCollection.left = new FormAttachment(0, 0);
-    fdlCollection.right= new FormAttachment(middle, -margin);
-    fdlCollection.top  = new FormAttachment(lastControl, margin);
+    fdlCollection.right = new FormAttachment(middle, -margin);
+    fdlCollection.top = new FormAttachment(lastControl, margin);
     wlCollection.setLayoutData(fdlCollection);
-    wCollection=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wCollection = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
     props.setLook(wCollection);
     wCollection.addModifyListener(lsMod);
     FormData fdCollection = new FormData();
     fdCollection.left = new FormAttachment(middle, 0);
-    fdCollection.top  = new FormAttachment(lastControl, margin);
-    fdCollection.right= new FormAttachment(100, 0);
+    fdCollection.top = new FormAttachment(lastControl, margin);
+    fdCollection.right = new FormAttachment(100, 0);
     wCollection.setLayoutData(fdCollection);
     lastControl = wCollection;
 
-    // JsonField input ...
-    //
-    Label wlJsonField = new Label(shell, SWT.RIGHT);
-    wlJsonField.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.JsonField.Label")); //$NON-NLS-1$
-    props.setLook(wlJsonField);
-    FormData fdlJsonField = new FormData();
-    fdlJsonField.left = new FormAttachment(0, 0);
-    fdlJsonField.right= new FormAttachment(middle, -margin);
-    fdlJsonField.top  = new FormAttachment(lastControl, margin);
-    wlJsonField.setLayoutData(fdlJsonField);
-    wJsonField=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
-    props.setLook(wJsonField);
-    wJsonField.addModifyListener(lsMod);
-    FormData fdJsonField = new FormData();
-    fdJsonField.left = new FormAttachment(middle, 0);
-    fdJsonField.top  = new FormAttachment(lastControl, margin);
-    fdJsonField.right= new FormAttachment(100, 0);
-    wJsonField.setLayoutData(fdJsonField);
-    lastControl = wJsonField;
-
     // JSON Query input ...
     //
-    Label wlJsonQuery = new Label(shell, SWT.RIGHT);
-    wlJsonQuery.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.JsonQuery.Label")); //$NON-NLS-1$
+    Label wlJsonQuery = new Label(wConfigComp, SWT.RIGHT);
+    wlJsonQuery.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.JsonQuery.Label")); //$NON-NLS-1$
     props.setLook(wlJsonQuery);
     FormData fdlJsonQuery = new FormData();
     fdlJsonQuery.left = new FormAttachment(0, 0);
-    fdlJsonQuery.right= new FormAttachment(middle, -margin);
-    fdlJsonQuery.top  = new FormAttachment(lastControl, margin);
+    fdlJsonQuery.right = new FormAttachment(middle, -margin);
+    fdlJsonQuery.top = new FormAttachment(lastControl, margin);
     wlJsonQuery.setLayoutData(fdlJsonQuery);
-    wJsonQuery=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wJsonQuery = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
     props.setLook(wJsonQuery);
     wJsonQuery.addModifyListener(lsMod);
     FormData fdJsonQuery = new FormData();
     fdJsonQuery.left = new FormAttachment(middle, 0);
-    fdJsonQuery.top  = new FormAttachment(lastControl, margin);
-    fdJsonQuery.right= new FormAttachment(100, 0);
+    fdJsonQuery.top = new FormAttachment(lastControl, margin);
+    fdJsonQuery.right = new FormAttachment(100, 0);
     wJsonQuery.setLayoutData(fdJsonQuery);
     lastControl = wJsonQuery;
-    
+
     // fields input ...
     //
-    Label wlFieldsName = new Label(shell, SWT.RIGHT);
-    wlFieldsName.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.FieldsName.Label")); //$NON-NLS-1$
+    Label wlFieldsName = new Label(wConfigComp, SWT.RIGHT);
+    wlFieldsName.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.FieldsName.Label")); //$NON-NLS-1$
     props.setLook(wlFieldsName);
     FormData fdlFieldsName = new FormData();
     fdlFieldsName.left = new FormAttachment(0, 0);
-    fdlFieldsName.right= new FormAttachment(middle, -margin);
-    fdlFieldsName.top  = new FormAttachment(lastControl, margin);
+    fdlFieldsName.right = new FormAttachment(middle, -margin);
+    fdlFieldsName.top = new FormAttachment(lastControl, margin);
     wlFieldsName.setLayoutData(fdlFieldsName);
-    wFieldsName=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wFieldsName = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
     props.setLook(wFieldsName);
     wFieldsName.addModifyListener(lsMod);
     FormData fdFieldsName = new FormData();
     fdFieldsName.left = new FormAttachment(middle, 0);
-    fdFieldsName.top  = new FormAttachment(lastControl, margin);
-    fdFieldsName.right= new FormAttachment(100, 0);
+    fdFieldsName.top = new FormAttachment(lastControl, margin);
+    fdFieldsName.right = new FormAttachment(100, 0);
     wFieldsName.setLayoutData(fdFieldsName);
     lastControl = wFieldsName;
 
     // Authentication...
     //
     // AuthUser line
-    Label wlAuthUser = new Label(shell, SWT.RIGHT);
-    wlAuthUser.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.AuthenticationUser.Label"));
+    Label wlAuthUser = new Label(wConfigComp, SWT.RIGHT);
+    wlAuthUser.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.AuthenticationUser.Label"));
     props.setLook(wlAuthUser);
     FormData fdlAuthUser = new FormData();
     fdlAuthUser.left = new FormAttachment(0, -margin);
@@ -279,7 +309,7 @@ public class MongoDbInputDialog extends BaseStepDialog implements StepDialogInte
     fdlAuthUser.right = new FormAttachment(middle, -margin);
     wlAuthUser.setLayoutData(fdlAuthUser);
 
-    wAuthUser = new TextVar(transMeta, shell, SWT.BORDER | SWT.READ_ONLY);
+    wAuthUser = new TextVar(transMeta, wConfigComp, SWT.BORDER | SWT.READ_ONLY);
     wAuthUser.setEditable(true);
     props.setLook(wAuthUser);
     wAuthUser.addModifyListener(lsMod);
@@ -291,16 +321,17 @@ public class MongoDbInputDialog extends BaseStepDialog implements StepDialogInte
     lastControl = wAuthUser;
 
     // AuthPass line
-    Label wlAuthPass = new Label(shell, SWT.RIGHT);
-    wlAuthPass.setText(BaseMessages.getString(PKG, "MongoDbInputDialog.AuthenticationPassword.Label"));
+    Label wlAuthPass = new Label(wConfigComp, SWT.RIGHT);
+    wlAuthPass.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.AuthenticationPassword.Label"));
     props.setLook(wlAuthPass);
     FormData fdlAuthPass = new FormData();
     fdlAuthPass.left = new FormAttachment(0, -margin);
     fdlAuthPass.top = new FormAttachment(lastControl, margin);
     fdlAuthPass.right = new FormAttachment(middle, -margin);
     wlAuthPass.setLayoutData(fdlAuthPass);
-        
-    wAuthPass = new TextVar(transMeta, shell, SWT.BORDER | SWT.READ_ONLY);
+
+    wAuthPass = new TextVar(transMeta, wConfigComp, SWT.BORDER | SWT.READ_ONLY);
     wAuthPass.setEditable(true);
     wAuthPass.setEchoChar('*');
     props.setLook(wAuthPass);
@@ -311,72 +342,240 @@ public class MongoDbInputDialog extends BaseStepDialog implements StepDialogInte
     fdAuthPass.right = new FormAttachment(100, 0);
     wAuthPass.setLayoutData(fdAuthPass);
     lastControl = wAuthPass;
-    
+
+    FormData fd = new FormData();
+    fd.left = new FormAttachment(0, 0);
+    fd.top = new FormAttachment(0, 0);
+    fd.right = new FormAttachment(100, 0);
+    fd.bottom = new FormAttachment(100, 0);
+    wConfigComp.setLayoutData(fd);
+
+    wConfigComp.layout();
+    m_wConfigTab.setControl(wConfigComp);
+
+    // fields tab
+    m_wMongoFieldsTab = new CTabItem(m_wTabFolder, SWT.NONE);
+    m_wMongoFieldsTab.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.FieldsTab.TabTitle"));
+    Composite wFieldsComp = new Composite(m_wTabFolder, SWT.NONE);
+    props.setLook(wFieldsComp);
+    FormLayout fieldsLayout = new FormLayout();
+    fieldsLayout.marginWidth = 3;
+    fieldsLayout.marginHeight = 3;
+    wFieldsComp.setLayout(fieldsLayout);
+
+    // Output as Json check box
+    Label outputJLab = new Label(wFieldsComp, SWT.RIGHT);
+    outputJLab.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.OutputJson.Label"));
+    props.setLook(outputJLab);
+    fd = new FormData();
+    fd.top = new FormAttachment(0, 0);
+    fd.left = new FormAttachment(0, 0);
+    fd.right = new FormAttachment(middle, -margin);
+    outputJLab.setLayoutData(fd);
+    m_outputAsJson = new Button(wFieldsComp, SWT.CHECK);
+    props.setLook(m_outputAsJson);
+    fd = new FormData();
+    fd.top = new FormAttachment(0, 0);
+    fd.left = new FormAttachment(middle, 0);
+    fd.right = new FormAttachment(100, 0);
+    m_outputAsJson.setLayoutData(fd);
+    lastControl = m_outputAsJson;
+    m_outputAsJson.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        input.setChanged();
+        wGet.setEnabled(!m_outputAsJson.getSelection());
+        wJsonField.setEnabled(m_outputAsJson.getSelection());
+      }
+    });
+
+    // JsonField input ...
+    //
+    Label wlJsonField = new Label(wFieldsComp, SWT.RIGHT);
+    wlJsonField.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.JsonField.Label")); //$NON-NLS-1$
+    props.setLook(wlJsonField);
+    FormData fdlJsonField = new FormData();
+    fdlJsonField.left = new FormAttachment(0, 0);
+    fdlJsonField.right = new FormAttachment(middle, -margin);
+    fdlJsonField.top = new FormAttachment(lastControl, margin);
+    wlJsonField.setLayoutData(fdlJsonField);
+    wJsonField = new TextVar(transMeta, wFieldsComp, SWT.SINGLE | SWT.LEFT
+        | SWT.BORDER);
+    props.setLook(wJsonField);
+    wJsonField.addModifyListener(lsMod);
+    FormData fdJsonField = new FormData();
+    fdJsonField.left = new FormAttachment(middle, 0);
+    fdJsonField.top = new FormAttachment(lastControl, margin);
+    fdJsonField.right = new FormAttachment(100, 0);
+    wJsonField.setLayoutData(fdJsonField);
+    lastControl = wJsonField;
+
+    // get fields button
+    wGet = new Button(wFieldsComp, SWT.PUSH);
+    wGet.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.Button.GetFields"));
+    props.setLook(wGet);
+    fd = new FormData();
+    fd.right = new FormAttachment(100, 0);
+    fd.bottom = new FormAttachment(100, 0);
+    wGet.setLayoutData(fd);
+    wGet.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        // populate table from schema
+        MongoDbInputMeta newMeta = (MongoDbInputMeta) input.clone();
+        getFields(newMeta, transMeta);
+      }
+    });
+
+    // fields stuff
+    final ColumnInfo[] colinf = new ColumnInfo[] {
+        new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.FIELD_NAME"),
+            ColumnInfo.COLUMN_TYPE_TEXT, false),
+        new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.FIELD_PATH"),
+            ColumnInfo.COLUMN_TYPE_TEXT, false),
+        new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.FIELD_TYPE"),
+            ColumnInfo.COLUMN_TYPE_CCOMBO, false),
+        new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.FIELD_INDEXED"),
+            ColumnInfo.COLUMN_TYPE_TEXT, false),
+        new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.SAMPLE_PERCENTAGE"),
+            ColumnInfo.COLUMN_TYPE_TEXT, false),
+        new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.DISPARATE_TYPES"),
+            ColumnInfo.COLUMN_TYPE_TEXT, false), };
+
+    colinf[2].setComboValues(ValueMeta.getTypes());
+    colinf[4].setReadOnly(true);
+    colinf[5].setReadOnly(true);
+
+    m_fieldsView = new TableView(transMeta, wFieldsComp, SWT.FULL_SELECTION
+        | SWT.MULTI, colinf, 1, lsMod, props);
+
+    fd = new FormData();
+    fd.top = new FormAttachment(lastControl, margin * 2);
+    fd.bottom = new FormAttachment(wGet, -margin * 2);
+    fd.left = new FormAttachment(0, 0);
+    fd.right = new FormAttachment(100, 0);
+    m_fieldsView.setLayoutData(fd);
+
+    fd = new FormData();
+    fd.left = new FormAttachment(0, 0);
+    fd.top = new FormAttachment(0, 0);
+    fd.right = new FormAttachment(100, 0);
+    fd.bottom = new FormAttachment(100, 0);
+    wFieldsComp.setLayoutData(fd);
+
+    wFieldsComp.layout();
+    m_wMongoFieldsTab.setControl(wFieldsComp);
+
+    // --------------
+
+    fd = new FormData();
+    fd.left = new FormAttachment(0, 0);
+    fd.top = new FormAttachment(wStepname, margin);
+    fd.right = new FormAttachment(100, 0);
+    fd.bottom = new FormAttachment(100, -50);
+    m_wTabFolder.setLayoutData(fd);
+
     // Some buttons
-    wOK=new Button(shell, SWT.PUSH);
+    wOK = new Button(shell, SWT.PUSH);
     wOK.setText(BaseMessages.getString(PKG, "System.Button.OK")); //$NON-NLS-1$
-    wPreview=new Button(shell, SWT.PUSH);
+    wPreview = new Button(shell, SWT.PUSH);
     wPreview.setText(BaseMessages.getString(PKG, "System.Button.Preview")); //$NON-NLS-1$
-    wCancel=new Button(shell, SWT.PUSH);
+    wCancel = new Button(shell, SWT.PUSH);
     wCancel.setText(BaseMessages.getString(PKG, "System.Button.Cancel")); //$NON-NLS-1$
 
-    setButtonPositions(new Button[] { wOK, wPreview, wCancel }, margin, lastControl);
+    setButtonPositions(new Button[] { wOK, wPreview, wCancel }, margin,
+        m_wTabFolder);
 
     // Add listeners
-    lsCancel   = new Listener() { public void handleEvent(Event e) { cancel(); } };
-    lsPreview  = new Listener() { public void handleEvent(Event e) { preview(); } };
-    lsOK       = new Listener() { public void handleEvent(Event e) { ok();     } };
-    
+    lsCancel = new Listener() {
+      public void handleEvent(Event e) {
+        cancel();
+      }
+    };
+    lsPreview = new Listener() {
+      public void handleEvent(Event e) {
+        preview();
+      }
+    };
+    lsOK = new Listener() {
+      public void handleEvent(Event e) {
+        ok();
+      }
+    };
+
     wCancel.addListener(SWT.Selection, lsCancel);
     wPreview.addListener(SWT.Selection, lsPreview);
-    wOK.addListener    (SWT.Selection, lsOK    );
+    wOK.addListener(SWT.Selection, lsOK);
 
-    
-    lsDef=new SelectionAdapter() { public void widgetDefaultSelected(SelectionEvent e) { ok(); } };
-    
-    wStepname.addSelectionListener( lsDef );
-    wHostname.addSelectionListener( lsDef );
-    
-    
+    lsDef = new SelectionAdapter() {
+      @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        ok();
+      }
+    };
+
+    wStepname.addSelectionListener(lsDef);
+    wHostname.addSelectionListener(lsDef);
+
     // Detect X or ALT-F4 or something that kills this window...
-    shell.addShellListener( new ShellAdapter() { public void shellClosed(ShellEvent e) { cancel(); } } );
-    
-    getData();
+    shell.addShellListener(new ShellAdapter() {
+      @Override
+      public void shellClosed(ShellEvent e) {
+        cancel();
+      }
+    });
+
+    getData(input);
     input.setChanged(changed);
 
+    m_wTabFolder.setSelection(0);
     // Set the shell size, based upon previous time...
     setSize();
-    
+
     shell.open();
-    while (!shell.isDisposed())
-    {
-        if (!display.readAndDispatch()) display.sleep();
+    while (!shell.isDisposed()) {
+      if (!display.readAndDispatch())
+        display.sleep();
     }
     return stepname;
   }
-  
+
   /**
    * Copy information from the meta-data input to the dialog fields.
-   */ 
-  public void getData()
-  {
-    wHostname.setText(Const.NVL(input.getHostname(), "")); //$NON-NLS-1$
-    wPort.setText(Const.NVL(input.getPort(), "")); //$NON-NLS-1$
-    wDbName.setText(Const.NVL(input.getDbName(), "")); //$NON-NLS-1$
-    wFieldsName.setText(Const.NVL(input.getFieldsName(), "")); //$NON-NLS-1$
-    wCollection.setText(Const.NVL(input.getCollection(), "")); //$NON-NLS-1$
-    wJsonField.setText(Const.NVL(input.getJsonFieldName(), "")); //$NON-NLS-1$
-    wJsonQuery.setText(Const.NVL(input.getJsonQuery(), "")); //$NON-NLS-1$
-    
-    wAuthUser.setText(Const.NVL(input.getAuthenticationUser(), "")); // $NON-NLS-1$
-    wAuthPass.setText(Const.NVL(input.getAuthenticationPassword(), "")); // $NON-NLS-1$
+   */
+  public void getData(MongoDbInputMeta meta) {
+    wHostname.setText(Const.NVL(meta.getHostname(), "")); //$NON-NLS-1$
+    wPort.setText(Const.NVL(meta.getPort(), "")); //$NON-NLS-1$
+    wDbName.setText(Const.NVL(meta.getDbName(), "")); //$NON-NLS-1$
+    wFieldsName.setText(Const.NVL(meta.getFieldsName(), "")); //$NON-NLS-1$
+    wCollection.setText(Const.NVL(meta.getCollection(), "")); //$NON-NLS-1$
+    wJsonField.setText(Const.NVL(meta.getJsonFieldName(), "")); //$NON-NLS-1$
+    wJsonQuery.setText(Const.NVL(meta.getJsonQuery(), "")); //$NON-NLS-1$
+
+    wAuthUser.setText(Const.NVL(meta.getAuthenticationUser(), "")); // $NON-NLS-1$
+    wAuthPass.setText(Const.NVL(meta.getAuthenticationPassword(), "")); // $NON-NLS-1$
+    m_outputAsJson.setSelection(meta.getOutputJson());
+
+    setTableFields(meta.getMongoFields());
+
+    wJsonField.setEnabled(meta.getOutputJson());
+    wGet.setEnabled(!meta.getOutputJson());
 
     wStepname.selectAll();
   }
-  
-  private void cancel()
-  {
-    stepname=null;
+
+  private void cancel() {
+    stepname = null;
     input.setChanged(changed);
     dispose();
   }
@@ -390,58 +589,153 @@ public class MongoDbInputDialog extends BaseStepDialog implements StepDialogInte
     meta.setCollection(wCollection.getText());
     meta.setJsonFieldName(wJsonField.getText());
     meta.setJsonQuery(wJsonQuery.getText());
-    
+
     meta.setAuthenticationUser(wAuthUser.getText());
     meta.setAuthenticationPassword(wAuthPass.getText());
+    meta.setOutputJson(m_outputAsJson.getSelection());
+
+    int numNonEmpty = m_fieldsView.nrNonEmpty();
+    if (numNonEmpty > 0) {
+      List<MongoDbInputData.MongoField> outputFields = new ArrayList<MongoDbInputData.MongoField>();
+      for (int i = 0; i < numNonEmpty; i++) {
+        TableItem item = m_fieldsView.getNonEmpty(i);
+        MongoDbInputData.MongoField newField = new MongoDbInputData.MongoField();
+
+        newField.m_fieldName = item.getText(1).trim();
+        newField.m_fieldPath = item.getText(2).trim();
+        newField.m_kettleType = item.getText(3).trim();
+
+        if (!Const.isEmpty(item.getText(4))) {
+          newField.m_indexedVals = MongoDbInputData.indexedValsList(item
+              .getText(4).trim());
+        }
+
+        outputFields.add(newField);
+      }
+
+      meta.setMongoFields(outputFields);
+    }
   }
 
-  private void ok()
-  {
-    if (Const.isEmpty(wStepname.getText())) return;
+  private void ok() {
+    if (Const.isEmpty(wStepname.getText()))
+      return;
 
     stepname = wStepname.getText(); // return value
 
     getInfo(input);
-    
+
     dispose();
   }
-  
-   // Preview the data
-  private void preview()
-  {
-      // Create the XML input step
-      MongoDbInputMeta oneMeta = new MongoDbInputMeta();
-      getInfo(oneMeta);
-      
-      TransMeta previewMeta = TransPreviewFactory.generatePreviewTransformation(transMeta, oneMeta, wStepname.getText());
-      
-      EnterNumberDialog numberDialog = new EnterNumberDialog(shell, props.getDefaultPreviewSize(), 
-          BaseMessages.getString(PKG, "MongoDbInputDialog.PreviewSize.DialogTitle"), 
-          BaseMessages.getString(PKG, "MongoDbInputDialog.PreviewSize.DialogMessage")
-        );
-      int previewSize = numberDialog.open();
-      if (previewSize>0)
-      {
-          TransPreviewProgressDialog progressDialog = new TransPreviewProgressDialog(shell, previewMeta, new String[] { wStepname.getText() }, new int[] { previewSize } );
-          progressDialog.open();
 
-          Trans trans = progressDialog.getTrans();
-          String loggingText = progressDialog.getLoggingText();
+  private void setTableFields(List<MongoDbInputData.MongoField> fields) {
+    if (fields == null) {
+      return;
+    }
 
-          if (!progressDialog.isCancelled())
-          {
-              if (trans.getResult()!=null && trans.getResult().getNrErrors()>0)
-              {
-                EnterTextDialog etd = new EnterTextDialog(shell, BaseMessages.getString(PKG, "System.Dialog.PreviewError.Title"),  
-                    BaseMessages.getString(PKG, "System.Dialog.PreviewError.Message"), loggingText, true );
-                etd.setReadOnly();
-                etd.open();
-              }
-          }
-          
-          PreviewRowsDialog prd =new PreviewRowsDialog(shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog.getPreviewRowsMeta(wStepname.getText()), progressDialog.getPreviewRows(wStepname.getText()), loggingText);
-          prd.open();
+    m_fieldsView.clearAll();
+    for (MongoDbInputData.MongoField f : fields) {
+      TableItem item = new TableItem(m_fieldsView.table, SWT.NONE);
+
+      if (!Const.isEmpty(f.m_fieldName)) {
+        item.setText(1, f.m_fieldName);
       }
+
+      if (!Const.isEmpty(f.m_fieldPath)) {
+        item.setText(2, f.m_fieldPath);
+      }
+
+      if (!Const.isEmpty(f.m_kettleType)) {
+        item.setText(3, f.m_kettleType);
+      }
+
+      if (f.m_indexedVals != null && f.m_indexedVals.size() > 0) {
+        item.setText(4, MongoDbInputData.indexedValsList(f.m_indexedVals));
+      }
+
+      if (!Const.isEmpty(f.m_occurenceFraction)) {
+        item.setText(5, f.m_occurenceFraction);
+      }
+
+      if (f.m_dispartateTypes) {
+        item.setText(5, "Y");
+      }
+    }
+
+    m_fieldsView.removeEmptyRows();
+    m_fieldsView.setRowNums();
+    m_fieldsView.optWidth(true);
+  }
+
+  private void getFields(MongoDbInputMeta meta, TransMeta transMeta) {
+    if (!Const.isEmpty(wHostname.getText()) && !Const.isEmpty(wPort.getText())
+        && !Const.isEmpty(wDbName.getText())
+        && !Const.isEmpty(wCollection.getText())) {
+      EnterNumberDialog end = new EnterNumberDialog(shell, 100,
+          "Sample documents", "Number of documents to sample");
+      int samples = end.open();
+      if (samples > 0) {
+        try {
+          getInfo(meta);
+          boolean result = MongoDbInputData
+              .discoverFields(meta, transMeta, 100);
+
+          if (!result) {
+            // TODO dialog for telling the user that no fields were found
+            System.err.println("No fields found!@!!!!");
+          } else {
+            getData(meta);
+          }
+        } catch (KettleException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  // Preview the data
+  private void preview() {
+    // Create the XML input step
+    MongoDbInputMeta oneMeta = new MongoDbInputMeta();
+    getInfo(oneMeta);
+
+    TransMeta previewMeta = TransPreviewFactory.generatePreviewTransformation(
+        transMeta, oneMeta, wStepname.getText());
+
+    EnterNumberDialog numberDialog = new EnterNumberDialog(shell,
+        props.getDefaultPreviewSize(), BaseMessages.getString(PKG,
+            "MongoDbInputDialog.PreviewSize.DialogTitle"),
+        BaseMessages.getString(PKG,
+            "MongoDbInputDialog.PreviewSize.DialogMessage"));
+    int previewSize = numberDialog.open();
+    if (previewSize > 0) {
+      TransPreviewProgressDialog progressDialog = new TransPreviewProgressDialog(
+          shell, previewMeta, new String[] { wStepname.getText() },
+          new int[] { previewSize });
+      progressDialog.open();
+
+      Trans trans = progressDialog.getTrans();
+      String loggingText = progressDialog.getLoggingText();
+
+      if (!progressDialog.isCancelled()) {
+        if (trans.getResult() != null && trans.getResult().getNrErrors() > 0) {
+          EnterTextDialog etd = new EnterTextDialog(
+              shell,
+              BaseMessages.getString(PKG, "System.Dialog.PreviewError.Title"),
+              BaseMessages.getString(PKG, "System.Dialog.PreviewError.Message"),
+              loggingText, true);
+          etd.setReadOnly();
+          etd.open();
+        }
+      }
+
+      PreviewRowsDialog prd = new PreviewRowsDialog(shell, transMeta, SWT.NONE,
+          wStepname.getText(), progressDialog.getPreviewRowsMeta(wStepname
+              .getText()), progressDialog.getPreviewRows(wStepname.getText()),
+          loggingText);
+      prd.open();
+    }
   }
 
 }

@@ -61,6 +61,8 @@ import com.mongodb.util.JSON;
  */
 public class MongoDbInputData extends BaseStepData implements StepDataInterface {
 
+  public static final int MONGO_DEFAULT_PORT = 27017;
+
   public RowMetaInterface outputRowMeta;
 
   public Mongo mongo;
@@ -84,6 +86,28 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
     /** User-defined indexed values for String types */
     public List<String> m_indexedVals;
+
+    /**
+     * Temporary variable to hold the number of times this path was seen when
+     * sampling documents to determine paths/types.
+     */
+    private transient int m_percentageOfSample = -1;
+
+    /**
+     * Temporary variable to hold the num times this path was seen/num sampled
+     * documents. Note that numerator might be larger than denominator if this
+     * path is encountered multiple times in an array within one document.
+     */
+    public transient String m_occurenceFraction = "";
+
+    private transient Object m_mongoType;
+
+    /**
+     * Temporary variable used to indicate that this path occurs multiple times
+     * over the sampled documents and that the types differ. In this case we
+     * should default to Kettle type String as a catch-all
+     */
+    public transient boolean m_dispartateTypes;
 
     /** The index that this field is in the output row structure */
     protected int m_outputIndex;
@@ -442,69 +466,213 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     return ValueMetaInterface.TYPE_STRING;
   }
 
+  protected static void setMinArrayIndexes(MongoField m) {
+    // set the actual index for each array in the path to the
+    // corresponding minimum index
+    // recorded in the name
+
+    if (m.m_fieldName.indexOf('[') < 0) {
+      return;
+    }
+
+    String temp = m.m_fieldPath;
+    String tempComp = m.m_fieldName;
+    StringBuffer updated = new StringBuffer();
+
+    while (temp.indexOf('[') >= 0) {
+      String firstPart = temp.substring(0, temp.indexOf('['));
+      String innerPart = temp.substring(temp.indexOf('[') + 1,
+          temp.indexOf(']'));
+
+      if (!innerPart.equals("-")) {
+        // terminal primitive specific index
+        updated.append(temp); // finished
+        temp = "";
+        break;
+      } else {
+        updated.append(firstPart);
+
+        String innerComp = tempComp.substring(tempComp.indexOf('[') + 1,
+            tempComp.indexOf(']'));
+
+        if (temp.indexOf(']') < temp.length() - 1) {
+          temp = temp.substring(temp.indexOf(']') + 1, temp.length());
+          tempComp = tempComp.substring(tempComp.indexOf(']') + 1,
+              tempComp.length());
+        } else {
+          temp = "";
+        }
+
+        String[] compParts = innerComp.split(":");
+        String replace = "[" + compParts[0] + "]";
+        updated.append(replace);
+
+      }
+    }
+
+    if (temp.length() > 0) {
+      // append remaining part
+      updated.append(temp);
+    }
+
+    m.m_fieldPath = updated.toString();
+  }
+
+  protected static void updateMaxArrayIndexes(MongoField m, String update) {
+    // just look at the second (i.e. max index value) in the array parts
+    // of update
+    if (m.m_fieldName.indexOf('[') < 0) {
+      return;
+    }
+
+    if (m.m_fieldName.split("\\[").length != update.split("\\[").length) {
+      throw new IllegalArgumentException(
+          "Field path and update path do not seem to contain "
+              + "the same number of array parts!");
+    }
+
+    String temp = m.m_fieldName;
+    String tempComp = update;
+    StringBuffer updated = new StringBuffer();
+
+    while (temp.indexOf('[') >= 0) {
+      String firstPart = temp.substring(0, temp.indexOf('['));
+      String innerPart = temp.substring(temp.indexOf('[') + 1,
+          temp.indexOf(']'));
+
+      if (innerPart.indexOf(':') < 0) {
+        // terminal primitive specific index
+        updated.append(temp); // finished
+        temp = "";
+        break;
+      } else {
+        updated.append(firstPart);
+
+        String innerComp = tempComp.substring(tempComp.indexOf('[') + 1,
+            tempComp.indexOf(']'));
+
+        if (temp.indexOf(']') < temp.length() - 1) {
+          temp = temp.substring(temp.indexOf(']') + 1, temp.length());
+          tempComp = tempComp.substring(tempComp.indexOf(']') + 1,
+              tempComp.length());
+        } else {
+          temp = "";
+        }
+
+        String[] origParts = innerPart.split(":");
+        String[] compParts = innerComp.split(":");
+        int origMax = Integer.parseInt(origParts[1]);
+        int compMax = Integer.parseInt(compParts[1]);
+
+        if (compMax > origMax) {
+          // updated the max index seen for this path
+          String newRange = "[" + origParts[0] + ":" + compMax + "]";
+          updated.append(newRange);
+        } else {
+          String oldRange = "[" + innerPart + "]";
+          updated.append(oldRange);
+        }
+      }
+    }
+
+    if (temp.length() > 0) {
+      // append remaining part
+      updated.append(temp);
+    }
+
+    m.m_fieldName = updated.toString();
+  }
+
   protected static void docToFields(DBObject doc, Map<String, MongoField> lookup) {
     String root = "$";
+    String name = "$";
 
     if (doc instanceof BasicDBObject) {
-      processRecord((BasicDBObject) doc, root, lookup);
+      processRecord((BasicDBObject) doc, root, name, lookup);
     } else if (doc instanceof BasicDBList) {
-      processList((BasicDBList) doc, root, lookup);
+      processList((BasicDBList) doc, root, name, lookup);
     }
   }
 
   protected static void processRecord(BasicDBObject rec, String path,
-      Map<String, MongoField> lookup) {
+      String name, Map<String, MongoField> lookup) {
     for (String key : rec.keySet()) {
       Object fieldValue = rec.get(key);
 
       if (fieldValue instanceof BasicDBObject) {
-        processRecord((BasicDBObject) fieldValue, path + "." + key, lookup);
+        processRecord((BasicDBObject) fieldValue, path + "." + key, name + "."
+            + key, lookup);
       } else if (fieldValue instanceof BasicDBList) {
-        processList((BasicDBList) fieldValue, path + "." + key, lookup);
+        processList((BasicDBList) fieldValue, path + "." + key, name + "."
+            + key, lookup);
       } else {
         // some sort of primitive
         String finalPath = path + "." + key;
+        String finalName = name + "." + key;
         if (!lookup.containsKey(finalPath)) {
           MongoField newField = new MongoField();
           int kettleType = mongoToKettleType(fieldValue);
-          newField.m_fieldName = finalPath;
+          newField.m_mongoType = fieldValue;
+          newField.m_fieldName = finalName;
           newField.m_fieldPath = finalPath;
           newField.m_kettleType = ValueMeta.getTypeDesc(kettleType);
+          newField.m_percentageOfSample = 1;
 
           lookup.put(finalPath, newField);
+        } else {
+          // update max indexes in array parts of name
+          MongoField m = lookup.get(finalPath);
+          if (!m.m_mongoType.getClass().isAssignableFrom(fieldValue.getClass())) {
+            m.m_dispartateTypes = true;
+          }
+          m.m_percentageOfSample++;
+          updateMaxArrayIndexes(m, finalName);
         }
       }
     }
   }
 
-  protected static void processList(BasicDBList list, String path,
+  protected static void processList(BasicDBList list, String path, String name,
       Map<String, MongoField> lookup) {
 
     if (list.size() == 0) {
       return; // can't infer anything about an empty list
     }
 
-    String nonPrimitivePath = path + "[*]";
+    String nonPrimitivePath = path + "[-]";
     String primitivePath = path;
 
     for (int i = 0; i < list.size(); i++) {
       Object element = list.get(i);
 
       if (element instanceof BasicDBObject) {
-        processRecord((BasicDBObject) element, nonPrimitivePath, lookup);
+        processRecord((BasicDBObject) element, nonPrimitivePath, name + "[" + i
+            + ":" + i + "]", lookup);
       } else if (element instanceof BasicDBList) {
-        processList((BasicDBList) element, nonPrimitivePath, lookup);
+        processList((BasicDBList) element, nonPrimitivePath, name + "[" + i
+            + ":" + i + "]", lookup);
       } else {
         // some sort of primitive
         String finalPath = primitivePath + "[" + i + "]";
+        String finalName = name + "[" + i + "]";
         if (!lookup.containsKey(finalPath)) {
           MongoField newField = new MongoField();
           int kettleType = mongoToKettleType(element);
+          newField.m_mongoType = element;
           newField.m_fieldName = finalPath;
-          newField.m_fieldPath = finalPath;
+          newField.m_fieldPath = finalName;
           newField.m_kettleType = ValueMeta.getTypeDesc(kettleType);
+          newField.m_percentageOfSample = 1;
 
           lookup.put(finalPath, newField);
+        } else {
+          // update max indexes in array parts of name
+          MongoField m = lookup.get(finalPath);
+          if (!m.m_mongoType.getClass().isAssignableFrom(element.getClass())) {
+            m.m_dispartateTypes = true;
+          }
+          m.m_percentageOfSample++;
+          updateMaxArrayIndexes(m, finalName);
         }
       }
     }
@@ -520,7 +688,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
     String hostname = transMeta.environmentSubstitute(meta.getHostname());
     int port = Const.toInt(transMeta.environmentSubstitute(meta.getPort()),
-        27017);
+        MONGO_DEFAULT_PORT);
     String db = transMeta.environmentSubstitute(meta.getDbName());
     String collection = transMeta.environmentSubstitute(meta.getCollection());
 
@@ -557,13 +725,23 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
         cursor = dbcollection.find(dbObject, dbObject2).limit(numDocsToSample);
       }
 
+      int actualCount = 0;
       while (cursor.hasNext()) {
+        actualCount++;
         DBObject nextDoc = cursor.next();
         docToFields(nextDoc, fieldLookup);
       }
 
       for (String key : fieldLookup.keySet()) {
         MongoField m = fieldLookup.get(key);
+        m.m_occurenceFraction = "" + m.m_percentageOfSample + "/" + actualCount;
+        setMinArrayIndexes(m);
+
+        if (m.m_dispartateTypes) {
+          // force type to string if we've seen this path more than once
+          // with incompatible types
+          m.m_kettleType = ValueMeta.getTypeDesc(ValueMeta.TYPE_STRING);
+        }
         discoveredFields.add(m);
       }
 
@@ -579,5 +757,43 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
 
     return false;
+  }
+
+  /**
+   * Helper function that takes a list of indexed values and returns them as a
+   * String in comma-separated form.
+   * 
+   * @param indexedVals a list of indexed values
+   * @return the list a String in comma-separated form
+   */
+  public static String indexedValsList(List<String> indexedVals) {
+    StringBuffer temp = new StringBuffer();
+
+    for (int i = 0; i < indexedVals.size(); i++) {
+      temp.append(indexedVals.get(i));
+      if (i < indexedVals.size() - 1) {
+        temp.append(",");
+      }
+    }
+
+    return temp.toString();
+  }
+
+  /**
+   * Helper function that takes a comma-separated list in a String and returns a
+   * list.
+   * 
+   * @param indexedVals the String containing the lsit
+   * @return a List containing the values
+   */
+  public static List<String> indexedValsList(String indexedVals) {
+
+    String[] parts = indexedVals.split(",");
+    List<String> list = new ArrayList<String>();
+    for (String s : parts) {
+      list.add(s.trim());
+    }
+
+    return list;
   }
 }
