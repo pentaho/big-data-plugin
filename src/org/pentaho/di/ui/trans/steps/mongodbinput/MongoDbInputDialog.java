@@ -24,10 +24,14 @@ package org.pentaho.di.ui.trans.steps.mongodbinput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -49,6 +53,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.i18n.BaseMessages;
@@ -61,12 +66,16 @@ import org.pentaho.di.trans.steps.mongodbinput.MongoDbInputData;
 import org.pentaho.di.trans.steps.mongodbinput.MongoDbInputMeta;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+
+import com.mongodb.DB;
+import com.mongodb.Mongo;
 
 public class MongoDbInputDialog extends BaseStepDialog implements
     StepDialogInterface {
@@ -81,9 +90,11 @@ public class MongoDbInputDialog extends BaseStepDialog implements
 
   private TextVar wHostname;
   private TextVar wPort;
-  private TextVar wDbName;
+  private CCombo wDbName;
+  private Button m_getDbsBut;
   private TextVar wFieldsName;
-  private TextVar wCollection;
+  private CCombo wCollection;
+  private Button m_getCollectionsBut;
   private TextVar wJsonField;
   private TextVar wJsonQuery;
 
@@ -219,16 +230,61 @@ public class MongoDbInputDialog extends BaseStepDialog implements
     fdlDbName.right = new FormAttachment(middle, -margin);
     fdlDbName.top = new FormAttachment(lastControl, margin);
     wlDbName.setLayoutData(fdlDbName);
-    wDbName = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
-        | SWT.BORDER);
+
+    m_getDbsBut = new Button(wConfigComp, SWT.PUSH | SWT.CENTER);
+    props.setLook(m_getDbsBut);
+    m_getDbsBut.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.DbName.Button"));
+    FormData fd = new FormData();
+    fd.right = new FormAttachment(100, 0);
+    fd.top = new FormAttachment(lastControl, 0);
+    m_getDbsBut.setLayoutData(fd);
+
+    m_getDbsBut.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        setupDBNames();
+      }
+    });
+
+    wDbName = new CCombo(wConfigComp, SWT.BORDER);
     props.setLook(wDbName);
     wDbName.addModifyListener(lsMod);
     FormData fdDbName = new FormData();
     fdDbName.left = new FormAttachment(middle, 0);
     fdDbName.top = new FormAttachment(lastControl, margin);
-    fdDbName.right = new FormAttachment(100, 0);
+    fdDbName.right = new FormAttachment(m_getDbsBut, 0);
     wDbName.setLayoutData(fdDbName);
     lastControl = wDbName;
+
+    wDbName.addModifyListener(new ModifyListener() {
+      public void modifyText(ModifyEvent e) {
+        input.setChanged();
+        wDbName.setToolTipText(transMeta.environmentSubstitute(wDbName
+            .getText()));
+      }
+    });
+
+    wDbName.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        setupCollectionNamesForDB(true);
+      }
+
+      @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        setupCollectionNamesForDB(true);
+      }
+    });
+    wDbName.addFocusListener(new FocusListener() {
+      public void focusGained(FocusEvent e) {
+
+      }
+
+      public void focusLost(FocusEvent e) {
+        setupCollectionNamesForDB(true);
+      }
+    });
 
     // Collection input ...
     //
@@ -241,14 +297,30 @@ public class MongoDbInputDialog extends BaseStepDialog implements
     fdlCollection.right = new FormAttachment(middle, -margin);
     fdlCollection.top = new FormAttachment(lastControl, margin);
     wlCollection.setLayoutData(fdlCollection);
-    wCollection = new TextVar(transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT
-        | SWT.BORDER);
+
+    m_getCollectionsBut = new Button(wConfigComp, SWT.PUSH | SWT.CENTER);
+    props.setLook(m_getCollectionsBut);
+    m_getCollectionsBut.setText(BaseMessages.getString(PKG,
+        "MongoDbInputDialog.GetCollections.Button"));
+    fd = new FormData();
+    fd.right = new FormAttachment(100, 0);
+    fd.top = new FormAttachment(lastControl, 0);
+    m_getCollectionsBut.setLayoutData(fd);
+
+    m_getCollectionsBut.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        setupCollectionNamesForDB(false);
+      }
+    });
+
+    wCollection = new CCombo(wConfigComp, SWT.BORDER);
     props.setLook(wCollection);
     wCollection.addModifyListener(lsMod);
     FormData fdCollection = new FormData();
     fdCollection.left = new FormAttachment(middle, 0);
     fdCollection.top = new FormAttachment(lastControl, margin);
-    fdCollection.right = new FormAttachment(100, 0);
+    fdCollection.right = new FormAttachment(m_getCollectionsBut, 0);
     wCollection.setLayoutData(fdCollection);
     lastControl = wCollection;
 
@@ -343,7 +415,7 @@ public class MongoDbInputDialog extends BaseStepDialog implements
     wAuthPass.setLayoutData(fdAuthPass);
     lastControl = wAuthPass;
 
-    FormData fd = new FormData();
+    fd = new FormData();
     fd.left = new FormAttachment(0, 0);
     fd.top = new FormAttachment(0, 0);
     fd.right = new FormAttachment(100, 0);
@@ -446,15 +518,19 @@ public class MongoDbInputDialog extends BaseStepDialog implements
             "MongoDbInputDialog.Fields.FIELD_INDEXED"),
             ColumnInfo.COLUMN_TYPE_TEXT, false),
         new ColumnInfo(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.Fields.SAMPLE_ARRAYINFO"),
+            ColumnInfo.COLUMN_TYPE_CCOMBO, false),
+        new ColumnInfo(BaseMessages.getString(PKG,
             "MongoDbInputDialog.Fields.SAMPLE_PERCENTAGE"),
             ColumnInfo.COLUMN_TYPE_TEXT, false),
         new ColumnInfo(BaseMessages.getString(PKG,
-            "MongoDbInputDialog.Fields.DISPARATE_TYPES"),
+            "MongoDbInputDialog.Fields.SAMPLE_DISPARATE_TYPES"),
             ColumnInfo.COLUMN_TYPE_TEXT, false), };
 
     colinf[2].setComboValues(ValueMeta.getTypes());
     colinf[4].setReadOnly(true);
     colinf[5].setReadOnly(true);
+    colinf[6].setReadOnly(true);
 
     m_fieldsView = new TableView(transMeta, wFieldsComp, SWT.FULL_SELECTION
         | SWT.MULTI, colinf, 1, lsMod, props);
@@ -653,12 +729,16 @@ public class MongoDbInputDialog extends BaseStepDialog implements
         item.setText(4, MongoDbInputData.indexedValsList(f.m_indexedVals));
       }
 
+      if (!Const.isEmpty(f.m_arrayIndexInfo)) {
+        item.setText(5, f.m_arrayIndexInfo);
+      }
+
       if (!Const.isEmpty(f.m_occurenceFraction)) {
-        item.setText(5, f.m_occurenceFraction);
+        item.setText(6, f.m_occurenceFraction);
       }
 
       if (f.m_dispartateTypes) {
-        item.setText(5, "Y");
+        item.setText(7, "Y");
       }
     }
 
@@ -738,4 +818,89 @@ public class MongoDbInputDialog extends BaseStepDialog implements
     }
   }
 
+  private void setupDBNames() {
+    wDbName.removeAll();
+
+    String hostname = transMeta.environmentSubstitute(wHostname.getText());
+    String portS = transMeta.environmentSubstitute(wPort.getText());
+
+    if (!Const.isEmpty(hostname)) {
+      int port = 27017;
+
+      if (!Const.isEmpty(portS)) {
+        port = Integer.parseInt(portS);
+      }
+
+      try {
+        Mongo conn = new Mongo(hostname, port);
+        List<String> dbNames = conn.getDatabaseNames();
+
+        for (String s : dbNames) {
+          wDbName.add(s);
+        }
+
+        conn.close();
+        conn = null;
+      } catch (Exception e) {
+        logError(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.ErrorMessage.UnableToConnect"), e);
+        new ErrorDialog(shell, BaseMessages.getString(PKG,
+            "MongoDbInputDialog.ErrorMessage." + "UnableToConnect"),
+            BaseMessages.getString(PKG,
+                "MongoDbInputDialog.ErrorMessage.UnableToConnect"), e);
+      }
+    }
+  }
+
+  private void setupCollectionNamesForDB(boolean quiet) {
+
+    String hostname = transMeta.environmentSubstitute(wHostname.getText());
+    String portS = transMeta.environmentSubstitute(wPort.getText());
+    String dB = transMeta.environmentSubstitute(wDbName.getText());
+    String username = transMeta.environmentSubstitute(wAuthUser.getText());
+    String realPass = Encr.decryptPasswordOptionallyEncrypted(transMeta
+        .environmentSubstitute(wAuthPass.getText()));
+
+    if (Const.isEmpty(dB)) {
+      return;
+    }
+
+    wCollection.removeAll();
+
+    if (!Const.isEmpty(hostname)) {
+      int port = 27017;
+
+      if (!Const.isEmpty(portS)) {
+        port = Integer.parseInt(portS);
+      }
+
+      try {
+        Mongo conn = new Mongo(hostname, port);
+        DB theDB = conn.getDB(dB);
+
+        if (!Const.isEmpty(username) || !Const.isEmpty(realPass)) {
+          if (!theDB.authenticate(username, realPass.toCharArray())) {
+            throw new Exception(BaseMessages.getString(PKG,
+                "MongoDbOutput.Messages.Error.UnableToAuthenticate"));
+          }
+        }
+
+        Set<String> collections = theDB.getCollectionNames();
+        for (String c : collections) {
+          wCollection.add(c);
+        }
+
+        conn.close();
+        conn = null;
+      } catch (Exception e) {
+        logError(BaseMessages.getString(PKG,
+            "MongoDbInputDialog.ErrorMessage.UnableToConnect"), e);
+        new ErrorDialog(shell, BaseMessages.getString(PKG,
+            "MongoDbInputDialog.ErrorMessage." + "UnableToConnect"),
+            BaseMessages.getString(PKG,
+                "MongoDbInputDialog.ErrorMessage.UnableToConnect"), e);
+      }
+
+    }
+  }
 }

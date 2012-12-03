@@ -42,7 +42,6 @@ import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
@@ -86,6 +85,12 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
     /** User-defined indexed values for String types */
     public List<String> m_indexedVals;
+
+    /**
+     * Temporary variable to hold the min:max array index info for fields
+     * determined when sampling documents for paths/types
+     */
+    public transient String m_arrayIndexInfo;
 
     /**
      * Temporary variable to hold the number of times this path was seen when
@@ -678,19 +683,60 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
   }
 
+  protected static void postProcessPaths(Map<String, MongoField> fieldLookup,
+      List<MongoField> discoveredFields, int numDocsProcessed) {
+    for (String key : fieldLookup.keySet()) {
+      MongoField m = fieldLookup.get(key);
+      m.m_occurenceFraction = "" + m.m_percentageOfSample + "/"
+          + numDocsProcessed;
+      setMinArrayIndexes(m);
+
+      // set field names to terminal part and copy any min:max array index
+      // info
+      if (m.m_fieldName.contains("[") && m.m_fieldName.contains(":")) {
+        m.m_arrayIndexInfo = m.m_fieldName;
+      }
+      if (m.m_fieldName.indexOf('.') >= 0) {
+        m.m_fieldName = m.m_fieldName.substring(
+            m.m_fieldName.lastIndexOf('.') + 1, m.m_fieldName.length());
+      }
+
+      if (m.m_dispartateTypes) {
+        // force type to string if we've seen this path more than once
+        // with incompatible types
+        m.m_kettleType = ValueMeta.getTypeDesc(ValueMeta.TYPE_STRING);
+      }
+      discoveredFields.add(m);
+    }
+
+    // check for name clashes
+    Map<String, Integer> tempM = new HashMap<String, Integer>();
+    for (MongoField m : discoveredFields) {
+      if (tempM.get(m.m_fieldName) != null) {
+        Integer toUse = tempM.get(m.m_fieldName);
+        String key = m.m_fieldName;
+        m.m_fieldName = key + "_" + toUse;
+        toUse = new Integer(toUse.intValue() + 1);
+        tempM.put(key, toUse);
+      } else {
+        tempM.put(m.m_fieldName, 1);
+      }
+    }
+  }
+
   @SuppressWarnings("deprecation")
   public static boolean discoverFields(MongoDbInputMeta meta,
-      TransMeta transMeta, int numDocsToSample) throws KettleException {
+      VariableSpace vars, int numDocsToSample) throws KettleException {
 
     if (numDocsToSample < 1) {
       numDocsToSample = 100; // default
     }
 
-    String hostname = transMeta.environmentSubstitute(meta.getHostname());
-    int port = Const.toInt(transMeta.environmentSubstitute(meta.getPort()),
+    String hostname = vars.environmentSubstitute(meta.getHostname());
+    int port = Const.toInt(vars.environmentSubstitute(meta.getPort()),
         MONGO_DEFAULT_PORT);
-    String db = transMeta.environmentSubstitute(meta.getDbName());
-    String collection = transMeta.environmentSubstitute(meta.getCollection());
+    String db = vars.environmentSubstitute(meta.getDbName());
+    String collection = vars.environmentSubstitute(meta.getCollection());
 
     List<MongoField> discoveredFields = new ArrayList<MongoField>();
     Map<String, MongoField> fieldLookup = new HashMap<String, MongoField>();
@@ -699,9 +745,9 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       mongo.slaveOk();
       DB database = mongo.getDB(db);
 
-      String realUser = transMeta.environmentSubstitute(meta
-          .getAuthenticationUser());
-      String realPass = Encr.decryptPasswordOptionallyEncrypted(transMeta
+      String realUser = vars
+          .environmentSubstitute(meta.getAuthenticationUser());
+      String realPass = Encr.decryptPasswordOptionallyEncrypted(vars
           .environmentSubstitute(meta.getAuthenticationPassword()));
 
       if (!Const.isEmpty(realUser) || !Const.isEmpty(realPass)) {
@@ -713,8 +759,8 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       }
       DBCollection dbcollection = database.getCollection(collection);
 
-      String query = transMeta.environmentSubstitute(meta.getJsonQuery());
-      String fields = transMeta.environmentSubstitute(meta.getFieldsName());
+      String query = vars.environmentSubstitute(meta.getJsonQuery());
+      String fields = vars.environmentSubstitute(meta.getFieldsName());
       DBCursor cursor = null;
       if (Const.isEmpty(query) && Const.isEmpty(fields)) {
         cursor = dbcollection.find().limit(numDocsToSample);
@@ -732,18 +778,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
         docToFields(nextDoc, fieldLookup);
       }
 
-      for (String key : fieldLookup.keySet()) {
-        MongoField m = fieldLookup.get(key);
-        m.m_occurenceFraction = "" + m.m_percentageOfSample + "/" + actualCount;
-        setMinArrayIndexes(m);
-
-        if (m.m_dispartateTypes) {
-          // force type to string if we've seen this path more than once
-          // with incompatible types
-          m.m_kettleType = ValueMeta.getTypeDesc(ValueMeta.TYPE_STRING);
-        }
-        discoveredFields.add(m);
-      }
+      postProcessPaths(fieldLookup, discoveredFields, actualCount);
 
       // return true if query resulted in documents being returned and fields
       // getting extracted
