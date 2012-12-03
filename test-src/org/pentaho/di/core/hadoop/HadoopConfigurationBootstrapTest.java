@@ -111,7 +111,7 @@ public class HadoopConfigurationBootstrapTest {
         .getAnnotation(PluginMainClassType.class);
     PluginInterface hadoopConfigurationBootstrap = new Plugin(new String[] { "HadoopConfigurationBootstrap" },
         StepPluginType.class, mainClassTypesAnnotation.value(), "", "", "", null, false, false,
-        new HashMap<Class<?>, String>(), new ArrayList<String>(), null, null);
+        new HashMap<Class<?>, String>(), new ArrayList<String>(), null, null, null, null, null);
     PluginRegistry.getInstance().registerPlugin(KettleLifecyclePluginType.class, hadoopConfigurationBootstrap);
     try {
       PluginInterface retrieved = b.getPluginInterface();
@@ -287,7 +287,7 @@ public class HadoopConfigurationBootstrapTest {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
       protected PluginInterface getPluginInterface() throws KettleException {
         return new Plugin(new String[] { "id" }, KettleLifecyclePluginType.class, null, null, null, null, null, false,
-            false, null, null, null, folderURL);
+            false, null, null, null, folderURL, null, null, null);
       };
     };
 
@@ -300,7 +300,7 @@ public class HadoopConfigurationBootstrapTest {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
       protected PluginInterface getPluginInterface() throws KettleException {
         return new Plugin(new String[] { "id" }, KettleLifecyclePluginType.class, null, null, null, null, null, false,
-            false, null, null, null, null);
+            false, null, null, null, null, null, null, null);
       };
     };
 
@@ -320,7 +320,7 @@ public class HadoopConfigurationBootstrapTest {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
       protected PluginInterface getPluginInterface() throws KettleException {
         return new Plugin(new String[] { "id" }, KettleLifecyclePluginType.class, null, null, null, null, null, false,
-            false, null, null, null, folderURL);
+            false, null, null, null, folderURL, null, null, null);
       };
     };
 
