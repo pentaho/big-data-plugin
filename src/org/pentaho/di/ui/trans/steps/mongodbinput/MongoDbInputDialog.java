@@ -30,8 +30,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -265,27 +263,6 @@ public class MongoDbInputDialog extends BaseStepDialog implements
       }
     });
 
-    wDbName.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        setupCollectionNamesForDB(true);
-      }
-
-      @Override
-      public void widgetDefaultSelected(SelectionEvent e) {
-        setupCollectionNamesForDB(true);
-      }
-    });
-    wDbName.addFocusListener(new FocusListener() {
-      public void focusGained(FocusEvent e) {
-
-      }
-
-      public void focusLost(FocusEvent e) {
-        setupCollectionNamesForDB(true);
-      }
-    });
-
     // Collection input ...
     //
     Label wlCollection = new Label(wConfigComp, SWT.RIGHT);
@@ -310,7 +287,7 @@ public class MongoDbInputDialog extends BaseStepDialog implements
     m_getCollectionsBut.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        setupCollectionNamesForDB(false);
+        setupCollectionNamesForDB();
       }
     });
 
@@ -857,7 +834,7 @@ public class MongoDbInputDialog extends BaseStepDialog implements
     }
   }
 
-  private void setupCollectionNamesForDB(boolean quiet) {
+  private void setupCollectionNamesForDB() {
 
     String hostname = transMeta.environmentSubstitute(wHostname.getText());
     String portS = transMeta.environmentSubstitute(wPort.getText());
