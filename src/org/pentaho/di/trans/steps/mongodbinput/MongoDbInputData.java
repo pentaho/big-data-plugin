@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.steps.mongodbinput;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +32,8 @@ import java.util.Map;
 import org.bson.types.BSONTimestamp;
 import org.bson.types.Binary;
 import org.bson.types.Code;
+import org.bson.types.MaxKey;
+import org.bson.types.MinKey;
 import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 import org.pentaho.di.core.Const;
@@ -72,7 +75,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
   private List<MongoField> m_userFields;
 
-  public static class MongoField {
+  public static class MongoField implements Comparable<MongoField> {
 
     /** The name the the field will take in the outputted kettle stream */
     public String m_fieldName = "";
@@ -112,7 +115,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
      * over the sampled documents and that the types differ. In this case we
      * should default to Kettle type String as a catch-all
      */
-    public transient boolean m_dispartateTypes;
+    public transient boolean m_disparateTypes;
 
     /** The index that this field is in the output row structure */
     protected int m_outputIndex;
@@ -178,9 +181,9 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
 
     /**
-     * Perform Kettle type conversions for the Avro leaf field value.
+     * Perform Kettle type conversions for the Mongo leaf field value.
      * 
-     * @param fieldValue the leaf value from the Avro structure
+     * @param fieldValue the leaf value from the Mongo structure
      * @return an Object of the appropriate Kettle type
      * @throws KettleException if a problem occurs
      */
@@ -188,60 +191,69 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
       switch (m_tempValueMeta.getType()) {
       case ValueMetaInterface.TYPE_BIGNUMBER:
+        if (fieldValue instanceof Number) {
+          fieldValue = BigDecimal.valueOf(((Number) fieldValue).doubleValue());
+        } else if (fieldValue instanceof Date) {
+          fieldValue = new BigDecimal(((Date) fieldValue).getTime());
+        } else {
+          fieldValue = new BigDecimal(fieldValue.toString());
+        }
         return m_tempValueMeta.getBigNumber(fieldValue);
       case ValueMetaInterface.TYPE_BINARY:
+        if (fieldValue instanceof Binary) {
+          fieldValue = ((Binary) fieldValue).getData();
+        } else {
+          fieldValue = fieldValue.toString().getBytes();
+        }
         return m_tempValueMeta.getBinary(fieldValue);
       case ValueMetaInterface.TYPE_BOOLEAN:
+        if (fieldValue instanceof Number) {
+          fieldValue = new Boolean(((Number) fieldValue).intValue() != 0);
+        } else if (fieldValue instanceof Date) {
+          fieldValue = new Boolean(((Date) fieldValue).getTime() != 0);
+        } else {
+          fieldValue = new Boolean(fieldValue.toString().equalsIgnoreCase("Y")
+              || fieldValue.toString().equalsIgnoreCase("T")
+              || fieldValue.toString().equalsIgnoreCase("1"));
+        }
         return m_tempValueMeta.getBoolean(fieldValue);
       case ValueMetaInterface.TYPE_DATE:
+        if (fieldValue instanceof Number) {
+          fieldValue = new Date(((Number) fieldValue).longValue());
+        } else {
+          throw new KettleException(BaseMessages.getString(
+              MongoDbInputMeta.PKG,
+              "MongoDbInputDialog.ErrorMessage.DateConversion",
+              fieldValue.toString()));
+        }
         return m_tempValueMeta.getDate(fieldValue);
       case ValueMetaInterface.TYPE_INTEGER:
+        if (fieldValue instanceof Number) {
+          fieldValue = new Long(((Number) fieldValue).intValue());
+        } else if (fieldValue instanceof Binary) {
+          byte[] b = ((Binary) fieldValue).getData();
+          String s = new String(b);
+          fieldValue = new Integer(s);
+        } else {
+          fieldValue = new Integer(fieldValue.toString());
+        }
         return m_tempValueMeta.getInteger(fieldValue);
       case ValueMetaInterface.TYPE_NUMBER:
+        if (fieldValue instanceof Number) {
+          fieldValue = new Double(((Number) fieldValue).doubleValue());
+        } else if (fieldValue instanceof Binary) {
+          byte[] b = ((Binary) fieldValue).getData();
+          String s = new String(b);
+          fieldValue = new Double(s);
+        } else {
+          fieldValue = new Double(fieldValue.toString());
+        }
         return m_tempValueMeta.getNumber(fieldValue);
       case ValueMetaInterface.TYPE_STRING:
         return m_tempValueMeta.getString(fieldValue);
       default:
         return null;
       }
-    }
-
-    protected Object getPrimitive(Object fieldValue) throws KettleException {
-      if (fieldValue == null) {
-        return null;
-      }
-
-      if (fieldValue instanceof Number || fieldValue instanceof Date
-          || fieldValue instanceof String) {
-        return getKettleValue(fieldValue);
-      }
-
-      if (fieldValue instanceof Binary) {
-        return getKettleValue(((Binary) fieldValue).getData());
-      }
-
-      if (fieldValue instanceof Symbol) {
-        return getKettleValue(((Symbol) fieldValue).getSymbol());
-      }
-
-      if (fieldValue instanceof BSONTimestamp) {
-        return getKettleValue(new Long(((BSONTimestamp) fieldValue).getTime()));
-      }
-
-      if (fieldValue instanceof Code) {
-        return getKettleValue(((Code) fieldValue).getCode());
-      }
-
-      if (fieldValue instanceof ObjectId) {
-        return getKettleValue(((ObjectId) fieldValue).toString());
-      }
-
-      return null;
-
-      /*
-       * throw new KettleException("Can't handle Mongo type: " +
-       * fieldValue.getClass().toString());
-       */
     }
 
     public Object convertToKettleValue(BasicDBObject mongoObject)
@@ -281,7 +293,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       if (m_tempParts.size() == 0) {
         // we're expecting a leaf primitive - lets see if that's what we have
         // here...
-        return getPrimitive(fieldValue);
+        return getKettleValue(fieldValue);
       }
 
       if (fieldValue instanceof BasicDBObject) {
@@ -342,7 +354,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       if (m_tempParts.size() == 0) {
         // we're expecting a leaf primitive - let's see if that's what we have
         // here...
-        return getPrimitive(element);
+        return getKettleValue(element);
       }
 
       if (element instanceof BasicDBObject) {
@@ -356,6 +368,10 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       // must mean we have a primitive here, but we're expecting to process more
       // path so this doesn't match us - return null
       return null;
+    }
+
+    public int compareTo(MongoField comp) {
+      return m_fieldName.compareTo(comp.m_fieldName);
     }
   }
 
@@ -450,7 +466,8 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
 
     if (fieldValue instanceof Symbol || fieldValue instanceof String
-        || fieldValue instanceof Code || fieldValue instanceof ObjectId) {
+        || fieldValue instanceof Code || fieldValue instanceof ObjectId
+        || fieldValue instanceof MinKey || fieldValue instanceof MaxKey) {
       return ValueMetaInterface.TYPE_STRING;
     } else if (fieldValue instanceof Date) {
       return ValueMetaInterface.TYPE_DATE;
@@ -628,7 +645,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
           // update max indexes in array parts of name
           MongoField m = lookup.get(finalPath);
           if (!m.m_mongoType.getClass().isAssignableFrom(fieldValue.getClass())) {
-            m.m_dispartateTypes = true;
+            m.m_disparateTypes = true;
           }
           m.m_percentageOfSample++;
           updateMaxArrayIndexes(m, finalName);
@@ -674,7 +691,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
           // update max indexes in array parts of name
           MongoField m = lookup.get(finalPath);
           if (!m.m_mongoType.getClass().isAssignableFrom(element.getClass())) {
-            m.m_dispartateTypes = true;
+            m.m_disparateTypes = true;
           }
           m.m_percentageOfSample++;
           updateMaxArrayIndexes(m, finalName);
@@ -701,7 +718,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
             m.m_fieldName.lastIndexOf('.') + 1, m.m_fieldName.length());
       }
 
-      if (m.m_dispartateTypes) {
+      if (m.m_disparateTypes) {
         // force type to string if we've seen this path more than once
         // with incompatible types
         m.m_kettleType = ValueMeta.getTypeDesc(ValueMeta.TYPE_STRING);

@@ -737,7 +737,7 @@ public class MongoDbInputDialog extends BaseStepDialog implements
         item.setText(6, f.m_occurenceFraction);
       }
 
-      if (f.m_dispartateTypes) {
+      if (f.m_disparateTypes) {
         item.setText(7, "Y");
       }
     }
@@ -752,23 +752,28 @@ public class MongoDbInputDialog extends BaseStepDialog implements
         && !Const.isEmpty(wDbName.getText())
         && !Const.isEmpty(wCollection.getText())) {
       EnterNumberDialog end = new EnterNumberDialog(shell, 100,
-          "Sample documents", "Number of documents to sample");
+          BaseMessages.getString(PKG,
+              "MongoDbInputDialog.SampleDocuments.Title"),
+          BaseMessages.getString(PKG,
+              "MongoDbInputDialog.SampleDocuments.Message"));
       int samples = end.open();
       if (samples > 0) {
         try {
           getInfo(meta);
-          boolean result = MongoDbInputData
-              .discoverFields(meta, transMeta, 100);
+          boolean result = MongoDbInputData.discoverFields(meta, transMeta,
+              samples);
 
           if (!result) {
-            // TODO dialog for telling the user that no fields were found
-            System.err.println("No fields found!@!!!!");
+            new ErrorDialog(shell, stepname, BaseMessages.getString(PKG,
+                "MongoDbInputDialog.ErrorMessage.NoFieldsFound"),
+                new KettleException(
+                    "MongoDbInputDialog.ErrorMessage.NoFieldsFound"));
           } else {
             getData(meta);
           }
         } catch (KettleException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          new ErrorDialog(shell, stepname, BaseMessages.getString(PKG,
+              "MongoDbInputDialog.ErrorMessage.ErrorDuringSampling"), e);
         }
       }
     }
