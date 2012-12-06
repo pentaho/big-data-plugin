@@ -220,6 +220,8 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       case ValueMetaInterface.TYPE_DATE:
         if (fieldValue instanceof Number) {
           fieldValue = new Date(((Number) fieldValue).longValue());
+        } else if (fieldValue instanceof Date) {
+          // nothing to do
         } else {
           throw new KettleException(BaseMessages.getString(
               MongoDbInputMeta.PKG,
