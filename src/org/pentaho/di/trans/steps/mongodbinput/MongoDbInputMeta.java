@@ -77,7 +77,16 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
 
   private String jsonQuery;
 
+  private boolean m_aggPipeline = false;
+
   private boolean m_outputJson = true;
+
+  private String m_connectTimeout = ""; // default - never time out
+
+  private String m_socketTimeout = ""; // default - never time out
+
+  /** primary, primaryPreferred, secondary, secondaryPreferred, nearest */
+  private String m_readPreference = "primary";
 
   private List<MongoDbInputData.MongoField> m_fields;
 
@@ -91,14 +100,6 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
 
   public List<MongoDbInputData.MongoField> getMongoFields() {
     return m_fields;
-  }
-
-  public void setOutputJson(boolean outputJson) {
-    m_outputJson = outputJson;
-  }
-
-  public boolean getOutputJson() {
-    return m_outputJson;
   }
 
   public void loadXML(Node stepnode, List<DatabaseMeta> databases,
@@ -126,10 +127,20 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
           .decryptPasswordOptionallyEncrypted(XMLHandler.getTagValue(stepnode,
               "auth_password")); //$NON-NLS-1$
 
+      m_connectTimeout = XMLHandler.getTagValue(stepnode, "connect_timeout"); //$NON-NLS-1$
+      m_socketTimeout = XMLHandler.getTagValue(stepnode, "socket_timeout"); //$NON-NLS-1$
+      m_readPreference = XMLHandler.getTagValue(stepnode, "read_preference"); //$NON-NLS-1$
+
       m_outputJson = true; // default to true for backwards compatibility
       String outputJson = XMLHandler.getTagValue(stepnode, "output_json");
       if (!Const.isEmpty(outputJson)) {
         m_outputJson = outputJson.equalsIgnoreCase("Y");
+      }
+
+      String queryIsPipe = XMLHandler
+          .getTagValue(stepnode, "query_is_pipeline");
+      if (!Const.isEmpty(queryIsPipe)) {
+        m_aggPipeline = queryIsPipe.equalsIgnoreCase("Y");
       }
 
       Node fields = XMLHandler.getSubNode(stepnode, "mongo_fields");
@@ -215,7 +226,15 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
         XMLHandler.addTagValue("auth_password",
             Encr.encryptPasswordIfNotUsingVariables(authenticationPassword)));
     retval.append("    ").append(
+        XMLHandler.addTagValue("connect_timeout", m_connectTimeout));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("socket_timeout", m_socketTimeout));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("read_preference", m_readPreference));
+    retval.append("    ").append(
         XMLHandler.addTagValue("output_json", m_outputJson));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("query_is_pipeline", m_aggPipeline));
 
     if (m_fields != null && m_fields.size() > 0) {
       retval.append("\n    ").append(XMLHandler.openTag("mongo_fields"));
@@ -258,8 +277,12 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
       authenticationUser = rep.getStepAttributeString(id_step, "auth_user");
       authenticationPassword = Encr.decryptPasswordOptionallyEncrypted(rep
           .getStepAttributeString(id_step, "auth_password"));
+      m_connectTimeout = rep.getStepAttributeString(id_step, "connect_timeout");
+      m_socketTimeout = rep.getStepAttributeString(id_step, "socket_timeout");
+      m_readPreference = rep.getStepAttributeString(id_step, "read_preference");
 
       m_outputJson = rep.getStepAttributeBoolean(id_step, 0, "output_json");
+      m_aggPipeline = rep.getStepAttributeBoolean(id_step, "query_is_pipeline");
 
       int nrfields = rep.countNrStepAttributes(id_step, "field_name");
       if (nrfields > 0) {
@@ -307,8 +330,16 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
           authenticationUser);
       rep.saveStepAttribute(id_transformation, id_step, "auth_password",
           Encr.encryptPasswordIfNotUsingVariables(authenticationPassword));
+      rep.saveStepAttribute(id_transformation, id_step,
+          "connect_timeout", m_connectTimeout); //$NON-NLS-1$
+      rep.saveStepAttribute(id_transformation, id_step,
+          "socket_timeout", m_socketTimeout); //$NON-NLS-1$
+      rep.saveStepAttribute(id_transformation, id_step,
+          "read_preference", m_readPreference); //$NON-NLS-1$
       rep.saveStepAttribute(id_transformation, id_step, 0, "output_json",
           m_outputJson);
+      rep.saveStepAttribute(id_transformation, id_step, 0, "query_is_pipeline",
+          m_aggPipeline);
 
       if (m_fields != null && m_fields.size() > 0) {
         for (int i = 0; i < m_fields.size(); i++) {
@@ -351,28 +382,31 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
   }
 
   /**
-   * @return the hostname
+   * @return the hostnames (comma separated: host:<port>)
    */
-  public String getHostname() {
+  public String getHostnames() {
     return hostname;
   }
 
   /**
-   * @param hostname the hostname to set
+   * @param hostname the hostnames to set (comma separated: host:<port>)
    */
-  public void setHostname(String hostname) {
+  public void setHostnames(String hostname) {
     this.hostname = hostname;
   }
 
   /**
-   * @return the port
+   * @return the port. This is a port to use for all hostnames (avoids having to
+   *         specify the same port for each hostname in the hostnames list
    */
   public String getPort() {
     return port;
   }
 
   /**
-   * @param port the port to set
+   * @param port the port. This is a port to use for all hostnames (avoids
+   *          having to specify the same port for each hostname in the hostnames
+   *          list
    */
   public void setPort(String port) {
     this.port = port;
@@ -476,4 +510,97 @@ public class MongoDbInputMeta extends BaseStepMeta implements StepMetaInterface 
     this.jsonQuery = jsonQuery;
   }
 
+  /**
+   * Set whether to output just a single field as JSON
+   * 
+   * @param outputJson true if a single field containing JSON is to be output
+   */
+  public void setOutputJson(boolean outputJson) {
+    m_outputJson = outputJson;
+  }
+
+  /**
+   * Get whether to output just a single field as JSON
+   * 
+   * @return true if a single field containing JSON is to be output
+   */
+  public boolean getOutputJson() {
+    return m_outputJson;
+  }
+
+  /**
+   * Set whether the supplied query is actually a pipeline specification
+   * 
+   * @param q true if the supplied query is a pipeline specification
+   */
+  public void setQueryIsPipeline(boolean q) {
+    m_aggPipeline = q;
+  }
+
+  /**
+   * Get whether the supplied query is actually a pipeline specification
+   * 
+   * @true true if the supplied query is a pipeline specification
+   */
+  public boolean getQueryIsPipeline() {
+    return m_aggPipeline;
+  }
+
+  /**
+   * Set the connection timeout. The default is never timeout
+   * 
+   * @param to the connection timeout in milliseconds
+   */
+  public void setConnectTimeout(String to) {
+    m_connectTimeout = to;
+  }
+
+  /**
+   * Get the connection timeout. The default is never timeout
+   * 
+   * @return the connection timeout in milliseconds
+   */
+  public String getConnectTimeout() {
+    return m_connectTimeout;
+  }
+
+  /**
+   * Set the number of milliseconds to attempt a send or receive on a socket
+   * before timing out.
+   * 
+   * @param so the number of milliseconds before socket timeout
+   */
+  public void setSocketTimeout(String so) {
+    m_socketTimeout = so;
+  }
+
+  /**
+   * Get the number of milliseconds to attempt a send or receive on a socket
+   * before timing out.
+   * 
+   * @return the number of milliseconds before socket timeout
+   */
+  public String getSocketTimeout() {
+    return m_socketTimeout;
+  }
+
+  /**
+   * Set the read preference to use - primary, primaryPreferred, secondary,
+   * secondaryPreferred or nearest.
+   * 
+   * @param preference the read preference to use
+   */
+  public void setReadPreference(String preference) {
+    m_readPreference = preference;
+  }
+
+  /**
+   * Get the read preference to use - primary, primaryPreferred, secondary,
+   * secondaryPreferred or nearest.
+   * 
+   * @return the read preference to use
+   */
+  public String getReadPreference() {
+    return m_readPreference;
+  }
 }

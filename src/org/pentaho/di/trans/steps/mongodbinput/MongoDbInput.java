@@ -22,6 +22,8 @@
 
 package org.pentaho.di.trans.steps.mongodbinput;
 
+import java.util.List;
+
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
@@ -36,8 +38,8 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
+import com.mongodb.AggregationOutput;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
 import com.mongodb.util.JSON;
 
 public class MongoDbInput extends BaseStep implements StepInterface {
@@ -66,20 +68,59 @@ public class MongoDbInput extends BaseStep implements StepInterface {
       String query = environmentSubstitute(meta.getJsonQuery());
       String fields = environmentSubstitute(meta.getFieldsName());
       if (Const.isEmpty(query) && Const.isEmpty(fields)) {
+        if (meta.getQueryIsPipeline()) {
+          throw new KettleException(BaseMessages.getString(
+              MongoDbInputMeta.PKG,
+              "MongoDbInput.ErrorMessage.EmptyAggregationPipeline"));
+        }
+
         data.cursor = data.collection.find();
       } else {
-        DBObject dbObject = (DBObject) JSON.parse(Const.isEmpty(query) ? "{}"
-            : query);
-        DBObject dbObject2 = (DBObject) JSON.parse(fields);
-        data.cursor = data.collection.find(dbObject, dbObject2);
+
+        if (meta.getQueryIsPipeline()) {
+          if (Const.isEmpty(query)) {
+            throw new KettleException(BaseMessages.getString(
+                MongoDbInputMeta.PKG,
+                "MongoDbInput.ErrorMessage.EmptyAggregationPipeline"));
+          }
+          List<DBObject> pipeline = MongoDbInputData
+              .jsonPipelineToDBObjectList(query);
+          DBObject first = pipeline.get(0);
+          DBObject[] remainder = null;
+          if (pipeline.size() > 1) {
+            remainder = new DBObject[pipeline.size() - 1];
+            for (int i = 1; i < pipeline.size(); i++) {
+              remainder[i - 1] = pipeline.get(i);
+            }
+          } else {
+            remainder = new DBObject[0];
+          }
+
+          AggregationOutput result = data.collection
+              .aggregate(first, remainder);
+          data.m_pipelineResult = result.results().iterator();
+        } else {
+          DBObject dbObject = (DBObject) JSON.parse(Const.isEmpty(query) ? "{}"
+              : query);
+          DBObject dbObject2 = (DBObject) JSON.parse(fields);
+          data.cursor = data.collection.find(dbObject, dbObject2);
+        }
       }
 
       data.init();
     }
 
-    if (data.cursor.hasNext() && !isStopped()) {
-      DBObject nextDoc = data.cursor.next();
-      Object row[];
+    boolean hasNext = ((meta.getQueryIsPipeline() ? data.m_pipelineResult
+        .hasNext() : data.cursor.hasNext()) && !isStopped());
+    if (hasNext) {
+      DBObject nextDoc = null;
+      Object row[] = null;
+      if (meta.getQueryIsPipeline()) {
+        nextDoc = data.m_pipelineResult.next();
+      } else {
+        nextDoc = data.cursor.next();
+      }
+
       if (meta.getOutputJson() || meta.getMongoFields() == null
           || meta.getMongoFields().size() == 0) {
         String json = nextDoc.toString();
@@ -98,7 +139,6 @@ public class MongoDbInput extends BaseStep implements StepInterface {
 
       return true;
     } else {
-
       setOutputDone();
 
       return false;
@@ -113,16 +153,14 @@ public class MongoDbInput extends BaseStep implements StepInterface {
       meta = (MongoDbInputMeta) stepMetaInterface;
       data = (MongoDbInputData) stepDataInterface;
 
-      String hostname = environmentSubstitute(meta.getHostname());
+      String hostname = environmentSubstitute(meta.getHostnames());
       int port = Const.toInt(environmentSubstitute(meta.getPort()),
           MongoDbInputData.MONGO_DEFAULT_PORT);
       String db = environmentSubstitute(meta.getDbName());
       String collection = environmentSubstitute(meta.getCollection());
 
       try {
-
-        data.mongo = new Mongo(hostname, port);
-        data.mongo.slaveOk(); // slaveOK for ce;
+        data.mongo = MongoDbInputData.initConnection(meta, this);
         data.db = data.mongo.getDB(db);
 
         String realUser = environmentSubstitute(meta.getAuthenticationUser());
@@ -167,5 +205,4 @@ public class MongoDbInput extends BaseStep implements StepInterface {
 
     super.dispose(smi, sdi);
   }
-
 }

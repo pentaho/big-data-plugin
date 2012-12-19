@@ -166,10 +166,9 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
             "MongoDbOutput.Messages.FieldsNotToBeInserted"), b.toString());
       }
 
-      // init mongo fields
-      for (MongoDbOutputMeta.MongoField m : m_meta.getMongoFields()) {
-        m.init(this);
-      }
+      // copy and initialize mongo fields
+      m_data.setMongoFields(m_meta.getMongoFields());
+      m_data.init(this);
 
       // check truncate
       if (m_meta.getTruncate()) {
@@ -192,9 +191,8 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
     if (!isStopped()) {
 
       if (m_meta.getUpsert()) {
-        DBObject updateQuery = MongoDbOutputData.getQueryObject(
-            m_meta.getMongoFields(), getInputRowMeta(), row, this,
-            m_mongoTopLevelStructure);
+        DBObject updateQuery = m_data.getQueryObject(m_data.m_userFields,
+            getInputRowMeta(), row, this, m_mongoTopLevelStructure);
 
         if (log.isDebug()) {
           logDebug(BaseMessages.getString(PKG,
@@ -210,7 +208,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
             // complete record replace or insert
 
             insertUpdate = MongoDbOutputData.kettleRowToMongo(
-                m_meta.getMongoFields(), getInputRowMeta(), row, this,
+                m_data.m_userFields, getInputRowMeta(), row, this,
                 m_mongoTopLevelStructure);
             if (log.isDebug()) {
               logDebug(BaseMessages.getString(PKG,
@@ -219,9 +217,8 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
             }
           } else {
             // specific field update or insert
-            insertUpdate = m_data.getModifierUpdateObject(
-                m_meta.getMongoFields(), getInputRowMeta(), row, this,
-                m_mongoTopLevelStructure);
+            insertUpdate = m_data.getModifierUpdateObject(m_data.m_userFields,
+                getInputRowMeta(), row, this, m_mongoTopLevelStructure);
             if (log.isDebug()) {
               logDebug(BaseMessages.getString(PKG,
                   "MongoDbOutput.Messages.Debug.ModifierUpdateObject",
@@ -261,7 +258,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
         // straight insert
 
         DBObject mongoInsert = MongoDbOutputData.kettleRowToMongo(
-            m_meta.getMongoFields(), getInputRowMeta(), row, this,
+            m_data.m_userFields, getInputRowMeta(), row, this,
             m_mongoTopLevelStructure);
 
         if (mongoInsert != null) {
@@ -315,14 +312,14 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
       m_meta = (MongoDbOutputMeta) stepMetaInterface;
       m_data = (MongoDbOutputData) stepDataInterface;
 
-      String hostname = environmentSubstitute(m_meta.getHostname());
+      String hostname = environmentSubstitute(m_meta.getHostnames());
       int port = Const.toInt(environmentSubstitute(m_meta.getPort()), 27017);
       String db = environmentSubstitute(m_meta.getDBName());
       String collection = environmentSubstitute(m_meta.getCollection());
 
       try {
 
-        m_data.connect(hostname, port);
+        m_data.setConnection(MongoDbOutputData.connect(m_meta, this));
         m_data.setDB(m_data.getConnection().getDB(db));
 
         String realUser = environmentSubstitute(m_meta.getUsername());
@@ -362,14 +359,14 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
 
   protected void disconnect() {
     if (m_data != null) {
-      m_data.disconnect();
+      MongoDbOutputData.disconnect(m_data.getConnection());
     }
   }
 
   @Override
   public void dispose(StepMetaInterface smi, StepDataInterface sdi) {
     if (m_data != null) {
-      m_data.disconnect();
+      MongoDbOutputData.disconnect(m_data.getConnection());
     }
 
     super.dispose(smi, sdi);

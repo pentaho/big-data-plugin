@@ -23,9 +23,11 @@
 package org.pentaho.di.trans.steps.mongodbinput;
 
 import java.math.BigDecimal;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -48,17 +50,22 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
+import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.ReadPreference;
+import com.mongodb.ServerAddress;
 import com.mongodb.util.JSON;
 
 /**
  * @author Matt
+ * @author Mark Hall
  * @since 24-jan-2005
  */
 public class MongoDbInputData extends BaseStepData implements StepDataInterface {
@@ -67,11 +74,17 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
   public RowMetaInterface outputRowMeta;
 
-  public Mongo mongo;
+  public MongoClient mongo;
   public DB db;
   public DBCollection collection;
 
+  public MongoClient m_mongoClient;
+
+  /** cursor for a standard query */
   public DBCursor cursor;
+
+  /** results of an aggregation pipeline */
+  Iterator<DBObject> m_pipelineResult;
 
   private List<MongoField> m_userFields;
 
@@ -137,6 +150,13 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       return newF;
     }
 
+    /**
+     * Initialize this mongo field
+     * 
+     * @param outputIndex the index for this field in the outgoing row
+     *          structure.
+     * @throws KettleException if a problem occurs
+     */
     public void init(int outputIndex) throws KettleException {
       if (Const.isEmpty(m_fieldPath)) {
         throw new KettleException("No path set!");
@@ -169,6 +189,11 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       m_outputIndex = outputIndex;
     }
 
+    /**
+     * Reset this field, ready for processing a new document
+     * 
+     * @param space variables to use
+     */
     public void reset(VariableSpace space) {
       // first clear because there may be stuff left over from processing
       // the previous mongo document object (especially if a path exited early
@@ -224,8 +249,7 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
           // nothing to do
         } else {
           throw new KettleException(BaseMessages.getString(
-              MongoDbInputMeta.PKG,
-              "MongoDbInputDialog.ErrorMessage.DateConversion",
+              MongoDbInputMeta.PKG, "MongoDbInput.ErrorMessage.DateConversion",
               fieldValue.toString()));
         }
         return m_tempValueMeta.getDate(fieldValue);
@@ -258,6 +282,14 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       }
     }
 
+    /**
+     * Convert a mongo record object to a Kettle field value (for the field
+     * defined by this path)
+     * 
+     * @param mongoObject the record to convert
+     * @return the kettle field value
+     * @throws KettleException if a problem occurs
+     */
     public Object convertToKettleValue(BasicDBObject mongoObject)
         throws KettleException {
 
@@ -266,7 +298,8 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       }
 
       if (m_tempParts.size() == 0) {
-        throw new KettleException("Malformed path for a record");
+        throw new KettleException(BaseMessages.getString(MongoDbInputMeta.PKG,
+            "MongoDbInput.ErrorMessage.MalformedPathRecord"));
       }
 
       String part = m_tempParts.remove(0);
@@ -311,6 +344,14 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       return null;
     }
 
+    /**
+     * Convert a mongo array object to a Kettle field value (for the field
+     * defined in this path)
+     * 
+     * @param mongoObject the array to convert
+     * @return the kettle field value
+     * @throws KettleException if a problem occurs
+     */
     public Object convertToKettleValue(BasicDBList mongoList)
         throws KettleException {
 
@@ -319,7 +360,8 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       }
 
       if (m_tempParts.size() == 0) {
-        throw new KettleException("Malformed path for an array");
+        throw new KettleException(BaseMessages.getString(MongoDbInputMeta.PKG,
+            "MongoDbInput.ErrorMessage.MalformedPathArray"));
       }
 
       String part = m_tempParts.remove(0);
@@ -334,7 +376,8 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       try {
         arrayI = Integer.parseInt(index.trim());
       } catch (NumberFormatException e) {
-        throw new KettleException("Unable to parse array indexL: " + index);
+        throw new KettleException(BaseMessages.getString(MongoDbInputMeta.PKG,
+            "MongoDbInput.ErrorMessage.UnableToParseArrayIndex", index));
       }
 
       if (part.indexOf(']') < part.length() - 1) {
@@ -381,6 +424,12 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     super();
   }
 
+  /**
+   * Initialize all the paths by locating the index for their field name in the
+   * outgoing row structure.
+   * 
+   * @throws KettleException
+   */
   public void init() throws KettleException {
     if (m_userFields != null) {
       for (MongoField f : m_userFields) {
@@ -390,6 +439,15 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
   }
 
+  /**
+   * Convert a mongo document to outgoing row field values with respect to the
+   * user-specified paths.
+   * 
+   * @param mongo the mongo document
+   * @param space variables to use
+   * @return a populated Kettle row
+   * @throws KettleException if a problem occurs
+   */
   public Object[] mongoDocumentToKettle(DBObject mongo, VariableSpace space)
       throws KettleException {
     Object[] result = RowDataUtil.allocateRowData(outputRowMeta.size());
@@ -409,6 +467,141 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
 
     return result;
+  }
+
+  /**
+   * Utility method to configure connection options based on parameters set in
+   * the step meta data.
+   * 
+   * @param optsBuilder an options builder instance
+   * @param meta MongoDbInputMeta
+   * @param vars variables to use
+   * @throws KettleException if a problem occurs
+   */
+  public static void configureConnectionOptions(
+      MongoClientOptions.Builder optsBuilder, MongoDbInputMeta meta,
+      VariableSpace vars) throws KettleException {
+
+    // connection timeout
+    if (!Const.isEmpty(meta.getConnectTimeout())) {
+      String connS = meta.getConnectTimeout();
+      connS = vars.environmentSubstitute(connS);
+      try {
+        int connTimeout = Integer.parseInt(connS);
+        if (connTimeout > 0) {
+          optsBuilder.connectTimeout(connTimeout);
+        }
+      } catch (NumberFormatException n) {
+        throw new KettleException(n);
+      }
+    }
+
+    // socket timeout
+    if (!Const.isEmpty(meta.getSocketTimeout())) {
+      String sockS = meta.getSocketTimeout();
+      sockS = vars.environmentSubstitute(sockS);
+      try {
+        int sockTimeout = Integer.parseInt(sockS);
+        if (sockTimeout > 0) {
+          optsBuilder.socketTimeout(sockTimeout);
+        }
+      } catch (NumberFormatException n) {
+        throw new KettleException(n);
+      }
+    }
+
+    // read preference
+    if (!Const.isEmpty(meta.getReadPreference())) {
+      String rp = meta.getReadPreference();
+      rp = vars.environmentSubstitute(rp);
+
+      if (rp.equalsIgnoreCase("Primary")) {
+        optsBuilder.readPreference(ReadPreference.primary());
+      } else if (rp.equalsIgnoreCase("Primary preferred")) {
+        optsBuilder.readPreference(ReadPreference.primaryPreferred());
+      } else if (rp.equalsIgnoreCase("Secondary")) {
+        optsBuilder.readPreference(ReadPreference.secondary());
+      } else if (rp.equalsIgnoreCase("Secondary preferred")) {
+        optsBuilder.readPreference(ReadPreference.secondaryPreferred());
+      } else if (rp.equalsIgnoreCase("Nearest")) {
+        optsBuilder.readPreference(ReadPreference.nearest());
+      }
+    }
+  }
+
+  /**
+   * Utility method to return a connection to a Mongo database based on
+   * parameters provided by the user in the step meta data
+   * 
+   * @param meta MongoDbInputMeta
+   * @param vars variables to use
+   * @return a configured MongoClient object
+   * @throws KettleException if a problem occurs
+   */
+  public static MongoClient initConnection(MongoDbInputMeta meta,
+      VariableSpace vars) throws KettleException {
+
+    String hostsPorts = meta.getHostnames();
+    String singlePort = meta.getPort();
+    hostsPorts = vars.environmentSubstitute(hostsPorts);
+    singlePort = vars.environmentSubstitute(singlePort);
+    int singlePortI = -1;
+
+    try {
+      singlePortI = Integer.parseInt(singlePort);
+    } catch (NumberFormatException n) {
+      // don't complain
+    }
+
+    if (Const.isEmpty(hostsPorts)) {
+      throw new KettleException(BaseMessages.getString(MongoDbInputMeta.PKG,
+          "MongoDbInput.ErrorMessage.EmptyHostsString"));
+    }
+
+    List<ServerAddress> repSet = new ArrayList<ServerAddress>();
+
+    String[] parts = hostsPorts.trim().split(",");
+    for (String part : parts) {
+      // host:port?
+      int port = singlePortI != -1 ? singlePortI : MONGO_DEFAULT_PORT;
+      String[] hp = part.split(":");
+      if (hp.length > 2) {
+        throw new KettleException(BaseMessages.getString(MongoDbInputMeta.PKG,
+            "MongoDbInput.ErrorMessage.MalformedHostsSpec", part));
+      }
+
+      String host = hp[0];
+      if (hp.length == 2) {
+        // non-default port
+        try {
+          port = Integer.parseInt(hp[1].trim());
+        } catch (NumberFormatException n) {
+          throw new KettleException(BaseMessages.getString(
+              MongoDbInputMeta.PKG,
+              "MongoDbInput.ErrorMessage.UnableToParsePortNumber", hp[1]));
+        }
+      }
+
+      try {
+        ServerAddress s = new ServerAddress(host, port);
+        repSet.add(s);
+      } catch (UnknownHostException u) {
+        throw new KettleException(u);
+      }
+    }
+
+    MongoClientOptions.Builder mongoOptsBuilder = new MongoClientOptions.Builder();
+    if (meta != null) {
+      configureConnectionOptions(mongoOptsBuilder, meta, vars);
+    }
+    MongoClientOptions opts = mongoOptsBuilder.build();
+    try {
+      return (repSet.size() > 1 ? new MongoClient(repSet, opts) : (repSet
+          .size() == 1 ? new MongoClient(repSet.get(0), opts)
+          : new MongoClient(new ServerAddress("localhost"), opts)));
+    } catch (UnknownHostException u) {
+      throw new KettleException(u);
+    }
   }
 
   /**
@@ -453,6 +646,11 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     return path;
   }
 
+  /**
+   * Set user-defined paths for extracting field values from Mongo documents
+   * 
+   * @param fields the field path specifications
+   */
   public void setMongoFields(List<MongoField> fields) {
     // copy this list
     m_userFields = new ArrayList<MongoField>();
@@ -743,6 +941,24 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
   }
 
+  private static Iterator<DBObject> setUpPipelineSample(String query,
+      int numDocsToSample, DBCollection collection) throws KettleException {
+
+    query = "{$limit : " + numDocsToSample + "}, " + query;
+    List<DBObject> samplePipe = jsonPipelineToDBObjectList(query);
+
+    DBObject first = samplePipe.get(0);
+    DBObject[] remainder = new DBObject[samplePipe.size() - 1];
+    for (int i = 1; i < samplePipe.size(); i++) {
+      remainder[i - 1] = samplePipe.get(i);
+      System.out.println("Remainder " + remainder[i - 1].toString());
+    }
+
+    AggregationOutput result = collection.aggregate(first, remainder);
+
+    return result.results().iterator();
+  }
+
   @SuppressWarnings("deprecation")
   public static boolean discoverFields(MongoDbInputMeta meta,
       VariableSpace vars, int numDocsToSample) throws KettleException {
@@ -751,17 +967,13 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
       numDocsToSample = 100; // default
     }
 
-    String hostname = vars.environmentSubstitute(meta.getHostname());
-    int port = Const.toInt(vars.environmentSubstitute(meta.getPort()),
-        MONGO_DEFAULT_PORT);
     String db = vars.environmentSubstitute(meta.getDbName());
     String collection = vars.environmentSubstitute(meta.getCollection());
 
     List<MongoField> discoveredFields = new ArrayList<MongoField>();
     Map<String, MongoField> fieldLookup = new HashMap<String, MongoField>();
     try {
-      Mongo mongo = new Mongo(hostname, port);
-      mongo.slaveOk();
+      MongoClient mongo = initConnection(meta, vars);
       DB database = mongo.getDB(db);
 
       String realUser = vars
@@ -780,20 +992,28 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
 
       String query = vars.environmentSubstitute(meta.getJsonQuery());
       String fields = vars.environmentSubstitute(meta.getFieldsName());
+
       DBCursor cursor = null;
-      if (Const.isEmpty(query) && Const.isEmpty(fields)) {
-        cursor = dbcollection.find().limit(numDocsToSample);
+      Iterator<DBObject> pipeSample = null;
+
+      if (meta.getQueryIsPipeline()) {
+        pipeSample = setUpPipelineSample(query, numDocsToSample, dbcollection);
       } else {
-        DBObject dbObject = (DBObject) JSON.parse(Const.isEmpty(query) ? "{}"
-            : query);
-        DBObject dbObject2 = (DBObject) JSON.parse(fields);
-        cursor = dbcollection.find(dbObject, dbObject2).limit(numDocsToSample);
+        if (Const.isEmpty(query) && Const.isEmpty(fields)) {
+          cursor = dbcollection.find().limit(numDocsToSample);
+        } else {
+          DBObject dbObject = (DBObject) JSON.parse(Const.isEmpty(query) ? "{}"
+              : query);
+          DBObject dbObject2 = (DBObject) JSON.parse(fields);
+          cursor = dbcollection.find(dbObject, dbObject2)
+              .limit(numDocsToSample);
+        }
       }
 
       int actualCount = 0;
-      while (cursor.hasNext()) {
+      while (cursor != null ? cursor.hasNext() : pipeSample.hasNext()) {
         actualCount++;
-        DBObject nextDoc = cursor.next();
+        DBObject nextDoc = (cursor != null ? cursor.next() : pipeSample.next());
         docToFields(nextDoc, fieldLookup);
       }
 
@@ -811,6 +1031,58 @@ public class MongoDbInputData extends BaseStepData implements StepDataInterface 
     }
 
     return false;
+  }
+
+  protected static List<DBObject> jsonPipelineToDBObjectList(String jsonPipeline)
+      throws KettleException {
+    List<DBObject> pipeline = new ArrayList<DBObject>();
+    StringBuilder b = new StringBuilder(jsonPipeline.trim());
+
+    // extract the parts of the pipeline
+    int bracketCount = -1;
+    List<String> parts = new ArrayList<String>();
+    int i = 0;
+    while (i < b.length()) {
+      if (b.charAt(i) == '{') {
+        if (bracketCount == -1) {
+          // trim anything off before this point
+          b.delete(0, i);
+          bracketCount = 0;
+          i = 0;
+        }
+        bracketCount++;
+      }
+      if (b.charAt(i) == '}') {
+        bracketCount--;
+      }
+      if (bracketCount == 0) {
+        String part = b.substring(0, i + 1);
+        parts.add(part);
+        bracketCount = -1;
+
+        if (i == b.length() - 1) {
+          break;
+        }
+        b.delete(0, i + 1);
+        i = 0;
+      }
+
+      i++;
+    }
+
+    for (String p : parts) {
+      if (!Const.isEmpty(p)) {
+        DBObject o = (DBObject) JSON.parse(p);
+        pipeline.add(o);
+      }
+    }
+
+    if (pipeline.size() == 0) {
+      throw new KettleException(BaseMessages.getString(MongoDbInputMeta.PKG,
+          "MongoDbInput.ErrorMessage.UnableToParsePipelineOperators"));
+    }
+
+    return pipeline;
   }
 
   /**
