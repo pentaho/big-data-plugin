@@ -29,7 +29,6 @@ import java.util.List;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
@@ -44,7 +43,6 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import com.mongodb.CommandResult;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
-import com.mongodb.WriteConcern;
 import com.mongodb.WriteResult;
 
 /**
@@ -227,19 +225,10 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
           }
 
           if (insertUpdate != null) {
-            WriteConcern concern = null;
-
-            if (log.getLogLevel().getLevel() >= LogLevel.DETAILED.getLevel()) {
-              concern = new WriteConcern(1);
-            }
             WriteResult result = null;
-            if (concern != null) {
-              result = m_data.getCollection().update(updateQuery, insertUpdate,
-                  true, m_meta.getMulti(), concern);
-            } else {
-              result = m_data.getCollection().update(updateQuery, insertUpdate,
-                  true, m_meta.getMulti());
-            }
+
+            result = m_data.getCollection().update(updateQuery, insertUpdate,
+                true, m_meta.getMulti());
 
             CommandResult cmd = result.getLastError();
             if (cmd != null && !cmd.ok()) {
@@ -276,18 +265,9 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
   }
 
   protected void doBatch() throws KettleException {
-    WriteConcern concern = null;
-
-    if (log.getLogLevel().getLevel() >= LogLevel.DETAILED.getLevel()) {
-      concern = new WriteConcern(1);
-    }
     WriteResult result = null;
 
-    if (concern != null) {
-      result = m_data.getCollection().insert(m_batch, concern);
-    } else {
-      result = m_data.getCollection().insert(m_batch);
-    }
+    result = m_data.getCollection().insert(m_batch);
 
     CommandResult cmd = result.getLastError();
 
