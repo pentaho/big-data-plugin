@@ -104,25 +104,36 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
      * (support any others?)
      */
     public String m_modifierUpdateOperation = "N/A";
-    
-    /** 
-     * If a modifier opp, whether to apply on insert, update or both. Insert or 
-     * update require knowing whether matching record(s) exist, so require 
-     * the overhead of a find().limit(1) query for each row. The motivation 
-     * for this is to allow a single document's structure to be created and 
-     * developed over multiple kettle rows. E.g. say a document is to contain an array 
-     * of records 
-     * where each record in the array itself has a field with is an array. The $push 
-     * operator specifies the terminal array to add an element to via the dot
-     * notation. This terminal array will be created if it does not already exist 
-     * in the target document; however, it will not create the intermediate array 
-     * (i.e. the first array in the path). To do this requires a $set operation 
-     * that is executed only on insert (i.e. if the target document does not 
-     * exist). Whereas the $push operation should occur only on updates. A single 
-     * operation can't combine these two as it will result in a conflict (since they
-     * operate on the same array).
+
+    /**
+     * If a modifier opp, whether to apply on insert, update or both. Insert or
+     * update require knowing whether matching record(s) exist, so require the
+     * overhead of a find().limit(1) query for each row. The motivation for this
+     * is to allow a single document's structure to be created and developed
+     * over multiple kettle rows. E.g. say a document is to contain an array of
+     * records where each record in the array itself has a field with is an
+     * array. The $push operator specifies the terminal array to add an element
+     * to via the dot notation. This terminal array will be created if it does
+     * not already exist in the target document; however, it will not create the
+     * intermediate array (i.e. the first array in the path). To do this
+     * requires a $set operation that is executed only on insert (i.e. if the
+     * target document does not exist). Whereas the $push operation should occur
+     * only on updates. A single operation can't combine these two as it will
+     * result in a conflict (since they operate on the same array).
      */
     public String m_modifierOperationApplyPolicy = "Insert&Update";
+
+    public MongoField copy() {
+      MongoField newF = new MongoField();
+      newF.m_incomingFieldName = m_incomingFieldName;
+      newF.m_mongoDocPath = m_mongoDocPath;
+      newF.m_useIncomingFieldNameAsMongoFieldName = m_useIncomingFieldNameAsMongoFieldName;
+      newF.m_updateMatchField = m_updateMatchField;
+      newF.m_modifierUpdateOperation = m_modifierUpdateOperation;
+      newF.m_modifierOperationApplyPolicy = m_modifierOperationApplyPolicy;
+
+      return newF;
+    }
 
     public void init(VariableSpace vars) {
       String path = vars.environmentSubstitute(m_mongoDocPath);
@@ -181,8 +192,8 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
     }
   }
 
-  /** Hostname/IP address of mongo server */
-  protected String m_hostname = "localhost";
+  /** Hostname/IP address(es) of mongo server(s) */
+  protected String m_hostnames = "localhost";
 
   /** Port that mongo is listening on */
   protected String m_port = "27017";
@@ -231,8 +242,39 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
   /** The list of index definitions (if any) */
   protected List<MongoIndex> m_mongoIndexes;
 
+  /** timeout for the connection */
+  protected String m_connectTimeout = ""; // default - never time out
+
+  /** timeout on the socket */
+  protected String m_socketTimeout = ""; // default - never time out
+
+  /** primary, primaryPreferred, secondary, secondaryPreferred, nearest */
+  protected String m_readPreference = "primary";
+
+  /**
+   * default = 1 (standalone or primary acknowledges writes; -1 no
+   * acknowledgement and all errors suppressed; 0 no acknowledgement, but
+   * socket/network errors passed to client; "majority" returns after a majority
+   * of the replica set members have acknowledged; n (>1) returns after n
+   * replica set members have acknowledged; tags (string) specific replica set
+   * members with the tags need to acknowledge
+   */
+  protected String m_writeConcern = "";
+
+  /**
+   * The time in milliseconds to wait for replication to succeed, as specified
+   * in the w option, before timing out
+   */
+  protected String m_wTimeout = "";
+
+  /**
+   * whether write operations will wait till the mongod acknowledges the write
+   * operations and commits the data to the on disk journal
+   */
+  protected boolean m_journal;
+
   public void setDefault() {
-    m_hostname = "localhost";
+    m_hostnames = "localhost";
     m_port = "27017";
     m_collection = "";
     m_dbName = "";
@@ -279,36 +321,35 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
   }
 
   /**
-   * Set the hostname of the mongo server
+   * Set the hostname(s)
    * 
-   * @param host the hostname
+   * @param hosts hostnames (comma separated: host:<port>)
    */
-  public void setHostname(String host) {
-    m_hostname = host;
+  public void setHostnames(String hosts) {
+    m_hostnames = hosts;
   }
 
   /**
-   * Get the hostname of the mongo server
+   * Get the hostname(s)
    * 
-   * @return the hostname
+   * @return the hostnames (comma separated: host:<port>)
    */
-  public String getHostname() {
-    return m_hostname;
+  public String getHostnames() {
+    return m_hostnames;
   }
 
   /**
-   * Set the port that the server is listening on
-   * 
-   * @param port the port that the server is listening on
+   * @param port the port. This is a port to use for all hostnames (avoids
+   *          having to specify the same port for each hostname in the hostnames
+   *          list
    */
   public void setPort(String port) {
     m_port = port;
   }
 
   /**
-   * Get the port that the server is listening on
-   * 
-   * @return the port that the server is listening on
+   * @return the port. This is a port to use for all hostnames (avoids having to
+   *         specify the same port for each hostname in the hostnames list
    */
   public String getPort() {
     return m_port;
@@ -483,6 +524,120 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
     m_batchInsertSize = size;
   }
 
+  /**
+   * Set the connection timeout. The default is never timeout
+   * 
+   * @param to the connection timeout in milliseconds
+   */
+  public void setConnectTimeout(String to) {
+    m_connectTimeout = to;
+  }
+
+  /**
+   * Get the connection timeout. The default is never timeout
+   * 
+   * @return the connection timeout in milliseconds
+   */
+  public String getConnectTimeout() {
+    return m_connectTimeout;
+  }
+
+  /**
+   * Set the number of milliseconds to attempt a send or receive on a socket
+   * before timing out.
+   * 
+   * @param so the number of milliseconds before socket timeout
+   */
+  public void setSocketTimeout(String so) {
+    m_socketTimeout = so;
+  }
+
+  /**
+   * Get the number of milliseconds to attempt a send or receive on a socket
+   * before timing out.
+   * 
+   * @return the number of milliseconds before socket timeout
+   */
+  public String getSocketTimeout() {
+    return m_socketTimeout;
+  }
+
+  /**
+   * Set the read preference to use - primary, primaryPreferred, secondary,
+   * secondaryPreferred or nearest.
+   * 
+   * @param preference the read preference to use
+   */
+  public void setReadPreference(String preference) {
+    m_readPreference = preference;
+  }
+
+  /**
+   * Get the read preference to use - primary, primaryPreferred, secondary,
+   * secondaryPreferred or nearest.
+   * 
+   * @return the read preference to use
+   */
+  public String getReadPreference() {
+    return m_readPreference;
+  }
+
+  /**
+   * Set the write concern to use
+   * 
+   * @param concern the write concern to use
+   */
+  public void setWriteConcern(String concern) {
+    m_writeConcern = concern;
+  }
+
+  /**
+   * Get the write concern to use
+   * 
+   * @param co the write concern to use
+   */
+  public String getWriteConcern() {
+    return m_writeConcern;
+  }
+
+  /**
+   * Set the time in milliseconds to wait for replication to succeed, as
+   * specified in the w option, before timing out
+   * 
+   * @param w the timeout to use
+   */
+  public void setWTimeout(String w) {
+    m_wTimeout = w;
+  }
+
+  /**
+   * Get the time in milliseconds to wait for replication to succeed, as
+   * specified in the w option, before timing out
+   * 
+   * @return the timeout to use
+   */
+  public String getWTimeout() {
+    return m_wTimeout;
+  }
+
+  /**
+   * Set whether to use journaled writes
+   * 
+   * @param j true for journaled writes
+   */
+  public void setJournal(boolean j) {
+    m_journal = j;
+  }
+
+  /**
+   * Get whether to use journaled writes
+   * 
+   * @return true for journaled writes
+   */
+  public boolean getJournal() {
+    return m_journal;
+  }
+
   public void check(List<CheckResultInterface> remarks, TransMeta transMeta,
       StepMeta stepMeta, RowMetaInterface prev, String[] input,
       String[] output, RowMetaInterface info) {
@@ -529,9 +684,9 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
-    if (!Const.isEmpty(m_hostname)) {
+    if (!Const.isEmpty(m_hostnames)) {
       retval.append("\n    ").append(
-          XMLHandler.addTagValue("mongo_host", m_hostname));
+          XMLHandler.addTagValue("mongo_host", m_hostnames));
     }
     if (!Const.isEmpty(m_port)) {
       retval.append("\n    ").append(
@@ -558,6 +713,19 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
       retval.append("\n    ").append(
           XMLHandler.addTagValue("batch_insert_size", m_batchInsertSize));
     }
+
+    retval.append("    ").append(
+        XMLHandler.addTagValue("connect_timeout", m_connectTimeout));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("socket_timeout", m_socketTimeout));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("read_preference", m_readPreference));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("write_concern", m_writeConcern));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("w_timeout", m_wTimeout));
+    retval.append("    ").append(
+        XMLHandler.addTagValue("journaled_writes", m_journal));
 
     retval.append("\n    ").append(
         XMLHandler.addTagValue("truncate", m_truncate));
@@ -624,13 +792,23 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
   public void loadXML(Node stepnode, List<DatabaseMeta> databases,
       Map<String, Counter> counters) throws KettleXMLException {
 
-    m_hostname = XMLHandler.getTagValue(stepnode, "mongo_host");
+    m_hostnames = XMLHandler.getTagValue(stepnode, "mongo_host");
     m_port = XMLHandler.getTagValue(stepnode, "mongo_port");
     m_username = XMLHandler.getTagValue(stepnode, "mongo_user");
     m_password = XMLHandler.getTagValue(stepnode, "mongo_password");
     m_dbName = XMLHandler.getTagValue(stepnode, "mongo_db");
     m_collection = XMLHandler.getTagValue(stepnode, "mongo_collection");
     m_batchInsertSize = XMLHandler.getTagValue(stepnode, "batch_insert_size");
+
+    m_connectTimeout = XMLHandler.getTagValue(stepnode, "connect_timeout");
+    m_socketTimeout = XMLHandler.getTagValue(stepnode, "socket_timeout");
+    m_readPreference = XMLHandler.getTagValue(stepnode, "read_preference");
+    m_writeConcern = XMLHandler.getTagValue(stepnode, "write_concern");
+    m_wTimeout = XMLHandler.getTagValue(stepnode, "w_timeout");
+    String journaled = XMLHandler.getTagValue(stepnode, "journaled_writes");
+    if (!Const.isEmpty(journaled)) {
+      m_journal = journaled.equalsIgnoreCase("Y");
+    }
 
     m_truncate = XMLHandler.getTagValue(stepnode, "truncate").equalsIgnoreCase(
         "Y");
@@ -661,8 +839,7 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
 
         newField.m_modifierUpdateOperation = XMLHandler.getTagValue(fieldNode,
             "modifier_update_operation");
-        String policy = XMLHandler.getTagValue(fieldNode,
-            "modifier_policy");
+        String policy = XMLHandler.getTagValue(fieldNode, "modifier_policy");
         if (!Const.isEmpty(policy)) {
           newField.m_modifierOperationApplyPolicy = policy;
         }
@@ -700,7 +877,7 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
       List<DatabaseMeta> databases, Map<String, Counter> counters)
       throws KettleException {
 
-    m_hostname = rep.getStepAttributeString(id_step, 0, "mongo_host");
+    m_hostnames = rep.getStepAttributeString(id_step, 0, "mongo_host");
     m_port = rep.getStepAttributeString(id_step, 0, "mongo_port");
     m_username = rep.getStepAttributeString(id_step, 0, "mongo_user");
     m_password = rep.getStepAttributeString(id_step, 0, "mongo_password");
@@ -708,6 +885,13 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
     m_collection = rep.getStepAttributeString(id_step, 0, "mongo_collection");
     m_batchInsertSize = rep.getStepAttributeString(id_step, 0,
         "batch_insert_size");
+
+    m_connectTimeout = rep.getStepAttributeString(id_step, "connect_timeout");
+    m_socketTimeout = rep.getStepAttributeString(id_step, "socket_timeout");
+    m_readPreference = rep.getStepAttributeString(id_step, "read_preference");
+    m_writeConcern = rep.getStepAttributeString(id_step, "write_concern");
+    m_wTimeout = rep.getStepAttributeString(id_step, "w_timeout");
+    m_journal = rep.getStepAttributeBoolean(id_step, 0, "journaled_writes");
 
     m_truncate = rep.getStepAttributeBoolean(id_step, 0, "truncate");
     m_upsert = rep.getStepAttributeBoolean(id_step, 0, "upsert");
@@ -735,8 +919,8 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
             "update_match_field");
         newField.m_modifierUpdateOperation = rep.getStepAttributeString(
             id_step, i, "modifier_update_operation");
-        String policy = rep.getStepAttributeString(
-            id_step, i, "modifier_policy");
+        String policy = rep.getStepAttributeString(id_step, i,
+            "modifier_policy");
         if (!Const.isEmpty(policy)) {
           newField.m_modifierOperationApplyPolicy = policy;
         }
@@ -766,9 +950,9 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
   public void saveRep(Repository rep, ObjectId id_transformation,
       ObjectId id_step) throws KettleException {
 
-    if (!Const.isEmpty(m_hostname)) {
+    if (!Const.isEmpty(m_hostnames)) {
       rep.saveStepAttribute(id_transformation, id_step, 0, "mongo_host",
-          m_hostname);
+          m_hostnames);
     }
     if (!Const.isEmpty(m_port)) {
       rep.saveStepAttribute(id_transformation, id_step, 0, "mongo_port", m_port);
@@ -793,6 +977,18 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
           m_batchInsertSize);
     }
 
+    rep.saveStepAttribute(id_transformation, id_step, "connect_timeout",
+        m_connectTimeout);
+    rep.saveStepAttribute(id_transformation, id_step, "socket_timeout",
+        m_socketTimeout);
+    rep.saveStepAttribute(id_transformation, id_step, "read_preference",
+        m_readPreference);
+    rep.saveStepAttribute(id_transformation, id_step, "write_concern",
+        m_writeConcern);
+    rep.saveStepAttribute(id_transformation, id_step, "w_timeout", m_wTimeout);
+    rep.saveStepAttribute(id_transformation, id_step, "journaled_writes",
+        m_journal);
+
     rep.saveStepAttribute(id_transformation, id_step, 0, "truncate", m_truncate);
     rep.saveStepAttribute(id_transformation, id_step, 0, "upsert", m_upsert);
     rep.saveStepAttribute(id_transformation, id_step, 0, "multi", m_multi);
@@ -814,8 +1010,8 @@ public class MongoDbOutputMeta extends BaseStepMeta implements
             "update_match_field", field.m_updateMatchField);
         rep.saveStepAttribute(id_transformation, id_step, i,
             "modifier_update_operation", field.m_modifierUpdateOperation);
-        rep.saveStepAttribute(id_transformation, id_step, i,
-            "modifier_policy", field.m_modifierOperationApplyPolicy);
+        rep.saveStepAttribute(id_transformation, id_step, i, "modifier_policy",
+            field.m_modifierOperationApplyPolicy);
       }
     }
 

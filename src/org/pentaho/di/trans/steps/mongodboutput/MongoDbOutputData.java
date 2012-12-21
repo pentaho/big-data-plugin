@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.steps.mongodboutput;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -49,8 +50,12 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoException;
+import com.mongodb.ReadPreference;
+import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
 
 /**
  * Data class for the MongoDbOutput step
@@ -62,6 +67,8 @@ public class MongoDbOutputData extends BaseStepData implements
 
   private static Class<?> PKG = MongoDbOutputMeta.class;
 
+  public static final int MONGO_DEFAULT_PORT = 27017;
+
   /** Enum for the type of the top level object of the document structure */
   public static enum MongoTopLevel {
     RECORD, ARRAY, INCONSISTENT;
@@ -71,7 +78,7 @@ public class MongoDbOutputData extends BaseStepData implements
   protected RowMetaInterface m_outputRowMeta;
 
   /** Main entry point to the mongo driver */
-  protected Mongo m_mongo;
+  protected MongoClient m_mongo;
 
   /** DB object for the user-selected database */
   protected DB m_db;
@@ -79,12 +86,14 @@ public class MongoDbOutputData extends BaseStepData implements
   /** Collection object for the user-specified document collection */
   protected DBCollection m_collection;
 
+  protected List<MongoDbOutputMeta.MongoField> m_userFields;
+
   /**
    * Map for grouping together $set operations that involve setting complex
    * array-based objects. Key = dot path to array name; value = DBObject
    * specifying array to set to
    */
-  Map<String, List<MongoDbOutputMeta.MongoField>> m_setComplexArrays = new HashMap<String, List<MongoDbOutputMeta.MongoField>>();
+  protected Map<String, List<MongoDbOutputMeta.MongoField>> m_setComplexArrays = new HashMap<String, List<MongoDbOutputMeta.MongoField>>();
 
   /**
    * Map for grouping together $push operations that involve complex objects.
@@ -92,33 +101,210 @@ public class MongoDbOutputData extends BaseStepData implements
    * to the array name to push to; value - DBObject specifying the complex
    * object to push
    */
-  Map<String, List<MongoDbOutputMeta.MongoField>> m_pushComplexStructures = new HashMap<String, List<MongoDbOutputMeta.MongoField>>();
+  protected Map<String, List<MongoDbOutputMeta.MongoField>> m_pushComplexStructures = new HashMap<String, List<MongoDbOutputMeta.MongoField>>();
 
   /** all other modifier updates that involve primitive leaf fields */
-  Map<String, Object[]> m_primitiveLeafModifiers = new LinkedHashMap<String, Object[]>();
+  protected Map<String, Object[]> m_primitiveLeafModifiers = new LinkedHashMap<String, Object[]>();
 
   /**
-   * Connect to a mongo server
+   * Set the field paths to use for creating the document structure
    * 
-   * @param hostname the hostname or IP address of the server
-   * @param port the port that Mongo is listening on
-   * @return a connection to Mongo
-   * @throws Exception if a problem occurs
+   * @param fields the field paths to use
    */
-  public Mongo connect(String hostname, int port) throws Exception {
-    disconnect();
+  public void setMongoFields(List<MongoDbOutputMeta.MongoField> fields) {
+    // copy this list
+    m_userFields = new ArrayList<MongoDbOutputMeta.MongoField>();
 
-    m_mongo = new Mongo(hostname, port);
+    for (MongoDbOutputMeta.MongoField f : fields) {
+      m_userFields.add(f.copy());
+    }
+  }
 
-    return m_mongo;
+  /**
+   * Initialize field paths
+   * 
+   * @param vars variables to use
+   * @throws KettleException if a problem occurs
+   */
+  public void init(VariableSpace vars) throws KettleException {
+    if (m_userFields != null) {
+      for (MongoDbOutputMeta.MongoField f : m_userFields) {
+        f.init(vars);
+      }
+    }
+  }
+
+  /**
+   * Utility method to configure Mongo connection options based on parameters
+   * supplied in the meta data
+   * 
+   * @param optsBuilder an options builder
+   * @param meta the step meta data
+   * @param vars variables to use
+   * @throws KettleException if a problem occurs
+   */
+  public static void configureConnectionOptions(
+      MongoClientOptions.Builder optsBuilder, MongoDbOutputMeta meta,
+      VariableSpace vars) throws KettleException {
+
+    // connection timeout
+    if (!Const.isEmpty(meta.getConnectTimeout())) {
+      String connS = meta.getConnectTimeout();
+      connS = vars.environmentSubstitute(connS);
+      try {
+        int connTimeout = Integer.parseInt(connS);
+        if (connTimeout > 0) {
+          optsBuilder.connectTimeout(connTimeout);
+        }
+      } catch (NumberFormatException n) {
+        throw new KettleException(n);
+      }
+    }
+
+    // socket timeout
+    if (!Const.isEmpty(meta.getSocketTimeout())) {
+      String sockS = meta.getSocketTimeout();
+      sockS = vars.environmentSubstitute(sockS);
+      try {
+        int sockTimeout = Integer.parseInt(sockS);
+        if (sockTimeout > 0) {
+          optsBuilder.socketTimeout(sockTimeout);
+        }
+      } catch (NumberFormatException n) {
+        throw new KettleException(n);
+      }
+    }
+
+    // read preference
+    if (!Const.isEmpty(meta.getReadPreference())) {
+      String rp = meta.getReadPreference();
+      rp = vars.environmentSubstitute(rp);
+
+      if (rp.equalsIgnoreCase("Primary")) {
+        optsBuilder.readPreference(ReadPreference.primary());
+      } else if (rp.equalsIgnoreCase("Primary preferred")) {
+        optsBuilder.readPreference(ReadPreference.primaryPreferred());
+      } else if (rp.equalsIgnoreCase("Secondary")) {
+        optsBuilder.readPreference(ReadPreference.secondary());
+      } else if (rp.equalsIgnoreCase("Secondary preferred")) {
+        optsBuilder.readPreference(ReadPreference.secondaryPreferred());
+      } else if (rp.equalsIgnoreCase("Nearest")) {
+        optsBuilder.readPreference(ReadPreference.nearest());
+      }
+    }
+
+    // write concern
+    String writeConcern = meta.getWriteConcern();
+    String wTimeout = meta.getWTimeout();
+    boolean journaled = meta.getJournal();
+    WriteConcern concern = null;
+
+    if (Const.isEmpty(writeConcern) && Const.isEmpty(wTimeout) && !journaled) {
+      concern = new WriteConcern(); // all defaults - timeout 0, journal =
+                                    // false, w = 1
+    } else {
+      int wt = 0;
+      if (!Const.isEmpty(wTimeout)) {
+        try {
+          wt = Integer.parseInt(wTimeout);
+        } catch (NumberFormatException n) {
+          throw new KettleException(n);
+        }
+
+        if (!Const.isEmpty(writeConcern)) {
+          // try parsing as a number first
+          try {
+            int wc = Integer.parseInt(writeConcern);
+            concern = new WriteConcern(wc, wt, false, journaled);
+          } catch (NumberFormatException n) {
+            // assume its a valid string - e.g. "majority" or a list of tags
+            concern = new WriteConcern(writeConcern, wt, false, journaled);
+          }
+        } else {
+          concern = new WriteConcern(1, wt, false, journaled);
+        }
+      }
+    }
+    optsBuilder.writeConcern(concern);
+  }
+
+  /**
+   * Create a connection to a Mongo server based on parameters supplied in the
+   * step meta data
+   * 
+   * @param meta the step meta data
+   * @param vars variables to use
+   * @return a configured MongoClient object
+   * @throws KettleException if a problem occurs
+   */
+  public static MongoClient connect(MongoDbOutputMeta meta, VariableSpace vars)
+      throws KettleException {
+
+    String hostsPorts = meta.getHostnames();
+    String singlePort = meta.getPort();
+    hostsPorts = vars.environmentSubstitute(hostsPorts);
+    singlePort = vars.environmentSubstitute(singlePort);
+    int singlePortI = -1;
+
+    try {
+      singlePortI = Integer.parseInt(singlePort);
+    } catch (NumberFormatException n) {
+      // don't complain
+    }
+
+    if (Const.isEmpty(hostsPorts)) {
+      throw new KettleException("Empty hosts string");
+    }
+
+    List<ServerAddress> repSet = new ArrayList<ServerAddress>();
+
+    String[] parts = hostsPorts.trim().split(",");
+    for (String part : parts) {
+      // host:port?
+      int port = singlePortI != -1 ? singlePortI : MONGO_DEFAULT_PORT;
+      String[] hp = part.split(":");
+      if (hp.length > 2) {
+        throw new KettleException("Malformed host spec: " + part);
+      }
+
+      String host = hp[0];
+      if (hp.length == 2) {
+        // non-default port
+        try {
+          port = Integer.parseInt(hp[1].trim());
+        } catch (NumberFormatException n) {
+          throw new KettleException("Unable to parse port number: " + hp[1]);
+        }
+      }
+
+      try {
+        ServerAddress s = new ServerAddress(host, port);
+        repSet.add(s);
+      } catch (UnknownHostException u) {
+        throw new KettleException(u);
+      }
+    }
+
+    MongoClientOptions.Builder mongoOptsBuilder = new MongoClientOptions.Builder();
+    if (meta != null) {
+      configureConnectionOptions(mongoOptsBuilder, meta, vars);
+    }
+    MongoClientOptions opts = mongoOptsBuilder.build();
+    try {
+      return (repSet.size() > 1 ? new MongoClient(repSet, opts) : (repSet
+          .size() == 1 ? new MongoClient(repSet.get(0), opts)
+          : new MongoClient(new ServerAddress("localhost"), opts)));
+    } catch (UnknownHostException u) {
+      throw new KettleException(u);
+    }
   }
 
   /**
    * Disconnect from Mongo
    */
-  public void disconnect() {
-    if (m_mongo != null) {
-      m_mongo.close();
+  public static void disconnect(MongoClient mongo) {
+    if (mongo != null) {
+      mongo.close();
     }
   }
 
@@ -127,8 +313,17 @@ public class MongoDbOutputData extends BaseStepData implements
    * 
    * @return the connection or null
    */
-  public Mongo getConnection() {
+  public MongoClient getConnection() {
     return m_mongo;
+  }
+
+  /**
+   * Set the current connection
+   * 
+   * @param mongo the connection to use
+   */
+  public void setConnection(MongoClient mongo) {
+    m_mongo = mongo;
   }
 
   /**
@@ -829,8 +1024,8 @@ public class MongoDbOutputData extends BaseStepData implements
       } else {
         // check type - should be an array
         if (!(mongoField instanceof BasicDBList)) {
-          throw new KettleException("Field: " + part
-              + " exists already but isn't an array!");
+          throw new KettleException(BaseMessages.getString(PKG,
+              "MongoDbOutput.Messages.Error.FieldExistsButIsntAnArray", part));
         }
       }
       part = part.substring(part.indexOf('['));
@@ -852,8 +1047,8 @@ public class MongoDbOutputData extends BaseStepData implements
     } else {
       // check type = should be a record (object)
       if (!(mongoField instanceof BasicDBObject) && pathParts.size() > 1) {
-        throw new KettleException("Field: " + part
-            + " exists already but isn't a record!");
+        throw new KettleException(BaseMessages.getString(PKG,
+            "MongoDbOutput.Messages.Error.FieldExistsButIsntARecord", part));
       }
     }
     pathParts.remove(0);
