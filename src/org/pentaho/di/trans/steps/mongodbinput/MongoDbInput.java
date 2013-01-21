@@ -128,14 +128,16 @@ public class MongoDbInput extends BaseStep implements StepInterface {
         int index = 0;
 
         row[index++] = json;
-
-        // putRow will send the row on to the default output hop.
-        //
+        putRow(data.outputRowMeta, row);
       } else {
-        row = data.mongoDocumentToKettle(nextDoc, this);
-      }
+        Object[][] outputRows = data.mongoDocumentToKettle(nextDoc, this);
 
-      putRow(data.outputRowMeta, row);
+        // there may be more than one row if the paths contain an array
+        // unwind
+        for (int i = 0; i < outputRows.length; i++) {
+          putRow(data.outputRowMeta, outputRows[i]);
+        }
+      }
 
       return true;
     } else {
