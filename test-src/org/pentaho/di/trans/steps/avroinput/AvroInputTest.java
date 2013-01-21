@@ -100,6 +100,20 @@ public class AvroInputTest {
       "{\"name\":{\"string\":\"fred\"},\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
       "{\"name\":null,\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
 
+  protected static String s_schemaTopLevelRecordWithMultiTypeUnion = "{"
+      + "\"type\": \"record\","
+      + "\"name\": \"Person\","
+      + "\"fields\": ["
+      + "{\"name\": \"name\", \"type\": [\"string\", \"int\", \"null\"]},"
+      + "{\"name\": \"age\", \"type\": \"int\"},"
+      + "{\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}}"
+      + "]" + "}";
+
+  protected static String[] s_jsonDataTopLevelRecordWithMultiTypeUnion = new String[] {
+      "{\"name\":{\"string\":\"bob\"},\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
+      "{\"name\":{\"int\":42},\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
+      "{\"name\":null,\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
+
   protected static String s_schemaTopLevelMap = "{"
       + "\"type\": \"map\","
       + "\"values\":{"
@@ -114,6 +128,29 @@ public class AvroInputTest {
   protected static String s_jsonDataTopLevelMap = "{\"bob\":{\"name\":\"bob\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]},"
       + "\"fred\":{\"name\":\"fred\",\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]},"
       + "\"zaphod\":{\"name\":\"zaphod\",\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}}";
+
+  protected static String s_schemaTopLevelRecordWithFixedType = "{"
+      + "\"type\": \"record\","
+      + "\"name\": \"Person\","
+      + "\"fields\": ["
+      + "{\"name\": \"name\", \"type\": {\"type\": \"fixed\", \"size\": 2, \"name\": \"myfixed\"}},"
+      + "{\"name\": \"age\", \"type\": \"int\"},"
+      + "{\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}}"
+      + "]" + "}";
+
+  protected static String[] s_jsonDataTopLevelRecordWithFixedType = new String[] { "{\"name\":\"\\uFFFF\\uFFFF\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}" };
+
+  protected static String s_schemaTopLevelEnumWithNamedType = "["
+      + "{\"type\": \"fixed\", \"size\": 2, \"name\": \"myfixed\"},"
+      + "{\"type\": \"record\","
+      + "\"name\": \"Person\","
+      + "\"fields\": ["
+      + "{\"name\": \"name\", \"type\": \"myfixed\"},"
+      + "{\"name\": \"age\", \"type\": \"int\"},"
+      + "{\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}}"
+      + "]" + "}]";
+
+  protected static String[] s_jsonDataTopLevelUnion = new String[] { "{\"Person\": {\"name\":\"\\uFFFF\\uFFFF\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}}" };
 
   @Test
   public void testGetLeafFieldsFromSchema() throws KettleException {
@@ -191,6 +228,78 @@ public class AvroInputTest {
       assertTrue(result != null);
       assertTrue(result instanceof String);
       assertEquals(result.toString(), actualVals[i++]);
+    }
+  }
+
+  @Test
+  public void testTopLevelRecordWithFixedType() throws KettleException,
+      IOException {
+    Schema.Parser parser = new Schema.Parser();
+    Schema schema = parser.parse(s_schemaTopLevelRecordWithFixedType);
+
+    Decoder decoder;
+    DecoderFactory factory = new DecoderFactory();
+
+    GenericData.Record topLevel = new GenericData.Record(schema);
+    GenericDatumReader reader = new GenericDatumReader(schema);
+
+    AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
+    field.m_fieldName = "test";
+    field.m_fieldPath = "$.name";
+    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BINARY];
+
+    // String[] actualVals = new String[] { "bob", "fred", "zaphod" };
+    int i = 0;
+    for (String row : s_jsonDataTopLevelRecordWithFixedType) {
+      decoder = factory.jsonDecoder(schema, row);
+      reader.read(topLevel, decoder);
+
+      field.init(0); // output index isn't needed for the test
+      field.reset(new Variables());
+
+      Object result = field.convertToKettleValue(topLevel, schema, false);
+
+      assertTrue(result != null);
+      assertTrue(result instanceof byte[]);
+      assertEquals(((byte[]) result).length, 2);
+      assertEquals(new String((byte[]) result), "??");
+    }
+  }
+
+  @Test
+  public void testSchemaWithTopLevelUnionAndNamedType() throws KettleException,
+      IOException {
+    Schema.Parser parser = new Schema.Parser();
+    Schema schema = parser.parse(s_schemaTopLevelEnumWithNamedType);
+
+    Decoder decoder;
+    DecoderFactory factory = new DecoderFactory();
+
+    GenericDatumReader reader = new GenericDatumReader(schema);
+    Schema firstRec = schema.getTypes().get(1);
+    GenericData.Record topLevel = new GenericData.Record(firstRec);
+
+    AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
+    field.m_fieldName = "test";
+    field.m_fieldPath = "$.name";
+    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BINARY];
+
+    int i = 0;
+    for (String row : s_jsonDataTopLevelUnion) {
+      decoder = factory.jsonDecoder(schema, row);
+      reader.read(topLevel, decoder);
+
+      field.init(0); // output index isn't needed for the test
+      field.reset(new Variables());
+
+      // invoke the conversion using the schema of the record just read
+      Object result = field.convertToKettleValue(topLevel,
+          topLevel.getSchema(), false);
+
+      assertTrue(result != null);
+      assertTrue(result instanceof byte[]);
+      assertEquals(((byte[]) result).length, 2);
+      assertEquals(new String((byte[]) result), "??");
     }
   }
 
@@ -981,6 +1090,43 @@ public class AvroInputTest {
   }
 
   @Test
+  public void testMultiTypeUnionHandling() throws KettleException, IOException {
+    Schema.Parser parser = new Schema.Parser();
+    Schema schema = parser.parse(s_schemaTopLevelRecordWithMultiTypeUnion);
+
+    Decoder decoder;
+    DecoderFactory factory = new DecoderFactory();
+
+    GenericData.Record topLevel = new GenericData.Record(schema);
+    GenericDatumReader reader = new GenericDatumReader(schema);
+
+    AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
+    field.m_fieldName = "test";
+    field.m_fieldPath = "$.name";
+    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+
+    String[] actualVals = new String[] { "bob", "42", null };
+    int i = 0;
+    for (String row : s_jsonDataTopLevelRecordWithMultiTypeUnion) {
+      decoder = factory.jsonDecoder(schema, row);
+      reader.read(topLevel, decoder);
+
+      field.init(0); // output index isn't needed for the test
+      field.reset(new Variables());
+
+      Object result = field.convertToKettleValue(topLevel, schema, false);
+
+      if (i != 2) {
+        assertTrue(result != null);
+        assertTrue(result instanceof String);
+        assertEquals(result.toString(), actualVals[i++]);
+      } else {
+        assertTrue(result == null);
+      }
+    }
+  }
+
+  @Test
   public void testMapExpansion() throws KettleException, IOException {
     Schema.Parser parser = new Schema.Parser();
     Schema schema = parser.parse(s_schemaTopLevelMap);
@@ -1035,5 +1181,14 @@ public class AvroInputTest {
     VariableSpace space = new Variables();
 
     assert (lf.init(null, space) == false);
+  }
+
+  public static void main(String[] args) {
+    try {
+      AvroInputTest test = new AvroInputTest();
+      test.testSchemaWithTopLevelUnionAndNamedType();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
   }
 }

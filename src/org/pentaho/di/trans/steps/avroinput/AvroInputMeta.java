@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.util.Utf8;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -305,6 +307,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         return getKettleValue(new Long((Integer) fieldValue));
       case FLOAT:
         return getKettleValue(new Double((Float) fieldValue));
+      case FIXED:
+        return ((GenericFixed) fieldValue).bytes();
       default:
         return null;
       }
@@ -355,7 +359,40 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
       Schema valueType = s.getValueType();
 
       if (valueType.getType() == Schema.Type.UNION) {
-        valueType = AvroInputData.checkUnion(valueType);
+        if (value instanceof GenericContainer) {
+          // we can ask these things for their schema (covers
+          // records, arrays, enums and fixed)
+          valueType = ((GenericContainer) value).getSchema();
+        } else {
+          // either have a map or primitive here
+          if (value instanceof Map) {
+            // now have to look for the schema of the map
+            Schema mapSchema = null;
+            for (Schema ts : valueType.getTypes()) {
+              if (ts.getType() == Schema.Type.MAP) {
+                mapSchema = ts;
+                break;
+              }
+            }
+            if (mapSchema == null) {
+              throw new KettleException(BaseMessages.getString(
+                  AvroInputMeta.PKG,
+                  "AvroInput.Error.UnableToFindSchemaForUnionMap"));
+            }
+            valueType = mapSchema;
+          } else {
+            if (m_tempValueMeta.getType() != ValueMetaInterface.TYPE_STRING) {
+              // we have a two element union, where one element is the type
+              // "null". So in this case we actually have just one type and can
+              // output specific values of it (instead of using String as a
+              // catch all for varying primitive types in the union)
+              valueType = AvroInputData.checkUnion(valueType);
+            } else {
+              // use the string representation of the value
+              valueType = Schema.create(Schema.Type.STRING);
+            }
+          }
+        }
       }
 
       // what have we got?
@@ -430,7 +467,40 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
       }
 
       if (elementType.getType() == Schema.Type.UNION) {
-        elementType = AvroInputData.checkUnion(elementType);
+        if (element instanceof GenericContainer) {
+          // we can ask these things for their schema (covers
+          // records, arrays, enums and fixed)
+          elementType = ((GenericContainer) element).getSchema();
+        } else {
+          // either have a map or primitive here
+          if (element instanceof Map) {
+            // now have to look for the schema of the map
+            Schema mapSchema = null;
+            for (Schema ts : elementType.getTypes()) {
+              if (ts.getType() == Schema.Type.MAP) {
+                mapSchema = ts;
+                break;
+              }
+            }
+            if (mapSchema == null) {
+              throw new KettleException(BaseMessages.getString(
+                  AvroInputMeta.PKG,
+                  "AvroInput.Error.UnableToFindSchemaForUnionMap"));
+            }
+            elementType = mapSchema;
+          } else {
+            if (m_tempValueMeta.getType() != ValueMetaInterface.TYPE_STRING) {
+              // we have a two element union, where one element is the type
+              // "null". So in this case we actually have just one type and can
+              // output specific values of it (instead of using String as a
+              // catch all for varying primitive types in the union)
+              elementType = AvroInputData.checkUnion(elementType);
+            } else {
+              // use the string representation of the value
+              elementType = Schema.create(Schema.Type.STRING);
+            }
+          }
+        }
       }
 
       // what have we got?
@@ -444,7 +514,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         return convertToKettleValue((Map<Utf8, Object>) element, elementType,
             ignoreMissing);
       } else {
-        // assume a primitive until we handle fixed types
+        // assume a primitive (covers bytes encapsulated in FIXED type)
         return getPrimitive(element, elementType);
       }
     }
@@ -502,9 +572,46 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
       Schema fieldSchema = fieldS.schema();
 
       if (fieldT == Schema.Type.UNION) {
-        // get the non-null part of the union
-        fieldSchema = AvroInputData.checkUnion(fieldSchema);
-        fieldT = fieldSchema.getType();
+        if (field instanceof GenericContainer) {
+          // we can ask these things for their schema (covers
+          // records, arrays, enums and fixed)
+          fieldSchema = ((GenericContainer) field).getSchema();
+          fieldT = fieldSchema.getType();
+        } else {
+          // either have a map or primitive here
+          if (field instanceof Map) {
+            // now have to look for the schema of the map
+            Schema mapSchema = null;
+            for (Schema ts : fieldSchema.getTypes()) {
+              if (ts.getType() == Schema.Type.MAP) {
+                mapSchema = ts;
+                break;
+              }
+            }
+            if (mapSchema == null) {
+              throw new KettleException(BaseMessages.getString(
+                  AvroInputMeta.PKG,
+                  "AvroInput.Error.UnableToFindSchemaForUnionMap"));
+
+            }
+            fieldSchema = mapSchema;
+            fieldT = Schema.Type.MAP;
+          } else {
+            if (m_tempValueMeta.getType() != ValueMetaInterface.TYPE_STRING) {
+              // we have a two element union, where one element is the type
+              // "null". So in this case we actually have just one type and can
+              // output specific values of it (instead of using String as a
+              // catch all for varying primitive types in the union)
+              fieldSchema = AvroInputData.checkUnion(fieldSchema);
+              fieldT = fieldSchema.getType();
+            } else {
+
+              // use the string representation of the value
+              fieldSchema = Schema.create(Schema.Type.STRING);
+              fieldT = fieldSchema.getType();
+            }
+          }
+        }
       }
 
       // what have we got?
@@ -518,7 +625,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         return convertToKettleValue((Map<Utf8, Object>) field, fieldSchema,
             ignoreMissing);
       } else {
-        // assume primitive until we handle fixed types
+        // assume primitive (covers bytes encapsulated in FIXED type)
         return getPrimitive(field, fieldSchema);
       }
     }
