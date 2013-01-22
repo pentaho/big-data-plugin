@@ -20,11 +20,13 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.util.Utf8;
 import org.junit.Test;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaPluginType;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.trans.steps.avroinput.AvroInputData.AvroArrayExpansion;
@@ -152,6 +154,14 @@ public class AvroInputTest {
 
   protected static String[] s_jsonDataTopLevelUnion = new String[] { "{\"Person\": {\"name\":\"\\uFFFF\\uFFFF\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}}" };
 
+  static {
+    try {
+      ValueMetaPluginType.getInstance().searchPlugins();
+    } catch (KettlePluginException ex) {
+      ex.printStackTrace();
+    }
+  }
+
   @Test
   public void testGetLeafFieldsFromSchema() throws KettleException {
 
@@ -178,7 +188,7 @@ public class AvroInputTest {
 
     field.m_fieldName = "test";
     field.m_fieldPath = "$.age";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_INTEGER];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_INTEGER);
 
     Long[] actualVals = new Long[] { 20L, 25L, 254L };
     int i = 0;
@@ -212,7 +222,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     String[] actualVals = new String[] { "bob", "fred", "zaphod" };
     int i = 0;
@@ -246,7 +256,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BINARY];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_BINARY);
 
     // String[] actualVals = new String[] { "bob", "fred", "zaphod" };
     int i = 0;
@@ -282,7 +292,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BINARY];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_BINARY);
 
     int i = 0;
     for (String row : s_jsonDataTopLevelUnion) {
@@ -318,7 +328,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field);
 
     Object[] incomingKettleRow = new Object[2];
@@ -390,7 +400,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field);
 
     Object[] incomingKettleRow = new Object[2];
@@ -461,7 +471,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field);
 
     Object[] incomingKettleRow = new Object[2];
@@ -538,7 +548,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field);
 
     Object[] incomingKettleRow = new Object[2];
@@ -620,13 +630,13 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field);
 
     AvroInputMeta.AvroField field2 = new AvroInputMeta.AvroField();
     field2.m_fieldName = "test2";
     field2.m_fieldPath = "$.nickname";
-    field2.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field2.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field2);
 
     Object[] incomingKettleRow = new Object[2];
@@ -722,7 +732,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     paths.add(field);
 
     Object[] incomingKettleRow = new Object[2];
@@ -802,7 +812,8 @@ public class AvroInputTest {
       AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
       field.m_fieldName = "test" + i;
       field.m_fieldPath = "$.field" + i;
-      field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+      field.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_STRING);
       paths.add(field);
     }
 
@@ -875,7 +886,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.nonExistent.notThere";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     decoder = factory.jsonDecoder(schema, s_jsonDataTopLevelRecord[0]);
     reader.read(topLevel, decoder);
@@ -908,7 +919,7 @@ public class AvroInputTest {
 
     field.m_fieldName = "test";
     field.m_fieldPath = "$.emails[1]";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     String actualVals[] = new String[] { "and another one", "good to see you!",
         "yeah yeah yeah" };
@@ -945,7 +956,7 @@ public class AvroInputTest {
 
     field.m_fieldName = "test";
     field.m_fieldPath = "$.emails[4]"; // non existent in all records
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     // no exception is thrown in this case - the step just outputs null for the
     // corresponding field
@@ -976,7 +987,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$[bob].age";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_INTEGER];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_INTEGER);
 
     decoder = factory.jsonDecoder(schema, s_jsonDataTopLevelMap);
     reader.read(topLevel, decoder);
@@ -1009,7 +1020,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$[bob].emails[0]";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     decoder = factory.jsonDecoder(schema, s_jsonDataTopLevelMap);
     reader.read(topLevel, decoder);
@@ -1039,7 +1050,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$[noddy].emails[0]";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     decoder = factory.jsonDecoder(schema, s_jsonDataTopLevelMap);
     reader.read(topLevel, decoder);
@@ -1066,7 +1077,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     String[] actualVals = new String[] { "bob", "fred", null };
     int i = 0;
@@ -1103,7 +1114,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$.name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
 
     String[] actualVals = new String[] { "bob", "42", null };
     int i = 0;
@@ -1140,7 +1151,7 @@ public class AvroInputTest {
     AvroInputMeta.AvroField field = new AvroInputMeta.AvroField();
     field.m_fieldName = "test";
     field.m_fieldPath = "$[*].name";
-    field.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+    field.m_kettleType = ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING);
     List<AvroInputMeta.AvroField> normalFields = new ArrayList<AvroInputMeta.AvroField>();
     normalFields.add(field);
     RowMetaInterface rowMeta = new RowMeta();

@@ -748,11 +748,13 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
     newField.m_fieldPath = path;
     switch (s.getType()) {
     case BOOLEAN:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BOOLEAN];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_BOOLEAN);
       break;
     case ENUM:
     case STRING: {
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_STRING);
       if (s.getType() == Schema.Type.ENUM) {
         newField.m_indexedVals = s.getEnumSymbols();
       }
@@ -760,15 +762,18 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
       break;
     case FLOAT:
     case DOUBLE:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_NUMBER];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_NUMBER);
       break;
     case INT:
     case LONG:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_INTEGER];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_INTEGER);
       break;
     case BYTES:
     case FIXED:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BINARY];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_BINARY);
       break;
     default:
       // unhandled type
