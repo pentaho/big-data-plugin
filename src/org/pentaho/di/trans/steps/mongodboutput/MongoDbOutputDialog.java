@@ -73,6 +73,7 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
+import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -1238,9 +1239,12 @@ public class MongoDbOutputDialog extends BaseStepDialog implements
         DB theDB = conn.getDB(dB);
 
         if (!Const.isEmpty(username) || !Const.isEmpty(realPass)) {
-          if (!theDB.authenticate(username, realPass.toCharArray())) {
+          CommandResult comResult = theDB.authenticateCommand(username,
+              realPass.toCharArray());
+          if (!comResult.ok()) {
             throw new Exception(BaseMessages.getString(PKG,
-                "MongoDbOutput.Messages.Error.UnableToAuthenticate"));
+                "MongoDbOutput.Messages.Error.UnableToAuthenticate",
+                comResult.getErrorMessage()));
           }
         }
 
@@ -1534,9 +1538,12 @@ public class MongoDbOutputDialog extends BaseStepDialog implements
           .environmentSubstitute(m_passField.getText()));
 
       if (!Const.isEmpty(realUser) || !Const.isEmpty(realPass)) {
-        if (!db.authenticate(realUser, realPass.toCharArray())) {
+        CommandResult comResult = db.authenticateCommand(realUser,
+            realPass.toCharArray());
+        if (!comResult.ok()) {
           throw new Exception(BaseMessages.getString(PKG,
-              "MongoDbOutputDialog.ErrorMessage.UnableToAuthenticate"));
+              "MongoDbOutputDialog.ErrorMessage.UnableToAuthenticate",
+              comResult.getErrorMessage()));
         }
       }
 

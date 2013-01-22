@@ -31,7 +31,9 @@ import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileStream;
+import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
@@ -371,6 +373,42 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         }
 
         Schema valueType = s.getValueType();
+        if (valueType.getType() == Schema.Type.UNION) {
+          if (value instanceof GenericContainer) {
+            // we can ask these things for their schema (covers
+            // records, arrays, enums and fixed)
+            valueType = ((GenericContainer) value).getSchema();
+          } else {
+            // either have a map or primitive here
+            if (value instanceof Map) {
+              // now have to look for the schema of the map
+              Schema mapSchema = null;
+              for (Schema ts : valueType.getTypes()) {
+                if (ts.getType() == Schema.Type.MAP) {
+                  mapSchema = ts;
+                  break;
+                }
+              }
+              if (mapSchema == null) {
+                throw new KettleException(BaseMessages.getString(
+                    AvroInputMeta.PKG,
+                    "AvroInput.Error.UnableToFindSchemaForUnionMap"));
+              }
+              valueType = mapSchema;
+            } else {
+              // We shouldn't have a primitive here
+              if (!ignoreMissing) {
+                throw new KettleException(BaseMessages.getString(
+                    AvroInputMeta.PKG,
+                    "AvroInput.Error.EncounteredAPrimitivePriorToMapExpansion"));
+              }
+              Object[][] result = new Object[1][m_outputRowMeta.size()
+                  + RowDataUtil.OVER_ALLOCATE_SIZE];
+              return result;
+            }
+          }
+        }
+
         // what have we got?
         if (valueType.getType() == Schema.Type.RECORD) {
           return convertToKettleValues((GenericData.Record) value, valueType,
@@ -382,13 +420,19 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
           return convertToKettleValues((Map<Utf8, Object>) value, valueType,
               space, ignoreMissing);
         } else {
-          // we should never have a primitive at this point. If we are
-          // extracting a
-          // particular key from the map then we're not to the expansion phase,
-          // so there
-          // must be a non-primitive sub-structure
-          throw new KettleException("Unexpected map value type at "
-              + "non-expansion point (AvroArrayExpansion)");
+          // we shouldn't have a primitive at this point. If we are
+          // extracting a particular key from the map then we're not to the
+          // expansion phase,
+          // so normally there must be a non-primitive sub-structure. Only if
+          // the user is switching schema versions on a per-row basis or the
+          // schema is a union at the top level could we end up here
+          if (!ignoreMissing) {
+            throw new KettleException(BaseMessages.getString(AvroInputMeta.PKG,
+                "AvroInput.Error.UnexpectedMapValueTypeAtNonExpansionPoint"));
+          }
+          Object[][] result = new Object[1][m_outputRowMeta.size()
+              + RowDataUtil.OVER_ALLOCATE_SIZE];
+          return result;
         }
       }
     }
@@ -486,6 +530,43 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
         Object value = array.get(arrayI);
         Schema elementType = s.getElementType();
+
+        if (elementType.getType() == Schema.Type.UNION) {
+          if (value instanceof GenericContainer) {
+            // we can ask these things for their schema (covers
+            // records, arrays, enums and fixed)
+            elementType = ((GenericContainer) value).getSchema();
+          } else {
+            // either have a map or primitive here
+            if (value instanceof Map) {
+              // now have to look for the schema of the map
+              Schema mapSchema = null;
+              for (Schema ts : elementType.getTypes()) {
+                if (ts.getType() == Schema.Type.MAP) {
+                  mapSchema = ts;
+                  break;
+                }
+              }
+              if (mapSchema == null) {
+                throw new KettleException(BaseMessages.getString(
+                    AvroInputMeta.PKG,
+                    "AvroInput.Error.UnableToFindSchemaForUnionMap"));
+              }
+              elementType = mapSchema;
+            } else {
+              // We shouldn't have a primitive here
+              if (!ignoreMissing) {
+                throw new KettleException(BaseMessages.getString(
+                    AvroInputMeta.PKG,
+                    "AvroInput.Error.EncounteredAPrimitivePriorToMapExpansion"));
+              }
+              Object[][] result = new Object[1][m_outputRowMeta.size()
+                  + RowDataUtil.OVER_ALLOCATE_SIZE];
+              return result;
+            }
+          }
+        }
+
         // what have we got?
         if (elementType.getType() == Schema.Type.RECORD) {
           return convertToKettleValues((GenericData.Record) value, elementType,
@@ -497,13 +578,22 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
           return convertToKettleValues((Map<Utf8, Object>) value, elementType,
               space, ignoreMissing);
         } else {
-          // we should never have a primitive at this point. If we are
-          // extracting a
-          // particular key from the map then we're not to the expansion phase,
-          // so there
-          // must be a non-primitive sub-structure
-          throw new KettleException("Unexpected array element type at "
-              + "non-expansion point (AvroArrayExpansion)");
+          // we shouldn't have a primitive at this point. If we are
+          // extracting a particular index from the array then we're not to the
+          // expansion phase,
+          // so normally there must be a non-primitive sub-structure. Only if
+          // the user is switching schema versions on a per-row basis or the
+          // schema is a union at the top level could we end up here
+          if (!ignoreMissing) {
+            throw new KettleException(
+                BaseMessages
+                    .getString(AvroInputMeta.PKG,
+                        "AvroInput.Error.UnexpectedArrayElementTypeAtNonExpansionPoint"));
+          } else {
+            Object[][] result = new Object[1][m_outputRowMeta.size()
+                + RowDataUtil.OVER_ALLOCATE_SIZE];
+            return result;
+          }
         }
       }
     }
@@ -549,11 +639,61 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
       // part is a named field of the record
       Schema.Field fieldS = s.getField(part);
+
       if (fieldS == null) {
-        throw new KettleException(BaseMessages.getString(AvroInputMeta.PKG,
-            "AvroInput.Error.NonExistentField", part));
+        if (!ignoreMissing) {
+          throw new KettleException(BaseMessages.getString(AvroInputMeta.PKG,
+              "AvroInput.Error.NonExistentField", part));
+        }
       }
+
       Object field = record.get(part);
+
+      if (field == null) {
+        // field is null and we haven't hit the expansion yet. There will be
+        // nothing
+        // to return for all the sub-fields grouped in the expansion
+        Object[][] result = new Object[1][m_outputRowMeta.size()
+            + RowDataUtil.OVER_ALLOCATE_SIZE];
+        return result;
+      }
+
+      Schema fieldSchema = fieldS.schema();
+      if (fieldSchema.getType() == Schema.Type.UNION) {
+        if (field instanceof GenericContainer) {
+          // we can ask these things for their schema (covers
+          // records, arrays, enums and fixed)
+          fieldSchema = ((GenericContainer) field).getSchema();
+        } else {
+          // either have a map or primitive here
+          if (field instanceof Map) {
+            // now have to look for the schema of the map
+            Schema mapSchema = null;
+            for (Schema ts : fieldSchema.getTypes()) {
+              if (ts.getType() == Schema.Type.MAP) {
+                mapSchema = ts;
+                break;
+              }
+            }
+            if (mapSchema == null) {
+              throw new KettleException(BaseMessages.getString(
+                  AvroInputMeta.PKG,
+                  "AvroInput.Error.UnableToFindSchemaForUnionMap"));
+            }
+            fieldSchema = mapSchema;
+          } else {
+            // We shouldn't have a primitive here
+            if (!ignoreMissing) {
+              throw new KettleException(BaseMessages.getString(
+                  AvroInputMeta.PKG,
+                  "AvroInput.Error.EncounteredAPrimitivePriorToMapExpansion"));
+            }
+            Object[][] result = new Object[1][m_outputRowMeta.size()
+                + RowDataUtil.OVER_ALLOCATE_SIZE];
+            return result;
+          }
+        }
+      }
 
       // what have we got?
       if (fieldS.schema().getType() == Schema.Type.RECORD) {
@@ -570,10 +710,8 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         // primitives will always be handled by the subField delegates, so we
         // should'nt
         // get here
-        throw new KettleException(
-            "Unexpected record field type at non-expansion "
-                + "point (AvroArrayExpansion)");
-
+        throw new KettleException(BaseMessages.getString(AvroInputMeta.PKG,
+            "AvroInput.Error.UnexpectedRecordFieldTypeAtNonExpansionPoint"));
       }
     }
   }
@@ -595,21 +733,28 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @param s the schema for the primitive
    * @return an avro field object.
    */
-  protected static AvroInputMeta.AvroField createAvroField(String path, Schema s) {
+  protected static AvroInputMeta.AvroField createAvroField(String path,
+      Schema s, String namePrefix) {
     AvroInputMeta.AvroField newField = new AvroInputMeta.AvroField();
     // newField.m_fieldName = s.getName(); // this will set the name to the
     // primitive type if the schema is for a primitive
-    newField.m_fieldName = path; // set the name to the path, so that for
-                                 // primitives within arrays we can at least
-                                 // distinguish among them
+    String fieldName = path;
+    if (!Const.isEmpty(namePrefix)) {
+      fieldName = namePrefix;
+    }
+    newField.m_fieldName = fieldName; // set the name to the path, so that for
+    // primitives within arrays we can at least
+    // distinguish among them
     newField.m_fieldPath = path;
     switch (s.getType()) {
     case BOOLEAN:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BOOLEAN];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_BOOLEAN);
       break;
     case ENUM:
     case STRING: {
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_STRING];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_STRING);
       if (s.getType() == Schema.Type.ENUM) {
         newField.m_indexedVals = s.getEnumSymbols();
       }
@@ -617,16 +762,19 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
       break;
     case FLOAT:
     case DOUBLE:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_NUMBER];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_NUMBER);
       break;
     case INT:
     case LONG:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_INTEGER];
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_INTEGER);
       break;
     case BYTES:
-      newField.m_kettleType = ValueMeta.getAllTypes()[ValueMetaInterface.TYPE_BINARY];
+    case FIXED:
+      newField.m_kettleType = ValueMeta
+          .getTypeDesc(ValueMetaInterface.TYPE_BINARY);
       break;
-    // TODO: more types - fixed is probably the only other type we could handle
     default:
       // unhandled type
       newField = null;
@@ -672,6 +820,36 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
   }
 
   /**
+   * Check the supplied union for primitive/leaf types
+   * 
+   * @param s the union schema to check
+   * @return a list of primitive/leaf types in this union
+   */
+  protected static List<Schema> checkUnionForLeafTypes(Schema s) {
+
+    List<Schema> types = s.getTypes();
+    List<Schema> primitives = new ArrayList<Schema>();
+
+    for (Schema toCheck : types) {
+      switch (toCheck.getType()) {
+      case BOOLEAN:
+      case LONG:
+      case DOUBLE:
+      case BYTES:
+      case ENUM:
+      case STRING:
+      case INT:
+      case FLOAT:
+      case FIXED:
+        primitives.add(toCheck);
+        break;
+      }
+    }
+
+    return primitives;
+  }
+
+  /**
    * Builds a list of field objects holding paths corresponding to the leaf
    * primitives in an Avro schema.
    * 
@@ -690,31 +868,24 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         if (s.getType() == Schema.Type.ARRAY) {
           root += "[0]";
           s = s.getElementType();
-          if (s.getType() == Schema.Type.UNION) {
-            s = checkUnion(s);
-          }
         } else {
           root += "[*key*]";
           s = s.getValueType();
-          if (s.getType() == Schema.Type.UNION) {
-            s = checkUnion(s);
-          }
         }
       }
     }
 
     if (s.getType() == Schema.Type.RECORD) {
-      processRecord(root, s, fields);
+      processRecord(root, s, fields, root);
+    } else if (s.getType() == Schema.Type.UNION) {
+      processUnion(root, s, fields, root);
     } else {
 
       // our top-level array/map structure bottoms out with primitive types
       // we'll create one zero-indexed path through to a primitive - the
       // user can copy and paste the path if they want to extract other
       // indexes out to separate Kettle fields
-      if (s.getType() == Schema.Type.UNION) {
-        s = checkUnion(s);
-      }
-      AvroInputMeta.AvroField newField = createAvroField(root, s);
+      AvroInputMeta.AvroField newField = createAvroField(root, s, null);
       if (newField != null) {
         fields.add(newField);
       }
@@ -733,26 +904,90 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    *          primitives
    * @throws KettleException if a problem occurs
    */
+  protected static void processUnion(String path, Schema s,
+      List<AvroInputMeta.AvroField> fields, String namePrefix)
+      throws KettleException {
+
+    boolean topLevelUnion = path.equals("$");
+
+    // first check for the presence of primitive/leaf types in this union
+    List<Schema> primitives = checkUnionForLeafTypes(s);
+    if (primitives.size() > 0) {
+      // if there is exactly one primitive then we can set the kettle type
+      // for this primitive's type. If there is more than one primitive
+      // then we'll have to use String to cover them all
+      if (primitives.size() == 1) {
+        Schema single = primitives.get(0);
+        namePrefix = topLevelUnion ? single.getName() : namePrefix;
+        AvroInputMeta.AvroField newField = createAvroField(path, single,
+            namePrefix);
+        if (newField != null) {
+          fields.add(newField);
+        }
+      } else {
+        Schema stringS = Schema.create(Schema.Type.STRING);
+        AvroInputMeta.AvroField newField = createAvroField(path, stringS,
+            topLevelUnion ? path + "union:primitive/fixed" : namePrefix);
+        if (newField != null) {
+          fields.add(newField);
+        }
+      }
+    }
+
+    // now scan for arrays, maps and records. Unions may not immediately contain
+    // other unions (according to the spec)
+    for (Schema toCheck : s.getTypes()) {
+      if (toCheck.getType() == Schema.Type.RECORD) {
+        String recordName = "[u:" + toCheck.getName() + "]";
+
+        processRecord(path, toCheck, fields, namePrefix + recordName);
+      } else if (toCheck.getType() == Schema.Type.MAP) {
+        processMap(path + "[*key*]", toCheck, fields, namePrefix + "[*key*]");
+      } else if (toCheck.getType() == Schema.Type.ARRAY) {
+        processArray(path + "[0]", toCheck, fields, namePrefix + "[0]");
+      }
+    }
+  }
+
+  /**
+   * Helper function used to build paths automatically when extracting leaf
+   * fields from a schema
+   * 
+   * @param path the path so far
+   * @param s the schema
+   * @param fields a list of field objects that will correspond to leaf
+   *          primitives
+   * @throws KettleException if a problem occurs
+   */
   protected static void processRecord(String path, Schema s,
-      List<AvroInputMeta.AvroField> fields) throws KettleException {
+      List<AvroInputMeta.AvroField> fields, String namePrefix)
+      throws KettleException {
 
     List<Schema.Field> recordFields = s.getFields();
     for (Schema.Field rField : recordFields) {
       Schema rSchema = rField.schema();
-      if (rSchema.getType() == Schema.Type.UNION) {
-        rSchema = checkUnion(rSchema);
-      }
+      /*
+       * if (rSchema.getType() == Schema.Type.UNION) { rSchema =
+       * checkUnion(rSchema); }
+       */
 
-      if (rSchema.getType() == Schema.Type.RECORD) {
-        processRecord(path + "." + rField.name(), rSchema, fields);
+      if (rSchema.getType() == Schema.Type.UNION) {
+        processUnion(path + "." + rField.name(), rSchema, fields, namePrefix
+            + "." + rField.name());
+      } else if (rSchema.getType() == Schema.Type.RECORD) {
+        processRecord(path + "." + rField.name(), rSchema, fields, namePrefix
+            + "." + rField.name());
       } else if (rSchema.getType() == Schema.Type.ARRAY) {
-        processArray(path + "." + rField.name() + "[0]", rSchema, fields);
+        processArray(path + "." + rField.name() + "[0]", rSchema, fields,
+            namePrefix + "." + rField.name() + "[0]");
       } else if (rSchema.getType() == Schema.Type.MAP) {
-        processMap(path + "." + rField.name() + "[*key*]", rSchema, fields);
+        processMap(path + "." + rField.name() + "[*key*]", rSchema, fields,
+            namePrefix + "." + rField.name() + "[*key*]");
       } else {
         // primitive
         AvroInputMeta.AvroField newField = createAvroField(
-            path + "." + rField.name(), rSchema);
+            path + "." + rField.name(), rSchema,
+            namePrefix + "." + rField.name());
         if (newField != null) {
           fields.add(newField);
         }
@@ -771,21 +1006,21 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @throws KettleException if a problem occurs
    */
   protected static void processMap(String path, Schema s,
-      List<AvroInputMeta.AvroField> fields) throws KettleException {
+      List<AvroInputMeta.AvroField> fields, String namePrefix)
+      throws KettleException {
 
     s = s.getValueType(); // type of the values of the map
-    if (s.getType() == Schema.Type.UNION) {
-      s = checkUnion(s);
-    }
 
-    if (s.getType() == Schema.Type.ARRAY) {
-      processArray(path + "[0]", s, fields);
+    if (s.getType() == Schema.Type.UNION) {
+      processUnion(path, s, fields, namePrefix);
+    } else if (s.getType() == Schema.Type.ARRAY) {
+      processArray(path + "[0]", s, fields, namePrefix + "[0]");
     } else if (s.getType() == Schema.Type.RECORD) {
-      processRecord(path, s, fields);
+      processRecord(path, s, fields, namePrefix);
     } else if (s.getType() == Schema.Type.MAP) {
-      processMap(path + "[*key*]", s, fields);
+      processMap(path + "[*key*]", s, fields, namePrefix + "[*key*]");
     } else {
-      AvroInputMeta.AvroField newField = createAvroField(path, s);
+      AvroInputMeta.AvroField newField = createAvroField(path, s, namePrefix);
       if (newField != null) {
         fields.add(newField);
       }
@@ -803,20 +1038,21 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * @throws KettleException if a problem occurs
    */
   protected static void processArray(String path, Schema s,
-      List<AvroInputMeta.AvroField> fields) throws KettleException {
+      List<AvroInputMeta.AvroField> fields, String namePrefix)
+      throws KettleException {
 
     s = s.getElementType(); // type of the array elements
+
     if (s.getType() == Schema.Type.UNION) {
-      s = checkUnion(s);
-    }
-    if (s.getType() == Schema.Type.ARRAY) {
-      processArray(path + "[0]", s, fields);
+      processUnion(path, s, fields, namePrefix);
+    } else if (s.getType() == Schema.Type.ARRAY) {
+      processArray(path + "[0]", s, fields, namePrefix);
     } else if (s.getType() == Schema.Type.RECORD) {
-      processRecord(path, s, fields);
+      processRecord(path, s, fields, namePrefix);
     } else if (s.getType() == Schema.Type.MAP) {
-      processMap(path, s, fields);
+      processMap(path + "[*key*]", s, fields, namePrefix + "[*key*]");
     } else {
-      AvroInputMeta.AvroField newField = createAvroField(path, s);
+      AvroInputMeta.AvroField newField = createAvroField(path, s, namePrefix);
       if (newField != null) {
         fields.add(newField);
       }
@@ -1095,6 +1331,27 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
       if (setDefault) {
         m_defaultTopLevelObject = m_topLevelRecord;
       }
+    } else if (schema.getType() == Schema.Type.UNION) {
+      // ASSUMPTION: if the top level structure is a union then each
+      // object we will read will be a record. We'll assume that any
+      // non-record types in the top-level union are named types that
+      // are referenced in the record types. We'll scan the union for the
+      // first record type to construct our
+      // our initial top-level object. When reading, the read method will give
+      // us a new object (with appropriate schema) if this top level object's
+      // schema does not match the schema of the record being currently read
+      Schema firstUnion = null;
+      for (Schema uS : schema.getTypes()) {
+        if (uS.getType() == Schema.Type.RECORD) {
+          firstUnion = uS;
+          break;
+        }
+      }
+
+      m_topLevelRecord = new GenericData.Record(firstUnion);
+      if (setDefault) {
+        m_defaultTopLevelObject = m_topLevelRecord;
+      }
     } else if (schema.getType() == Schema.Type.ARRAY) {
       m_topLevelArray = new GenericData.Array(1, schema); // capacity,
                                                           // schema
@@ -1343,9 +1600,13 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
     if (m_expansionHandler != null) {
       m_expansionHandler.reset(space);
 
-      if (m_schemaToUse.getType() == Schema.Type.RECORD) {
+      if (m_schemaToUse.getType() == Schema.Type.RECORD
+          || m_schemaToUse.getType() == Schema.Type.UNION) {
+        // call getSchema() on the top level record here in case it has been
+        // read as one of the elements from a top-level union
         result = m_expansionHandler.convertToKettleValues(m_topLevelRecord,
-            m_schemaToUse, space, m_dontComplainAboutMissingFields);
+            m_topLevelRecord.getSchema(), space,
+            m_dontComplainAboutMissingFields);
       } else if (m_schemaToUse.getType() == Schema.Type.ARRAY) {
         result = m_expansionHandler.convertToKettleValues(m_topLevelArray,
             m_schemaToUse, space, m_dontComplainAboutMissingFields);
@@ -1372,9 +1633,12 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
     for (AvroInputMeta.AvroField f : m_normalFields) {
       f.reset(space);
 
-      if (m_schemaToUse.getType() == Schema.Type.RECORD) {
-        value = f.convertToKettleValue(m_topLevelRecord, m_schemaToUse,
-            m_dontComplainAboutMissingFields);
+      if (m_schemaToUse.getType() == Schema.Type.RECORD
+          || m_schemaToUse.getType() == Schema.Type.UNION) {
+        // call getSchema() on the top level record here in case it has been
+        // read as one of the elements from a top-level union
+        value = f.convertToKettleValue(m_topLevelRecord,
+            m_topLevelRecord.getSchema(), m_dontComplainAboutMissingFields);
       } else if (m_schemaToUse.getType() == Schema.Type.ARRAY) {
         value = f.convertToKettleValue(m_topLevelArray, m_schemaToUse,
             m_dontComplainAboutMissingFields);
@@ -1428,7 +1692,14 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
       try {
         if (m_containerReader.hasNext()) {
           if (m_topLevelRecord != null) {
-            m_containerReader.next(m_topLevelRecord);
+            // special case for top-level record. In case we actually
+            // have a top level union, reassign the record so that
+            // we have the correctly populated object in the case
+            // where our last record instance can't be reused (i.e.
+            // the next record read is a different one from the union
+            // than the last one).
+            m_topLevelRecord = (Record) m_containerReader
+                .next(m_topLevelRecord);
           } else if (m_topLevelArray != null) {
             m_containerReader.next(m_topLevelArray);
           } else {
@@ -1496,7 +1767,14 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         }
 
         if (m_topLevelRecord != null) {
-          m_datumReader.read(m_topLevelRecord, m_decoder);
+          // special case for top-level record. In case we actually
+          // have a top level union, reassign the record so that
+          // we have the correctly populated object in the case
+          // where our last record instance can't be reused (i.e.
+          // the next record read is a different one from the union
+          // than the last one).
+          m_topLevelRecord = (Record) m_datumReader.read(m_topLevelRecord,
+              m_decoder);
         } else if (m_topLevelArray != null) {
           m_datumReader.read(m_topLevelArray, m_decoder);
         } else {
