@@ -39,6 +39,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
 import com.mongodb.AggregationOutput;
+import com.mongodb.CommandResult;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
@@ -128,14 +129,16 @@ public class MongoDbInput extends BaseStep implements StepInterface {
         int index = 0;
 
         row[index++] = json;
-
-        // putRow will send the row on to the default output hop.
-        //
+        putRow(data.outputRowMeta, row);
       } else {
-        row = data.mongoDocumentToKettle(nextDoc, this);
-      }
+        Object[][] outputRows = data.mongoDocumentToKettle(nextDoc, this);
 
-      putRow(data.outputRowMeta, row);
+        // there may be more than one row if the paths contain an array
+        // unwind
+        for (int i = 0; i < outputRows.length; i++) {
+          putRow(data.outputRowMeta, outputRows[i]);
+        }
+      }
 
       return true;
     } else {
@@ -169,9 +172,12 @@ public class MongoDbInput extends BaseStep implements StepInterface {
                 .getAuthenticationPassword()));
 
         if (!Const.isEmpty(realUser) || !Const.isEmpty(realPass)) {
-          if (!data.db.authenticate(realUser, realPass.toCharArray())) {
+          CommandResult comResult = data.db.authenticateCommand(realUser,
+              realPass.toCharArray());
+          if (!comResult.ok()) {
             throw new KettleException(BaseMessages.getString(PKG,
-                "MongoDbInput.ErrorAuthenticating.Exception"));
+                "MongoDbInput.ErrorAuthenticating.Exception",
+                comResult.getErrorMessage()));
           }
         }
         data.collection = data.db.getCollection(collection);

@@ -75,6 +75,7 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
+import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
@@ -1071,9 +1072,12 @@ public class MongoDbInputDialog extends BaseStepDialog implements
         DB theDB = conn.getDB(dB);
 
         if (!Const.isEmpty(username) || !Const.isEmpty(realPass)) {
-          if (!theDB.authenticate(username, realPass.toCharArray())) {
+          CommandResult comResult = theDB.authenticateCommand(username,
+              realPass.toCharArray());
+          if (!comResult.ok()) {
             throw new Exception(BaseMessages.getString(PKG,
-                "MongoDbOutput.Messages.Error.UnableToAuthenticate"));
+                "MongoDbInput.ErrorAuthenticating.Exception",
+                comResult.getErrorMessage()));
           }
         }
 
