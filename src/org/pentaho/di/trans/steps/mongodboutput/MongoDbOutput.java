@@ -308,9 +308,12 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
                 .getPassword()));
 
         if (!Const.isEmpty(realUser) || !Const.isEmpty(realPass)) {
-          if (!m_data.getDB().authenticate(realUser, realPass.toCharArray())) {
+          CommandResult comResult = m_data.getDB().authenticateCommand(
+              realUser, realPass.toCharArray());
+          if (!comResult.ok()) {
             throw new KettleException(BaseMessages.getString(PKG,
-                "MongoDbOutput.Messages.Error.UnableToAuthenticate"));
+                "MongoDbOutput.Messages.Error.UnableToAuthenticate",
+                comResult.getErrorMessage()));
           }
         }
 
