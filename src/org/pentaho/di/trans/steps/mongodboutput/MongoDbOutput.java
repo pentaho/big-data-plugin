@@ -67,12 +67,6 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
   /** Holds a batch */
   protected List<DBObject> m_batch;
 
-  /**
-   * When inserting incoming JSON docs holds the index of the incoming field
-   * that contains the JSON doc to be inserted
-   */
-  protected int m_jsonDocIndex = -1;
-
   public MongoDbOutput(StepMeta stepMeta, StepDataInterface stepDataInterface,
       int copyNr, TransMeta transMeta, Trans trans) {
     super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
@@ -104,7 +98,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
       List<MongoDbOutputMeta.MongoIndex> indexes = m_meta.getMongoIndexes();
       if (indexes != null && indexes.size() > 0) {
         logBasic(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.ApplyingIndexOpps"));
+            "MongoDbOutput.Messages.ApplyingIndexOpps")); //$NON-NLS-1$
         m_data.applyIndexes(indexes, log, m_meta.getTruncate());
       }
 
@@ -131,7 +125,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
           m_meta.m_mongoFields, this);
       if (m_mongoTopLevelStructure == MongoDbOutputData.MongoTopLevel.INCONSISTENT) {
         throw new KettleException(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.Error.InconsistentMongoTopLevel"));
+            "MongoDbOutput.Messages.Error.InconsistentMongoTopLevel")); //$NON-NLS-1$
       }
 
       // first check our incoming fields against our meta data for fields to
@@ -158,17 +152,17 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
 
       if (notToBeInserted.size() == rmi.size()) {
         throw new KettleException(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.Error.NotInsertingAnyFields"));
+            "MongoDbOutput.Messages.Error.NotInsertingAnyFields")); //$NON-NLS-1$
       }
 
       if (notToBeInserted.size() > 0) {
         StringBuffer b = new StringBuffer();
         for (String s : notToBeInserted) {
-          b.append(s).append(" ");
+          b.append(s).append(" "); //$NON-NLS-1$
         }
 
         logBasic(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.FieldsNotToBeInserted"), b.toString());
+            "MongoDbOutput.Messages.FieldsNotToBeInserted"), b.toString()); //$NON-NLS-1$
       }
 
       // copy and initialize mongo fields
@@ -179,7 +173,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
       if (m_meta.getTruncate()) {
         try {
           logBasic(BaseMessages.getString(PKG,
-              "MongoDbOutput.Messages.TruncatingCollection"));
+              "MongoDbOutput.Messages.TruncatingCollection")); //$NON-NLS-1$
           m_data.getCollection().drop();
 
           // re-establish the collection
@@ -201,7 +195,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
 
         if (log.isDebug()) {
           logDebug(BaseMessages.getString(PKG,
-              "MongoDbOutput.Messages.Debug.QueryForUpsert", updateQuery));
+              "MongoDbOutput.Messages.Debug.QueryForUpsert", updateQuery)); //$NON-NLS-1$
         }
 
         if (updateQuery != null) {
@@ -217,7 +211,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
                 m_mongoTopLevelStructure);
             if (log.isDebug()) {
               logDebug(BaseMessages.getString(PKG,
-                  "MongoDbOutput.Messages.Debug.InsertUpsertObject",
+                  "MongoDbOutput.Messages.Debug.InsertUpsertObject", //$NON-NLS-1$
                   insertUpdate));
             }
 
@@ -228,7 +222,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
                 getInputRowMeta(), row, this, m_mongoTopLevelStructure);
             if (log.isDebug()) {
               logDebug(BaseMessages.getString(PKG,
-                  "MongoDbOutput.Messages.Debug.ModifierUpdateObject",
+                  "MongoDbOutput.Messages.Debug.ModifierUpdateObject", //$NON-NLS-1$
                   insertUpdate));
             }
           }
@@ -243,7 +237,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
             if (cmd != null && !cmd.ok()) {
               String message = cmd.getErrorMessage();
               logError(BaseMessages.getString(PKG,
-                  "MongoDbOutput.Messages.Error.MongoReported", message));
+                  "MongoDbOutput.Messages.Error.MongoReported", message)); //$NON-NLS-1$
               try {
                 cmd.throwOnError();
               } catch (MongoException me) {
@@ -264,7 +258,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
         }
         if (m_batch.size() == m_batchInsertSize) {
           logBasic(BaseMessages.getString(PKG,
-              "MongoDbOutput.Messages.CommitingABatch"));
+              "MongoDbOutput.Messages.CommitingABatch")); //$NON-NLS-1$
           doBatch();
         }
       }
@@ -283,7 +277,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
     if (cmd != null && !cmd.ok()) {
       String message = cmd.getErrorMessage();
       logError(BaseMessages.getString(PKG,
-          "MongoDbOutput.Messages.Error.MongoReported", message));
+          "MongoDbOutput.Messages.Error.MongoReported", message)); //$NON-NLS-1$
       try {
         cmd.throwOnError();
       } catch (MongoException me) {
@@ -321,14 +315,14 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
               realUser, realPass.toCharArray());
           if (!comResult.ok()) {
             throw new KettleException(BaseMessages.getString(PKG,
-                "MongoDbOutput.Messages.Error.UnableToAuthenticate",
+                "MongoDbOutput.Messages.Error.UnableToAuthenticate", //$NON-NLS-1$
                 comResult.getErrorMessage()));
           }
         }
 
         if (Const.isEmpty(collection)) {
           throw new KettleException(BaseMessages.getString(PKG,
-              "MongoDbOutput.Messages.Error.NoCollectionSpecified"));
+              "MongoDbOutput.Messages.Error.NoCollectionSpecified")); //$NON-NLS-1$
         }
         m_data.createCollection(collection);
         m_data.setCollection(m_data.getDB().getCollection(collection));
@@ -336,11 +330,11 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
         return true;
       } catch (UnknownHostException ex) {
         logError(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.Error.UnknownHost", hostname), ex);
+            "MongoDbOutput.Messages.Error.UnknownHost", hostname), ex); //$NON-NLS-1$
         return false;
       } catch (Exception e) {
         logError(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.Error.ProblemConnecting", hostname, ""
+            "MongoDbOutput.Messages.Error.ProblemConnecting", hostname, "" //$NON-NLS-1$ //$NON-NLS-2$
                 + port), e);
         return false;
       }
