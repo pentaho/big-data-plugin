@@ -56,6 +56,7 @@ import com.mongodb.MongoException;
 import com.mongodb.ReadPreference;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
+import com.mongodb.util.JSON;
 
 /**
  * Data class for the MongoDbOutput step
@@ -180,15 +181,15 @@ public class MongoDbOutputData extends BaseStepData implements
       String rp = meta.getReadPreference();
       rp = vars.environmentSubstitute(rp);
 
-      if (rp.equalsIgnoreCase("Primary")) {
+      if (rp.equalsIgnoreCase("Primary")) { //$NON-NLS-1$
         optsBuilder.readPreference(ReadPreference.primary());
-      } else if (rp.equalsIgnoreCase("Primary preferred")) {
+      } else if (rp.equalsIgnoreCase("Primary preferred")) { //$NON-NLS-1$
         optsBuilder.readPreference(ReadPreference.primaryPreferred());
-      } else if (rp.equalsIgnoreCase("Secondary")) {
+      } else if (rp.equalsIgnoreCase("Secondary")) { //$NON-NLS-1$
         optsBuilder.readPreference(ReadPreference.secondary());
-      } else if (rp.equalsIgnoreCase("Secondary preferred")) {
+      } else if (rp.equalsIgnoreCase("Secondary preferred")) { //$NON-NLS-1$
         optsBuilder.readPreference(ReadPreference.secondaryPreferred());
-      } else if (rp.equalsIgnoreCase("Nearest")) {
+      } else if (rp.equalsIgnoreCase("Nearest")) { //$NON-NLS-1$
         optsBuilder.readPreference(ReadPreference.nearest());
       }
     }
@@ -253,18 +254,20 @@ public class MongoDbOutputData extends BaseStepData implements
     }
 
     if (Const.isEmpty(hostsPorts)) {
-      throw new KettleException("Empty hosts string");
+      throw new KettleException(BaseMessages.getString(PKG,
+          "MongoDbOutput.Messages.Error.EmptyHostsString")); //$NON-NLS-1$
     }
 
     List<ServerAddress> repSet = new ArrayList<ServerAddress>();
 
-    String[] parts = hostsPorts.trim().split(",");
+    String[] parts = hostsPorts.trim().split(","); //$NON-NLS-1$
     for (String part : parts) {
       // host:port?
       int port = singlePortI != -1 ? singlePortI : MONGO_DEFAULT_PORT;
-      String[] hp = part.split(":");
+      String[] hp = part.split(":"); //$NON-NLS-1$
       if (hp.length > 2) {
-        throw new KettleException("Malformed host spec: " + part);
+        throw new KettleException(BaseMessages.getString(PKG,
+            "MongoDbOutput.Messages.Error.MalformedHost", part)); //$NON-NLS-1$
       }
 
       String host = hp[0];
@@ -273,7 +276,8 @@ public class MongoDbOutputData extends BaseStepData implements
         try {
           port = Integer.parseInt(hp[1].trim());
         } catch (NumberFormatException n) {
-          throw new KettleException("Unable to parse port number: " + hp[1]);
+          throw new KettleException(BaseMessages.getString(PKG,
+              "MongoDbOutput.Messages.Error.UnableToParsePortNumber", hp[1])); //$NON-NLS-1$
         }
       }
 
@@ -293,7 +297,7 @@ public class MongoDbOutputData extends BaseStepData implements
     try {
       return (repSet.size() > 1 ? new MongoClient(repSet, opts) : (repSet
           .size() == 1 ? new MongoClient(repSet.get(0), opts)
-          : new MongoClient(new ServerAddress("localhost"), opts)));
+          : new MongoClient(new ServerAddress("localhost"), opts))); //$NON-NLS-1$
     } catch (UnknownHostException u) {
       throw new KettleException(u);
     }
@@ -353,7 +357,7 @@ public class MongoDbOutputData extends BaseStepData implements
   public void createCollection(String collectionName) throws Exception {
     if (m_db == null) {
       throw new Exception(BaseMessages.getString(PKG,
-          "MongoDbOutput.Messages.Error.NoDatabaseSet"));
+          "MongoDbOutput.Messages.Error.NoDatabaseSet")); //$NON-NLS-1$
     }
 
     m_db.createCollection(collectionName, null);
@@ -410,10 +414,10 @@ public class MongoDbOutputData extends BaseStepData implements
       LogChannelInterface log, boolean truncate) throws MongoException {
 
     for (MongoDbOutputMeta.MongoIndex index : indexes) {
-      String[] indexParts = index.m_pathToFields.split(",");
+      String[] indexParts = index.m_pathToFields.split(","); //$NON-NLS-1$
       BasicDBObject mongoIndex = new BasicDBObject();
       for (String indexKey : indexParts) {
-        String[] nameAndDirection = indexKey.split(":");
+        String[] nameAndDirection = indexKey.split(":"); //$NON-NLS-1$
         int direction = 1;
         if (nameAndDirection.length == 2) {
           direction = Integer.parseInt(nameAndDirection[1].trim());
@@ -432,22 +436,22 @@ public class MongoDbOutputData extends BaseStepData implements
       if (index.m_drop) {
         if (truncate) {
           log.logBasic(BaseMessages.getString(PKG,
-              "MongoDbOutput.Messages.TruncateBeforeInsert", index));
+              "MongoDbOutput.Messages.TruncateBeforeInsert", index)); //$NON-NLS-1$
         } else {
           m_collection.dropIndex(mongoIndex);
         }
         log.logBasic(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.DropIndex", index));
+            "MongoDbOutput.Messages.DropIndex", index)); //$NON-NLS-1$
       } else {
         BasicDBObject options = new BasicDBObject();
 
         // create indexes in the background
-        options.put("background", true);
-        options.put("unique", index.m_unique);
-        options.put("sparse", index.m_sparse);
+        options.put("background", true); //$NON-NLS-1$
+        options.put("unique", index.m_unique); //$NON-NLS-1$
+        options.put("sparse", index.m_sparse); //$NON-NLS-1$
         m_collection.createIndex(mongoIndex);
         log.logBasic(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.CreateIndex", index));
+            "MongoDbOutput.Messages.CreateIndex", index)); //$NON-NLS-1$
       }
     }
   }
@@ -512,8 +516,8 @@ public class MongoDbOutputData extends BaseStepData implements
     boolean checkForMatch = false;
     for (MongoDbOutputMeta.MongoField field : fieldDefs) {
       if (!field.m_updateMatchField
-          && (field.m_modifierOperationApplyPolicy.equals("Insert") || field.m_modifierOperationApplyPolicy
-              .equals("Update"))) {
+          && (field.m_modifierOperationApplyPolicy.equals("Insert") || field.m_modifierOperationApplyPolicy //$NON-NLS-1$
+              .equals("Update"))) { //$NON-NLS-1$
         checkForMatch = true;
         break;
       }
@@ -539,14 +543,14 @@ public class MongoDbOutputData extends BaseStepData implements
       String modifierUpdateOpp = vars
           .environmentSubstitute(field.m_modifierUpdateOperation);
 
-      if (!Const.isEmpty(modifierUpdateOpp) && !modifierUpdateOpp.equals("N/A")) {
+      if (!Const.isEmpty(modifierUpdateOpp) && !modifierUpdateOpp.equals("N/A")) { //$NON-NLS-1$
         if (checkForMatch) {
-          if (isUpdate && field.m_modifierOperationApplyPolicy.equals("Insert")) {
+          if (isUpdate && field.m_modifierOperationApplyPolicy.equals("Insert")) { //$NON-NLS-1$
             continue; // don't apply this opp
           }
 
           if (!isUpdate
-              && field.m_modifierOperationApplyPolicy.equals("Update")) {
+              && field.m_modifierOperationApplyPolicy.equals("Update")) { //$NON-NLS-1$
             continue; // don't apply this opp
           }
         }
@@ -564,10 +568,10 @@ public class MongoDbOutputData extends BaseStepData implements
           // modifier update objects have fields using "dot" notation to reach
           // into embedded documents
           String mongoPath = (field.m_mongoDocPath != null) ? field.m_mongoDocPath
-              : "";
+              : ""; //$NON-NLS-1$
           String path = vars.environmentSubstitute(mongoPath);
 
-          if (path.endsWith("]") && modifierUpdateOpp.equals("$push")
+          if (path.endsWith("]") && modifierUpdateOpp.equals("$push") //$NON-NLS-1$ //$NON-NLS-2$
               && !field.m_useIncomingFieldNameAsMongoFieldName) {
 
             // strip off the brackets as push appends to the end of the named
@@ -576,13 +580,13 @@ public class MongoDbOutputData extends BaseStepData implements
           }
 
           boolean hasPath = !Const.isEmpty(path);
-          path += ((field.m_useIncomingFieldNameAsMongoFieldName) ? (hasPath ? "."
+          path += ((field.m_useIncomingFieldNameAsMongoFieldName) ? (hasPath ? "." //$NON-NLS-1$
               + incomingFieldName
               : incomingFieldName)
-              : "");
+              : ""); //$NON-NLS-1$
 
           // check for array creation
-          if (modifierUpdateOpp.equals("$set") && path.indexOf('[') > 0) {
+          if (modifierUpdateOpp.equals("$set") && path.indexOf('[') > 0) { //$NON-NLS-1$
             String arrayPath = path.substring(0, path.indexOf('['));
             String arraySpec = path.substring(path.indexOf('['), path.length());
             MongoDbOutputMeta.MongoField a = new MongoDbOutputMeta.MongoField();
@@ -590,6 +594,7 @@ public class MongoDbOutputData extends BaseStepData implements
             a.m_mongoDocPath = arraySpec;
             // incoming field name has already been appended (if necessary)
             a.m_useIncomingFieldNameAsMongoFieldName = false;
+            a.m_JSON = field.m_JSON;
             a.init(vars);
             List<MongoDbOutputMeta.MongoField> fds = m_setComplexArrays
                 .get(arrayPath);
@@ -598,7 +603,7 @@ public class MongoDbOutputData extends BaseStepData implements
               m_setComplexArrays.put(arrayPath, fds);
             }
             fds.add(a);
-          } else if (modifierUpdateOpp.equals("$push") && path.indexOf('[') > 0) {
+          } else if (modifierUpdateOpp.equals("$push") && path.indexOf('[') > 0) { //$NON-NLS-1$
             // we ignore any index that might have been specified as $push
             // always appends to the end of the array.
             String arrayPath = path.substring(0, path.indexOf('['));
@@ -618,6 +623,7 @@ public class MongoDbOutputData extends BaseStepData implements
             a.m_mongoDocPath = structureToPush;
             // incoming field name has already been appended (if necessary)
             a.m_useIncomingFieldNameAsMongoFieldName = false;
+            a.m_JSON = field.m_JSON;
             a.init(vars);
             List<MongoDbOutputMeta.MongoField> fds = m_pushComplexStructures
                 .get(arrayPath);
@@ -627,9 +633,10 @@ public class MongoDbOutputData extends BaseStepData implements
             }
             fds.add(a);
           } else {
-            Object[] params = new Object[2];
+            Object[] params = new Object[3];
             params[0] = modifierUpdateOpp;
             params[1] = new Integer(index);
+            params[2] = new Boolean(field.m_JSON);
             m_primitiveLeafModifiers.put(path, params);
           }
         }
@@ -644,18 +651,18 @@ public class MongoDbOutputData extends BaseStepData implements
 
       DBObject fieldsToUpdateWithValues = null;
 
-      if (updateObject.get("$set") != null) {
+      if (updateObject.get("$set") != null) { //$NON-NLS-1$
         // if we have some field(s) already associated with this type of
         // modifier
         // operation then just add to them
-        fieldsToUpdateWithValues = (DBObject) updateObject.get("$set");
+        fieldsToUpdateWithValues = (DBObject) updateObject.get("$set"); //$NON-NLS-1$
       } else {
         // otherwise create a new DBObject for this modifier operation
         fieldsToUpdateWithValues = new BasicDBObject();
       }
 
       fieldsToUpdateWithValues.put(path, valueToSet);
-      updateObject.put("$set", fieldsToUpdateWithValues);
+      updateObject.put("$set", fieldsToUpdateWithValues); //$NON-NLS-1$
     }
 
     // now do the $push complex
@@ -674,18 +681,18 @@ public class MongoDbOutputData extends BaseStepData implements
 
       DBObject fieldsToUpdateWithValues = null;
 
-      if (updateObject.get("$push") != null) {
+      if (updateObject.get("$push") != null) { //$NON-NLS-1$
         // if we have some field(s) already associated with this type of
         // modifier
         // operation then just add to them
-        fieldsToUpdateWithValues = (DBObject) updateObject.get("$push");
+        fieldsToUpdateWithValues = (DBObject) updateObject.get("$push"); //$NON-NLS-1$
       } else {
         // otherwise create a new DBObject for this modifier operation
         fieldsToUpdateWithValues = new BasicDBObject();
       }
 
       fieldsToUpdateWithValues.put(path, valueToSet);
-      updateObject.put("$push", fieldsToUpdateWithValues);
+      updateObject.put("$push", fieldsToUpdateWithValues); //$NON-NLS-1$
     }
 
     // do the modifiers that involve primitive field values
@@ -693,6 +700,7 @@ public class MongoDbOutputData extends BaseStepData implements
       Object[] params = m_primitiveLeafModifiers.get(path);
       String modifierUpdateOpp = params[0].toString();
       int index = ((Integer) params[1]).intValue();
+      boolean isJSON = ((Boolean) params[2]).booleanValue();
       ValueMetaInterface vm = inputMeta.getValueMeta(index);
 
       DBObject fieldsToUpdateWithValues = null;
@@ -708,7 +716,7 @@ public class MongoDbOutputData extends BaseStepData implements
         fieldsToUpdateWithValues = new BasicDBObject();
       }
       setMongoValueFromKettleValue(fieldsToUpdateWithValues, path, vm,
-          row[index]);
+          row[index], isJSON);
 
       updateObject.put(modifierUpdateOpp, fieldsToUpdateWithValues);
     }
@@ -717,7 +725,7 @@ public class MongoDbOutputData extends BaseStepData implements
       throw new KettleException(
           BaseMessages
               .getString(PKG,
-                  "MongoDbOutput.Messages.Error.NoFieldsToUpdateSpecifiedForModifierOpp"));
+                  "MongoDbOutput.Messages.Error.NoFieldsToUpdateSpecifiedForModifierOpp")); //$NON-NLS-1$
     }
 
     if (!hasNonNullUpdateValues) {
@@ -765,27 +773,27 @@ public class MongoDbOutputData extends BaseStepData implements
         // query objects have fields using "dot" notation to reach into embedded
         // documents
         String mongoPath = (field.m_mongoDocPath != null) ? field.m_mongoDocPath
-            : "";
+            : ""; //$NON-NLS-1$
         String path = vars.environmentSubstitute(mongoPath);
         boolean hasPath = !Const.isEmpty(path);
-        path += ((field.m_useIncomingFieldNameAsMongoFieldName) ? (hasPath ? "."
+        path += ((field.m_useIncomingFieldNameAsMongoFieldName) ? (hasPath ? "." //$NON-NLS-1$
             + incomingFieldName
             : incomingFieldName)
-            : "");
+            : ""); //$NON-NLS-1$
 
         // post process arrays to fit the dot notation (if not already done
         // by the user)
         if (path.indexOf('[') > 0) {
-          path = path.replace("[", ".").replace("]", "");
+          path = path.replace("[", ".").replace("]", ""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         }
 
-        setMongoValueFromKettleValue(query, path, vm, row[index]);
+        setMongoValueFromKettleValue(query, path, vm, row[index], field.m_JSON);
       }
     }
 
     if (!haveMatchFields) {
       throw new KettleException(BaseMessages.getString(PKG,
-          "MongoDbOutput.Messages.Error.NoFieldsToUpdateSpecifiedForMatch"));
+          "MongoDbOutput.Messages.Error.NoFieldsToUpdateSpecifiedForMatch")); //$NON-NLS-1$
     }
 
     if (!hasNonNullMatchValues) {
@@ -846,9 +854,10 @@ public class MongoDbOutputData extends BaseStepData implements
             if (temp.get(lookup.toString()) == null) {
               if (pathParts.size() == 0
                   && !field.m_useIncomingFieldNameAsMongoFieldName) {
-                // leaf - primitive element of the array
+                // leaf - primitive element of the array (unless kettle field
+                // value is JSON)
                 boolean res = setMongoValueFromKettleValue(temp, lookup, vm,
-                    row[index]);
+                    row[index], field.m_JSON);
                 haveNonNullFields = (haveNonNullFields || res);
               } else {
                 // must be a record here (since multi-dimensional array creation
@@ -864,13 +873,13 @@ public class MongoDbOutputData extends BaseStepData implements
                 if (pathParts.size() == 0) {
                   if (field.m_useIncomingFieldNameAsMongoFieldName) {
                     boolean res = setMongoValueFromKettleValue(current,
-                        incomingFieldName, vm, row[index]);
+                        incomingFieldName, vm, row[index], field.m_JSON);
                     haveNonNullFields = (haveNonNullFields || res);
                   } else {
                     throw new KettleException(
                         BaseMessages
                             .getString(PKG,
-                                "MongoDbOutput.Messages.Error.NoFieldNameSpecifiedForPath"));
+                                "MongoDbOutput.Messages.Error.NoFieldNameSpecifiedForPath")); //$NON-NLS-1$
                   }
                 }
               }
@@ -885,13 +894,13 @@ public class MongoDbOutputData extends BaseStepData implements
                 if (current instanceof BasicDBObject) {
                   if (field.m_useIncomingFieldNameAsMongoFieldName) {
                     boolean res = setMongoValueFromKettleValue(current,
-                        incomingFieldName, vm, row[index]);
+                        incomingFieldName, vm, row[index], field.m_JSON);
                     haveNonNullFields = (haveNonNullFields || res);
                   } else {
                     throw new KettleException(
                         BaseMessages
                             .getString(PKG,
-                                "MongoDbOutput.Messages.Error.NoFieldNameSpecifiedForPath"));
+                                "MongoDbOutput.Messages.Error.NoFieldNameSpecifiedForPath")); //$NON-NLS-1$
                   }
                 }
               }
@@ -901,22 +910,22 @@ public class MongoDbOutputData extends BaseStepData implements
             if (lookup == null && pathParts.size() == 0) {
               if (field.m_useIncomingFieldNameAsMongoFieldName) {
                 boolean res = setMongoValueFromKettleValue(current,
-                    incomingFieldName, vm, row[index]);
+                    incomingFieldName, vm, row[index], field.m_JSON);
                 haveNonNullFields = (haveNonNullFields || res);
               } else {
                 throw new KettleException(BaseMessages.getString(PKG,
-                    "MongoDbOutput.Messages.Error.NoFieldNameSpecifiedForPath"));
+                    "MongoDbOutput.Messages.Error.NoFieldNameSpecifiedForPath")); //$NON-NLS-1$
               }
             } else {
               if (pathParts.size() == 0) {
                 if (!field.m_useIncomingFieldNameAsMongoFieldName) {
                   boolean res = setMongoValueFromKettleValue(current,
-                      lookup.toString(), vm, row[index]);
+                      lookup.toString(), vm, row[index], field.m_JSON);
                   haveNonNullFields = (haveNonNullFields || res);
                 } else {
                   current = (DBObject) current.get(lookup.toString());
                   boolean res = setMongoValueFromKettleValue(current,
-                      incomingFieldName, vm, row[index]);
+                      incomingFieldName, vm, row[index], field.m_JSON);
                   haveNonNullFields = (haveNonNullFields || res);
                 }
               } else {
@@ -939,15 +948,20 @@ public class MongoDbOutputData extends BaseStepData implements
   }
 
   private static boolean setMongoValueFromKettleValue(DBObject mongoObject,
-      Object lookup, ValueMetaInterface kettleType, Object kettleValue)
-      throws KettleValueException {
+      Object lookup, ValueMetaInterface kettleType, Object kettleValue,
+      boolean kettleValueIsJSON) throws KettleValueException {
     if (kettleType.isNull(kettleValue)) {
       return false; // don't insert nulls!
     }
 
     if (kettleType.isString()) {
       String val = kettleType.getString(kettleValue);
-      mongoObject.put(lookup.toString(), val);
+      if (kettleValueIsJSON) {
+        Object mongoO = JSON.parse(val);
+        mongoObject.put(lookup.toString(), mongoO);
+      } else {
+        mongoObject.put(lookup.toString(), val);
+      }
       return true;
     }
     if (kettleType.isBoolean()) {
@@ -983,7 +997,7 @@ public class MongoDbOutputData extends BaseStepData implements
     }
     if (kettleType.isSerializableType()) {
       throw new KettleValueException(BaseMessages.getString(PKG,
-          "MongoDbOutput.Messages.Error.CantStoreKettleSerializableVals"));
+          "MongoDbOutput.Messages.Error.CantStoreKettleSerializableVals")); //$NON-NLS-1$
     }
 
     return false;
@@ -997,7 +1011,7 @@ public class MongoDbOutputData extends BaseStepData implements
     }
 
     String part = pathParts.get(0);
-    if (part.startsWith("[")) {
+    if (part.startsWith("[")) { //$NON-NLS-1$
       String index = part.substring(1, part.indexOf(']')).trim();
       part = part.substring(part.indexOf(']') + 1).trim();
       if (part.length() > 0) {
@@ -1014,7 +1028,7 @@ public class MongoDbOutputData extends BaseStepData implements
         pathParts.remove(0);
       }
       return new Integer(index);
-    } else if (part.endsWith("]")) {
+    } else if (part.endsWith("]")) { //$NON-NLS-1$
       String fieldName = part.substring(0, part.indexOf('['));
       Object mongoField = current.get(fieldName);
       if (mongoField == null) {
@@ -1025,7 +1039,7 @@ public class MongoDbOutputData extends BaseStepData implements
         // check type - should be an array
         if (!(mongoField instanceof BasicDBList)) {
           throw new KettleException(BaseMessages.getString(PKG,
-              "MongoDbOutput.Messages.Error.FieldExistsButIsntAnArray", part));
+              "MongoDbOutput.Messages.Error.FieldExistsButIsntAnArray", part)); //$NON-NLS-1$
         }
       }
       part = part.substring(part.indexOf('['));
@@ -1048,7 +1062,7 @@ public class MongoDbOutputData extends BaseStepData implements
       // check type = should be a record (object)
       if (!(mongoField instanceof BasicDBObject) && pathParts.size() > 1) {
         throw new KettleException(BaseMessages.getString(PKG,
-            "MongoDbOutput.Messages.Error.FieldExistsButIsntARecord", part));
+            "MongoDbOutput.Messages.Error.FieldExistsButIsntARecord", part)); //$NON-NLS-1$
       }
     }
     pathParts.remove(0);
@@ -1076,7 +1090,7 @@ public class MongoDbOutputData extends BaseStepData implements
 
       if (Const.isEmpty(mongoPath)) {
         numRecords++;
-      } else if (mongoPath.startsWith("[")) {
+      } else if (mongoPath.startsWith("[")) { //$NON-NLS-1$
         numArrays++;
       } else {
         numRecords++;
@@ -1100,34 +1114,34 @@ public class MongoDbOutputData extends BaseStepData implements
 
       MongoDbOutputMeta.MongoField mf = new MongoDbOutputMeta.MongoField();
 
-      mf.m_incomingFieldName = "field1";
-      mf.m_mongoDocPath = "bob.fred[0].george";
+      mf.m_incomingFieldName = "field1"; //$NON-NLS-1$
+      mf.m_mongoDocPath = "bob.fred[0].george"; //$NON-NLS-1$
       mf.m_useIncomingFieldNameAsMongoFieldName = true;
-      mf.m_modifierUpdateOperation = "$set";
-      mf.m_modifierOperationApplyPolicy = "Insert&Update";
+      mf.m_modifierUpdateOperation = "$set"; //$NON-NLS-1$
+      mf.m_modifierOperationApplyPolicy = "Insert&Update"; //$NON-NLS-1$
       paths.add(mf);
 
       mf = new MongoDbOutputMeta.MongoField();
-      mf.m_incomingFieldName = "field2";
-      mf.m_mongoDocPath = "bob.fred[0].george";
+      mf.m_incomingFieldName = "field2"; //$NON-NLS-1$
+      mf.m_mongoDocPath = "bob.fred[0].george"; //$NON-NLS-1$
       mf.m_useIncomingFieldNameAsMongoFieldName = true;
-      mf.m_modifierUpdateOperation = "$set";
-      mf.m_modifierOperationApplyPolicy = "Insert&Update";
+      mf.m_modifierUpdateOperation = "$set"; //$NON-NLS-1$
+      mf.m_modifierOperationApplyPolicy = "Insert&Update"; //$NON-NLS-1$
       paths.add(mf);
 
       RowMetaInterface rmi = new RowMeta();
       ValueMetaInterface vm = new ValueMeta();
-      vm.setName("field1");
+      vm.setName("field1"); //$NON-NLS-1$
       vm.setType(ValueMetaInterface.TYPE_STRING);
       rmi.addValueMeta(vm);
       vm = new ValueMeta();
-      vm.setName("field2");
+      vm.setName("field2"); //$NON-NLS-1$
       vm.setType(ValueMetaInterface.TYPE_STRING);
       rmi.addValueMeta(vm);
 
       Object[] row = new Object[2];
-      row[0] = "value1";
-      row[1] = "value2";
+      row[0] = "value1"; //$NON-NLS-1$
+      row[1] = "value2"; //$NON-NLS-1$
       VariableSpace vs = new Variables();
 
       DBObject result = new MongoDbOutputData().getModifierUpdateObject(paths,
