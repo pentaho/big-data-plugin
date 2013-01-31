@@ -67,6 +67,12 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
   /** Holds a batch */
   protected List<DBObject> m_batch;
 
+  /**
+   * When inserting incoming JSON docs holds the index of the incoming field
+   * that contains the JSON doc to be inserted
+   */
+  protected int m_jsonDocIndex = -1;
+
   public MongoDbOutput(StepMeta stepMeta, StepDataInterface stepDataInterface,
       int copyNr, TransMeta transMeta, Trans trans) {
     super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
@@ -133,6 +139,7 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
       RowMetaInterface rmi = getInputRowMeta();
       List<MongoDbOutputMeta.MongoField> mongoFields = m_meta.getMongoFields();
       List<String> notToBeInserted = new ArrayList<String>();
+
       for (int i = 0; i < rmi.size(); i++) {
         ValueMetaInterface vm = rmi.getValueMeta(i);
         boolean ok = false;
@@ -213,7 +220,9 @@ public class MongoDbOutput extends BaseStep implements StepInterface {
                   "MongoDbOutput.Messages.Debug.InsertUpsertObject",
                   insertUpdate));
             }
+
           } else {
+
             // specific field update or insert
             insertUpdate = m_data.getModifierUpdateObject(m_data.m_userFields,
                 getInputRowMeta(), row, this, m_mongoTopLevelStructure);
