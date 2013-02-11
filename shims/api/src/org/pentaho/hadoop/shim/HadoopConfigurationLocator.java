@@ -139,7 +139,7 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
           DefaultFileSystemManager.class.getSimpleName() + " is required");
     }
     this.fsm = new HadoopConfigurationFileSystemManager(this, fsm);
-    findHadoopConfigurations(baseDir);
+    findHadoopConfigurations(baseDir, activeLocator);
     this.activeLocator = activeLocator;
     initialized = true;
   }
@@ -151,7 +151,7 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
    * @param baseDir Directory to look for Hadoop configurations in
    * @throws ConfigurationException
    */
-  private void findHadoopConfigurations(FileObject baseDir)
+  private void findHadoopConfigurations(FileObject baseDir, ActiveHadoopConfigurationLocator activeLocator)
       throws ConfigurationException {
     configurations = new HashMap<String, HadoopConfiguration>();
     try {
@@ -172,9 +172,12 @@ public class HadoopConfigurationLocator implements HadoopConfigurationProvider {
         }
       })) {
         try {
-          HadoopConfiguration config = loadHadoopConfiguration(f);
-          if (config != null) {
-            configurations.put(config.getIdentifier(), config);
+          // Only load the specified configuration (ID should match the basename, we allow case-insensitivity)
+          if(f.getName().getBaseName().equalsIgnoreCase(activeLocator.getActiveConfigurationId())) {
+            HadoopConfiguration config = loadHadoopConfiguration(f);
+            if (config != null) {
+              configurations.put(config.getIdentifier(), config);
+            }
           }
         } catch (ConfigurationException ex) {
           // Log the error and continue loading additional configurations. A single
