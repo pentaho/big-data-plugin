@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.vfs.FileObject;
 import org.pentaho.di.cluster.SlaveServer;
@@ -686,10 +688,23 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       FileSystem fs = shim.getFileSystem(conf);
       String inputPathS = environmentSubstitute(inputPath);
-      String[] inputPathParts = inputPathS.split(",");
+      
+      // This is a non-elegant way to split the path on commas unless inside curly braces. There should be 
+      // a method in Const and/or a fancy regex for this kind of thing. Instead, find the curly-brace groups
+      // and temporarily replace the commas with a non-sensical string. Then restore the commas after 
+      // splitting the input paths.
+      Matcher m = Pattern.compile("[{][^{]*[}]").matcher(inputPathS);
+      StringBuffer sb = new StringBuffer();
+      while (m.find()) {
+          m.appendReplacement(sb, m.group().replace(",","@!@"));
+      }
+      m.appendTail(sb);
+       
+      String[] inputPathParts = sb.toString().split(",");
+      
       List<Path> paths = new ArrayList<Path>();
       for (String path : inputPathParts) {
-        paths.add(fs.asPath(conf.getDefaultFileSystemURL(), path));
+        paths.add(fs.asPath(conf.getDefaultFileSystemURL(), path.replaceAll("@!@", ",")));
       }
       Path[] finalPaths = paths.toArray(new Path[paths.size()]);
 
