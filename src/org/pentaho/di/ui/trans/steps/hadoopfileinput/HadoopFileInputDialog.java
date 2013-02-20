@@ -606,8 +606,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 						}
 						else
 						{
-							fileFilters = new String[] {"*.txt;*.csv", "*.csv", "*.txt", "*"};
-							fileFilterNames = new String[] {BaseMessages.getString(BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles"), BaseMessages.getString(BASE_PKG, "System.FileType.CSVFiles"), BaseMessages.getString(BASE_PKG, "System.FileType.TextFiles"), BaseMessages.getString(BASE_PKG, "System.FileType.AllFiles")};
+							fileFilters = new String[] {"*", "*.txt;*.csv", "*.csv", "*.txt"};
+							fileFilterNames = new String[] {BaseMessages.getString(BASE_PKG, "System.FileType.AllFiles"), BaseMessages.getString(BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles"), BaseMessages.getString(BASE_PKG, "System.FileType.CSVFiles"), BaseMessages.getString(BASE_PKG, "System.FileType.TextFiles")};
 						}
 						
 						// Get current file
