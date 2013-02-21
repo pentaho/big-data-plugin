@@ -664,12 +664,12 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       conf.setMapRunnerClass(shim.getPentahoMapReduceMapRunnerClass());
 
       if(inputFormatClass != null) {
-        String inputFormatClassS = environmentSubstitute(inputFormatClass);
+        String inputFormatClassS = environmentSubstitute(inputFormatClass).trim();
         Class<?> inputFormat = loader.loadClass(inputFormatClassS);
         conf.setInputFormat(inputFormat);
       }
       if(outputFormatClass != null) {
-        String outputFormatClassS = environmentSubstitute(outputFormatClass);
+        String outputFormatClassS = environmentSubstitute(outputFormatClass).trim();
         Class<?> outputFormat = loader.loadClass(outputFormatClassS);
         conf.setOutputFormat(outputFormat);
       }
