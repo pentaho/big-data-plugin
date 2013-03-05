@@ -31,6 +31,8 @@
       changing="true" />
     <dependency org="pentaho-kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
+    <dependency org="pentaho-kettle" name="kettle5-log4j-plugin" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
+      changing="true" />
 
     <!-- pentaho-xul-framework must match JARs required by kettle-ui-swt -->
     <!-- this manual sync should go away once this project is propertly ivy-ized -->
