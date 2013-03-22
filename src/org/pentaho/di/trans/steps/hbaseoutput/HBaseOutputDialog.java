@@ -113,6 +113,9 @@ public class HBaseOutputDialog extends BaseStepDialog implements
   private Button m_mappingNamesBut;
   private CCombo m_mappingNamesCombo;
 
+  /** Store the mapping information in the step's meta data */
+  private Button m_storeMappingInStepMetaData;
+
   // Disable write to WAL check box
   private Button m_disableWriteToWALBut;
 
@@ -475,6 +478,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements
 
         m_mappingNamesCombo.setToolTipText(transMeta
             .environmentSubstitute(m_mappingNamesCombo.getText()));
+        m_storeMappingInStepMetaData.setSelection(false);
       }
     });
     fd = new FormData();
@@ -482,6 +486,27 @@ public class HBaseOutputDialog extends BaseStepDialog implements
     fd.top = new FormAttachment(m_mappedTableNamesCombo, margin);
     fd.right = new FormAttachment(m_mappingNamesBut, -margin);
     m_mappingNamesCombo.setLayoutData(fd);
+
+    // store mapping in meta data
+    Label storeMapping = new Label(wConfigComp, SWT.RIGHT);
+    storeMapping.setText(BaseMessages.getString(HBaseOutputMeta.PKG,
+        "HBaseOutputDialog.StoreMapping.Label"));
+    storeMapping.setToolTipText(BaseMessages.getString(HBaseOutputMeta.PKG,
+        "HBaseOutputDialog.StoreMapping.TipText"));
+    props.setLook(storeMapping);
+    fd = new FormData();
+    fd.left = new FormAttachment(0, 0);
+    fd.top = new FormAttachment(m_mappingNamesCombo, margin);
+    fd.right = new FormAttachment(middle, -margin);
+    storeMapping.setLayoutData(fd);
+
+    m_storeMappingInStepMetaData = new Button(wConfigComp, SWT.CHECK);
+    props.setLook(m_storeMappingInStepMetaData);
+    fd = new FormData();
+    fd.right = new FormAttachment(100, 0);
+    fd.left = new FormAttachment(middle, 0);
+    fd.top = new FormAttachment(m_mappingNamesCombo, margin);
+    m_storeMappingInStepMetaData.setLayoutData(fd);
 
     // disable write to WAL
     Label disableWALLab = new Label(wConfigComp, SWT.RIGHT);
@@ -492,7 +517,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements
     props.setLook(disableWALLab);
     fd = new FormData();
     fd.left = new FormAttachment(0, 0);
-    fd.top = new FormAttachment(m_mappingNamesCombo, margin);
+    fd.top = new FormAttachment(m_storeMappingInStepMetaData, margin);
     fd.right = new FormAttachment(middle, -margin);
     disableWALLab.setLayoutData(fd);
 
@@ -502,7 +527,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements
     props.setLook(m_disableWriteToWALBut);
     fd = new FormData();
     fd.left = new FormAttachment(middle, 0);
-    fd.top = new FormAttachment(m_mappingNamesCombo, margin);
+    fd.top = new FormAttachment(m_storeMappingInStepMetaData, margin);
     // fd.right = new FormAttachment(middle, -margin);
     m_disableWriteToWALBut.setLayoutData(fd);
 
@@ -645,38 +670,75 @@ public class HBaseOutputDialog extends BaseStepDialog implements
 
     updateMetaConnectionDetails(m_currentMeta);
 
-    if (Const.isEmpty(m_mappingNamesCombo.getText())) {
-      List<String> problems = new ArrayList<String>();
-      Mapping toSet = m_mappingEditor.getMapping(false, problems);
-      if (problems.size() > 0) {
-        StringBuffer p = new StringBuffer();
-        for (String s : problems) {
-          p.append(s).append("\n");
+    if (m_storeMappingInStepMetaData.getSelection()) {
+      if (Const.isEmpty(m_mappingNamesCombo.getText())) {
+        List<String> problems = new ArrayList<String>();
+        Mapping toSet = m_mappingEditor.getMapping(false, problems);
+        if (problems.size() > 0) {
+          StringBuffer p = new StringBuffer();
+          for (String s : problems) {
+            p.append(s).append("\n");
+          }
+          MessageDialog md = new MessageDialog(
+              shell,
+              BaseMessages.getString(HBaseOutputMeta.PKG,
+                  "HBaseOutputDialog.Error.IssuesWithMapping.Title"),
+              null,
+              BaseMessages.getString(HBaseOutputMeta.PKG,
+                  "HBaseOutputDialog.Error.IssuesWithMapping")
+                  + ":\n\n"
+                  + p.toString(),
+              MessageDialog.WARNING,
+              new String[] {
+                  BaseMessages.getString(HBaseOutputMeta.PKG,
+                      "HBaseOutputDialog.Error.IssuesWithMapping.ButtonOK"),
+                  BaseMessages.getString(HBaseOutputMeta.PKG,
+                      "HBaseOutputDialog.Error.IssuesWithMapping.ButtonCancel") },
+              0);
+          MessageDialog.setDefaultImage(GUIResource.getInstance()
+              .getImageSpoon());
+          int idx = md.open() & 0xFF;
+          if (idx == 1 || idx == 255 /* 255 = escape pressed */) {
+            return; // Cancel
+          }
         }
-        MessageDialog md = new MessageDialog(
-            shell,
-            BaseMessages.getString(HBaseOutputMeta.PKG,
-                "HBaseOutputDialog.Error.IssuesWithMapping.Title"),
-            null,
-            BaseMessages.getString(HBaseOutputMeta.PKG,
-                "HBaseOutputDialog.Error.IssuesWithMapping")
-                + ":\n\n"
-                + p.toString(),
-            MessageDialog.WARNING,
-            new String[] {
-                BaseMessages.getString(HBaseOutputMeta.PKG,
-                    "HBaseOutputDialog.Error.IssuesWithMapping.ButtonOK"),
-                BaseMessages.getString(HBaseOutputMeta.PKG,
-                    "HBaseOutputDialog.Error.IssuesWithMapping.ButtonCancel") },
-            0);
-        MessageDialog
-            .setDefaultImage(GUIResource.getInstance().getImageSpoon());
-        int idx = md.open() & 0xFF;
-        if (idx == 1 || idx == 255 /* 255 = escape pressed */) {
-          return; // Cancel
+        m_currentMeta.setMapping(toSet);
+      } else {
+        MappingAdmin admin = new MappingAdmin();
+        try {
+          HBaseConnection connection = getHBaseConnection();
+          admin.setConnection(connection);
+          Mapping current = null;
+
+          current = admin.getMapping(transMeta
+              .environmentSubstitute(m_mappedTableNamesCombo.getText()),
+              transMeta.environmentSubstitute(m_mappingNamesCombo.getText()));
+
+          m_currentMeta.setMapping(current);
+          m_currentMeta.setTargetMappingName("");
+        } catch (Exception e) {
+          logError(
+              Messages.getString("HBaseOutputDialog.ErrorMessage.UnableToGetMapping")
+                  + " \""
+                  + transMeta.environmentSubstitute(m_mappedTableNamesCombo
+                      .getText()
+                      + ","
+                      + transMeta.environmentSubstitute(m_mappingNamesCombo
+                          .getText()) + "\""), e);
+          new ErrorDialog(
+              shell,
+              Messages
+                  .getString("HBaseOutputDialog.ErrorMessage.UnableToGetMapping"),
+              Messages
+                  .getString("HBaseOutputDialog.ErrorMessage.UnableToGetMapping")
+                  + " \""
+                  + transMeta.environmentSubstitute(m_mappedTableNamesCombo
+                      .getText()
+                      + ","
+                      + transMeta.environmentSubstitute(m_mappingNamesCombo
+                          .getText()) + "\""), e);
         }
       }
-      m_currentMeta.setMapping(toSet);
     } else {
       // we're going to use a mapping stored in HBase - null out any stored
       // mapping
@@ -741,6 +803,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements
     if (Const.isEmpty(m_currentMeta.getTargetMappingName())
         && m_currentMeta.getMapping() != null) {
       m_mappingEditor.setMapping(m_currentMeta.getMapping());
+      m_storeMappingInStepMetaData.setSelection(true);
     }
   }
 
