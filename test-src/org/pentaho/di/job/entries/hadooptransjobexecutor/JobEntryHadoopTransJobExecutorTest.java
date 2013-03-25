@@ -72,12 +72,12 @@ public class JobEntryHadoopTransJobExecutorTest {
 
     Map<Class<?>, String> inputClassMap = new HashMap<Class<?>, String>();
     inputClassMap.put(mainClassTypesAnnotation.value(), HadoopEnterMeta.class.getName());
-    PluginInterface inputStepPlugin = new Plugin(new String[]{"HadoopEnterPlugin"}, StepPluginType.class, mainClassTypesAnnotation.value(), "Hadoop", "MapReduce Input", "Enter a Hadoop Mapper or Reducer transformation", "MRI.png", false, false, inputClassMap, new ArrayList<String>(), null, null, null, null, null);
+    PluginInterface inputStepPlugin = new Plugin(new String[]{"HadoopEnterPlugin"}, StepPluginType.class, mainClassTypesAnnotation.value(), "Hadoop", "MapReduce Input", "Enter a Hadoop Mapper or Reducer transformation", "MRI.png", false, false, inputClassMap, new ArrayList<String>(), null, null);
     PluginRegistry.getInstance().registerPlugin(StepPluginType.class, inputStepPlugin);
 
     Map<Class<?>, String> outputClassMap = new HashMap<Class<?>, String>();
     outputClassMap.put(mainClassTypesAnnotation.value(), HadoopExitMeta.class.getName());
-    PluginInterface outputStepPlugin = new Plugin(new String[]{"HadoopExitPlugin"}, StepPluginType.class, mainClassTypesAnnotation.value(), "Hadoop", "MapReduce Output", "Exit a Hadoop Mapper or Reducer transformation", "MRO.png", false, false, outputClassMap, new ArrayList<String>(), null, null, null, null, null);
+    PluginInterface outputStepPlugin = new Plugin(new String[]{"HadoopExitPlugin"}, StepPluginType.class, mainClassTypesAnnotation.value(), "Hadoop", "MapReduce Output", "Exit a Hadoop Mapper or Reducer transformation", "MRO.png", false, false, outputClassMap, new ArrayList<String>(), null, null);
     PluginRegistry.getInstance().registerPlugin(StepPluginType.class, outputStepPlugin);
 
   }
