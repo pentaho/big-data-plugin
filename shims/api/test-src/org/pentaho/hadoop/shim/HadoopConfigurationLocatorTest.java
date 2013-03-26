@@ -123,7 +123,7 @@ public class HadoopConfigurationLocatorTest {
   @Test
   public void init() throws FileSystemException, ConfigurationException {
     HadoopConfigurationLocator locator = new HadoopConfigurationLocator();
-    locator.init(VFS.getManager().resolveFile(HADOOP_CONFIGURATIONS_PATH), new MockActiveHadoopConfigurationLocator(),
+    locator.init(VFS.getManager().resolveFile(HADOOP_CONFIGURATIONS_PATH), new MockActiveHadoopConfigurationLocator("a"),
         new DefaultFileSystemManager());
 
     assertEquals(1, locator.getConfigurations().size());
@@ -133,7 +133,7 @@ public class HadoopConfigurationLocatorTest {
   @Test
   public void hasConfiguration() throws Exception {
     HadoopConfigurationLocator locator = new HadoopConfigurationLocator();
-    locator.init(VFS.getManager().resolveFile(HADOOP_CONFIGURATIONS_PATH), new MockActiveHadoopConfigurationLocator(),
+    locator.init(VFS.getManager().resolveFile(HADOOP_CONFIGURATIONS_PATH), new MockActiveHadoopConfigurationLocator("a"),
         new DefaultFileSystemManager());
 
     assertTrue(locator.hasConfiguration("a"));
@@ -148,7 +148,7 @@ public class HadoopConfigurationLocatorTest {
   @Test
   public void getConfiguration() throws Exception {
     HadoopConfigurationLocator locator = new HadoopConfigurationLocator();
-    locator.init(VFS.getManager().resolveFile(HADOOP_CONFIGURATIONS_PATH), new MockActiveHadoopConfigurationLocator(),
+    locator.init(VFS.getManager().resolveFile(HADOOP_CONFIGURATIONS_PATH), new MockActiveHadoopConfigurationLocator("a"),
         new DefaultFileSystemManager());
 
     HadoopConfiguration a = locator.getConfiguration("a");
@@ -295,7 +295,7 @@ public class HadoopConfigurationLocatorTest {
     });
     logger.setLevel(Level.DEBUG);
 
-    locator.init(root, new MockActiveHadoopConfigurationLocator(), new DefaultFileSystemManager());
+    locator.init(root, new MockActiveHadoopConfigurationLocator("a"), new DefaultFileSystemManager());
     assertEquals(0, locator.getConfigurations().size());
     assertEquals(2, logEvents.size());
     assertEquals(Level.WARN, logEvents.get(0).getLevel());
