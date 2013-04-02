@@ -1266,7 +1266,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         "schema_in_field_is_path");
     m_cacheSchemasInMemory = rep.getStepAttributeBoolean(id_step, 0,
         "cache_schemas");
-    m_dontComplainAboutMissingFields = rep.getStepAttributeBoolean(id_step,
+    m_dontComplainAboutMissingFields = rep.getStepAttributeBoolean(id_step, 0,
         "ignore_missing_fields");
 
     int nrfields = rep.countNrStepAttributes(id_step, "field_name");
