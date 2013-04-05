@@ -32,6 +32,8 @@
     <dependency org="pentaho-kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
 
+    <dependency org="pentaho" name="metastore" rev="${dependency.metastore.revision}" changing="true" transitive="false" conf="default->default"/>
+    
     <!-- pentaho-xul-framework must match JARs required by kettle-ui-swt -->
     <!-- this manual sync should go away once this project is propertly ivy-ized -->
 

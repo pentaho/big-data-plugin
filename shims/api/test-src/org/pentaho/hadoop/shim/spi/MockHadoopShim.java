@@ -76,6 +76,11 @@ public class MockHadoopShim implements HadoopShim {
   public Driver getHiveJdbcDriver() {
     return null;
   }
+  
+  @Override
+  public Driver getJdbcDriver(String driverType) {
+    return null;
+  }
 
   @Override
   public void configureConnectionInformation(String namenodeHost, String namenodePort, String jobtrackerHost,

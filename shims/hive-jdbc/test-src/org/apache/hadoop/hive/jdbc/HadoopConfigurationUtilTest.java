@@ -37,6 +37,7 @@ import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
+import org.pentaho.hadoop.hive.jdbc.HadoopConfigurationUtil;
 
 /**
  * A mixture of unit and integration tests for {@link HadoopConfigurationUtil}

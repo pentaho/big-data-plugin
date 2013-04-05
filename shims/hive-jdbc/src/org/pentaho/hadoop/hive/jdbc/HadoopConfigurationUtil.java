@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.apache.hadoop.hive.jdbc;
+package org.pentaho.hadoop.hive.jdbc;
 
 import java.lang.reflect.Method;
 

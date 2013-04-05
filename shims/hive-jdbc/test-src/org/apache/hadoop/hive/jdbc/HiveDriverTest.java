@@ -33,6 +33,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
+import org.pentaho.hadoop.hive.jdbc.HadoopConfigurationUtil;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.MockHadoopShim;
 
