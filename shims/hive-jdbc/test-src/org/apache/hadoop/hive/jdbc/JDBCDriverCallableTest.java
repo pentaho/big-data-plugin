@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import org.junit.Test;
+import org.pentaho.hadoop.hive.jdbc.JDBCDriverCallable;
 
 public class JDBCDriverCallableTest {
 
