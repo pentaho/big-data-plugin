@@ -50,9 +50,20 @@ public interface HadoopShim extends PentahoHadoopShim {
    * Retrieve a JDBC driver capable of querying Hive for the version of Hadoop
    * this shim abstracts.
    *  
+   * @deprecated  Replaced by {@link #getJdbcDriver(String driverType)}
+   * 
    * @return a valid Hive JDBC driver
    */
+  @Deprecated
   Driver getHiveJdbcDriver();
+  
+  /**
+   * Retrieve a JDBC driver for the specified service for the version of Hadoop
+   * this shim abstracts.
+   *  
+   * @return a valid JDBC driver
+   */
+  Driver getJdbcDriver(String driverType);
 
   /**
    * This is executed once the shim has been loaded. It provides a way for

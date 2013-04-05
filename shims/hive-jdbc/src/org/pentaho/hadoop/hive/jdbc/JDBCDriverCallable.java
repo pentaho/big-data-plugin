@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.apache.hadoop.hive.jdbc;
+package org.pentaho.hadoop.hive.jdbc;
 
 import java.sql.Driver;
 import java.sql.SQLException;
