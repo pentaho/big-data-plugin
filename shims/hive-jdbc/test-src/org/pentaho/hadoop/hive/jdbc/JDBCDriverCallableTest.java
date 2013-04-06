@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.apache.hadoop.hive.jdbc;
+package org.pentaho.hadoop.hive.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
