@@ -61,7 +61,7 @@ public class HadoopConfigurationUtil {
   // public HadoopShim HadoopConfiguration#getHadoopShim()
   private Method getHadoopShim;
 
-  protected ClassLoader findBigDataPluginClassLoader() throws Exception {
+  ClassLoader findBigDataPluginClassLoader() throws Exception {
     Method findPluginById = null;
     Object pluginRegistry = null;
     Method getClassLoader = null;
