@@ -100,7 +100,7 @@ public class HiveDriver implements java.sql.Driver {
     try {
       Object shim = util.getActiveHadoopShim();
       // public Driver HadoopShim#getHiveJdbcDriver()
-      Method getHiveJdbcDriver = shim.getClass().getMethod(METHOD_GET_JDBC_DRIVER);
+      Method getHiveJdbcDriver = shim.getClass().getMethod(METHOD_GET_JDBC_DRIVER, String.class);
       driver = (Driver) getHiveJdbcDriver.invoke(shim, METHOD_JDBC_PARAM);
     } catch (Exception ex) {
       throw new SQLException("Unable to load Hive JDBC driver for the currently active Hadoop configuration", ex);
