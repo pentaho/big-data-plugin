@@ -42,8 +42,8 @@ public class HiveDriverTest {
   private HadoopShim getMockShimWithDriver(final Driver driver) {
     return new MockHadoopShim() {
       @Override
-      public Driver getHiveJdbcDriver() {
-        return driver;
+      public Driver getJdbcDriver(String scheme) {
+        return scheme.equalsIgnoreCase("hive") ? driver : null;
       }
     };
   }
@@ -66,22 +66,31 @@ public class HiveDriverTest {
   public void getActiveDriver() throws SQLException {
     final AtomicBoolean called = new AtomicBoolean(false);
     HadoopShim shim = new MockHadoopShim() {
-      public java.sql.Driver getHiveJdbcDriver() {
-        called.set(true);
-        return new MockDriver();
-      };
+      
+      public java.sql.Driver getJdbcDriver(String scheme) {
+        if(scheme.equalsIgnoreCase("hive")) {
+          called.set(true);
+          return new MockDriver();
+        }
+        else return null;
+      }
     };
     HiveDriver d = new HiveDriver(getMockUtil(shim));
     d.getActiveDriver();
-    assertTrue("Shim's getHiveJdbcDriver() not called", called.get());
+    assertTrue("Shim's getJdbcDriver(\"hive\") not called", called.get());
   }
 
   @Test
-  public void getActiveDriver_exception_in_getHiveJdbcDriver() {
+  public void getActiveDriver_exception_in_getJdbcDriver() {
     HadoopShim shim = new MockHadoopShim() {
-      public java.sql.Driver getHiveJdbcDriver() {
-        throw new RuntimeException();
-      };
+      public java.sql.Driver getJdbcDriver(String scheme) {
+        if(scheme.equalsIgnoreCase("hive")) {
+          throw new RuntimeException();
+        } 
+        else {
+          return null;
+        }
+      }
     };
     HiveDriver d = new HiveDriver(getMockUtil(shim));
 
@@ -97,9 +106,9 @@ public class HiveDriverTest {
   @Test
   public void getActiveDriver_null_driver() {
     HadoopShim shim = new MockHadoopShim() {
-      public java.sql.Driver getHiveJdbcDriver() {
+      public java.sql.Driver getJdbcDriver(String scheme) {
         return null;
-      };
+      }
     };
     HiveDriver d = new HiveDriver(getMockUtil(shim));
 
@@ -115,11 +124,11 @@ public class HiveDriverTest {
   @Test
   public void getActiveDriver_same_driver() {
     HadoopShim shim = new MockHadoopShim() {
-      public java.sql.Driver getHiveJdbcDriver() {
-        // Return another shim driver. This should fail when called since the
+      public java.sql.Driver getJdbcDriver(String scheme) {
+     // Return another shim driver. This should fail when called since the
         // classes are the same
-        return new HiveDriver();
-      };
+        return (scheme.equalsIgnoreCase("hive")) ? new HiveDriver() : null;
+      }
     };
     HiveDriver d = new HiveDriver(getMockUtil(shim));
 
