@@ -117,4 +117,8 @@ public class DeserializedNumericComparator extends WritableByteArrayComparable {
     Double d = new Double(m_doubleValue);
     return d.compareTo(compV);        
   }
+  
+  public int compareTo(byte[] value, int offset, int length) {
+    return compareTo(value);
+  }
 }
