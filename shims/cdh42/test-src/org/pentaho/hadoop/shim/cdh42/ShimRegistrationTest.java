@@ -20,14 +20,13 @@
  *
  ******************************************************************************/
 
-package org.pentaho.hadoop.shim.cdh4;
+package org.pentaho.hadoop.shim.cdh42;
 
 import static org.junit.Assert.assertTrue;
 
 import java.util.ServiceLoader;
 
 import org.junit.Test;
-import org.pentaho.hadoop.shim.cdh42.org;
 import org.pentaho.hadoop.shim.common.CommonPigShim;
 import org.pentaho.hadoop.shim.common.CommonSqoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
