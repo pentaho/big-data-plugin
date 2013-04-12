@@ -62,7 +62,7 @@ public class CommonHadoopShim implements HadoopShim {
   
   @SuppressWarnings("serial")
   protected static Map<String,Class<? extends Driver>> JDBC_DRIVER_MAP = new HashMap<String,Class<? extends Driver>>() {{
-    put("hive",org.apache.hadoop.hive.jdbc.HiveDriver.class);  
+    put("hive",org.apache.hadoop.hive.jdbc.HiveDriver.class); 
   }};
   
   @Override
