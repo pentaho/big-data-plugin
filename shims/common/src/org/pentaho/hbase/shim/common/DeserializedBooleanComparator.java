@@ -92,6 +92,10 @@ public class DeserializedBooleanComparator extends WritableByteArrayComparable {
     return 0;
   }
   
+  public int compareTo(byte[] value, int offset, int length) {
+    return compareTo(value);
+  }
+  
   public static Boolean decodeBoolFromString(byte[] rawEncoded) {
     String tempString = Bytes.toString(rawEncoded);
     if (tempString.equalsIgnoreCase("Y") || tempString.equalsIgnoreCase("N") ||
