@@ -68,7 +68,7 @@ public class HiveDriverTest {
     HadoopShim shim = new MockHadoopShim() {
       
       public java.sql.Driver getJdbcDriver(String scheme) {
-        if(scheme.equalsIgnoreCase("hive")) {
+        if(scheme.equalsIgnoreCase("hive2")) {
           called.set(true);
           return new MockDriver();
         }
@@ -77,7 +77,7 @@ public class HiveDriverTest {
     };
     HiveDriver d = new HiveDriver(getMockUtil(shim));
     d.getActiveDriver();
-    assertTrue("Shim's getJdbcDriver(\"hive\") not called", called.get());
+    assertTrue("Shim's getJdbcDriver(\"hive2\") not called", called.get());
   }
 
   @Test
@@ -99,7 +99,7 @@ public class HiveDriverTest {
       fail("Expected exception");
     } catch (SQLException ex) {
       assertEquals(InvocationTargetException.class, ex.getCause().getClass());
-      assertEquals("Unable to load Hive JDBC driver for the currently active Hadoop configuration", ex.getMessage());
+      assertEquals("Unable to load Hive Server 2 JDBC driver for the currently active Hadoop configuration", ex.getMessage());
     }
   }
 
@@ -117,7 +117,7 @@ public class HiveDriverTest {
       fail("Expected exception");
     } catch (SQLException ex) {
       assertNull(ex.getCause());
-      assertEquals("The active Hadoop configuration does not contain a Hive JDBC driver", ex.getMessage());
+      assertEquals("The active Hadoop configuration does not contain a Hive Server 2 JDBC driver", ex.getMessage());
     }
   }
 
@@ -137,7 +137,7 @@ public class HiveDriverTest {
       fail("Expected exception");
     } catch (SQLException ex) {
       assertNull(ex.getCause());
-      assertEquals("The active Hadoop configuration does not contain a Hive JDBC driver", ex.getMessage());
+      assertEquals("The active Hadoop configuration does not contain a Hive Server 2 JDBC driver", ex.getMessage());
     }
   }
 
