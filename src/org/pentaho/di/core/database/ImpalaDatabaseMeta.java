@@ -24,6 +24,7 @@ package org.pentaho.di.core.database;
 
 import java.sql.Driver;
 
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -31,11 +32,12 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 @DatabaseMetaPlugin(type="IMPALA", typeDescription="Impala")
 
 public class ImpalaDatabaseMeta 
-       extends BaseDatabaseMeta implements 
+       extends Hive2DatabaseMeta implements 
        DatabaseInterface {
 
-  protected final static String JAR_FILE = "hive-jdbc-0.10.0-pentaho.jar";
+  protected final static String JAR_FILE = "hive-jdbc-cdh4.2.0-release-pentaho.jar";
   protected final static String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
+  protected final static int DEFAULT_PORT = 21050;
     
     protected Integer driverMajorVersion;
     protected Integer driverMinorVersion;
@@ -159,8 +161,12 @@ public class ImpalaDatabaseMeta
     @Override
     public String getURL(String hostname, String port, String databaseName)
             throws KettleDatabaseException {
+      
+      if(Const.isEmpty(port)) {
+        Integer.toString(getDefaultDatabasePort());
+      }
 
-      return "jdbc:hive2://"+hostname+":"+port+"/"+databaseName;
+      return "jdbc:hive2://"+hostname+":"+port+"/"+databaseName+";auth=noSasl";
     }
 
     @Override
@@ -256,5 +262,10 @@ public class ImpalaDatabaseMeta
      */
     public String getEndQuote() {
       return "";
+    }
+    
+    @Override
+    public int getDefaultDatabasePort() {
+      return DEFAULT_PORT;
     }
 }
