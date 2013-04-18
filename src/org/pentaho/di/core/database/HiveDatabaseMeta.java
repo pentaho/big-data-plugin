@@ -256,4 +256,13 @@ public class HiveDatabaseMeta
     public String getEndQuote() {
       return "";
     }
+    
+    /**
+     * @return a list of table types to retrieve tables for the database
+     */
+    @Override
+    public String[] getTableTypes()
+    {
+      return new String[] { "TABLE", "EXTERNAL TABLE" };
+    }
 }
