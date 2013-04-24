@@ -25,8 +25,6 @@
 
     <dependency org="pentaho-kettle" name="kettle-engine" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
-    <dependency org="pentaho-kettle" name="kettle-db" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
-      changing="true" />
     <dependency org="pentaho-kettle" name="kettle-core" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
     <dependency org="pentaho-kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
@@ -115,6 +113,7 @@
     <dependency org="pentaho" name="pentaho-hadoop-shims-hadoop-20" rev="${project.revision}" conf="test->default" changing="true" />
     <dependency org="pentaho" name="pentaho-hadoop-shims-hadoop-20-mapred" rev="${project.revision}" conf="test->default" changing="true" />
     <dependency org="org.jboss.shrinkwrap" name="shrinkwrap-impl-base" rev="1.0.0-alpha-12" conf="test->default" />
+    <dependency org="org.owasp.esapi" name="esapi" rev="2.0.1" transitive="false" conf="test->default" />
 
     <!--                                                                                              -->
     <!--                                                                                              -->

@@ -25,11 +25,10 @@ package org.pentaho.hadoop.mapreduce;
 import com.thoughtworks.xstream.XStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.*;
-import org.apache.log4j.Level;
-import org.apache.log4j.spi.LoggingEvent;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.CentralLogStore;
+import org.pentaho.di.core.logging.KettleLoggingEvent;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -420,11 +419,11 @@ public class PentahoMapRunnable<K1, V1, K2, V2> implements MapRunnable<K1, V1, K
             setDebugStatus(reporter, "Mapper transformation has finished");
             if (trans.getErrors() > 0) {
               setDebugStatus("Errors detected for mapper transformation");
-              List<LoggingEvent> logList = CentralLogStore.getLogBufferFromTo(trans.getLogChannelId(), false, 0, CentralLogStore.getLastBufferLineNr());
+              List<KettleLoggingEvent> logList = CentralLogStore.getLogBufferFromTo(trans.getLogChannelId(), false, 0, CentralLogStore.getLastBufferLineNr());
 
               StringBuffer buff = new StringBuffer();
-              for (LoggingEvent le : logList) {
-                if (le.getLevel() == Level.ERROR) {
+              for (KettleLoggingEvent le : logList) {
+                if (le.getLevel() == LogLevel.ERROR) {
                   buff.append(le.getMessage().toString()).append("\n");
                 }
               }
