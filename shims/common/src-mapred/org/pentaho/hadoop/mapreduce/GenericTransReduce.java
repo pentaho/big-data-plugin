@@ -34,7 +34,7 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.logging.CentralLogStore;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.KettleLoggingEvent;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMeta;
@@ -136,7 +136,7 @@ public class GenericTransReduce<K extends WritableComparable<?>, V extends Itera
         
         // Clean up old logging
         //
-        CentralLogStore.discardLines(trans.getLogChannelId(), true);
+        KettleLogStore.discardLines(trans.getLogChannelId(), true);
         
         // Create a copy of trans so we don't continue to add new TransListeners and run into a ConcurrentModificationException
         // when this reducer is reused "quickly"
@@ -162,7 +162,7 @@ public class GenericTransReduce<K extends WritableComparable<?>, V extends Itera
       if (trans.getErrors() > 0) {
         setDebugStatus(reporter, "Errors detected in reducer/combiner transformation");
         
-        List<KettleLoggingEvent> logList = CentralLogStore.getLogBufferFromTo(trans.getLogChannelId(), false, 0, CentralLogStore.getLastBufferLineNr());
+        List<KettleLoggingEvent> logList = KettleLogStore.getLogBufferFromTo(trans.getLogChannelId(), false, 0, KettleLogStore.getLastBufferLineNr());
 
         StringBuffer buff = new StringBuffer();
         for (KettleLoggingEvent le : logList) {
@@ -365,7 +365,7 @@ public class GenericTransReduce<K extends WritableComparable<?>, V extends Itera
       
       // Clean up old log lines
       //
-      CentralLogStore.discardLines(trans.getLogChannelId(), true);
+      KettleLogStore.discardLines(trans.getLogChannelId(), true);
       
     }
     

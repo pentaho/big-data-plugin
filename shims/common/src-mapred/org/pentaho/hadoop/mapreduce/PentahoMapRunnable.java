@@ -27,7 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.*;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.logging.CentralLogStore;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.KettleLoggingEvent;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.row.RowMeta;
@@ -301,7 +301,7 @@ public class PentahoMapRunnable<K1, V1, K2, V2> implements MapRunnable<K1, V1, K
         throw new RuntimeException("Error initializing transformation.  See error log."); //$NON-NLS-1$
       } else {
         // Clean up old logging
-        CentralLogStore.discardLines(trans.getLogChannelId(), true);
+        KettleLogStore.discardLines(trans.getLogChannelId(), true);
       }
       
       // Create a copy of trans so we don't continue to add new TransListeners and run into a ConcurrentModificationException
@@ -419,7 +419,7 @@ public class PentahoMapRunnable<K1, V1, K2, V2> implements MapRunnable<K1, V1, K
             setDebugStatus(reporter, "Mapper transformation has finished");
             if (trans.getErrors() > 0) {
               setDebugStatus("Errors detected for mapper transformation");
-              List<KettleLoggingEvent> logList = CentralLogStore.getLogBufferFromTo(trans.getLogChannelId(), false, 0, CentralLogStore.getLastBufferLineNr());
+              List<KettleLoggingEvent> logList = KettleLogStore.getLogBufferFromTo(trans.getLogChannelId(), false, 0, KettleLogStore.getLastBufferLineNr());
 
               StringBuffer buff = new StringBuffer();
               for (KettleLoggingEvent le : logList) {
