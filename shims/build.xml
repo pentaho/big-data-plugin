@@ -43,6 +43,7 @@
           <target name="clean-all" />
           <target name="resolve" />
           <target name="dist" />
+          <target name="publish-local" />
         </ant>
       </sequential>
     </for>
