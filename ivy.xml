@@ -181,7 +181,7 @@
     <dependency org="feed4j" name="feed4j" rev="1.0" conf="pmr->default" transitive="false"/>
     <dependency org="net.sourceforge.nekohtml" name="nekohtml" rev="1.9.7" conf="pmr->default" transitive="false"/>
     <dependency org="janino" name="janino" rev="2.5.16" conf="pmr->default" transitive="false"/>
-    <dependency org="javassist" name="javassist" rev="3.4.GA" conf="pmr->default" transitive="false"/>
+    <dependency org="javassist" name="javassist" rev="3.12.1.GA" conf="pmr->default" transitive="false"/>
     <dependency org="org.scannotation" name="scannotation" rev="1.0.2" conf="pmr->default" transitive="false"/>
     <dependency org="org.syslog4j" name="syslog4j" rev="0.9.34" conf="pmr->default" transitive="false"/>
     <dependency org="ldapjdk" name="ldapjdk" rev="20000524" conf="pmr->default" transitive="false"/>
