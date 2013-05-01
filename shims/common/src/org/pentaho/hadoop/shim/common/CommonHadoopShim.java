@@ -50,6 +50,7 @@ import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.DistributedCacheUtil;
 import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.api.mapred.RunningJob;
+import org.pentaho.hadoop.shim.common.DriverProxyInvocationChain;
 import org.pentaho.hadoop.shim.common.fs.FileSystemProxy;
 import org.pentaho.hadoop.shim.common.mapred.RunningJobProxy;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -62,7 +63,16 @@ public class CommonHadoopShim implements HadoopShim {
   
   @SuppressWarnings("serial")
   protected static Map<String,Class<? extends Driver>> JDBC_DRIVER_MAP = new HashMap<String,Class<? extends Driver>>() {{
-    put("hive",org.apache.hadoop.hive.jdbc.HiveDriver.class); 
+    put("hive",org.apache.hadoop.hive.jdbc.HiveDriver.class);
+    // Check for Hive 2 driver and add if found
+    try {
+      @SuppressWarnings("unchecked")
+      Class<? extends Driver> hive2Driver = (Class<? extends Driver>)Class.forName("org.apache.hive.jdbc.HiveDriver");
+      if(hive2Driver != null) {
+        put("hive2",hive2Driver);
+      }
+    }
+    catch(Exception e) { }
   }};
   
   @Override
@@ -95,7 +105,9 @@ public class CommonHadoopShim implements HadoopShim {
     try {
       Class<? extends Driver> clazz = JDBC_DRIVER_MAP.get(driverType);
       if(clazz != null) {
-        return clazz.newInstance();
+        Driver newInstance = clazz.newInstance();
+        Driver driverProxy = DriverProxyInvocationChain.getProxy(Driver.class, newInstance);
+        return driverProxy;
       }
       else {
         throw new Exception("JDBC driver of type '"+driverType+"' not supported");
