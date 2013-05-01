@@ -62,6 +62,9 @@
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh42-package" rev="${project.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-cdh42-package" type="zip"/>
     </dependency>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp12-package" rev="${project.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-hdp12-package" type="zip"/>
+    </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr-package" rev="${project.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-mapr-package" type="zip"/>
     </dependency>
