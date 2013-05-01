@@ -173,7 +173,6 @@
     <dependency org="pentaho-kettle" name="kettle-engine" rev="${dependency.kettle.revision}" changing="true"
                 conf="pmr->default"/>
     <dependency org="pentaho-kettle" name="kettle-core" rev="${dependency.kettle.revision}" changing="true" conf="pmr->default"/>
-    <dependency org="pentaho-kettle" name="kettle-db" rev="${dependency.kettle.revision}" changing="true" conf="pmr->default"/>
 
     <dependency org="org.snmp4j" name="snmp4j" rev="1.9.3d" conf="pmr->default" transitive="false"/>
     <dependency org="rome" name="rome" rev="1.0" conf="pmr->default" transitive="false"/>
