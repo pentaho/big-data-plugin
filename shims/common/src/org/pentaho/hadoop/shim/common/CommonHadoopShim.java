@@ -64,15 +64,6 @@ public class CommonHadoopShim implements HadoopShim {
   @SuppressWarnings("serial")
   protected static Map<String,Class<? extends Driver>> JDBC_DRIVER_MAP = new HashMap<String,Class<? extends Driver>>() {{
     put("hive",org.apache.hadoop.hive.jdbc.HiveDriver.class);
-    // Check for Hive 2 driver and add if found
-    try {
-      @SuppressWarnings("unchecked")
-      Class<? extends Driver> hive2Driver = (Class<? extends Driver>)Class.forName("org.apache.hive.jdbc.HiveDriver");
-      if(hive2Driver != null) {
-        put("hive2",hive2Driver);
-      }
-    }
-    catch(Exception e) { }
   }};
   
   @Override
