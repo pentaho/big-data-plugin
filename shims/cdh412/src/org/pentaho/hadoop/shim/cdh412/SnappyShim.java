@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.hadoop.shim.cdh4;
+package org.pentaho.hadoop.shim.cdh412;
 
 import org.apache.hadoop.io.compress.SnappyCodec;
 import org.pentaho.hadoop.shim.common.CommonSnappyShim;
