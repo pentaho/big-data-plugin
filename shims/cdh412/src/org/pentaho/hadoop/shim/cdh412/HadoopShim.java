@@ -25,6 +25,11 @@ package org.pentaho.hadoop.shim.cdh412;
 import org.pentaho.hadoop.shim.common.CommonHadoopShim;
 
 public class HadoopShim extends CommonHadoopShim {
+  
+  static {
+    JDBC_DRIVER_MAP.put("hive2",org.apache.hive.jdbc.HiveDriver.class); 
+  }
+  
   @Override
   protected String getDefaultNamenodePort() {
     return "8020";
