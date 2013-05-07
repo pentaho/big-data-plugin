@@ -77,6 +77,9 @@ public class DriverProxyInvocationChain {
               if("createStatement".equals(methodName)) {
                 o = createStatement(connection,args);
               }
+              else if("setReadOnly".equals(methodName)) {
+                o = (Void)null;
+              }
               else {
                 StringBuffer sb = new StringBuffer("Intercepted ");
                 sb.append(method.getDeclaringClass().getName());
