@@ -265,6 +265,15 @@ public class Hive2DatabaseMeta
     @Override
     public String[] getTableTypes()
     {
-      return new String[] { "TABLE", "EXTERNAL TABLE" };
+      return null;
+    }
+    
+    /**
+     * @return a list of table types to retrieve views for the database
+     */
+    @Override
+    public String[] getViewTypes()
+    {
+      return new String[] {"VIEW", "VIRTUAL_VIEW"};
     }
 }
