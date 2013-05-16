@@ -31,7 +31,7 @@
       changing="true" />
     <dependency org="pentaho-kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
-
+    
     <!-- pentaho-xul-framework must match JARs required by kettle-ui-swt -->
     <!-- this manual sync should go away once this project is propertly ivy-ized -->
 
@@ -50,6 +50,12 @@
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh4-package" rev="${project.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-cdh4-package" type="zip"/>
+    </dependency>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh42-package" rev="${project.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-cdh42-package" type="zip"/>
+    </dependency>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp12-package" rev="${project.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-hdp12-package" type="zip"/>
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr-package" rev="${project.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-mapr-package" type="zip"/>
@@ -108,6 +114,8 @@
     <dependency org="pentaho" name="pentaho-hadoop-shims-hadoop-20" rev="${project.revision}" conf="test->default" changing="true" />
     <dependency org="pentaho" name="pentaho-hadoop-shims-hadoop-20-mapred" rev="${project.revision}" conf="test->default" changing="true" />
     <dependency org="org.jboss.shrinkwrap" name="shrinkwrap-impl-base" rev="1.0.0-alpha-12" conf="test->default" />
+    <dependency org="org.owasp.esapi" name="esapi" rev="2.0.1" transitive="false" conf="test->default;pmr->default" />
+ 
 
     <!--                                                                                              -->
     <!--                                                                                              -->

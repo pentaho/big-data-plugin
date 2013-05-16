@@ -256,4 +256,22 @@ public class HiveDatabaseMeta
     public String getEndQuote() {
       return "";
     }
+    
+    /**
+     * @return a list of table types to retrieve tables for the database
+     */
+    @Override
+    public String[] getTableTypes()
+    {
+      return null;
+    }
+    
+    /**
+     * @return a list of table types to retrieve views for the database
+     */
+    @Override
+    public String[] getViewTypes()
+    {
+      return new String[] {"VIEW", "VIRTUAL_VIEW"};
+    }
 }

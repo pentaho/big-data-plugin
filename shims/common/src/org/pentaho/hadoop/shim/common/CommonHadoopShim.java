@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.sql.Driver;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.hadoop.hive.jdbc.HiveDriver;
 import org.apache.hadoop.io.Writable;
@@ -48,6 +50,7 @@ import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.DistributedCacheUtil;
 import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.api.mapred.RunningJob;
+import org.pentaho.hadoop.shim.common.DriverProxyInvocationChain;
 import org.pentaho.hadoop.shim.common.fs.FileSystemProxy;
 import org.pentaho.hadoop.shim.common.mapred.RunningJobProxy;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -57,6 +60,11 @@ import org.pentaho.hdfs.vfs.HDFSFileProvider;
 public class CommonHadoopShim implements HadoopShim {
 
   private DistributedCacheUtil dcUtil;
+  
+  @SuppressWarnings("serial")
+  protected static Map<String,Class<? extends Driver>> JDBC_DRIVER_MAP = new HashMap<String,Class<? extends Driver>>() {{
+    put("hive",org.apache.hadoop.hive.jdbc.HiveDriver.class);
+  }};
   
   @Override
   public ShimVersion getVersion() {
@@ -80,6 +88,25 @@ public class CommonHadoopShim implements HadoopShim {
       return new HiveDriver();
     } catch (Exception ex) {
       throw new RuntimeException("Unable to load Hive JDBC driver", ex);
+    }
+  }
+  
+  @Override
+  public Driver getJdbcDriver(String driverType) {
+    try {
+      Class<? extends Driver> clazz = JDBC_DRIVER_MAP.get(driverType);
+      if(clazz != null) {
+        Driver newInstance = clazz.newInstance();
+        Driver driverProxy = DriverProxyInvocationChain.getProxy(Driver.class, newInstance);
+        return driverProxy;
+      }
+      else {
+        throw new Exception("JDBC driver of type '"+driverType+"' not supported");
+      }
+      
+      
+    } catch (Exception ex) {
+      throw new RuntimeException("Unable to load JDBC driver of type: "+driverType, ex);
     }
   }
   

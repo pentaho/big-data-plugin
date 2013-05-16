@@ -17,8 +17,8 @@
     <dependency conf="test->default" org="pentaho-kettle" name="kettle-engine" rev="${dependency.kettle.revision}" changing="true" />
     <dependency conf="test->default" org="pentaho-kettle" name="kettle-core" rev="${dependency.kettle.revision}" changing="true" />
     <dependency conf="test->default" org="pentaho-kettle" name="kettle-db" rev="${dependency.kettle.revision}" changing="true" />
+    <dependency conf="test->default" org="commons-logging" name="commons-logging" rev="1.1.1"/>
     <dependency conf="test->default" org="${ivy.artifact.group}" name="pentaho-hadoop-shims-api" rev="${project.revision}" changing="true" />
     <dependency conf="test->default" org="${ivy.artifact.group}" name="pentaho-hadoop-shims-api-test" rev="${project.revision}" changing="true" />
-    
   </dependencies>
 </ivy-module>

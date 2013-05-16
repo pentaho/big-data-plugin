@@ -39,6 +39,7 @@ import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.logging.CentralLogStore;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.job.JobEntryUtils;
 import org.pentaho.di.job.LoggingProxy;
@@ -69,7 +70,8 @@ public class SqoopImportJobEntryTest {
   }
 
   @Test
-  public void saveLoadTest_xml() throws KettleXMLException {
+  public void saveLoadTest_xml() throws KettleException {
+    CentralLogStore.init();
     SqoopImportJobEntry je = new SqoopImportJobEntry();
     SqoopImportConfig config = new SqoopImportConfig();
     String connectValue = "jdbc:mysql://localhost:3306/test";
