@@ -31,10 +31,6 @@
       changing="true" />
     <dependency org="pentaho-kettle" name="kettle-ui-swt" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
-    <dependency org="pentaho-kettle" name="kettle5-log4j-plugin" rev="${dependency.kettle5-log4j.revision}" transitive="false" conf="default->default"
-      changing="true" />
-
-    <dependency org="pentaho" name="metastore" rev="${dependency.metastore.revision}" changing="true" transitive="false" conf="default->default"/>
     
     <!-- pentaho-xul-framework must match JARs required by kettle-ui-swt -->
     <!-- this manual sync should go away once this project is propertly ivy-ized -->
@@ -54,12 +50,6 @@
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh4-package" rev="${project.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-cdh4-package" type="zip"/>
-    </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh412-package" rev="${project.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-cdh412-package" type="zip"/>
-    </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh413-package" rev="${project.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-cdh413-package" type="zip"/>
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh42-package" rev="${project.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-cdh42-package" type="zip"/>
