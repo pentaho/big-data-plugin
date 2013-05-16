@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.mapred.Counters;
 import org.apache.hadoop.mapred.JobID;
+import org.apache.hadoop.mapred.JobStatus; 
 import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
@@ -131,6 +132,11 @@ public class MockRunningJob implements RunningJob {
 
   // Omit @Override since not all Hadoop versions define this method 
   public String getFailureInfo() throws IOException {
+    return null;
+  }
+  
+  //Omit @Override since not all Hadoop versions define this method 
+  public JobStatus getJobStatus() throws IOException {
     return null;
   }
 }

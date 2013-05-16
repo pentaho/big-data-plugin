@@ -42,6 +42,11 @@ import org.apache.hadoop.mapred.Reducer;
 public class ConfigurationProxy extends org.apache.hadoop.mapred.JobConf implements
     org.pentaho.hadoop.shim.api.Configuration {
   
+  public ConfigurationProxy() {
+    super();
+    addResource("hdfs-site.xml");
+  }
+  
   /*
    * Wrap the call to {@link super#setMapperClass(Class)} to avoid generic type
    * mismatches. We do not expose {@link org.apache.hadoop.mapred.*} classes through

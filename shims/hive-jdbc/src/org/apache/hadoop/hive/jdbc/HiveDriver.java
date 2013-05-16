@@ -30,6 +30,9 @@ import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.pentaho.hadoop.hive.jdbc.HadoopConfigurationUtil;
+import org.pentaho.hadoop.hive.jdbc.JDBCDriverCallable;
+
 /**
  * <p>
  * This is proxy driver for the Hive JDBC Driver available through the current
@@ -55,9 +58,14 @@ import java.util.Properties;
  */
 public class HiveDriver implements java.sql.Driver {
   /**
-   * Method name of {@link org.pentaho.hadoop.shim.spi.HadoopShim#getHiveJdbcDriver()}
+   * Method name of {@link org.pentaho.hadoop.shim.spi.HadoopShim#getJdbcDriver()}
    */
-  private static final String METHOD_GET_HIVE_JDBC_DRIVER = "getHiveJdbcDriver";
+  private static final String METHOD_GET_JDBC_DRIVER = "getJdbcDriver";
+  
+  /**
+   * Driver type = "hive"
+   */
+  private static final String METHOD_JDBC_PARAM = "hive";
 
   /**
    * Utility for resolving Hadoop configurations dynamically.
@@ -92,8 +100,8 @@ public class HiveDriver implements java.sql.Driver {
     try {
       Object shim = util.getActiveHadoopShim();
       // public Driver HadoopShim#getHiveJdbcDriver()
-      Method getHiveJdbcDriver = shim.getClass().getMethod(METHOD_GET_HIVE_JDBC_DRIVER);
-      driver = (Driver) getHiveJdbcDriver.invoke(shim);
+      Method getHiveJdbcDriver = shim.getClass().getMethod(METHOD_GET_JDBC_DRIVER, String.class);
+      driver = (Driver) getHiveJdbcDriver.invoke(shim, METHOD_JDBC_PARAM);
     } catch (Exception ex) {
       throw new SQLException("Unable to load Hive JDBC driver for the currently active Hadoop configuration", ex);
     }
