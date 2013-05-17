@@ -24,9 +24,11 @@ package org.pentaho.di.core.database;
 
 import java.sql.Driver;
 
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+
 
 @DatabaseMetaPlugin(type="HIVE", typeDescription="Hadoop Hive")
 
@@ -34,7 +36,9 @@ public class HiveDatabaseMeta
        extends BaseDatabaseMeta implements 
        DatabaseInterface {
 
-   private final static String JAR_FILE = "hive-jdbc-0.6.0.jar";
+  protected final static String JAR_FILE = "hive-jdbc-cdh4.2.0-release-pentaho.jar";
+  protected final static String DRIVER_CLASS_NAME = "org.apache.hadoop.hive.jdbc.HiveDriver";
+  protected final static int DEFAULT_PORT = 10000;
     
     protected Integer driverMajorVersion;
     protected Integer driverMinorVersion;
@@ -71,7 +75,7 @@ public class HiveDatabaseMeta
         
         //  !!!  We will probably have to change this if we are providing our own driver,
         //  i.e., before our code is committed to the Hadoop Hive project.
-        return "org.apache.hadoop.hive.jdbc.HiveDriver";
+        return DRIVER_CLASS_NAME;
     }
 
     /**
@@ -159,7 +163,11 @@ public class HiveDatabaseMeta
     public String getURL(String hostname, String port, String databaseName)
             throws KettleDatabaseException {
 
-        return "jdbc:hive://"+hostname+":"+port+"/"+databaseName;
+      if(Const.isEmpty(port)) {
+        Integer.toString(getDefaultDatabasePort());
+      }
+
+      return "jdbc:hive://"+hostname+":"+port+"/"+databaseName;
     }
 
     @Override
@@ -198,7 +206,7 @@ public class HiveDatabaseMeta
       
       try {
         // Load the driver version number
-        Class<?> driverClass = Class.forName("org.apache.hadoop.hive.jdbc.HiveDriver"); //$NON-NLS-1$
+        Class<?> driverClass = Class.forName(DRIVER_CLASS_NAME); //$NON-NLS-1$
         if(driverClass != null) {
           Driver driver = (Driver)driverClass.getConstructor().newInstance();
           majorVersion = driver.getMajorVersion(); 
@@ -255,6 +263,11 @@ public class HiveDatabaseMeta
      */
     public String getEndQuote() {
       return "";
+    }
+    
+    @Override
+    public int getDefaultDatabasePort() {
+      return DEFAULT_PORT;
     }
     
     /**
