@@ -513,8 +513,8 @@ public class DriverProxyInvocationChain {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       
       try {
-        // Intercept the getString() method to implement the hack for "show tables" vs. getTables()
-        if("getString".equals(method.getName()) && args != null && args.length > 0) {
+        // Intercept the getString(String) method to implement the hack for "show tables" vs. getTables()
+        if("getString".equals(method.getName()) && args != null && args.length==1 && args[0] instanceof String) {
           return getString((String)args[0]);
         }
         else {
