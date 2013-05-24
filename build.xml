@@ -83,9 +83,7 @@
   <!-- Build all the shim modules -->
   <target name="build-shims" description="Build all shim projects (dist and publish-local)">
     <ant antfile="shims/build.xml" inheritall="false">
-      <target name="resolve" />
-      <target name="dist" />
-      <target name="publish-local" />
+      <target name="build-all" />
     </ant>
   </target>
 
