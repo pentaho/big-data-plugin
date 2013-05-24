@@ -315,7 +315,7 @@
   </target>
   
   <!-- Publish the mapred jar as well -->
-  <target name="publish-nojar" depends="subfloor.publish-nojar">
+  <target name="publish-nojar" depends="subfloor.publish-nojar,subfloor-pkg.publish-nojar">
     <antcall target="publish-nojar.internal">
       <param name="ivy.artifact.id" value="${ivy.artifact.mapred.id}"/>
     </antcall>
