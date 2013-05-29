@@ -49,6 +49,8 @@
     
     <dependency org="org.apache.sqoop" name="sqoop" rev="${dependency.apache-sqoop.revision}" changing="true" transitive="false"/>
     <dependency org="org.apache.pig" name="pig" rev="${dependency.pig.revision}" transitive="false" />
+    <!-- Cloudera's Pig from 4.2.0 on (and Apache's from 0.11 on) needs extra client-side JARs -->
+    <dependency org="dk.brics.automaton" name="automaton" rev="1.11-8" />
 
     <dependency conf="test->default" org="junit" name="junit" rev="4.5"/>
     <dependency conf="test->default" org="org.safehaus.jug" name="jug-lgpl" rev="2.0.0" />
