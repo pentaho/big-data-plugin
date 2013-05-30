@@ -40,10 +40,13 @@ public class HadoopSpoonPlugin implements LifecycleListener, GUIOption {
 
   public static final String HDFS_SCHEME = "hdfs";
   public static final String HDFS_SCHEME_DISPLAY_NAME = "HDFS";
+  public static final String MAPRFS_SCHEME = "maprfs";
+  public static final String MAPRFS_SCHEME_DISPLAY_NAME = "MapRFS";
 
   public void onStart(LifeEventHandler arg0) throws LifecycleException {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog(null, null);
-    dialog.addVFSUIPanel(new HadoopVfsFileChooserDialog(dialog, null, null));
+    dialog.addVFSUIPanel(new HadoopVfsFileChooserDialog(HDFS_SCHEME, HDFS_SCHEME_DISPLAY_NAME, dialog, null, null));
+    dialog.addVFSUIPanel(new HadoopVfsFileChooserDialog(MAPRFS_SCHEME, MAPRFS_SCHEME_DISPLAY_NAME, dialog, null, null));
   }
 
   public void onExit(LifeEventHandler arg0) throws LifecycleException {
