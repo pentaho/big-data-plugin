@@ -127,8 +127,11 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   // way hostname and port resolutions (for Connect Test and HDFS) are done.
   boolean isHighAvailabilityCluster = false;
   
-  public HadoopVfsFileChooserDialog(VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile, FileObject initialFile) {
-    super(HadoopSpoonPlugin.HDFS_SCHEME, HadoopSpoonPlugin.HDFS_SCHEME_DISPLAY_NAME, vfsFileChooserDialog, SWT.NONE);
+  String schemeName = "hdfs";
+  
+  public HadoopVfsFileChooserDialog(String schemeName, String displayName, VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile, FileObject initialFile) {
+    super(schemeName, displayName, vfsFileChooserDialog, SWT.NONE);
+    this.schemeName = schemeName;
     this.rootFile = rootFile;
     this.initialFile = initialFile;
     this.vfsFileChooserDialog = vfsFileChooserDialog;
@@ -370,7 +373,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
    * @TODO: relocate to a Hadoop helper class or similar
    */
   public String buildHadoopFileSystemUrlString() {
-    StringBuffer urlString = new StringBuffer("hdfs://");
+    StringBuffer urlString = new StringBuffer(schemeName);
+    urlString.append("://");
     if (wUserID.getText() != null && !"".equals(wUserID.getText())) {
       
       urlString.append(wUserID.getText());
