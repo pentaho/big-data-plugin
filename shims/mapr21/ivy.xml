@@ -50,5 +50,11 @@
     <dependency conf="test->default" org="junit" name="junit" rev="4.5"/>
     <dependency conf="test->default" org="org.safehaus.jug" name="jug-lgpl" rev="2.0.0" />
     <dependency conf="test->default" org="pentaho" name="pentaho-hadoop-shims-api-test" rev="${project.revision}" changing="true"/>
+    
+    <!-- Exclude log4j from default libraries - it's brought in transitively through many of the Hadoop dependencies and should not be included -->
+    <exclude org="log4j" module="log4j" conf="default" />
+    <!-- Exclude antlr. Hive brings in a version that's not compatible with Pig. -->
+    <exclude org="org.antlr" conf="default" />
+    
   </dependencies>
 </ivy-module>
