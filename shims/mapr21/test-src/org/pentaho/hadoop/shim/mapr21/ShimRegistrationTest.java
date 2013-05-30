@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.hadoop.shim.mapr;
+package org.pentaho.hadoop.shim.mapr21;
 
 import static org.junit.Assert.assertTrue;
 
@@ -29,7 +29,6 @@ import java.util.ServiceLoader;
 import org.junit.Test;
 import org.pentaho.hadoop.shim.common.CommonSqoopShim;
 import org.pentaho.hadoop.shim.mapr21.HadoopShim;
-import org.pentaho.hadoop.shim.mapr21.org;
 import org.pentaho.hadoop.shim.spi.SqoopShim;
 import org.pentaho.hadoop.shim.spi.SnappyShim;
 import org.pentaho.hbase.shim.common.CommonHBaseShim;
