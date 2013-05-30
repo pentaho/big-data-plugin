@@ -23,6 +23,7 @@
 package org.pentaho.hadoop.shim.common.mapred;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hadoop.mapred.Counters;
 import org.apache.hadoop.mapred.JobID;
@@ -137,6 +138,15 @@ public class MockRunningJob implements RunningJob {
   
   //Omit @Override since not all Hadoop versions define this method 
   public JobStatus getJobStatus() throws IOException {
+    return null;
+  }
+  
+  //Omit @Override since not all Hadoop versions define this method
+  public int unBlackListTracker(String arg0) {
+    return 0;
+  }
+
+  public org.apache.hadoop.mapred.TaskCompletionEventList getTaskCompletionEventList(int arg0) {
     return null;
   }
 }

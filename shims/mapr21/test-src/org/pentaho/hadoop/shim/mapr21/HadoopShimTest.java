@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.hadoop.shim.mapr;
+package org.pentaho.hadoop.shim.mapr21;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
