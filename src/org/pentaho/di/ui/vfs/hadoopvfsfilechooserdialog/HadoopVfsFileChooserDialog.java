@@ -49,6 +49,7 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
@@ -259,88 +260,85 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
           // NOTE: If we could set the HDFS retry limit for the Test capability, we wouldn't need this
           // code. It's been fixed in later versions of Hadoop, but we can't be sure which version we're 
           // using, or if a particular distribution has incorporated the fix.
-          HadoopConfigurationProvider provider = HadoopConfigurationBootstrap.getHadoopConfigurationProvider();
-          if(provider != null) {
-            HadoopConfiguration hadoopConfig = provider.getActiveConfiguration();
-            if(hadoopConfig != null) {
-              HadoopShim shim = hadoopConfig.getHadoopShim();
-              Configuration conf = shim.createConfiguration();
-              String haNameNodes = conf.get(HDFS_HA_CLUSTER_NAMENODES_PROP);
-              if(!Const.isEmpty(haNameNodes)) { 
-                
-                String[] haNameNode = haNameNodes.split(NAMENODE_LIST_DELIMITER);
-                if(!Const.isEmpty(haNameNode)) {
-                  for(String nameNode : haNameNode) {
-                    String nameNodeResolveProperty = HDFS_HA_CLUSTER_NAMENODE_RESOLVE_PREFIX + nameNode;
-                    String nameNodeHostAndPort = conf.get(nameNodeResolveProperty);
-                    if(!Const.isEmpty(nameNodeHostAndPort)) {
-                      String[] nameNodeParams = nameNodeHostAndPort.split(NAMENODE_HOSTNAME_PORT_DELIMITER);
-                      String hostname = nameNodeParams[0];
-                      int port = 0;
-                      if(nameNodeParams.length > 1) {
-                        try {
-                          port = Integer.parseInt(nameNodeParams[1]);
-                        }
-                        catch(NumberFormatException nfe) {
-                          // ignore, use default
-                        }
+          HadoopConfiguration hadoopConfig = getHadoopConfig();
+          if(hadoopConfig != null) {
+            HadoopShim shim = hadoopConfig.getHadoopShim();
+            Configuration conf = shim.createConfiguration();
+            String haNameNodes = conf.get(HDFS_HA_CLUSTER_NAMENODES_PROP);
+            if(!Const.isEmpty(haNameNodes)) { 
+              
+              String[] haNameNode = haNameNodes.split(NAMENODE_LIST_DELIMITER);
+              if(!Const.isEmpty(haNameNode)) {
+                for(String nameNode : haNameNode) {
+                  String nameNodeResolveProperty = HDFS_HA_CLUSTER_NAMENODE_RESOLVE_PREFIX + nameNode;
+                  String nameNodeHostAndPort = conf.get(nameNodeResolveProperty);
+                  if(!Const.isEmpty(nameNodeHostAndPort)) {
+                    String[] nameNodeParams = nameNodeHostAndPort.split(NAMENODE_HOSTNAME_PORT_DELIMITER);
+                    String hostname = nameNodeParams[0];
+                    int port = 0;
+                    if(nameNodeParams.length > 1) {
+                      try {
+                        port = Integer.parseInt(nameNodeParams[1]);
                       }
-                      addressList.add(new InetSocketAddress(hostname, port));
-                      isHighAvailabilityCluster = true;
+                      catch(NumberFormatException nfe) {
+                        // ignore, use default
+                      }
                     }
+                    addressList.add(new InetSocketAddress(hostname, port));
+                    isHighAvailabilityCluster = true;
                   }
                 }
               }
-              else {
-                String hostname = wUrl.getText();
-                int port = 0;
-                try {
-                  port = Integer.parseInt(wPort.getText());
-                }
-                catch(NumberFormatException nfe) {
-                  // ignore, use default
-                }
-                addressList.add(new InetSocketAddress(hostname,port));
-                isHighAvailabilityCluster = false;
-              }
-              
-              boolean success = false;
-              StringBuffer connectMessage = new StringBuffer();
-              for(int i=0; !success && i<addressList.size(); i++) {
-                InetSocketAddress address = addressList.get(i);
-                connectMessage.append("Connect ");
-                connectMessage.append(address.getHostName());
-                connectMessage.append(NAMENODE_HOSTNAME_PORT_DELIMITER);
-                connectMessage.append(address.getPort());
-                Socket testHdfsSocket = new Socket(address.getHostName(), address.getPort());
-                try {
-                  testHdfsSocket.getOutputStream();
-                  testHdfsSocket.close();
-                  success = true;
-                  connectedHostname = address.getHostName();
-                  connectedPortString = Integer.toString(address.getPort());
-                  connectMessage.append("=success!");
-                }
-                catch(IOException ioe) {
-                  // Add errors to message string, but otherwise ignore, we'll check for success later
-                  connectMessage.append("=failed, ");
-                  connectMessage.append(ioe.getMessage());
-                  connectMessage.append(System.getProperty("line.separator"));
-                }
-              }
-              if(!success) {
-                throw new IOException(connectMessage.toString());
-              }
             }
             else {
-              throw new Exception("No active Hadoop Configuration specified!");
+              String hostname = wUrl.getText();
+              int port = 0;
+              try {
+                port = Integer.parseInt(wPort.getText());
+              }
+              catch(NumberFormatException nfe) {
+                // ignore, use default
+              }
+              addressList.add(new InetSocketAddress(hostname,port));
+              isHighAvailabilityCluster = false;
+            }
+            
+            boolean success = false;
+            StringBuffer connectMessage = new StringBuffer();
+            for(int i=0; !success && i<addressList.size(); i++) {
+              InetSocketAddress address = addressList.get(i);
+              connectMessage.append("Connect ");
+              connectMessage.append(address.getHostName());
+              connectMessage.append(NAMENODE_HOSTNAME_PORT_DELIMITER);
+              connectMessage.append(address.getPort());
+              Socket testHdfsSocket = new Socket(address.getHostName(), address.getPort());
+              try {
+                testHdfsSocket.getOutputStream();
+                testHdfsSocket.close();
+                success = true;
+                connectedHostname = address.getHostName();
+                connectedPortString = Integer.toString(address.getPort());
+                connectMessage.append("=success!");
+              }
+              catch(IOException ioe) {
+                // Add errors to message string, but otherwise ignore, we'll check for success later
+                connectMessage.append("=failed, ");
+                connectMessage.append(ioe.getMessage());
+                connectMessage.append(System.getProperty("line.separator"));
+              }
+            }
+            if(!success) {
+              throw new IOException(connectMessage.toString());
             }
           }
           else {
-            throw new Exception("No Hadoop Configuration Provider!");
+            throw new Exception("No active Hadoop Configuration specified!");
           }
+          
         } catch (Throwable t) {
-          showMessageAndLog("HadoopVfsFileChooserDialog.error", "HadoopVfsFileChooserDialog.Connection.error", t.getMessage());
+          showMessageAndLog(BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.error"), 
+                            BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.Connection.error"), 
+                            t.getMessage());
           return;
         }
         
@@ -353,7 +351,30 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
         try {
           root = KettleVFS.getFileObject(buildHadoopFileSystemUrlString());
         } catch (KettleFileException e1) {
-          showMessageAndLog("HadoopVfsFileChooserDialog.error", "HadoopVfsFileChooserDialog.Connection.error", e1.getMessage());
+          // Search for "unsupported scheme" message. The actual string has parameters that we won't be able to match, so build a string with
+          // known (dummy) params, then split to get the beginning string, then compare against the current exception's message.
+          final String unsupportedSchemeMessage = BaseMessages.getString(HadoopConfiguration.class,"Error.UnsupportedSchemeForConfiguration","@!@","!@!");
+          final String unsupportedSchemeMessagePrefix = unsupportedSchemeMessage.split("@!@")[0];
+          final String message = e1.getMessage();
+          if(message.contains(unsupportedSchemeMessagePrefix)) {
+            try {
+              HadoopConfiguration hadoopConfig = getHadoopConfig();
+              String hadoopConfigName = (hadoopConfig == null) ? "Unknown" : hadoopConfig.getName();
+              showMessageAndLog(BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.error"), 
+                                BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.Connection.schemeError",hadoopConfigName), 
+                                message);
+            }
+            catch(ConfigurationException ce) {
+              showMessageAndLog(BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.error"), 
+                  BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.Connection.error"), 
+                  ce.getMessage());
+            }
+          }
+          else {
+            showMessageAndLog(BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.error"), 
+                              BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.Connection.error"), 
+                              e1.getMessage());
+          }
           return;
         }
         vfsFileChooserDialog.setSelectedFile(root);
@@ -401,7 +422,9 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
         wUserID.setText(genericFileName.getUserName() == null ? "" : genericFileName.getUserName()); //$NON-NLS-1$
         wPassword.setText(genericFileName.getPassword() == null ? "" : genericFileName.getPassword()); //$NON-NLS-1$
       } catch (FileSystemException fse) {
-        showMessageAndLog("HadoopVfsFileChooserDialog.error", "HadoopVfsFileChooserDialog.FileSystem.error", fse.getMessage());
+        showMessageAndLog(BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.error"),
+                          BaseMessages.getString(PKG, "HadoopVfsFileChooserDialog.FileSystem.error"),
+                          fse.getMessage());
       }
     }
 
@@ -410,8 +433,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
 
   private void showMessageAndLog(String title, String message, String messageToLog) {
     MessageBox box = new MessageBox(this.getShell());
-    box.setText(BaseMessages.getString(PKG, title)); //$NON-NLS-1$
-    box.setMessage(BaseMessages.getString(PKG, message));
+    box.setText(title); //$NON-NLS-1$
+    box.setMessage(message);
     log.logError(messageToLog);
     box.open();
   }
@@ -422,5 +445,14 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     } else {
       wConnectionButton.setEnabled(false);
     }
+  }
+  
+  private HadoopConfiguration getHadoopConfig() throws ConfigurationException {
+    HadoopConfiguration hadoopConfig = null;
+    HadoopConfigurationProvider provider = HadoopConfigurationBootstrap.getHadoopConfigurationProvider();
+    if(provider != null) {
+      hadoopConfig = provider.getActiveConfiguration();
+    }
+    return hadoopConfig;
   }
 }
