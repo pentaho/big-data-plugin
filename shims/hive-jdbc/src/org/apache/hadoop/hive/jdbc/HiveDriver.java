@@ -28,7 +28,9 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.pentaho.hadoop.hive.jdbc.HadoopConfigurationUtil;
 import org.pentaho.hadoop.hive.jdbc.JDBCDriverCallable;
@@ -200,5 +202,9 @@ public class HiveDriver implements java.sql.Driver {
       // cannot return it's actual compliancy we'll default to false
       return false;
     }
+  }
+  
+  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    return null;
   }
 }
