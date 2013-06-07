@@ -1,735 +1,365 @@
-<project name="subfloor-ee" basedir="." default="default" xmlns:ivy="antlib:org.apache.ivy.ant">
-  
-  <!-- This property is here to make Eclipse happy. File that imports this file should set the property. -->
-  <property name="subfloor-ee.parent.file" value="subfloor.xml" />
-  
-  <import file="${subfloor-ee.parent.file}" />
+<!--===========================================================================
+Copyright (c) 2009, Pentaho Engineering Team
+All rights reserved.
 
-  <property name="prepared.src.dir" value="${bin.dir}/prepared-src" description="Modified source" />
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the Pentaho Corporation nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-  <property name="proguard.revision" value="4.9" />
-  <property name="approot.stage.lib.dir" value=""/>
-  <property name="approot.stage.artifact.dir" value=""/>
-  <property name="assemble.copy-libs.includes" value="**/*.jar" />
-  <property name="assemble.copy-libs.includes.obf" value="**/*.jar*" />
-  <property name="assemble.copy-libs.excludes" value="" />
-  <property name="assemble.copy-libs.excludes.obf" value="" />
-  <property name="assemble.copy-obflibs.includes" value="*-obf.jar" />
-  <property name="obf.libdir.filter" value="!*-obf.jar"/>
-  <property name="obf.artifact.injar.filter" value=""/>
-  <!-- The value for obf.libraryjars is an entire proguard parameter line, not just the lib itself -->
-  <property name="obf.libraryjars" value=""/>
-  <property name="proguard.file" value="proguard.pro"/>
-  
-  <!-- begin remove for the customer src dist -->
-  <property name="customer.stage.dir" value="${bin.dir}/customer-stage" />
-  <property name="customer.id" value="1" />
-  <property name="customer.source.build.cache.dir"
-            value="${subfloor.resources.dir}/customer-source"
-            description="Directory where the customer source modification task is placed after it is auto-downloaded by the build" />
-  <property file="customers.properties"
-            description="This file contains a list of customers and their associated ids" />
-  <!-- end remove for the customer src dist -->
-  <property name="obflib.dir"
-            value="${basedir}/obf-lib"
-            description="Directory for obfuscated jar files and maps needed during obfuscation" />
-  
-  <!-- Override to put mock license JAR first -->
-  <path id="test.classpath">
-    <fileset dir="${devlib.dir}">
-      <include name="*.jar" />
-    </fileset>
-    <fileset dir="${testlib.dir}">
-      <include name="*.jar" />
-    </fileset>
-    <fileset dir="${lib.dir}">
-      <include name="*.jar" />
-    </fileset>
-    <dirset dir="${testclasses.dir}" />
-    <dirset dir="${classes.dir}" />
-  </path>
-  
-    <target name="resolve-obf" depends="resolve-init">
-      <mkdir dir="${obflib.dir}" />
-      <ivy:resolve file="${ivyfile}" conf="obf" />
-      <ivy:retrieve conf="obf" pattern="${obflib.dir}/[module]-[revision](-[classifier]).[ext]" symlink="${ivy.use.symlinks.internal}" />
-      
-      <!-- extract *-proguard-*.jar, delete -->
-    <foreach target="proguard-artifact-extract" param="file">
-      <fileset dir="${obflib.dir}" casesensitive="yes">
-           <include name="**/*-proguard-*.zip"/>
-         </fileset>
-    </foreach>
-      <property name="resolve-obf.executed" value="true" />
-    </target> 
-  
-    <target name="proguard-artifact-extract">
-      <unzip src="${file}" dest="${obflib.dir}"/>
-      <delete file="${file}"/>
-    </target>
-  
-  <!--=======================================================================
-      install-proguard
-  
-      (Fetches and) installs proguard task
-    ====================================================================-->
-  <target name="install-proguard" depends="install-ivy">
-      <if>
-        <istrue value="${proguard.isinstalled}" />
-        <then>
-          <echo message="Skipping proguard install.  Proguard has already been configured by the build" />
-        </then>
-        <else>
-          <echo message="Installing proguard..." />
-          <taskdef-with-ivy organisation="net.sf.proguard"
-                            module="proguard-anttask"
-                            revision="${proguard.revision}"
-                            task-name="proguard"
-                          resource="proguard/ant/task.properties"
-                            classname="proguard.ant.ProGuardTask" />
-            <property name="proguard.isinstalled" value="true" />
-        </else>
-      </if>
-    </target> 
-  
-  <!--=======================================================================
-    Override - maven-publish.post - publish obfuscation related artifacts
-    ====================================================================-->
-  <target name="maven-publish.post">
-    <!-- publish ${ivy.artifact.id}-proguard (zip) -->
-    <if>
-          <available file="${dist.dir}/${ivy.artifact.id}-proguard-${project.revision}.zip" />
-      <then>
-        <antcall target="maven-publish-proguard-artifact">
-            <param name="publish.artifactId" value="${ivy.artifact.id}-proguard" />
-            <param name="publish.groupId" value="${ivy.artifact.group}" />
-          <param name="publish.version" value="${project.revision}" />
-            <param name="publish.file" value="${dist.dir}/${ivy.artifact.id}-proguard-${project.revision}.zip" />
-            </antcall>
-      </then>
-    </if>
-  </target>
-  
-  <!--=======================================================================
-      publish-local-nojar.post OVERRIDE
-      ====================================================================-->
-    <target name="publish-local-nojar.post">
-    <!-- publish ${ivy.artifact.id}-proguard (zip) -->
-    <if>
-          <available file="${dist.dir}/${ivy.artifact.id}-proguard-${project.revision}.zip" />
-      <then>
-            <antcall target="publish-local-nojar.internal">
-              <param name="ivy.artifact.id" value="${ivy.artifact.id}-proguard"/>
-            </antcall>
-      </then>
-    </if>
-    </target> 
-  
-    <!--=======================================================================
-        maven-publish-proguard-artifact
-        ====================================================================-->
-    <target name="maven-publish-proguard-artifact" depends="install-antcontrib">
-      <sequential>
-        <fail message="No file found at: ${publish.file}">
-          <condition>
-            <not>
-              <available file="${publish.file}" />
-            </not>
-          </condition>
-        </fail>
-        <echo message="Publishing ${publish.file} to ${ivy.repository.publish}..." />
-        <if>
-          <isset property="isWindows" />
-          <then>
-            <exec executable="cmd" failonerror="true">
-              <arg value="/c" />
-              <arg value="mvn.bat" />
-              <arg value="deploy:deploy-file" />
-              <arg value="-DrepositoryId=${ivy.repository.id}" />
-              <arg value="-Durl=${ivy.repository.publish}" />
-              <arg value="-DgroupId=${publish.groupId}" />
-              <arg value="-DartifactId=${publish.artifactId}" />
-              <arg value="-Dversion=${publish.version}" />
-              <arg value="-DgeneratePom=true" />
-              <arg value="-Dpackaging=zip" />
-              <arg value="-Dfile=${publish.file}" />
-            </exec>
-          </then>
-          <else>
-            <exec executable="mvn" failonerror="true">
-              <arg value="deploy:deploy-file" />
-              <arg value="-DrepositoryId=${ivy.repository.id}" />
-              <arg value="-Durl=${ivy.repository.publish}" />
-              <arg value="-DgroupId=${publish.groupId}" />
-              <arg value="-DartifactId=${publish.artifactId}" />
-              <arg value="-Dversion=${publish.version}" />
-              <arg value="-DgeneratePom=true" />
-              <arg value="-Dpackaging=zip" />
-              <arg value="-Dfile=${publish.file}" />
-            </exec>
-          </else>
-        </if>
-      </sequential>
-    </target> 
-  
-  
+THIS SOFTWARE IS PROVIDED BY Pentaho Engineering Team ''AS IS'' AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+============================================================================-->
+<!--===========================================================================
+    == SUBFLOOR-PKG ==
+    $Rev: 100 $
+    $Date: 2009-12-09 11:43:26 -0500 (Wed, 09 Dec 2009) $
+    Project Home: http://code.google.com/p/subfloor/
+    Provides default targets for creating application archives such as zip and tar.gzip
+    files.
+    ============================================================================-->
 
-  
-  <target name="obfuscate" depends="install-proguard, resolve-obf, obfuscate.pre">
+<project name="subfloor-pkg" basedir="." default="default" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <copy file="${proguard.file}" todir="${dist.dir}" overwrite="true" failonerror="false"/>
-    <touch file="${dist.dir}/${proguard.file}"/>
+  <!-- Define the default location of the common build file -->
+  <property name="subfloor.file"
+            value="./subfloor.xml"
+            description="This is the location of the standardized subfloor.xml file" />
 
-    <!-- copy all .map files from obf-lib into a singular map file -->
-    <delete file="${dist.dir}/proguard-merged.map"/>
-    <touch file="${dist.dir}/proguard-merged.map"/>
-        <concat destfile="${dist.dir}/proguard-merged.map" append="true">
-          <fileset dir="${obflib.dir}" includes="**/*.map"/>
-        </concat>
-    
-    <replace file="${dist.dir}/${proguard.file}" value="${dist.dir}">
-      <replacetoken><![CDATA[${dist.dir}]]></replacetoken>
-    </replace>    
+  <!-- Import the common_build.xml file which contains all the default tasks -->
+  <import file="${subfloor.file}" />
 
-    <replace file="${dist.dir}/${proguard.file}" value="${ivy.artifact.id}">
-      <replacetoken><![CDATA[${ivy.artifact.id}]]></replacetoken>
-    </replace>      
+  <property name="stage.dir" value="${bin.dir}/stage" description="Package staging" />
+  <property name="package.root.dir"
+            value="${ivy.artifact.id}"
+            description="Root directory of final zip or tar package" />
+  <property name="approot.stage.dir"
+            value="${stage.dir}/${package.root.dir}"
+            description="Stage application root dir" />
+  <property name="package.id" value="${ivy.artifact.id}" />
+  <property name="package.basename" value="${package.id}-${project.revision}" />
+  <property name="package.resdir" value="${basedir}/package-res" />
+  <property name="package.artifact.ivyfile"
+            value="package-ivy.xml"
+            description="The ivy file defining dependencies of the package" />
+  <property name="package.artifact.pomfile"
+            value="package-pom.xml"
+            description="The Maven pom file defining dependencies of the package" />
 
-    <replace file="${dist.dir}/${proguard.file}" value="${project.revision}">
-      <replacetoken><![CDATA[${project.revision}]]></replacetoken>
-    </replace>      
-    
-        <!-- begin remove for the customer src dist -->
-    <replace file="${dist.dir}/${proguard.file}" value="${dependency.pentaho-ee-dsc.revision}">
-      <replacetoken><![CDATA[${dependency.pentaho-ee-dsc.revision}]]></replacetoken>
-    </replace>    
-    <!-- end remove for the customer src dist -->
-    
-    <replace file="${dist.dir}/${proguard.file}" value="${lib.dir}">
-      <replacetoken><![CDATA[${lib.dir}]]></replacetoken>
-    </replace>    
-    
-      <proguard verbose="true" configuration="${dist.dir}/${proguard.file}">
-      <![CDATA[
-    -dontoptimize
-    -dontshrink
-    -dontnote
-    -renamesourcefileattribute SourceFile
-    -ignorewarnings         
-    -dontskipnonpubliclibraryclassmembers
-    -keepattributes Exceptions, InnerClasses, *Annotation*, Signature, EnclosingMethod, SourceFile, LineNumberTable
-    -printseeds
+  <target name="dist" depends="jar,package" description="Builds and packages the application" />
 
-    -applymapping ${dist.dir}/proguard-merged.map
-    -printmapping ${dist.dir}/${ivy.artifact.id}-${project.revision}.map
-        
-    -libraryjars "${java.home}/lib/rt.jar"
-    -libraryjars "${java.home}/lib/jsse.jar"
-    -libraryjars "${java.home}/lib/jce.jar"
-    -libraryjars ${obflib.dir}(*-obf.jar)
-    -libraryjars ${lib.dir}(${obf.libdir.filter})
-    -libraryjars ${devlib.dir}
-    ${obf.libraryjars}
-        
-    -injars      ${dist.dir}/${ivy.artifact.id}-${project.revision}.jar(${obf.artifact.injar.filter})
-    -outjars     ${dist.dir}/${ivy.artifact.id}-${project.revision}-obf.jar
-        
-  -keepclassmembers enum * {
-       public static **[] values();
-       public static ** valueOf(java.lang.String);
-    }
-
-    -keepclassmembers class * implements java.io.Serializable {
-      static final long serialVersionUID;
-      private void writeObject(java.io.ObjectOutputStream);
-      private void readObject(java.io.ObjectInputStream);
-      java.lang.Object writeReplace();
-      java.lang.Object readResolve();
-    }
-     
-    -keep !abstract class * extends javax.servlet.** { }
-    -keep !abstract class * extends javax.ejb.** { }
-    -keep !abstract class * extends javax.jms.** { }
-
-    -keep !abstract class * implements org.pentaho.platform.api.** { }
-
-    ]]>
-    </proguard>
-
-    <antcall target="obfuscate.post"/>
-
-      <zip destfile="${dist.dir}/${ivy.artifact.id}-proguard-${project.revision}.zip">
-        <zipfileset dir="${dist.dir}" includes="**/*.map, **/*-obf.jar" excludes="**/proguard-merged.map"/>
-      </zip>    
-    
-        <property name="obfuscation.executed" value="true" />
-    
-  </target>
-  
-  <!--=======================================================================
-    obfuscate.pre
-    
-    Perform any project specific pre-obfuscation tasks
-    ====================================================================-->
-  <target name="obfuscate.pre">
-  </target> 
-  
-  <!--=======================================================================
-    obfuscate.post
-    
-    Perform any project specific post-obfuscation tasks (such as deleting original jars)
-    ====================================================================-->
-  <target name="obfuscate.post">
-  </target>
-  
-  
-  
-  <!-- ======================================== EULA assembly packaging ========================================= -->
-
-  <property name="pentaho-eula-assembly-pom.version" value="1.0.3" />
-  
-  <target name="package-eula" depends="install-antcontrib,package">
-    
-    <if>
-      <available file="pom.xml" />
-      <then>
-        <if>
-          <isset property="isWindows" />
-          <then>
-            <exec executable="cmd">
-              <arg value="/c" />
-              <arg value="mvn.bat" />
-              <arg value="package" />
-            </exec>
-          </then>
-          <else>
-            <exec executable="mvn">
-              <arg value="package" />
-            </exec>
-          </else>
-        </if>
-      </then>
-      <else>
-        <if>
-          <not>
-            <available file="${dist.dir}/pentaho-eula-assembly-pom-${pentaho-eula-assembly-pom.version}-pom.xml" type="file" />
-          </not>
-          <then>
-            <get src="http://repo.pentaho.org/artifactory/private-release/com/pentaho/pentaho-eula-assembly-pom/${pentaho-eula-assembly-pom.version}/pentaho-eula-assembly-pom-${pentaho-eula-assembly-pom.version}-pom.xml" 
-              dest="${dist.dir}/pentaho-eula-assembly-pom-${pentaho-eula-assembly-pom.version}-pom.xml" 
-              verbose="true" />
-          </then>
-        </if>
-        
-        <echo>
-          mvn
-          -f
-          ${dist.dir}/pentaho-eula-assembly-pom-${pentaho-eula-assembly-pom.version}-pom.xml
-          -DgroupId=${ivy.artifact.group}
-          -DartifactId=${package.id}
-          -Dversion=${project.revision}
-          package
-        </echo>
-        <if>
-          <isset property="isWindows" />
-          <then>
-            <exec executable="cmd">
-              <arg value="/c" />
-              <arg value="mvn.bat" />
-              <arg value="-f" />
-              <arg value="${dist.dir}/pentaho-eula-assembly-pom-${pentaho-eula-assembly-pom.version}-pom.xml" />
-              <arg value="-DgroupId=${ivy.artifact.group}" />
-              <arg value="-DartifactId=${package.id}" />
-              <arg value="-Dversion=${project.revision}" />
-              <arg value="package" />
-            </exec>
-          </then>
-          <else>
-            <exec executable="mvn">
-              <arg value="-f" />
-              <arg value="${dist.dir}/pentaho-eula-assembly-pom-${pentaho-eula-assembly-pom.version}-pom.xml" />
-              <arg value="-DgroupId=${ivy.artifact.group}" />
-              <arg value="-DartifactId=${package.id}" />
-              <arg value="-Dversion=${project.revision}" />
-              <arg value="package" />
-            </exec>
-          </else>
-        </if>
-        
-      </else>
-    </if>
-    
+  <target name="clean-dist">
+    <delete dir="${dist.dir}" />
+    <delete dir="${stage.dir}" />
   </target>
 
-  
-  <target name="maven-publish-eula-artifact" depends="install-antcontrib">
-    <sequential>
-      <fail message="No file found at: ${dist.dir}/${package.id}-${project.revision}-eula-pkg.jar">
-        <condition>
-          <not>
-            <available file="${dist.dir}/${package.id}-${project.revision}-eula-pkg.jar" />
-          </not>
-        </condition>
-      </fail>
-      <echo message="Publishing ${package.id}-${project.revision}-eula-pkg.jar to ${ivy.repository.publish}..." />
-      <echo>
-        mvn
-        deploy:deploy-file
-        -DrepositoryId=${ivy.repository.id}
-        -Durl=${ivy.repository.publish}
-        -DgroupId=${ivy.artifact.group}
-        -DartifactId=${package.id}
-        -Dversion=${project.revision}
-        -Dclassifier=eula-pkg
-        -Dfile=${dist.dir}/${package.id}-${project.revision}-eula-pkg.jar
-      </echo>
-      <if>
-        <isset property="isWindows" />
-        <then>
-          <exec executable="cmd" failonerror="true">
-            <arg value="/c" />
-            <arg value="mvn.bat" />
-            <arg value="deploy:deploy-file" />
-            <arg value="-DrepositoryId=${ivy.repository.id}" />
-            <arg value="-Durl=${ivy.repository.publish}" />
-            <arg value="-DgroupId=${ivy.artifact.group}" />
-            <arg value="-DartifactId=${package.id}" />
-            <arg value="-Dversion=${project.revision}" />
-            <arg value="-Dclassifier=eula-pkg" />
-            <arg value="-Dfile=${dist.dir}/${package.id}-${project.revision}-eula-pkg.jar" />
-          </exec>
-        </then>
-        <else>
-          <exec executable="mvn" failonerror="true">
-            <arg value="deploy:deploy-file" />
-            <arg value="-DrepositoryId=${ivy.repository.id}" />
-            <arg value="-Durl=${ivy.repository.publish}" />
-            <arg value="-DgroupId=${ivy.artifact.group}" />
-            <arg value="-DartifactId=${ivy.artifact.id}" />
-            <arg value="-Dversion=${project.revision}" />
-            <arg value="-Dclassifier=eula-pkg" />
-            <arg value="-Dfile=${dist.dir}/${package.id}-${project.revision}-eula-pkg.jar" />
-          </exec>
-        </else>
-      </if>
-    </sequential>
-  </target>
-  
-  
-  
-  
-  <!--=======================================================================
-      obftest
-      
-      Verifies obfuscation in distributions. (dist target must be run first.)
-      ====================================================================-->
-  <target name="obftest">
-    <exec executable="build-res/obftest.sh" osfamily="unix" failonerror="true">
-      <arg value="${dist.dir}" />
-    </exec>
-  </target>
-  
-  <target name="assemble.copy-libs" depends="install-antcontrib">
-    <!-- if allows this target to be run before and after obfuscation -->
-
-    <!--
-    need to parameterize destination of project artifact
-    need to parameterize destination of project libs
-  -->
-    
-    <mkdir dir="${approot.stage.lib.dir}"/>
-    
-    <if>
-      <available file="${dist.dir}/${ivy.artifact.id}-${project.revision}-obf.jar" />
-      <then>
-        <copy todir="${approot.stage.dir}/${approot.stage.lib.dir}" overwrite="true">
-          <fileset dir="${lib.dir}" includes="${assemble.copy-libs.includes.obf}" excludes="${assemble.copy-libs.excludes.obf}"/>
-        </copy>
-        <copy todir="${approot.stage.dir}/${approot.stage.lib.dir}" overwrite="true"> 
-              <fileset dir="${obflib.dir}" includes="${assemble.copy-obflibs.includes}" excludes="*${ivy.artifact.id}-${project.revision}-obf.jar, *-test-*-obf.jar"/>
-              <globmapper from="*-obf.jar" to="*.jar"/>
-        </copy>
-        <copy todir="${approot.stage.dir}/${approot.stage.artifact.dir}" overwrite="true">
-              <fileset dir="${dist.dir}" includes="*${ivy.artifact.id}-${project.revision}-obf.jar"/>
-              <globmapper from="*-obf.jar" to="*.jar"/>
-        </copy>
-      
-      </then>
-      <else>
-        <!-- if release=true, we've got a problem, we should blow up here -->
-        <fail if="${release}" message="You are trying to release when the required obfuscated jar is not available!" />
-        <copy todir="${approot.stage.dir}/${approot.stage.lib.dir}">
-          <fileset dir="${lib.dir}" includes="${assemble.copy-libs.includes}" excludes="${assemble.copy-libs.excludes}"/>
-        </copy>
-        <copy todir="${approot.stage.dir}/${approot.stage.artifact.dir}">
-            <fileset file="${dist.dir}/${ivy.artifact.id}-${project.revision}.jar" />
-        </copy>
-      </else>
-    </if>
-    <antcall target="assemble.copy-libs.post"/>
-  </target>
-  
-    
-  <!--=======================================================================
-      assemble.copy-libs.post
-     
-      perform any post assembly/copy-libs tasks (noop here, override if needed)
-      ====================================================================-->
-  <target name="assemble.copy-libs.post" />
-  
-    <!-- begin remove for the customer src dist -->
-  
-    <!-- 
-       The following targets generate a source distribution for a specific EE customer.
-         These tasks remove all DSC license code and package up a src distribution. 
-      -->  
-  
-  <!--=======================================================================
-      customer-src-init
-      
-      initializes the customer source staging area
-      ====================================================================-->
-  <target name="customer-src-init" depends="install-antcontrib,init">
-    <delete dir="${customer.stage.dir}"/>
-    <mkdir dir="${customer.stage.dir}/src" />
-    <if>
-      <available file="test-src"/>
-      <then>
-        <mkdir dir="${customer.stage.dir}/test-src" />
-      </then>
-    </if>
-    <if>
-      <available file="test"/>
-      <then>
-        <mkdir dir="${customer.stage.dir}/test" />
-      </then>
-    </if>
-    <if>
-      <available file="test-res"/>
-      <then>
-        <mkdir dir="${customer.stage.dir}/test-res" />
-      </then>
-    </if>
-
-    <mkdir dir="${customer.stage.dir}/dist" />
-    <mkdir dir="${customer.stage.dir}/classes" />
+  <!-- override of jar target.. this definitely should be moved into common build -->
+  <target name="jar"
+          depends="compile,set-build.id,create-version-file"
+          description="Jars up the bin directory after a compile">
+    <jar destfile="${dist.dir}/${ivy.artifact.id}-${project.revision}.jar">
+      <manifest>
+        <attribute name="Implementation-Title" value="${impl.title}" />
+        <attribute name="Implementation-Version" value="${project.revision}.${build.id}" />
+        <attribute name="Implementation-Vendor" value="${impl.vendor}" />
+        <attribute name="Implementation-ProductID" value="${impl.productID}" />
+      </manifest>
+      <fileset dir="${classes.dir}" />
+    </jar>
   </target>
 
-  <!--=======================================================================
-      customer-src-compile.pre
-      
-      copies over the related source files for the customer distribution
-      ====================================================================-->
-  <target name="customer-src-stage" depends="install-antcontrib,customer-src-init">
-    <copy todir="${customer.stage.dir}/src" failonerror="no" flatten="false" overwrite="true">
-      <fileset dir="${src.dir}"/>
+  <target name="create-version-file">
+    <propertyfile file="${classes.dir}/version.properties" comment="${impl.title} build information">
+      <entry key="version" value="${project.revision}.${build.id}" />
+      <entry key="builddate" type="date" value="now" />
+    </propertyfile>
+  </target>
+
+  <target name="assemble.init">
+    <mkdir dir="${approot.stage.dir}" />
+  </target>
+
+  <target name="assemble" depends="assemble.init,assemble.copy-libs">
+    <copy todir="${approot.stage.dir}" overwrite="true">
+      <fileset dir="${package.resdir}" />
     </copy>
-    <copy todir="${customer.stage.dir}/test-src" failonerror="no" flatten="false" overwrite="true">
-        <fileset dir="test-src"/>
-    </copy>
-    <copy todir="${customer.stage.dir}/test" failonerror="no" flatten="false" overwrite="true">
-        <fileset dir="test"/>
-    </copy>
-    <copy todir="${customer.stage.dir}/package-res"  failonerror="no" flatten="false" overwrite="true">
-        <fileset dir="package-res" />
-  </copy>
-    <copy todir="${customer.stage.dir}/res"  failonerror="no" flatten="false" overwrite="true">
-      <fileset dir="res" />
-    </copy>
-    <copy todir="${customer.stage.dir}/test-res" failonerror="no" flatten="false" overwrite="true">
-        <fileset dir="test-res"/>
-  </copy>
-    <copy todir="${customer.stage.dir}/build-res" file="build-res/subfloor.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}/build-res" file="build-res/subfloor-ee.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}/build-res" file="build-res/subfloor-pkg.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}/build-res" file="build-res/subfloor-gwt.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" file="proguard.pro" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" file="ivy.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" file="package-ivy.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" file="ivysettings.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" file="build.properties" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" file="build.xml" failonerror="no" overwrite="true"/>
-    <copy todir="${customer.stage.dir}" failonerror="no" overwrite="true">
-        <fileset dir="customer-res"/>
-  </copy>
-    
-    <!-- allow any project specific source staging to take place -->
-    <antcall target="customer-src-stage.post"/>
+    <chmod perm="a+x" dir="${stage.dir}" includes="**/*.sh" />
   </target>
 
-    <!--=======================================================================
-        customer-src-stage.post
-
-        this is called immediately after customer-src-stage
-        ====================================================================-->
-    <target name="customer-src-stage.post"/>
-  
-  <!--=======================================================================
-      customer-src-codechanges
-      
-      modifies the source as necessary for customer source distribution
-      ====================================================================-->
-  <target name="customer-src-codechanges" depends="install-antcontrib,customer-src-stage,install-pentaho-ee-ant-tasks">
-    <!-- remove licensing imports -->
-    <replaceregexp match="import com[.]pentaho[.]commons[.]dsc[.].*?;" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="**/*.java"/>
-    </replaceregexp>
-    
-    <!-- remove multi-line license check declarations -->
-    <replaceregexp match="/[*] START LICENSE CHECK [*]/.*?/[*] END LICENSE CHECK [*]/" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="**/*.java"/>
-    </replaceregexp>
-
-    <!-- remove single line license check code declarations -->
-    <replaceregexp match=".*// LICENSE CHECK" replace="" flags="g">
-      <fileset dir="${customer.stage.dir}" includes="**/*.java"/>
-    </replaceregexp>
-
-    <!-- remove single line license check code declarations -->
-    <replaceregexp match=".*PentahoLicenseVerifier.*" replace="" flags="g">
-      <fileset dir="${customer.stage.dir}" includes="**/*.java"/>
-    </replaceregexp>
-
-    <!-- remove multi-line customer-src-dist sections from XML files -->
-    <replaceregexp match="&lt;!-- begin remove for the customer src dist .*? end remove for the customer src dist --&gt;" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="**/*.xml"/>
-    </replaceregexp>
-    
-    <!-- remove dsc jars from ivy file license check code declarations -->
-    <replaceregexp match=".*dsc.*" replace="" flags="g">
-      <fileset dir="${customer.stage.dir}" includes="ivy.xml"/>
-    </replaceregexp>
-    
-    <!-- remove ee license build.properties declarations -->
-    <replaceregexp match="# subfloor-ee properties.*" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="build.properties"/>
-    </replaceregexp>
-  
-    <!-- remove multi-line customer-src-dist sections from .bat files -->
-    <replaceregexp match="REM START PENTAHO LICENSE.*?REM END PENTAHO LICENSE" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="**/*.bat"/>
-    </replaceregexp>
-    
-    <!-- remove multi-line customer-src-dist sections from .sh files -->
-        <replaceregexp match="# START PENTAHO LICENSE.*?# END PENTAHO LICENSE" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="**/*.sh"/>
-    </replaceregexp>
-    
-    <!-- remove dsc ref from obfuscation lib dir -->
-    <replaceregexp match="\(\!pentaho-ee-dsc-core-\*[.]jar\)" replace="" flags="gs">
-      <fileset dir="${customer.stage.dir}" includes="build-res/subfloor-ee.xml"/>
-    </replaceregexp>        
-    
-    <!-- remove dsc references from plugin.xml -->
-    <replaceregexp match=".*dependency.pentaho-ee-dsc.revision@.*[.]jar&quot;.?/&gt;" replace="" flags="g">
-      <fileset dir="${customer.stage.dir}" includes="**/plugin.xml"/>
-    </replaceregexp>    
-    
-    <!-- remove dsc references from *.pro -->
-    <replaceregexp match=".*\$\{dependency[.]pentaho-ee-dsc[.]revision\}[.]jar" replace="" flags="g">
-      <fileset dir="${customer.stage.dir}" includes="*.pro"/>
-    </replaceregexp>  
-    
-    <!--
-      Important - must have defined customer.id - this is the identifier for the
-      customer. For now, Yahoo is 1, and it's set above...
-    -->
-    <serialverUpdater customerId="${customer.id}">
-      <fileset dir="${customer.stage.dir}" includes="**/*.java" />
-    </serialverUpdater>
-    
-    <!-- allow any project specific source cleansing to take place -->
-  <antcall target="customer-src-codechanges.post"/>
+  <target name="assemble.copy-libs">
+    <copy todir="${approot.stage.dir}/lib">
+      <fileset dir="${lib.dir}" />
+      <fileset file="${dist.dir}/${ivy.artifact.id}-${project.revision}.jar" />
+    </copy>
   </target>
-  
-  <!--=======================================================================
-      customer-src-codechanges.post
 
-      this is called immediately after customer-src-codechanges
-      ====================================================================-->
-  <target name="customer-src-codechanges.post"/>
-  
-  <!--=======================================================================
-      customer-src-dist
-      
-      creates a customer source distribution of this project.
-      ====================================================================-->
-  <target name="customer-src-dist" depends="customer-src-codechanges">
-    <zip destfile="${dist.dir}/${ivy.artifact.id}-customer-src-${project.revision}.zip">
-      <zipfileset dir="${customer.stage.dir}" />
+  <target name="package"
+          depends="assemble,package-zip"
+          description="Creates packaged distributable artifacts" />
+
+  <target name="package-zip">
+    <zip destfile="${dist.dir}/${package.basename}.zip">
+      <zipfileset dir="${stage.dir}" filemode="755">
+        <include name="**/*.sh" />
+        <include name="**/JavaApplicationStub" />
+      </zipfileset>
+      <zipfileset dir="${stage.dir}">
+        <exclude name="**/*.sh" />
+        <exclude name="**/JavaApplicationStub" />
+      </zipfileset>
     </zip>
   </target>
   
-  <!--=======================================================================
-      install-serialver-updater-1.0
+
   
-      (Fetches and) installs serialveruid updater task
-      ====================================================================-->
-  <target name="install-pentaho-ee-ant-tasks" depends="install-ivy">
-    <if>
-      <istrue value="${serialver.isinstalled}" />
-      <then>
-        <echo message="Skipping Pentaho EE Ant tasks install.  Pentaho EE Ant tasks have already been configured by the build" />
-      </then>
-      <else>
-        <taskdef-with-ivy organisation="pentaho"
-                          module="pentaho-ee-ant-tasks"
-                          revision="1.1.0"
-                          classname="com.pentaho.anttasks.CustomerSerialVerUidTask"
-                          resource="com/pentaho/anttasks/pentaho-anttasks.xml" />
-          <property name="serialver.isinstalled" value="true" />
-      </else>
-    </if>
-  </target>
+  <!-- ============================================linuxPackage===================================================== -->
 
-  <!--=======================================================================
-      compile.compile
-      
-      Override.
-      ====================================================================-->
-  <target name="compile.compile" depends="init,compile.pre.src_copy,compile.pre.src_prepare">
-    <javac destdir="${classes.dir}" debug="${javac.debug}" deprecation="${javac.deprecation}" fork="true"
-      source="${javac.source}" target="${javac.target}">
-      <classpath>
-        <path refid="classpath" />
-      </classpath>
-      <src path="${prepared.src.dir}" />
-    </javac>
-  </target>
+  <property name="linuxPackage.name" value="pentaho-${package.id}" />
 
-  <!--=======================================================================
-      compile.pre.src_copy
-      
-      Copies source to temp folder so that it can be modified before 
-      compilation.
-      ====================================================================-->
-  <target name="compile.pre.src_copy">
-    <delete dir="${prepared.src.dir}" />
-    <mkdir dir="${prepared.src.dir}" />
-    <copy todir="${prepared.src.dir}" flatten="false">
-      <fileset dir="${src.dir}" />
+  <property name="linuxPackage.longName" value="${impl.title}" />
+  <property name="linuxPackage.description" value="${impl.title}" />
+  <property name="linuxPackage.release" value="1" />
+  <property name="linuxPackage.initd.startCommandDelegatee" value="start.pentaho.sh" 
+    description="init.d script will delegate to this script located in /opt/pentaho/${linuxPackage.name}" />
+
+  <property name="linuxPackage.initd.stopCommandDelegatee" value="stop.pentaho.sh" 
+    description="init.d script will delegate to this script located in /opt/pentaho/${linuxPackage.name}" />
+
+  <property name="linuxPackage.initd.processName" value="catalina" 
+    description="string that must be present to prove pid is not stale; see init.d script" />
+  <property name="linuxPackage.res.dir" value="linux-res" description="Directory with Linux package resources." />
+  <filterset begintoken="[[[" endtoken="]]]" id="linuxPackage.filterset">
+    <filter token="linuxPackage.initd.startCommandDelegatee" value="${linuxPackage.initd.startCommandDelegatee}" />
+    <filter token="linuxPackage.initd.stopCommandDelegatee" value="${linuxPackage.initd.stopCommandDelegatee}" />
+    <filter token="linuxPackage.initd.processName" value="${linuxPackage.initd.processName}" />
+    <filter token="linuxPackage.name" value="${linuxPackage.name}" />
+    <filter token="linuxPackage.longName" value="${linuxPackage.longName}" />
+  </filterset>
+  <!-- prepares Debian control file and scripts shared by DEB and RPM -->
+  <target name="linuxPackage-prepare-control">
+    <copy todir="${linuxPackage.stage.dir}/control" overwrite="true">
+      <fileset dir="${linuxPackage.res.dir}/control" />
+      <filterset refid="linuxPackage.filterset" />
+      <filterset refid="${linuxPackage.extraFilterset}" />
     </copy>
   </target>
-  
-  <!--=======================================================================
-      compile.pre.src_prepare
-      
-      Modifies source before compilation.
-      ====================================================================-->
-  <target name="compile.pre.src_prepare" depends="install-pentaho-ee-ant-tasks">
+  <!-- prepares actual files to be installed shared by DEB and RPM -->
+  <target name="linuxPackage-prepare-data">
+    <mkdir dir="${linuxPackage.stage.dir}/data/opt/pentaho/${linuxPackage.name}" />
+
+    <antcall target="linuxPackage-copy-files">
+      <param name="linuxPackage.dataDir" value="${linuxPackage.stage.dir}/data" />
+      <param name="linuxPackage.packageFormat" value="${linuxPackage.packageFormat}" />
+    </antcall>
+    <copy todir="${linuxPackage.stage.dir}/data" overwrite="true">
+      <fileset dir="${linuxPackage.res.dir}/data" />
+      <filterset refid="linuxPackage.filterset" />
+      <filterset refid="${linuxPackage.extraFilterset}" />
+    </copy>
+    <!-- if any files named __package.name__, rename them-->
+
     <if>
-      <isset property="version.for.license" />
+      <available file="${linuxPackage.stage.dir}/data/etc/init.d/__package.name__" type="file" />
       <then>
-        <!-- sets a property called version.for.license.obf -->
-        <obfuscateJavaString string="${version.for.license}" property="version.for.license.obf" />
-        <replace file="${prepared.src.dir}/${version.for.license.class}" token="&quot;@VERSION_FOR_LICENSE@&quot;" value="${version.for.license.obf}"/>
+        <move file="${linuxPackage.stage.dir}/data/etc/init.d/__package.name__" tofile="${linuxPackage.stage.dir}/data/etc/init.d/${linuxPackage.name}" />
+      </then>
+    </if>
+    <if>
+      <available file="${linuxPackage.stage.dir}/data/opt/pentaho/__package.name__" type="dir" />
+      <then>
+        <move file="${linuxPackage.stage.dir}/data/opt/pentaho/__package.name__" tofile="${linuxPackage.stage.dir}/data/opt/pentaho/${linuxPackage.name}" />
       </then>
     </if>
   </target>
-  
-  <!-- TODO: build and test the customer source build, also automate a scan for illegal files / terms / etc -->
-  <!-- TODO: handle obfuscation as an EE customer option or default? -->
-  
-  <!-- end remove for the customer src dist -->
-  
+
+  <!-- override if necessary -->
+  <target name="linuxPackage-copy-files">
+    <echo>Copying files for Linux package format: ${linuxPackage.packageFormat}</echo>
+    <copy todir="${linuxPackage.dataDir}/opt/pentaho/${linuxPackage.name}">
+      <fileset dir="${stage.dir}/${package.id}" />
+    </copy>
+  </target>
+  <!-- ============================================deb============================================================== -->
+
+  <property name="deb.longName" value="${linuxPackage.longName}" />
+
+  <property name="deb.name" value="${linuxPackage.name}" />
+  <property name="deb.arch"
+            value="all"
+            description="One of i386, amd64, or all." />
+
+ <property name="deb.maintainer" value="buildguy &lt;buildguy@pentaho.com&gt;" />
+  <property name="deb.desc" value="${linuxPackage.description}" />
+  <property name="deb.release" value="${linuxPackage.release}" />
+  <property name="deb.stage.dir"
+            value="${bin.dir}/deb-stage"
+            description="Staging directory for Debian package creation." />
+
+  <property name="deb.res.dir"
+            value="${linuxPackage.res.dir}"
+            description="Debian package resources." />
+  <filterset begintoken="[[[" endtoken="]]]" id="deb.filterset">
+    <filter token="deb.name" value="${deb.name}" />
+    <filter token="deb.version" value="${project.revision}-${deb.release}" />
+    <filter token="deb.longName" value="${deb.longName}" />
+    <filter token="deb.arch" value="${deb.arch}" />
+    <filter token="deb.desc" value="${deb.desc}" />
+    <filter token="deb.maintainer" value="${deb.maintainer}" />
+  </filterset>
+  <!-- jdeb is cross-platform Debian package tool -->
+  <target name="install-jdeb" depends="install-ivy">
+    <taskdef-with-ivy task-name="jdeb" classname="org.vafer.jdeb.ant.DebAntTask" organisation="org.vafer" module="jdeb" 
+      revision="0.8" />
+  </target>
+
+  <target name="package-deb" depends="install-jdeb" description="Creates Debian package.">
+
+    <antcall target="linuxPackage-prepare-control">
+      <param name="linuxPackage.stage.dir" value="${deb.stage.dir}" />
+      <param name="linuxPackage.res.dir" value="${deb.res.dir}" />
+      <param name="linuxPackage.extraFilterset" value="deb.filterset" />
+    </antcall>
+    <antcall target="linuxPackage-prepare-data">
+      <param name="linuxPackage.stage.dir" value="${deb.stage.dir}" />
+      <param name="linuxPackage.res.dir" value="${deb.res.dir}" />
+      <param name="linuxPackage.extraFilterset" value="deb.filterset" />
+      <param name="linuxPackage.packageFormat" value="deb" />
+    </antcall>
+    <!-- tar for the sole purpose of creating execute bit -->
+    <tar destfile="${deb.stage.dir}/data.tar.gz" longfile="gnu" compression="gzip">
+      <tarfileset dir="${deb.stage.dir}/data" mode="755">
+        <include name="**/*.sh" />
+      </tarfileset>
+      <tarfileset dir="${deb.stage.dir}/data">
+        <exclude name="**/*.sh" />
+      </tarfileset>
+    </tar>
+    <!-- do not change this package name; it is consistent with Debian package naming conventions -->
+    <!-- the 1 below is the Debian revision number, which may change if only the control files are changed -->
+    <!-- http://www.debian.org/doc/manuals/debian-faq/ch-pkg_basics.html -->
+    <jdeb destfile="${dist.dir}/${deb.name}_${project.revision}-${deb.release}_${deb.arch}.deb"
+        control="${deb.stage.dir}/control">
+      <data src="${deb.stage.dir}/data.tar.gz" type="archive" />
+    </jdeb>
+  </target>
+  <!-- ================================================rpm========================================================== -->
+
+  <property name="rpm.name" value="${linuxPackage.name}" />
+  <property name="rpm.arch"
+            value="NOARCH"
+            description="One of I386, X86_64, or NOARCH. Case matters." />
+  <property name="rpm.group" value="System Environment/Daemons" description="Group for RPM spec file." />
+  <property name="rpm.summary" value="${linuxPackage.description}" description="Summary for RPM spec file." />
+
+  <property name="rpm.stage.dir"
+            value="${bin.dir}/rpm-stage"
+            description="Staging directory for RPM package creation." />
+
+  <property name="rpm.res.dir"
+            value="${linuxPackage.res.dir}"
+            description="RPM package resources." />
+  <filterset begintoken="[[[" endtoken="]]]" id="rpm.filterset">
+  </filterset>
+  <!-- redline is cross-platform RPM package tool -->
+  <target name="install-redline" depends="install-ivy">
+    <taskdef-with-ivy task-name="redline" classname="org.freecompany.redline.ant.RedlineTask" organisation="org.redline-rpm" module="redline" 
+      revision="1.1.9" />
+  </target>
+  <target name="package-rpm" depends="install-redline">
+    <antcall target="linuxPackage-prepare-control">
+      <param name="linuxPackage.stage.dir" value="${rpm.stage.dir}" />
+      <param name="linuxPackage.res.dir" value="${rpm.res.dir}" />
+      <param name="linuxPackage.extraFilterset" value="rpm.filterset" />
+    </antcall>
+    <antcall target="linuxPackage-prepare-data">
+      <param name="linuxPackage.stage.dir" value="${rpm.stage.dir}" />
+      <param name="linuxPackage.res.dir" value="${rpm.res.dir}" />
+      <param name="linuxPackage.extraFilterset" value="rpm.filterset" />
+      <param name="linuxPackage.packageFormat" value="rpm" />
+    </antcall>
+    <!-- to adhere to naming conventions, version number cannot contain dash -->
+    <!-- http://www.rpm.org/max-rpm/ch-rpm-file-format.html -->
+    <propertyregex property="rpm.version" input="${project.revision}" regexp="-" replace="_" />
+    <property name="rpm.release" value="${linuxPackage.release}" />
+    <antcall target="create-rpm"></antcall>
+  </target>
+
+  <target name="create-rpm">
+    <!-- these tarfilesets can be overridden -->
+    <!-- you can't just include everything in ${rpm.stage.dir}/data without a prefix; rpm will complain that the path 
+         already exists; the prefixes here are paths that are expected to already exist and thus should not be created
+         by this package -->
+    <tarfileset erroronmissingdir="false" prefix="/etc/init.d" dir="${rpm.stage.dir}/data/etc/init.d" id="rpm.tarfileset1" />
+    <tarfileset erroronmissingdir="false" prefix="/opt" dir="${rpm.stage.dir}/data/opt" id="rpm.tarfileset2" />
+    <tarfileset erroronmissingdir="false" prefix="/var/run" dir="${rpm.stage.dir}/data/var/run" id="rpm.tarfileset3" />
+    <tarfileset erroronmissingdir="false" dir="${rpm.stage.dir}/data" includes="doesnotexist" id="rpm.tarfileset4" />
+    <tarfileset erroronmissingdir="false" dir="${rpm.stage.dir}/data" includes="doesnotexist" id="rpm.tarfileset5" />
+    <redline architecture="${rpm.arch}" group="${rpm.group}" name="${rpm.name}" version="${rpm.version}" 
+      postInstallScript="${rpm.stage.dir}/control/postinst" preUninstallScript="${rpm.stage.dir}/control/prerm" 
+      destination="${dist.dir}" summary="${rpm.summary}" release="${rpm.release}">
+      <tarfileset refid="rpm.tarfileset1" />
+      <tarfileset refid="rpm.tarfileset2" />
+      <tarfileset refid="rpm.tarfileset3" />
+      <tarfileset refid="rpm.tarfileset4" />
+      <tarfileset refid="rpm.tarfileset5" />
+    </redline>
+  </target>
+  <!-- =========================================================================================================== -->
+
+  <!--=======================================================================
+      create-pom (override)
+      Creates the POM files for publishing the jar and gwt zip package to the Maven repository
+      ====================================================================-->
+  <target name="create-pom"
+          depends="install-ivy,subfloor.create-pom,create-package-pom"
+          description="Creates a POM file based on the ivy dependencies" />
+
+  <!--=======================================================================
+      create-package-pom 
+      Creates a POM file for the package
+      ====================================================================-->
+  <target name="create-package-pom"
+          depends="install-ivy"
+          description="Creates a POM file based on the ivy dependencies for a separate package">
+    <ivy:makepom ivyfile="${package.artifact.ivyfile}" pomfile="${package.artifact.pomfile}" />
+    <replace file="${package.artifact.pomfile}" token="jar" value="zip" />
+  </target>
+
+  <!--=======================================================================
+      publish-nojar (override)
+      Publishes the jar and zip package to the Maven repository
+      ====================================================================-->
+  <target name="publish-nojar" depends="install-antcontrib,create-pom,ivy.deliver,subfloor.publish-nojar">
+
+    <antcall target="maven-publish-artifact">
+      <param name="publish.pomFile" value="${package.artifact.pomfile}" />
+      <param name="publish.file" value="${dist.dir}/${package.basename}.zip" />
+    </antcall>
+  </target>
+
+  <!--=======================================================================
+      publish-local-nojar (override)
+      Publishes jar and zip package locally
+      ====================================================================-->
+  <target name="publish-local-nojar" depends="install-ivy,subfloor.publish-local-nojar">
+    <ivy:resolve file="${package.artifact.ivyfile}" />
+    <ivy:publish resolver="local" pubrevision="${project.revision}" overwrite="true" forcedeliver="true">
+      <artifacts pattern="${dist.dir}/[artifact]-[revision].[ext]" />
+    </ivy:publish>
+  </target>
+
 </project>
