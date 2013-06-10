@@ -104,7 +104,7 @@ public class HadoopConfigurationFileSystemManager {
       p = providers.get(scheme);
     }
     if (p == null) {
-      throw new FileSystemException(BaseMessages.getString(PKG, "Unsupported scheme for Hadoop configuration", config.getName(), scheme));
+      throw new FileSystemException(BaseMessages.getString(PKG, "Error.UnsupportedSchemeForConfiguration", config.getName(), scheme));
     }
     return p;
   }

@@ -24,18 +24,26 @@
   <property file="${assembly.dir}/assembly.properties" />
 
   <!-- These are the modules this script should build -->
-  <property name="modules" value="api,hive-jdbc,hadoop-20,cdh42,hdp12,mapr" />
+  <property name="modules" value="api,hive-jdbc,hadoop-20,cdh3u4,cdh4,cdh412,cdh413,cdh42,hdp12,mapr,mapr21" />
   <!-- Every non-api shim module. These will be compiled/resolved after api. -->
-  <property name="shim-non-api-modules" value="hive-jdbc,hadoop-20,cdh42,hdp12,mapr" />
+  <property name="shim-non-api-modules" value="hive-jdbc,hadoop-20,cdh3u4,cdh4,cdh412,cdh413,cdh42,hdp12,mapr,mapr21" />
 
+  <!-- Publish shims locally or publicly? -->
+	<property name="shims.publish-local"
+		value="true"
+	    description="Whether to publish plugins locally during the build process. CI should override this"/>
+	    
   <target name="init" depends="install-antcontrib" />
 
   <!-- Build all modules in the correct order and publish them locally -->
-  <target name="build-all" depends="init">
+  <target name="build-all" depends="install-antcontrib,init">
+  	<condition property="publish.target" value="publish-local" else="publish">
+      <equals arg1="${shims.publish-local}" arg2="true" />
+    </condition>
     <ant antfile="build.xml" dir="api" inheritall="false">
       <target name="clean-all" />
       <target name="resolve" />
-      <target name="publish-local" />
+      <target name="${publish.target}" />
     </ant>
     <for list="${shim-non-api-modules}" param="module" trim="true">
       <sequential>
@@ -43,7 +51,7 @@
           <target name="clean-all" />
           <target name="resolve" />
           <target name="dist" />
-          <target name="publish-local" />
+    	  <target name="${publish.target}" />
         </ant>
       </sequential>
     </for>
