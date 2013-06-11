@@ -66,44 +66,15 @@
   </target>
 
 	<target name="dist-noresolve" depends="jar,package" description="Builds and packages the application" />
-	<target name="dist" depends="build-shims,resolve,jar,package" description="Builds and packages the application" />
+	<target name="dist" depends="resolve,jar,package" description="Builds and packages the application" />
 
-  <target name="clean-all" depends="subfloor.clean-all,clean-pmr,clean-all-shims" />
+  <target name="clean-all" depends="subfloor.clean-all,clean-pmr" />
 
 	<target name="clean-dist">
 		<delete dir="${dist.dir}" />
 		<delete dir="${stage.dir}" />
 		<delete dir="${platform.unzip.dir}" />
 	</target>
-
-  <target name="clean-all-shims" description="Clean all shim projects">
-    <ant antfile="shims/build.xml" inheritall="false" target="clean-all" />
-  </target>
-
-  <!-- Build all the shim modules -->
-  <target name="build-shims" description="Build all shim projects (dist and publish-local)">
-    <ant antfile="shims/build.xml" inheritall="false">
-      <target name="build-all" />
-    </ant>
-  </target>
-
-  <!-- Publish all the shim modules -->
-  <target name="publish-shims" description="Publishes all shim projects. build-shims should be called previous to this.">
-    <ant antfile="shims/build.xml" target="publish" inheritall="false"/>
-  </target>
-
-  <!-- Test all the shim modules -->
-  <target name="test-shims" description="Tests all shim projects. build-shims should be called previous to this.">
-    <ant antfile="shims/build.xml" target="test" inheritall="false"/>
-  </target>
-
-  <!-- Generate code coverage for the shim modules -->
-  <target name="cobertura-shims" description="Run cobertura on all shim projects. build-shims should be called previous to this.">
-    <ant antfile="shims/build.xml" target="cobertura" inheritall="false"/>
-  </target>
-
-  <!-- Perform cobertura shim coverage in addition to our coverage -->
-  <target name="cobertura" depends="cobertura-shims,subfloor.cobertura" />
 
   <target name="assemble.init">
     <mkdir dir="${stage.dir}" />
@@ -226,10 +197,7 @@
       </antcall>
     </target>
 
-  <!-- Publish shims at the same time as publishing ourself -->
-  <target name="publish" depends="publish-shims,subfloor.publish" />
-
-	<target name="create-package-pom"
+    <target name="create-package-pom"
 	          depends="install-ivy,subfloor-pkg.create-package-pom"
 	          description="Creates a POM file based on the ivy dependencies for a separate package">
       <ivy:makepom ivyfile="${package-samples.artifact.ivyfile}" pomfile="${package-samples.artifact.pomfile}" />
