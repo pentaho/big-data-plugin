@@ -15,11 +15,4 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.apache.ivyde.eclipse.ivynature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>src-mapred</name>
-			<type>2</type>
-			<location>/Users/jordan/dev/pentaho/big-data-plugin/shims/common/src-mapred</location>
-		</link>
-	</linkedResources>
 </projectDescription>
