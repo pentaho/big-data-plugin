@@ -303,7 +303,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         getConfig().copyConnectionInfoFromAdvanced();
       }
       // Always fire a property change
-      firePropertyChange("selectedDatabaseConnection", null, this.selectedDatabaseConnection);
+      suppressEventHandling = true;
+      try {
+        firePropertyChange(SELECTED_DATABASE_CONNECTION, null, this.selectedDatabaseConnection);
+      } finally {
+        suppressEventHandling = false;
+      }
     }
   }
 
