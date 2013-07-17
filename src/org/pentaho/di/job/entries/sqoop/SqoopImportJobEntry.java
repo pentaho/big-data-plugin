@@ -57,10 +57,10 @@ public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig
   public void configure(HadoopShim shim, SqoopImportConfig sqoopConfig, Configuration conf) throws KettleException {
     super.configure(shim, sqoopConfig, conf);
     if (sqoopConfig.getHbaseZookeeperQuorum() != null) {
-      conf.set("hbase.zookeeper.quorum", sqoopConfig.getHbaseZookeeperQuorum());
+      conf.set("hbase.zookeeper.quorum", environmentSubstitute(sqoopConfig.getHbaseZookeeperQuorum()));
     }
     if (sqoopConfig.getHbaseZookeeperClientPort() != null) {
-      conf.set("hbase.zookeeper.property.clientPort", sqoopConfig.getHbaseZookeeperClientPort());
+      conf.set("hbase.zookeeper.property.clientPort", environmentSubstitute(sqoopConfig.getHbaseZookeeperClientPort()));
     }
   }
 }

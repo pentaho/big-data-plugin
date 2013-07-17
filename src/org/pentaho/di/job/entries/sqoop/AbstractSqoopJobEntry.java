@@ -280,8 +280,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void configure(HadoopShim shim, S sqoopConfig, Configuration conf) throws KettleException {
     try {
       List<String> messages = new ArrayList<String>();
-      shim.configureConnectionInformation(sqoopConfig.getNamenodeHost(), sqoopConfig.getNamenodePort(),
-          sqoopConfig.getJobtrackerHost(), sqoopConfig.getJobtrackerPort(),
+      shim.configureConnectionInformation(environmentSubstitute(sqoopConfig.getNamenodeHost()), environmentSubstitute(sqoopConfig.getNamenodePort()),
+          environmentSubstitute(sqoopConfig.getJobtrackerHost()), environmentSubstitute(sqoopConfig.getJobtrackerPort()),
           conf, messages);
       for (String m : messages) {
         logBasic(m);
