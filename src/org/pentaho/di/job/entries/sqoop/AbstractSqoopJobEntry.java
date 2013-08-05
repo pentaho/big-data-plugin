@@ -56,12 +56,14 @@ import org.w3c.dom.Node;
 /**
  * Base class for all Sqoop job entries.
  */
-public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends AbstractJobEntry<S> implements Cloneable, JobEntryInterface {
+public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends AbstractJobEntry<S> implements Cloneable,
+    JobEntryInterface {
 
   /**
    * Log4j appender that redirects all Log4j logging to a Kettle {@link org.pentaho.di.core.logging.LogChannel}
    */
   private Appender sqoopToKettleAppender;
+
   /**
    * Logging proxy that redirects all {@link java.io.PrintStream} output to a Log4j logger.
    */
@@ -70,7 +72,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Logging categories to monitor and log within Kettle
    */
-  private String[] LOGS_TO_MONITOR = new String[]{"org.apache.sqoop", "org.apache.hadoop"};
+  private String[] LOGS_TO_MONITOR = new String[] { "org.apache.sqoop", "org.apache.hadoop" };
+
   /**
    * Cache for the levels of loggers we changed so we can revert them when we remove our appender
    */
@@ -97,7 +100,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   protected final S createJobConfig() {
     S config = buildSqoopConfig();
     try {
-      HadoopShim shim = HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+      HadoopShim shim = HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration()
+          .getHadoopShim();
       Configuration hadoopConfig = shim.createConfiguration();
       SqoopUtils.configureConnectionInformation(config, shim, hadoopConfig);
     } catch (Exception ex) {
@@ -106,7 +110,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     }
     return config;
   }
-  
+
   @Override
   public void loadXML(Node node, List<DatabaseMeta> databaseMetas, List<SlaveServer> slaveServers, Repository repository)
       throws KettleXMLException {
@@ -116,7 +120,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       getJobConfig().copyConnectionInfoToAdvanced();
     }
   }
-  
+
   @Override
   public void loadRep(Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases, List<SlaveServer> slaveServers)
       throws KettleException {
@@ -185,13 +189,15 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     List<String> warnings = new ArrayList<String>();
 
     if (StringUtil.isEmpty(config.getConnect())) {
-      warnings.add(BaseMessages.getString(AbstractSqoopJobEntry.class, "ValidationError.Connect.Message", config.getConnect()));
+      warnings.add(BaseMessages.getString(AbstractSqoopJobEntry.class, "ValidationError.Connect.Message",
+          config.getConnect()));
     }
 
     try {
       JobEntryUtils.asLong(config.getBlockingPollingInterval(), variables);
     } catch (NumberFormatException ex) {
-      warnings.add(BaseMessages.getString(AbstractSqoopJobEntry.class, "ValidationError.BlockingPollingInterval.Message", config.getBlockingPollingInterval()));
+      warnings.add(BaseMessages.getString(AbstractSqoopJobEntry.class,
+          "ValidationError.BlockingPollingInterval.Message", config.getBlockingPollingInterval()));
     }
 
     return warnings;
@@ -221,10 +227,11 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   @Override
   protected Runnable getExecutionRunnable(final Result jobResult) throws KettleException {
     try {
-      HadoopConfiguration activeConfig = HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
+      HadoopConfiguration activeConfig = HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
+          .getActiveConfiguration();
       final HadoopShim hadoopShim = activeConfig.getHadoopShim();
       final SqoopShim sqoopShim = activeConfig.getSqoopShim();
-      
+
       Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -247,7 +254,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * @param hadoopConfig Hadoop configuration settings. This will be additionally configured using {@link #configure(org.apache.hadoop.conf.Configuration)}.
    * @param jobResult    Result to update based on feedback from the Sqoop tool
    */
-  protected void executeSqoop(HadoopShim hadoopShim, SqoopShim shim, S config, Configuration hadoopConfig, Result jobResult) {
+  protected void executeSqoop(HadoopShim hadoopShim, SqoopShim shim, S config, Configuration hadoopConfig,
+      Result jobResult) {
     // Make sure Sqoop throws exceptions instead of returning a status of 1
     System.setProperty("sqoop.throwOnError", "true");
 
@@ -280,14 +288,19 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void configure(HadoopShim shim, S sqoopConfig, Configuration conf) throws KettleException {
     try {
       List<String> messages = new ArrayList<String>();
-      shim.configureConnectionInformation(environmentSubstitute(sqoopConfig.getNamenodeHost()), environmentSubstitute(sqoopConfig.getNamenodePort()),
-          environmentSubstitute(sqoopConfig.getJobtrackerHost()), environmentSubstitute(sqoopConfig.getJobtrackerPort()),
-          conf, messages);
+      DatabaseMeta databaseMeta = parentJob.getJobMeta().findDatabase(sqoopConfig.getDatabase());
+      sqoopConfig.setConnectionInfo(environmentSubstitute(databaseMeta.getName()),
+          environmentSubstitute(databaseMeta.getURL()), environmentSubstitute(databaseMeta.getUsername()),
+          environmentSubstitute(databaseMeta.getPassword()));
+      shim.configureConnectionInformation(environmentSubstitute(sqoopConfig.getNamenodeHost()),
+          environmentSubstitute(sqoopConfig.getNamenodePort()), environmentSubstitute(sqoopConfig.getJobtrackerHost()),
+          environmentSubstitute(sqoopConfig.getJobtrackerPort()), conf, messages);
       for (String m : messages) {
         logBasic(m);
       }
     } catch (Exception e) {
-      throw new KettleException(BaseMessages.getString(AbstractSqoopJobEntry.class, "ErrorConfiguringHadoopEnvironment"), e);
+      throw new KettleException(
+          BaseMessages.getString(AbstractSqoopJobEntry.class, "ErrorConfiguringHadoopEnvironment"), e);
     }
   }
 
