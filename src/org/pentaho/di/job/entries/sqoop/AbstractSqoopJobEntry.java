@@ -280,6 +280,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void configure(HadoopShim shim, S sqoopConfig, Configuration conf) throws KettleException {
     try {
       List<String> messages = new ArrayList<String>();
+      DatabaseMeta databaseMeta = parentJob.getJobMeta().findDatabase(sqoopConfig.getDatabase());
+      sqoopConfig.setConnectionInfo(environmentSubstitute(databaseMeta.getName()),
+          environmentSubstitute(databaseMeta.getURL()), environmentSubstitute(databaseMeta.getUsername()),
+          environmentSubstitute(databaseMeta.getPassword()));
       shim.configureConnectionInformation(environmentSubstitute(sqoopConfig.getNamenodeHost()), environmentSubstitute(sqoopConfig.getNamenodePort()),
           environmentSubstitute(sqoopConfig.getJobtrackerHost()), environmentSubstitute(sqoopConfig.getJobtrackerPort()),
           conf, messages);
