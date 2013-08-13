@@ -115,6 +115,7 @@
 			<exclude name="zookeeper-*.jar" />
 			<exclude name="jug-*.jar" />
 			<exclude name="commons-codec*.jar" />
+	        <exclude name="commons-httpclient*.jar" />
 			<exclude name="commons-io*.jar" />
 			<exclude name="commons-lang*.jar" />
 			<exclude name="commons-logging*.jar" />
