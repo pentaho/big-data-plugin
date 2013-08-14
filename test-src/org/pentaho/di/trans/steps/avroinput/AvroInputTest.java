@@ -25,6 +25,8 @@ import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaPluginType;
+import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.trans.steps.avroinput.AvroInputData.AvroArrayExpansion;
@@ -151,6 +153,14 @@ public class AvroInputTest {
       + "]" + "}]";
 
   protected static String[] s_jsonDataTopLevelUnion = new String[] { "{\"Person\": {\"name\":\"\\uFFFF\\uFFFF\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}}" };
+  
+  static {
+    try {
+      ValueMetaPluginType.getInstance().searchPlugins();
+    } catch (KettlePluginException ex) {
+      ex.printStackTrace();
+    }
+  }
 
   @Test
   public void testGetLeafFieldsFromSchema() throws KettleException {
