@@ -33,9 +33,9 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 public class Hive2DatabaseMeta 
        extends BaseDatabaseMeta implements 
        DatabaseInterface {
-
-   protected final static String JAR_FILE = "hive-jdbc-0.10.0-pentaho.jar";
-   protected final static String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
+  
+  protected final static String JAR_FILE = "hive-jdbc-0.10.0-pentaho.jar";
+  protected final static String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
    
     
     protected Integer driverMajorVersion;
@@ -275,5 +275,25 @@ public class Hive2DatabaseMeta
     public String[] getViewTypes()
     {
       return new String[] {"VIEW", "VIRTUAL_VIEW"};
+    }
+    
+    /**
+     * @param tableName The table to be truncated.
+     * @return The SQL statement to truncate a table: remove all rows from it without a transaction
+     */
+    @Override
+    public String getTruncateTableStatement(String tableName)
+    {
+      return null;
+    }
+    
+    @Override
+    public boolean supportsSetCharacterStream() {
+      return false;
+    }
+    
+    @Override
+    public boolean supportsBatchUpdates() {
+      return false;
     }
 }
