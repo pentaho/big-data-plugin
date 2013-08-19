@@ -287,4 +287,24 @@ public class HiveDatabaseMeta
     {
       return new String[] {"VIEW", "VIRTUAL_VIEW"};
     }
+    
+    /**
+     * @param tableName The table to be truncated.
+     * @return The SQL statement to truncate a table: remove all rows from it without a transaction
+     */
+    @Override
+    public String getTruncateTableStatement(String tableName)
+    {
+      return null;
+    }
+    
+    @Override
+    public boolean supportsSetCharacterStream() {
+      return false;
+    }
+    
+    @Override
+    public boolean supportsBatchUpdates() {
+      return false;
+    }
 }
