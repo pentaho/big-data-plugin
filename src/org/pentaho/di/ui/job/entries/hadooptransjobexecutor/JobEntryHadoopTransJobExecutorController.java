@@ -47,6 +47,7 @@ import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
 import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.components.XulMenuList;
+import org.pentaho.ui.xul.components.XulMenuitem;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
@@ -1188,7 +1189,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
   
   @SuppressWarnings("rawtypes")
-  public void setMapperStorageType(String mapperStorageType) {
+  public void setMapperStorageType(XulMenuitem mapperStorageType) {
     switch (((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type")).getSelectedIndex()) {
     case 0: { // Local
       mapperStorageTypeChanged("local");
@@ -1205,8 +1206,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     }
       break;
     }
-
-    firePropertyChange(MAPPER_STORAGE_TYPE, null, mapperStorageType);
   }
 
   public String getMapperStorageType() {
@@ -1237,7 +1236,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   
   @SuppressWarnings("rawtypes")
-  public void setCombinerStorageType(String mapperStorageType) {
+  public void setCombinerStorageType(XulMenuitem mapperStorageType) {
     switch (((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type")).getSelectedIndex()) {
     case 0: { // Local
       combinerStorageTypeChanged("local");
@@ -1254,8 +1253,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     }
       break;
     }
-
-    firePropertyChange(COMBINER_STORAGE_TYPE, null, combinerStorageType);
   }
 
   public String getCombinerStorageType() {
@@ -1283,7 +1280,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
   
   @SuppressWarnings("rawtypes")
-  public void setReducerStorageType(String reducerStorageType) {
+  public void setReducerStorageType(XulMenuitem reducerStorageType) {
     switch (((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type")).getSelectedIndex()) {
     case 0: { // Local
       reducerStorageTypeChanged("local");
@@ -1300,8 +1297,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     }
       break;
     }
-
-    firePropertyChange(REDUCER_STORAGE_TYPE, null, reducerStorageType);
   }
 
   public String getReducerStorageType() {
