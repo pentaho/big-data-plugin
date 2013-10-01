@@ -1189,7 +1189,9 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   
   @SuppressWarnings("rawtypes")
   public void setMapperStorageType(String mapperStorageType) {
-    switch (((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type")).getSelectedIndex()) {
+    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type");
+    String prevMapperStorageType = menuList.getSelectedItem();
+    switch (menuList.getSelectedIndex()) {
     case 0: { // Local
       mapperStorageTypeChanged("local");
     }
@@ -1206,7 +1208,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       break;
     }
 
-    firePropertyChange(MAPPER_STORAGE_TYPE, null, mapperStorageType);
+    firePropertyChange(MAPPER_STORAGE_TYPE, prevMapperStorageType, mapperStorageType);
   }
 
   public String getMapperStorageType() {
@@ -1237,8 +1239,10 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   
   @SuppressWarnings("rawtypes")
-  public void setCombinerStorageType(String mapperStorageType) {
-    switch (((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type")).getSelectedIndex()) {
+  public void setCombinerStorageType(String combinerStorageType) {
+    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type");
+    String prevCombinerStorageType = menuList.getSelectedItem();
+    switch (menuList.getSelectedIndex()) {
     case 0: { // Local
       combinerStorageTypeChanged("local");
     }
@@ -1255,7 +1259,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       break;
     }
 
-    firePropertyChange(COMBINER_STORAGE_TYPE, null, combinerStorageType);
+    firePropertyChange(COMBINER_STORAGE_TYPE, prevCombinerStorageType, combinerStorageType);
   }
 
   public String getCombinerStorageType() {
@@ -1284,7 +1288,9 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   
   @SuppressWarnings("rawtypes")
   public void setReducerStorageType(String reducerStorageType) {
-    switch (((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type")).getSelectedIndex()) {
+    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type");
+    String prevReducerStorageType = menuList.getSelectedItem();
+    switch (menuList.getSelectedIndex()) {
     case 0: { // Local
       reducerStorageTypeChanged("local");
     }
@@ -1301,7 +1307,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       break;
     }
 
-    firePropertyChange(REDUCER_STORAGE_TYPE, null, reducerStorageType);
+    firePropertyChange(REDUCER_STORAGE_TYPE, prevReducerStorageType, reducerStorageType);
   }
 
   public String getReducerStorageType() {
