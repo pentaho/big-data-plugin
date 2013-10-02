@@ -60,7 +60,7 @@
 					            <rows>
 					            	<row>
 					            		<label value="${JobEntryHadoopTransJobExecutor.StorageType.Label}" width="200"/>
-					            		<menulist id="mapper-storage-type">
+					            		<menulist id="mapper-storage-type" pen:binding="label">
 										    <menupopup>
 										        <menuitem label="${JobEntryHadoopTransJobExecutor.StorageType.Local}" />
 										        <menuitem label="${JobEntryHadoopTransJobExecutor.StorageType.Repository.Location}" />
@@ -103,7 +103,7 @@
             <rows>
               <row>
                 <label value="${JobEntryHadoopTransJobExecutor.StorageType.Label}" width="200"/>
-                <menulist id="combiner-storage-type">
+                <menulist id="combiner-storage-type" pen:binding="label">
                   <menupopup>
                     <menuitem label="${JobEntryHadoopTransJobExecutor.StorageType.Local}" />
                     <menuitem label="${JobEntryHadoopTransJobExecutor.StorageType.Repository.Location}" />
@@ -154,7 +154,7 @@
 								<rows>
 									<row>
 					            		<label value="${JobEntryHadoopTransJobExecutor.StorageType.Label}" width="200"/>
-					            		<menulist id="reducer-storage-type">
+					            		<menulist id="reducer-storage-type" pen:binding="label">
 										    <menupopup>
 										        <menuitem label="${JobEntryHadoopTransJobExecutor.StorageType.Local}" />
 										        <menuitem label="${JobEntryHadoopTransJobExecutor.StorageType.Repository.Location}" />
