@@ -90,8 +90,6 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
         try {
           S3Object object = fileSystem.getS3Service().getObject(getS3Bucket(), name);
           if (deleteIfAlreadyExists) {
-            bucket = getS3Bucket();
-            bucket = fileSystem.getS3Service().createBucket(getS3BucketName());
             fileSystem.getS3Service().deleteObject(getS3Bucket(), name);
             object = new S3Object(name);
           }
@@ -99,8 +97,6 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
         } catch (Exception e) {
           S3Object object = new S3Object(name);
           if (deleteIfAlreadyExists) {
-            bucket = getS3Bucket();
-            bucket = fileSystem.getS3Service().createBucket(getS3BucketName());
             fileSystem.getS3Service().deleteObject(getS3Bucket(), name);
           }
           return object;
@@ -111,6 +107,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     }
     return null;
   }
+
 
   protected long doGetContentSize() throws Exception {
     return getS3Object(false).getContentLength();
