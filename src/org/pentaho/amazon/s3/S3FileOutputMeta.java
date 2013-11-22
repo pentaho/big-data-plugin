@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.amazon.s3;
 
@@ -46,7 +46,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Step(id = "S3FileOutputPlugin", image = "S3O.png", name = "S3 File Output", description = "Create files in an S3 location", categoryDescription = "Output")
+@Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3 File Output",
+  description = "Create files in an S3 location", categoryDescription = "Output" )
 public class S3FileOutputMeta extends TextFileOutputMeta {
 
   private static final String ACCESS_KEY_TAG = "access_key";
@@ -54,7 +55,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   private static final String FILE_TAG = "file";
   private static final String NAME_TAG = "name";
 
-  private static final Pattern OLD_STYLE_FILENAME =  Pattern.compile( "^[s|S]3:\\/\\/([0-9a-zA-Z]{20}):(.+)@(.+)$" );
+  private static final Pattern OLD_STYLE_FILENAME = Pattern.compile( "^[s|S]3:\\/\\/([0-9a-zA-Z]{20}):(.+)@(.+)$" );
 
   private String accessKey = null;
   private String secretKey = null;
@@ -63,7 +64,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     return accessKey;
   }
 
-  public void setAccessKey(String accessKey) {
+  public void setAccessKey( String accessKey ) {
     this.accessKey = accessKey;
   }
 
@@ -71,7 +72,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     return secretKey;
   }
 
-  public void setSecretKey(String secretKey) {
+  public void setSecretKey( String secretKey ) {
     this.secretKey = secretKey;
   }
 
@@ -82,62 +83,68 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
     // now set the default for the
     // filename to an empty string
-    setFileName("");
+    setFileName( "" );
   }
 
-  public String buildFilename( String filename, String extension, VariableSpace space, int stepnr, String partnr, int splitnr, boolean ziparchive,
-      TextFileOutputMeta meta) {
-    String retval = super.buildFilename(filename, extension, space, stepnr, partnr, splitnr, ziparchive, meta);
-//    if (retval.startsWith(AmazonSpoonPlugin.S3_SCHEME)) {
-//      String authPart = retval.substring(AmazonSpoonPlugin.S3_SCHEME.length() + 3, retval.indexOf("@s3")).replaceAll("\\+", "%2B").replaceAll("/", "%2F");
-//      retval = AmazonSpoonPlugin.S3_SCHEME + "://" + authPart + "@s3" + retval.substring(retval.indexOf("@s3")+3);
-//    }
+  public String buildFilename( String filename, String extension, VariableSpace space, int stepnr, String partnr,
+                               int splitnr, boolean ziparchive,
+                               TextFileOutputMeta meta ) {
+    String retval = super.buildFilename( filename, extension, space, stepnr, partnr, splitnr, ziparchive, meta );
+    //    if (retval.startsWith(AmazonSpoonPlugin.S3_SCHEME)) {
+    //      String authPart = retval.substring(AmazonSpoonPlugin.S3_SCHEME.length() + 3,
+    // retval.indexOf("@s3")).replaceAll("\\+", "%2B").replaceAll("/", "%2F");
+    //      retval = AmazonSpoonPlugin.S3_SCHEME + "://" + authPart + "@s3" + retval.substring(retval.indexOf("@s3")+3);
+    //    }
     return retval;
   }
 
   @Override
   public String getXML() {
-      StringBuffer retval = new StringBuffer( 1000 );
+    StringBuffer retval = new StringBuffer( 1000 );
 
-      retval.append(super.getXML());
-      retval.append("      ").append(XMLHandler.addTagValue(ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables(accessKey) ) );
-      retval.append("      ").append(XMLHandler.addTagValue(SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables(secretKey) ) );
+    retval.append( super.getXML() );
+    retval.append( "      " )
+      .append( XMLHandler.addTagValue( ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
+    retval.append( "      " )
+      .append( XMLHandler.addTagValue( SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
 
-      return retval.toString();
+    return retval.toString();
   }
 
   @Override
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
-          throws KettleException {
-      try {
-          super.saveRep( rep, metaStore, id_transformation, id_step );
-          rep.saveStepAttribute( id_transformation, id_step, ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables(accessKey) );
-          rep.saveStepAttribute( id_transformation, id_step, SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables(secretKey) );
-      } catch ( Exception e ) {
-          throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
-      }
+    throws KettleException {
+    try {
+      super.saveRep( rep, metaStore, id_transformation, id_step );
+      rep.saveStepAttribute( id_transformation, id_step, ACCESS_KEY_TAG,
+        Encr.encryptPasswordIfNotUsingVariables( accessKey ) );
+      rep.saveStepAttribute( id_transformation, id_step, SECRET_KEY_TAG,
+        Encr.encryptPasswordIfNotUsingVariables( secretKey ) );
+    } catch ( Exception e ) {
+      throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
+    }
   }
 
   @Override
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-          throws KettleException {
-      try {
-          super.readRep(rep, metaStore, id_step, databases) ;
-          setAccessKey(Encr.decryptPasswordOptionallyEncrypted(rep.getStepAttributeString(id_step, ACCESS_KEY_TAG) ) );
-          setSecretKey(Encr.decryptPasswordOptionallyEncrypted(rep.getStepAttributeString(id_step, SECRET_KEY_TAG) ) );
-          String filename = rep.getStepAttributeString( id_step, "file_name" );
-          processFilename( filename );
-      } catch ( Exception e ) {
-          throw new KettleException( "Unexpected error reading step information from the repository", e );
-      }
+    throws KettleException {
+    try {
+      super.readRep( rep, metaStore, id_step, databases );
+      setAccessKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, ACCESS_KEY_TAG ) ) );
+      setSecretKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, SECRET_KEY_TAG ) ) );
+      String filename = rep.getStepAttributeString( id_step, "file_name" );
+      processFilename( filename );
+    } catch ( Exception e ) {
+      throw new KettleException( "Unexpected error reading step information from the repository", e );
+    }
   }
 
   @Override
   public void readData( Node stepnode ) throws KettleXMLException {
     try {
       super.readData( stepnode );
-      accessKey = Encr.decryptPasswordOptionallyEncrypted(XMLHandler.getTagValue( stepnode, ACCESS_KEY_TAG ));
-      secretKey = Encr.decryptPasswordOptionallyEncrypted(XMLHandler.getTagValue( stepnode, SECRET_KEY_TAG ));
+      accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, ACCESS_KEY_TAG ) );
+      secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, SECRET_KEY_TAG ) );
       String filename = XMLHandler.getTagValue( stepnode, FILE_TAG, NAME_TAG );
       processFilename( filename );
     } catch ( Exception e ) {
@@ -147,17 +154,18 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
-                                           Trans trans ) {
+                                Trans trans ) {
     return new S3FileOutput( stepMeta, stepDataInterface, cnr, transMeta, trans );
   }
 
   /**
-   * New filenames obey the rule s3://<any_string>/<s3_bucket_name>/<path>.
-   * However, we maintain old filenames s3://<access_key>:<secret_key>@s3/<s3_bucket_name>/<path>
+   * New filenames obey the rule s3://<any_string>/<s3_bucket_name>/<path>. However, we maintain old filenames
+   * s3://<access_key>:<secret_key>@s3/<s3_bucket_name>/<path>
+   *
    * @param filename
    * @return
    */
-  protected void processFilename(String filename) throws Exception {
+  protected void processFilename( String filename ) throws Exception {
     // first encode the url
     S3FileNameParser s3NameParser = new S3FileNameParser();
 
@@ -165,16 +173,16 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     Matcher matcher = OLD_STYLE_FILENAME.matcher( filename );
     if ( matcher.matches() ) {
       // old style filename is URL encoded
-      accessKey = decodeAccessKey( matcher.group(1) ) ;
-      secretKey = decodeAccessKey( matcher.group(2) ) ;
-      setFileName( "s3://" + matcher.group(3) ) ;
+      accessKey = decodeAccessKey( matcher.group( 1 ) );
+      secretKey = decodeAccessKey( matcher.group( 2 ) );
+      setFileName( "s3://" + matcher.group( 3 ) );
     } else {
       setFileName( filename );
     }
   }
 
-  protected String decodeAccessKey(String key) {
-      return key.replaceAll("%2B", "\\+").replaceAll("%2F", "/") ;
+  protected String decodeAccessKey( String key ) {
+    return key.replaceAll( "%2B", "\\+" ).replaceAll( "%2F", "/" );
   }
 
 }
