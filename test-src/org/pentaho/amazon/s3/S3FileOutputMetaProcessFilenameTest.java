@@ -43,23 +43,23 @@ public class S3FileOutputMetaProcessFilenameTest {
 
   @Test
   public void testProcessFilenameOldStyleNotEncoded() throws Exception {
-    String name = "s3://AKIAINJWPCAQOBOLET3A:Qj2cxnPks0+uP5SbeH5k/REFfJUW7FdNY+dWvhzS@s3/dbahdano/empty";
+    String name = "s3://AAAAAAABBBBBBBBB333A:Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS@s3/dbahdano/empty";
     meta.processFilename( name );
-    check( "AKIAINJWPCAQOBOLET3A", "Qj2cxnPks0+uP5SbeH5k/REFfJUW7FdNY+dWvhzS", "s3://s3/dbahdano/empty" );
+    check( "AAAAAAABBBBBBBBB333A", "Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS", "s3://s3/dbahdano/empty" );
   }
 
   @Test
   public void testProcessFilenameCapitalLetter() throws Exception {
-    String name = "S3://AKIAINJWPCAQOBOLET3A:Qj2cxnPks0+uP5SbeH5k/REFfJUW7FdNY+dWvhzS@s3/dbahdano/empty";
+    String name = "S3://AAAAAAABBBBBBBBB333A:Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS@s3/dbahdano/empty";
     meta.processFilename( name );
-    check( "AKIAINJWPCAQOBOLET3A", "Qj2cxnPks0+uP5SbeH5k/REFfJUW7FdNY+dWvhzS", "s3://s3/dbahdano/empty" );
+    check( "AAAAAAABBBBBBBBB333A", "Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS", "s3://s3/dbahdano/empty" );
   }
 
   @Test
   public void testProcessFilenameOldStyleEncoded() throws Exception {
-    String name = "s3://AKIAINJWPCAQOBOLET3A:Qj2cxnPks0%2BuP5SbeH5k%2FREFfJUW7FdNY%2BdWvhzS@s3/dbahdano/empty";
+    String name = "s3://AAAAAAABBBBBBBBB333A:Q123456789%2BqwertyUIO%2FREFfJUW7FdNY%2BdWvhzS@s3/dbahdano/empty";
     meta.processFilename( name );
-    check( "AKIAINJWPCAQOBOLET3A", "Qj2cxnPks0+uP5SbeH5k/REFfJUW7FdNY+dWvhzS", "s3://s3/dbahdano/empty" );
+    check( "AAAAAAABBBBBBBBB333A", "Q123456789+qwertyUIO/REFfJUW7FdNY+dWvhzS", "s3://s3/dbahdano/empty" );
   }
 
   @Test
