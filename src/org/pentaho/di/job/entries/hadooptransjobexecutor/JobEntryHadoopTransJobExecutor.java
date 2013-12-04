@@ -66,6 +66,7 @@ import org.pentaho.di.trans.TransMeta.TransformationType;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.hadoopexit.HadoopExitMeta;
 import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
+import org.pentaho.di.version.BuildVersion;
 import org.pentaho.hadoop.PluginPropertiesUtil;
 import org.pentaho.hadoop.mapreduce.InKeyValueOrdinals;
 import org.pentaho.hadoop.mapreduce.OutKeyValueOrdinals;
@@ -779,7 +780,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       // Only configure our job to use the Distributed Cache if the pentaho-mapreduce
       if (useDistributedCache(conf, pmrProperties)) {
         String installPath = getProperty(conf, pmrProperties, PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR, null);
-        String installId = getProperty(conf, pmrProperties, PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID, Const.VERSION);
+        String installId =
+            getProperty( conf, pmrProperties, PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID, BuildVersion
+                .getInstance().getVersion() );
         try {
           if (Const.isEmpty(installPath)) {
             throw new IllegalArgumentException(BaseMessages.getString(PKG, "JobEntryHadoopTransJobExecutor.KettleHdfsInstallDirMissing"));
@@ -787,7 +790,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
           if (Const.isEmpty(installId)) {
             String pluginVersion = new PluginPropertiesUtil().getVersion();
 
-            installId = Const.VERSION;
+            installId = BuildVersion.getInstance().getVersion();
             if (pluginVersion != null) {
               installId = installId + "-" + pluginVersion;
             }
