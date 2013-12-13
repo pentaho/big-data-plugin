@@ -118,6 +118,8 @@ public class SqoopUtils {
       StreamTokenizer tokenizer = new StreamTokenizer(reader);
       // Treat a dash as an ordinary character so it gets included in the token
       tokenizer.ordinaryChar('-');
+      tokenizer.ordinaryChar('.');
+      tokenizer.ordinaryChars('0', '9');
       // Treat all characters as word characters so nothing is parsed out
       tokenizer.wordChars('\u0000','\uFFFF');
 

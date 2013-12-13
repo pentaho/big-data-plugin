@@ -352,5 +352,14 @@ public class SqoopUtilsTest {
     assertNotNull(SqoopUtils.findMethod(MockConfig.class, "Test", null, "bogus", "get"));
     assertNull(SqoopUtils.findMethod(MockConfig.class, "Test", null, "bogus"));
   }
+  
+  @Test
+  public void parseCommandLine_numericArgs() throws Exception {
+    // PDI-10554
+    List<String> args = SqoopUtils.parseCommandLine( "--num-mappers 55", new Variables(), true );
+    assertEquals( "there should be a couple of args", 2, args.size() );
+    assertEquals( "the first arg does not match ", args.get(0), "--num-mappers" );
+    assertEquals( "the second arg does not match ", args.get(1), "55" );
+  }
 
 }
