@@ -34,6 +34,7 @@ public class WordCount {
   public static void main(String[] args) throws Exception {
     String hdfsHost = "localhost:9000";
     String jobTrackerHost = "localhost:9001";
+    String fsPrefix = "hdfs";
     
     String dirInput = "/wordcount/input";
     String dirOutput = "/wordcount/output";
@@ -55,6 +56,8 @@ public class WordCount {
       System.out.println("                              e.g.- localhost:9000");
       System.out.println("--jobTrackerHost=HOST         The host<:port> of the job tracker service");
       System.out.println("                              e.g.- localhost:9001");
+      System.out.println("--fsPrefix=PREFIX             The prefix to use for for the filesystem");
+      System.out.println("                              e.g.- hdfs");
       System.out.println();
       System.out.println();
       System.out.println("If an option is not provided through the command prompt the following defaults");
@@ -63,6 +66,7 @@ public class WordCount {
       System.out.println("--output='/wordcount/output'");
       System.out.println("--hdfsHost=localhost:9000");
       System.out.println("--jobTrackerHost=localhost:9001");
+      System.out.println("--fsPrefix=hdfs");
           
     } else {
       if(args.length > 0){
@@ -75,6 +79,8 @@ public class WordCount {
             hdfsHost = WordCount.getArgValue(arg);
           } else if(arg.startsWith("--jobTrackerHost=")) {
             jobTrackerHost = WordCount.getArgValue(arg);
+          } else if(arg.startsWith("--fsPrefix=")) {
+            fsPrefix = WordCount.getArgValue(arg);
           }
         }
       }
@@ -82,9 +88,11 @@ public class WordCount {
       JobConf conf = new JobConf(WordCount.class);
       conf.setJobName("WordCount");
 
-      String hdfsBaseUrl = "hdfs://" + hdfsHost;
-      conf.set("fs.default.name", hdfsBaseUrl);
-      conf.set("mapred.job.tracker", jobTrackerHost);
+      String hdfsBaseUrl = fsPrefix + "://" + hdfsHost;
+      conf.set("fs.default.name", hdfsBaseUrl + "/");
+      if (jobTrackerHost != null && jobTrackerHost.length() > 0) {
+        conf.set("mapred.job.tracker", jobTrackerHost);
+      }
       
       FileInputFormat.setInputPaths(conf, new Path[] { new Path(hdfsBaseUrl + dirInput) });
       FileOutputFormat.setOutputPath(conf, new Path(hdfsBaseUrl + dirOutput));
@@ -103,13 +111,13 @@ public class WordCount {
   }
   
   private static String getArgValue(String arg) {
-    String result = null;
+    String result = null; 
     
     String[] tokens = arg.split("="); 
     if(tokens.length > 1) {
       result = tokens[1].replace("'", "").replace("\"", "");
     }
-    
+    System.out.println(arg + " parses to " + result);    
     return result;
   }
 }
