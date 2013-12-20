@@ -8,10 +8,12 @@
 	resizable="true"
     height="250" width="600"
 	appicon="ui/images/spoon.ico"
-	buttons="accept,cancel"
+	buttons="extra1,accept,cancel"
 	buttonalign="end" 
+	buttonlabelextra1="${Dialog.Help}"
 	buttonlabelaccept="${Dialog.Accept}"
-	buttonlabelcancel="${Dialog.Cancel}" 
+	buttonlabelcancel="${Dialog.Cancel}"
+	ondialogextra1="handler.onHelp()" 
 	ondialogaccept="handler.onAccept()"
 	ondialogcancel="handler.onCancel()">
 

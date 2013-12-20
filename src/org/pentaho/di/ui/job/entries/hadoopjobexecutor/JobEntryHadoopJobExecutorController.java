@@ -32,14 +32,19 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.plugins.JobEntryPluginType;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
+import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.ui.xul.XulDomException;
 import org.pentaho.ui.xul.XulEventSourceAdapter;
 import org.pentaho.ui.xul.components.XulMenuList;
@@ -666,5 +671,13 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       this.numReduceTasks = numReduceTasks;
       firePropertyChange(AdvancedConfiguration.NUM_REDUCE_TASKS, previousVal, newVal);
     }    
+  }
+
+  public void help() {
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
+    Shell shell = (Shell) xulDialog.getRootObject();
+    PluginInterface
+      plugin = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+    HelpUtils.openHelpDialog( shell, plugin ) ;
   }
 }

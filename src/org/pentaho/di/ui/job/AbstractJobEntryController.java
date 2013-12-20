@@ -31,6 +31,9 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.plugins.JobEntryPluginType;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.AbstractJobEntry;
@@ -43,6 +46,7 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.di.ui.vfs.VfsFileChooserHelper;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
@@ -162,6 +166,22 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
       ((Composite) xulDialog.getManagedObject()).dispose();
       shell.dispose();
     }
+  }
+
+  /**
+   * Call help dialog
+   */
+  public void help() {
+    XulDialog xulDialog = getDialog();
+    Shell shell = (Shell) xulDialog.getRootObject();
+    HelpUtils.openHelpDialog( shell, getPlugin() );
+  }
+
+  /**
+   * Find a plugin for a corresponding job entry
+   */
+  protected PluginInterface getPlugin() {
+     return PluginRegistry.getInstance().findPluginWithName( JobEntryPluginType.class, jobEntry.getName() );
   }
 
   /**

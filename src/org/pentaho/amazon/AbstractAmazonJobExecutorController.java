@@ -33,17 +33,23 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.emr.job.AmazonElasticMapReduceJobExecutor;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.plugins.JobEntryPluginType;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
@@ -536,6 +542,14 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       helper = new S3VfsFileChooserHelper(shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions());
     }
     return helper;
+  }
+
+  public void help() {
+    JobEntryInterface jobEntry = getJobEntry();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_JOB_ENTRY_DIALOG) ;
+    Shell shell = (Shell) xulDialog.getRootObject();
+    PluginInterface plugin = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+    HelpUtils.openHelpDialog( shell, plugin) ;
   }
 
 }

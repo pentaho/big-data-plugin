@@ -26,6 +26,7 @@
     <column flex="1"/>
     <column/>
     <column/>
+    <column/>
   </columns>
   <rows>
     <row>
@@ -37,6 +38,7 @@
         <button label="${Dialog.Test}" onclick="controller.testSettings();"/>
         <spacer flex="1"/>
       </hbox>
+      <button label="${Dialog.Help}" onclick="controller.help();"/>
       <button label="${Dialog.Accept}" onclick="controller.accept();"/>
       <button label="${Dialog.Cancel}" onclick="controller.cancel();"/>
     </row>
