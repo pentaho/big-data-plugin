@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.amazon;
 
@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.emr.job.AmazonElasticMapReduceJobExecutor;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
@@ -57,8 +56,7 @@ import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
- * created by: rfellows
- * date:       5/24/12
+ * created by: rfellows date:       5/24/12
  */
 public abstract class AbstractAmazonJobExecutorController extends AbstractXulEventHandler {
 
@@ -96,15 +94,23 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String XUL_JAR_URL = "jar-url";
 
   /* Messages */
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR = "AmazonElasticMapReduceJobExecutor.JobEntryName.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR = "AmazonElasticMapReduceJobExecutor.JobFlowName.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR = "AmazonElasticMapReduceJobExecutor.AccessKey.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR = "AmazonElasticMapReduceJobExecutor.SecretKey.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR = "AmazonElasticMapReduceJobExecutor.StagingDir.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR = "AmazonElasticMapReduceJobExecutor.MasterInstanceType.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR = "AmazonElasticMapReduceJobExecutor.SlaveInstanceType.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR =
+    "AmazonElasticMapReduceJobExecutor.JobEntryName.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR =
+    "AmazonElasticMapReduceJobExecutor.JobFlowName.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR =
+    "AmazonElasticMapReduceJobExecutor.AccessKey.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR =
+    "AmazonElasticMapReduceJobExecutor.SecretKey.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR =
+    "AmazonElasticMapReduceJobExecutor.StagingDir.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR =
+    "AmazonElasticMapReduceJobExecutor.MasterInstanceType.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR =
+    "AmazonElasticMapReduceJobExecutor.SlaveInstanceType.Error";
   public static final String MSG_DIALOG_ERROR = "Dialog.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR = "AmazonElasticMapReduceJobExecutor.JarURL.Error";
+  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR =
+    "AmazonElasticMapReduceJobExecutor.JarURL.Error";
 
 
   protected String jobEntryName;
@@ -133,8 +139,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
     String validationErrors = buildValidationErrorMessages();
 
-    if (!StringUtil.isEmpty(validationErrors)) {
-      openErrorDialog(BaseMessages.getString(PKG, MSG_DIALOG_ERROR), validationErrors);
+    if ( !StringUtil.isEmpty( validationErrors ) ) {
+      openErrorDialog( BaseMessages.getString( PKG, MSG_DIALOG_ERROR ), validationErrors );
       // show validation errors dialog
       return;
     }
@@ -145,138 +151,152 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   protected void syncModel() {
-    ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_JOBENTRY_HADOOPJOB_NAME);
-    this.hadoopJobName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_ACCESS_KEY1);
-    this.accessKey = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_SECRET_KEY1);
-    this.secretKey = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_JOBENTRY_HADOOPJOB_FLOW_ID);
-    this.hadoopJobFlowId = ((Text) tempBox.getTextControl()).getText();
+    ExtTextbox tempBox =
+      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
+    this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY1 );
+    this.accessKey = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY1 );
+    this.secretKey = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
+    this.hadoopJobFlowId = ( (Text) tempBox.getTextControl() ).getText();
 
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_S3_STAGING_DIRECTORY);
-    this.stagingDir = ((Text) tempBox.getTextControl()).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
+    this.stagingDir = ( (Text) tempBox.getTextControl() ).getText();
     try {
-      this.stagingDirFile = resolveFile(this.stagingDir);
-    } catch (Exception e) {
+      this.stagingDirFile = resolveFile( this.stagingDir );
+    } catch ( Exception e ) {
       this.stagingDirFile = null;
     }
 
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_COMMAND_LINE_ARGUMENTS);
-    this.cmdLineArgs = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_NUM_INSTANCES1);
-    this.numInstances = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_LOGGING_INTERVAL1);
-    this.loggingInterval = ((Text) tempBox.getTextControl()).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
+    this.cmdLineArgs = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_NUM_INSTANCES1 );
+    this.numInstances = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
+    this.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
   }
 
   protected String buildValidationErrorMessages() {
     String validationErrors = "";
-    if (StringUtil.isEmpty(getJobEntryName())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR) + "\n";
+    if ( StringUtil.isEmpty( getJobEntryName() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR ) + "\n";
     }
-    if (StringUtil.isEmpty(getHadoopJobName())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR) + "\n";
+    if ( StringUtil.isEmpty( getHadoopJobName() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR ) + "\n";
     }
-    if (StringUtil.isEmpty(getAccessKey())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR) + "\n";
+    if ( StringUtil.isEmpty( getAccessKey() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR ) + "\n";
     }
-    if (StringUtil.isEmpty(getSecretKey())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR) + "\n";
+    if ( StringUtil.isEmpty( getSecretKey() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR ) + "\n";
     }
     String s3Protocol = S3FileProvider.SCHEME + "://";
-    String sdir = getVariableSpace().environmentSubstitute(stagingDir);
-    if (StringUtil.isEmpty(getStagingDir())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR) + "\n";
-    } else if (!sdir.startsWith(s3Protocol)) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR) + "\n";
+    String sdir = getVariableSpace().environmentSubstitute( stagingDir );
+    if ( StringUtil.isEmpty( getStagingDir() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
+    } else if ( !sdir.startsWith( s3Protocol ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
     }
 
     /*if (numInstances <= 0) {
       validationErrors += BaseMessages.getString(PKG, "AmazonElasticMapReduceJobExecutor.NumInstances.Error") + "\n";
     }*/
-    if (StringUtil.isEmpty(getMasterInstanceType())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR) + "\n";
+    if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR ) + "\n";
     }
-    if (StringUtil.isEmpty(getSlaveInstanceType())) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR) + "\n";
+    if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR ) + "\n";
     }
     return validationErrors;
   }
 
   protected void configureJobEntry() {
     // common/simple
-    getJobEntry().setName(getJobEntryName());
-    getJobEntry().setHadoopJobName(getHadoopJobName());
-    getJobEntry().setHadoopJobFlowId(getHadoopJobFlowId());
-    getJobEntry().setAccessKey(getAccessKey());
-    getJobEntry().setSecretKey(getSecretKey());
-    getJobEntry().setStagingDir(getStagingDir());
-    getJobEntry().setJarUrl(getJarUrl());
-    getJobEntry().setNumInstances(getNumInstances());
-    getJobEntry().setMasterInstanceType(getMasterInstanceType());
-    getJobEntry().setSlaveInstanceType(getSlaveInstanceType());
-    getJobEntry().setCmdLineArgs(getCommandLineArgs());
+    getJobEntry().setName( getJobEntryName() );
+    getJobEntry().setHadoopJobName( getHadoopJobName() );
+    getJobEntry().setHadoopJobFlowId( getHadoopJobFlowId() );
+    getJobEntry().setAccessKey( getAccessKey() );
+    getJobEntry().setSecretKey( getSecretKey() );
+    getJobEntry().setStagingDir( getStagingDir() );
+    getJobEntry().setJarUrl( getJarUrl() );
+    getJobEntry().setNumInstances( getNumInstances() );
+    getJobEntry().setMasterInstanceType( getMasterInstanceType() );
+    getJobEntry().setSlaveInstanceType( getSlaveInstanceType() );
+    getJobEntry().setCmdLineArgs( getCommandLineArgs() );
     // advanced config
-    getJobEntry().setBlocking(isBlocking());
-    getJobEntry().setLoggingInterval(getLoggingInterval());
+    getJobEntry().setBlocking( isBlocking() );
+    getJobEntry().setLoggingInterval( getLoggingInterval() );
 
     getJobEntry().setChanged();
   }
 
   public void init() {
-    if (getJobEntry() != null) {
+    if ( getJobEntry() != null ) {
       // common/simple
-      setName(getJobEntry().getName());
-      setJobEntryName(getJobEntry().getName());
-      setHadoopJobName(getJobEntry().getHadoopJobName());
-      setHadoopJobFlowId(getJobEntry().getHadoopJobFlowId());
-      setAccessKey(getJobEntry().getAccessKey());
-      setSecretKey(getJobEntry().getSecretKey());
-      setStagingDir(getJobEntry().getStagingDir());
-      setJarUrl(getJobEntry().getJarUrl());
-      setNumInstances(getJobEntry().getNumInstances());
-      setMasterInstanceType(getJobEntry().getMasterInstanceType());
-      setSlaveInstanceType(getJobEntry().getSlaveInstanceType());
-      setCommandLineArgs(getJobEntry().getCmdLineArgs());
-      setBlocking(getJobEntry().isBlocking());
-      setLoggingInterval(getJobEntry().getLoggingInterval());
+      setName( getJobEntry().getName() );
+      setJobEntryName( getJobEntry().getName() );
+      setHadoopJobName( getJobEntry().getHadoopJobName() );
+      setHadoopJobFlowId( getJobEntry().getHadoopJobFlowId() );
+      setAccessKey( getJobEntry().getAccessKey() );
+      setSecretKey( getJobEntry().getSecretKey() );
+      setStagingDir( getJobEntry().getStagingDir() );
+      setJarUrl( getJobEntry().getJarUrl() );
+      setNumInstances( getJobEntry().getNumInstances() );
+      setMasterInstanceType( getJobEntry().getMasterInstanceType() );
+      setSlaveInstanceType( getJobEntry().getSlaveInstanceType() );
+      setCommandLineArgs( getJobEntry().getCmdLineArgs() );
+      setBlocking( getJobEntry().isBlocking() );
+      setLoggingInterval( getJobEntry().getLoggingInterval() );
     }
   }
 
   public void cancel() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_JOB_ENTRY_DIALOG);
+    XulDialog xulDialog =
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
     Shell shell = (Shell) xulDialog.getRootObject();
-    if (!shell.isDisposed()) {
-      WindowProperty winprop = new WindowProperty(shell);
-      PropsUI.getInstance().setScreen(winprop);
-      ((Composite) xulDialog.getManagedObject()).dispose();
+    if ( !shell.isDisposed() ) {
+      WindowProperty winprop = new WindowProperty( shell );
+      PropsUI.getInstance().setScreen( winprop );
+      ( (Composite) xulDialog.getManagedObject() ).dispose();
       shell.dispose();
     }
   }
 
-  public void openErrorDialog(String title, String message) {
-    XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_ERROR_DIALOG);
-    errorDialog.setTitle(title);
+  public void openErrorDialog( String title, String message ) {
+    XulDialog errorDialog =
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+    errorDialog.setTitle( title );
 
-    XulTextbox errorMessage = (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_ERROR_MESSAGE);
-    errorMessage.setValue(message);
+    XulTextbox errorMessage =
+      (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
+    errorMessage.setValue( message );
 
     errorDialog.show();
   }
 
   public void closeErrorDialog() {
-    XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_ERROR_DIALOG);
+    XulDialog errorDialog =
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.hide();
   }
 
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
-    if (this.fileChooserDialog == null) {
+    if ( this.fileChooserDialog == null ) {
       FileObject rootFile = null;
       FileObject initialFile = null;
-      FileObject defaultInitialFile = KettleVFS.getFileObject("file:///c:/");
+      FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
-      VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog(defaultInitialFile, initialFile);
+      VfsFileChooserDialog fileChooserDialog =
+        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
@@ -285,56 +305,63 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
 
-    if(!Const.isEmpty(getAccessKey()) || !Const.isEmpty(getSecretKey())) {
+    if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
-          new StaticUserAuthenticator(null,
-              getVariableSpace().environmentSubstitute(getAccessKey()),
-              getVariableSpace().environmentSubstitute(getSecretKey())
-          );
+        new StaticUserAuthenticator( null,
+          getVariableSpace().environmentSubstitute( getAccessKey() ),
+          getVariableSpace().environmentSubstitute( getSecretKey() )
+        );
 
-      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(opts, userAuthenticator);
+      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
     return opts;
   }
 
-  public FileObject browse(String[] fileFilters, String[] fileFilterNames, String fileUri) throws KettleException, FileSystemException {
-    return browse(fileFilters, fileFilterNames, fileUri, new FileSystemOptions());
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri )
+    throws KettleException, FileSystemException {
+    return browse( fileFilters, fileFilterNames, fileUri, new FileSystemOptions() );
   }
 
-  public FileObject browse(String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode) throws KettleException, FileSystemException {
-    return browse(fileFilters, fileFilterNames, fileUri, new FileSystemOptions(), fileDialogMode);
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode )
+    throws KettleException, FileSystemException {
+    return browse( fileFilters, fileFilterNames, fileUri, new FileSystemOptions(), fileDialogMode );
   }
 
-  public FileObject browse(String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts) throws KettleException, FileSystemException {
-    return browse(fileFilters, fileFilterNames, fileUri, opts, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY);
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts )
+    throws KettleException, FileSystemException {
+    return browse( fileFilters, fileFilterNames, fileUri, opts, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
   }
-  public FileObject browse(String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts, int fileDialogMode) throws KettleException, FileSystemException {
-    return browse(fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, false);
+
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
+                            int fileDialogMode ) throws KettleException, FileSystemException {
+    return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, false );
   }
-  public FileObject browse(String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts, int fileDialogMode, boolean showFileScheme) throws KettleException, FileSystemException {
-    getFileChooserHelper().setShowFileScheme(showFileScheme);
-    return getFileChooserHelper().browse(fileFilters, fileFilterNames, fileUri, opts, fileDialogMode);
+
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
+                            int fileDialogMode, boolean showFileScheme ) throws KettleException, FileSystemException {
+    getFileChooserHelper().setShowFileScheme( showFileScheme );
+    return getFileChooserHelper().browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode );
   }
 
   public void browseS3StagingDir() throws KettleException, FileSystemException {
     String[] fileFilters = new String[] { "*.*" };
     String[] fileFilterNames = new String[] { "All" };
 
-    String stagingDirText = getVariableSpace().environmentSubstitute(stagingDir);
+    String stagingDirText = getVariableSpace().environmentSubstitute( stagingDir );
     FileSystemOptions opts = getFileSystemOptions();
 
-    FileObject selectedFile = browse(fileFilters, fileFilterNames, stagingDirText, opts);
+    FileObject selectedFile = browse( fileFilters, fileFilterNames, stagingDirText, opts );
 
-    if (selectedFile != null) {
-      setStagingDir(selectedFile.getName().getURI());
+    if ( selectedFile != null ) {
+      setStagingDir( selectedFile.getName().getURI() );
     }
   }
 
   public VariableSpace getVariableSpace() {
-    if (Spoon.getInstance().getActiveTransformation() != null) {
+    if ( Spoon.getInstance().getActiveTransformation() != null ) {
       return Spoon.getInstance().getActiveTransformation();
-    } else if (Spoon.getInstance().getActiveJob() != null) {
+    } else if ( Spoon.getInstance().getActiveJob() != null ) {
       return Spoon.getInstance().getActiveJob();
     } else {
       return new Variables();
@@ -350,206 +377,209 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     return jobEntryName;
   }
 
-  public void setJobEntryName(String jobEntryName) {
+  public void setJobEntryName( String jobEntryName ) {
     String previousVal = this.jobEntryName;
     String newVal = jobEntryName;
 
     this.jobEntryName = jobEntryName;
-    firePropertyChange(JOB_ENTRY_NAME, previousVal, newVal);
+    firePropertyChange( JOB_ENTRY_NAME, previousVal, newVal );
   }
 
   public String getHadoopJobName() {
     return hadoopJobName;
   }
 
-  public void setHadoopJobName(String hadoopJobName) {
+  public void setHadoopJobName( String hadoopJobName ) {
     String previousVal = this.hadoopJobName;
     String newVal = hadoopJobName;
 
     this.hadoopJobName = hadoopJobName;
-    firePropertyChange(HADOOP_JOB_NAME, previousVal, newVal);
+    firePropertyChange( HADOOP_JOB_NAME, previousVal, newVal );
   }
 
   public String getHadoopJobFlowId() {
     return hadoopJobFlowId;
   }
 
-  public void setHadoopJobFlowId(String hadoopJobFlowId) {
+  public void setHadoopJobFlowId( String hadoopJobFlowId ) {
     String previousVal = this.hadoopJobFlowId;
     String newVal = hadoopJobFlowId;
 
     this.hadoopJobFlowId = hadoopJobFlowId;
-    firePropertyChange(HADOOP_JOB_FLOW_ID, previousVal, newVal);
+    firePropertyChange( HADOOP_JOB_FLOW_ID, previousVal, newVal );
   }
 
   public String getAccessKey() {
     return accessKey;
   }
 
-  public void setAccessKey(String accessKey) {
+  public void setAccessKey( String accessKey ) {
     String previousVal = this.accessKey;
     String newVal = accessKey;
 
     this.accessKey = accessKey;
-    firePropertyChange(ACCESS_KEY, previousVal, newVal);
+    firePropertyChange( ACCESS_KEY, previousVal, newVal );
   }
 
   public String getSecretKey() {
     return secretKey;
   }
 
-  public void setSecretKey(String secretKey) {
+  public void setSecretKey( String secretKey ) {
     String previousVal = this.secretKey;
     String newVal = secretKey;
 
     this.secretKey = secretKey;
-    firePropertyChange(SECRET_KEY, previousVal, newVal);
+    firePropertyChange( SECRET_KEY, previousVal, newVal );
   }
 
   public String getStagingDir() {
     return stagingDir;
   }
 
-  public void setStagingDir(String stagingDir) {
+  public void setStagingDir( String stagingDir ) {
     String previousVal = this.stagingDir;
     String newVal = stagingDir;
 
     this.stagingDir = stagingDir;
-    firePropertyChange(STAGING_DIR, previousVal, newVal);
+    firePropertyChange( STAGING_DIR, previousVal, newVal );
   }
 
   public FileObject getStagingDirFile() {
     return stagingDirFile;
   }
 
-  public void setStagingDirFile(FileObject stagingDirFile) {
+  public void setStagingDirFile( FileObject stagingDirFile ) {
     FileObject previousVal = this.stagingDirFile;
     FileObject newVal = stagingDirFile;
 
     this.stagingDirFile = stagingDirFile;
-    firePropertyChange(STAGING_DIR_FILE, previousVal, newVal);
+    firePropertyChange( STAGING_DIR_FILE, previousVal, newVal );
   }
 
   public String getJarUrl() {
     return jarUrl;
   }
 
-  public void setJarUrl(String jarUrl) {
+  public void setJarUrl( String jarUrl ) {
     String previousVal = this.jarUrl;
     String newVal = jarUrl;
 
     this.jarUrl = jarUrl;
-    firePropertyChange(JAR_URL, previousVal, newVal);
+    firePropertyChange( JAR_URL, previousVal, newVal );
   }
 
   public String getNumInstances() {
     return numInstances;
   }
 
-  public void setNumInstances(String numInstances) {
+  public void setNumInstances( String numInstances ) {
     String previousVal = this.numInstances;
     String newVal = numInstances;
 
     this.numInstances = numInstances;
-    firePropertyChange(NUM_INSTANCES, previousVal, newVal);
+    firePropertyChange( NUM_INSTANCES, previousVal, newVal );
   }
 
   public String getMasterInstanceType() {
     return masterInstanceType;
   }
 
-  public void setMasterInstanceType(String masterInstanceType) {
+  public void setMasterInstanceType( String masterInstanceType ) {
     String previousVal = this.masterInstanceType;
     String newVal = masterInstanceType;
 
     this.masterInstanceType = masterInstanceType;
-    firePropertyChange(MASTER_INSTANCE_TYPE, previousVal, newVal);
+    firePropertyChange( MASTER_INSTANCE_TYPE, previousVal, newVal );
   }
 
   public String getSlaveInstanceType() {
     return slaveInstanceType;
   }
 
-  public void setSlaveInstanceType(String slaveInstanceType) {
+  public void setSlaveInstanceType( String slaveInstanceType ) {
     String previousVal = this.slaveInstanceType;
     String newVal = slaveInstanceType;
 
     this.slaveInstanceType = slaveInstanceType;
-    firePropertyChange(SLAVE_INSTANCE_TYPE, previousVal, newVal);
+    firePropertyChange( SLAVE_INSTANCE_TYPE, previousVal, newVal );
   }
 
   public void invertBlocking() {
-    setBlocking(!isBlocking());
+    setBlocking( !isBlocking() );
   }
 
   public abstract <T extends AbstractAmazonJobEntry> T getJobEntry();
 
-  public abstract <T extends AbstractAmazonJobEntry> void setJobEntry(T jobEntry);
+  public abstract <T extends AbstractAmazonJobEntry> void setJobEntry( T jobEntry );
 
   public String getCommandLineArgs() {
     return cmdLineArgs;
   }
 
-  public void setCommandLineArgs(String cmdLineArgs) {
+  public void setCommandLineArgs( String cmdLineArgs ) {
     String previousVal = this.cmdLineArgs;
     String newVal = cmdLineArgs;
 
     this.cmdLineArgs = cmdLineArgs;
 
-    firePropertyChange(CMD_LINE_ARGS, previousVal, newVal);
+    firePropertyChange( CMD_LINE_ARGS, previousVal, newVal );
   }
 
   public boolean isBlocking() {
     return blocking;
   }
 
-  public void setBlocking(boolean blocking) {
+  public void setBlocking( boolean blocking ) {
     boolean previousVal = this.blocking;
     boolean newVal = blocking;
 
     this.blocking = blocking;
-    firePropertyChange(BLOCKING, previousVal, newVal);
+    firePropertyChange( BLOCKING, previousVal, newVal );
   }
 
   public String getLoggingInterval() {
     return loggingInterval;
   }
 
-  public void setLoggingInterval(String loggingInterval) {
+  public void setLoggingInterval( String loggingInterval ) {
     String previousVal = this.loggingInterval;
     String newVal = loggingInterval;
 
     this.loggingInterval = loggingInterval;
-    firePropertyChange(LOGGING_INTERVAL, previousVal, newVal);
+    firePropertyChange( LOGGING_INTERVAL, previousVal, newVal );
   }
 
-  public FileObject resolveFile(String fileUri) throws FileSystemException, KettleFileException {
+  public FileObject resolveFile( String fileUri ) throws FileSystemException, KettleFileException {
     VariableSpace vs = getVariableSpace();
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(
-        opts,
-        new StaticUserAuthenticator(null, getAccessKey(), getSecretKey())
+      opts,
+      new StaticUserAuthenticator( null, getAccessKey(), getSecretKey() )
     );
-    FileObject file = KettleVFS.getFileObject(fileUri, vs, opts);
+    FileObject file = KettleVFS.getFileObject( fileUri, vs, opts );
     return file;
   }
 
   protected S3VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
-    if (helper == null) {
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_JOB_ENTRY_DIALOG);
+    if ( helper == null ) {
+      XulDialog xulDialog =
+        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
       Shell shell = (Shell) xulDialog.getRootObject();
 
-      helper = new S3VfsFileChooserHelper(shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions());
+      helper = new S3VfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
     }
     return helper;
   }
 
   public void help() {
     JobEntryInterface jobEntry = getJobEntry();
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById(XUL_AMAZON_EMR_JOB_ENTRY_DIALOG) ;
+    XulDialog xulDialog =
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
     Shell shell = (Shell) xulDialog.getRootObject();
-    PluginInterface plugin = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
-    HelpUtils.openHelpDialog( shell, plugin) ;
+    PluginInterface plugin =
+      PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+    HelpUtils.openHelpDialog( shell, plugin );
   }
 
 }

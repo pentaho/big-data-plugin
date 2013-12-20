@@ -1,30 +1,28 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.hadoopjobexecutor;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -39,7 +37,6 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
-import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.gui.WindowProperty;
@@ -47,7 +44,6 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.ui.xul.XulDomException;
 import org.pentaho.ui.xul.XulEventSourceAdapter;
-import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulVbox;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
@@ -67,7 +63,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   private String hadoopJobName;
   private String jarUrl = "";
 
-  private boolean isSimple = true;  
+  private boolean isSimple = true;
 
   private SimpleConfiguration sConf = new SimpleConfiguration();
   private AdvancedConfiguration aConf = new AdvancedConfiguration();
@@ -75,11 +71,11 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   private JobEntryHadoopJobExecutor jobEntry;
 
   private AbstractModelList<UserDefinedItem> userDefined = new AbstractModelList<UserDefinedItem>();
-  
+
   protected VariableSpace getVariableSpace() {
-    if (Spoon.getInstance().getActiveTransformation() != null) {
+    if ( Spoon.getInstance().getActiveTransformation() != null ) {
       return Spoon.getInstance().getActiveTransformation();
-    } else if (Spoon.getInstance().getActiveJob() != null) {
+    } else if ( Spoon.getInstance().getActiveJob() != null ) {
       return Spoon.getInstance().getActiveJob();
     } else {
       return new Variables();
@@ -87,71 +83,72 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   }
 
   public void accept() {
-    
-    ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-hadoopjob-name");
-    this.hadoopJobName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jar-url");
-    this.jarUrl = ((Text) tempBox.getTextControl()).getText();    
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("command-line-arguments");
-    sConf.cmdLineArgs = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-key-class");
-    aConf.outputKeyClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-value-class");
-    aConf.outputValueClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-mapper-class");
-    aConf.mapperClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-reducer-class");
-    aConf.reducerClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("input-path");
-    aConf.inputPath = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("output-path");
-    aConf.outputPath = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-input-format");
-    aConf.inputFormatClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-format");
-    aConf.outputFormatClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-hostname");
-    aConf.hdfsHostname = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-port");
-    aConf.hdfsPort = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-hostname");
-    aConf.jobTrackerHostname = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-port");
-    aConf.jobTrackerPort = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-map-tasks");
-    aConf.numMapTasks = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-reduce-tasks");
-    aConf.numReduceTasks = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("logging-interval");
-    aConf.loggingInterval = ((Text) tempBox.getTextControl()).getText();
-    
+
+    ExtTextbox tempBox =
+      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
+    this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jar-url" );
+    this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "command-line-arguments" );
+    sConf.cmdLineArgs = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-key-class" );
+    aConf.outputKeyClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-value-class" );
+    aConf.outputValueClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-mapper-class" );
+    aConf.mapperClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-reducer-class" );
+    aConf.reducerClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "input-path" );
+    aConf.inputPath = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "output-path" );
+    aConf.outputPath = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-input-format" );
+    aConf.inputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
+    aConf.outputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
+    aConf.hdfsHostname = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
+    aConf.hdfsPort = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
+    aConf.jobTrackerHostname = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
+    aConf.jobTrackerPort = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
+    aConf.numMapTasks = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
+    aConf.numReduceTasks = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "logging-interval" );
+    aConf.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
+
     // common/simple
-    jobEntry.setName(jobEntryName);
-    jobEntry.setHadoopJobName(hadoopJobName);
-    jobEntry.setSimple(isSimple);
-    jobEntry.setJarUrl(jarUrl);
-    jobEntry.setCmdLineArgs(sConf.getCommandLineArgs());
-    jobEntry.setSimpleBlocking(sConf.isSimpleBlocking());
-    jobEntry.setSimpleLoggingInterval(sConf.getSimpleLoggingInterval());
+    jobEntry.setName( jobEntryName );
+    jobEntry.setHadoopJobName( hadoopJobName );
+    jobEntry.setSimple( isSimple );
+    jobEntry.setJarUrl( jarUrl );
+    jobEntry.setCmdLineArgs( sConf.getCommandLineArgs() );
+    jobEntry.setSimpleBlocking( sConf.isSimpleBlocking() );
+    jobEntry.setSimpleLoggingInterval( sConf.getSimpleLoggingInterval() );
     // advanced config
-    jobEntry.setBlocking(aConf.isBlocking());
-    jobEntry.setLoggingInterval(aConf.getLoggingInterval());
-    jobEntry.setMapperClass(aConf.getMapperClass());
-    jobEntry.setCombinerClass(aConf.getCombinerClass());
-    jobEntry.setReducerClass(aConf.getReducerClass());
-    jobEntry.setInputPath(aConf.getInputPath());
-    jobEntry.setInputFormatClass(aConf.getInputFormatClass());
-    jobEntry.setOutputPath(aConf.getOutputPath());
-    jobEntry.setOutputKeyClass(aConf.getOutputKeyClass());
-    jobEntry.setOutputValueClass(aConf.getOutputValueClass());
-    jobEntry.setOutputFormatClass(aConf.getOutputFormatClass());
-    jobEntry.setHdfsHostname(aConf.getHdfsHostname());
-    jobEntry.setHdfsPort(aConf.getHdfsPort());
-    jobEntry.setJobTrackerHostname(aConf.getJobTrackerHostname());
-    jobEntry.setJobTrackerPort(aConf.getJobTrackerPort());
-    jobEntry.setNumMapTasks(aConf.getNumMapTasks());
-    jobEntry.setNumReduceTasks(aConf.getNumReduceTasks());
-    jobEntry.setUserDefined(userDefined);
+    jobEntry.setBlocking( aConf.isBlocking() );
+    jobEntry.setLoggingInterval( aConf.getLoggingInterval() );
+    jobEntry.setMapperClass( aConf.getMapperClass() );
+    jobEntry.setCombinerClass( aConf.getCombinerClass() );
+    jobEntry.setReducerClass( aConf.getReducerClass() );
+    jobEntry.setInputPath( aConf.getInputPath() );
+    jobEntry.setInputFormatClass( aConf.getInputFormatClass() );
+    jobEntry.setOutputPath( aConf.getOutputPath() );
+    jobEntry.setOutputKeyClass( aConf.getOutputKeyClass() );
+    jobEntry.setOutputValueClass( aConf.getOutputValueClass() );
+    jobEntry.setOutputFormatClass( aConf.getOutputFormatClass() );
+    jobEntry.setHdfsHostname( aConf.getHdfsHostname() );
+    jobEntry.setHdfsPort( aConf.getHdfsPort() );
+    jobEntry.setJobTrackerHostname( aConf.getJobTrackerHostname() );
+    jobEntry.setJobTrackerPort( aConf.getJobTrackerPort() );
+    jobEntry.setNumMapTasks( aConf.getNumMapTasks() );
+    jobEntry.setNumReduceTasks( aConf.getNumReduceTasks() );
+    jobEntry.setUserDefined( userDefined );
 
     jobEntry.setChanged();
 
@@ -159,92 +156,92 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   }
 
   public void init() throws XulDomException {
-    if (jobEntry != null) {
+    if ( jobEntry != null ) {
       // common/simple
-      setName(jobEntry.getName());
-      setJobEntryName(jobEntry.getName());
-      setHadoopJobName(jobEntry.getHadoopJobName());
-      setSimple(jobEntry.isSimple());
-      setJarUrl(jobEntry.getJarUrl());            
-      sConf.setCommandLineArgs(jobEntry.getCmdLineArgs());
-      sConf.setSimpleBlocking(jobEntry.isSimpleBlocking());
-      sConf.setSimpleLoggingInterval(jobEntry.getSimpleLoggingInterval());
+      setName( jobEntry.getName() );
+      setJobEntryName( jobEntry.getName() );
+      setHadoopJobName( jobEntry.getHadoopJobName() );
+      setSimple( jobEntry.isSimple() );
+      setJarUrl( jobEntry.getJarUrl() );
+      sConf.setCommandLineArgs( jobEntry.getCmdLineArgs() );
+      sConf.setSimpleBlocking( jobEntry.isSimpleBlocking() );
+      sConf.setSimpleLoggingInterval( jobEntry.getSimpleLoggingInterval() );
       // advanced config
       userDefined.clear();
-      if (jobEntry.getUserDefined() != null) {
-        userDefined.addAll(jobEntry.getUserDefined());
+      if ( jobEntry.getUserDefined() != null ) {
+        userDefined.addAll( jobEntry.getUserDefined() );
       }
-      
+
       VariableSpace varSpace = getVariableSpace();
       ExtTextbox tempBox;
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-hadoopjob-name");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jar-url");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("command-line-arguments");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-key-class");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-value-class");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-mapper-class");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-combiner-class");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-reducer-class");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("input-path");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("output-path");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-input-format");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-format");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-hostname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-port");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-hostname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-port");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-map-tasks");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-reduce-tasks");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("logging-interval");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("simple-logging-interval");
-      tempBox.setVariableSpace(varSpace);
-      
-      aConf.setBlocking(jobEntry.isBlocking());
-      aConf.setLoggingInterval(jobEntry.getLoggingInterval());
-      aConf.setMapperClass(jobEntry.getMapperClass());
-      aConf.setCombinerClass(jobEntry.getCombinerClass());
-      aConf.setReducerClass(jobEntry.getReducerClass());
-      aConf.setInputPath(jobEntry.getInputPath());
-      aConf.setInputFormatClass(jobEntry.getInputFormatClass());
-      aConf.setOutputPath(jobEntry.getOutputPath());
-      aConf.setOutputKeyClass(jobEntry.getOutputKeyClass());
-      aConf.setOutputValueClass(jobEntry.getOutputValueClass());
-      aConf.setOutputFormatClass(jobEntry.getOutputFormatClass());
-      aConf.setHdfsHostname(jobEntry.getHdfsHostname());
-      aConf.setHdfsPort(jobEntry.getHdfsPort());
-      aConf.setJobTrackerHostname(jobEntry.getJobTrackerHostname());
-      aConf.setJobTrackerPort(jobEntry.getJobTrackerPort());
-      aConf.setNumMapTasks(jobEntry.getNumMapTasks());
-      aConf.setNumReduceTasks(jobEntry.getNumReduceTasks());
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jar-url" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "command-line-arguments" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-key-class" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-value-class" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-mapper-class" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-combiner-class" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-reducer-class" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "input-path" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "output-path" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-input-format" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "logging-interval" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "simple-logging-interval" );
+      tempBox.setVariableSpace( varSpace );
+
+      aConf.setBlocking( jobEntry.isBlocking() );
+      aConf.setLoggingInterval( jobEntry.getLoggingInterval() );
+      aConf.setMapperClass( jobEntry.getMapperClass() );
+      aConf.setCombinerClass( jobEntry.getCombinerClass() );
+      aConf.setReducerClass( jobEntry.getReducerClass() );
+      aConf.setInputPath( jobEntry.getInputPath() );
+      aConf.setInputFormatClass( jobEntry.getInputFormatClass() );
+      aConf.setOutputPath( jobEntry.getOutputPath() );
+      aConf.setOutputKeyClass( jobEntry.getOutputKeyClass() );
+      aConf.setOutputValueClass( jobEntry.getOutputValueClass() );
+      aConf.setOutputFormatClass( jobEntry.getOutputFormatClass() );
+      aConf.setHdfsHostname( jobEntry.getHdfsHostname() );
+      aConf.setHdfsPort( jobEntry.getHdfsPort() );
+      aConf.setJobTrackerHostname( jobEntry.getJobTrackerHostname() );
+      aConf.setJobTrackerPort( jobEntry.getJobTrackerPort() );
+      aConf.setNumMapTasks( jobEntry.getNumMapTasks() );
+      aConf.setNumReduceTasks( jobEntry.getNumReduceTasks() );
     }
   }
 
   public void cancel() {
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
     Shell shell = (Shell) xulDialog.getRootObject();
-    if (!shell.isDisposed()) {
-      WindowProperty winprop = new WindowProperty(shell);
-      PropsUI.getInstance().setScreen(winprop);
-      ((Composite) xulDialog.getManagedObject()).dispose();
+    if ( !shell.isDisposed() ) {
+      WindowProperty winprop = new WindowProperty( shell );
+      PropsUI.getInstance().setScreen( winprop );
+      ( (Composite) xulDialog.getManagedObject() ).dispose();
       shell.dispose();
     }
   }
@@ -252,53 +249,54 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   public void browseJar() {
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
     Shell shell = (Shell) xulDialog.getRootObject();
-    FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-    dialog.setFilterExtensions(new String[] { "*.jar;*.zip" });
-    dialog.setFilterNames(new String[] { "Java Archives (jar)" });
-    String prevName = jobEntry.environmentSubstitute(jarUrl);
+    FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+    dialog.setFilterExtensions( new String[] { "*.jar;*.zip" } );
+    dialog.setFilterNames( new String[] { "Java Archives (jar)" } );
+    String prevName = jobEntry.environmentSubstitute( jarUrl );
     String parentFolder = null;
     try {
-      parentFolder = KettleVFS.getFilename(KettleVFS.getFileObject(jobEntry.environmentSubstitute(jobEntry.getFilename())).getParent());
-    } catch (Exception e) {
+      parentFolder = KettleVFS
+        .getFilename( KettleVFS.getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) ).getParent() );
+    } catch ( Exception e ) {
       // not that important
     }
-    if (!Const.isEmpty(prevName)) {
+    if ( !Const.isEmpty( prevName ) ) {
       try {
-        if (KettleVFS.fileExists(prevName)) {
-          dialog.setFilterPath(KettleVFS.getFilename(KettleVFS.getFileObject(prevName).getParent()));
+        if ( KettleVFS.fileExists( prevName ) ) {
+          dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getFileObject( prevName ).getParent() ) );
         } else {
 
-          if (!prevName.endsWith(".jar") && !prevName.endsWith(".zip")) {
-            prevName = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + Const.trim(jarUrl) + ".jar";
+          if ( !prevName.endsWith( ".jar" ) && !prevName.endsWith( ".zip" ) ) {
+            prevName = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + Const.trim( jarUrl ) + ".jar";
           }
-          if (KettleVFS.fileExists(prevName)) {
-            setJarUrl(prevName);
+          if ( KettleVFS.fileExists( prevName ) ) {
+            setJarUrl( prevName );
             return;
           }
         }
-      } catch (Exception e) {
-        dialog.setFilterPath(parentFolder);
+      } catch ( Exception e ) {
+        dialog.setFilterPath( parentFolder );
       }
-    } else if (!Const.isEmpty(parentFolder)) {
-      dialog.setFilterPath(parentFolder);
+    } else if ( !Const.isEmpty( parentFolder ) ) {
+      dialog.setFilterPath( parentFolder );
     }
 
     String fname = dialog.open();
-    if (fname != null) {
-      File file = new File(fname);
+    if ( fname != null ) {
+      File file = new File( fname );
       String name = file.getName();
       String parentFolderSelection = file.getParentFile().toString();
 
-      if (!Const.isEmpty(parentFolder) && parentFolder.equals(parentFolderSelection)) {
-        setJarUrl("${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + name);
+      if ( !Const.isEmpty( parentFolder ) && parentFolder.equals( parentFolderSelection ) ) {
+        setJarUrl( "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + name );
       } else {
-        setJarUrl(fname);
+        setJarUrl( fname );
       }
     }
   }
 
   public void newUserDefinedItem() {
-    userDefined.add(new UserDefinedItem());
+    userDefined.add( new UserDefinedItem() );
   }
 
   public SimpleConfiguration getSimpleConfiguration() {
@@ -322,66 +320,68 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     return jobEntryName;
   }
 
-  public void setJobEntryName(String jobEntryName) {
+  public void setJobEntryName( String jobEntryName ) {
     String previousVal = this.jobEntryName;
     String newVal = jobEntryName;
 
     this.jobEntryName = jobEntryName;
-    firePropertyChange(JobEntryHadoopJobExecutorController.JOB_ENTRY_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopJobExecutorController.JOB_ENTRY_NAME, previousVal, newVal );
   }
 
   public String getHadoopJobName() {
     return hadoopJobName;
   }
 
-  public void setHadoopJobName(String hadoopJobName) {
+  public void setHadoopJobName( String hadoopJobName ) {
     String previousVal = this.hadoopJobName;
     String newVal = hadoopJobName;
 
     this.hadoopJobName = hadoopJobName;
-    firePropertyChange(JobEntryHadoopJobExecutorController.HADOOP_JOB_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopJobExecutorController.HADOOP_JOB_NAME, previousVal, newVal );
   }
 
   public String getJarUrl() {
     return jarUrl;
   }
 
-  public void setJarUrl(String jarUrl) {
+  public void setJarUrl( String jarUrl ) {
     String previousVal = this.jarUrl;
     String newVal = jarUrl;
 
     this.jarUrl = jarUrl;
-    firePropertyChange(JobEntryHadoopJobExecutorController.JAR_URL, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopJobExecutorController.JAR_URL, previousVal, newVal );
   }
 
   public boolean isSimple() {
     return isSimple;
   }
 
-  public void setSimple(boolean isSimple) {
-    ((XulVbox) getXulDomContainer().getDocumentRoot().getElementById("advanced-configuration")).setVisible(!isSimple); //$NON-NLS-1$
-    ((XulVbox) getXulDomContainer().getDocumentRoot().getElementById("simple-configuration")).setVisible(isSimple); //$NON-NLS-1$
+  public void setSimple( boolean isSimple ) {
+    ( (XulVbox) getXulDomContainer().getDocumentRoot().getElementById( "advanced-configuration" ) )
+      .setVisible( !isSimple ); //$NON-NLS-1$
+    ( (XulVbox) getXulDomContainer().getDocumentRoot().getElementById( "simple-configuration" ) )
+      .setVisible( isSimple ); //$NON-NLS-1$
 
     boolean previousVal = this.isSimple;
     boolean newVal = isSimple;
 
     this.isSimple = isSimple;
-    firePropertyChange(JobEntryHadoopJobExecutorController.IS_SIMPLE, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopJobExecutorController.IS_SIMPLE, previousVal, newVal );
   }
 
   public void invertSimpleBlocking() {
-    sConf.setSimpleBlocking(!sConf.isSimpleBlocking());
+    sConf.setSimpleBlocking( !sConf.isSimpleBlocking() );
   }
 
   public void invertBlocking() {
-    aConf.setBlocking(!aConf.isBlocking());
+    aConf.setBlocking( !aConf.isBlocking() );
   }
 
   public JobEntryHadoopJobExecutor getJobEntry() {
     return jobEntry;
   }
 
-  public void setJobEntry(JobEntryHadoopJobExecutor jobEntry) {
+  public void setJobEntry( JobEntryHadoopJobExecutor jobEntry ) {
     this.jobEntry = jobEntry;
   }
 
@@ -398,33 +398,33 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       return cmdLineArgs;
     }
 
-    public void setCommandLineArgs(String cmdLineArgs) {
+    public void setCommandLineArgs( String cmdLineArgs ) {
       String previousVal = this.cmdLineArgs;
       String newVal = cmdLineArgs;
 
       this.cmdLineArgs = cmdLineArgs;
 
-      firePropertyChange(SimpleConfiguration.CMD_LINE_ARGS, previousVal, newVal);
+      firePropertyChange( SimpleConfiguration.CMD_LINE_ARGS, previousVal, newVal );
     }
 
     public boolean isSimpleBlocking() {
       return simpleBlocking;
     }
 
-    public void setSimpleBlocking(boolean simpleBlocking) {
+    public void setSimpleBlocking( boolean simpleBlocking ) {
       boolean old = this.simpleBlocking;
       this.simpleBlocking = simpleBlocking;
-      firePropertyChange(SimpleConfiguration.BLOCKING, old, this.simpleBlocking);
+      firePropertyChange( SimpleConfiguration.BLOCKING, old, this.simpleBlocking );
     }
 
     public String getSimpleLoggingInterval() {
       return simpleLoggingInterval;
     }
 
-    public void setSimpleLoggingInterval(String simpleLoggingInterval) {
+    public void setSimpleLoggingInterval( String simpleLoggingInterval ) {
       String old = this.simpleLoggingInterval;
       this.simpleLoggingInterval = simpleLoggingInterval;
-      firePropertyChange(SimpleConfiguration.LOGGING_INTERVAL, old, this.simpleLoggingInterval);
+      firePropertyChange( SimpleConfiguration.LOGGING_INTERVAL, old, this.simpleLoggingInterval );
     }
   }
 
@@ -467,210 +467,210 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
     private boolean blocking;
     private String loggingInterval = "60"; // 60 seconds
-    
+
     public String getOutputKeyClass() {
       return outputKeyClass;
     }
 
-    public void setOutputKeyClass(String outputKeyClass) {
+    public void setOutputKeyClass( String outputKeyClass ) {
       String previousVal = this.outputKeyClass;
       String newVal = outputKeyClass;
 
       this.outputKeyClass = outputKeyClass;
-      firePropertyChange(AdvancedConfiguration.OUTPUT_KEY_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.OUTPUT_KEY_CLASS, previousVal, newVal );
     }
 
     public String getOutputValueClass() {
       return outputValueClass;
     }
 
-    public void setOutputValueClass(String outputValueClass) {
+    public void setOutputValueClass( String outputValueClass ) {
       String previousVal = this.outputValueClass;
       String newVal = outputValueClass;
 
       this.outputValueClass = outputValueClass;
-      firePropertyChange(AdvancedConfiguration.OUTPUT_VALUE_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.OUTPUT_VALUE_CLASS, previousVal, newVal );
     }
 
     public String getMapperClass() {
       return mapperClass;
     }
 
-    public void setMapperClass(String mapperClass) {
+    public void setMapperClass( String mapperClass ) {
       String previousVal = this.mapperClass;
       String newVal = mapperClass;
 
       this.mapperClass = mapperClass;
-      firePropertyChange(AdvancedConfiguration.MAPPER_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.MAPPER_CLASS, previousVal, newVal );
     }
 
     public String getCombinerClass() {
       return combinerClass;
     }
 
-    public void setCombinerClass(String combinerClass) {
+    public void setCombinerClass( String combinerClass ) {
       String previousVal = this.combinerClass;
       String newVal = combinerClass;
 
       this.combinerClass = combinerClass;
-      firePropertyChange(AdvancedConfiguration.COMBINER_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.COMBINER_CLASS, previousVal, newVal );
     }
 
     public String getReducerClass() {
       return reducerClass;
     }
 
-    public void setReducerClass(String reducerClass) {
+    public void setReducerClass( String reducerClass ) {
       String previousVal = this.reducerClass;
       String newVal = reducerClass;
 
       this.reducerClass = reducerClass;
-      firePropertyChange(AdvancedConfiguration.REDUCER_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.REDUCER_CLASS, previousVal, newVal );
     }
 
     public String getInputFormatClass() {
       return inputFormatClass;
     }
 
-    public void setInputFormatClass(String inputFormatClass) {
+    public void setInputFormatClass( String inputFormatClass ) {
       String previousVal = this.inputFormatClass;
       String newVal = inputFormatClass;
 
       this.inputFormatClass = inputFormatClass;
-      firePropertyChange(AdvancedConfiguration.INPUT_FORMAT_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.INPUT_FORMAT_CLASS, previousVal, newVal );
     }
 
     public String getOutputFormatClass() {
       return outputFormatClass;
     }
 
-    public void setOutputFormatClass(String outputFormatClass) {
+    public void setOutputFormatClass( String outputFormatClass ) {
       String previousVal = this.outputFormatClass;
       String newVal = outputFormatClass;
 
       this.outputFormatClass = outputFormatClass;
-      firePropertyChange(AdvancedConfiguration.OUTPUT_FORMAT_CLASS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.OUTPUT_FORMAT_CLASS, previousVal, newVal );
     }
 
     public String getHdfsHostname() {
       return hdfsHostname;
     }
 
-    public void setHdfsHostname(String hdfsHostname) {
+    public void setHdfsHostname( String hdfsHostname ) {
       String previousVal = this.hdfsHostname;
       String newVal = hdfsHostname;
 
       this.hdfsHostname = hdfsHostname;
-      firePropertyChange(AdvancedConfiguration.HDFS_HOSTNAME, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.HDFS_HOSTNAME, previousVal, newVal );
     }
 
     public String getHdfsPort() {
       return hdfsPort;
     }
 
-    public void setHdfsPort(String hdfsPort) {
+    public void setHdfsPort( String hdfsPort ) {
       String previousVal = this.hdfsPort;
       String newVal = hdfsPort;
 
       this.hdfsPort = hdfsPort;
-      firePropertyChange(AdvancedConfiguration.HDFS_PORT, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.HDFS_PORT, previousVal, newVal );
     }
 
     public String getJobTrackerHostname() {
       return jobTrackerHostname;
     }
 
-    public void setJobTrackerHostname(String jobTrackerHostname) {
+    public void setJobTrackerHostname( String jobTrackerHostname ) {
       String previousVal = this.jobTrackerHostname;
       String newVal = jobTrackerHostname;
 
       this.jobTrackerHostname = jobTrackerHostname;
-      firePropertyChange(AdvancedConfiguration.JOB_TRACKER_HOSTNAME, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.JOB_TRACKER_HOSTNAME, previousVal, newVal );
     }
 
     public String getJobTrackerPort() {
       return jobTrackerPort;
     }
 
-    public void setJobTrackerPort(String jobTrackerPort) {
+    public void setJobTrackerPort( String jobTrackerPort ) {
       String previousVal = this.jobTrackerPort;
       String newVal = jobTrackerPort;
 
       this.jobTrackerPort = jobTrackerPort;
-      firePropertyChange(AdvancedConfiguration.JOB_TRACKER_PORT, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.JOB_TRACKER_PORT, previousVal, newVal );
     }
 
     public String getInputPath() {
       return inputPath;
     }
 
-    public void setInputPath(String inputPath) {
+    public void setInputPath( String inputPath ) {
       String previousVal = this.inputPath;
       String newVal = inputPath;
 
       this.inputPath = inputPath;
-      firePropertyChange(AdvancedConfiguration.INPUT_PATH, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.INPUT_PATH, previousVal, newVal );
     }
 
     public String getOutputPath() {
       return outputPath;
     }
 
-    public void setOutputPath(String outputPath) {
+    public void setOutputPath( String outputPath ) {
       String previousVal = this.outputPath;
       String newVal = outputPath;
 
       this.outputPath = outputPath;
-      firePropertyChange(AdvancedConfiguration.OUTPUT_PATH, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.OUTPUT_PATH, previousVal, newVal );
     }
 
     public boolean isBlocking() {
       return blocking;
     }
 
-    public void setBlocking(boolean blocking) {
+    public void setBlocking( boolean blocking ) {
       boolean previousVal = this.blocking;
       boolean newVal = blocking;
 
       this.blocking = blocking;
-      firePropertyChange(AdvancedConfiguration.BLOCKING, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.BLOCKING, previousVal, newVal );
     }
 
     public String getLoggingInterval() {
       return loggingInterval;
     }
 
-    public void setLoggingInterval(String loggingInterval) {
+    public void setLoggingInterval( String loggingInterval ) {
       String previousVal = this.loggingInterval;
       String newVal = loggingInterval;
 
       this.loggingInterval = loggingInterval;
-      firePropertyChange(AdvancedConfiguration.LOGGING_INTERVAL, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.LOGGING_INTERVAL, previousVal, newVal );
     }
 
     public String getNumMapTasks() {
       return numMapTasks;
     }
 
-    public void setNumMapTasks(String numMapTasks) {
+    public void setNumMapTasks( String numMapTasks ) {
       String previousVal = this.numMapTasks;
       String newVal = numMapTasks;
 
       this.numMapTasks = numMapTasks;
-      firePropertyChange(AdvancedConfiguration.NUM_MAP_TASKS, previousVal, newVal);
+      firePropertyChange( AdvancedConfiguration.NUM_MAP_TASKS, previousVal, newVal );
     }
 
     public String getNumReduceTasks() {
       return numReduceTasks;
     }
 
-    public void setNumReduceTasks(String numReduceTasks) {
+    public void setNumReduceTasks( String numReduceTasks ) {
       String previousVal = this.numReduceTasks;
       String newVal = numReduceTasks;
 
       this.numReduceTasks = numReduceTasks;
-      firePropertyChange(AdvancedConfiguration.NUM_REDUCE_TASKS, previousVal, newVal);
-    }    
+      firePropertyChange( AdvancedConfiguration.NUM_REDUCE_TASKS, previousVal, newVal );
+    }
   }
 
   public void help() {
@@ -678,6 +678,6 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     Shell shell = (Shell) xulDialog.getRootObject();
     PluginInterface
       plugin = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
-    HelpUtils.openHelpDialog( shell, plugin ) ;
+    HelpUtils.openHelpDialog( shell, plugin );
   }
 }
