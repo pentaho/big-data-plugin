@@ -84,7 +84,10 @@ import org.w3c.dom.Node;
 import com.thoughtworks.xstream.XStream;
 
 @SuppressWarnings("deprecation")
-@JobEntry(id = "HadoopTransJobExecutorPlugin", name = "Pentaho MapReduce", categoryDescription = "Big Data", description = "Execute Transformation Based MapReduce Jobs in Hadoop", image = "HDT.png")
+@JobEntry(id = "HadoopTransJobExecutorPlugin", image = "HDT.png", 
+  name = "HadoopTransJobExecutorPlugin.Name", description = "HadoopTransJobExecutorPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor")
 public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
 
   private static Class<?> PKG = JobEntryHadoopTransJobExecutor.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$

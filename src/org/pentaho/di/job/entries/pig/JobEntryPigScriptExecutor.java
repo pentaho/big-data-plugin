@@ -65,7 +65,10 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-@JobEntry(id = "HadoopPigScriptExecutorPlugin", name = "Pig Script Executor", categoryDescription = "Big Data", description = "Execute Pig Scripts in Hadoop", image = "HDE.png")
+@JobEntry(id = "HadoopPigScriptExecutorPlugin", image = "HDE.png",
+  name = "HadoopPigScriptExecutorPlugin.Name", description = "HadoopPigScriptExecutorPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  i18nPackageName="org.pentaho.di.job.entries.pig")
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
   
   private static Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$

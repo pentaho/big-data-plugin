@@ -55,7 +55,9 @@ import org.w3c.dom.Node;
  * @author matt
  * @since 4.2.0-M1
  */
-@Step(id = "CouchDbInput", image = "couchdb-input.png", name = "CouchDb Input", description="Reads from a Couch DB view", categoryDescription="Big Data")
+@Step(id = "CouchDbInput", image = "couchdb-input.png", 
+  name = "CouchDbInput.Name", description="CouchDbInput.Description", 
+  categoryDescription="i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData", i18nPackageName="org.pentaho.di.trans.steps.couchdbinput")
 public class CouchDbInputMeta extends BaseStepMeta implements StepMetaInterface
 {
 	private static Class<?> PKG = CouchDbInputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$

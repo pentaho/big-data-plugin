@@ -61,7 +61,10 @@ import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.w3c.dom.Node;
 
-@JobEntry(id = "HadoopJobExecutorPlugin", name = "Hadoop Job Executor", categoryDescription = "Big Data", description = "Execute MapReduce jobs in Hadoop", image = "HDE.png")
+@JobEntry(id = "HadoopJobExecutorPlugin", image = "HDE.png",
+  name = "HadoopJobExecutorPlugin.Name", description = "HadoopJobExecutorPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  i18nPackageName="org.pentaho.di.job.entries.hadoopjobexecutor")
 public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
 
   private static SecurityManagerStack smStack = new SecurityManagerStack();

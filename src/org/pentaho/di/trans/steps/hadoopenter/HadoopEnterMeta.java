@@ -25,7 +25,10 @@ package org.pentaho.di.trans.steps.hadoopenter;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.trans.steps.injector.InjectorMeta;
 
-@Step(id = "HadoopEnterPlugin", image = "MRI.png", name = "MapReduce Input", description = "Enter a Hadoop Mapper or Reducer transformation", categoryDescription = "Big Data")
+@Step(id = "HadoopEnterPlugin", image = "MRI.png", 
+  name = "HadoopEnterPlugin.Name", description = "HadoopEnterPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  i18nPackageName="org.pentaho.di.trans.steps.hadoopenter")
 public class HadoopEnterMeta extends InjectorMeta {
   @SuppressWarnings( "unused" )
   private static Class<?> PKG = HadoopEnterMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
