@@ -50,7 +50,10 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.w3c.dom.Node;
 
-@Step(id = "HadoopExitPlugin", image = "MRO.png", name = "MapReduce Output", description = "Exit a Hadoop Mapper or Reducer transformation", categoryDescription = "Big Data")
+@Step(id = "HadoopExitPlugin", image = "MRO.png", 
+  name = "HadoopExitPlugin.Name", description = "HadoopExitPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  i18nPackageName="org.pentaho.di.trans.steps.hadoopexit")
 public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
   private static Class<?> PKG = HadoopExit.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 

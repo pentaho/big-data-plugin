@@ -66,7 +66,10 @@ import org.w3c.dom.Node;
  * 
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
-@Step(id = "HBaseInput", image = "HB.png", name = "HBase Input", description = "Reads data from a HBase table according to a mapping", categoryDescription = "Big Data")
+@Step(id = "HBaseInput", image = "HB.png",
+  name = "HBaseInput.Name", description = "HBaseInput.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  i18nPackageName="org.pentaho.di.trans.steps.hbaseinput")
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected static Class<?> PKG = HBaseInputMeta.class;

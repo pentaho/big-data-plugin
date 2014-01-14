@@ -46,8 +46,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3 File Output",
-  description = "Create files in an S3 location", categoryDescription = "Output" )
+@Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3FileOutput.Name",
+  description = "S3FileOutput.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
+  i18nPackageName="org.pentaho.amazon.s3")
 public class S3FileOutputMeta extends TextFileOutputMeta {
 
   private static final String ACCESS_KEY_TAG = "access_key";

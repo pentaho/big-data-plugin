@@ -25,7 +25,10 @@ package org.pentaho.di.trans.steps.hadoopfileinput;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.trans.steps.textfileinput.TextFileInputMeta;
 
-@Step(id = "HadoopFileInputPlugin", image = "HDI.png", name = "Hadoop File Input", description="Process files from an HDFS location", categoryDescription="Big Data")
+@Step(id = "HadoopFileInputPlugin", image = "HDI.png", 
+  name = "HadoopFileInputPlugin.Name", description="HadoopFileInputPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  i18nPackageName="org.pentaho.di.trans.steps.hadoopfileinput")
 public class HadoopFileInputMeta extends TextFileInputMeta {
 
 }
