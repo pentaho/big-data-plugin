@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
@@ -166,6 +167,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    * @return
    */
   protected void processFilename( String filename ) throws Exception {
+    if ( Const.isEmpty( filename ) ) {
+      setFileName( filename );
+      return;
+    }
     // it it's an old-style filename - use and then remove keys from the filename
     Matcher matcher = OLD_STYLE_FILENAME.matcher( filename );
     if ( matcher.matches() ) {
@@ -179,6 +184,9 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   }
 
   protected String decodeAccessKey( String key ) {
+    if ( Const.isEmpty( key ) ) {
+      return key;
+    }
     return key.replaceAll( "%2B", "\\+" ).replaceAll( "%2F", "/" );
   }
 
