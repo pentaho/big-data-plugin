@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.amazon.s3;
 
@@ -39,7 +39,12 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.pentaho.amazon.AmazonS3FileSystemBootstrap;
 import org.pentaho.amazon.AmazonSpoonPlugin;
 import org.pentaho.di.core.Const;
@@ -63,7 +68,7 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
   private static Class<?> PKG = AmazonSpoonPlugin.class;
 
   // for logging
-  private LogChannel log = new LogChannel(this);
+  private LogChannel log = new LogChannel( this );
 
   // URL label and field
   private Label wlAccessKey;
@@ -105,14 +110,18 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
   private String accessKey;
   private String secretKey;
 
-  public S3VfsFileChooserDialog(VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile, FileObject initialFile) {
-    super(S3FileProvider.SCHEME, AmazonS3FileSystemBootstrap.getS3FileSystemDisplayText(), vfsFileChooserDialog, SWT.NONE);
+  private StaticUserAuthenticator userAuthenticator = null;
+
+  public S3VfsFileChooserDialog( VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile,
+                                 FileObject initialFile ) {
+    super( S3FileProvider.SCHEME, AmazonS3FileSystemBootstrap.getS3FileSystemDisplayText(), vfsFileChooserDialog,
+      SWT.NONE );
 
     this.vfsFileChooserDialog = vfsFileChooserDialog;
     this.rootFile = rootFile;
     this.initialFile = initialFile;
 
-    setLayout(new GridLayout());
+    setLayout( new GridLayout() );
 
     // Create the s3 panel
     createConnectionPanel();
@@ -122,66 +131,67 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
   private void createConnectionPanel() {
 
     // The Connection group
-    Group connectionGroup = new Group(this, SWT.SHADOW_ETCHED_IN);
-    connectionGroup.setText(BaseMessages.getString(PKG, "S3VfsFileChooserDialog.ConnectionGroup.Label")); //$NON-NLS-1$;
+    Group connectionGroup = new Group( this, SWT.SHADOW_ETCHED_IN );
+    connectionGroup
+      .setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.ConnectionGroup.Label" ) ); //$NON-NLS-1$;
     GridLayout connectionGroupLayout = new GridLayout();
     connectionGroupLayout.marginWidth = 5;
     connectionGroupLayout.marginHeight = 5;
     connectionGroupLayout.verticalSpacing = 5;
     connectionGroupLayout.horizontalSpacing = 5;
-    GridData gData = new GridData(SWT.FILL, SWT.FILL, true, false);
-    connectionGroup.setLayoutData(gData);
-    connectionGroup.setLayout(connectionGroupLayout);
+    GridData gData = new GridData( SWT.FILL, SWT.FILL, true, false );
+    connectionGroup.setLayoutData( gData );
+    connectionGroup.setLayout( connectionGroupLayout );
 
     // The composite we need in the group
-    Composite textFieldPanel = new Composite(connectionGroup, SWT.NONE);
-    GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-    textFieldPanel.setLayoutData(gridData);
-    textFieldPanel.setLayout(new GridLayout(3, false));
+    Composite textFieldPanel = new Composite( connectionGroup, SWT.NONE );
+    GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
+    textFieldPanel.setLayoutData( gridData );
+    textFieldPanel.setLayout( new GridLayout( 3, false ) );
 
     // URL label and text field
-    wlAccessKey = new Label(textFieldPanel, SWT.RIGHT);
-    wlAccessKey.setText(BaseMessages.getString(PKG, "S3VfsFileChooserDialog.AccessKey.Label")); //$NON-NLS-1$
+    wlAccessKey = new Label( textFieldPanel, SWT.RIGHT );
+    wlAccessKey.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.AccessKey.Label" ) ); //$NON-NLS-1$
     fdlAccessKey = new GridData();
     fdlAccessKey.widthHint = 75;
-    wlAccessKey.setLayoutData(fdlAccessKey);
-    wAccessKey = new TextVar(getVariableSpace(), textFieldPanel, SWT.PASSWORD | SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wlAccessKey.setLayoutData( fdlAccessKey );
+    wAccessKey = new TextVar( getVariableSpace(), textFieldPanel, SWT.PASSWORD | SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     fdAccessKey = new GridData();
     fdAccessKey.widthHint = 150;
-    wAccessKey.setLayoutData(fdAccessKey);
-    wAccessKey.setText(Props.getInstance().getCustomParameter("S3VfsFileChooserDialog.AccessKey", ""));
+    wAccessKey.setLayoutData( fdAccessKey );
+    wAccessKey.setText( Props.getInstance().getCustomParameter( "S3VfsFileChooserDialog.AccessKey", "" ) );
 
-    wAccessKey.addModifyListener(new ModifyListener() {
-      public void modifyText(ModifyEvent arg0) {
+    wAccessKey.addModifyListener( new ModifyListener() {
+      public void modifyText( ModifyEvent arg0 ) {
         handleConnectionButton();
       }
-    });
+    } );
 
     // // Place holder
-    wPlaceHolderLabel = new Label(textFieldPanel, SWT.RIGHT);
-    wPlaceHolderLabel.setText("");
+    wPlaceHolderLabel = new Label( textFieldPanel, SWT.RIGHT );
+    wPlaceHolderLabel.setText( "" );
     fdlPlaceHolderLabel = new GridData();
     fdlPlaceHolderLabel.widthHint = 75;
-    wPlaceHolderLabel.setLayoutData(fdlPlaceHolderLabel);
+    wPlaceHolderLabel.setLayoutData( fdlPlaceHolderLabel );
 
     // UserID label and field
-    wlSecretKey = new Label(textFieldPanel, SWT.RIGHT);
-    wlSecretKey.setText( BaseMessages.getString(PKG, "S3VfsFileChooserDialog.SecretKey.Label") );
+    wlSecretKey = new Label( textFieldPanel, SWT.RIGHT );
+    wlSecretKey.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.SecretKey.Label" ) );
     fdlSecretKey = new GridData();
     fdlSecretKey.widthHint = 75;
-    wlSecretKey.setLayoutData(fdlSecretKey);
+    wlSecretKey.setLayoutData( fdlSecretKey );
 
-    wSecretKey = new TextVar(getVariableSpace(), textFieldPanel, SWT.PASSWORD | SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+    wSecretKey = new TextVar( getVariableSpace(), textFieldPanel, SWT.PASSWORD | SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     fdSecretKey = new GridData();
     fdSecretKey.widthHint = 300;
-    wSecretKey.setLayoutData(fdSecretKey);
-    wSecretKey.setText(Props.getInstance().getCustomParameter("S3VfsFileChooserDialog.SecretKey", ""));
+    wSecretKey.setLayoutData( fdSecretKey );
+    wSecretKey.setText( Props.getInstance().getCustomParameter( "S3VfsFileChooserDialog.SecretKey", "" ) );
 
-    wSecretKey.addModifyListener(new ModifyListener() {
-      public void modifyText(ModifyEvent arg0) {
+    wSecretKey.addModifyListener( new ModifyListener() {
+      public void modifyText( ModifyEvent arg0 ) {
         handleConnectionButton();
       }
-    });
+    } );
 
     // bucket
     // wlBucket = new Label(textFieldPanel, SWT.RIGHT);
@@ -201,82 +211,82 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
     // });
 
     // Connection button
-    wConnectionButton = new Button(textFieldPanel, SWT.CENTER);
+    wConnectionButton = new Button( textFieldPanel, SWT.CENTER );
     fdConnectionButton = new GridData();
     fdConnectionButton.widthHint = 75;
-    wConnectionButton.setLayoutData(fdConnectionButton);
+    wConnectionButton.setLayoutData( fdConnectionButton );
 
-    wConnectionButton.setText(BaseMessages.getString(PKG, "S3VfsFileChooserDialog.ConnectionButton.Label"));
-    wConnectionButton.addSelectionListener(new SelectionAdapter() {
-      public void widgetSelected(SelectionEvent e) {
+    wConnectionButton.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.ConnectionButton.Label" ) );
+    wConnectionButton.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
 
         try {
           // let's verify the accessKey/secretKey
-          AmazonS3 s3Client = new AmazonS3Client(new AWSCredentials() {
+          AmazonS3 s3Client = new AmazonS3Client( new AWSCredentials() {
 
             public String getAWSSecretKey() {
-              return environmentSubstitute(wSecretKey.getText());
+              return environmentSubstitute( wSecretKey.getText() );
             }
 
             public String getAWSAccessKeyId() {
-              return environmentSubstitute(wAccessKey.getText());
+              return environmentSubstitute( wAccessKey.getText() );
             }
-          });
+          } );
           s3Client.getS3AccountOwner();
 
           // s3 credentials valid, continue
-          Props.getInstance().setCustomParameter("S3VfsFileChooserDialog.AccessKey", wAccessKey.getText());
-          Props.getInstance().setCustomParameter("S3VfsFileChooserDialog.SecretKey", wSecretKey.getText());
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.AccessKey", wAccessKey.getText() );
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.SecretKey", wSecretKey.getText() );
 
           try {
             FileObject root = rootFile;
-            root = resolveFile(buildS3FileSystemUrlString());
-            vfsFileChooserDialog.setSelectedFile(root);
-            vfsFileChooserDialog.setRootFile(root);
+            root = resolveFile( buildS3FileSystemUrlString() );
+            vfsFileChooserDialog.setSelectedFile( root );
+            vfsFileChooserDialog.setRootFile( root );
             rootFile = root;
-          } catch (FileSystemException e1) {
-            MessageBox box = new MessageBox(getShell());
-            box.setText(BaseMessages.getString(PKG, "S3VfsFileChooserDialog.error")); //$NON-NLS-1$
-            box.setMessage(e1.getMessage());
-            log.logError(e1.getMessage(), e1);
+          } catch ( FileSystemException e1 ) {
+            MessageBox box = new MessageBox( getShell() );
+            box.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.error" ) ); //$NON-NLS-1$
+            box.setMessage( e1.getMessage() );
+            log.logError( e1.getMessage(), e1 );
             box.open();
             return;
           }
 
-        } catch (AmazonS3Exception ex) {
+        } catch ( AmazonS3Exception ex ) {
           // if anything went wrong, we have to show an error dialog
-          MessageBox box = new MessageBox(getShell());
-          box.setText(BaseMessages.getString(PKG, "S3VfsFileChooserDialog.error")); //$NON-NLS-1$
-          box.setMessage(ex.getMessage());
-          log.logError(ex.getMessage(), ex);
+          MessageBox box = new MessageBox( getShell() );
+          box.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.error" ) ); //$NON-NLS-1$
+          box.setMessage( ex.getMessage() );
+          log.logError( ex.getMessage(), ex );
           box.open();
           return;
         }
       }
-    });
+    } );
 
     // set the tab order
-    textFieldPanel.setTabList(new Control[] { wAccessKey, wSecretKey, wConnectionButton });
+    textFieldPanel.setTabList( new Control[] { wAccessKey, wSecretKey, wConnectionButton } );
     // textFieldPanel.setTabList(new Control[] { wAccessKey, wBucket, wSecretKey, wPassword, wConnectionButton });
   }
 
   private VariableSpace getVariableSpace() {
-    if (Spoon.getInstance().getActiveTransformation() != null) {
+    if ( Spoon.getInstance().getActiveTransformation() != null ) {
       return Spoon.getInstance().getActiveTransformation();
-    } else if (Spoon.getInstance().getActiveJob() != null) {
+    } else if ( Spoon.getInstance().getActiveJob() != null ) {
       return Spoon.getInstance().getActiveJob();
     } else {
       return new Variables();
     }
   }
 
-  private String environmentSubstitute(String str) {
-    return getVariableSpace().environmentSubstitute(str);
+  private String environmentSubstitute( String str ) {
+    return getVariableSpace().environmentSubstitute( str );
   }
 
   /**
    * Build a URL given Url and Port provided by the user.
-   * 
+   *
    * @return
    * @TODO: relocate to a s3 helper class or similar
    */
@@ -286,47 +296,46 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
 
   @Override
   public void activate() {
-    wAccessKey.setVariables(getVariableSpace());
-    wSecretKey.setVariables(getVariableSpace());
+    wAccessKey.setVariables( getVariableSpace() );
+    wSecretKey.setVariables( getVariableSpace() );
     super.activate();
   }
 
   private void initializeConnectionPanel() {
 
-    if (initialFile != null && initialFile instanceof S3FileObject) {
+    if ( initialFile != null && initialFile instanceof S3FileObject ) {
       // populate the server and port fields
       try {
         GenericFileName genericFileName = (GenericFileName) initialFile.getFileSystem().getRoot().getName();
-        wAccessKey.setText(genericFileName.getUserName() == null ? "" : genericFileName.getUserName());
-        wSecretKey.setText(genericFileName.getPassword()); //$NON-NLS-1$
+        wAccessKey.setText( genericFileName.getUserName() == null ? "" : genericFileName.getUserName() );
+        wSecretKey.setText( genericFileName.getPassword() ); //$NON-NLS-1$
         // wBucket.setText(String.valueOf(genericFileName.getPort()));
-      } catch (FileSystemException fse) {
-        showMessageAndLog("S3VfsFileChooserDialog.error", "S3VfsFileChooserDialog.FileSystem.error", fse.getMessage());
+      } catch ( FileSystemException fse ) {
+        showMessageAndLog( "S3VfsFileChooserDialog.error", "S3VfsFileChooserDialog.FileSystem.error",
+          fse.getMessage() );
       }
-    } else {
-
     }
 
     handleConnectionButton();
   }
 
-  private void showMessageAndLog(String title, String message, String messageToLog) {
-    MessageBox box = new MessageBox(getShell());
-    box.setText(BaseMessages.getString(PKG, title)); //$NON-NLS-1$
-    box.setMessage(BaseMessages.getString(PKG, message));
-    log.logError(messageToLog);
+  private void showMessageAndLog( String title, String message, String messageToLog ) {
+    MessageBox box = new MessageBox( getShell() );
+    box.setText( BaseMessages.getString( PKG, title ) ); //$NON-NLS-1$
+    box.setMessage( BaseMessages.getString( PKG, message ) );
+    log.logError( messageToLog );
     box.open();
   }
 
   private void handleConnectionButton() {
-    if (!Const.isEmpty(wAccessKey.getText()) && !Const.isEmpty(wSecretKey.getText())) {
-      accessKey = getVariableSpace().environmentSubstitute(wAccessKey.getText());
-      secretKey = getVariableSpace().environmentSubstitute(wSecretKey.getText());
-      wConnectionButton.setEnabled(true);
+    if ( !Const.isEmpty( wAccessKey.getText() ) && !Const.isEmpty( wSecretKey.getText() ) ) {
+      accessKey = getVariableSpace().environmentSubstitute( wAccessKey.getText() );
+      secretKey = getVariableSpace().environmentSubstitute( wSecretKey.getText() );
+      wConnectionButton.setEnabled( true );
     } else {
       accessKey = null;
       secretKey = null;
-      wConnectionButton.setEnabled(false);
+      wConnectionButton.setEnabled( false );
     }
   }
 
@@ -338,34 +347,34 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
     return secretKey;
   }
 
-  public FileObject resolveFile(String fileUri) throws FileSystemException {
+  public FileObject resolveFile( String fileUri ) throws FileSystemException {
     try {
-      return KettleVFS.getFileObject(fileUri, getVariableSpace(), getFileSystemOptions());
-    } catch (KettleFileException e) {
-      throw new FileSystemException(e);
+      return KettleVFS.getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
+    } catch ( KettleFileException e ) {
+      throw new FileSystemException( e );
     }
   }
 
-  public FileObject resolveFile(String fileUri, FileSystemOptions opts) throws FileSystemException {
+  public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
     try {
-      return KettleVFS.getFileObject(fileUri, getVariableSpace(), opts);
-    } catch (KettleFileException e) {
-      throw new FileSystemException(e);
+      return KettleVFS.getFileObject( fileUri, getVariableSpace(), opts );
+    } catch ( KettleFileException e ) {
+      throw new FileSystemException( e );
     }
   }
 
   protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
 
-    if(!Const.isEmpty(getAccessKey()) || !Const.isEmpty(getSecretKey())) {
+    if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
-          new StaticUserAuthenticator(null,
-              getVariableSpace().environmentSubstitute(getAccessKey()),
-              getVariableSpace().environmentSubstitute(getSecretKey())
-          );
+        new StaticUserAuthenticator( null,
+          getVariableSpace().environmentSubstitute( getAccessKey() ),
+          getVariableSpace().environmentSubstitute( getSecretKey() )
+        );
 
-      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(opts, userAuthenticator);
+      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
     return opts;
   }
