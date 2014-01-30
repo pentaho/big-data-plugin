@@ -166,6 +166,7 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
 
     // UserID label and field
     wlSecretKey = new Label(textFieldPanel, SWT.RIGHT);
+    wlSecretKey.setText( BaseMessages.getString(PKG, "S3VfsFileChooserDialog.SecretKey.Label") );
     fdlSecretKey = new GridData();
     fdlSecretKey.widthHint = 75;
     wlSecretKey.setLayoutData(fdlSecretKey);
