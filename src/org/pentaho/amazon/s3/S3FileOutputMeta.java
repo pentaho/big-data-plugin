@@ -31,7 +31,6 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -84,18 +83,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     setFileName( "" );
   }
 
-  public String buildFilename( String filename, String extension, VariableSpace space, int stepnr, String partnr,
-                               int splitnr, boolean ziparchive,
-                               TextFileOutputMeta meta ) {
-    String retval = super.buildFilename( filename, extension, space, stepnr, partnr, splitnr, ziparchive, meta );
-    //    if (retval.startsWith(AmazonSpoonPlugin.S3_SCHEME)) {
-    //      String authPart = retval.substring(AmazonSpoonPlugin.S3_SCHEME.length() + 3,
-    // retval.indexOf("@s3")).replaceAll("\\+", "%2B").replaceAll("/", "%2F");
-    //      retval = AmazonSpoonPlugin.S3_SCHEME + "://" + authPart + "@s3" + retval.substring(retval.indexOf("@s3")+3);
-    //    }
-    return retval;
-  }
-
   @Override
   public String getXML() {
     StringBuffer retval = new StringBuffer( 1000 );
@@ -130,6 +117,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
       super.readRep( rep, metaStore, id_step, databases );
       setAccessKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, ACCESS_KEY_TAG ) ) );
       setSecretKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, SECRET_KEY_TAG ) ) );
+      setFileAsCommand( false ); // commands cannot be executed in S3 file system; PDI-4707, 4655
       String filename = rep.getStepAttributeString( id_step, "file_name" );
       processFilename( filename );
     } catch ( Exception e ) {
@@ -143,6 +131,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
       super.readData( stepnode );
       accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, ACCESS_KEY_TAG ) );
       secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, SECRET_KEY_TAG ) );
+      setFileAsCommand( false ); // command cannot be executed in S3 file system; PDI-4707, 4655
       String filename = XMLHandler.getTagValue( stepnode, FILE_TAG, NAME_TAG );
       processFilename( filename );
     } catch ( Exception e ) {
