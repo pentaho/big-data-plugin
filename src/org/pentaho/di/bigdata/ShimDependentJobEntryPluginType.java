@@ -5,7 +5,11 @@ import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSelectInfo;
@@ -41,6 +45,7 @@ import org.pentaho.hadoop.shim.ConfigurationException;
 @PluginAnnotationType( JobEntry.class )
 public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
   private static final ShimDependentJobEntryPluginType instance = new ShimDependentJobEntryPluginType();
+  private final Map<Set<String>, KettleURLClassLoader> classLoaderMap = new HashMap<Set<String>, KettleURLClassLoader>();
 
   private ShimDependentJobEntryPluginType() {
     super( ShimDependentJobEntry.class, "SHIM_DEPENDENT_JOBENTRY", "Shim Dependent Job entry" );
@@ -105,8 +110,14 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
       }
     }
     try {
-      PluginRegistry.getInstance().addClassLoader( new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
-          .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() ), plugin );
+      Set<String> librarySet = new HashSet<String>(libraries);
+      KettleURLClassLoader classloader = classLoaderMap.get( librarySet );
+      if ( classloader == null ) {
+        classloader = new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
+            .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
+        classLoaderMap.put( librarySet, classloader );
+      }
+      PluginRegistry.getInstance().addClassLoader( classloader, plugin );
     } catch ( ConfigurationException e ) {
       throw new KettlePluginException( e );
     }
