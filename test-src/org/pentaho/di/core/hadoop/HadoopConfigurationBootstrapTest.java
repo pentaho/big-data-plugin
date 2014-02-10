@@ -27,7 +27,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,10 +40,13 @@ import java.util.Properties;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.VFS;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.lifecycle.LifecycleException;
+import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.KettleLifecyclePluginType;
+import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.Plugin;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
@@ -55,17 +60,43 @@ import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.MockHadoopShim;
 
 public class HadoopConfigurationBootstrapTest {
+  private static Plugin plugin = new Plugin( new String[] { HadoopSpoonPlugin.PLUGIN_ID }, StepPluginType.class,
+      LifecyclePluginType.class.getAnnotation( PluginMainClassType.class ).value(), "", "", "", null, false,
+      false, new HashMap<Class<?>, String>(), new ArrayList<String>(), null, getPluginURL() );
+  
+  @SuppressWarnings( "deprecation" )
+  private static URL getPluginURL() {
+    try {
+      return new File("package-res").toURL();
+    } catch ( MalformedURLException e ) {
+      return null;
+    }
+  }
+  
+  @BeforeClass
+  public static void before() throws KettlePluginException {
+    PluginRegistry.getInstance().registerPlugin(LifecyclePluginType.class, plugin);
+  }
+  
+  @AfterClass
+  public static void after() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+    Field pluginMapField = PluginRegistry.class.getDeclaredField("pluginMap");
+    pluginMapField.setAccessible(true);
+    @SuppressWarnings("unchecked")
+    Map<Class<? extends PluginTypeInterface>, List<PluginInterface>> pluginMap = (Map<Class<? extends PluginTypeInterface>, List<PluginInterface>>) pluginMapField
+        .get(PluginRegistry.getInstance());
+    pluginMap.get(LifecyclePluginType.class).remove(plugin);
+  }
 
   @Test
   public void getActiveConfigurationId_missing_property() {
-    HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
-      protected java.util.Properties getPluginProperties() throws ConfigurationException {
-        return new Properties();
-      };
-    };
 
     try {
-      b.getActiveConfigurationId();
+      new HadoopConfigurationBootstrap() {
+        protected java.util.Properties getPluginProperties() throws ConfigurationException {
+          return new Properties();
+        };
+      }.getProvider();
       fail("Expected exception");
     } catch (ConfigurationException ex) {
       assertEquals("Active configuration property is not set in plugin.properties: \""
@@ -75,7 +106,7 @@ public class HadoopConfigurationBootstrapTest {
   }
 
   @Test
-  public void getActiveConfigurationId_exception_getting_properties() {
+  public void getActiveConfigurationId_exception_getting_properties() throws ConfigurationException {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
       protected java.util.Properties getPluginProperties() throws ConfigurationException {
         throw new NullPointerException();
@@ -92,7 +123,7 @@ public class HadoopConfigurationBootstrapTest {
   }
 
   @Test
-  public void getPluginInterface_not_registered() {
+  public void getPluginInterface_not_registered() throws ConfigurationException {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap();
 
     try {
@@ -106,26 +137,8 @@ public class HadoopConfigurationBootstrapTest {
   @Test
   public void getPluginInterface() throws Exception {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap();
-
-    PluginMainClassType mainClassTypesAnnotation = KettleLifecyclePluginType.class
-        .getAnnotation(PluginMainClassType.class);
-    PluginInterface hadoopConfigurationBootstrap = new Plugin(new String[] { "HadoopConfigurationBootstrap" },
-        StepPluginType.class, mainClassTypesAnnotation.value(), "", "", "", null, false, false,
-        new HashMap<Class<?>, String>(), new ArrayList<String>(), null, null);
-    PluginRegistry.getInstance().registerPlugin(KettleLifecyclePluginType.class, hadoopConfigurationBootstrap);
-    try {
-      PluginInterface retrieved = b.getPluginInterface();
-      assertEquals(hadoopConfigurationBootstrap, retrieved);
-      b.getPluginInterface();
-    } finally {
-      // Remove our registered plugin so we don't taint the environment
-      Field pluginMapField = PluginRegistry.class.getDeclaredField("pluginMap");
-      pluginMapField.setAccessible(true);
-      @SuppressWarnings("unchecked")
-      Map<Class<? extends PluginTypeInterface>, List<PluginInterface>> pluginMap = (Map<Class<? extends PluginTypeInterface>, List<PluginInterface>>) pluginMapField
-          .get(PluginRegistry.getInstance());
-      pluginMap.get(KettleLifecyclePluginType.class).remove(hadoopConfigurationBootstrap);
-    }
+    PluginInterface retrieved = b.getPluginInterface();
+    assertEquals(plugin, retrieved);
   }
 
   @Test
@@ -148,11 +161,6 @@ public class HadoopConfigurationBootstrapTest {
     assertNotNull(hadoopConfigsDir);
 
     assertEquals(ramRoot.resolveFile("hadoop-configs-go-here").getURL(), hadoopConfigsDir.getURL());
-  }
-
-  @Test(expected = ConfigurationException.class)
-  public void getHadoopConfigurationProvider_uninitialized() throws ConfigurationException {
-    new HadoopConfigurationBootstrap().getHadoopConfigurationProvider();
   }
 
   @Test
@@ -184,9 +192,7 @@ public class HadoopConfigurationBootstrapTest {
       }
     };
 
-    b.onEnvironmentInit();
-
-    assertEquals(provider, b.getHadoopConfigurationProvider());
+    assertEquals(provider, b.getProvider());
   }
 
   @Test
@@ -198,33 +204,29 @@ public class HadoopConfigurationBootstrapTest {
     HadoopConfiguration c = new HadoopConfiguration(ramRoot, "test", "test", new MockHadoopShim());
     final HadoopConfigurationProvider provider = new MockHadoopConfigurationProvider(Arrays.asList(c), "invalid");
 
-    HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
-      public FileObject locatePluginDirectory() throws ConfigurationException {
-        return ramRoot;
-      };
-
-      @Override
-      protected Properties getPluginProperties() throws ConfigurationException {
-        Properties p = new Properties();
-        p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
-        p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "invalid");
-        return p;
-      }
-
-      @Override
-      protected HadoopConfigurationProvider initializeHadoopConfigurationProvider(FileObject hadoopConfigurationsDir)
-          throws ConfigurationException {
-        return provider;
-      }
-    };
-
     try {
-      b.onEnvironmentInit();
+      new HadoopConfigurationBootstrap() {
+        public FileObject locatePluginDirectory() throws ConfigurationException {
+          return ramRoot;
+        };
+
+        @Override
+        protected Properties getPluginProperties() throws ConfigurationException {
+          Properties p = new Properties();
+          p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
+          p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "invalid");
+          return p;
+        }
+
+        @Override
+        protected HadoopConfigurationProvider initializeHadoopConfigurationProvider(FileObject hadoopConfigurationsDir)
+            throws ConfigurationException {
+          return provider;
+        }
+      }.getProvider();
       fail("Expected exception");
-    } catch (LifecycleException ex) {
-      assertEquals("Error initializing Hadoop configurations. Aborting initialization.", ex.getMessage());
-      assertNotNull(ex.getCause());
-      assertEquals("Invalid active Hadoop configuration: \"invalid\".", ex.getCause().getMessage());
+    } catch (ConfigurationException ex) {
+      assertEquals("Invalid active Hadoop configuration: \"invalid\".", ex.getMessage());
     }
   }
 
@@ -235,39 +237,36 @@ public class HadoopConfigurationBootstrapTest {
     ramRoot.resolveFile(CONFIGS_PATH).createFolder();
 
     HadoopConfiguration c = new HadoopConfiguration(ramRoot, "test", "test", new MockHadoopShim());
-    final HadoopConfigurationProvider provider = new MockHadoopConfigurationProvider(Arrays.asList(c), "test") {
-      public HadoopConfiguration getActiveConfiguration() throws ConfigurationException {
-        throw new NullPointerException();
-      };
-    };
-
-    HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
-      public FileObject locatePluginDirectory() throws ConfigurationException {
-        return ramRoot;
-      };
-
-      @Override
-      protected Properties getPluginProperties() throws ConfigurationException {
-        Properties p = new Properties();
-        p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
-        p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "test");
-        return p;
-      }
-
-      @Override
-      protected HadoopConfigurationProvider initializeHadoopConfigurationProvider(FileObject hadoopConfigurationsDir)
-          throws ConfigurationException {
-        return provider;
-      }
-    };
 
     try {
-      b.onEnvironmentInit();
+      final HadoopConfigurationProvider provider = new MockHadoopConfigurationProvider(Arrays.asList(c), "test") {
+        public HadoopConfiguration getActiveConfiguration() throws ConfigurationException {
+          throw new NullPointerException();
+        };
+      };
+
+      new HadoopConfigurationBootstrap() {
+        public FileObject locatePluginDirectory() throws ConfigurationException {
+          return ramRoot;
+        };
+
+        @Override
+        protected Properties getPluginProperties() throws ConfigurationException {
+          Properties p = new Properties();
+          p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
+          p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "test");
+          return p;
+        }
+
+        @Override
+        protected HadoopConfigurationProvider initializeHadoopConfigurationProvider(FileObject hadoopConfigurationsDir)
+            throws ConfigurationException {
+          return provider;
+        }
+      }.getProvider();
       fail("Expected exception");
-    } catch (LifecycleException ex) {
-      assertEquals("Error initializing Hadoop configurations. Aborting initialization.", ex.getMessage());
-      assertNotNull(ex.getCause());
-      assertEquals("Invalid active Hadoop configuration: \"test\".", ex.getCause().getMessage());
+    } catch (ConfigurationException ex) {
+      assertEquals("Invalid active Hadoop configuration: \"test\".", ex.getMessage());
     }
   }
 
@@ -296,7 +295,6 @@ public class HadoopConfigurationBootstrapTest {
 
   @Test
   public void locatePluginDirectory_null_plugin_folder() throws Exception {
-    FileObject ramRoot = VFS.getManager().resolveFile("ram:///");
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
       protected PluginInterface getPluginInterface() throws KettleException {
         return new Plugin(new String[] { "id" }, KettleLifecyclePluginType.class, null, null, null, null, null, false,

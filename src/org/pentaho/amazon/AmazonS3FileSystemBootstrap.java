@@ -43,7 +43,6 @@ import org.pentaho.s3.vfs.S3FileProvider;
  */
 @KettleLifecyclePlugin(id = "AmazonS3FileSystemBootstrap", name = "Amazon S3 FileSystem Bootstrap")
 public class AmazonS3FileSystemBootstrap implements KettleLifecycleListener {
-
   private static Class<?> PKG = AmazonS3FileSystemBootstrap.class;
   private LogChannelInterface log = new LogChannel(AmazonS3FileSystemBootstrap.class.getName());
   

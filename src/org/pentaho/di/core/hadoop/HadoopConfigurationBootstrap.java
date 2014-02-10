@@ -27,13 +27,10 @@ import java.util.Properties;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.impl.DefaultFileSystemManager;
-import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
-import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.plugins.KettleLifecyclePluginType;
+import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -49,8 +46,7 @@ import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
  * This class serves to initialize the Hadoop Configuration subsystem. This class
  * provides an anchor point for all Hadoop Configuration-related lookups to happen.
  */
-@KettleLifecyclePlugin(id = "HadoopConfigurationBootstrap", name = "Hadoop Configuration Bootstrap")
-public class HadoopConfigurationBootstrap implements KettleLifecycleListener, ActiveHadoopConfigurationLocator {
+public class HadoopConfigurationBootstrap implements ActiveHadoopConfigurationLocator {
   private static final Class<?> PKG = HadoopConfigurationBootstrap.class;
 
   public static final String PLUGIN_ID = "HadoopConfigurationBootstrap";
@@ -61,7 +57,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
 
   public static final String DEFAULT_FOLDER_HADOOP_CONFIGURATIONS = "hadoop-configurations";
 
-  private static HadoopConfigurationProvider provider;
+  private HadoopConfigurationProvider provider;
 
   private static LogChannelInterface log = new LogChannel(BaseMessages.getString(PKG,
       "HadoopConfigurationBootstrap.LoggingPrefix"));
@@ -70,49 +66,65 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
    * Cached plugin description for locating Plugin
    */
   private PluginInterface plugin;
+  
+  private static HadoopConfigurationBootstrap instance = new HadoopConfigurationBootstrap();
 
   /**
    * @return A Hadoop configuration provider capable of finding Hadoop configurations loaded for this Big Data Plugin instance
    * @throws ConfigurationException The provider is not initialized (KettleEnvironment.init() has not been called)
    */
-  public static synchronized HadoopConfigurationProvider getHadoopConfigurationProvider() throws ConfigurationException {
-    if (provider == null) {
-      throw new ConfigurationException(BaseMessages.getString(PKG, "HadoopConfigurationBootstrap.NotInitialized"));
-    }
+  public static HadoopConfigurationProvider getHadoopConfigurationProvider() throws ConfigurationException {
+    return instance.getProvider();
+  }
+  
+  public static HadoopConfigurationBootstrap getInstance() {
+    return instance;
+  }
+  
+  public HadoopConfigurationProvider getProvider() throws ConfigurationException {
+    initProvider();
     return provider;
   }
-
-  @Override
-  public void onEnvironmentInit() throws LifecycleException {
-    // Initialize the HadoopConfigurationProvider
-    try {
-      FileObject hadoopConfigurationsDir = resolveHadoopConfigurationsDirectory();
-      HadoopConfigurationProvider p = initializeHadoopConfigurationProvider(hadoopConfigurationsDir);
-
-      // verify the active configuration exists
-      HadoopConfiguration activeConfig = null;
-      try {
-        activeConfig = p.getActiveConfiguration();
-      } catch (Exception ex) {
-        throw new ConfigurationException(BaseMessages.getString(PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InvalidActiveConfiguration", getActiveConfigurationId()), ex);
-      }
-      if (activeConfig == null) {
-        throw new ConfigurationException(BaseMessages.getString(PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InvalidActiveConfiguration", getActiveConfigurationId()));
-      }
-
-      synchronized (this) {
-        provider = p;
-      }
-      log.logDetailed(BaseMessages.getString(PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.Loaded"), provider
-          .getConfigurations().size(), hadoopConfigurationsDir);
-    } catch (Exception ex) {
-      throw new LifecycleException(BaseMessages.getString(PKG,
-          "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError"), ex, true);
-    }
+  
+  protected static void setInstance(HadoopConfigurationBootstrap instance) {
+    HadoopConfigurationBootstrap.instance = instance;
   }
+  
+  protected synchronized void initProvider() throws ConfigurationException {
+    if (provider == null) {
+      // Initialize the HadoopConfigurationProvider
+      try {
+        FileObject hadoopConfigurationsDir = resolveHadoopConfigurationsDirectory();
+        HadoopConfigurationProvider p = initializeHadoopConfigurationProvider( hadoopConfigurationsDir );
 
-  @Override
-  public void onEnvironmentShutdown() {
+        // verify the active configuration exists
+        HadoopConfiguration activeConfig = null;
+        try {
+          activeConfig = p.getActiveConfiguration();
+        } catch ( Exception ex ) {
+          throw new ConfigurationException( BaseMessages
+              .getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InvalidActiveConfiguration",
+                  getActiveConfigurationId() ), ex );
+        }
+        if ( activeConfig == null ) {
+          throw new ConfigurationException( BaseMessages
+              .getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InvalidActiveConfiguration",
+                  getActiveConfigurationId() ) );
+        }
+
+        provider = p;
+
+        log.logDetailed( BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.Loaded" ),
+            provider.getConfigurations().size(), hadoopConfigurationsDir );
+      } catch ( Exception ex ) {
+        if ( ex instanceof ConfigurationException ) {
+          throw (ConfigurationException) ex;
+        } else {
+        throw new ConfigurationException( BaseMessages.getString( PKG,
+            "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), ex );
+        }
+      }
+    }
   }
 
   /**
@@ -146,12 +158,12 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   }
 
   /**
-   * @return the {@link PluginInterface} for ourself.
+   * @return the {@link PluginInterface} for the HadoopSpoonPlugin.  Will be used to resolve plugin directory
    * @throws KettleException Unable to locate ourself in the Plugin Registry
    */
   protected PluginInterface getPluginInterface() throws KettleException {
     if (plugin == null) {
-      PluginInterface pi = PluginRegistry.getInstance().findPluginWithId(KettleLifecyclePluginType.class, PLUGIN_ID);
+      PluginInterface pi = PluginRegistry.getInstance().findPluginWithId(LifecyclePluginType.class, HadoopSpoonPlugin.PLUGIN_ID);
       if (pi == null) {
         throw new KettleException(BaseMessages.getString(PKG, "HadoopConfigurationBootstrap.CannotLocatePlugin"));
       }

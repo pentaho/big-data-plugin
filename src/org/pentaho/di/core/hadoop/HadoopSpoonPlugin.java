@@ -35,6 +35,7 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 @LifecyclePlugin(id = "HadoopSpoonPlugin", name = "Hadoop Spoon Plugin")
 public class HadoopSpoonPlugin implements LifecycleListener, GUIOption {
+  public static final String PLUGIN_ID = "HadoopSpoonPlugin";
   private static Class<?> PKG = HadoopSpoonPlugin.class;
   private LogChannelInterface log = new LogChannel(HadoopSpoonPlugin.class.getName());
 

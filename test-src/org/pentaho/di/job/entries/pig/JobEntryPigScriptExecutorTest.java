@@ -103,7 +103,7 @@ public class JobEntryPigScriptExecutorTest {
     
     Field providerField = HadoopConfigurationBootstrap.class.getDeclaredField("provider");
     providerField.setAccessible(true);
-    providerField.set(null, provider);
+    providerField.set(HadoopConfigurationBootstrap.getInstance(), provider);
     
     System.setProperty("KETTLE_PLUGIN_CLASSES", "org.pentaho.di.job.entries.pig.JobEntryPigScriptExecutor");
     KettleEnvironment.init();
