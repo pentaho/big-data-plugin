@@ -1,6 +1,6 @@
 package org.pentaho.di.bigdata;
 
-import org.pentaho.di.core.plugins.KettleLifecyclePluginType;
+import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginRegistryExtension;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
@@ -19,8 +19,8 @@ public class ShimDependentPluginRegistryPlugin implements PluginRegistryExtensio
 
   @Override
   public void init( PluginRegistry pluginRegistry ) {
-    if (PluginRegistry.getAddedPluginTypes().contains( KettleLifecyclePluginType.getInstance() )) {
-      PluginRegistry.addPluginType( ShimDependentJobEntryPluginType.getInstance() ); 
+    if ( KettleClientEnvironment.isInitialized() ) {
+      PluginRegistry.addPluginType( ShimDependentJobEntryPluginType.getInstance() );
     }
   }
 
