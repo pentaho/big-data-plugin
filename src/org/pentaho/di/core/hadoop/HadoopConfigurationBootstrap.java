@@ -149,7 +149,7 @@ public class HadoopConfigurationBootstrap implements ActiveHadoopConfigurationLo
    * @return Properties loaded from "$PLUGIN_DIR/plugin.properties".
    * @throws ConfigurationException Error loading properties file
    */
-  protected Properties getPluginProperties() throws ConfigurationException {
+  public Properties getPluginProperties() throws ConfigurationException {
     try {
       return new PluginPropertiesUtil().loadPluginProperties(getPluginInterface());
     } catch (Exception ex) {
