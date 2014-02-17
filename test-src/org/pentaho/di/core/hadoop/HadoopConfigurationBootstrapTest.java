@@ -93,7 +93,7 @@ public class HadoopConfigurationBootstrapTest {
 
     try {
       new HadoopConfigurationBootstrap() {
-        protected java.util.Properties getPluginProperties() throws ConfigurationException {
+        public java.util.Properties getPluginProperties() throws ConfigurationException {
           return new Properties();
         };
       }.getProvider();
@@ -108,7 +108,7 @@ public class HadoopConfigurationBootstrapTest {
   @Test
   public void getActiveConfigurationId_exception_getting_properties() throws ConfigurationException {
     HadoopConfigurationBootstrap b = new HadoopConfigurationBootstrap() {
-      protected java.util.Properties getPluginProperties() throws ConfigurationException {
+      public java.util.Properties getPluginProperties() throws ConfigurationException {
         throw new NullPointerException();
       };
     };
@@ -150,7 +150,7 @@ public class HadoopConfigurationBootstrapTest {
       };
 
       @Override
-      protected Properties getPluginProperties() throws ConfigurationException {
+      public Properties getPluginProperties() throws ConfigurationException {
         Properties p = new Properties();
         p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, "hadoop-configs-go-here");
         return p;
@@ -178,7 +178,7 @@ public class HadoopConfigurationBootstrapTest {
       };
 
       @Override
-      protected Properties getPluginProperties() throws ConfigurationException {
+      public Properties getPluginProperties() throws ConfigurationException {
         Properties p = new Properties();
         p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
         p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "test");
@@ -211,7 +211,7 @@ public class HadoopConfigurationBootstrapTest {
         };
 
         @Override
-        protected Properties getPluginProperties() throws ConfigurationException {
+        public Properties getPluginProperties() throws ConfigurationException {
           Properties p = new Properties();
           p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
           p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "invalid");
@@ -251,7 +251,7 @@ public class HadoopConfigurationBootstrapTest {
         };
 
         @Override
-        protected Properties getPluginProperties() throws ConfigurationException {
+        public Properties getPluginProperties() throws ConfigurationException {
           Properties p = new Properties();
           p.setProperty(HadoopConfigurationBootstrap.PROPERTY_HADOOP_CONFIGURATIONS_PATH, CONFIGS_PATH);
           p.setProperty(HadoopConfigurationBootstrap.PROPERTY_ACTIVE_HADOOP_CONFIGURATION, "test");
