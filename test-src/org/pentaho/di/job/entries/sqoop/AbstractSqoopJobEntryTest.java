@@ -25,23 +25,31 @@ package org.pentaho.di.job.entries.sqoop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.HiveDatabaseMeta;
 import org.pentaho.di.core.database.MySQLDatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.SqoopShim;
 
 public class AbstractSqoopJobEntryTest {
+  private LogChannelInterface mockLogChannelInterface;
+
+  @Before
+  public void setup() {
+    mockLogChannelInterface = mock( LogChannelInterface.class );
+  }
 
   private static class TestSqoopJobEntry extends AbstractSqoopJobEntry<SqoopConfig> {
-
     private long waitTime = 0L;
 
     /**
@@ -49,7 +57,8 @@ public class AbstractSqoopJobEntryTest {
      *
      * @param waitTime Time in milliseconds to block during {@link AbstractSqoopJobEntry#executeSqoop(SqoopConfig, org.apache.hadoop.conf.Configuration, org.pentaho.di.core.Result)}
      */
-    private TestSqoopJobEntry(long waitTime) {
+    private TestSqoopJobEntry( long waitTime, LogChannelInterface logChannelInterface ) {
+      super( logChannelInterface );
       this.waitTime = waitTime;
     }
 
@@ -80,7 +89,7 @@ public class AbstractSqoopJobEntryTest {
   @Test
   public void execute_invalid_config() throws KettleException {
     final List<String> loggedErrors = new ArrayList<String>();
-    AbstractSqoopJobEntry<SqoopConfig> je = new TestSqoopJobEntry(0) {
+    AbstractSqoopJobEntry<SqoopConfig> je = new TestSqoopJobEntry( 0, mockLogChannelInterface ) {
       @Override
       public void logError(String message) {
         loggedErrors.add(message);
@@ -178,7 +187,7 @@ public class AbstractSqoopJobEntryTest {
     };
 
     final List<String> errorsLogged = new ArrayList<String>();
-    AbstractSqoopJobEntry jobEntry = new TestSqoopJobEntry(10) {
+    AbstractSqoopJobEntry jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface ) {
       @Override
       public void logError(String message) {
         errorsLogged.add(message);
@@ -200,7 +209,7 @@ public class AbstractSqoopJobEntryTest {
 
   @Test
   public void isDatabaseSupported() {
-    AbstractSqoopJobEntry jobEntry = new TestSqoopJobEntry(10);
+    AbstractSqoopJobEntry jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface );
 
     assertTrue(jobEntry.isDatabaseSupported(MySQLDatabaseMeta.class));
     // All database are "supported" for now
