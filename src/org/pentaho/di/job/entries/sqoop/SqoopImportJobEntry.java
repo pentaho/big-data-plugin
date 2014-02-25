@@ -24,6 +24,7 @@ package org.pentaho.di.job.entries.sqoop;
 
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
@@ -39,6 +40,14 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
   version = "1"
 )
 public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig> {
+  
+  protected SqoopImportJobEntry() {
+    super();
+  }
+  
+  protected SqoopImportJobEntry( LogChannelInterface logChannelInterface ) {
+    super( logChannelInterface );
+  }
 
   @Override
   protected SqoopImportConfig buildSqoopConfig() {

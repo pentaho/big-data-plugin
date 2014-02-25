@@ -22,22 +22,20 @@
 
 package org.pentaho.di.job;
 
+import java.util.List;
+
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.job.entries.sqoop.SqoopConfig;
 import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.ui.spoon.Spoon;
 import org.w3c.dom.Node;
-
-import java.util.List;
 
 /**
  * User: RFellows
@@ -48,6 +46,13 @@ public abstract class AbstractJobEntry<T extends BlockableJobConfig> extends Job
   protected T jobConfig = null;
 
   protected AbstractJobEntry() {
+    this( null );
+  }
+  
+  protected AbstractJobEntry( LogChannelInterface logChannelInterface ) {
+    if ( logChannelInterface != null ) {
+      this.log = logChannelInterface;
+    }
     jobConfig = createJobConfig();
   }
 

@@ -26,6 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,13 +34,14 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
+import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.job.JobEntryUtils;
 import org.pentaho.di.job.LoggingProxy;
@@ -56,23 +58,27 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.w3c.dom.Document;
 
 public class SqoopImportJobEntryTest {
+  private SqoopImportJobEntry sqoopImportJobEntry;
+  private LogChannelInterface mockLogChannelInterface;
+
+  @Before
+  public void setup() {
+    mockLogChannelInterface = mock( LogChannelInterface.class );
+    sqoopImportJobEntry = new SqoopImportJobEntry( mockLogChannelInterface );
+  }
 
   @Test
   public void buildSqoopConfig() {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
-    assertEquals(SqoopImportConfig.class, je.getJobConfig().getClass());
+    assertEquals( SqoopImportConfig.class, sqoopImportJobEntry.getJobConfig().getClass() );
   }
 
   @Test
   public void getToolName() {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
-    assertEquals("import", je.getToolName());
+    assertEquals( "import", sqoopImportJobEntry.getToolName() );
   }
 
   @Test
   public void saveLoadTest_xml() throws KettleException {
-    KettleLogStore.init();
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
     SqoopImportConfig config = new SqoopImportConfig();
     String connectValue = "jdbc:mysql://localhost:3306/test";
     String myPassword = "my-password";
@@ -85,9 +91,9 @@ public class SqoopImportJobEntryTest {
     config.setPassword(myPassword);
     config.setHbaseZookeeperQuorum("test-zookeeper-host");
 
-    je.setJobConfig(config);
+    sqoopImportJobEntry.setJobConfig( config );
 
-    JobEntryCopy jec = new JobEntryCopy(je);
+    JobEntryCopy jec = new JobEntryCopy( sqoopImportJobEntry );
     jec.setLocation(0, 0);
     String xml = jec.getXML();
 
@@ -95,7 +101,7 @@ public class SqoopImportJobEntryTest {
 
     Document d = XMLHandler.loadXMLString(xml);
 
-    SqoopImportJobEntry je2 = new SqoopImportJobEntry();
+    SqoopImportJobEntry je2 = new SqoopImportJobEntry( mockLogChannelInterface );
     je2.loadXML(d.getDocumentElement(), null, null, null);
 
     SqoopImportConfig config2 = je2.getJobConfig();
@@ -110,7 +116,6 @@ public class SqoopImportJobEntryTest {
 
   @Test
   public void saveLoadTest_xml_advanced_options() throws KettleXMLException {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
     SqoopImportConfig config = new SqoopImportConfig();
     String connectValue = "jdbc:mysql://localhost:3306/test";
     String myPassword = "my-password";
@@ -125,9 +130,9 @@ public class SqoopImportJobEntryTest {
     
     config.copyConnectionInfoToAdvanced();
     
-    je.setJobConfig(config);
+    sqoopImportJobEntry.setJobConfig( config );
     
-    JobEntryCopy jec = new JobEntryCopy(je);
+    JobEntryCopy jec = new JobEntryCopy( sqoopImportJobEntry );
     jec.setLocation(0, 0);
     String xml = jec.getXML();
     
@@ -135,7 +140,7 @@ public class SqoopImportJobEntryTest {
     
     Document d = XMLHandler.loadXMLString(xml);
     
-    SqoopImportJobEntry je2 = new SqoopImportJobEntry();
+    SqoopImportJobEntry je2 = new SqoopImportJobEntry( mockLogChannelInterface );
     je2.loadXML(d.getDocumentElement(), null, null, null);
     
     SqoopImportConfig config2 = je2.getJobConfig();
@@ -154,7 +159,6 @@ public class SqoopImportJobEntryTest {
 
   @Test
   public void saveLoadTest_rep() throws KettleException, IOException {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
     SqoopImportConfig config = new SqoopImportConfig();
     String connectValue = "jdbc:mysql://localhost:3306/test";
 
@@ -165,7 +169,7 @@ public class SqoopImportJobEntryTest {
     config.setTargetDir("/test-import-target");
     config.setHbaseZookeeperQuorum("test-zookeeper-host");
 
-    je.setJobConfig(config);
+    sqoopImportJobEntry.setJobConfig( config );
 
     KettleEnvironment.init();
     String filename = File.createTempFile(getClass().getSimpleName() + "-import-dbtest", "").getAbsolutePath();
@@ -186,14 +190,14 @@ public class SqoopImportJobEntryTest {
       assertTrue(repository.isConnected());
 
       // A job entry must have an ID if we're going to save it to a repository
-      je.setObjectId(new LongObjectId(1));
+      sqoopImportJobEntry.setObjectId( new LongObjectId( 1 ) );
       ObjectId id_job = new LongObjectId(1);
 
       // Save the original job entry into the repository
-      je.saveRep(repository, id_job);
+      sqoopImportJobEntry.saveRep( repository, id_job );
 
       // Load it back into a new job entry
-      SqoopImportJobEntry je2 = new SqoopImportJobEntry();
+      SqoopImportJobEntry je2 = new SqoopImportJobEntry( mockLogChannelInterface );
       je2.loadRep(repository, id_job, null, null);
 
       // Make sure all settings we set are properly loaded
@@ -213,7 +217,6 @@ public class SqoopImportJobEntryTest {
 
   @Test
   public void saveLoadTest_rep_advanced_options() throws KettleException, IOException {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
     SqoopImportConfig config = new SqoopImportConfig();
     String connectValue = "jdbc:mysql://localhost:3306/test";
     
@@ -225,7 +228,7 @@ public class SqoopImportJobEntryTest {
     config.setHbaseZookeeperQuorum("test-zookeeper-host");
     config.copyConnectionInfoToAdvanced();
     
-    je.setJobConfig(config);
+    sqoopImportJobEntry.setJobConfig( config );
     
     KettleEnvironment.init();
     String filename = File.createTempFile(getClass().getSimpleName() + "-import-dbtest", "").getAbsolutePath();
@@ -246,14 +249,14 @@ public class SqoopImportJobEntryTest {
       assertTrue(repository.isConnected());
       
       // A job entry must have an ID if we're going to save it to a repository
-      je.setObjectId(new LongObjectId(1));
+      sqoopImportJobEntry.setObjectId( new LongObjectId( 1 ) );
       ObjectId id_job = new LongObjectId(1);
       
       // Save the original job entry into the repository
-      je.saveRep(repository, id_job);
+      sqoopImportJobEntry.saveRep( repository, id_job );
       
       // Load it back into a new job entry
-      SqoopImportJobEntry je2 = new SqoopImportJobEntry();
+      SqoopImportJobEntry je2 = new SqoopImportJobEntry( mockLogChannelInterface );
       je2.loadRep(repository, id_job, null, null);
       
       // Make sure all settings we set are properly loaded
@@ -277,22 +280,19 @@ public class SqoopImportJobEntryTest {
 
   @Test
   public void setJobResultFailed() {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
-
     Result jobResult = new Result();
-    je.setJobResultFailed(jobResult);
+    sqoopImportJobEntry.setJobResultFailed( jobResult );
     assertEquals(1L, jobResult.getNrErrors());
     assertFalse(jobResult.getResult());
   }
 
   @Test
   public void configure() throws KettleException {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
-    SqoopImportConfig sqoopConfig = je.getJobConfig();
+    SqoopImportConfig sqoopConfig = sqoopImportJobEntry.getJobConfig();
     HadoopShim shim = new CommonHadoopShim();
     Configuration conf = shim.createConfiguration();
     try {
-      je.configure(shim, sqoopConfig, conf);
+      sqoopImportJobEntry.configure( shim, sqoopConfig, conf );
       fail("Expected exception");
     } catch (KettleException ex) {
       if (!ex.getMessage().contains("hdfs host")) {
@@ -301,9 +301,9 @@ public class SqoopImportJobEntryTest {
       }
     }
 
-    je.getJobConfig().setNamenodeHost("localhost");
+    sqoopImportJobEntry.getJobConfig().setNamenodeHost( "localhost" );
     try {
-      je.configure(shim, sqoopConfig, conf);
+      sqoopImportJobEntry.configure( shim, sqoopConfig, conf );
       fail("Expected exception");
     } catch (KettleException ex) {
       if (!ex.getMessage().contains("job tracker")) {
@@ -312,21 +312,19 @@ public class SqoopImportJobEntryTest {
       }
     }
 
-    je.getJobConfig().setNamenodePort("54310");
-    je.getJobConfig().setJobtrackerHost("anotherhost");
-    je.getJobConfig().setJobtrackerPort("54311");
-    je.configure(shim, sqoopConfig, conf);
+    sqoopImportJobEntry.getJobConfig().setNamenodePort( "54310" );
+    sqoopImportJobEntry.getJobConfig().setJobtrackerHost( "anotherhost" );
+    sqoopImportJobEntry.getJobConfig().setJobtrackerPort( "54311" );
+    sqoopImportJobEntry.configure( shim, sqoopConfig, conf );
 
-    assertEquals("localhost", je.getJobConfig().getNamenodeHost());
-    assertEquals("54310", je.getJobConfig().getNamenodePort());
-    assertEquals("anotherhost", je.getJobConfig().getJobtrackerHost());
-    assertEquals("54311", je.getJobConfig().getJobtrackerPort());
+    assertEquals( "localhost", sqoopImportJobEntry.getJobConfig().getNamenodeHost() );
+    assertEquals( "54310", sqoopImportJobEntry.getJobConfig().getNamenodePort() );
+    assertEquals( "anotherhost", sqoopImportJobEntry.getJobConfig().getJobtrackerHost() );
+    assertEquals( "54311", sqoopImportJobEntry.getJobConfig().getJobtrackerPort() );
   }
 
   @Test
   public void attachAndRemoveLoggingAppenders() {
-    SqoopImportJobEntry je = new SqoopImportJobEntry();
-
     PrintStream stderr = System.err;
     Logger sqoopLogger = JobEntryUtils.findLogger("org.apache.sqoop");
     Logger hadoopLogger = JobEntryUtils.findLogger("org.apache.hadoop");
@@ -335,14 +333,14 @@ public class SqoopImportJobEntryTest {
     assertFalse(hadoopLogger.getAllAppenders().hasMoreElements());
 
     try {
-      je.attachLoggingAppenders();
+      sqoopImportJobEntry.attachLoggingAppenders();
 
       assertTrue(sqoopLogger.getAllAppenders().hasMoreElements());
       assertTrue(hadoopLogger.getAllAppenders().hasMoreElements());
 
       assertEquals(LoggingProxy.class, System.err.getClass());
 
-      je.removeLoggingAppenders();
+      sqoopImportJobEntry.removeLoggingAppenders();
       assertFalse(sqoopLogger.getAllAppenders().hasMoreElements());
       assertFalse(hadoopLogger.getAllAppenders().hasMoreElements());
       assertEquals(stderr, System.err);

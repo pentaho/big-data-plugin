@@ -38,6 +38,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.AbstractJobEntry;
@@ -93,6 +94,14 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * @return the name of the sqoop tool to use, e.g. "import"
    */
   protected abstract String getToolName();
+  
+  protected AbstractSqoopJobEntry() {
+    super();
+  }
+
+  protected AbstractSqoopJobEntry( LogChannelInterface logChannelInterface ) {
+    super( logChannelInterface );
+  }
 
   /**
    * @return a {@link SqoopConfig} that contains all configuration settings for this job entry
