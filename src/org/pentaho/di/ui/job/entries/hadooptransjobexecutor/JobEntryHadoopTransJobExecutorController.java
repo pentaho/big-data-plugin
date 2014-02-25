@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
@@ -31,6 +31,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.plugins.JobEntryPluginType;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -46,6 +49,7 @@ import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
 import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
@@ -106,7 +110,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private boolean suppressOutputMapValue;
   private boolean suppressOutputKey;
   private boolean suppressOutputValue;
-  
+
   private String inputFormatClass;
   private String outputFormatClass;
 
@@ -119,8 +123,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   private boolean cleanOutputPath;
 
-  private String  numMapTasks = "1";
-  private String  numReduceTasks = "1";
+  private String numMapTasks = "1";
+  private String numReduceTasks = "1";
 
   private boolean blocking;
   private String loggingInterval = "60";
@@ -129,13 +133,13 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String mapRepositoryFile = "";
   private ObjectId mapRepositoryReference;
   private String mapTrans = "";
-  
+
   private String combinerRepositoryDir = "";
   private String combinerRepositoryFile = "";
   private ObjectId combinerRepositoryReference;
   private String combinerTrans = "";
   private boolean combiningSingleThreaded;
-  
+
   private String reduceRepositoryDir = "";
   private String reduceRepositoryFile = "";
   private ObjectId reduceRepositoryReference;
@@ -152,7 +156,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String mapperStorageType = "";
   private String combinerStorageType = "";
   private String reducerStorageType = "";
-  
+
   protected Shell shell;
   private Repository rep;
 
@@ -162,11 +166,11 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public JobEntryHadoopTransJobExecutorController() throws Throwable {
   }
-  
+
   protected VariableSpace getVariableSpace() {
-    if (Spoon.getInstance().getActiveTransformation() != null) {
+    if ( Spoon.getInstance().getActiveTransformation() != null ) {
       return Spoon.getInstance().getActiveTransformation();
-    } else if (Spoon.getInstance().getActiveJob() != null) {
+    } else if ( Spoon.getInstance().getActiveJob() != null ) {
       return Spoon.getInstance().getActiveJob();
     } else {
       return new Variables();
@@ -174,633 +178,667 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void accept() {
-    
-    ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-hadoopjob-name");
-    this.hadoopJobName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-transformation");
-    this.mapTrans = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-input-stepname");
-    this.mapTransInputStepName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-output-stepname");
-    this.mapTransOutputStepName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-transformation");
-    this.combinerTrans = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-input-stepname");
-    this.combinerTransInputStepName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-output-stepname");
-    this.combinerTransOutputStepName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-transformation");
-    this.reduceTrans = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-input-stepname");
-    this.reduceTransInputStepName = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-output-stepname");
-    this.reduceTransOutputStepName = ((Text) tempBox.getTextControl()).getText();
-    
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("input-path");
-    this.inputPath = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("output-path");
-    this.outputPath = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-input-format");
-    this.inputFormatClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-format");
-    this.outputFormatClass = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-hostname");
-    this.hdfsHostname = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-port");
-    this.hdfsPort = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-hostname");
-    this.jobTrackerHostname = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-port");
-    this.jobTrackerPort = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-map-tasks");
-    this.numMapTasks = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-reduce-tasks");
-    this.numReduceTasks = ((Text) tempBox.getTextControl()).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("logging-interval");
-    this.loggingInterval = ((Text) tempBox.getTextControl()).getText();
-    
+
+    ExtTextbox tempBox =
+      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
+    this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" );
+    this.mapTrans = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-input-stepname" );
+    this.mapTransInputStepName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-output-stepname" );
+    this.mapTransOutputStepName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" );
+    this.combinerTrans = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-input-stepname" );
+    this.combinerTransInputStepName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-output-stepname" );
+    this.combinerTransOutputStepName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" );
+    this.reduceTrans = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-input-stepname" );
+    this.reduceTransInputStepName = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-output-stepname" );
+    this.reduceTransOutputStepName = ( (Text) tempBox.getTextControl() ).getText();
+
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "input-path" );
+    this.inputPath = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "output-path" );
+    this.outputPath = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-input-format" );
+    this.inputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
+    this.outputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
+    this.hdfsHostname = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
+    this.hdfsPort = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
+    this.jobTrackerHostname = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
+    this.jobTrackerPort = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
+    this.numMapTasks = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
+    this.numReduceTasks = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "logging-interval" );
+    this.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
+
     String validationErrors = "";
-    if (StringUtil.isEmpty(jobEntryName)) {
-      validationErrors += BaseMessages.getString(PKG, "JobEntryHadoopTransJobExecutor.JobEntryName.Error") + "\n";
+    if ( StringUtil.isEmpty( jobEntryName ) ) {
+      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.JobEntryName.Error" ) + "\n";
     }
-    if (StringUtil.isEmpty(hadoopJobName)) {
-      validationErrors += BaseMessages.getString(PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error") + "\n";
+    if ( StringUtil.isEmpty( hadoopJobName ) ) {
+      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error" ) + "\n";
     }
-    if (!Const.isEmpty(numReduceTasks)) {
-      String reduceS = getVariableSpace().environmentSubstitute(numReduceTasks);
+    if ( !Const.isEmpty( numReduceTasks ) ) {
+      String reduceS = getVariableSpace().environmentSubstitute( numReduceTasks );
       try {
-        int numR = Integer.parseInt(reduceS);
-        
-        if (numR < 0) {
-          validationErrors += BaseMessages.getString(PKG, "JobEntryHadoopTransJobExecutor.NumReduceTasks.Error") + "\n";
+        int numR = Integer.parseInt( reduceS );
+
+        if ( numR < 0 ) {
+          validationErrors +=
+            BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NumReduceTasks.Error" ) + "\n";
         }
-      } catch (NumberFormatException e) { }
+      } catch ( NumberFormatException e ) {
+        // omit
+      }
     }
-    if (!Const.isEmpty(numMapTasks)) {
-      String mapS = getVariableSpace().environmentSubstitute(numMapTasks);
-      
+    if ( !Const.isEmpty( numMapTasks ) ) {
+      String mapS = getVariableSpace().environmentSubstitute( numMapTasks );
+
       try {
-        int numM = Integer.parseInt(mapS);
-        
-        if (numM < 0) {
-          validationErrors += BaseMessages.getString(PKG, "JobEntryHadoopTransJobExecutor.NumMapTasks.Error") + "\n";
+        int numM = Integer.parseInt( mapS );
+
+        if ( numM < 0 ) {
+          validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NumMapTasks.Error" ) + "\n";
         }
-      } catch (NumberFormatException e) { }
+      } catch ( NumberFormatException e ) {
+        // omit
+      }
     }
 
-    if (!StringUtil.isEmpty(validationErrors)) {
-      openErrorDialog(BaseMessages.getString(PKG, "Dialog.Error"), validationErrors);
+    if ( !StringUtil.isEmpty( validationErrors ) ) {
+      openErrorDialog( BaseMessages.getString( PKG, "Dialog.Error" ), validationErrors );
       // show validation errors dialog
       return;
     }
 
     // common/simple
-    jobEntry.setName(jobEntryName);
-    jobEntry.setHadoopJobName(hadoopJobName);
-    
-    // Save only one method of accessing the transformation
-    if (mapRepositoryReference != null) {
-      jobEntry.setMapRepositoryReference(mapRepositoryReference);
-      jobEntry.setMapRepositoryDir(null);
-      jobEntry.setMapRepositoryFile(null);
-      jobEntry.setMapTrans(null);
-    } else if (!Const.isEmpty(mapRepositoryDir) && !Const.isEmpty(mapRepositoryFile)) {
-      jobEntry.setMapRepositoryDir(mapRepositoryDir);
-      jobEntry.setMapRepositoryFile(mapRepositoryFile);
-      jobEntry.setMapRepositoryReference(null);
-      jobEntry.setMapTrans(null);
-    } else {
-      jobEntry.setMapTrans(mapTrans);
-      jobEntry.setMapRepositoryDir(null);
-      jobEntry.setMapRepositoryFile(null);
-      jobEntry.setMapRepositoryReference(null);
-    }
-
-    jobEntry.setMapInputStepName(mapTransInputStepName);
-    jobEntry.setMapOutputStepName(mapTransOutputStepName);
+    jobEntry.setName( jobEntryName );
+    jobEntry.setHadoopJobName( hadoopJobName );
 
     // Save only one method of accessing the transformation
-    if (combinerRepositoryReference != null) {
-      jobEntry.setCombinerRepositoryReference(combinerRepositoryReference);
-      jobEntry.setCombinerRepositoryDir(null);
-      jobEntry.setCombinerRepositoryFile(null);
-      jobEntry.setCombinerTrans(null);
-    } else if (!Const.isEmpty(combinerRepositoryDir) && !Const.isEmpty(combinerRepositoryFile)) {
-      jobEntry.setCombinerRepositoryDir(combinerRepositoryDir);
-      jobEntry.setCombinerRepositoryFile(combinerRepositoryFile);
-      jobEntry.setCombinerRepositoryReference(null);
-      jobEntry.setCombinerTrans(null);
+    if ( mapRepositoryReference != null ) {
+      jobEntry.setMapRepositoryReference( mapRepositoryReference );
+      jobEntry.setMapRepositoryDir( null );
+      jobEntry.setMapRepositoryFile( null );
+      jobEntry.setMapTrans( null );
+    } else if ( !Const.isEmpty( mapRepositoryDir ) && !Const.isEmpty( mapRepositoryFile ) ) {
+      jobEntry.setMapRepositoryDir( mapRepositoryDir );
+      jobEntry.setMapRepositoryFile( mapRepositoryFile );
+      jobEntry.setMapRepositoryReference( null );
+      jobEntry.setMapTrans( null );
     } else {
-      jobEntry.setCombinerTrans(combinerTrans);
-      jobEntry.setCombinerRepositoryDir(null);
-      jobEntry.setCombinerRepositoryFile(null);
-      jobEntry.setCombinerRepositoryReference(null);
+      jobEntry.setMapTrans( mapTrans );
+      jobEntry.setMapRepositoryDir( null );
+      jobEntry.setMapRepositoryFile( null );
+      jobEntry.setMapRepositoryReference( null );
     }
 
-    jobEntry.setCombinerInputStepName(combinerTransInputStepName);
-    jobEntry.setCombinerOutputStepName(combinerTransOutputStepName); 
-    jobEntry.setCombiningSingleThreaded(combiningSingleThreaded);
-    
+    jobEntry.setMapInputStepName( mapTransInputStepName );
+    jobEntry.setMapOutputStepName( mapTransOutputStepName );
+
     // Save only one method of accessing the transformation
-    if (reduceRepositoryReference != null) {
-      jobEntry.setReduceRepositoryReference(reduceRepositoryReference);
-      jobEntry.setReduceRepositoryDir(null);
-      jobEntry.setReduceRepositoryFile(null);
-      jobEntry.setReduceTrans(null);
-    } else if (!Const.isEmpty(reduceRepositoryDir) && !Const.isEmpty(reduceRepositoryFile)) {
-      jobEntry.setReduceRepositoryDir(reduceRepositoryDir);
-      jobEntry.setReduceRepositoryFile(reduceRepositoryFile);
-      jobEntry.setReduceRepositoryReference(null);
-      jobEntry.setReduceTrans(null);
+    if ( combinerRepositoryReference != null ) {
+      jobEntry.setCombinerRepositoryReference( combinerRepositoryReference );
+      jobEntry.setCombinerRepositoryDir( null );
+      jobEntry.setCombinerRepositoryFile( null );
+      jobEntry.setCombinerTrans( null );
+    } else if ( !Const.isEmpty( combinerRepositoryDir ) && !Const.isEmpty( combinerRepositoryFile ) ) {
+      jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
+      jobEntry.setCombinerRepositoryFile( combinerRepositoryFile );
+      jobEntry.setCombinerRepositoryReference( null );
+      jobEntry.setCombinerTrans( null );
     } else {
-      jobEntry.setReduceTrans(reduceTrans);
-      jobEntry.setReduceRepositoryDir(null);
-      jobEntry.setReduceRepositoryFile(null);
-      jobEntry.setReduceRepositoryReference(null);
+      jobEntry.setCombinerTrans( combinerTrans );
+      jobEntry.setCombinerRepositoryDir( null );
+      jobEntry.setCombinerRepositoryFile( null );
+      jobEntry.setCombinerRepositoryReference( null );
     }
 
-    jobEntry.setReduceInputStepName(reduceTransInputStepName);
-    jobEntry.setReduceOutputStepName(reduceTransOutputStepName);
-    jobEntry.setReducingSingleThreaded(reducingSingleThreaded);
-    
+    jobEntry.setCombinerInputStepName( combinerTransInputStepName );
+    jobEntry.setCombinerOutputStepName( combinerTransOutputStepName );
+    jobEntry.setCombiningSingleThreaded( combiningSingleThreaded );
+
+    // Save only one method of accessing the transformation
+    if ( reduceRepositoryReference != null ) {
+      jobEntry.setReduceRepositoryReference( reduceRepositoryReference );
+      jobEntry.setReduceRepositoryDir( null );
+      jobEntry.setReduceRepositoryFile( null );
+      jobEntry.setReduceTrans( null );
+    } else if ( !Const.isEmpty( reduceRepositoryDir ) && !Const.isEmpty( reduceRepositoryFile ) ) {
+      jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
+      jobEntry.setReduceRepositoryFile( reduceRepositoryFile );
+      jobEntry.setReduceRepositoryReference( null );
+      jobEntry.setReduceTrans( null );
+    } else {
+      jobEntry.setReduceTrans( reduceTrans );
+      jobEntry.setReduceRepositoryDir( null );
+      jobEntry.setReduceRepositoryFile( null );
+      jobEntry.setReduceRepositoryReference( null );
+    }
+
+    jobEntry.setReduceInputStepName( reduceTransInputStepName );
+    jobEntry.setReduceOutputStepName( reduceTransOutputStepName );
+    jobEntry.setReducingSingleThreaded( reducingSingleThreaded );
+
     // advanced config
-    jobEntry.setBlocking(isBlocking());
-    jobEntry.setLoggingInterval(loggingInterval);
-    jobEntry.setInputPath(getInputPath());
-    jobEntry.setInputFormatClass(getInputFormatClass());
-    jobEntry.setOutputPath(getOutputPath());
-    jobEntry.setCleanOutputPath(isCleanOutputPath());
-    
-    jobEntry.setSuppressOutputOfMapKey(isSuppressOutputOfMapKey());
-    jobEntry.setSuppressOutputOfMapValue(isSuppressOutputOfMapValue());
-    
-    jobEntry.setSuppressOutputOfKey(isSuppressOutputOfKey());
-    jobEntry.setSuppressOutputOfValue(isSuppressOutputOfValue());
+    jobEntry.setBlocking( isBlocking() );
+    jobEntry.setLoggingInterval( loggingInterval );
+    jobEntry.setInputPath( getInputPath() );
+    jobEntry.setInputFormatClass( getInputFormatClass() );
+    jobEntry.setOutputPath( getOutputPath() );
+    jobEntry.setCleanOutputPath( isCleanOutputPath() );
 
-    jobEntry.setOutputFormatClass(getOutputFormatClass());
-    jobEntry.setHdfsHostname(getHdfsHostname());
-    jobEntry.setHdfsPort(getHdfsPort());
-    jobEntry.setJobTrackerHostname(getJobTrackerHostname());
-    jobEntry.setJobTrackerPort(getJobTrackerPort());
-    jobEntry.setNumMapTasks(getNumMapTasks());
-    jobEntry.setNumReduceTasks(getNumReduceTasks());
-    jobEntry.setUserDefined(userDefined);
+    jobEntry.setSuppressOutputOfMapKey( isSuppressOutputOfMapKey() );
+    jobEntry.setSuppressOutputOfMapValue( isSuppressOutputOfMapValue() );
+
+    jobEntry.setSuppressOutputOfKey( isSuppressOutputOfKey() );
+    jobEntry.setSuppressOutputOfValue( isSuppressOutputOfValue() );
+
+    jobEntry.setOutputFormatClass( getOutputFormatClass() );
+    jobEntry.setHdfsHostname( getHdfsHostname() );
+    jobEntry.setHdfsPort( getHdfsPort() );
+    jobEntry.setJobTrackerHostname( getJobTrackerHostname() );
+    jobEntry.setJobTrackerPort( getJobTrackerPort() );
+    jobEntry.setNumMapTasks( getNumMapTasks() );
+    jobEntry.setNumReduceTasks( getNumReduceTasks() );
+    jobEntry.setUserDefined( userDefined );
 
     jobEntry.setChanged();
 
     cancel();
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings( { "unchecked", "rawtypes" } )
   public void init() throws Throwable {
-    if (jobEntry != null) {
+    if ( jobEntry != null ) {
       // common/simple
-      setName(jobEntry.getName());
-      setJobEntryName(jobEntry.getName());
-      setHadoopJobName(jobEntry.getHadoopJobName());
-      
+      setName( jobEntry.getName() );
+      setJobEntryName( jobEntry.getName() );
+      setHadoopJobName( jobEntry.getHadoopJobName() );
+
       // set variables
       VariableSpace varSpace = getVariableSpace();
       ExtTextbox tempBox;
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-hadoopjob-name");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-transformation");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-input-stepname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-output-stepname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-transformation");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-input-stepname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-output-stepname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-transformation");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-input-stepname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-output-stepname");
-      tempBox.setVariableSpace(varSpace);
-      
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("input-path");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("output-path");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-input-format");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("classes-output-format");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-hostname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("hdfs-port");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-hostname");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("job-tracker-port");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-map-tasks");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("num-reduce-tasks");
-      tempBox.setVariableSpace(varSpace);
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("logging-interval");
-      tempBox.setVariableSpace(varSpace);
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-input-stepname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-output-stepname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox =
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox =
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-input-stepname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox =
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-output-stepname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-input-stepname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-output-stepname" );
+      tempBox.setVariableSpace( varSpace );
 
-      if (rep == null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type")).setDisabled(true);
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type")).setDisabled(true);
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type")).setDisabled(true);
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "input-path" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "output-path" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-input-format" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
+      tempBox.setVariableSpace( varSpace );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "logging-interval" );
+      tempBox.setVariableSpace( varSpace );
+
+      if ( rep == null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
+          .setDisabled( true );
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
+          .setDisabled( true );
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
+          .setDisabled( true );
       }
 
       // Load the map transformation into the UI
-      if (jobEntry.getMapTrans() != null || rep == null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type")).setSelectedIndex(0);
-        setMapTrans(jobEntry.getMapTrans());
+      if ( jobEntry.getMapTrans() != null || rep == null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
+          .setSelectedIndex( 0 );
+        setMapTrans( jobEntry.getMapTrans() );
         this.mapperStorageType = "local";
-      } else if (jobEntry.getMapRepositoryReference() != null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type")).setSelectedIndex(2);
-        setMapRepositoryReference(jobEntry.getMapRepositoryReference());
+      } else if ( jobEntry.getMapRepositoryReference() != null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
+          .setSelectedIndex( 2 );
+        setMapRepositoryReference( jobEntry.getMapRepositoryReference() );
         this.mapperStorageType = "reference";
         // Load the repository directory and file for displaying to the user
         try {
-          TransMeta transMeta = rep.loadTransformation(getMapRepositoryReference(), null);
-          if (transMeta != null && transMeta.getRepositoryDirectory() != null) {
-            setMapTrans(buildRepositoryPath(transMeta.getRepositoryDirectory().getPath(), transMeta.getName()));
+          TransMeta transMeta = rep.loadTransformation( getMapRepositoryReference(), null );
+          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
+            setMapTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
           }
-        } catch (KettleException e) {
+        } catch ( KettleException e ) {
           // The transformation cannot be loaded from the repository
-          setMapRepositoryReference(null);
+          setMapRepositoryReference( null );
         }
       } else {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type")).setSelectedIndex(1);
-        setMapRepositoryDir(jobEntry.getMapRepositoryDir());
-        setMapRepositoryFile(jobEntry.getMapRepositoryFile());
-        setMapTrans(buildRepositoryPath(getMapRepositoryDir(), getMapRepositoryFile()));
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
+          .setSelectedIndex( 1 );
+        setMapRepositoryDir( jobEntry.getMapRepositoryDir() );
+        setMapRepositoryFile( jobEntry.getMapRepositoryFile() );
+        setMapTrans( buildRepositoryPath( getMapRepositoryDir(), getMapRepositoryFile() ) );
         this.mapperStorageType = "repository";
       }
-      setMapTransInputStepName(jobEntry.getMapInputStepName());
-      setMapTransOutputStepName(jobEntry.getMapOutputStepName());
+      setMapTransInputStepName( jobEntry.getMapInputStepName() );
+      setMapTransOutputStepName( jobEntry.getMapOutputStepName() );
 
       // Load the combiner transformation into the UI
-      if (jobEntry.getCombinerTrans() != null || rep == null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type")).setSelectedIndex(0);
-        setCombinerTrans(jobEntry.getCombinerTrans());
+      if ( jobEntry.getCombinerTrans() != null || rep == null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
+          .setSelectedIndex( 0 );
+        setCombinerTrans( jobEntry.getCombinerTrans() );
         this.combinerStorageType = "local";
-      } else if (jobEntry.getCombinerRepositoryReference() != null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type")).setSelectedIndex(2);
-        setCombinerRepositoryReference(jobEntry.getCombinerRepositoryReference());
+      } else if ( jobEntry.getCombinerRepositoryReference() != null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
+          .setSelectedIndex( 2 );
+        setCombinerRepositoryReference( jobEntry.getCombinerRepositoryReference() );
         this.combinerStorageType = "reference";
         // Load the repository directory and file for displaying to the user
         try {
-          TransMeta transMeta = rep.loadTransformation(getCombinerRepositoryReference(), null);
-          if (transMeta != null && transMeta.getRepositoryDirectory() != null) {
-            setCombinerTrans(buildRepositoryPath(transMeta.getRepositoryDirectory().getPath(), transMeta.getName()));
+          TransMeta transMeta = rep.loadTransformation( getCombinerRepositoryReference(), null );
+          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
+            setCombinerTrans(
+              buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
           }
-        } catch (KettleException e) {
+        } catch ( KettleException e ) {
           // The transformation cannot be loaded from the repository
-          setCombinerRepositoryReference(null);
+          setCombinerRepositoryReference( null );
         }
       } else {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type")).setSelectedIndex(1);
-        setCombinerRepositoryDir(jobEntry.getCombinerRepositoryDir());
-        setCombinerRepositoryFile(jobEntry.getCombinerRepositoryFile());
-        setCombinerTrans(buildRepositoryPath(getCombinerRepositoryDir(), getCombinerRepositoryFile()));
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
+          .setSelectedIndex( 1 );
+        setCombinerRepositoryDir( jobEntry.getCombinerRepositoryDir() );
+        setCombinerRepositoryFile( jobEntry.getCombinerRepositoryFile() );
+        setCombinerTrans( buildRepositoryPath( getCombinerRepositoryDir(), getCombinerRepositoryFile() ) );
         this.combinerStorageType = "repository";
       }
 
-      setCombinerTransInputStepName(jobEntry.getCombinerInputStepName());
-      setCombinerTransOutputStepName(jobEntry.getCombinerOutputStepName());
-      setCombiningSingleThreaded(jobEntry.isCombiningSingleThreaded());
-      
+      setCombinerTransInputStepName( jobEntry.getCombinerInputStepName() );
+      setCombinerTransOutputStepName( jobEntry.getCombinerOutputStepName() );
+      setCombiningSingleThreaded( jobEntry.isCombiningSingleThreaded() );
+
       // Load the reduce transformation into the UI
-      if (jobEntry.getReduceTrans() != null || rep == null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type")).setSelectedIndex(0);
-        setReduceTrans(jobEntry.getReduceTrans());
+      if ( jobEntry.getReduceTrans() != null || rep == null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
+          .setSelectedIndex( 0 );
+        setReduceTrans( jobEntry.getReduceTrans() );
         this.reducerStorageType = "local";
-      } else if (jobEntry.getReduceRepositoryReference() != null) {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type")).setSelectedIndex(2);
-        setReduceRepositoryReference(jobEntry.getReduceRepositoryReference());
+      } else if ( jobEntry.getReduceRepositoryReference() != null ) {
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
+          .setSelectedIndex( 2 );
+        setReduceRepositoryReference( jobEntry.getReduceRepositoryReference() );
         this.reducerStorageType = "reference";
         // Load the repository directory and file for displaying to the user
         try {
-          TransMeta transMeta = rep.loadTransformation(getReduceRepositoryReference(), null);
-          if (transMeta != null && transMeta.getRepositoryDirectory() != null) {
-            setReduceTrans(buildRepositoryPath(transMeta.getRepositoryDirectory().getPath(), transMeta.getName()));
+          TransMeta transMeta = rep.loadTransformation( getReduceRepositoryReference(), null );
+          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
+            setReduceTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
           }
-        } catch (KettleException e) {
+        } catch ( KettleException e ) {
           // The transformation cannot be loaded from the repository
-          setReduceRepositoryReference(null);
+          setReduceRepositoryReference( null );
         }
       } else {
-        ((XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type")).setSelectedIndex(1);
-        setReduceRepositoryDir(jobEntry.getReduceRepositoryDir());
-        setReduceRepositoryFile(jobEntry.getReduceRepositoryFile());
-        setReduceTrans(buildRepositoryPath(getReduceRepositoryDir(), getReduceRepositoryFile()));
+        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
+          .setSelectedIndex( 1 );
+        setReduceRepositoryDir( jobEntry.getReduceRepositoryDir() );
+        setReduceRepositoryFile( jobEntry.getReduceRepositoryFile() );
+        setReduceTrans( buildRepositoryPath( getReduceRepositoryDir(), getReduceRepositoryFile() ) );
         this.reducerStorageType = "repository";
       }
 
-      setReduceTransInputStepName(jobEntry.getReduceInputStepName());
-      setReduceTransOutputStepName(jobEntry.getReduceOutputStepName());
-      setReducingSingleThreaded(jobEntry.isReducingSingleThreaded());
-      
+      setReduceTransInputStepName( jobEntry.getReduceInputStepName() );
+      setReduceTransOutputStepName( jobEntry.getReduceOutputStepName() );
+      setReducingSingleThreaded( jobEntry.isReducingSingleThreaded() );
+
       userDefined.clear();
-      if (jobEntry.getUserDefined() != null) {
-        userDefined.addAll(jobEntry.getUserDefined());
+      if ( jobEntry.getUserDefined() != null ) {
+        userDefined.addAll( jobEntry.getUserDefined() );
       }
-      setBlocking(jobEntry.isBlocking());
-      setLoggingInterval(jobEntry.getLoggingInterval());
-      setInputPath(jobEntry.getInputPath());
-      setInputFormatClass(jobEntry.getInputFormatClass());
-      setOutputPath(jobEntry.getOutputPath());
-      setCleanOutputPath(jobEntry.isCleanOutputPath());
-      
-      setSuppressOutputOfMapKey(jobEntry.getSuppressOutputOfMapKey());
-      setSuppressOutputOfMapValue(jobEntry.getSuppressOutputOfMapValue());
-//      setMapOutputKeyClass(jobEntry.getMapOutputKeyClass());
-//      setMapOutputValueClass(jobEntry.getMapOutputValueClass());
-  
-      setSuppressOutputOfKey(jobEntry.getSuppressOutputOfKey());
-      setSuppressOutputOfValue(jobEntry.getSuppressOutputOfValue());
-//      setOutputKeyClass(jobEntry.getOutputKeyClass());
-//      setOutputValueClass(jobEntry.getOutputValueClass());
-      setOutputFormatClass(jobEntry.getOutputFormatClass());
-      setHdfsHostname(jobEntry.getHdfsHostname());
-      setHdfsPort(jobEntry.getHdfsPort());
-      setJobTrackerHostname(jobEntry.getJobTrackerHostname());
-      setJobTrackerPort(jobEntry.getJobTrackerPort());
-      setNumMapTasks(jobEntry.getNumMapTasks());
-      setNumReduceTasks(jobEntry.getNumReduceTasks());
+      setBlocking( jobEntry.isBlocking() );
+      setLoggingInterval( jobEntry.getLoggingInterval() );
+      setInputPath( jobEntry.getInputPath() );
+      setInputFormatClass( jobEntry.getInputFormatClass() );
+      setOutputPath( jobEntry.getOutputPath() );
+      setCleanOutputPath( jobEntry.isCleanOutputPath() );
+
+      setSuppressOutputOfMapKey( jobEntry.getSuppressOutputOfMapKey() );
+      setSuppressOutputOfMapValue( jobEntry.getSuppressOutputOfMapValue() );
+      //      setMapOutputKeyClass(jobEntry.getMapOutputKeyClass());
+      //      setMapOutputValueClass(jobEntry.getMapOutputValueClass());
+
+      setSuppressOutputOfKey( jobEntry.getSuppressOutputOfKey() );
+      setSuppressOutputOfValue( jobEntry.getSuppressOutputOfValue() );
+      //      setOutputKeyClass(jobEntry.getOutputKeyClass());
+      //      setOutputValueClass(jobEntry.getOutputValueClass());
+      setOutputFormatClass( jobEntry.getOutputFormatClass() );
+      setHdfsHostname( jobEntry.getHdfsHostname() );
+      setHdfsPort( jobEntry.getHdfsPort() );
+      setJobTrackerHostname( jobEntry.getJobTrackerHostname() );
+      setJobTrackerPort( jobEntry.getJobTrackerPort() );
+      setNumMapTasks( jobEntry.getNumMapTasks() );
+      setNumReduceTasks( jobEntry.getNumReduceTasks() );
     }
   }
-  
-  public void setShell(Shell shell) {
+
+  public void setShell( Shell shell ) {
     this.shell = shell;
   }
 
   public void closeErrorDialog() {
-    XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById("hadoop-error-dialog");
+    XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "hadoop-error-dialog" );
     errorDialog.hide();
   }
 
   /**
    * This method exists for consistency
-   * 
-   * @param dir
-   *          Null is unacceptable input, a blank string will be returned
-   * @param file
-   *          Null is unacceptable input, a blank string will be returned
+   *
+   * @param dir  Null is unacceptable input, a blank string will be returned
+   * @param file Null is unacceptable input, a blank string will be returned
    * @return
    */
-  private String buildRepositoryPath(String dir, String file) {
-    if (dir == null || file == null) {
+  private String buildRepositoryPath( String dir, String file ) {
+    if ( dir == null || file == null ) {
       return "";
     }
 
-    if (dir.endsWith("/")) {
+    if ( dir.endsWith( "/" ) ) {
       return dir + file;
     }
 
     return dir + "/" + file;
   }
 
-  public void setRepository(Repository rep) {
+  public void setRepository( Repository rep ) {
     this.rep = rep;
   }
 
   public void cancel() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById("job-entry-dialog");
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
 
     Shell shell = (Shell) xulDialog.getRootObject();
-    if (!shell.isDisposed()) {
-      WindowProperty winprop = new WindowProperty(shell);
-      PropsUI.getInstance().setScreen(winprop);
-      ((Composite) xulDialog.getManagedObject()).dispose();
+    if ( !shell.isDisposed() ) {
+      WindowProperty winprop = new WindowProperty( shell );
+      PropsUI.getInstance().setScreen( winprop );
+      ( (Composite) xulDialog.getManagedObject() ).dispose();
       shell.dispose();
     }
   }
 
   private interface StringResultSetter {
-    public void set(String val);
+    public void set( String val );
   }
 
   private interface ObjectIdResultSetter {
-    public void set(ObjectId val);
+    public void set( ObjectId val );
   }
 
   public void mapTransBrowse() {
-    if (getMapperStorageType().equalsIgnoreCase("local")) { //$NON-NLS-1$
-      final ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-transformation");
-      browseLocalFilesystem(new StringResultSetter() {
+    if ( getMapperStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
+      final ExtTextbox tempBox =
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" );
+      browseLocalFilesystem( new StringResultSetter() {
         @Override
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setMapTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir(null);
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile(null);
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference(null);
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
+          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( null );
+          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( null );
+          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( null );
         }
-      }, mapTrans);
-    } else if (getMapperStorageType().equalsIgnoreCase("repository")) { //$NON-NLS-1$
-      browseRepository(new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setMapTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference(null);
-        }
-      }, new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir(val);
-        }
-      }, new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile(val);
-        }
-      });
-    } else if (getMapperStorageType().equalsIgnoreCase("reference")) { //$NON-NLS-1$
-      browseRepository(new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setMapTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir(null);
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile(null);
-        }
-      }, new ObjectIdResultSetter() {
-        public void set(ObjectId val) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference(val);
-        }
-      });
+      }, mapTrans );
+    } else if ( getMapperStorageType().equalsIgnoreCase( "repository" ) ) { //$NON-NLS-1$
+      browseRepository( new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
+                            JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( null );
+                          }
+                        }, new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( val );
+                          }
+                        }, new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( val );
+                          }
+                        }
+      );
+    } else if ( getMapperStorageType().equalsIgnoreCase( "reference" ) ) { //$NON-NLS-1$
+      browseRepository( new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
+                            JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( null );
+                            JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( null );
+                          }
+                        }, new ObjectIdResultSetter() {
+                          public void set( ObjectId val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( val );
+                          }
+                        }
+      );
     }
   }
 
   public void combinerTransBrowse() {
-    if (getCombinerStorageType().equalsIgnoreCase("local")) { //$NON-NLS-1$
-      final ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-transformation");
-      browseLocalFilesystem(new StringResultSetter() {
+    if ( getCombinerStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
+      final ExtTextbox tempBox =
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" );
+      browseLocalFilesystem( new StringResultSetter() {
         @Override
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir(null);
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile(null);
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference(null);
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
+          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( null );
+          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( null );
+          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( null );
         }
-      }, combinerTrans);
-    } else if (getCombinerStorageType().equalsIgnoreCase("repository")) { //$NON-NLS-1$
-      browseRepository(new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference(null);
-        }
-      }, new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir(val);
-        }
-      }, new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile(val);
-        }
-      });
-    } else if (getCombinerStorageType().equalsIgnoreCase("reference")) { //$NON-NLS-1$
-      browseRepository(new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir(null);
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile(null);
-        }
-      }, new ObjectIdResultSetter() {
-        public void set(ObjectId val) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference(val);
-        }
-      });
-    }
-  }  
-  
-  public void reduceTransBrowse() {
-    if (getReducerStorageType().equalsIgnoreCase("local")) { //$NON-NLS-1$
-      final ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-transformation");
-      browseLocalFilesystem(new StringResultSetter() {
-        @Override
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir(null);
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile(null);
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference(null);
-        }
-      }, reduceTrans);
-    } else if (getReducerStorageType().equalsIgnoreCase("repository")) { //$NON-NLS-1$
-      browseRepository(new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference(null);
-        }
-      }, new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir(val);
-        }
-      }, new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile(val);
-        }
-      });
-    } else if (getReducerStorageType().equalsIgnoreCase("reference")) { //$NON-NLS-1$
-      browseRepository(new StringResultSetter() {
-        public void set(String val) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceTrans(val);
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir(null);
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile(null);
-        }
-      }, new ObjectIdResultSetter() {
-        public void set(ObjectId val) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference(val);
-        }
-      });
+      }, combinerTrans );
+    } else if ( getCombinerStorageType().equalsIgnoreCase( "repository" ) ) { //$NON-NLS-1$
+      browseRepository( new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( null );
+                          }
+                        }, new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( val );
+                          }
+                        }, new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( val );
+                          }
+                        }
+      );
+    } else if ( getCombinerStorageType().equalsIgnoreCase( "reference" ) ) { //$NON-NLS-1$
+      browseRepository( new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( null );
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( null );
+                          }
+                        }, new ObjectIdResultSetter() {
+                          public void set( ObjectId val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( val );
+                          }
+                        }
+      );
     }
   }
 
-  public void browseLocalFilesystem(StringResultSetter setter, String originalTransformationName) {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById("job-entry-dialog");
-    Shell shell = (Shell) xulDialog.getRootObject();    
+  public void reduceTransBrowse() {
+    if ( getReducerStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
+      final ExtTextbox tempBox =
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" );
+      browseLocalFilesystem( new StringResultSetter() {
+        @Override
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
+          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( null );
+          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( null );
+          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( null );
+        }
+      }, reduceTrans );
+    } else if ( getReducerStorageType().equalsIgnoreCase( "repository" ) ) { //$NON-NLS-1$
+      browseRepository( new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
+                            JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( null );
+                          }
+                        }, new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( val );
+                          }
+                        }, new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( val );
+                          }
+                        }
+      );
+    } else if ( getReducerStorageType().equalsIgnoreCase( "reference" ) ) { //$NON-NLS-1$
+      browseRepository( new StringResultSetter() {
+                          public void set( String val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
+                            JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( null );
+                            JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( null );
+                          }
+                        }, new ObjectIdResultSetter() {
+                          public void set( ObjectId val ) {
+                            JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( val );
+                          }
+                        }
+      );
+    }
+  }
 
-    FileDialog dialog = new FileDialog(shell, SWT.OPEN);
-    dialog.setFilterExtensions(Const.STRING_TRANS_FILTER_EXT);
-    dialog.setFilterNames(Const.getTransformationFilterNames());
-    String prevName = jobEntry.environmentSubstitute(originalTransformationName);
+  public void browseLocalFilesystem( StringResultSetter setter, String originalTransformationName ) {
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+
+    FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+    dialog.setFilterExtensions( Const.STRING_TRANS_FILTER_EXT );
+    dialog.setFilterNames( Const.getTransformationFilterNames() );
+    String prevName = jobEntry.environmentSubstitute( originalTransformationName );
     String parentFolder = null;
     try {
-      parentFolder = KettleVFS.getFilename(KettleVFS.getFileObject(jobEntry.environmentSubstitute(jobEntry.getFilename())).getParent());
-    } catch (Exception e) {
+      parentFolder = KettleVFS
+        .getFilename( KettleVFS.getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) ).getParent() );
+    } catch ( Exception e ) {
       // not that important
     }
-    if (!Const.isEmpty(prevName)) {
+    if ( !Const.isEmpty( prevName ) ) {
       try {
-        if (KettleVFS.fileExists(prevName)) {
-          dialog.setFilterPath(KettleVFS.getFilename(KettleVFS.getFileObject(prevName).getParent()));
+        if ( KettleVFS.fileExists( prevName ) ) {
+          dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getFileObject( prevName ).getParent() ) );
         } else {
 
-          if (!prevName.endsWith(".ktr")) {
-            prevName = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + Const.trim(originalTransformationName) + ".ktr";
+          if ( !prevName.endsWith( ".ktr" ) ) {
+            prevName =
+              "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + Const.trim( originalTransformationName )
+                + ".ktr";
           }
-          if (KettleVFS.fileExists(prevName)) {
-            setter.set(prevName);
+          if ( KettleVFS.fileExists( prevName ) ) {
+            setter.set( prevName );
             return;
           }
         }
-      } catch (Exception e) {
-        dialog.setFilterPath(parentFolder);
+      } catch ( Exception e ) {
+        dialog.setFilterPath( parentFolder );
       }
-    } else if (!Const.isEmpty(parentFolder)) {
-      dialog.setFilterPath(parentFolder);
+    } else if ( !Const.isEmpty( parentFolder ) ) {
+      dialog.setFilterPath( parentFolder );
     }
 
     String fname = dialog.open();
-    if (fname != null) {
-      File file = new File(fname);
+    if ( fname != null ) {
+      File file = new File( fname );
       String name = file.getName();
       String parentFolderSelection = file.getParentFile().toString();
 
-      if (!Const.isEmpty(parentFolder) && parentFolder.equals(parentFolderSelection)) {
-        setter.set("${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + name);
+      if ( !Const.isEmpty( parentFolder ) && parentFolder.equals( parentFolderSelection ) ) {
+        setter.set( "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + name );
       } else {
-        setter.set(fname);
+        setter.set( fname );
       }
     }
   }
 
-  public void browseRepository(StringResultSetter transSetter, StringResultSetter repoDirSetter, StringResultSetter repoFileSetter) {
-    browseRepository(transSetter, repoDirSetter, repoFileSetter, null);
+  public void browseRepository( StringResultSetter transSetter, StringResultSetter repoDirSetter,
+                                StringResultSetter repoFileSetter ) {
+    browseRepository( transSetter, repoDirSetter, repoFileSetter, null );
   }
 
-  public void browseRepository(StringResultSetter transSetter, ObjectIdResultSetter repoReferenceSetter) {
-    browseRepository(transSetter, null, null, repoReferenceSetter);
+  public void browseRepository( StringResultSetter transSetter, ObjectIdResultSetter repoReferenceSetter ) {
+    browseRepository( transSetter, null, null, repoReferenceSetter );
   }
 
-  private void browseRepository(StringResultSetter transSetter, StringResultSetter repoDirSetter, StringResultSetter repoFileSetter,
-      ObjectIdResultSetter repoReferenceSetter) {
-    if (rep != null) {
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById("job-entry-dialog");
+  private void browseRepository( StringResultSetter transSetter, StringResultSetter repoDirSetter,
+                                 StringResultSetter repoFileSetter,
+                                 ObjectIdResultSetter repoReferenceSetter ) {
+    if ( rep != null ) {
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      SelectObjectDialog sod = new SelectObjectDialog(shell, rep, true, false);
+      SelectObjectDialog sod = new SelectObjectDialog( shell, rep, true, false );
       String transname = sod.open();
-      if (transname != null) {
+      if ( transname != null ) {
         // Both location and reference should have this for display purposes
-        if (transSetter != null) {
-          transSetter.set(buildRepositoryPath(sod.getDirectory().getPath(), sod.getObjectName()));
+        if ( transSetter != null ) {
+          transSetter.set( buildRepositoryPath( sod.getDirectory().getPath(), sod.getObjectName() ) );
         }
 
         // Location should have these set
-        if (repoDirSetter != null) {
-          repoDirSetter.set(sod.getDirectory().getPath());
+        if ( repoDirSetter != null ) {
+          repoDirSetter.set( sod.getDirectory().getPath() );
         }
-        if (repoFileSetter != null) {
-          repoFileSetter.set(transname);
+        if ( repoFileSetter != null ) {
+          repoFileSetter.set( transname );
         }
 
         // Reference should have this set
-        if (repoReferenceSetter != null) {
-          repoReferenceSetter.set(sod.getObjectId());
+        if ( repoReferenceSetter != null ) {
+          repoReferenceSetter.set( sod.getObjectId() );
         }
       }
     }
   }
 
   public void newUserDefinedItem() {
-    userDefined.add(new UserDefinedItem());
+    userDefined.add( new UserDefinedItem() );
   }
 
   public AbstractModelList<UserDefinedItem> getUserDefined() {
@@ -816,338 +854,338 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return jobEntryName;
   }
 
-  public void setJobEntryName(String jobEntryName) {
+  public void setJobEntryName( String jobEntryName ) {
     String previousVal = this.jobEntryName;
     String newVal = jobEntryName;
 
     this.jobEntryName = jobEntryName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.JOB_ENTRY_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.JOB_ENTRY_NAME, previousVal, newVal );
   }
 
   public String getHadoopJobName() {
     return hadoopJobName;
   }
 
-  public void setHadoopJobName(String hadoopJobName) {
+  public void setHadoopJobName( String hadoopJobName ) {
     String previousVal = this.hadoopJobName;
     String newVal = hadoopJobName;
 
     this.hadoopJobName = hadoopJobName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.HADOOP_JOB_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.HADOOP_JOB_NAME, previousVal, newVal );
   }
 
   public String getMapTrans() {
     return mapTrans;
   }
 
-  public void setMapTrans(String mapTrans) {
+  public void setMapTrans( String mapTrans ) {
     String previousVal = this.mapTrans;
     String newVal = mapTrans;
 
     this.mapTrans = mapTrans;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.MAP_TRANS, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.MAP_TRANS, previousVal, newVal );
   }
 
   public String getCombinerTrans() {
     return combinerTrans;
   }
 
-  public void setCombinerTrans(String combinerTrans) {
+  public void setCombinerTrans( String combinerTrans ) {
     String previousVal = this.combinerTrans;
     String newVal = combinerTrans;
 
     this.combinerTrans = combinerTrans;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.COMBINER_TRANS, previousVal, newVal);
-  }  
-  
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.COMBINER_TRANS, previousVal, newVal );
+  }
+
   public String getReduceTrans() {
     return reduceTrans;
   }
 
-  public void setReduceTrans(String reduceTrans) {
+  public void setReduceTrans( String reduceTrans ) {
     String previousVal = this.reduceTrans;
     String newVal = reduceTrans;
 
     this.reduceTrans = reduceTrans;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.REDUCE_TRANS, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.REDUCE_TRANS, previousVal, newVal );
   }
 
   public String getMapTransInputStepName() {
     return mapTransInputStepName;
   }
 
-  public void setMapTransInputStepName(String mapTransInputStepName) {
+  public void setMapTransInputStepName( String mapTransInputStepName ) {
     String previousVal = this.mapTransInputStepName;
     String newVal = mapTransInputStepName;
 
     this.mapTransInputStepName = mapTransInputStepName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.MAP_TRANS_INPUT_STEP_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.MAP_TRANS_INPUT_STEP_NAME, previousVal, newVal );
   }
 
   public String getMapTransOutputStepName() {
     return mapTransOutputStepName;
   }
 
-  public void setMapTransOutputStepName(String mapTransOutputStepName) {
+  public void setMapTransOutputStepName( String mapTransOutputStepName ) {
     String previousVal = this.mapTransOutputStepName;
     String newVal = mapTransOutputStepName;
 
     this.mapTransOutputStepName = mapTransOutputStepName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.MAP_TRANS_OUTPUT_STEP_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.MAP_TRANS_OUTPUT_STEP_NAME, previousVal, newVal );
   }
-  
+
   public String getCombinerTransInputStepName() {
     return combinerTransInputStepName;
   }
 
-  public void setCombinerTransInputStepName(String combinerTransInputStepName) {
+  public void setCombinerTransInputStepName( String combinerTransInputStepName ) {
     String previousVal = this.combinerTransInputStepName;
     String newVal = combinerTransInputStepName;
 
     this.combinerTransInputStepName = combinerTransInputStepName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.COMBINER_TRANS_INPUT_STEP_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.COMBINER_TRANS_INPUT_STEP_NAME, previousVal, newVal );
   }
 
   public String getCombinerTransOutputStepName() {
     return combinerTransOutputStepName;
   }
 
-  public void setCombinerTransOutputStepName(String combinerTransOutputStepName) {
+  public void setCombinerTransOutputStepName( String combinerTransOutputStepName ) {
     String previousVal = this.combinerTransOutputStepName;
     String newVal = combinerTransOutputStepName;
 
     this.combinerTransOutputStepName = combinerTransOutputStepName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.COMBINER_TRANS_OUTPUT_STEP_NAME, previousVal, newVal);
-  }  
-  
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.COMBINER_TRANS_OUTPUT_STEP_NAME, previousVal, newVal );
+  }
+
   public String getReduceTransInputStepName() {
     return reduceTransInputStepName;
   }
 
-  public void setReduceTransInputStepName(String reduceTransInputStepName) {
+  public void setReduceTransInputStepName( String reduceTransInputStepName ) {
     String previousVal = this.reduceTransInputStepName;
     String newVal = reduceTransInputStepName;
 
     this.reduceTransInputStepName = reduceTransInputStepName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.REDUCE_TRANS_INPUT_STEP_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.REDUCE_TRANS_INPUT_STEP_NAME, previousVal, newVal );
   }
 
   public String getReduceTransOutputStepName() {
     return reduceTransOutputStepName;
   }
 
-  public void setReduceTransOutputStepName(String reduceTransOutputStepName) {
+  public void setReduceTransOutputStepName( String reduceTransOutputStepName ) {
     String previousVal = this.reduceTransOutputStepName;
     String newVal = reduceTransOutputStepName;
 
     this.reduceTransOutputStepName = reduceTransOutputStepName;
-    firePropertyChange(JobEntryHadoopTransJobExecutorController.REDUCE_TRANS_OUTPUT_STEP_NAME, previousVal, newVal);
+    firePropertyChange( JobEntryHadoopTransJobExecutorController.REDUCE_TRANS_OUTPUT_STEP_NAME, previousVal, newVal );
   }
 
   public void invertBlocking() {
-    setBlocking(!isBlocking());
+    setBlocking( !isBlocking() );
   }
 
   public JobEntryHadoopTransJobExecutor getJobEntry() {
     return jobEntry;
   }
 
-  public void setJobEntry(JobEntryHadoopTransJobExecutor jobEntry) {
+  public void setJobEntry( JobEntryHadoopTransJobExecutor jobEntry ) {
     this.jobEntry = jobEntry;
   }
-  
+
   public void invertSuppressOutputOfMapKey() {
-    setSuppressOutputOfMapKey(!isSuppressOutputOfMapKey());
+    setSuppressOutputOfMapKey( !isSuppressOutputOfMapKey() );
   }
-  
+
   public boolean isSuppressOutputOfMapKey() {
     return this.suppressOutputMapKey;
   }
-  
-  public void setSuppressOutputOfMapKey(boolean suppress) {
+
+  public void setSuppressOutputOfMapKey( boolean suppress ) {
     boolean previousVal = this.suppressOutputMapKey;
     boolean newVal = suppress;
-    
+
     this.suppressOutputMapKey = suppress;
-    firePropertyChange(SUPPRESS_OUTPUT_MAP_KEY, previousVal, newVal);
+    firePropertyChange( SUPPRESS_OUTPUT_MAP_KEY, previousVal, newVal );
   }
-  
+
   public void invertSuppressOutputOfMapValue() {
-    setSuppressOutputOfMapValue(!isSuppressOutputOfMapValue());
+    setSuppressOutputOfMapValue( !isSuppressOutputOfMapValue() );
   }
-  
+
   public boolean isSuppressOutputOfMapValue() {
     return this.suppressOutputMapValue;
   }
-  
-  public void setSuppressOutputOfMapValue(boolean suppress) {
+
+  public void setSuppressOutputOfMapValue( boolean suppress ) {
     boolean previousVal = this.suppressOutputMapValue;
     boolean newVal = suppress;
-    
+
     this.suppressOutputMapValue = suppress;
-    firePropertyChange(SUPPRESS_OUTPUT_MAP_VALUE, previousVal, newVal);
+    firePropertyChange( SUPPRESS_OUTPUT_MAP_VALUE, previousVal, newVal );
   }
-  
+
   public void invertSuppressOutputOfKey() {
-    setSuppressOutputOfKey(!isSuppressOutputOfKey());
+    setSuppressOutputOfKey( !isSuppressOutputOfKey() );
   }
-  
+
   public boolean isSuppressOutputOfKey() {
     return this.suppressOutputKey;
   }
-  
-  public void setSuppressOutputOfKey(boolean suppress) {
+
+  public void setSuppressOutputOfKey( boolean suppress ) {
     boolean previousVal = this.suppressOutputKey;
     boolean newVal = suppress;
-    
+
     this.suppressOutputKey = suppress;
-    firePropertyChange(SUPPRESS_OUTPUT_KEY, previousVal, newVal);
+    firePropertyChange( SUPPRESS_OUTPUT_KEY, previousVal, newVal );
   }
-  
+
   public void invertSuppressOutputOfValue() {
-    setSuppressOutputOfValue(!isSuppressOutputOfValue());
+    setSuppressOutputOfValue( !isSuppressOutputOfValue() );
   }
-  
+
   public boolean isSuppressOutputOfValue() {
     return this.suppressOutputValue;
   }
-  
-  public void setSuppressOutputOfValue(boolean suppress) {
+
+  public void setSuppressOutputOfValue( boolean suppress ) {
     boolean previousVal = this.suppressOutputValue;
     boolean newVal = suppress;
-    
+
     this.suppressOutputValue = suppress;
-    firePropertyChange(SUPPRESS_OUTPUT_VALUE, previousVal, newVal);
-  }  
+    firePropertyChange( SUPPRESS_OUTPUT_VALUE, previousVal, newVal );
+  }
 
   public String getInputFormatClass() {
     return inputFormatClass;
   }
 
-  public void setInputFormatClass(String inputFormatClass) {
+  public void setInputFormatClass( String inputFormatClass ) {
     String previousVal = this.inputFormatClass;
     String newVal = inputFormatClass;
 
     this.inputFormatClass = inputFormatClass;
-    firePropertyChange(INPUT_FORMAT_CLASS, previousVal, newVal);
+    firePropertyChange( INPUT_FORMAT_CLASS, previousVal, newVal );
   }
 
   public String getOutputFormatClass() {
     return outputFormatClass;
   }
 
-  public void setOutputFormatClass(String outputFormatClass) {
+  public void setOutputFormatClass( String outputFormatClass ) {
     String previousVal = this.outputFormatClass;
     String newVal = outputFormatClass;
 
     this.outputFormatClass = outputFormatClass;
-    firePropertyChange(OUTPUT_FORMAT_CLASS, previousVal, newVal);
+    firePropertyChange( OUTPUT_FORMAT_CLASS, previousVal, newVal );
   }
 
   public String getHdfsHostname() {
     return hdfsHostname;
   }
 
-  public void setHdfsHostname(String hdfsHostname) {
+  public void setHdfsHostname( String hdfsHostname ) {
     String previousVal = this.hdfsHostname;
     String newVal = hdfsHostname;
 
     this.hdfsHostname = hdfsHostname;
-    firePropertyChange(HDFS_HOSTNAME, previousVal, newVal);
+    firePropertyChange( HDFS_HOSTNAME, previousVal, newVal );
   }
 
   public String getHdfsPort() {
     return hdfsPort;
   }
 
-  public void setHdfsPort(String hdfsPort) {
+  public void setHdfsPort( String hdfsPort ) {
     String previousVal = this.hdfsPort;
     String newVal = hdfsPort;
 
     this.hdfsPort = hdfsPort;
-    firePropertyChange(HDFS_PORT, previousVal, newVal);
+    firePropertyChange( HDFS_PORT, previousVal, newVal );
   }
 
   public String getJobTrackerHostname() {
     return jobTrackerHostname;
   }
 
-  public void setJobTrackerHostname(String jobTrackerHostname) {
+  public void setJobTrackerHostname( String jobTrackerHostname ) {
     String previousVal = this.jobTrackerHostname;
     String newVal = jobTrackerHostname;
 
     this.jobTrackerHostname = jobTrackerHostname;
-    firePropertyChange(JOB_TRACKER_HOSTNAME, previousVal, newVal);
+    firePropertyChange( JOB_TRACKER_HOSTNAME, previousVal, newVal );
   }
 
   public String getJobTrackerPort() {
     return jobTrackerPort;
   }
 
-  public void setJobTrackerPort(String jobTrackerPort) {
+  public void setJobTrackerPort( String jobTrackerPort ) {
     String previousVal = this.jobTrackerPort;
     String newVal = jobTrackerPort;
 
     this.jobTrackerPort = jobTrackerPort;
-    firePropertyChange(JOB_TRACKER_PORT, previousVal, newVal);
+    firePropertyChange( JOB_TRACKER_PORT, previousVal, newVal );
   }
 
   public String getInputPath() {
     return inputPath;
   }
 
-  public void setInputPath(String inputPath) {
+  public void setInputPath( String inputPath ) {
     String previousVal = this.inputPath;
     String newVal = inputPath;
 
     this.inputPath = inputPath;
-    firePropertyChange(INPUT_PATH, previousVal, newVal);
+    firePropertyChange( INPUT_PATH, previousVal, newVal );
   }
 
   public String getOutputPath() {
     return outputPath;
   }
 
-  public void setOutputPath(String outputPath) {
+  public void setOutputPath( String outputPath ) {
     String previousVal = this.outputPath;
     String newVal = outputPath;
 
     this.outputPath = outputPath;
-    firePropertyChange(OUTPUT_PATH, previousVal, newVal);
+    firePropertyChange( OUTPUT_PATH, previousVal, newVal );
   }
 
   public void invertCleanOutputPath() {
-    setCleanOutputPath(!isCleanOutputPath());
+    setCleanOutputPath( !isCleanOutputPath() );
   }
-  
+
   public boolean isCleanOutputPath() {
     return cleanOutputPath;
   }
 
-  public void setCleanOutputPath(boolean cleanOutputPath) {
+  public void setCleanOutputPath( boolean cleanOutputPath ) {
     boolean old = this.cleanOutputPath;
     this.cleanOutputPath = cleanOutputPath;
-    firePropertyChange(CLEAN_OUTPUT_PATH, old, this.cleanOutputPath);
+    firePropertyChange( CLEAN_OUTPUT_PATH, old, this.cleanOutputPath );
   }
 
   public boolean isBlocking() {
     return blocking;
   }
 
-  public void setBlocking(boolean blocking) {
+  public void setBlocking( boolean blocking ) {
     boolean previousVal = this.blocking;
     boolean newVal = blocking;
 
     this.blocking = blocking;
-    firePropertyChange(BLOCKING, previousVal, newVal);
+    firePropertyChange( BLOCKING, previousVal, newVal );
   }
-  
-  public void setReducingSingleThreaded(boolean reducingSingleThreaded) {
+
+  public void setReducingSingleThreaded( boolean reducingSingleThreaded ) {
     boolean previousVal = this.reducingSingleThreaded;
     boolean newVal = reducingSingleThreaded;
 
     this.reducingSingleThreaded = reducingSingleThreaded;
-    firePropertyChange(REDUCING_SINGLE_THREADED, previousVal, newVal);
+    firePropertyChange( REDUCING_SINGLE_THREADED, previousVal, newVal );
   }
 
 
@@ -1155,182 +1193,188 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return loggingInterval;
   }
 
-  public void setLoggingInterval(String loggingInterval) {
+  public void setLoggingInterval( String loggingInterval ) {
     String previousVal = this.loggingInterval;
     String newVal = loggingInterval;
 
     this.loggingInterval = loggingInterval;
-    firePropertyChange(LOGGING_INTERVAL, previousVal, newVal);
+    firePropertyChange( LOGGING_INTERVAL, previousVal, newVal );
   }
 
   public String getNumMapTasks() {
     return numMapTasks;
   }
 
-  public void setNumMapTasks(String numMapTasks) {
+  public void setNumMapTasks( String numMapTasks ) {
     String previousVal = this.numMapTasks;
     String newVal = numMapTasks;
 
     this.numMapTasks = numMapTasks;
-    firePropertyChange(NUM_MAP_TASKS, previousVal, newVal);
+    firePropertyChange( NUM_MAP_TASKS, previousVal, newVal );
   }
 
-  public String  getNumReduceTasks() {
+  public String getNumReduceTasks() {
     return numReduceTasks;
   }
 
-  public void setNumReduceTasks(String  numReduceTasks) {
-    String  previousVal = this.numReduceTasks;
-    String  newVal = numReduceTasks;
+  public void setNumReduceTasks( String numReduceTasks ) {
+    String previousVal = this.numReduceTasks;
+    String newVal = numReduceTasks;
 
     this.numReduceTasks = numReduceTasks;
-    firePropertyChange(NUM_REDUCE_TASKS, previousVal, newVal);
+    firePropertyChange( NUM_REDUCE_TASKS, previousVal, newVal );
   }
-  
-  @SuppressWarnings("rawtypes")
-  public void setMapperStorageType(String mapperStorageType) {
-    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("mapper-storage-type");
+
+  @SuppressWarnings( "rawtypes" )
+  public void setMapperStorageType( String mapperStorageType ) {
+    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" );
     String prevMapperStorageType = menuList.getSelectedItem();
-    switch (menuList.getSelectedIndex()) {
-    case 0: { // Local
-      mapperStorageTypeChanged("local");
-    }
+    switch( menuList.getSelectedIndex() ) {
+      case 0: { // Local
+        mapperStorageTypeChanged( "local" );
+      }
       break;
 
-    case 1: { // By name
-      mapperStorageTypeChanged("repository");
-    }
+      case 1: { // By name
+        mapperStorageTypeChanged( "repository" );
+      }
       break;
 
-    case 2: { // By reference
-      mapperStorageTypeChanged("reference");
-    }
+      case 2: { // By reference
+        mapperStorageTypeChanged( "reference" );
+      }
       break;
     }
 
-    firePropertyChange(MAPPER_STORAGE_TYPE, prevMapperStorageType, mapperStorageType);
+    firePropertyChange( MAPPER_STORAGE_TYPE, prevMapperStorageType, mapperStorageType );
   }
 
   public String getMapperStorageType() {
     return mapperStorageType;
   }
-  
-  private void mapperStorageTypeChanged(String newStorageType) {
+
+  private void mapperStorageTypeChanged( String newStorageType ) {
     // Only execute this code if the storage type has changed
-    if (!this.mapperStorageType.equals(newStorageType)) {
+    if ( !this.mapperStorageType.equals( newStorageType ) ) {
       this.mapperStorageType = newStorageType;
 
       // Disable the text box?
-      if (this.mapperStorageType.equals("reference")) {
-        ((XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-transformation")).setReadonly(true);
+      if ( this.mapperStorageType.equals( "reference" ) ) {
+        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" ) )
+          .setReadonly( true );
       } else {
-        ((XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-map-transformation")).setReadonly(false);
+        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" ) )
+          .setReadonly( false );
       }
 
       // Clear current settings
-      setMapRepositoryDir(null);
-      setMapRepositoryFile(null);
-      setMapRepositoryReference(null);
-      setMapTrans("");
+      setMapRepositoryDir( null );
+      setMapRepositoryFile( null );
+      setMapRepositoryReference( null );
+      setMapTrans( "" );
     }
   }
 
-  
 
-  
-  @SuppressWarnings("rawtypes")
-  public void setCombinerStorageType(String combinerStorageType) {
-    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("combiner-storage-type");
+  @SuppressWarnings( "rawtypes" )
+  public void setCombinerStorageType( String combinerStorageType ) {
+    XulMenuList menuList =
+      (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" );
     String prevCombinerStorageType = menuList.getSelectedItem();
-    switch (menuList.getSelectedIndex()) {
-    case 0: { // Local
-      combinerStorageTypeChanged("local");
-    }
+    switch( menuList.getSelectedIndex() ) {
+      case 0: { // Local
+        combinerStorageTypeChanged( "local" );
+      }
       break;
 
-    case 1: { // By name
-      combinerStorageTypeChanged("repository");
-    }
+      case 1: { // By name
+        combinerStorageTypeChanged( "repository" );
+      }
       break;
 
-    case 2: { // By reference
-      combinerStorageTypeChanged("reference");
-    }
+      case 2: { // By reference
+        combinerStorageTypeChanged( "reference" );
+      }
       break;
     }
 
-    firePropertyChange(COMBINER_STORAGE_TYPE, prevCombinerStorageType, combinerStorageType);
+    firePropertyChange( COMBINER_STORAGE_TYPE, prevCombinerStorageType, combinerStorageType );
   }
 
   public String getCombinerStorageType() {
     return combinerStorageType;
   }
-  
-  private void combinerStorageTypeChanged(String newStorageType) {
+
+  private void combinerStorageTypeChanged( String newStorageType ) {
     // Only execute this code if the storage type has changed
-    if (!this.combinerStorageType.equals(newStorageType)) {
+    if ( !this.combinerStorageType.equals( newStorageType ) ) {
       this.combinerStorageType = newStorageType;
 
       // Disable the text box?
-      if (this.combinerStorageType.equals("reference")) {
-        ((XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-transformation")).setReadonly(true);
+      if ( this.combinerStorageType.equals( "reference" ) ) {
+        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" ) )
+          .setReadonly( true );
       } else {
-        ((XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-combiner-transformation")).setReadonly(false);
+        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" ) )
+          .setReadonly( false );
       }
 
       // Clear current settings
-      setCombinerRepositoryDir(null);
-      setCombinerRepositoryFile(null);
-      setCombinerRepositoryReference(null);
-      setCombinerTrans("");
+      setCombinerRepositoryDir( null );
+      setCombinerRepositoryFile( null );
+      setCombinerRepositoryReference( null );
+      setCombinerTrans( "" );
     }
   }
-  
-  @SuppressWarnings("rawtypes")
-  public void setReducerStorageType(String reducerStorageType) {
-    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById("reducer-storage-type");
+
+  @SuppressWarnings( "rawtypes" )
+  public void setReducerStorageType( String reducerStorageType ) {
+    XulMenuList menuList =
+      (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" );
     String prevReducerStorageType = menuList.getSelectedItem();
-    switch (menuList.getSelectedIndex()) {
-    case 0: { // Local
-      reducerStorageTypeChanged("local");
-    }
+    switch( menuList.getSelectedIndex() ) {
+      case 0: { // Local
+        reducerStorageTypeChanged( "local" );
+      }
       break;
 
-    case 1: { // By name
-      reducerStorageTypeChanged("repository");
-    }
+      case 1: { // By name
+        reducerStorageTypeChanged( "repository" );
+      }
       break;
 
-    case 2: { // By reference
-      reducerStorageTypeChanged("reference");
-    }
+      case 2: { // By reference
+        reducerStorageTypeChanged( "reference" );
+      }
       break;
     }
 
-    firePropertyChange(REDUCER_STORAGE_TYPE, prevReducerStorageType, reducerStorageType);
+    firePropertyChange( REDUCER_STORAGE_TYPE, prevReducerStorageType, reducerStorageType );
   }
 
   public String getReducerStorageType() {
     return reducerStorageType;
   }
 
-  private void reducerStorageTypeChanged(String newStorageType) {
+  private void reducerStorageTypeChanged( String newStorageType ) {
     // Only execute this code if the storage type has changed
-    if (!this.reducerStorageType.equals(newStorageType)) {
+    if ( !this.reducerStorageType.equals( newStorageType ) ) {
       this.reducerStorageType = newStorageType;
 
       // Disable the text box?
-      if (this.reducerStorageType.equals("reference")) {
-        ((XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-transformation")).setReadonly(true);
+      if ( this.reducerStorageType.equals( "reference" ) ) {
+        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" ) )
+          .setReadonly( true );
       } else {
-        ((XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("jobentry-reduce-transformation")).setReadonly(false);
+        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" ) )
+          .setReadonly( false );
       }
 
       // Clear current settings
-      setReduceRepositoryDir(null);
-      setReduceRepositoryFile(null);
-      setReduceRepositoryReference(null);
-      setReduceTrans("");
+      setReduceRepositoryDir( null );
+      setReduceRepositoryFile( null );
+      setReduceRepositoryReference( null );
+      setReduceTrans( "" );
     }
   }
 
@@ -1338,7 +1382,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return mapRepositoryDir;
   }
 
-  public void setMapRepositoryDir(String mapRepositoryDir) {
+  public void setMapRepositoryDir( String mapRepositoryDir ) {
     this.mapRepositoryDir = mapRepositoryDir;
   }
 
@@ -1346,7 +1390,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return mapRepositoryFile;
   }
 
-  public void setMapRepositoryFile(String mapRepositoryFile) {
+  public void setMapRepositoryFile( String mapRepositoryFile ) {
     this.mapRepositoryFile = mapRepositoryFile;
   }
 
@@ -1354,15 +1398,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return mapRepositoryReference;
   }
 
-  public void setMapRepositoryReference(ObjectId mapRepositoryReference) {
+  public void setMapRepositoryReference( ObjectId mapRepositoryReference ) {
     this.mapRepositoryReference = mapRepositoryReference;
   }
-  
+
   public String getCombinerRepositoryDir() {
     return combinerRepositoryDir;
   }
 
-  public void setCombinerRepositoryDir(String combinerRepositoryDir) {
+  public void setCombinerRepositoryDir( String combinerRepositoryDir ) {
     this.combinerRepositoryDir = combinerRepositoryDir;
   }
 
@@ -1370,7 +1414,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return combinerRepositoryFile;
   }
 
-  public void setCombinerRepositoryFile(String combinerRepositoryFile) {
+  public void setCombinerRepositoryFile( String combinerRepositoryFile ) {
     this.combinerRepositoryFile = combinerRepositoryFile;
   }
 
@@ -1378,15 +1422,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return combinerRepositoryReference;
   }
 
-  public void setCombinerRepositoryReference(ObjectId combinerRepositoryReference) {
+  public void setCombinerRepositoryReference( ObjectId combinerRepositoryReference ) {
     this.combinerRepositoryReference = combinerRepositoryReference;
-  }  
-  
+  }
+
   public String getReduceRepositoryDir() {
     return reduceRepositoryDir;
   }
 
-  public void setReduceRepositoryDir(String reduceRepositoryDir) {
+  public void setReduceRepositoryDir( String reduceRepositoryDir ) {
     this.reduceRepositoryDir = reduceRepositoryDir;
   }
 
@@ -1394,7 +1438,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return reduceRepositoryFile;
   }
 
-  public void setReduceRepositoryFile(String reduceRepositoryFile) {
+  public void setReduceRepositoryFile( String reduceRepositoryFile ) {
     this.reduceRepositoryFile = reduceRepositoryFile;
   }
 
@@ -1402,39 +1446,48 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return reduceRepositoryReference;
   }
 
-  public void setReduceRepositoryReference(ObjectId reduceRepositoryReference) {
+  public void setReduceRepositoryReference( ObjectId reduceRepositoryReference ) {
     this.reduceRepositoryReference = reduceRepositoryReference;
   }
 
-  public void openErrorDialog(String title, String message) {
-    XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById("hadoop-error-dialog");
-    errorDialog.setTitle(title);
+  public void openErrorDialog( String title, String message ) {
+    XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "hadoop-error-dialog" );
+    errorDialog.setTitle( title );
 
-    XulTextbox errorMessage = (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById("hadoop-error-message");
-    errorMessage.setValue(message);
+    XulTextbox errorMessage =
+      (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hadoop-error-message" );
+    errorMessage.setValue( message );
 
     errorDialog.show();
   }
 
   public void invertReducingSingleThreaded() {
-    setReducingSingleThreaded(!isReducingSingleThreaded());
+    setReducingSingleThreaded( !isReducingSingleThreaded() );
   }
-  
+
   public boolean isReducingSingleThreaded() {
     return reducingSingleThreaded;
   }
-  
+
   public void invertCombiningSingleThreaded() {
-    setCombiningSingleThreaded(!isCombiningSingleThreaded());
+    setCombiningSingleThreaded( !isCombiningSingleThreaded() );
   }
 
   public boolean isCombiningSingleThreaded() {
     return combiningSingleThreaded;
   }
 
-  public void setCombiningSingleThreaded(boolean combiningSingleThreaded) {
+  public void setCombiningSingleThreaded( boolean combiningSingleThreaded ) {
     boolean old = this.combiningSingleThreaded;
     this.combiningSingleThreaded = combiningSingleThreaded;
-    firePropertyChange(COMBINING_SINGLE_THREADED, old, this.combiningSingleThreaded);
+    firePropertyChange( COMBINING_SINGLE_THREADED, old, this.combiningSingleThreaded );
+  }
+
+  public void help() {
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    PluginInterface
+      plugin = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+    HelpUtils.openHelpDialog( shell, plugin );
   }
 }
