@@ -27,17 +27,15 @@ import org.pentaho.di.core.gui.GUIOption;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 @LifecyclePlugin(id = "HadoopSpoonPlugin", name = "Hadoop Spoon Plugin")
-public class HadoopSpoonPlugin implements LifecycleListener, GUIOption {
+public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
   public static final String PLUGIN_ID = "HadoopSpoonPlugin";
+  @SuppressWarnings( "unused" )
   private static Class<?> PKG = HadoopSpoonPlugin.class;
-  private LogChannelInterface log = new LogChannel(HadoopSpoonPlugin.class.getName());
 
   public static final String HDFS_SCHEME = "hdfs";
   public static final String HDFS_SCHEME_DISPLAY_NAME = "HDFS";

@@ -22,24 +22,6 @@
 
 package org.pentaho.di.job.entries.oozie;
 
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.apache.oozie.client.WorkflowJob;
-import org.apache.oozie.util.PropertiesUtils;
-import org.pentaho.di.core.Result;
-import org.pentaho.di.core.annotations.JobEntry;
-import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.util.StringUtil;
-import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.AbstractJobEntry;
-import org.pentaho.di.job.JobEntryMode;
-import org.pentaho.di.job.JobEntryUtils;
-import org.pentaho.di.job.PropertyEntry;
-import org.pentaho.di.job.entry.JobEntryInterface;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
@@ -47,6 +29,22 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
+import org.apache.oozie.client.WorkflowJob;
+import org.pentaho.di.core.Result;
+import org.pentaho.di.core.annotations.JobEntry;
+import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.AbstractJobEntry;
+import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.job.JobEntryUtils;
+import org.pentaho.di.job.PropertyEntry;
+import org.pentaho.di.job.entry.JobEntryInterface;
 
 /**
  * User: RFellows

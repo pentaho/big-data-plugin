@@ -60,6 +60,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.amazon.AmazonSpoonPlugin;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -68,7 +69,6 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -86,11 +86,7 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
-import org.pentaho.ui.xul.containers.XulDialog;
-import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
-
-import org.pentaho.amazon.AmazonSpoonPlugin;
 
 public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> BASE_PKG = TextFileOutputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
@@ -1576,7 +1572,6 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if (this.fileChooserDialog == null) {
-      FileObject rootFile = null;
       FileObject initialFile = null;
       FileObject defaultInitialFile = KettleVFS.getFileObject("file:///c:/");
 

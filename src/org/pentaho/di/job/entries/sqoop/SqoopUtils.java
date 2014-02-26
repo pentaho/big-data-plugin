@@ -27,8 +27,6 @@ import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,7 +37,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.gui.JobTracker;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
@@ -47,7 +44,6 @@ import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.hadoop.shim.api.Configuration;
-import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
 /**

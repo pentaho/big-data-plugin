@@ -41,6 +41,7 @@ import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.components.XulMenuList;
 
 public class HadoopExitDialog extends BaseStepXulDialog implements StepDialogInterface {
+  @SuppressWarnings( "unused" )
   private static final Class<?> PKG = HadoopExit.class;
 
   private XulMenuList<?> outKeyFieldnames;

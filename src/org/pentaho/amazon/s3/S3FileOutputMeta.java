@@ -22,6 +22,10 @@
 
 package org.pentaho.amazon.s3;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
@@ -37,14 +41,8 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
-
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.s3.vfs.S3FileNameParser;
 import org.w3c.dom.Node;
-
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3 File Output",
   description = "Create files in an S3 location", categoryDescription = "Output" )
@@ -166,9 +164,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    * @return
    */
   protected void processFilename( String filename ) throws Exception {
-    // first encode the url
-    S3FileNameParser s3NameParser = new S3FileNameParser();
-
     // it it's an old-style filename - use and then remove keys from the filename
     Matcher matcher = OLD_STYLE_FILENAME.matcher( filename );
     if ( matcher.matches() ) {

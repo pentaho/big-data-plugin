@@ -27,6 +27,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +44,9 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.job.Job;
 import org.pentaho.di.job.JobEntryUtils;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.LoggingProxy;
 import org.pentaho.di.job.entry.JobEntryCopy;
 import org.pentaho.di.repository.LongObjectId;
@@ -60,11 +63,17 @@ import org.w3c.dom.Document;
 public class SqoopImportJobEntryTest {
   private SqoopImportJobEntry sqoopImportJobEntry;
   private LogChannelInterface mockLogChannelInterface;
+  private Job mockParentJob;
+  private JobMeta mockParentJobMeta;
 
   @Before
   public void setup() {
     mockLogChannelInterface = mock( LogChannelInterface.class );
     sqoopImportJobEntry = new SqoopImportJobEntry( mockLogChannelInterface );
+    mockParentJob = mock( Job.class );
+    mockParentJobMeta = mock( JobMeta.class );
+    when( mockParentJob.getJobMeta() ).thenReturn( mockParentJobMeta );
+    sqoopImportJobEntry.setParentJob( mockParentJob );
   }
 
   @Test
@@ -291,6 +300,8 @@ public class SqoopImportJobEntryTest {
     SqoopImportConfig sqoopConfig = sqoopImportJobEntry.getJobConfig();
     HadoopShim shim = new CommonHadoopShim();
     Configuration conf = shim.createConfiguration();
+    DatabaseMeta mockDbMeta = mock( DatabaseMeta.class );
+    when( mockParentJobMeta.findDatabase( sqoopConfig.getDatabase() ) ).thenReturn( mockDbMeta );
     try {
       sqoopImportJobEntry.configure( shim, sqoopConfig, conf );
       fail("Expected exception");

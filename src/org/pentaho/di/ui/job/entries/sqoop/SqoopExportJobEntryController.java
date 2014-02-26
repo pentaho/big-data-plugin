@@ -22,6 +22,10 @@
 
 package org.pentaho.di.ui.job.entries.sqoop;
 
+import static org.pentaho.di.job.entries.sqoop.SqoopExportConfig.EXPORT_DIR;
+
+import java.util.Collection;
+
 import org.apache.commons.vfs.FileObject;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
@@ -34,11 +38,6 @@ import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
-
-import java.util.Collection;
-import java.util.List;
-
-import static org.pentaho.di.job.entries.sqoop.SqoopExportConfig.EXPORT_DIR;
 
 /**
  * Controller for the Sqoop Export Dialog.

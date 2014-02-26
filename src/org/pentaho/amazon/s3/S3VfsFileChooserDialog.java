@@ -105,8 +105,6 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
   private String accessKey;
   private String secretKey;
 
-  private StaticUserAuthenticator userAuthenticator = null;
-
   public S3VfsFileChooserDialog(VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile, FileObject initialFile) {
     super(S3FileProvider.SCHEME, AmazonS3FileSystemBootstrap.getS3FileSystemDisplayText(), vfsFileChooserDialog, SWT.NONE);
 

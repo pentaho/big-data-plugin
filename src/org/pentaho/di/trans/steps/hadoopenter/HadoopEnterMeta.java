@@ -27,6 +27,7 @@ import org.pentaho.di.trans.steps.injector.InjectorMeta;
 
 @Step(id = "HadoopEnterPlugin", image = "MRI.png", name = "MapReduce Input", description = "Enter a Hadoop Mapper or Reducer transformation", categoryDescription = "Big Data")
 public class HadoopEnterMeta extends InjectorMeta {
+  @SuppressWarnings( "unused" )
   private static Class<?> PKG = HadoopEnterMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   public static final String KEY_FIELDNAME = "key";

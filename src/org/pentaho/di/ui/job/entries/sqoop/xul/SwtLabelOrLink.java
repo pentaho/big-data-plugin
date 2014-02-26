@@ -36,8 +36,6 @@ import org.pentaho.ui.xul.dom.Element;
 import org.pentaho.ui.xul.swt.SwtElement;
 
 public class SwtLabelOrLink extends SwtElement implements XulLabel {
-  private static final long serialVersionUID = 5202737172518086154L;
-  
   private boolean disabled;
   private String onclick;
   private Link link;

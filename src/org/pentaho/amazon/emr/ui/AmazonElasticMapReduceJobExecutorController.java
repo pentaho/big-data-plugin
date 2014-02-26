@@ -70,12 +70,12 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
   }
 
   @Override
-  public <T extends AbstractAmazonJobEntry> T getJobEntry() {
-    return (T)jobEntry;
+  public AbstractAmazonJobEntry getJobEntry() {
+    return jobEntry;
   }
 
   @Override
-  public <T extends AbstractAmazonJobEntry> void setJobEntry(T jobEntry) {
+  public void setJobEntry(AbstractAmazonJobEntry jobEntry) {
     this.jobEntry = (AmazonElasticMapReduceJobExecutor)jobEntry;
   }
 }

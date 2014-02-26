@@ -24,7 +24,6 @@ package org.pentaho.di.ui.job.entries.sqoop;
 
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.job.JobMeta;
-import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.di.job.entries.sqoop.SqoopImportConfig;
 import org.pentaho.di.job.entries.sqoop.SqoopImportJobEntry;
 import org.pentaho.di.job.entry.JobEntryInterface;

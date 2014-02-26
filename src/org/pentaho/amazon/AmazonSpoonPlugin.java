@@ -32,7 +32,7 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 @LifecyclePlugin(id = "AmazonSpoonPlugin", name = "Amazon Spoon Plugin EE")
-public class AmazonSpoonPlugin implements LifecycleListener, GUIOption {
+public class AmazonSpoonPlugin implements LifecycleListener, GUIOption<Object> {
 
   public void onStart(LifeEventHandler arg0) throws LifecycleException {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog(null, null);
