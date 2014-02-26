@@ -37,6 +37,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -50,7 +51,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class JobEntrySerializationHelper implements Serializable {
-
+  private static final long serialVersionUID = -3924431164206698711L;
+  
   private static final String INDENT_STRING = "    ";
 
   /**
@@ -89,7 +91,7 @@ public class JobEntrySerializationHelper implements Serializable {
             }
             // get the Java classname for the array elements
             String fieldClassName = XMLHandler.getTagAttribute(fieldNode, "class");
-            Class clazz = null;
+            Class<?> clazz = null;
             // primitive types require special handling
             if (fieldClassName.equals("boolean")) {
               clazz = boolean.class;
@@ -131,7 +133,7 @@ public class JobEntrySerializationHelper implements Serializable {
 
               // roll through all of our array elements setting them as encountered
               if (String.class.isAssignableFrom(clazz) || Number.class.isAssignableFrom(clazz)) {
-                Constructor constructor = clazz.getConstructor(String.class);
+                Constructor<?> constructor = clazz.getConstructor(String.class);
                 Object instance = constructor.newInstance(XMLHandler.getTagAttribute(child, "value"));
                 Array.set(array, arrayIndex++, instance);
               } else if (Boolean.class.isAssignableFrom(clazz) || boolean.class.isAssignableFrom(clazz)) {
@@ -173,10 +175,11 @@ public class JobEntrySerializationHelper implements Serializable {
             }
             // get the Java classname for the array elements
             String fieldClassName = XMLHandler.getTagAttribute(fieldNode, "class");
-            Class clazz = Class.forName(fieldClassName);
+            Class<?> clazz = Class.forName(fieldClassName);
 
-            // create a new, appropriately sized array
-            Collection collection = (Collection) field.getType().newInstance();
+            // create a new, appropriately sized array, we already know it's a collection
+            @SuppressWarnings( "unchecked" )
+            Collection<Object> collection = (Collection<Object>) field.getType().newInstance();
             field.set(object, collection);
 
             // iterate over all of the array elements and add them one by one as encountered
@@ -189,7 +192,7 @@ public class JobEntrySerializationHelper implements Serializable {
 
               // create an instance of 'fieldClassName'
               if (String.class.isAssignableFrom(clazz) || Number.class.isAssignableFrom(clazz) || Boolean.class.isAssignableFrom(clazz)) {
-                Constructor constructor = clazz.getConstructor(String.class);
+                Constructor<?> constructor = clazz.getConstructor(String.class);
                 Object instance = constructor.newInstance(XMLHandler.getTagAttribute(child, "value"));
                 collection.add(instance);
               } else {
@@ -237,7 +240,7 @@ public class JobEntrySerializationHelper implements Serializable {
                 field.set(object, "true".equalsIgnoreCase(value));
               }
             } else if (String.class.isAssignableFrom(field.getType()) || Number.class.isAssignableFrom(field.getType()) || Boolean.class.isAssignableFrom(field.getType())) {
-              Constructor constructor = field.getType().getConstructor(String.class);
+              Constructor<?> constructor = field.getType().getConstructor(String.class);
               Object instance = constructor.newInstance(value);
               field.set(object, instance);
             } else {
@@ -249,7 +252,7 @@ public class JobEntrySerializationHelper implements Serializable {
               }
               // get the Java classname for the array elements
               String fieldClassName = XMLHandler.getTagAttribute(fieldNode, "class");
-              Class clazz = Class.forName(fieldClassName);
+              Class<?> clazz = Class.forName(fieldClassName);
               Object instance = clazz.newInstance();
               field.set(object, instance);
               read(instance, fieldNode);
@@ -343,11 +346,11 @@ public class JobEntrySerializationHelper implements Serializable {
           buffer.append("    </" + field.getName() + ">").append(Const.CR);
         } else if (Collection.class.isAssignableFrom(field.getType())) {
           // write collection values
-          Collection collection = (Collection) fieldValue;
+          Collection<?> collection = (Collection<?>) fieldValue;
           if (collection.size() == 0) {
             continue;
           }
-          Class listClass = collection.iterator().next().getClass();
+          Class<?> listClass = collection.iterator().next().getClass();
 
           // open node (add class name attribute)
           indent(buffer, indentLevel);

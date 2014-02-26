@@ -143,13 +143,13 @@ public class AmazonHiveJobExecutorController extends AbstractAmazonJobExecutorCo
   }
 
   @Override
-  public <T extends AbstractAmazonJobEntry> T getJobEntry() {
-    return (T)this.jobEntry;
+  public AbstractAmazonJobEntry getJobEntry() {
+    return this.jobEntry;
   }
 
   @Override
-  public <T extends AbstractAmazonJobEntry> void setJobEntry(T jobEntry) {
-    this.jobEntry = (AmazonHiveJobExecutor)jobEntry;
+  public void setJobEntry( AbstractAmazonJobEntry jobEntry ) {
+    this.jobEntry = (AmazonHiveJobExecutor) jobEntry;
   }
 
   public boolean isAlive() {

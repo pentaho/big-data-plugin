@@ -291,7 +291,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if ( this.fileChooserDialog == null ) {
-      FileObject rootFile = null;
       FileObject initialFile = null;
       FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
@@ -509,9 +508,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     setBlocking( !isBlocking() );
   }
 
-  public abstract <T extends AbstractAmazonJobEntry> T getJobEntry();
+  public abstract AbstractAmazonJobEntry getJobEntry();
 
-  public abstract <T extends AbstractAmazonJobEntry> void setJobEntry( T jobEntry );
+  public abstract void setJobEntry( AbstractAmazonJobEntry jobEntry );
 
   public String getCommandLineArgs() {
     return cmdLineArgs;

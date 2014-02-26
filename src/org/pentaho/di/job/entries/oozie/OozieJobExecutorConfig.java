@@ -22,17 +22,14 @@
 
 package org.pentaho.di.job.entries.oozie;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.PropertyEntry;
-import org.pentaho.di.ui.repository.dialog.RepositoryDialogInterface;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.stereotype.Bindable;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Model for the Oozie Job Executor

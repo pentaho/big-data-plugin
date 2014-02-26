@@ -26,7 +26,6 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.job.JobMeta;
-import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.di.job.entries.sqoop.SqoopExportConfig;
 import org.pentaho.di.job.entries.sqoop.SqoopExportJobEntry;
 import org.pentaho.di.job.entry.JobEntryInterface;
