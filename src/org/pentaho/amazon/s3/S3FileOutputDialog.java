@@ -63,6 +63,7 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.AmazonSpoonPlugin;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.compress.CompressionProviderFactory;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -869,7 +870,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wCompression.setText(BaseMessages.getString(BASE_PKG, "TextFileOutputDialog.Compression.Label"));
     props.setLook(wCompression);
 
-    wCompression.setItems(TextFileOutputMeta.fileCompressionTypeCodes);
+    wCompression.setItems( CompressionProviderFactory.getInstance().getCompressionProviderNames() );
     wCompression.addModifyListener(lsMod);
     fdCompression = new FormData();
     fdCompression.left = new FormAttachment(middle, 0);
