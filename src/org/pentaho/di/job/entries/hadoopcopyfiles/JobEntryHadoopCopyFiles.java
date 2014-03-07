@@ -25,7 +25,10 @@ package org.pentaho.di.job.entries.hadoopcopyfiles;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
 
-@JobEntry (id="HadoopCopyFilesPlugin", name="Hadoop Copy Files", categoryDescription="Big Data", description="Copy files to and from HDFS", image = "HDM.png")
+@JobEntry (id="HadoopCopyFilesPlugin", image = "HDM.png",
+  name="HadoopCopyFilesPlugin.Name", description="HadoopCopyFilesPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  i18nPackageName="org.pentaho.di.job.entries.hadoopcopyfiles")
 public class JobEntryHadoopCopyFiles 
        extends JobEntryCopyFiles {
 

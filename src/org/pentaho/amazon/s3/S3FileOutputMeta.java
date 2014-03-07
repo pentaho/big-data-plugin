@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
@@ -44,8 +45,10 @@ import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
-@Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3 File Output",
-  description = "Create files in an S3 location", categoryDescription = "Output" )
+@Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3FileOutput.Name",
+  description = "S3FileOutput.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
+  i18nPackageName="org.pentaho.amazon.s3")
 public class S3FileOutputMeta extends TextFileOutputMeta {
 
   private static final String ACCESS_KEY_TAG = "access_key";
@@ -164,6 +167,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    * @return
    */
   protected void processFilename( String filename ) throws Exception {
+    if ( Const.isEmpty( filename ) ) {
+      setFileName( filename );
+      return;
+    }
     // it it's an old-style filename - use and then remove keys from the filename
     Matcher matcher = OLD_STYLE_FILENAME.matcher( filename );
     if ( matcher.matches() ) {
@@ -177,6 +184,9 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   }
 
   protected String decodeAccessKey( String key ) {
+    if ( Const.isEmpty( key ) ) {
+      return key;
+    }
     return key.replaceAll( "%2B", "\\+" ).replaceAll( "%2F", "/" );
   }
 

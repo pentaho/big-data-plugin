@@ -26,7 +26,10 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 
-@Step(id = "HadoopFileOutputPlugin", image = "HDO.png", name = "Hadoop File Output", description="Create files in an HDFS location", categoryDescription="Big Data")
+@Step(id = "HadoopFileOutputPlugin", image = "HDO.png", 
+  name = "HadoopFileOutputPlugin.Name", description="HadoopFileOutputPlugin.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  i18nPackageName="org.pentaho.di.trans.steps.hadoopfileoutput")
 public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
     // for message resolution
