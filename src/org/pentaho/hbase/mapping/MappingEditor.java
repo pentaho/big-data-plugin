@@ -1114,9 +1114,13 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
     // do the key first
     TableItem keyItem = new TableItem(m_fieldsView.table, SWT.NONE);
-    keyItem.setText(1, mapping.getKeyName());
+    if ( !Const.isEmpty( mapping.getKeyName() ) ) {
+      keyItem.setText( 1, mapping.getKeyName() );
+    }
     keyItem.setText(2, "Y");
-    keyItem.setText(5, mapping.getKeyType().toString());
+    if ( mapping.getKeyType() != null && !Const.isEmpty( mapping.getKeyType().toString() ) ) {
+      keyItem.setText( 5, mapping.getKeyType().toString() );
+    }
     if (mapping.isTupleMapping() && !Const.isEmpty(mapping.getTupleFamilies())) {
       keyItem.setText(3, mapping.getTupleFamilies());
     }
