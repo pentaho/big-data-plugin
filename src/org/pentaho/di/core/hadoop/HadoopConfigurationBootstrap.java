@@ -27,7 +27,10 @@ import java.util.Properties;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.impl.DefaultFileSystemManager;
+import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
+import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
@@ -46,7 +49,8 @@ import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
  * This class serves to initialize the Hadoop Configuration subsystem. This class
  * provides an anchor point for all Hadoop Configuration-related lookups to happen.
  */
-public class HadoopConfigurationBootstrap implements ActiveHadoopConfigurationLocator {
+@KettleLifecyclePlugin( id = "HadoopConfigurationBootstrap", name = "Hadoop Configuration Bootstrap" )
+public class HadoopConfigurationBootstrap implements KettleLifecycleListener, ActiveHadoopConfigurationLocator {
   private static final Class<?> PKG = HadoopConfigurationBootstrap.class;
 
   public static final String PLUGIN_ID = "HadoopConfigurationBootstrap";
@@ -227,4 +231,18 @@ public class HadoopConfigurationBootstrap implements ActiveHadoopConfigurationLo
     return p.getProperty(PROPERTY_ACTIVE_HADOOP_CONFIGURATION);
   }
 
+  @Override
+  public void onEnvironmentInit() throws LifecycleException {
+    try {
+      getInstance().getProvider();
+    } catch ( ConfigurationException e ) {
+      throw new LifecycleException( BaseMessages.getString( PKG,
+          "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, true );
+    }
+  }
+
+  @Override
+  public void onEnvironmentShutdown() {
+    // noop
+  }
 }
