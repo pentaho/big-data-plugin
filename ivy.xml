@@ -44,21 +44,21 @@
     <dependency org="pentaho" name="pentaho-xul-swt" rev="${dependency.pentaho-xul.revision}" transitive="false" conf="default->default"
       changing="true" />
       
-    <dependency org="pentaho" name="pentaho-hadoop-shims-api" rev="${project.revision}" transitive="false" conf="pmr->default;default->default" changing="true"/>
+    <dependency org="pentaho" name="pentaho-hadoop-shims-api" rev="5.0.4" transitive="false" conf="pmr->default;default->default"/>
     
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hadoop-20-package" rev="${project.revision}" changing="true">
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hadoop-20-package" rev="5.0.4">
       <artifact name="pentaho-hadoop-shims-hadoop-20-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh42-package" rev="${project.revision}" changing="true">
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh42-package"     rev="5.0.4">
       <artifact name="pentaho-hadoop-shims-cdh42-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp13-package" rev="${project.revision}" changing="true">
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp13-package"     rev="5.0.4">
       <artifact name="pentaho-hadoop-shims-hdp13-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp20-package" rev="${project.revision}" changing="true">
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp20-package"     rev="5.0.4">
       <artifact name="pentaho-hadoop-shims-hdp20-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr30-package" rev="${project.revision}" changing="true">
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr30-package"    rev="5.0.4">
       <artifact name="pentaho-hadoop-shims-mapr30-package" type="zip"/>
     </dependency>
     
