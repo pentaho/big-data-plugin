@@ -61,7 +61,10 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * 
  */
-@Step(id = "HBaseRowDecoder", image = "HBRD.png", name = "HBase Row Decoder", description = "Decodes an incoming key and HBase result object according to a mapping", categoryDescription = "Big Data")
+@Step(id = "HBaseRowDecoder", image = "HBRD.png", 
+  name = "HBaseRowDecoder.Name", description = "HBaseRowDecoder.Description", 
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  i18nPackageName="org.pentaho.di.trans.steps.hbaserowdecoder")
 public class HBaseRowDecoderMeta extends BaseStepMeta implements
     StepMetaInterface {
 

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2012 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -48,14 +48,15 @@ import org.pentaho.hbase.shim.api.Mapping;
 import org.w3c.dom.Node;
 
 /**
- * Class providing an output step for writing data to an HBase table according
- * to meta data column/type mapping info stored in a separate HBase table called
- * "pentaho_mappings". See org.pentaho.hbase.mapping.Mapping for details on the
+ * Class providing an output step for writing data to an HBase table according to meta data column/type mapping info
+ * stored in a separate HBase table called "pentaho_mappings". See org.pentaho.hbase.mapping.Mapping for details on the
  * meta data format.
  * 
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
-@Step(id = "HBaseOutput", image = "HBO.png", name = "HBase Output", description = "Writes data to an HBase table according to a mapping", categoryDescription = "Big Data")
+@Step( id = "HBaseOutput", image = "HBO.png", name = "HBaseOutput.Name", description = "HBaseOutput.Description",
+    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
 public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected static Class<?> PKG = HBaseOutputMeta.class;
@@ -64,8 +65,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   protected String m_zookeeperHosts;
 
   /**
-   * the port that zookeeper is listening on - if blank, then the default is
-   * used
+   * the port that zookeeper is listening on - if blank, then the default is used
    */
   protected String m_zookeeperPort;
 
@@ -85,23 +85,22 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   protected boolean m_disableWriteToWAL;
 
   /**
-   * The size of the write buffer in bytes (empty - default from
-   * hbase-default.xml is used)
+   * The size of the write buffer in bytes (empty - default from hbase-default.xml is used)
    */
   protected String m_writeBufferSize;
 
   /**
-   * The mapping to use if we are not loading one dynamically at runtime from
-   * HBase itself
+   * The mapping to use if we are not loading one dynamically at runtime from HBase itself
    */
   protected Mapping m_mapping;
 
   /**
    * Set the mapping to use for decoding the row
    * 
-   * @param m the mapping to use
+   * @param m
+   *          the mapping to use
    */
-  public void setMapping(Mapping m) {
+  public void setMapping( Mapping m ) {
     m_mapping = m;
   }
 
@@ -114,7 +113,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_mapping;
   }
 
-  public void setZookeeperHosts(String z) {
+  public void setZookeeperHosts( String z ) {
     m_zookeeperHosts = z;
   }
 
@@ -125,9 +124,10 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the port that zookeeper is listening on
    * 
-   * @param port the port
+   * @param port
+   *          the port
    */
-  public void setZookeeperPort(String port) {
+  public void setZookeeperPort( String port ) {
     m_zookeeperPort = port;
   }
 
@@ -140,7 +140,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_zookeeperPort;
   }
 
-  public void setCoreConfigURL(String coreConfig) {
+  public void setCoreConfigURL( String coreConfig ) {
     m_coreConfigURL = coreConfig;
   }
 
@@ -148,7 +148,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_coreConfigURL;
   }
 
-  public void setDefaulConfigURL(String defaultConfig) {
+  public void setDefaulConfigURL( String defaultConfig ) {
     m_defaultConfigURL = defaultConfig;
   }
 
@@ -156,7 +156,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_defaultConfigURL;
   }
 
-  public void setTargetTableName(String targetTable) {
+  public void setTargetTableName( String targetTable ) {
     m_targetTableName = targetTable;
   }
 
@@ -164,7 +164,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_targetTableName;
   }
 
-  public void setTargetMappingName(String targetMapping) {
+  public void setTargetMappingName( String targetMapping ) {
     m_targetMappingName = targetMapping;
   }
 
@@ -172,7 +172,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_targetMappingName;
   }
 
-  public void setDisableWriteToWAL(boolean d) {
+  public void setDisableWriteToWAL( boolean d ) {
     m_disableWriteToWAL = d;
   }
 
@@ -180,7 +180,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_disableWriteToWAL;
   }
 
-  public void setWriteBufferSize(String size) {
+  public void setWriteBufferSize( String size ) {
     m_writeBufferSize = size;
   }
 
@@ -188,32 +188,28 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_writeBufferSize;
   }
 
-  public void check(List<CheckResultInterface> remarks, TransMeta transMeta,
-      StepMeta stepMeta, RowMetaInterface prev, String[] input,
-      String[] output, RowMetaInterface info) {
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
+      String[] input, String[] output, RowMetaInterface info ) {
 
     CheckResult cr;
 
-    if ((prev == null) || (prev.size() == 0)) {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_WARNING,
-          "Not receiving any fields from previous steps!", stepMeta);
-      remarks.add(cr);
+    if ( ( prev == null ) || ( prev.size() == 0 ) ) {
+      cr = new CheckResult( CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
+      remarks.add( cr );
     } else {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_OK,
-          "Step is connected to previous one, receiving " + prev.size()
-              + " fields", stepMeta);
-      remarks.add(cr);
+      cr =
+          new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is connected to previous one, receiving " + prev.size()
+              + " fields", stepMeta );
+      remarks.add( cr );
     }
 
     // See if we have input streams leading to this step!
-    if (input.length > 0) {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_OK,
-          "Step is receiving info from other steps.", stepMeta);
-      remarks.add(cr);
+    if ( input.length > 0 ) {
+      cr = new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is receiving info from other steps.", stepMeta );
+      remarks.add( cr );
     } else {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_ERROR,
-          "No input received from other steps!", stepMeta);
-      remarks.add(cr);
+      cr = new CheckResult( CheckResult.TYPE_RESULT_ERROR, "No input received from other steps!", stepMeta );
+      remarks.add( cr );
     }
   }
 
@@ -221,139 +217,112 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
-    if (!Const.isEmpty(m_zookeeperHosts)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("zookeeper_hosts", m_zookeeperHosts));
+    if ( !Const.isEmpty( m_zookeeperHosts ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "zookeeper_hosts", m_zookeeperHosts ) );
     }
-    if (!Const.isEmpty(m_zookeeperPort)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("zookeeper_port", m_zookeeperPort));
+    if ( !Const.isEmpty( m_zookeeperPort ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "zookeeper_port", m_zookeeperPort ) );
     }
-    if (!Const.isEmpty(m_coreConfigURL)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("core_config_url", m_coreConfigURL));
+    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
     }
-    if (!Const.isEmpty(m_defaultConfigURL)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("default_config_url", m_defaultConfigURL));
+    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "default_config_url", m_defaultConfigURL ) );
     }
-    if (!Const.isEmpty(m_targetTableName)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("target_table_name", m_targetTableName));
+    if ( !Const.isEmpty( m_targetTableName ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "target_table_name", m_targetTableName ) );
     }
-    if (!Const.isEmpty(m_targetMappingName)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("target_mapping_name", m_targetMappingName));
+    if ( !Const.isEmpty( m_targetMappingName ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "target_mapping_name", m_targetMappingName ) );
     }
-    if (!Const.isEmpty(m_writeBufferSize)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("write_buffer_size", m_writeBufferSize));
+    if ( !Const.isEmpty( m_writeBufferSize ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "write_buffer_size", m_writeBufferSize ) );
     }
-    retval.append("\n    ").append(
-        XMLHandler.addTagValue("disable_wal", m_disableWriteToWAL));
+    retval.append( "\n    " ).append( XMLHandler.addTagValue( "disable_wal", m_disableWriteToWAL ) );
 
-    if (m_mapping != null) {
-      retval.append(m_mapping.getXML());
+    if ( m_mapping != null ) {
+      retval.append( m_mapping.getXML() );
     }
 
     return retval.toString();
   }
 
-  public StepInterface getStep(StepMeta stepMeta,
-      StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans) {
-    return new HBaseOutput(stepMeta, stepDataInterface, copyNr, transMeta,
-        trans);
+  public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
+      TransMeta transMeta, Trans trans ) {
+    return new HBaseOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   public StepDataInterface getStepData() {
     return new HBaseOutputData();
   }
 
-  public void loadXML(Node stepnode, List<DatabaseMeta> databases,
-      Map<String, Counter> counters) throws KettleXMLException {
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters )
+    throws KettleXMLException {
 
-    m_zookeeperHosts = XMLHandler.getTagValue(stepnode, "zookeeper_hosts");
-    m_zookeeperPort = XMLHandler.getTagValue(stepnode, "zookeeper_port");
-    m_coreConfigURL = XMLHandler.getTagValue(stepnode, "core_config_url");
-    m_defaultConfigURL = XMLHandler.getTagValue(stepnode, "default_config_url");
-    m_targetTableName = XMLHandler.getTagValue(stepnode, "target_table_name");
-    m_targetMappingName = XMLHandler.getTagValue(stepnode,
-        "target_mapping_name");
-    m_writeBufferSize = XMLHandler.getTagValue(stepnode, "write_buffer_size");
-    String disableWAL = XMLHandler.getTagValue(stepnode, "disable_wal");
-    m_disableWriteToWAL = disableWAL.equalsIgnoreCase("Y");
+    m_zookeeperHosts = XMLHandler.getTagValue( stepnode, "zookeeper_hosts" );
+    m_zookeeperPort = XMLHandler.getTagValue( stepnode, "zookeeper_port" );
+    m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
+    m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
+    m_targetTableName = XMLHandler.getTagValue( stepnode, "target_table_name" );
+    m_targetMappingName = XMLHandler.getTagValue( stepnode, "target_mapping_name" );
+    m_writeBufferSize = XMLHandler.getTagValue( stepnode, "write_buffer_size" );
+    String disableWAL = XMLHandler.getTagValue( stepnode, "disable_wal" );
+    m_disableWriteToWAL = disableWAL.equalsIgnoreCase( "Y" );
 
     Mapping tempMapping = new Mapping();
-    if (tempMapping.loadXML(stepnode)) {
+    if ( tempMapping.loadXML( stepnode ) ) {
       m_mapping = tempMapping;
     } else {
       m_mapping = null;
     }
   }
 
-  public void readRep(Repository rep, ObjectId id_step,
-      List<DatabaseMeta> databases, Map<String, Counter> counters)
-      throws KettleException {
+  public void readRep( Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters )
+    throws KettleException {
 
-    m_zookeeperHosts = rep
-        .getStepAttributeString(id_step, 0, "zookeeper_hosts");
-    m_zookeeperPort = rep.getStepAttributeString(id_step, 0, "zookeeper_port");
-    m_coreConfigURL = rep.getStepAttributeString(id_step, 0, "core_config_url");
-    m_defaultConfigURL = rep.getStepAttributeString(id_step, 0,
-        "default_config_url");
-    m_targetTableName = rep.getStepAttributeString(id_step, 0,
-        "target_table_name");
-    m_targetMappingName = rep.getStepAttributeString(id_step, 0,
-        "target_mapping_name");
-    m_writeBufferSize = rep.getStepAttributeString(id_step, 0,
-        "write_buffer_size");
-    m_disableWriteToWAL = rep
-        .getStepAttributeBoolean(id_step, 0, "disable_wal");
+    m_zookeeperHosts = rep.getStepAttributeString( id_step, 0, "zookeeper_hosts" );
+    m_zookeeperPort = rep.getStepAttributeString( id_step, 0, "zookeeper_port" );
+    m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
+    m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
+    m_targetTableName = rep.getStepAttributeString( id_step, 0, "target_table_name" );
+    m_targetMappingName = rep.getStepAttributeString( id_step, 0, "target_mapping_name" );
+    m_writeBufferSize = rep.getStepAttributeString( id_step, 0, "write_buffer_size" );
+    m_disableWriteToWAL = rep.getStepAttributeBoolean( id_step, 0, "disable_wal" );
 
     Mapping tempMapping = new Mapping();
-    if (tempMapping.readRep(rep, id_step)) {
+    if ( tempMapping.readRep( rep, id_step ) ) {
       m_mapping = tempMapping;
     } else {
       m_mapping = null;
     }
   }
 
-  public void saveRep(Repository rep, ObjectId id_transformation,
-      ObjectId id_step) throws KettleException {
-    if (!Const.isEmpty(m_zookeeperHosts)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0, "zookeeper_hosts",
-          m_zookeeperHosts);
+  public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+    if ( !Const.isEmpty( m_zookeeperHosts ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "zookeeper_hosts", m_zookeeperHosts );
     }
-    if (!Const.isEmpty(m_zookeeperPort)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0, "zookeeper_port",
-          m_zookeeperPort);
+    if ( !Const.isEmpty( m_zookeeperPort ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "zookeeper_port", m_zookeeperPort );
     }
-    if (!Const.isEmpty(m_coreConfigURL)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0, "core_config_url",
-          m_coreConfigURL);
+    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "core_config_url", m_coreConfigURL );
     }
-    if (!Const.isEmpty(m_defaultConfigURL)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0,
-          "default_config_url", m_defaultConfigURL);
+    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "default_config_url", m_defaultConfigURL );
     }
-    if (!Const.isEmpty(m_targetTableName)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0, "target_table_name",
-          m_targetTableName);
+    if ( !Const.isEmpty( m_targetTableName ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "target_table_name", m_targetTableName );
     }
-    if (!Const.isEmpty(m_targetMappingName)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0,
-          "target_mapping_name", m_targetMappingName);
+    if ( !Const.isEmpty( m_targetMappingName ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "target_mapping_name", m_targetMappingName );
     }
-    if (!Const.isEmpty(m_writeBufferSize)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0, "write_buffer_size",
-          m_writeBufferSize);
+    if ( !Const.isEmpty( m_writeBufferSize ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "write_buffer_size", m_writeBufferSize );
     }
-    rep.saveStepAttribute(id_transformation, id_step, 0, "disable_wal",
-        m_disableWriteToWAL);
+    rep.saveStepAttribute( id_transformation, id_step, 0, "disable_wal", m_disableWriteToWAL );
 
-    if (m_mapping != null) {
-      m_mapping.saveRep(rep, id_transformation, id_step);
+    if ( m_mapping != null ) {
+      m_mapping.saveRep( rep, id_transformation, id_step );
     }
   }
 

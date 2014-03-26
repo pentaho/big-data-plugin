@@ -42,7 +42,7 @@ import java.util.List;
 @JobEntry(id = "SqoopExport",
   name = "Sqoop.Export.PluginName",
   description = "Sqoop.Export.PluginDescription",
-  categoryDescription = "BigData.Category.Description",
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   image = "sqoop-export.png",
   i18nPackageName = "org.pentaho.di.job.entries.sqoop",
   version = "1"
