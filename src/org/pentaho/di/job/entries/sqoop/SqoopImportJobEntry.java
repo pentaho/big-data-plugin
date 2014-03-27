@@ -41,7 +41,7 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 )
 public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig> {
   
-  protected SqoopImportJobEntry() {
+  public SqoopImportJobEntry() {
     super();
   }
   
