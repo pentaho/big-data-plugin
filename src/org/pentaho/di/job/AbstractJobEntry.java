@@ -45,7 +45,7 @@ public abstract class AbstractJobEntry<T extends BlockableJobConfig> extends Job
 
   protected T jobConfig = null;
 
-  protected AbstractJobEntry() {
+  public AbstractJobEntry() {
     this( null );
   }
   

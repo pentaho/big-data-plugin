@@ -95,7 +95,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    */
   protected abstract String getToolName();
   
-  protected AbstractSqoopJobEntry() {
+  public AbstractSqoopJobEntry() {
     super();
   }
 
