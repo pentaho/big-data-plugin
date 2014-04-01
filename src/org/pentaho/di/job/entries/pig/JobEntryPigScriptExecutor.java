@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2012 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -106,25 +106,35 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     public KettleLoggingPrintWriter() {
       super(System.out);
     }
-    
+
+    @Override
     public void println(String string) {
       logBasic(string);
     }
-    
+
+    @Override
     public void println(Object obj) {
       println(obj.toString());
     }
-    
+
+    @Override
     public void write(String string) {
       println(string);
     }
-    
+
+    @Override
     public void print(String string) {
       println(string);
     }
-    
+
+    @Override
     public void print(Object obj) {
       print(obj.toString());
+    }
+
+    @Override
+    public void close() {
+      flush();
     }
   }  
   
