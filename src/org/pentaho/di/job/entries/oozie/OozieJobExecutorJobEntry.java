@@ -30,12 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.apache.oozie.client.WorkflowJob;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -45,6 +43,11 @@ import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.JobEntryUtils;
 import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.oozie.shim.api.OozieClient;
+import org.pentaho.oozie.shim.api.OozieClientException;
+import org.pentaho.oozie.shim.api.OozieClientFactory;
+import org.pentaho.oozie.shim.api.OozieJob;
 
 /**
  * User: RFellows
@@ -62,7 +65,19 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
 
   public static final String HTTP_ERROR_CODE_404 = "HTTP error code: 404";
   public static final String USER_NAME = "user.name";
+  private OozieClientFactory oozieClientFactory = new OozieClientFactoryImpl();
   private OozieClient oozieClient = null;
+  
+  public OozieJobExecutorJobEntry() {
+    try {
+      oozieClientFactory =
+          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getShim(
+              OozieClientFactory.class );
+    } catch ( ConfigurationException e ) {
+      // Old implementation
+      oozieClientFactory = new OozieClientFactoryImpl();
+    }
+  }
 
   @Override
   protected OozieJobExecutorConfig createJobConfig() {
@@ -120,12 +135,9 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         Properties props = getProperties(config);
 
         // make sure it has at minimum a workflow definition (need app path)
-        if(props.containsKey(OozieClient.APP_PATH) ||
-           props.containsKey(OozieClient.COORDINATOR_APP_PATH) ||
-           props.containsKey(OozieClient.BUNDLE_APP_PATH)) {
-        } else {
-          messages.add(BaseMessages.getString(OozieJobExecutorJobEntry.class,
-              "ValidationMessages.App.Path.Property.Missing"));
+        if ( !oozieClient.hasAppPath( props ) ) {
+          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
+              "ValidationMessages.App.Path.Property.Missing" ) );
         }
 
       } catch (KettleFileException e) {
@@ -210,8 +222,6 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           }
         }
 
-        String jobId = null;
-
         try {
           Properties jobProps = getProperties(jobConfig);
 
@@ -220,15 +230,15 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
             jobProps.setProperty(USER_NAME, getVariableSpace().environmentSubstitute("${" + USER_NAME + "}"));
           }
 
-          jobId = oozieClient.run(jobProps);
+          OozieJob job = oozieClient.run(jobProps);
           if (JobEntryUtils.asBoolean(getJobConfig().getBlockingExecution(), variables)) {
-            while(oozieClient.getJobInfo(jobId).getStatus().equals(WorkflowJob.Status.RUNNING)) {
+            while ( job.isRunning() ) {
               // System.out.println("Still running " + jobId + "...");
               long interval = JobEntryUtils.asLong(jobConfig.getBlockingPollingInterval(), variables);
               Thread.sleep(interval);
             }
-            String logDetail = oozieClient.getJobLog(jobId);
-            if(oozieClient.getJobInfo(jobId).getStatus().equals(WorkflowJob.Status.SUCCEEDED)) {
+            String logDetail = job.getJobLog();
+            if ( job.didSucceed() ) {
               jobResult.setResult(true);
               logDetailed(logDetail);
             } else {
@@ -264,11 +274,11 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
 
 
   public OozieClient getOozieClient() {
-    return new OozieClient(getVariableSpace().environmentSubstitute(jobConfig.getOozieUrl()));
+    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( jobConfig.getOozieUrl() ) );
   }
 
   public OozieClient getOozieClient(OozieJobExecutorConfig config) {
-    return new OozieClient(getVariableSpace().environmentSubstitute(config.getOozieUrl()));
+    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( config.getOozieUrl() ) );
   }
 
 }

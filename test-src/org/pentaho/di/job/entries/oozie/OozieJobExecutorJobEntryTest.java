@@ -413,13 +413,13 @@ public class OozieJobExecutorJobEntryTest {
     }
 
     @Override
-    public OozieClient getOozieClient() {
-      return client;
+    public org.pentaho.oozie.shim.api.OozieClient getOozieClient() {
+      return new OozieClientImpl( client );
     }
 
     @Override
-    public OozieClient getOozieClient(OozieJobExecutorConfig config) {
-      return client;
+    public org.pentaho.oozie.shim.api.OozieClient getOozieClient(OozieJobExecutorConfig config) {
+      return new OozieClientImpl( client );
     }
   }
 
