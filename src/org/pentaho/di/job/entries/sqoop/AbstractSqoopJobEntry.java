@@ -106,6 +106,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * @return a {@link SqoopConfig} that contains all configuration settings for this job entry
    */
+  @Override
   protected final S createJobConfig() {
     S config = buildSqoopConfig();
     try {
@@ -156,8 +157,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       }
       JobEntryUtils.attachAppenderTo(sqoopToKettleAppender, getLogLevel(), logLevelCache, LOGS_TO_MONITOR);
     } catch (Exception ex) {
-      logError(BaseMessages.getString(AbstractSqoopJobEntry.class, "ErrorAttachingLogging"));
-      logError(Const.getStackTracker(ex));
+      logMinimal( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorAttachingLogging" ) );
+      logDebug( Const.getStackTracker( ex ) );
 
       // Attempt to clean up logging if we failed
       try {
@@ -165,6 +166,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       } catch (Exception e) {
         // Ignore any exceptions while trying to clean up
       }
+      sqoopToKettleAppender = null;
     }
   }
 
@@ -219,6 +221,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * @param e         Exception that was encountered
    * @param jobResult Job result for the execution that spawned the thread
    */
+  @Override
   protected void handleUncaughtThreadException(Thread t, Throwable e, Result jobResult) {
     logError(BaseMessages.getString(AbstractSqoopJobEntry.class, "ErrorRunningSqoopTool"), e);
     removeLoggingAppenders();
