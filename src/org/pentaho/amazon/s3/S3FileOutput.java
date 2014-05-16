@@ -29,6 +29,7 @@ import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemOptions;
 import org.apache.commons.vfs.auth.StaticUserAuthenticator;
 import org.apache.commons.vfs.impl.DefaultFileSystemConfigBuilder;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -67,7 +68,9 @@ public class S3FileOutput extends TextFileOutput {
       FileSystemOptions opts = new FileSystemOptions();
       S3FileOutputMeta s3Meta = (S3FileOutputMeta) meta;
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(opts,
-        new StaticUserAuthenticator( null, s3Meta.getAccessKey(),  s3Meta.getSecretKey() ) );
+        new StaticUserAuthenticator( null,
+            Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getAccessKey() ) ),
+            Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getSecretKey() ) ) ) );
       return opts;
     } catch ( FileSystemException e ) {
       throw new KettleFileException( e );
