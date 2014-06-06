@@ -22,12 +22,6 @@
 
 package org.pentaho.di.job.entries.sqoop;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.util.List;
@@ -42,10 +36,17 @@ import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.entries.helper.PersistentPropertyChangeListener;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
+
 public class SqoopUtilsTest {
-  private static class MockConfig extends SqoopConfig {
+  public static class MockConfig extends SqoopConfig {
     @CommandLineArgument(name = "test", displayName = "Test", description = "Test argument", flag = true)
     private String test;
+
+    @CommandLineArgument(name = "strictlyNotEmpty")
+    private String strictlyNotEmpty;
 
     public String getTest() {
       return test;
@@ -56,16 +57,26 @@ public class SqoopUtilsTest {
       this.test = test;
       pcs.firePropertyChange("test", old, this.test);
     }
+
+    public String getStrictlyNotEmpty() {
+      return strictlyNotEmpty;
+    }
+
+    public void setStrictlyNotEmpty( String strictlyNotEmpty ) {
+      String old = this.strictlyNotEmpty;
+      this.strictlyNotEmpty = strictlyNotEmpty;
+      pcs.firePropertyChange("strictlyNotEmpty", old, this.strictlyNotEmpty);
+    }
   }
 
   @Test
   public void getCommandLineArgs_empty() throws IOException {
     Variables v = new Variables();
     SqoopConfig config = new SqoopExportConfig();
-    assertEquals(0, SqoopUtils.getCommandLineArgs(config, v).size());
+    assertEquals( 0, SqoopUtils.getCommandLineArgs( config, v ).size() );
 
     // Job Entry Name is not annotated so it shouldn't be added to the args list
-    config.setJobEntryName("testing");
+    config.setJobEntryName( "testing" );
     assertEquals(0, SqoopUtils.getCommandLineArgs(config, v).size());
   }
 
@@ -88,7 +99,7 @@ public class SqoopUtilsTest {
     };
     String connect = "jdbc:mysql://localhost:3306/test";
 
-    config.setConnect("${testing}");
+    config.setConnect( "${testing}" );
 
     List<String> args = SqoopUtils.getCommandLineArgs(config, null);
 
@@ -100,7 +111,7 @@ public class SqoopUtilsTest {
     args = SqoopUtils.getCommandLineArgs(config, v);
 
     assertEquals(2, args.size());
-    assertEquals("--connect", args.get(0));
+    assertEquals("--connect", args.get( 0 ));
     assertEquals(connect, args.get(1));
   }
 
@@ -110,8 +121,8 @@ public class SqoopUtilsTest {
     SqoopConfig config = new SqoopConfig() {
     };
 
-    config.setVerbose("${testing}");
-    assertEquals(0, SqoopUtils.getCommandLineArgs(config, null).size());
+    config.setVerbose( "${testing}" );
+    assertEquals( 0, SqoopUtils.getCommandLineArgs( config, null ).size() );
 
     v.setVariable("testing", Boolean.TRUE.toString());
     List<String> args = SqoopUtils.getCommandLineArgs(config, v);
@@ -126,9 +137,9 @@ public class SqoopUtilsTest {
 
     config.setMode(JobEntryMode.ADVANCED_COMMAND_LINE.name());
 
-    config.setTable("table-from-property");
+    config.setTable( "table-from-property" );
 
-    config.setCommandLine("--table \"\\\"table with whitespace\" --testing test --new-boolean-property");
+    config.setCommandLine( "--table \"\\\"table with whitespace\" --testing test --new-boolean-property" );
 
     // Make sure the command line arguments from the property "commandLine" are used and could represent currently unknown values
     List<String> args = SqoopUtils.getCommandLineArgs(config, null);
@@ -149,7 +160,7 @@ public class SqoopUtilsTest {
     assertEquals(13, args.size());
 
     assertEquals("sqoop", args.get(0));
-    assertEquals("import", args.get(1));
+    assertEquals( "import", args.get( 1 ) );
     assertEquals("--connect", args.get(2));
     assertEquals("jdbc:mysql://db.foo.com/corp", args.get(3));
     assertEquals("--table", args.get(4));
@@ -160,7 +171,7 @@ public class SqoopUtilsTest {
     assertEquals("--enclosed-by", args.get(9));
     assertEquals("\"", args.get(10));
     assertEquals("--fields-terminated-by", args.get(11));
-    assertEquals("\\t", args.get(12));
+    assertEquals("\\t", args.get( 12 ));
   }
 
   @Test
@@ -216,10 +227,28 @@ public class SqoopUtilsTest {
 
     config.setTable("testing");
     config.setConnect("jdbc:oracle:thin://bogus/testing");
-    config.setBinDir("dir with space");
-    config.setOptionallyEnclosedBy("\\t");
+    config.setBinDir( "dir with space" );
+    config.setOptionallyEnclosedBy( "\\t" );
 
     assertEquals("--connect jdbc:oracle:thin://bogus/testing --optionally-enclosed-by \"\\t\" --bindir \"dir with space\" --table testing", SqoopUtils.generateCommandLineString(config, null));
+  }
+
+  @Test
+  public void generateCommandLineString_ignoringEmptyStringParameter() {
+    MockConfig cfg = new MockConfig();
+    cfg.setTest( Boolean.TRUE.toString() );
+    cfg.setStrictlyNotEmpty( "" );
+
+    assertEquals( "--test", SqoopUtils.generateCommandLineString( cfg, null ) );
+  }
+
+  @Test
+  public void generateCommandLineString_notIgnoringStringOfSpaces() {
+    MockConfig cfg = new MockConfig();
+    cfg.setTest( Boolean.TRUE.toString() );
+    cfg.setStrictlyNotEmpty( "   " );
+
+    assertEquals("--test --strictlyNotEmpty \"   \"", SqoopUtils.generateCommandLineString(cfg, null));
   }
 
   @Test
@@ -229,13 +258,14 @@ public class SqoopUtilsTest {
 
     config.setPassword("password!!!");
 
-    config.setTable("testing");
-    config.setBinDir("dir with space");
-    config.setOptionallyEnclosedBy("\\t");
+    config.setTable( "testing" );
+    config.setBinDir( "dir with space" );
+    config.setOptionallyEnclosedBy( "\\t" );
 
-    assertEquals("--password password!!! --optionally-enclosed-by \"\\t\" --bindir \"dir with space\" --table testing", SqoopUtils.generateCommandLineString(config, null));
+    assertEquals( "--password password!!! --optionally-enclosed-by \"\\t\" --bindir \"dir with space\" --table testing",
+      SqoopUtils.generateCommandLineString( config, null ) );
 
-    config.setPassword("${password}");
+    config.setPassword( "${password}" );
   }
 
   @Test
@@ -244,22 +274,22 @@ public class SqoopUtilsTest {
     SqoopConfig config = new SqoopConfig() {
     };
 
-    variableSpace.setVariable("table", "testing");
-    variableSpace.setVariable("encloseChar", "\"");
+    variableSpace.setVariable( "table", "testing" );
+    variableSpace.setVariable( "encloseChar", "\"" );
 
     config.setTable("${table}");
     config.setEnclosedBy("${encloseChar}");
 
-    assertEquals("--enclosed-by \"\\\"\" --table testing", SqoopUtils.generateCommandLineString(config, variableSpace));
+    assertEquals("--enclosed-by \"\\\"\" --table testing", SqoopUtils.generateCommandLineString( config, variableSpace ));
   }
 
   @Test
   public void escapeEscapeSequences() {
     assertEquals("\\t", SqoopUtils.escapeEscapeSequences("\t"));
     assertEquals("\\b", SqoopUtils.escapeEscapeSequences("\b"));
-    assertEquals("\\n", SqoopUtils.escapeEscapeSequences("\n"));
-    assertEquals("\\r", SqoopUtils.escapeEscapeSequences("\r"));
-    assertEquals("\\f", SqoopUtils.escapeEscapeSequences("\f"));
+    assertEquals("\\n", SqoopUtils.escapeEscapeSequences( "\n" ));
+    assertEquals( "\\r", SqoopUtils.escapeEscapeSequences( "\r" ) );
+    assertEquals("\\f", SqoopUtils.escapeEscapeSequences( "\f" ));
   }
 
   @Test
@@ -328,6 +358,23 @@ public class SqoopUtilsTest {
     assertEquals(config.getConnect(), config3.getConnect());
     assertEquals("\"", config3.getEnclosedBy());
     assertEquals(Boolean.TRUE.toString(), config3.getVerbose());
+  }
+
+  @Test(expected = KettleException.class)
+  public void configureFromCommandLine_with_an_empty_string() throws Exception {
+    MockConfig cfg = new MockConfig();
+    String cmd = "--strictlyNotEmpty    ";
+    SqoopUtils.configureFromCommandLine( cfg, cmd, new Variables() );
+  }
+
+  @Test
+  public void configureFromCommandLine_with_a_string_of_spaces() throws Exception {
+    final String SPACES = "   ";
+    String cmd = String.format( "--strictlyNotEmpty \"%s\"", SPACES );
+
+    MockConfig cfg = new MockConfig();
+    SqoopUtils.configureFromCommandLine( cfg, cmd, new Variables() );
+    assertThat( cfg.getStrictlyNotEmpty(), is( equalTo( SPACES ) ) );
   }
 
   @Test
