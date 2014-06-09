@@ -9,6 +9,7 @@
     <conf name="zip" />
     <conf name="pmr" />
     <conf name="shim" />
+    <conf name="oss-licenses" />
   </configurations>
 
   <publications>
@@ -227,6 +228,11 @@
       <exclude org="javax.servlet" name="jsp-api"/>
       <exclude org="javax.servlet" name="servlet-api"/>
     </dependency>
+    
+     <!--  OSS Licenses file -->
+	<dependency org="pentaho" name="oss-licenses" rev="${dependency.oss-licenses.revision}" conf="oss-licenses->default">
+		<artifact name="oss-licenses" type="zip" />
+	</dependency>
 
     <!-- Exclude libraries that already ship with Hadoop 0.20.2 -->
     <exclude org="junit" conf="pmr"/>
