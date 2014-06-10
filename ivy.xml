@@ -9,6 +9,7 @@
     <conf name="zip" />
     <conf name="pmr" />
     <conf name="shim" />
+    <conf name="oss-licenses" />
   </configurations>
 
   <publications>
@@ -200,6 +201,11 @@
                 transitive="false"/>
     <dependency org="pentaho-library" name="libformula" rev="${dependency.libformula.revision}" conf="pmr->default"
                 transitive="false"/>
+                
+	<!--  OSS Licenses file -->
+	<dependency org="pentaho" name="oss-licenses" rev="${dependency.oss-licenses.revision}" conf="oss-licenses->default">
+		<artifact name="oss-licenses" type="zip" />
+	</dependency>              
 
     <!-- Our modified Hive driver (need to include it until changes are accepted into main Hive project) -->
     <!-- <dependency org="org.apache.hadoop.hive" name="hive-jdbc" rev="${dependency.hive-jdbc.revision}" changing="true"

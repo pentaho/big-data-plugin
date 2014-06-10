@@ -47,7 +47,7 @@
     FOUND IN subfloor.xml.
   --> 
 
-  <target name="resolve" depends="subfloor.resolve,resolve-pmr"/>
+  <target name="resolve" depends="subfloor.resolve,resolve-pmr,resolve-oss-licenses"/>
 
   <target name="clean-pmr">
     <delete dir="${stage.pmr.dir}"/>
@@ -64,6 +64,11 @@
     <ivy:resolve file="${ivyfile}" conf="shim" />
     <ivy:retrieve conf="shim" pattern="${resolve.shims.dir}/[module]-[revision](-[classifier]).[ext]" symlink="true" />
   </target>
+	
+  <target name="resolve-oss-licenses" depends="install-ivy">
+    <ivy:resolve file="${ivyfile}" conf="oss-licenses" />
+    <ivy:retrieve conf="oss-licenses" pattern="${bin.dir}/[module].[ext]" />
+  </target>
 
 	<target name="dist-noresolve" depends="jar,package" description="Builds and packages the application" />
 	<target name="dist" depends="resolve,jar,package" description="Builds and packages the application" />
@@ -79,6 +84,18 @@
   <target name="assemble.init">
     <mkdir dir="${stage.dir}" />
     <mkdir dir="${stage.dir}/${ivy.artifact.id}" />
+  </target>
+	
+  <target name="assemble" depends="assemble.init,assemble.copy-libs">
+    <copy todir="${approot.stage.dir}" overwrite="true">
+      <fileset dir="${package.resdir}" />
+    </copy>
+    <unzip src="${bin.dir}/oss-licenses.zip" dest="${approot.stage.dir}">
+      <patternset>
+        <include name="PentahoBigDataPlugin_OSS_Licenses.html"/>
+      </patternset>
+    </unzip>  	
+    <chmod perm="a+x" dir="${stage.dir}" includes="**/*.sh" />
   </target>
 
   <!-- Assemble the Hadoop Shim zips by first resolving them then extracting them
