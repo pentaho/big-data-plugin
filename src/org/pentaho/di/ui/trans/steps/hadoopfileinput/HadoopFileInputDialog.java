@@ -1,3 +1,4 @@
+//CHECKSTYLE:FileLength:OFF
 /*******************************************************************************
  *
  * Pentaho Big Data
@@ -377,7 +378,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private int middle, margin;
   private ModifyListener lsMod;
 
-  public static final int dateLengths[] = new int[] { 23, 19, 14, 10, 10, 10, 10, 8, 8, 8, 8, 6, 6 };
+  public static final int[] dateLengths = new int[] { 23, 19, 14, 10, 10, 10, 10, 8, 8, 8, 8, 6, 6 };
 
   private boolean gotEncodings = false;
 
@@ -542,7 +543,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // Delete files from the list of files...
     wbdFilename.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent arg0 ) {
-        int idx[] = wFilenameList.getSelectionIndices();
+        int[] idx = wFilenameList.getSelectionIndices();
         wFilenameList.remove( idx );
         wFilenameList.removeEmptyRows();
         wFilenameList.setRowNums();
@@ -554,7 +555,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       public void widgetSelected( SelectionEvent arg0 ) {
         int idx = wFilenameList.getSelectionIndex();
         if ( idx >= 0 ) {
-          String string[] = wFilenameList.getItem( idx );
+          String[] string = wFilenameList.getItem( idx );
           wFilename.setText( string[0] );
           wFilemask.setText( string[1] );
           wFilenameList.remove( idx );
@@ -676,8 +677,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     shell.open();
     while ( !shell.isDisposed() ) {
-      if ( !display.readAndDispatch() )
+      if ( !display.readAndDispatch() ) {
         display.sleep();
+      }
     }
     return stepname;
   }
@@ -685,7 +687,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private void showFiles() {
     TextFileInputMeta tfii = new TextFileInputMeta();
     getInfo( tfii );
-    String files[] = tfii.getFilePaths( transMeta );
+    String[] files = tfii.getFilePaths( transMeta );
     if ( files != null && files.length > 0 ) {
       EnterSelectionDialog esd = new EnterSelectionDialog( shell, files, "Files read", "Files read:" );
       esd.setViewOnly();
@@ -1543,7 +1545,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   protected void setLocales() {
-    Locale locale[] = Locale.getAvailableLocales();
+    Locale[] locale = Locale.getAvailableLocales();
     dateLocale = new String[locale.length];
     for ( int i = 0; i < locale.length; i++ ) {
       dateLocale[i] = locale[i].toString();
@@ -2070,8 +2072,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     boolean accept = wAccFilenames.getSelection();
     wlPassThruFields.setEnabled( accept );
     wPassThruFields.setEnabled( accept );
-    if ( !wAccFilenames.getSelection() )
+    if ( !wAccFilenames.getSelection() ) {
       wPassThruFields.setSelection( false );
+    }
     wlAccField.setEnabled( accept );
     wAccField.setEnabled( accept );
     wlAccStep.setEnabled( accept );
@@ -2158,11 +2161,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     wAccFilenames.setSelection( in.isAcceptingFilenames() );
     wPassThruFields.setSelection( in.isPassingThruFields() );
-    if ( in.getAcceptingField() != null )
+    if ( in.getAcceptingField() != null ) {
       wAccField.setText( in.getAcceptingField() );
-    if ( in.getAcceptingStep() != null )
+    }
+    if ( in.getAcceptingStep() != null ) {
       wAccStep.setText( in.getAcceptingStep().getName() );
-
+    }
     if ( in.getFileName() != null ) {
       wFilenameList.removeAll();
 
@@ -2176,14 +2180,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       wFilenameList.setRowNums();
       wFilenameList.optWidth( true );
     }
-    if ( in.getFileType() != null )
+    if ( in.getFileType() != null ) {
       wFiletype.setText( in.getFileType() );
-    if ( in.getSeparator() != null )
+    }
+    if ( in.getSeparator() != null ) {
       wSeparator.setText( in.getSeparator() );
-    if ( in.getEnclosure() != null )
+    }
+    if ( in.getEnclosure() != null ) {
       wEnclosure.setText( in.getEnclosure() );
-    if ( in.getEscapeCharacter() != null )
+    }
+    if ( in.getEscapeCharacter() != null ) {
       wEscape.setText( in.getEscapeCharacter() );
+    }
     wHeader.setSelection( in.hasHeader() );
     wNrHeader.setText( "" + in.getNrHeaderLines() );
     wFooter.setSelection( in.hasFooter() );
@@ -2193,8 +2201,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wLayoutPaged.setSelection( in.isLayoutPaged() );
     wNrLinesPerPage.setText( "" + in.getNrLinesPerPage() );
     wNrLinesDocHeader.setText( "" + in.getNrLinesDocHeader() );
-    if ( in.getFileCompression() != null )
+    if ( in.getFileCompression() != null ) {
       wCompression.setText( in.getFileCompression() );
+    }
     wNoempty.setSelection( in.noEmptyLines() );
     wInclFilename.setSelection( in.includeFilename() );
     wInclRownum.setSelection( in.includeRowNumber() );
@@ -2202,53 +2211,64 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wDateLenient.setSelection( in.isDateFormatLenient() );
     wAddResult.setSelection( in.isAddResultFile() );
 
-    if ( in.getFilenameField() != null )
+    if ( in.getFilenameField() != null ) {
       wInclFilenameField.setText( in.getFilenameField() );
-    if ( in.getRowNumberField() != null )
+    }
+    if ( in.getRowNumberField() != null ) {
       wInclRownumField.setText( in.getRowNumberField() );
-    if ( in.getFileFormat() != null )
+    }
+    if ( in.getFileFormat() != null ) {
       wFormat.setText( in.getFileFormat() );
+    }
     wLimit.setText( "" + in.getRowLimit() );
 
     logDebug( "getting fields info..." );
     getFieldsData( in, false );
 
-    if ( in.getEncoding() != null )
+    if ( in.getEncoding() != null ) {
       wEncoding.setText( in.getEncoding() );
+    }
 
     // Error handling fields...
     wErrorIgnored.setSelection( in.isErrorIgnored() );
     wSkipErrorLines.setSelection( in.isErrorLineSkipped() );
-    if ( in.getErrorCountField() != null )
+    if ( in.getErrorCountField() != null ) {
       wErrorCount.setText( in.getErrorCountField() );
-    if ( in.getErrorFieldsField() != null )
+    }
+    if ( in.getErrorFieldsField() != null ) {
       wErrorFields.setText( in.getErrorFieldsField() );
-    if ( in.getErrorTextField() != null )
+    }
+    if ( in.getErrorTextField() != null ) {
       wErrorText.setText( in.getErrorTextField() );
-
-    if ( in.getWarningFilesDestinationDirectory() != null )
+    }
+    if ( in.getWarningFilesDestinationDirectory() != null ) {
       wWarnDestDir.setText( in.getWarningFilesDestinationDirectory() );
-    if ( in.getWarningFilesExtension() != null )
+    }
+    if ( in.getWarningFilesExtension() != null ) {
       wWarnExt.setText( in.getWarningFilesExtension() );
-
-    if ( in.getErrorFilesDestinationDirectory() != null )
+    }
+    if ( in.getErrorFilesDestinationDirectory() != null ) {
       wErrorDestDir.setText( in.getErrorFilesDestinationDirectory() );
-    if ( in.getErrorLineFilesExtension() != null )
+    }
+    if ( in.getErrorLineFilesExtension() != null ) {
       wErrorExt.setText( in.getErrorLineFilesExtension() );
-
-    if ( in.getLineNumberFilesDestinationDirectory() != null )
+    }
+    if ( in.getLineNumberFilesDestinationDirectory() != null ) {
       wLineNrDestDir.setText( in.getLineNumberFilesDestinationDirectory() );
-    if ( in.getLineNumberFilesExtension() != null )
+    }
+    if ( in.getLineNumberFilesExtension() != null ) {
       wLineNrExt.setText( in.getLineNumberFilesExtension() );
-
+    }
     for ( int i = 0; i < in.getFilter().length; i++ ) {
       TableItem item = wFilter.table.getItem( i );
 
       TextFileFilter filter = in.getFilter()[i];
-      if ( filter.getFilterString() != null )
+      if ( filter.getFilterString() != null ) {
         item.setText( 1, filter.getFilterString() );
-      if ( filter.getFilterPosition() >= 0 )
+      }
+      if ( filter.getFilterPosition() >= 0 ) {
         item.setText( 2, "" + filter.getFilterPosition() );
+      }
       item.setText( 3, filter.isFilterLastLine() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" )
           : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
       item.setText( 4, filter.isFilterPositive() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" )
@@ -2280,10 +2300,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       if ( insertAtTop ) {
         item = new TableItem( wFields.table, SWT.NONE, i );
       } else {
-        if ( i >= wFields.table.getItemCount() )
+        if ( i >= wFields.table.getItemCount() ) {
           item = wFields.table.getItem( i );
-        else
+        } else {
           item = new TableItem( wFields.table, SWT.NONE );
+        }
       }
 
       item.setText( 1, field.getName() );
@@ -2302,30 +2323,42 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           field.isRepeated() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) : BaseMessages.getString(
               BASE_PKG, "System.Combo.No" );
 
-      if ( type != null )
+      if ( type != null ) {
         item.setText( 2, type );
-      if ( format != null )
+      }
+      if ( format != null ) {
         item.setText( 3, format );
-      if ( position != null && !"-1".equals( position ) )
+      }
+      if ( position != null && !"-1".equals( position ) ) {
         item.setText( 4, position );
-      if ( length != null && !"-1".equals( length ) )
+      }
+      if ( length != null && !"-1".equals( length ) ) {
         item.setText( 5, length );
-      if ( prec != null && !"-1".equals( prec ) )
+      }
+      if ( prec != null && !"-1".equals( prec ) ) {
         item.setText( 6, prec );
-      if ( curr != null )
+      }
+      if ( curr != null ) {
         item.setText( 7, curr );
-      if ( decim != null )
+      }
+      if ( decim != null ) {
         item.setText( 8, decim );
-      if ( group != null )
+      }
+      if ( group != null ) {
         item.setText( 9, group );
-      if ( def != null )
+      }
+      if ( def != null ) {
         item.setText( 10, def );
-      if ( ifNull != null )
+      }
+      if ( ifNull != null ) {
         item.setText( 11, ifNull );
-      if ( trim != null )
+      }
+      if ( trim != null ) {
         item.setText( 12, trim );
-      if ( rep != null )
+      }
+      if ( rep != null ) {
         item.setText( 13, rep );
+      }
     }
 
   }
@@ -2345,8 +2378,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       // Now select the default!
       String defEncoding = Const.getEnvironmentVariable( "file.encoding", "UTF-8" );
       int idx = Const.indexOfString( defEncoding, wEncoding.getItems() );
-      if ( idx >= 0 )
+      if ( idx >= 0 ) {
         wEncoding.select( idx );
+      }
     }
   }
 
@@ -2357,9 +2391,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private void ok() {
-    if ( Const.isEmpty( wStepname.getText() ) )
+    if ( Const.isEmpty( wStepname.getText() ) ) {
       return;
-
+    }
     getInfo( input );
     dispose();
   }
@@ -2427,15 +2461,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       field.setNullString( item.getText( 10 ) );
       field.setIfNullValue( item.getText( 11 ) );
       field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 12 ) ) );
-      field.setRepeated( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase( item.getText( 13 ) ) );
+      field.setRepeated(
+          BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase( item.getText( 13 ) ) );
 
-      meta.getInputFields()[i] = field;
+      ( meta.getInputFields() )[i] = field;
     }
 
     for ( int i = 0; i < nrfilters; i++ ) {
       TableItem item = wFilter.getNonEmpty( i );
       TextFileFilter filter = new TextFileFilter();
-      meta.getFilter()[i] = filter;
+      ( meta.getFilter() )[i] = filter;
 
       filter.setFilterString( item.getText( 1 ) );
       filter.setFilterPosition( Const.toInt( item.getText( 2 ), -1 ) );
@@ -2589,14 +2624,15 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               EnterTextDialog etd =
                   new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
                       "TextFileInputDialog.ScanResults.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                      "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
+                        "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
               etd.setReadOnly();
               etd.open();
             }
           }
         } else {
           MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
-          mb.setMessage( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.UnableToReadHeaderLine.DialogMessage" ) );
+          mb.setMessage(
+              BaseMessages.getString( BASE_PKG, "TextFileInputDialog.UnableToReadHeaderLine.DialogMessage" ) );
           mb.setText( BaseMessages.getString( BASE_PKG, "System.Dialog.Error.Title" ) );
           mb.open();
         }
@@ -2674,23 +2710,23 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     if ( oneMeta.isAcceptingFilenames() ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_INFORMATION );
-      mb.setMessage( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Dialog.SpecifyASampleFile.Message" ) ); // Nothing
-                                                                                                                    // found
-                                                                                                                    // that
-                                                                                                                    // matches
-                                                                                                                    // your
-                                                                                                                    // criteria
-      mb.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Dialog.SpecifyASampleFile.Title" ) ); // Sorry!
+
+      // Nothing found that matches your criteria
+      mb.setMessage( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Dialog.SpecifyASampleFile.Message" ) );
+
+      // Sorry!
+      mb.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Dialog.SpecifyASampleFile.Title" ) );
       mb.open();
       return;
     }
 
-    TransMeta previewMeta = TransPreviewFactory.generatePreviewTransformation( transMeta, oneMeta, wStepname.getText() );
+    TransMeta previewMeta =
+        TransPreviewFactory.generatePreviewTransformation( transMeta, oneMeta, wStepname.getText() );
 
     EnterNumberDialog numberDialog =
         new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( BASE_PKG,
             "TextFileInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-            "TextFileInputDialog.PreviewSize.DialogMessage" ) );
+              "TextFileInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
     if ( previewSize > 0 ) {
       TransPreviewProgressDialog progressDialog =
@@ -2742,7 +2778,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
                     "TextFileInputDialog.ContentOfFirstFile.DialogTitle" ),
                     ( nrLines == 0 ? BaseMessages.getString( BASE_PKG,
                         "TextFileInputDialog.ContentOfFirstFile.AllLines.DialogMessage" ) : BaseMessages.getString(
-                        BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
+                          BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
                     firstlines, true );
             etd.setReadOnly();
             etd.open();
@@ -2832,6 +2868,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         try {
           f.close();
         } catch ( Exception e ) {
+          // Ignore errors
         }
       }
     }
@@ -2905,7 +2942,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     } catch ( Exception e ) {
       new ErrorDialog( shell, BaseMessages.getString( BASE_PKG,
           "TextFileInputDialog.ErrorShowingFixedWizard.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-          "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
+            "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
     }
   }
 
@@ -2915,8 +2952,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     int maxsize = 0;
     for ( int i = 0; i < rows.size(); i++ ) {
       int len = ( (String) rows.get( i ) ).length();
-      if ( len > maxsize )
+      if ( len > maxsize ) {
         maxsize = len;
+      }
     }
 
     int prevEnd = 0;
@@ -2926,8 +2964,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       TextFileInputField f = info.getInputFields()[i];
 
       // See if positions are skipped, if this is the case, add dummy fields...
-      if ( f.getPosition() != prevEnd ) // gap
-      {
+      if ( f.getPosition() != prevEnd ) {
+        // gap
         TextFileInputField field = new TextFileInputField( "Dummy" + dummynr, prevEnd, f.getPosition() - prevEnd );
         field.setIgnored( true ); // don't include in result by default.
         fields.add( field );

@@ -63,54 +63,55 @@ public class SqoopUtils {
   private static final Pattern BACKSLASH_PATTERN = Pattern.compile( "\\\\" );
   // Simple map of Patterns that match an escape sequence and a replacement string to replace them with to escape them
   private static final Object[][] ESCAPE_SEQUENCES = new Object[][] {
-    new Object[] { Pattern.compile( "\t" ), "\\\\t" },
-    new Object[] { Pattern.compile( "\b" ), "\\\\b" },
-    new Object[] { Pattern.compile( "\n" ), "\\\\n" },
-    new Object[] { Pattern.compile( "\r" ), "\\\\r" },
-    new Object[] { Pattern.compile( "\f" ), "\\\\f" }
-  };
+    new Object[] { Pattern.compile( "\t" ), "\\\\t" }, new Object[] { Pattern.compile( "\b" ), "\\\\b" },
+    new Object[] { Pattern.compile( "\n" ), "\\\\n" }, new Object[] { Pattern.compile( "\r" ), "\\\\r" },
+    new Object[] { Pattern.compile( "\f" ), "\\\\f" } };
 
   /**
    * Configure a {@link SqoopConfig}'s Namenode and Jobtracker connection information based off a Hadoop Configuration's
    * settings. These properties are parsed from {@code fs.default.name} and {@code mapred.job.tracker} properties.
-   *
-   * @param config Sqoop configuration to update
-   * @param c      Hadoop configuration to parse connection information from
+   * 
+   * @param config
+   *          Sqoop configuration to update
+   * @param c
+   *          Hadoop configuration to parse connection information from
    */
   public static void configureConnectionInformation( SqoopConfig config, HadoopShim shim, Configuration c ) {
     String[] namenodeInfo = shim.getNamenodeConnectionInfo( c );
     if ( namenodeInfo != null ) {
-      if ( namenodeInfo[ 0 ] != null ) {
-        config.setNamenodeHost( namenodeInfo[ 0 ] );
+      if ( namenodeInfo[0] != null ) {
+        config.setNamenodeHost( namenodeInfo[0] );
       }
-      if ( !"-1".equals( namenodeInfo[ 1 ] ) ) {
-        config.setNamenodePort( namenodeInfo[ 1 ] );
+      if ( !"-1".equals( namenodeInfo[1] ) ) {
+        config.setNamenodePort( namenodeInfo[1] );
       }
     }
     String[] jobtrackerInfo = shim.getJobtrackerConnectionInfo( c );
     if ( jobtrackerInfo != null ) {
-      if ( jobtrackerInfo[ 0 ] != null ) {
-        config.setJobtrackerHost( jobtrackerInfo[ 0 ] );
+      if ( jobtrackerInfo[0] != null ) {
+        config.setJobtrackerHost( jobtrackerInfo[0] );
       }
-      if ( jobtrackerInfo[ 1 ] != null ) {
-        config.setJobtrackerPort( jobtrackerInfo[ 1 ] );
+      if ( jobtrackerInfo[1] != null ) {
+        config.setJobtrackerPort( jobtrackerInfo[1] );
       }
     }
   }
 
   /**
    * Parse a string into arguments as if it were provided on the command line.
-   *
-   * @param commandLineString  A command line string, e.g. "sqoop import --table test --connect
-   *                           jdbc:mysql://bogus/bogus"
-   * @param variableSpace      Context for resolving variable names. If {@code null}, no variable resolution we happen.
-   * @param ignoreSqoopCommand If set, the first "sqoop <tool>" arguments will be ignored, e.g. "sqoop import" or "sqoop
-   *                           export".
+   * 
+   * @param commandLineString
+   *          A command line string, e.g. "sqoop import --table test --connect jdbc:mysql://bogus/bogus"
+   * @param variableSpace
+   *          Context for resolving variable names. If {@code null}, no variable resolution we happen.
+   * @param ignoreSqoopCommand
+   *          If set, the first "sqoop <tool>" arguments will be ignored, e.g. "sqoop import" or "sqoop export".
    * @return List of parsed arguments
-   * @throws IOException when the command line could not be parsed
+   * @throws IOException
+   *           when the command line could not be parsed
    */
   public static List<String> parseCommandLine( String commandLineString, VariableSpace variableSpace,
-                                               boolean ignoreSqoopCommand ) throws IOException {
+      boolean ignoreSqoopCommand ) throws IOException {
     List<String> args = new ArrayList<String>();
     StringReader reader = new StringReader( commandLineString );
     try {
@@ -163,18 +164,23 @@ public class SqoopUtils {
   }
 
   /**
-   * Configure a {@link SqoopConfig} object from a command line string. Variables will be replaced if {@code
-   * variableSpace} is provided.
-   *
-   * @param config            Configuration to update
-   * @param commandLineString Command line string to parse and update config with (string will be parsed via {@link
-   *                          #parseCommandLine(String, org.pentaho.di.core.variables.VariableSpace, boolean)})
-   * @param variableSpace     Context for variable substitution
-   * @throws IOException     error parsing command line string
-   * @throws KettleException Error setting properties from parsed command line arguments
+   * Configure a {@link SqoopConfig} object from a command line string. Variables will be replaced if
+   * {@code variableSpace} is provided.
+   * 
+   * @param config
+   *          Configuration to update
+   * @param commandLineString
+   *          Command line string to parse and update config with (string will be parsed via
+   *          {@link #parseCommandLine(String, org.pentaho.di.core.variables.VariableSpace, boolean)})
+   * @param variableSpace
+   *          Context for variable substitution
+   * @throws IOException
+   *           error parsing command line string
+   * @throws KettleException
+   *           Error setting properties from parsed command line arguments
    */
-  public static void configureFromCommandLine( SqoopConfig config, String commandLineString,
-                                               VariableSpace variableSpace ) throws IOException, KettleException {
+  public static void configureFromCommandLine(
+      SqoopConfig config, String commandLineString, VariableSpace variableSpace ) throws IOException, KettleException {
     List<String> args = parseCommandLine( commandLineString, variableSpace, true );
 
     Map<String, String> argValues = new HashMap<String, String>();
@@ -213,8 +219,9 @@ public class SqoopUtils {
 
   /**
    * Does the string reprsent an argument name as provided on the command line? Format: "--argname"
-   *
-   * @param s Possible argument name
+   * 
+   * @param s
+   *          Possible argument name
    * @return {@code true} if the string represents an argument name (is prefixed with ARG_PREFIX)
    */
   private static boolean isArgName( String s ) {
@@ -224,11 +231,13 @@ public class SqoopUtils {
   /**
    * Updates arguments of {@code config} based on the map of argument values. All other arguments will be cleared from
    * {@code config}.
-   *
-   * @param config Configuration object to update
-   * @param args   Argument name and value pairs
-   * @throws KettleException when we cannot set the value of the argument either because it doesn't exist or any other
-   *                         reason
+   * 
+   * @param config
+   *          Configuration object to update
+   * @param args
+   *          Argument name and value pairs
+   * @throws KettleException
+   *           when we cannot set the value of the argument either because it doesn't exist or any other reason
    */
   protected static void setArgumentStringValues( SqoopConfig config, Map<String, String> args ) throws KettleException {
     Class<?> aClass = config.getClass();
@@ -279,9 +288,8 @@ public class SqoopUtils {
       }
 
       if ( StringUtil.isEmpty( value ) ) {
-        throw new KettleException(
-          BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorProhibitedEmptyString", argumentName )
-        );
+        throw new KettleException( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorProhibitedEmptyString",
+            argumentName ) );
       }
 
       return value;
@@ -292,12 +300,15 @@ public class SqoopUtils {
 
   /**
    * Generate a list of command line arguments and their values for arguments that require them.
-   *
-   * @param config        Sqoop configuration to build a list of command line arguments from
-   * @param variableSpace Variable space to look up argument values from. May be {@code null}
+   * 
+   * @param config
+   *          Sqoop configuration to build a list of command line arguments from
+   * @param variableSpace
+   *          Variable space to look up argument values from. May be {@code null}
    * @return All the command line arguments for this configuration object
-   * @throws IOException when config mode is {@link org.pentaho.di.job.JobEntryMode#ADVANCED_COMMAND_LINE} and the
-   *                     command line could not be parsed
+   * @throws IOException
+   *           when config mode is {@link org.pentaho.di.job.JobEntryMode#ADVANCED_COMMAND_LINE} and the command line
+   *           could not be parsed
    */
   public static List<String> getCommandLineArgs( SqoopConfig config, VariableSpace variableSpace ) throws IOException {
     List<String> args = new ArrayList<String>();
@@ -312,13 +323,15 @@ public class SqoopUtils {
   }
 
   /**
-   * Generate a command line string for the given configuration. Replace variables with the values from {@code
-   * variableSpace} if provided.
-   *
-   * @param config        Sqoop configuration
-   * @param variableSpace Context for variable substitutions
-   * @return String-representation of the current configuration values. Variable tokens will be replaced if {@code
-   * variableSpace} is provided.
+   * Generate a command line string for the given configuration. Replace variables with the values from
+   * {@code variableSpace} if provided.
+   * 
+   * @param config
+   *          Sqoop configuration
+   * @param variableSpace
+   *          Context for variable substitutions
+   * @return String-representation of the current configuration values. Variable tokens will be replaced if
+   *         {@code variableSpace} is provided.
    */
   public static String generateCommandLineString( SqoopConfig config, VariableSpace variableSpace ) {
     StringBuilder sb = new StringBuilder();
@@ -350,23 +363,24 @@ public class SqoopUtils {
   }
 
   /**
-   * Escapes known Java escape sequences. See {@link #ESCAPE_SEQUENCES} for the list of escape sequences we escape
-   * here.
-   *
-   * @param s String to escape
+   * Escapes known Java escape sequences. See {@link #ESCAPE_SEQUENCES} for the list of escape sequences we escape here.
+   * 
+   * @param s
+   *          String to escape
    * @return Escaped string where all escape sequences are properly escaped
    */
   protected static String escapeEscapeSequences( String s ) {
     for ( Object[] escapeSequence : ESCAPE_SEQUENCES ) {
-      s = ( (Pattern) escapeSequence[ 0 ] ).matcher( s ).replaceAll( (String) escapeSequence[ 1 ] );
+      s = ( (Pattern) escapeSequence[0] ).matcher( s ).replaceAll( (String) escapeSequence[1] );
     }
     return s;
   }
 
   /**
    * If any whitespace is detected the string will be quoted. If any quotes exist in the string they will be escaped.
-   *
-   * @param s String to quote
+   * 
+   * @param s
+   *          String to quote
    * @return A quoted version of {@code s} if whitespace exists in the string, otherwise unmodified {@code s}.
    */
   protected static String quote( String s ) {
@@ -381,13 +395,16 @@ public class SqoopUtils {
 
   /**
    * Add all {@link ArgumentWrapper}s to a list of arguments
-   *
-   * @param args          Arguments to append to
-   * @param arguments     Arguments to append
-   * @param variableSpace Variable space to look up argument values from. May be {@code null}.
+   * 
+   * @param args
+   *          Arguments to append to
+   * @param arguments
+   *          Arguments to append
+   * @param variableSpace
+   *          Variable space to look up argument values from. May be {@code null}.
    */
   protected static void appendArguments( List<String> args, Set<? extends ArgumentWrapper> arguments,
-                                         VariableSpace variableSpace ) {
+      VariableSpace variableSpace ) {
     for ( ArgumentWrapper ai : arguments ) {
       appendArgument( args, ai, variableSpace );
     }
@@ -395,8 +412,9 @@ public class SqoopUtils {
 
   /**
    * Append this argument to a list of arguments if it has a value or if it's a flag.
-   *
-   * @param args List of arguments to append to
+   * 
+   * @param args
+   *          List of arguments to append to
    */
   protected static void appendArgument( List<String> args, ArgumentWrapper arg, VariableSpace variableSpace ) {
     String value = arg.getValue();
@@ -416,8 +434,9 @@ public class SqoopUtils {
   /**
    * Find all fields annotated with {@link CommandLineArgument} in the class provided. All arguments must have valid
    * JavaBeans-style getter and setter methods in the object.
-   *
-   * @param o Object to look for arguments in
+   * 
+   * @param o
+   *          Object to look for arguments in
    * @return Ordered set of arguments representing all {@link CommandLineArgument}-annotated fields in {@code o}
    */
   public static Set<? extends ArgumentWrapper> findAllArguments( Object o ) {
@@ -442,10 +461,11 @@ public class SqoopUtils {
 
   /**
    * Determine the display name for the command line argument.
-   *
-   * @param anno Command line argument
-   * @return {@link org.pentaho.di.job.CommandLineArgument#displayName()} or, if not set, {@link
-   * org.pentaho.di.job.CommandLineArgument#name()}
+   * 
+   * @param anno
+   *          Command line argument
+   * @return {@link org.pentaho.di.job.CommandLineArgument#displayName()} or, if not set,
+   *         {@link org.pentaho.di.job.CommandLineArgument#name()}
    */
   public static String getDisplayName( CommandLineArgument anno ) {
     return StringUtil.isEmpty( anno.displayName() ) ? anno.name() : anno.displayName();
@@ -454,11 +474,15 @@ public class SqoopUtils {
   /**
    * Finds a method in the given class or any super class with the name {@code prefix + methodName} that accepts 0
    * parameters.
-   *
-   * @param aClass         Class to search for method in
-   * @param methodName     Camelcase'd method name to search for with any of the provided prefixes
-   * @param parameterTypes The parameter types the method signature must match.
-   * @param prefixes       Prefixes to prepend to {@code methodName} when searching for method names, e.g. "get", "is"
+   * 
+   * @param aClass
+   *          Class to search for method in
+   * @param methodName
+   *          Camelcase'd method name to search for with any of the provided prefixes
+   * @param parameterTypes
+   *          The parameter types the method signature must match.
+   * @param prefixes
+   *          Prefixes to prepend to {@code methodName} when searching for method names, e.g. "get", "is"
    * @return The first method found to match the format {@code prefix + methodName}
    */
   public static Method findMethod( Class<?> aClass, String methodName, Class<?>[] parameterTypes, String... prefixes ) {

@@ -45,7 +45,7 @@ public class S3FileOutput extends TextFileOutput {
   private FileSystemOptions fsOptions;
 
   public S3FileOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                         Trans trans ) {
+      Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
@@ -59,15 +59,15 @@ public class S3FileOutput extends TextFileOutput {
 
   protected OutputStream getOutputStream( String vfsFilename, VariableSpace space, boolean append )
     throws KettleFileException {
-    return KettleVFS.getOutputStream( vfsFilename, space, getFsOptions() , append );
+    return KettleVFS.getOutputStream( vfsFilename, space, getFsOptions(), append );
   }
 
   protected FileSystemOptions createFileSystemOptions() throws KettleFileException {
     try {
       FileSystemOptions opts = new FileSystemOptions();
       S3FileOutputMeta s3Meta = (S3FileOutputMeta) meta;
-      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(opts,
-        new StaticUserAuthenticator( null, s3Meta.getAccessKey(),  s3Meta.getSecretKey() ) );
+      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
+          new StaticUserAuthenticator( null, s3Meta.getAccessKey(), s3Meta.getSecretKey() ) );
       return opts;
     } catch ( FileSystemException e ) {
       throw new KettleFileException( e );

@@ -76,8 +76,7 @@ public class S3FileOutputMetaProcessFilenameTest {
     check( "", "", "s3://s/dbahdano/empty" );
   }
 
-  private void check( String expectedAccessKey, String expectedSecretKey,
-                      String expectedFilename ) throws Exception {
+  private void check( String expectedAccessKey, String expectedSecretKey, String expectedFilename ) throws Exception {
     assertEquals( "Access keys are not equal", expectedAccessKey, meta.getAccessKey() );
     assertEquals( "Secret keys are not equal", expectedSecretKey, meta.getSecretKey() );
     assertEquals( "File names are not equal", expectedFilename, meta.getFileName() );

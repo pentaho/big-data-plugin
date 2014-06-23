@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.job.entries.sqoop;
 
@@ -31,20 +31,15 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 /**
  * Provides a way to orchestrate <a href="http://sqoop.apache.org/">Sqoop</a> imports.
  */
-@JobEntry(id = "SqoopImport",
-  name = "Sqoop.Import.PluginName",
-  description = "Sqoop.Import.PluginDescription",
-  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  image = "sqoop-import.png",
-  i18nPackageName = "org.pentaho.di.job.entries.sqoop",
-  version = "1"
-)
+@JobEntry( id = "SqoopImport", name = "Sqoop.Import.PluginName", description = "Sqoop.Import.PluginDescription",
+    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "sqoop-import.png",
+    i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1" )
 public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig> {
-  
+
   public SqoopImportJobEntry() {
     super();
   }
-  
+
   protected SqoopImportJobEntry( LogChannelInterface logChannelInterface ) {
     super( logChannelInterface );
   }
@@ -61,15 +56,16 @@ public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig
   protected String getToolName() {
     return "import";
   }
-  
+
   @Override
-  public void configure(HadoopShim shim, SqoopImportConfig sqoopConfig, Configuration conf) throws KettleException {
-    super.configure(shim, sqoopConfig, conf);
-    if (sqoopConfig.getHbaseZookeeperQuorum() != null) {
-      conf.set("hbase.zookeeper.quorum", environmentSubstitute(sqoopConfig.getHbaseZookeeperQuorum()));
+  public void configure( HadoopShim shim, SqoopImportConfig sqoopConfig, Configuration conf ) throws KettleException {
+    super.configure( shim, sqoopConfig, conf );
+    if ( sqoopConfig.getHbaseZookeeperQuorum() != null ) {
+      conf.set( "hbase.zookeeper.quorum", environmentSubstitute( sqoopConfig.getHbaseZookeeperQuorum() ) );
     }
-    if (sqoopConfig.getHbaseZookeeperClientPort() != null) {
-      conf.set("hbase.zookeeper.property.clientPort", environmentSubstitute(sqoopConfig.getHbaseZookeeperClientPort()));
+    if ( sqoopConfig.getHbaseZookeeperClientPort() != null ) {
+      conf.set( "hbase.zookeeper.property.clientPort",
+          environmentSubstitute( sqoopConfig.getHbaseZookeeperClientPort() ) );
     }
   }
 }

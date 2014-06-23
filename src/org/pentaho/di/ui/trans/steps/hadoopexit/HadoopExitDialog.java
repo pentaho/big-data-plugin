@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.trans.steps.hadoopexit;
 
@@ -46,71 +46,74 @@ public class HadoopExitDialog extends BaseStepXulDialog implements StepDialogInt
 
   private XulMenuList<?> outKeyFieldnames;
   private XulMenuList<?> outValueFieldnames;
-  
+
   private HadoopExitMetaMapper metaMapper;
   private String workingStepname;
-  
+
   private List<ValueMetaInterface> outKeyFields = new ArrayList<ValueMetaInterface>();
   private List<ValueMetaInterface> outValueFields = new ArrayList<ValueMetaInterface>();
-  
-  public HadoopExitDialog(Shell parent, Object in, TransMeta tr, String sname) throws Throwable {
-    super("org/pentaho/di/ui/trans/steps/hadoopexit/dialog.xul", parent, (BaseStepMeta) in, tr, sname);
+
+  public HadoopExitDialog( Shell parent, Object in, TransMeta tr, String sname ) throws Throwable {
+    super( "org/pentaho/di/ui/trans/steps/hadoopexit/dialog.xul", parent, (BaseStepMeta) in, tr, sname );
     init();
   }
-  
+
   public void init() throws Throwable {
     workingStepname = stepname;
-    
+
     metaMapper = new HadoopExitMetaMapper();
-    metaMapper.loadMeta((HadoopExitMeta)baseStepMeta);
-    
+    metaMapper.loadMeta( (HadoopExitMeta) baseStepMeta );
+
     // Get input fields to generate drop down lists
     RowMetaInterface inputRow = null;
     try {
-      inputRow = transMeta.getPrevStepFields(stepMeta);
-    } catch (KettleStepException e) {
+      inputRow = transMeta.getPrevStepFields( stepMeta );
+    } catch ( KettleStepException e ) {
       // No previous step found, leave list empty
     }
-    
+
     // Seed the lists with the previously selected fields: This is done first so the last selection is at the top
-    if(!StringUtil.isEmpty(metaMapper.getOutKeyFieldname())) {
-      outKeyFields.add(new ValueMeta(metaMapper.getOutKeyFieldname()));
+    if ( !StringUtil.isEmpty( metaMapper.getOutKeyFieldname() ) ) {
+      outKeyFields.add( new ValueMeta( metaMapper.getOutKeyFieldname() ) );
     }
-    if(!StringUtil.isEmpty(metaMapper.getOutValueFieldname())) {
-      outValueFields.add(new ValueMeta(metaMapper.getOutValueFieldname()));
+    if ( !StringUtil.isEmpty( metaMapper.getOutValueFieldname() ) ) {
+      outValueFields.add( new ValueMeta( metaMapper.getOutValueFieldname() ) );
     }
-    
-    if(inputRow != null) {
-      for(ValueMetaInterface field : inputRow.getValueMetaList()) {
+
+    if ( inputRow != null ) {
+      for ( ValueMetaInterface field : inputRow.getValueMetaList() ) {
         // Avoid adding duplicates
-        if(StringUtil.isEmpty(metaMapper.getOutKeyFieldname()) || !metaMapper.getOutKeyFieldname().equals(field.getName())) {
-          outKeyFields.add(new ValueMeta(field.getName()));
+        if ( StringUtil.isEmpty( metaMapper.getOutKeyFieldname() )
+            || !metaMapper.getOutKeyFieldname().equals( field.getName() ) ) {
+          outKeyFields.add( new ValueMeta( field.getName() ) );
         }
-        
+
         // Avoid adding duplicates
-        if(StringUtil.isEmpty(metaMapper.getOutValueFieldname()) || !metaMapper.getOutValueFieldname().equals(field.getName())) {
-          outValueFields.add(new ValueMeta(field.getName()));
+        if ( StringUtil.isEmpty( metaMapper.getOutValueFieldname() )
+            || !metaMapper.getOutValueFieldname().equals( field.getName() ) ) {
+          outValueFields.add( new ValueMeta( field.getName() ) );
         }
       }
     }
-    
+
     // Populate outKey menulist
-    bf.setBindingType(Binding.Type.ONE_WAY);
+    bf.setBindingType( Binding.Type.ONE_WAY );
 
-    bf.createBinding("step-name", "value", this, "stepName");
-    bf.createBinding(this, "stepName", "step-name", "value").fireSourceChanged();
-    bf.createBinding(this, "outKeyFields", "output-key-fieldname", "elements").fireSourceChanged();
-    bf.createBinding(this, "outValueFields", "output-value-fieldname", "elements").fireSourceChanged();
-    
-    outKeyFieldnames = (XulMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById("output-key-fieldname");
-    outValueFieldnames = (XulMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById("output-value-fieldname");
+    bf.createBinding( "step-name", "value", this, "stepName" );
+    bf.createBinding( this, "stepName", "step-name", "value" ).fireSourceChanged();
+    bf.createBinding( this, "outKeyFields", "output-key-fieldname", "elements" ).fireSourceChanged();
+    bf.createBinding( this, "outValueFields", "output-value-fieldname", "elements" ).fireSourceChanged();
 
-    if((outKeyFieldnames != null) && (outKeyFieldnames.getElements().size() > 0)) {
-      outKeyFieldnames.setSelectedIndex(0);
+    outKeyFieldnames = (XulMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "output-key-fieldname" );
+    outValueFieldnames =
+        (XulMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "output-value-fieldname" );
+
+    if ( ( outKeyFieldnames != null ) && ( outKeyFieldnames.getElements().size() > 0 ) ) {
+      outKeyFieldnames.setSelectedIndex( 0 );
     }
-    
-    if((outValueFieldnames != null) && (outValueFieldnames.getElements().size() > 0)) {
-      outValueFieldnames.setSelectedIndex(0);
+
+    if ( ( outValueFieldnames != null ) && ( outValueFieldnames.getElements().size() > 0 ) ) {
+      outValueFieldnames.setSelectedIndex( 0 );
     }
   }
 
@@ -121,36 +124,36 @@ public class HadoopExitDialog extends BaseStepXulDialog implements StepDialogInt
 
   @Override
   public void onAccept() {
-    metaMapper.setOutKeyFieldname(outKeyFieldnames.getValue());
-    metaMapper.setOutValueFieldname(outValueFieldnames.getValue());
-    
-    if(!workingStepname.equals(stepname)) {
+    metaMapper.setOutKeyFieldname( outKeyFieldnames.getValue() );
+    metaMapper.setOutValueFieldname( outValueFieldnames.getValue() );
+
+    if ( !workingStepname.equals( stepname ) ) {
       stepname = workingStepname;
       baseStepMeta.setChanged();
     }
-    
-    metaMapper.saveMeta((HadoopExitMeta)baseStepMeta);
+
+    metaMapper.saveMeta( (HadoopExitMeta) baseStepMeta );
     dispose();
   }
 
   @Override
   public void onCancel() {
-    setStepName(null);
+    setStepName( null );
     dispose();
   }
-  
-  public void setStepName(String stepname) {
+
+  public void setStepName( String stepname ) {
     workingStepname = stepname;
   }
-  
+
   public String getStepName() {
     return workingStepname;
   }
-  
+
   public List<ValueMetaInterface> getOutKeyFields() {
     return outKeyFields;
   }
-  
+
   public List<ValueMetaInterface> getOutValueFields() {
     return outValueFields;
   }

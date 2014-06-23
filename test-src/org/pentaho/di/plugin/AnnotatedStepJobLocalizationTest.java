@@ -32,8 +32,7 @@ public class AnnotatedStepJobLocalizationTest {
 
   @BeforeClass
   public static void setup() throws Exception {
-    URL location = S3FileOutputMeta.class.getClassLoader().
-        getResource( "org/pentaho/amazon/s3/S3FileOutputMeta.class" );
+    URL location = S3FileOutputMeta.class.getClassLoader().getResource( "org/pentaho/amazon/s3/S3FileOutputMeta.class" );
 
     File f = new File( location.toURI() );
 
@@ -64,13 +63,13 @@ public class AnnotatedStepJobLocalizationTest {
 
   @Test
   public void test() throws Exception {
-    for ( String stp: steps ) {
+    for ( String stp : steps ) {
       testStep( stp );
     }
 
     System.out.println( "Steps tested:" + steps.size() );
 
-    for ( String job: jobs ) {
+    for ( String job : jobs ) {
       testJobEntry( job );
     }
 
@@ -87,7 +86,7 @@ public class AnnotatedStepJobLocalizationTest {
     String id = annot.id();
     String nameKey = annot.name();
     String descKey = annot.description();
-    String catKey  = annot.categoryDescription();
+    String catKey = annot.categoryDescription();
     String pkg = annot.i18nPackageName();
 
     assertNotNull( "Id is mandatory:" + stp, id );
@@ -102,18 +101,18 @@ public class AnnotatedStepJobLocalizationTest {
 
     String name = plugin.getName();
     String desc = plugin.getDescription();
-    String cat  = plugin.getCategory();
+    String cat = plugin.getCategory();
 
     assertNotNull( "Name should not be null:" + stp, name );
     assertNotNull( "Description should not be null:" + stp, desc );
     assertNotNull( "Category should not be null:" + stp, cat );
 
-    assertFalse( "Name Translation should not be enclosed in '!'_'!':"
-        + stp, name.startsWith( "!" ) && name.endsWith( "!" ) );
-    assertFalse( "Decription Translation should not be enclosed in '!'_'!':"
-        + stp, desc.startsWith( "!" ) && desc.endsWith( "!" ) );
-    assertFalse( "Category Translation should not be enclosed in '!'_'!':"
-        + stp, cat.startsWith( "!" ) && cat.endsWith( "!" ) );
+    assertFalse( "Name Translation should not be enclosed in '!'_'!':" + stp, name.startsWith( "!" )
+        && name.endsWith( "!" ) );
+    assertFalse( "Decription Translation should not be enclosed in '!'_'!':" + stp, desc.startsWith( "!" )
+        && desc.endsWith( "!" ) );
+    assertFalse( "Category Translation should not be enclosed in '!'_'!':" + stp, cat.startsWith( "!" )
+        && cat.endsWith( "!" ) );
   }
 
   private void testJobEntry( String job ) throws Exception {
@@ -126,7 +125,7 @@ public class AnnotatedStepJobLocalizationTest {
     String id = annot.id();
     String nameKey = annot.name();
     String descKey = annot.description();
-    String catKey  = annot.categoryDescription();
+    String catKey = annot.categoryDescription();
     String pkg = annot.i18nPackageName();
 
     assertNotNull( "Id is mandatory:" + job, id );
@@ -141,17 +140,17 @@ public class AnnotatedStepJobLocalizationTest {
 
     String name = plugin.getName();
     String desc = plugin.getDescription();
-    String cat  = plugin.getCategory();
+    String cat = plugin.getCategory();
 
     assertNotNull( "Name should not be null:" + job, name );
     assertNotNull( "Description should not be null:" + job, desc );
     assertNotNull( "Category should not be null:" + job, cat );
 
-    assertFalse( "Name Translation should not be enclosed in '!'_'!':"
-        + job, name.startsWith( "!" ) && name.endsWith( "!" ) );
-    assertFalse( "Decription Translation should not be enclosed in '!'_'!':"
-        + job, desc.startsWith( "!" ) && desc.endsWith( "!" ) );
-    assertFalse( "Category Translation should not be enclosed in '!'_'!':"
-        + job, cat.startsWith( "!" ) && cat.endsWith( "!" ) );
+    assertFalse( "Name Translation should not be enclosed in '!'_'!':" + job, name.startsWith( "!" )
+        && name.endsWith( "!" ) );
+    assertFalse( "Decription Translation should not be enclosed in '!'_'!':" + job, desc.startsWith( "!" )
+        && desc.endsWith( "!" ) );
+    assertFalse( "Category Translation should not be enclosed in '!'_'!':" + job, cat.startsWith( "!" )
+        && cat.endsWith( "!" ) );
   }
 }

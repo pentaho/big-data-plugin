@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.sqoop;
 
@@ -36,13 +36,14 @@ import org.pentaho.ui.xul.binding.BindingFactory;
 
 /**
  * Dialog for the Sqoop Export job entry.
- *
+ * 
  * @see org.pentaho.di.job.entries.sqoop.SqoopExportJobEntry
  */
 public class SqoopExportJobEntryDialog extends AbstractSqoopJobEntryDialog<SqoopExportConfig, SqoopExportJobEntry> {
 
-  public SqoopExportJobEntryDialog(Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta) throws XulException, InvocationTargetException {
-    super(parent, jobEntry, rep, jobMeta);
+  public SqoopExportJobEntryDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
+    throws XulException, InvocationTargetException {
+    super( parent, jobEntry, rep, jobMeta );
   }
 
   @Override
@@ -56,7 +57,8 @@ public class SqoopExportJobEntryDialog extends AbstractSqoopJobEntryDialog<Sqoop
   }
 
   @Override
-  protected SqoopExportJobEntryController createController(XulDomContainer container, SqoopExportJobEntry jobEntry, BindingFactory bindingFactory) {
-    return new SqoopExportJobEntryController(jobMeta, container, jobEntry, bindingFactory);
+  protected SqoopExportJobEntryController createController( XulDomContainer container, SqoopExportJobEntry jobEntry,
+      BindingFactory bindingFactory ) {
+    return new SqoopExportJobEntryController( jobMeta, container, jobEntry, bindingFactory );
   }
 }

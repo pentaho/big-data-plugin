@@ -9,7 +9,7 @@ import org.pentaho.di.core.plugins.RegistryPlugin;
 @RegistryPlugin(
     id = "ShimDependentPluginRegistryPlugin",
     name = "ShimDependentPluginRegistryPlugin",
-    description = "Exists to register sub plugins of the big data plugin that depend on the shim jars in their classpath" )
+    description = "Registers sub plugins of the big data plugin that depend on the shim jars in their classpath" )
 public class ShimDependentPluginRegistryPlugin implements PluginRegistryExtension {
 
   @Override

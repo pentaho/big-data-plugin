@@ -112,10 +112,10 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
 
   private StaticUserAuthenticator userAuthenticator = null;
 
-  public S3VfsFileChooserDialog( VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile,
-                                 FileObject initialFile ) {
+  public S3VfsFileChooserDialog(
+      VfsFileChooserDialog vfsFileChooserDialog, FileObject rootFile, FileObject initialFile ) {
     super( S3FileProvider.SCHEME, AmazonS3FileSystemBootstrap.getS3FileSystemDisplayText(), vfsFileChooserDialog,
-      SWT.NONE );
+        SWT.NONE );
 
     this.vfsFileChooserDialog = vfsFileChooserDialog;
     this.rootFile = rootFile;
@@ -132,8 +132,7 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
 
     // The Connection group
     Group connectionGroup = new Group( this, SWT.SHADOW_ETCHED_IN );
-    connectionGroup
-      .setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.ConnectionGroup.Label" ) ); //$NON-NLS-1$;
+    connectionGroup.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.ConnectionGroup.Label" ) ); //$NON-NLS-1$;
     GridLayout connectionGroupLayout = new GridLayout();
     connectionGroupLayout.marginWidth = 5;
     connectionGroupLayout.marginHeight = 5;
@@ -286,7 +285,7 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
 
   /**
    * Build a URL given Url and Port provided by the user.
-   *
+   * 
    * @return
    * @TODO: relocate to a s3 helper class or similar
    */
@@ -311,8 +310,8 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
         wSecretKey.setText( genericFileName.getPassword() ); //$NON-NLS-1$
         // wBucket.setText(String.valueOf(genericFileName.getPort()));
       } catch ( FileSystemException fse ) {
-        showMessageAndLog( "S3VfsFileChooserDialog.error", "S3VfsFileChooserDialog.FileSystem.error",
-          fse.getMessage() );
+        showMessageAndLog(
+            "S3VfsFileChooserDialog.error", "S3VfsFileChooserDialog.FileSystem.error", fse.getMessage() );
       }
     }
 
@@ -369,10 +368,8 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
     if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
-        new StaticUserAuthenticator( null,
-          getVariableSpace().environmentSubstitute( getAccessKey() ),
-          getVariableSpace().environmentSubstitute( getSecretKey() )
-        );
+          new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( getAccessKey() ),
+              getVariableSpace().environmentSubstitute( getSecretKey() ) );
 
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
