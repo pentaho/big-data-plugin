@@ -84,9 +84,9 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     swtXulLoader.register( "VARIABLETEXTBOX", "org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox" );
     swtXulLoader.setOuterContext( shell );
 
-    container = swtXulLoader
-      .loadXul( "org/pentaho/di/ui/job/entries/hadoopjobexecutor/JobEntryHadoopJobExecutorDialog.xul",
-        bundle ); //$NON-NLS-1$
+    container =
+        swtXulLoader.loadXul( "org/pentaho/di/ui/job/entries/hadoopjobexecutor/JobEntryHadoopJobExecutorDialog.xul",
+            bundle ); //$NON-NLS-1$
 
     final XulRunner runner = new SwtXulRunner();
     runner.addContainer( container );
@@ -97,72 +97,65 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     bf.setDocument( container.getDocumentRoot() );
     bf.setBindingType( Type.BI_DIRECTIONAL );
 
-    bf.createBinding( "jobentry-name", "value", controller,
-      JobEntryHadoopJobExecutorController.JOB_ENTRY_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "jobentry-name", "value", controller, JobEntryHadoopJobExecutorController.JOB_ENTRY_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
     bf.createBinding( "jobentry-hadoopjob-name", "value", controller,
-      JobEntryHadoopJobExecutorController.HADOOP_JOB_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    bf.createBinding( "jar-url", "value", controller,
-      JobEntryHadoopJobExecutorController.JAR_URL ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        JobEntryHadoopJobExecutorController.HADOOP_JOB_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "jar-url", "value", controller, JobEntryHadoopJobExecutorController.JAR_URL ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     bf.createBinding( "command-line-arguments", "value", controller.getSimpleConfiguration(),
-      SimpleConfiguration.CMD_LINE_ARGS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        SimpleConfiguration.CMD_LINE_ARGS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
     bf.createBinding( "classes-output-key-class", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.OUTPUT_KEY_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.OUTPUT_KEY_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-output-value-class", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.OUTPUT_VALUE_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.OUTPUT_VALUE_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-mapper-class", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.MAPPER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.MAPPER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-combiner-class", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.COMBINER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.COMBINER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-reducer-class", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.REDUCER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.REDUCER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-input-format", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.INPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.INPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-output-format", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.OUTPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.OUTPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    //    bf.createBinding("num-map-tasks", "value", controller.getAdvancedConfiguration(),
+    // bf.createBinding("num-map-tasks", "value", controller.getAdvancedConfiguration(),
     // AdvancedConfiguration.NUM_MAP_TASKS, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "num-map-tasks", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.NUM_MAP_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
-    //bf.createBinding("num-reduce-tasks", "value", controller.getAdvancedConfiguration(),
+        AdvancedConfiguration.NUM_MAP_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
+    // bf.createBinding("num-reduce-tasks", "value", controller.getAdvancedConfiguration(),
     // AdvancedConfiguration.NUM_REDUCE_TASKS, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "num-reduce-tasks", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.NUM_REDUCE_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.NUM_REDUCE_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    bf.createBinding( "simple-blocking", "selected", controller.getSimpleConfiguration(),
-      SimpleConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "blocking", "selected", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "simple-blocking", "selected", controller.getSimpleConfiguration(), SimpleConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "blocking", "selected", controller.getAdvancedConfiguration(), AdvancedConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "simple-logging-interval", "value", controller.getSimpleConfiguration(),
-      SimpleConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
+        SimpleConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "logging-interval", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "input-path", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.INPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "output-path", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.OUTPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "input-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.INPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "output-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.OUTPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
 
     bf.createBinding( "hdfs-hostname", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.HDFS_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "hdfs-port", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.HDFS_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.HDFS_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "hdfs-port", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.HDFS_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "job-tracker-hostname", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.JOB_TRACKER_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.JOB_TRACKER_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "job-tracker-port", "value", controller.getAdvancedConfiguration(),
-      AdvancedConfiguration.JOB_TRACKER_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
+        AdvancedConfiguration.JOB_TRACKER_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    ( (XulRadio) container.getDocumentRoot().getElementById( "simpleRadioButton" ) )
-      .setSelected( this.jobEntry.isSimple() ); //$NON-NLS-1$
-    ( (XulRadio) container.getDocumentRoot().getElementById( "advancedRadioButton" ) )
-      .setSelected( !this.jobEntry.isSimple() ); //$NON-NLS-1$
+    ( (XulRadio) container.getDocumentRoot().getElementById( "simpleRadioButton" ) ).setSelected( this.jobEntry
+        .isSimple() ); //$NON-NLS-1$
+    ( (XulRadio) container.getDocumentRoot().getElementById( "advancedRadioButton" ) ).setSelected( !this.jobEntry
+        .isSimple() ); //$NON-NLS-1$
 
-    ( (XulVbox) container.getDocumentRoot().getElementById( "advanced-configuration" ) )
-      .setVisible( !this.jobEntry.isSimple() ); //$NON-NLS-1$
+    ( (XulVbox) container.getDocumentRoot().getElementById( "advanced-configuration" ) ).setVisible( !this.jobEntry
+        .isSimple() ); //$NON-NLS-1$
 
     XulTextbox simpleLoggingInterval =
-      (XulTextbox) container.getDocumentRoot().getElementById( "simple-logging-interval" );
+        (XulTextbox) container.getDocumentRoot().getElementById( "simple-logging-interval" );
     simpleLoggingInterval.setValue( "" + controller.getSimpleConfiguration().getSimpleLoggingInterval() );
 
     XulTextbox loggingInterval = (XulTextbox) container.getDocumentRoot().getElementById( "logging-interval" );

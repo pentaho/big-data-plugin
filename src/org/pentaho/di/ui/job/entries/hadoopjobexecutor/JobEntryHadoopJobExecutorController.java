@@ -85,7 +85,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   public void accept() {
 
     ExtTextbox tempBox =
-      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
     this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jar-url" );
     this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
@@ -255,8 +255,9 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     String prevName = jobEntry.environmentSubstitute( jarUrl );
     String parentFolder = null;
     try {
-      parentFolder = KettleVFS
-        .getFilename( KettleVFS.getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) ).getParent() );
+      parentFolder =
+          KettleVFS.getFilename( KettleVFS.getFileObject( jobEntry.environmentSubstitute( jobEntry.getFilename() ) )
+              .getParent() );
     } catch ( Exception e ) {
       // not that important
     }
@@ -358,9 +359,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   public void setSimple( boolean isSimple ) {
     ( (XulVbox) getXulDomContainer().getDocumentRoot().getElementById( "advanced-configuration" ) )
-      .setVisible( !isSimple ); //$NON-NLS-1$
-    ( (XulVbox) getXulDomContainer().getDocumentRoot().getElementById( "simple-configuration" ) )
-      .setVisible( isSimple ); //$NON-NLS-1$
+        .setVisible( !isSimple ); //$NON-NLS-1$
+    ( (XulVbox) getXulDomContainer().getDocumentRoot().getElementById( "simple-configuration" ) ).setVisible( isSimple ); //$NON-NLS-1$
 
     boolean previousVal = this.isSimple;
     boolean newVal = isSimple;
@@ -676,8 +676,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   public void help() {
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
     Shell shell = (Shell) xulDialog.getRootObject();
-    PluginInterface
-      plugin = PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+    PluginInterface plugin =
+        PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
   }
 }

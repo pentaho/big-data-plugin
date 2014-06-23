@@ -56,7 +56,7 @@ public class ArgumentWrapper implements XulEventSource {
     if ( getter.getReturnType() != String.class ) {
       throw new IllegalArgumentException( "Invalid getter method. Method must return a String," );
     }
-    if ( setter.getParameterTypes().length < 1 || setter.getParameterTypes()[ 0 ] != String.class ) {
+    if ( setter.getParameterTypes().length < 1 || setter.getParameterTypes()[0] != String.class ) {
       throw new IllegalArgumentException( "Invalid setter method. Method must accept a single String parameter." );
     }
   }
@@ -107,8 +107,9 @@ public class ArgumentWrapper implements XulEventSource {
 
   /**
    * Uses the argument's name to determine equality.
-   *
-   * @param o another argument
+   * 
+   * @param o
+   *          another argument
    * @return {@code true} if {@code o} is an {@link ArgumentWrapper} and its name equals this argument's name
    */
   @Override

@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.oozie;
 
@@ -50,10 +50,10 @@ import org.pentaho.ui.xul.util.AbstractModelList;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
- * User: RFellows
- * Date: 6/4/12
+ * User: RFellows Date: 6/4/12
  */
-public class OozieJobExecutorJobEntryController extends AbstractJobEntryController<OozieJobExecutorConfig, OozieJobExecutorJobEntry> {
+public class OozieJobExecutorJobEntryController extends
+    AbstractJobEntryController<OozieJobExecutorConfig, OozieJobExecutorJobEntry> {
 
   public static final String OOZIE_JOB_EXECUTOR = "oozie-job-executor";
   private static final String VALUE = "value";
@@ -73,62 +73,64 @@ public class OozieJobExecutorJobEntryController extends AbstractJobEntryControll
    */
   private String modeToggleLabel;
 
-  public OozieJobExecutorJobEntryController(JobMeta jobMeta, XulDomContainer container, OozieJobExecutorJobEntry jobEntry, BindingFactory bindingFactory) {
-    super(jobMeta, container, jobEntry, bindingFactory);
+  public OozieJobExecutorJobEntryController( JobMeta jobMeta, XulDomContainer container,
+      OozieJobExecutorJobEntry jobEntry, BindingFactory bindingFactory ) {
+    super( jobMeta, container, jobEntry, bindingFactory );
     advancedArguments = new AbstractModelList<PropertyEntry>();
 
-    if(jobEntry.getJobConfig().getWorkflowProperties().size() > 0) {
-      advancedArguments.addAll(jobEntry.getJobConfig().getWorkflowProperties());
+    if ( jobEntry.getJobConfig().getWorkflowProperties().size() > 0 ) {
+      advancedArguments.addAll( jobEntry.getJobConfig().getWorkflowProperties() );
     }
 
   }
 
   @Override
   protected void beforeInit() {
-    setMode(jobEntry.getJobConfig().getModeAsEnum());
-    variablesTree = (XulTree) container.getDocumentRoot().getElementById(ADVANCED_TABLE);
+    setMode( jobEntry.getJobConfig().getModeAsEnum() );
+    variablesTree = (XulTree) container.getDocumentRoot().getElementById( ADVANCED_TABLE );
   }
 
   @Override
   protected void syncModel() {
 
-    if(!shouldUseAdvancedProperties()) {
+    if ( !shouldUseAdvancedProperties() ) {
       // sync properties to advanced args
       advancedArguments.clear();
-      if(config.getWorkflowProperties() != null) {
+      if ( config.getWorkflowProperties() != null ) {
         config.getWorkflowProperties().clear();
       }
     } else {
-      if(advancedArguments.size() == 0 && !StringUtil.isEmpty(config.getOozieWorkflowConfig())) {
+      if ( advancedArguments.size() == 0 && !StringUtil.isEmpty( config.getOozieWorkflowConfig() ) ) {
         preFillAdvancedArgs();
       }
       // advanced mode was used to modify/create properties
       // save the args out...
-      ArrayList<PropertyEntry> m = new ArrayList<PropertyEntry>(advancedArguments);
-      config.setWorkflowProperties(m);
+      ArrayList<PropertyEntry> m = new ArrayList<PropertyEntry>( advancedArguments );
+      config.setWorkflowProperties( m );
     }
 
-    config.setMode(jobEntryMode);
+    config.setMode( jobEntryMode );
   }
 
   private void preFillAdvancedArgs() {
     try {
-      if(jobEntry != null && config != null) {
-        Properties props = jobEntry.getProperties(config);
-        for (Map.Entry<Object, Object> prop : props.entrySet()) {
-          if(prop.getKey() instanceof String && prop.getValue() instanceof String) {
-            PropertyEntry pEntry = new PropertyEntry((prop.getKey()).toString(), prop.getValue().toString());
-            advancedArguments.add(pEntry);
+      if ( jobEntry != null && config != null ) {
+        Properties props = jobEntry.getProperties( config );
+        for ( Map.Entry<Object, Object> prop : props.entrySet() ) {
+          if ( prop.getKey() instanceof String && prop.getValue() instanceof String ) {
+            PropertyEntry pEntry = new PropertyEntry( ( prop.getKey() ).toString(), prop.getValue().toString() );
+            advancedArguments.add( pEntry );
           }
         }
       }
-    } catch (Exception e) {
+    } catch ( Exception e ) {
       // could not read in the props...
     }
   }
 
   /**
    * Determines if the advanced properties should be used instead of the quick-setup defined workflow properties file
+   * 
    * @return
    */
   protected boolean shouldUseAdvancedProperties() {
@@ -137,82 +139,92 @@ public class OozieJobExecutorJobEntryController extends AbstractJobEntryControll
 
   /**
    * make this available for unit testing
+   * 
    * @param mode
    */
-  protected void setJobEntryMode(JobEntryMode mode) {
+  protected void setJobEntryMode( JobEntryMode mode ) {
     this.jobEntryMode = mode;
   }
 
   @Override
-  protected void createBindings(OozieJobExecutorConfig config, XulDomContainer container, BindingFactory bindingFactory, Collection<Binding> bindings) {
-    bindingFactory.setBindingType(Binding.Type.BI_DIRECTIONAL);
-    bindings.add(bindingFactory.createBinding(config, BlockableJobConfig.JOB_ENTRY_NAME, BlockableJobConfig.JOB_ENTRY_NAME, VALUE));
-    bindings.add(bindingFactory.createBinding(config, OozieJobExecutorConfig.OOZIE_URL, OozieJobExecutorConfig.OOZIE_URL, VALUE));
-    bindings.add(bindingFactory.createBinding(config, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE));
+  protected void createBindings( OozieJobExecutorConfig config, XulDomContainer container,
+      BindingFactory bindingFactory, Collection<Binding> bindings ) {
+    bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
+    bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.JOB_ENTRY_NAME,
+        BlockableJobConfig.JOB_ENTRY_NAME, VALUE ) );
+    bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_URL,
+        OozieJobExecutorConfig.OOZIE_URL, VALUE ) );
+    bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG,
+        OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE ) );
 
-    bindings.add(bindingFactory.createBinding(config, BlockableJobConfig.BLOCKING_POLLING_INTERVAL, BlockableJobConfig.BLOCKING_POLLING_INTERVAL, VALUE));
+    bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.BLOCKING_POLLING_INTERVAL,
+        BlockableJobConfig.BLOCKING_POLLING_INTERVAL, VALUE ) );
 
     BindingConvertor<String, Boolean> string2BooleanConvertor = new BindingConvertor<String, Boolean>() {
       @Override
-      public String targetToSource(Boolean aBoolean) {
+      public String targetToSource( Boolean aBoolean ) {
         String val = aBoolean.toString();
         return val;
       }
 
       @Override
-      public Boolean sourceToTarget(String s) {
-        Boolean val = Boolean.valueOf(s);
+      public Boolean sourceToTarget( String s ) {
+        Boolean val = Boolean.valueOf( s );
         return val;
       }
     };
-    bindings.add(bindingFactory.createBinding(config, BlockableJobConfig.BLOCKING_EXECUTION, BlockableJobConfig.BLOCKING_EXECUTION, "checked", string2BooleanConvertor));
+    bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.BLOCKING_EXECUTION,
+        BlockableJobConfig.BLOCKING_EXECUTION, "checked", string2BooleanConvertor ) );
 
-    bindingFactory.setBindingType(Binding.Type.ONE_WAY);
-    bindings.add(bindingFactory.createBinding(this, "modeToggleLabel", getModeToggleLabelElementId(), VALUE));
+    bindingFactory.setBindingType( Binding.Type.ONE_WAY );
+    bindings.add( bindingFactory.createBinding( this, "modeToggleLabel", getModeToggleLabelElementId(), VALUE ) );
 
     // only enable the polling interval text box is blocking is checked
-    bindings.add(bindingFactory.createBinding(config, BlockableJobConfig.BLOCKING_EXECUTION, BlockableJobConfig.BLOCKING_POLLING_INTERVAL, "!disabled", string2BooleanConvertor));
+    bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.BLOCKING_EXECUTION,
+        BlockableJobConfig.BLOCKING_POLLING_INTERVAL, "!disabled", string2BooleanConvertor ) );
 
-    BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>> propsChangedBindingConvertor = new BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>>() {
-      @Override
-      public Collection<PropertyEntry> sourceToTarget(AbstractModelList<PropertyEntry> propertyEntries) {
-        // user has modified the properties in advanced mode, set the flag...
-        advancedArgumentsChanged = true;
-        return propertyEntries;
-      }
-      @Override
-      public AbstractModelList<PropertyEntry> targetToSource(Collection<PropertyEntry> propertyEntries) {
-        // one-way convertor, don't need this
-        return null;
-      }
-    };
+    BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>> propsChangedBindingConvertor =
+        new BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>>() {
+          @Override
+          public Collection<PropertyEntry> sourceToTarget( AbstractModelList<PropertyEntry> propertyEntries ) {
+            // user has modified the properties in advanced mode, set the flag...
+            advancedArgumentsChanged = true;
+            return propertyEntries;
+          }
 
-    bindings.add(bindingFactory.createBinding(advancedArguments, CHILDREN, variablesTree, ELEMENTS, propsChangedBindingConvertor));
+          @Override
+          public AbstractModelList<PropertyEntry> targetToSource( Collection<PropertyEntry> propertyEntries ) {
+            // one-way convertor, don't need this
+            return null;
+          }
+        };
+
+    bindings.add( bindingFactory.createBinding( advancedArguments, CHILDREN, variablesTree, ELEMENTS,
+        propsChangedBindingConvertor ) );
 
   }
 
   @Bindable
   public void addNewProperty() {
     advancedArgumentsChanged = true;
-    advancedArguments.add(new PropertyEntry("key", "value"));
+    advancedArguments.add( new PropertyEntry( "key", "value" ) );
   }
 
   @Bindable
   public void removeProperty() {
     advancedArgumentsChanged = true;
     Collection<PropertyEntry> selected = variablesTree.getSelectedItems();
-    for (PropertyEntry pe : selected) {
+    for ( PropertyEntry pe : selected ) {
       try {
-        advancedArguments.remove(pe);
-      } catch (Exception e) {
+        advancedArguments.remove( pe );
+      } catch ( Exception e ) {
         // The implementation of the SwtTree selection model is buggy. if you have an item (row) selected
         // but a field is in edit mode and try to remove the item, we get a failure (sometimes).
         // just set the children manually in this case to make sure we are in sync.
-        variablesTree.setElements(advancedArguments);
+        variablesTree.setElements( advancedArguments );
       }
     }
   }
-
 
   /**
    * Accept and apply the changes made in the dialog. Also, close the dialog
@@ -223,11 +235,12 @@ public class OozieJobExecutorJobEntryController extends AbstractJobEntryControll
     syncModel();
     super.accept();
   }
+
   public AbstractModelList<PropertyEntry> getAdvancedArguments() {
     return advancedArguments;
   }
 
-  public void setAdvancedArguments(AbstractModelList<PropertyEntry> advancedArguments) {
+  public void setAdvancedArguments( AbstractModelList<PropertyEntry> advancedArguments ) {
     advancedArgumentsChanged = true;
     this.advancedArguments = advancedArguments;
   }
@@ -256,23 +269,25 @@ public class OozieJobExecutorJobEntryController extends AbstractJobEntryControll
   }
 
   @Bindable
-  public void setModeToggleLabel(String modeToggleLabel) {
+  public void setModeToggleLabel( String modeToggleLabel ) {
     String prev = this.modeToggleLabel;
     this.modeToggleLabel = modeToggleLabel;
-    firePropertyChange("modeToggleLabel", prev, modeToggleLabel);
+    firePropertyChange( "modeToggleLabel", prev, modeToggleLabel );
   }
 
   @Override
-  protected void setModeToggleLabel(JobEntryMode mode) {
-    switch (mode) {
+  protected void setModeToggleLabel( JobEntryMode mode ) {
+    switch ( mode ) {
       case ADVANCED_LIST:
-        setModeToggleLabel(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.AdvancedOptions.Button.Text"));
+        setModeToggleLabel( BaseMessages
+            .getString( OozieJobExecutorJobEntry.class, "Oozie.AdvancedOptions.Button.Text" ) );
         break;
       case QUICK_SETUP:
-        setModeToggleLabel(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Oozie.BasicOptions.Button.Text"));
+        setModeToggleLabel(
+            BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.BasicOptions.Button.Text" ) );
         break;
       default:
-        throw new RuntimeException("unsupported JobEntryMode");
+        throw new RuntimeException( "unsupported JobEntryMode" );
     }
   }
 
@@ -282,19 +297,18 @@ public class OozieJobExecutorJobEntryController extends AbstractJobEntryControll
   @Bindable
   public void testSettings() {
     syncModel();
-    List<String> warnings = jobEntry.getValidationWarnings(getConfig());
-    if (!warnings.isEmpty()) {
+    List<String> warnings = jobEntry.getValidationWarnings( getConfig() );
+    if ( !warnings.isEmpty() ) {
       StringBuilder sb = new StringBuilder();
-      for (String warning : warnings) {
-        sb.append(warning).append("\n");
+      for ( String warning : warnings ) {
+        sb.append( warning ).append( "\n" );
       }
-      showErrorDialog(
-          BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title"),
-          sb.toString());
+      showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
+          .toString() );
       return;
     }
-    showInfoDialog(BaseMessages.getString(OozieJobExecutorJobEntry.class, "Info.Dialog.Title"),
-        BaseMessages.getString(OozieJobExecutorJobEntry.class, "ValidationMsg.OK"));
+    showInfoDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Info.Dialog.Title" ), BaseMessages
+        .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
   }
 
   /**
@@ -304,28 +318,31 @@ public class OozieJobExecutorJobEntryController extends AbstractJobEntryControll
   public void browseWorkflowConfig() {
     FileObject path = null;
     try {
-      path = KettleVFS.getFileObject(jobEntry.getVariableSpace().environmentSubstitute(getConfig().getOozieWorkflowConfig()));
-    } catch (Exception e) {
+      path =
+          KettleVFS.getFileObject( jobEntry.getVariableSpace().environmentSubstitute(
+              getConfig().getOozieWorkflowConfig() ) );
+    } catch ( Exception e ) {
       // Ignore, use null (default VFS browse path)
     }
     try {
-      FileObject exportDir = browseVfs(null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, null, "file", true);
-      if (exportDir != null) {
-        getConfig().setOozieWorkflowConfig(exportDir.getName().getURI());
+      FileObject exportDir =
+          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, null, "file", true );
+      if ( exportDir != null ) {
+        getConfig().setOozieWorkflowConfig( exportDir.getName().getURI() );
       }
-    } catch (KettleFileException e) {
-      getJobEntry().logError(BaseMessages.getString(OozieJobExecutorJobEntry.class, ERROR_BROWSING_DIRECTORY), e);
+    } catch ( KettleFileException e ) {
+      getJobEntry().logError( BaseMessages.getString( OozieJobExecutorJobEntry.class, ERROR_BROWSING_DIRECTORY ), e );
     }
   }
 
   @Override
   protected String[] getFileFilters() {
-    return new String[] {"*.properties"};
+    return new String[] { "*.properties" };
   }
 
   @Override
   protected String[] getFileFilterNames() {
-    return new String[] {BaseMessages.getString(OozieJobExecutorJobEntry.class, FILE_FILTER_NAMES_PROPERTIES)};
+    return new String[] { BaseMessages.getString( OozieJobExecutorJobEntry.class, FILE_FILTER_NAMES_PROPERTIES ) };
   }
 
 }

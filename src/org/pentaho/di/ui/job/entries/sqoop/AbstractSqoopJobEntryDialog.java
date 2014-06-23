@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.sqoop;
 
@@ -48,15 +48,17 @@ import java.util.ResourceBundle;
 /**
  * Base functionality for a XUL-based Sqoop job entry dialog
  * 
- * @param <S> Type of Sqoop configuration object this dialog depends upon. Must match the configuration object the
- *            job entry expects.
+ * @param <S>
+ *          Type of Sqoop configuration object this dialog depends upon. Must match the configuration object the job
+ *          entry expects.
  */
-public abstract class AbstractSqoopJobEntryDialog<S extends SqoopConfig, E extends AbstractSqoopJobEntry<S>> extends JobEntryDialog implements JobEntryDialogInterface {
+public abstract class AbstractSqoopJobEntryDialog<S extends SqoopConfig, E extends AbstractSqoopJobEntry<S>> extends
+    JobEntryDialog implements JobEntryDialogInterface {
 
   protected ResourceBundle bundle = new ResourceBundle() {
     @Override
-    protected Object handleGetObject(String key) {
-      return BaseMessages.getString(getMessagesClass(), key);
+    protected Object handleGetObject( String key ) {
+      return BaseMessages.getString( getMessagesClass(), key );
     }
 
     @Override
@@ -68,10 +70,11 @@ public abstract class AbstractSqoopJobEntryDialog<S extends SqoopConfig, E exten
   private XulDomContainer container;
   private AbstractSqoopJobEntryController<S, E> controller;
 
-  @SuppressWarnings("unchecked")
-  protected AbstractSqoopJobEntryDialog(Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta) throws XulException {
-    super(parent, jobEntry, rep, jobMeta);
-    init((E) jobEntry);
+  @SuppressWarnings( "unchecked" )
+  protected AbstractSqoopJobEntryDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
+    throws XulException {
+    super( parent, jobEntry, rep, jobMeta );
+    init( (E) jobEntry );
   }
 
   /**
@@ -86,41 +89,46 @@ public abstract class AbstractSqoopJobEntryDialog<S extends SqoopConfig, E exten
 
   /**
    * Create the controller for this dialog
-   *
-   * @param container      XUL DOM container loaded from the file path returned by {@link #getXulFile()}
-   * @param jobEntry       Job entry this dialog supports
-   * @param bindingFactory Binding factory to create bindings with
+   * 
+   * @param container
+   *          XUL DOM container loaded from the file path returned by {@link #getXulFile()}
+   * @param jobEntry
+   *          Job entry this dialog supports
+   * @param bindingFactory
+   *          Binding factory to create bindings with
    * @return Controller capable of handling requests for this dialog
    */
-  protected abstract AbstractSqoopJobEntryController<S, E> createController(XulDomContainer container, E jobEntry, BindingFactory bindingFactory);
+  protected abstract AbstractSqoopJobEntryController<S, E> createController( XulDomContainer container, E jobEntry,
+      BindingFactory bindingFactory );
 
   /**
    * Initialize this dialog for the job entry instance provided.
-   *
-   * @param jobEntry The job entry this dialog supports.
+   * 
+   * @param jobEntry
+   *          The job entry this dialog supports.
    */
-  protected void init(E jobEntry) throws XulException {
+  protected void init( E jobEntry ) throws XulException {
     SwtXulLoader swtXulLoader = new SwtXulLoader();
     // Register the settings manager so dialog position and size is restored
-    swtXulLoader.setSettingsManager(XulSpoonSettingsManager.getInstance());
-    swtXulLoader.registerClassLoader(getClass().getClassLoader());
+    swtXulLoader.setSettingsManager( XulSpoonSettingsManager.getInstance() );
+    swtXulLoader.registerClassLoader( getClass().getClassLoader() );
     // Register Kettle's variable text box so we can reference it from XUL
-    swtXulLoader.register("VARIABLETEXTBOX", ExtTextbox.class.getName());
-    swtXulLoader.register("LABEL", SwtLabelOrLink.class.getName());
-    swtXulLoader.setOuterContext(shell);
+    swtXulLoader.register( "VARIABLETEXTBOX", ExtTextbox.class.getName() );
+    swtXulLoader.register( "LABEL", SwtLabelOrLink.class.getName() );
+    swtXulLoader.setOuterContext( shell );
 
     // Load the XUL document with the dialog defined in it
-    container = swtXulLoader.loadXul(getXulFile(), bundle);
+    container = swtXulLoader.loadXul( getXulFile(), bundle );
 
     // Create the controller with a default binding factory for the document we just loaded
     BindingFactory bf = new DefaultBindingFactory();
-    bf.setDocument(container.getDocumentRoot());
-    controller = createController(container, jobEntry, bf);
-    container.addEventHandler(controller);
+    bf.setDocument( container.getDocumentRoot() );
+    controller = createController( container, jobEntry, bf );
+    container.addEventHandler( controller );
 
     // Load up the SWT-XUL runtime and initialize it with our container
     final XulRunner runner = new SwtXulRunner();
-    runner.addContainer(container);
+    runner.addContainer( container );
     runner.initialize();
   }
 

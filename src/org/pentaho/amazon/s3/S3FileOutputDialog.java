@@ -366,8 +366,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // Open new File at Init
     wlDoNotOpenNewFileInit = new Label( wFileComp, SWT.RIGHT );
-    wlDoNotOpenNewFileInit
-      .setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.DoNotOpenNewFileInit.Label" ) );
+    wlDoNotOpenNewFileInit.setText( BaseMessages
+        .getString( BASE_PKG, "TextFileOutputDialog.DoNotOpenNewFileInit.Label" ) );
     props.setLook( wlDoNotOpenNewFileInit );
     fdlDoNotOpenNewFileInit = new FormData();
     fdlDoNotOpenNewFileInit.left = new FormAttachment( 0, 0 );
@@ -375,8 +375,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdlDoNotOpenNewFileInit.right = new FormAttachment( middle, -margin );
     wlDoNotOpenNewFileInit.setLayoutData( fdlDoNotOpenNewFileInit );
     wDoNotOpenNewFileInit = new Button( wFileComp, SWT.CHECK );
-    wDoNotOpenNewFileInit
-      .setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.DoNotOpenNewFileInit.Tooltip" ) );
+    wDoNotOpenNewFileInit.setToolTipText( BaseMessages.getString( BASE_PKG,
+        "TextFileOutputDialog.DoNotOpenNewFileInit.Tooltip" ) );
     props.setLook( wDoNotOpenNewFileInit );
     fdDoNotOpenNewFileInit = new FormData();
     fdDoNotOpenNewFileInit.left = new FormAttachment( middle, 0 );
@@ -415,8 +415,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // FileNameField Line
     wlFileNameField = new Label( wFileComp, SWT.RIGHT );
-    wlFileNameField
-      .setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FileNameField.Label" ) ); //$NON-NLS-1$
+    wlFileNameField.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FileNameField.Label" ) ); //$NON-NLS-1$
     props.setLook( wlFileNameField );
     fdlFileNameField = new FormData();
     fdlFileNameField.left = new FormAttachment( 0, 0 );
@@ -598,7 +597,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wDateTimeFormat.setLayoutData( fdDateTimeFormat );
     String[] dats = Const.getDateFormats();
     for ( int x = 0; x < dats.length; x++ ) {
-      wDateTimeFormat.add( dats[ x ] );
+      wDateTimeFormat.add( dats[x] );
     }
 
     wbShowFiles = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
@@ -614,9 +613,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
         getInfo( tfoi );
         String[] files = tfoi.getFiles( transMeta );
         if ( files != null && files.length > 0 ) {
-          EnterSelectionDialog esd = new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
-            "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ),
-            BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
+          EnterSelectionDialog esd =
+              new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
+                  "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ), BaseMessages.getString( BASE_PKG,
+                    "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
           esd.setViewOnly();
           esd.open();
         } else {
@@ -1007,41 +1007,49 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     // Prepare a list of possible formats...
     String[] nums = Const.getNumberFormats();
     int totsize = dats.length + nums.length;
-    String[] formats = new String[ totsize ];
+    String[] formats = new String[totsize];
     for ( int x = 0; x < dats.length; x++ ) {
-      formats[ x ] = dats[ x ];
+      formats[x] = dats[x];
     }
     for ( int x = 0; x < nums.length; x++ ) {
-      formats[ dats.length + x ] = nums[ x ];
+      formats[dats.length + x] = nums[x];
     }
 
-    colinf = new ColumnInfo[ FieldsCols ];
-    colinf[ 0 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NameColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" },
-      false );
-    colinf[ 1 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TypeColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes() );
-    colinf[ 2 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FormatColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_CCOMBO, formats );
-    colinf[ 3 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.LengthColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[ 4 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.PrecisionColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[ 5 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.CurrencyColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[ 6 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.DecimalColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[ 7 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.GroupColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[ 8 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TrimTypeColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_CCOMBO,
-      ValueMeta.trimTypeDesc, true );
-    colinf[ 9 ] = new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NullColumn.Column" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf = new ColumnInfo[FieldsCols];
+    colinf[0] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NameColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
+    colinf[1] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TypeColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes() );
+    colinf[2] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FormatColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_CCOMBO, formats );
+    colinf[3] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.LengthColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[4] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.PrecisionColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[5] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.CurrencyColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[6] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.DecimalColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[7] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.GroupColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[8] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TrimTypeColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc, true );
+    colinf[9] =
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NullColumn.Column" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false );
 
     wFields =
-      new TableView( transMeta, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod,
-        props );
+        new TableView( transMeta, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod,
+            props );
 
     fdFields = new FormData();
     fdFields.left = new FormAttachment( 0, 0 );
@@ -1148,13 +1156,14 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
         try {
           // Setup file type filtering
           String[] fileFilters = new String[] { "*.txt", "*.csv", "*" };
-          String[] fileFilterNames = new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
-            BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-            BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+          String[] fileFilterNames =
+              new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
 
-          FileObject selectedFile = getFileChooserHelper()
-            .browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),
-              VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
+          FileObject selectedFile =
+              getFileChooserHelper().browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),
+                  VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
           if ( selectedFile != null ) {
             String filename = selectedFile.getName().getURI();
             String extension = wExtension.getText();
@@ -1265,10 +1274,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     Set<String> keySet = fields.keySet();
     List<String> entries = new ArrayList<String>( keySet );
 
-    String[] fieldNames = (String[]) entries.toArray( new String[ entries.size() ] );
+    String[] fieldNames = (String[]) entries.toArray( new String[entries.size()] );
 
     Const.sortStrings( fieldNames );
-    colinf[ 0 ].setComboValues( fieldNames );
+    colinf[0].setComboValues( fieldNames );
   }
 
   private void setDateTimeFormat() {
@@ -1319,9 +1328,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
         }
       } catch ( KettleException ke ) {
         new ErrorDialog( shell,
-          BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogTitle" ),
-          BaseMessages.getString( BASE_PKG,
-            "TextFileOutputDialog.FailedToGetFields.DialogMessage" ), ke );
+            BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogTitle" ), BaseMessages
+                .getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogMessage" ), ke );
       }
       gotPreviousFields = true;
     }
@@ -1391,7 +1399,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     logDebug( "getting fields info..." );
 
     for ( int i = 0; i < input.getOutputFields().length; i++ ) {
-      TextFileField field = input.getOutputFields()[ i ];
+      TextFileField field = input.getOutputFields()[i];
 
       TableItem item = wFields.table.getItem( i );
       if ( field.getName() != null ) {
@@ -1491,7 +1499,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       field.setGroupingSymbol( item.getText( 8 ) );
       field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 9 ) ) );
       field.setNullString( item.getText( 10 ) );
-      tfoi.getOutputFields()[ i ] = field;
+      ( tfoi.getOutputFields() )[i] = field;
     }
   }
 
@@ -1541,9 +1549,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
         BaseStepDialog.getFieldsFromPrevious( r, wFields, 1, new int[] { 1 }, new int[] { 2 }, 4, 5, listener );
       }
     } catch ( KettleException ke ) {
-      new ErrorDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.GetFieldsFailed.Title" ),
-        BaseMessages.getString( BASE_PKG,
-          "System.Dialog.GetFieldsFailed.Message" ), ke );
+      new ErrorDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
+          .getString( BASE_PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
     }
 
   }
@@ -1561,7 +1568,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       item.setText( 9, ValueMeta.getTrimTypeDesc( ValueMetaInterface.TRIM_TYPE_BOTH ) );
 
       int type = ValueMeta.getType( item.getText( 2 ) );
-      switch( type ) {
+      switch ( type ) {
         case ValueMetaInterface.TYPE_STRING:
           item.setText( 3, "" );
           break;
@@ -1579,7 +1586,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     }
 
     for ( int i = 0; i < input.getOutputFields().length; i++ ) {
-      input.getOutputFields()[ i ].setTrimType( ValueMetaInterface.TRIM_TYPE_BOTH );
+      input.getOutputFields()[i].setTrimType( ValueMetaInterface.TRIM_TYPE_BOTH );
     }
 
     wFields.optWidth( true );
@@ -1602,7 +1609,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
       VfsFileChooserDialog fileChooserDialog =
-        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
+          Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
@@ -1618,10 +1625,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     if ( !Const.isEmpty( wAccessKey.getText() ) || !Const.isEmpty( wSecretKey.getText() ) ) {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
-        new StaticUserAuthenticator( null,
-          getVariableSpace().environmentSubstitute( wAccessKey.getText() ),
-          getVariableSpace().environmentSubstitute( wSecretKey.getText() )
-        );
+          new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( wAccessKey.getText() ),
+              getVariableSpace().environmentSubstitute( wSecretKey.getText() ) );
 
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }

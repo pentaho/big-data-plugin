@@ -194,7 +194,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     CheckResult cr;
 
     if ( ( prev == null ) || ( prev.size() == 0 ) ) {
-      cr = new CheckResult( CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
+      cr = new CheckResult(
+          CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
       remarks.add( cr );
     } else {
       cr =

@@ -66,14 +66,14 @@ import java.util.List;
 /**
  * User: RFellows Date: 6/6/12
  */
-public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E extends AbstractJobEntry<C>>
-  extends AbstractXulEventHandler {
+public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E extends AbstractJobEntry<C>> extends
+    AbstractXulEventHandler {
 
   public static final String[] DEFAULT_FILE_FILTERS = new String[] { "*.*" };
 
   // Generically typed fields
-  protected C config;     // BlockableJobConfig
-  protected E jobEntry;   // AbstractJobEntry<BlockableJobConfig>
+  protected C config; // BlockableJobConfig
+  protected E jobEntry; // AbstractJobEntry<BlockableJobConfig>
 
   // common fields
   protected XulDomContainer container;
@@ -85,7 +85,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   @SuppressWarnings( "unchecked" )
   public AbstractJobEntryController( JobMeta jobMeta, XulDomContainer container, E jobEntry,
-                                     BindingFactory bindingFactory ) {
+      BindingFactory bindingFactory ) {
     super();
     this.jobMeta = jobMeta;
     this.jobEntry = jobEntry;
@@ -104,7 +104,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Opens the dialog
-   *
+   * 
    * @return
    */
   public JobEntryInterface open() {
@@ -116,13 +116,13 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
   }
 
   /**
-   * Initialize the dialog by loading model data, creating bindings and firing initial sync ({@link
-   * org.pentaho.ui.xul.binding.Binding#fireSourceChanged()}.
-   *
+   * Initialize the dialog by loading model data, creating bindings and firing initial sync (
+   * {@link org.pentaho.ui.xul.binding.Binding#fireSourceChanged()}.
+   * 
    * @throws org.pentaho.ui.xul.XulException
-   *
+   * 
    * @throws java.lang.reflect.InvocationTargetException
-   *
+   * 
    */
   public void init() throws XulException, InvocationTargetException {
     bindings = new ArrayList<Binding>();
@@ -203,13 +203,12 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Look up the dialog reference from the document.
-   *
+   * 
    * @return The dialog element referred to by {@link #getDialogElementId()}
    */
   protected SwtDialog getDialog() {
     return (SwtDialog) getXulDomContainer().getDocumentRoot().getElementById( getDialogElementId() );
   }
-
 
   /**
    * @return the job entry this controller will modify configuration for
@@ -238,9 +237,11 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Show an information dialog with the title and message provided.
-   *
-   * @param title   Dialog window title
-   * @param message Dialog message
+   * 
+   * @param title
+   *          Dialog window title
+   * @param message
+   *          Dialog message
    */
   protected void showInfoDialog( String title, String message ) {
     MessageBox mb = new MessageBox( getShell(), SWT.OK | SWT.ICON_INFORMATION );
@@ -249,12 +250,13 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
     mb.open();
   }
 
-
   /**
    * Show an error dialog with the title and message provided.
-   *
-   * @param title   Dialog window title
-   * @param message Dialog message
+   * 
+   * @param title
+   *          Dialog window title
+   * @param message
+   *          Dialog message
    */
   protected void showErrorDialog( String title, String message ) {
     MessageBox mb = new MessageBox( getShell(), SWT.OK | SWT.ICON_ERROR );
@@ -264,12 +266,14 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
   }
 
   /**
-   * Show an error dialog with the title, message, and toggle button to see the entire stacktrace produced by {@code
-   * t}.
-   *
-   * @param title   Dialog window title
-   * @param message Dialog message
-   * @param t       Cause for this error
+   * Show an error dialog with the title, message, and toggle button to see the entire stacktrace produced by {@code t}.
+   * 
+   * @param title
+   *          Dialog window title
+   * @param message
+   *          Dialog message
+   * @param t
+   *          Cause for this error
    */
   protected void showErrorDialog( String title, String message, Throwable t ) {
     new ErrorDialog( getShell(), title, message, t );
@@ -284,19 +288,24 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Browse for a file or directory with the VFS Browser.
-   *
-   * @param root              Root object
-   * @param initial           Initial file or folder the browser should open to
-   * @param dialogMode        Mode to open dialog in: e.g. {@link org.pentaho.vfs.ui
-   * .VfsFileChooserDialog#VFS_DIALOG_OPEN_FILE_OR_DIRECTORY}
-   * @param schemeRestriction Scheme to limit the user to browsing from
-   * @param defaultScheme     Scheme to select by default in the selection dropdown
+   * 
+   * @param root
+   *          Root object
+   * @param initial
+   *          Initial file or folder the browser should open to
+   * @param dialogMode
+   *          Mode to open dialog in: e.g.
+   *          {@link org.pentaho.vfs.ui .VfsFileChooserDialog#VFS_DIALOG_OPEN_FILE_OR_DIRECTORY}
+   * @param schemeRestriction
+   *          Scheme to limit the user to browsing from
+   * @param defaultScheme
+   *          Scheme to select by default in the selection dropdown
    * @return The selected file object, {@code null} if no object is selected
    * @throws org.pentaho.di.core.exception.KettleFileException
-   *          Error accessing the root file using the initial file, when {@code root} is not provided
+   *           Error accessing the root file using the initial file, when {@code root} is not provided
    */
   protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String schemeRestriction,
-                                  String defaultScheme, boolean showFileScheme ) throws KettleFileException {
+      String defaultScheme, boolean showFileScheme ) throws KettleFileException {
 
     if ( initial == null ) {
       initial = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
@@ -310,7 +319,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
     }
 
     VfsFileChooserHelper fileChooserHelper =
-      new VfsFileChooserHelper( getShell(), Spoon.getInstance().getVfsFileChooserDialog( root, initial ), jobEntry );
+        new VfsFileChooserHelper( getShell(), Spoon.getInstance().getVfsFileChooserDialog( root, initial ), jobEntry );
     fileChooserHelper.setDefaultScheme( defaultScheme );
     fileChooserHelper.setSchemeRestriction( schemeRestriction );
     fileChooserHelper.setShowFileScheme( showFileScheme );
@@ -331,7 +340,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
   /**
    * Used by browseVfs method as names corresponding to the file filters. Override if {@code getFileFilters} is
    * overridden.
-   *
+   * 
    * @return
    */
   protected String[] getFileFilterNames() {
@@ -369,7 +378,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
    */
   public void toggleMode() {
     JobEntryMode mode =
-      ( jobEntryMode == JobEntryMode.ADVANCED_LIST ? JobEntryMode.QUICK_SETUP : JobEntryMode.ADVANCED_LIST );
+        ( jobEntryMode == JobEntryMode.ADVANCED_LIST ? JobEntryMode.QUICK_SETUP : JobEntryMode.ADVANCED_LIST );
     setMode( mode );
   }
 
@@ -377,9 +386,10 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
     // if switching from Advanced to Quick mode, warn the user that any changes made in Advanced mode will be lost
     if ( this.jobEntryMode == JobEntryMode.ADVANCED_LIST && mode == JobEntryMode.QUICK_SETUP ) {
-      boolean confirmed = showConfirmationDialog(
-        BaseMessages.getString( OozieJobExecutorJobEntry.class, "JobExecutor.Confirm.Toggle.Quick.Mode.Title" ),
-        BaseMessages.getString( OozieJobExecutorJobEntry.class, "JobExecutor.Confirm.Toggle.Quick.Mode.Message" ) );
+      boolean confirmed =
+          showConfirmationDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class,
+              "JobExecutor.Confirm.Toggle.Quick.Mode.Title" ), BaseMessages.getString( OozieJobExecutorJobEntry.class,
+              "JobExecutor.Confirm.Toggle.Quick.Mode.Message" ) );
       if ( !confirmed ) {
         return;
       }
@@ -400,20 +410,20 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * The mode deck element defined in your xul. Override this to customize the element id
-   *
+   * 
    * @return
    */
   protected String getModeDeckElementId() {
     return "modeDeck";
   }
 
-  ////////////////////
+  // //////////////////
   // abstract methods
-  ////////////////////
+  // //////////////////
   protected abstract void syncModel();
 
   protected abstract void createBindings( C config, XulDomContainer container, BindingFactory bindingFactory,
-                                          Collection<Binding> bindings );
+      Collection<Binding> bindings );
 
   protected abstract String getDialogElementId();
 

@@ -33,19 +33,18 @@ import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.hadoop.shim.ConfigurationException;
 
-@PluginTypeCategoriesOrder(
-    getNaturalCategoriesOrder = {
-      "JobCategory.Category.General", "JobCategory.Category.Mail", "JobCategory.Category.FileManagement",
-      "JobCategory.Category.Conditions", "JobCategory.Category.Scripting", "JobCategory.Category.BulkLoading",
-      "JobCategory.Category.BigData", "JobCategory.Category.DataQuality", "JobCategory.Category.XML",
-      "JobCategory.Category.Utility", "JobCategory.Category.Repository", "JobCategory.Category.FileTransfer",
-      "JobCategory.Category.FileEncryption", "JobCategory.Category.Palo", "JobCategory.Category.Experimental",
-      "JobCategory.Category.Deprecated" }, i18nPackageClass = JobMeta.class )
+@PluginTypeCategoriesOrder( getNaturalCategoriesOrder = { "JobCategory.Category.General", "JobCategory.Category.Mail",
+    "JobCategory.Category.FileManagement", "JobCategory.Category.Conditions", "JobCategory.Category.Scripting",
+    "JobCategory.Category.BulkLoading", "JobCategory.Category.BigData", "JobCategory.Category.DataQuality",
+    "JobCategory.Category.XML", "JobCategory.Category.Utility", "JobCategory.Category.Repository",
+    "JobCategory.Category.FileTransfer", "JobCategory.Category.FileEncryption", "JobCategory.Category.Palo",
+    "JobCategory.Category.Experimental", "JobCategory.Category.Deprecated" }, i18nPackageClass = JobMeta.class )
 @PluginMainClassType( JobEntryInterface.class )
 @PluginAnnotationType( JobEntry.class )
 public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
   private static final ShimDependentJobEntryPluginType instance = new ShimDependentJobEntryPluginType();
-  private final Map<Set<String>, KettleURLClassLoader> classLoaderMap = new HashMap<Set<String>, KettleURLClassLoader>();
+  private final Map<Set<String>, KettleURLClassLoader> classLoaderMap =
+      new HashMap<Set<String>, KettleURLClassLoader>();
 
   private ShimDependentJobEntryPluginType() {
     super( ShimDependentJobEntry.class, "SHIM_DEPENDENT_JOBENTRY", "Shim Dependent Job entry" );
@@ -57,7 +56,7 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
 
   @Override
   public List<PluginFolderInterface> getPluginFolders() {
-    return Arrays.<PluginFolderInterface> asList( new PluginFolder( new File( ShimDependentJobEntryPluginType.class
+    return Arrays.<PluginFolderInterface>asList( new PluginFolder( new File( ShimDependentJobEntryPluginType.class
         .getProtectionDomain().getCodeSource().getLocation().getPath() ).getParentFile().toURI().toString()
         + "plugins/", false, true ) {
       @Override
@@ -87,7 +86,7 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
       }
     } );
   }
-  
+
   @Override
   public void handlePluginAnnotation( Class<?> clazz, Annotation annotation, List<String> libraries,
       boolean nativePluginType, URL pluginFolder ) throws KettlePluginException {
@@ -99,7 +98,8 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
     // Only one ID for now
     String[] ids = idList.split( "," );
     super.handlePluginAnnotation( clazz, annotation, libraries, nativePluginType, pluginFolder );
-    PluginInterface plugin = PluginRegistry.getInstance().findPluginWithId( ShimDependentJobEntryPluginType.class, ids[0] );
+    PluginInterface plugin =
+        PluginRegistry.getInstance().findPluginWithId( ShimDependentJobEntryPluginType.class, ids[0] );
     URL[] urls = new URL[libraries.size()];
     for ( int i = 0; i < libraries.size(); i++ ) {
       File jarfile = new File( libraries.get( i ) );
@@ -110,11 +110,12 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
       }
     }
     try {
-      Set<String> librarySet = new HashSet<String>(libraries);
+      Set<String> librarySet = new HashSet<String>( libraries );
       KettleURLClassLoader classloader = classLoaderMap.get( librarySet );
       if ( classloader == null ) {
-        classloader = new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
-            .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
+        classloader =
+            new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
+                .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
         classLoaderMap.put( librarySet, classloader );
       }
       PluginRegistry.getInstance().addClassLoader( classloader, plugin );
@@ -130,46 +131,46 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
 
   @Override
   protected String extractCategory( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).categoryDescription();
+    return ( (ShimDependentJobEntry) annotation ).categoryDescription();
   }
 
   @Override
   protected String extractDesc( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).description();
+    return ( (ShimDependentJobEntry) annotation ).description();
   }
 
   @Override
   protected String extractID( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).id();
+    return ( (ShimDependentJobEntry) annotation ).id();
   }
 
   @Override
   protected String extractName( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).name();
+    return ( (ShimDependentJobEntry) annotation ).name();
   }
 
   @Override
   protected String extractImageFile( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).image();
+    return ( (ShimDependentJobEntry) annotation ).image();
   }
 
   @Override
   protected String extractI18nPackageName( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).i18nPackageName();
+    return ( (ShimDependentJobEntry) annotation ).i18nPackageName();
   }
 
   @Override
   protected String extractDocumentationUrl( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).documentationUrl();
+    return ( (ShimDependentJobEntry) annotation ).documentationUrl();
   }
 
   @Override
   protected String extractCasesUrl( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).casesUrl();
+    return ( (ShimDependentJobEntry) annotation ).casesUrl();
   }
 
   @Override
   protected String extractForumUrl( Annotation annotation ) {
-    return ((ShimDependentJobEntry)annotation).forumUrl();
+    return ( (ShimDependentJobEntry) annotation ).forumUrl();
   }
 }

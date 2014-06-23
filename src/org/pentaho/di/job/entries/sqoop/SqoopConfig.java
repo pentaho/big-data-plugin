@@ -23,7 +23,11 @@
 package org.pentaho.di.job.entries.sqoop;
 
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.*;
+import org.pentaho.di.job.ArgumentWrapper;
+import org.pentaho.di.job.BlockableJobConfig;
+import org.pentaho.di.job.CommandLineArgument;
+import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.job.Password;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -163,7 +167,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * @return all known arguments for this config object. Some arguments may be synthetic and represent properties
-   * directly set on this config object for the purpose of showing them in the list view of the UI.
+   *         directly set on this config object for the purpose of showing them in the list view of the UI.
    */
   public AbstractModelList<ArgumentWrapper> getAdvancedArgumentsList() {
     final AbstractModelList<ArgumentWrapper> items = new AbstractModelList<ArgumentWrapper>();
@@ -171,27 +175,22 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     items.addAll( SqoopUtils.findAllArguments( this ) );
 
     try {
-      items.add(
-        new ArgumentWrapper( NAMENODE_HOST, BaseMessages.getString( getClass(), "NamenodeHost.Label" ), false, this,
-          getClass().getMethod( "getNamenodeHost" ), getClass().getMethod( "setNamenodeHost", String.class ) ) );
-      items.add(
-        new ArgumentWrapper( NAMENODE_PORT, BaseMessages.getString( getClass(), "NamenodePort.Label" ), false, this,
-          getClass().getMethod( "getNamenodePort" ), getClass().getMethod( "setNamenodePort", String.class ) ) );
-      items.add(
-        new ArgumentWrapper( JOBTRACKER_HOST, BaseMessages.getString( getClass(), "JobtrackerHost.Label" ), false, this,
-          getClass().getMethod( "getJobtrackerHost" ), getClass().getMethod( "setJobtrackerHost", String.class ) ) );
-      items.add(
-        new ArgumentWrapper( JOBTRACKER_PORT, BaseMessages.getString( getClass(), "JobtrackerPort.Label" ), false, this,
-          getClass().getMethod( "getJobtrackerPort" ), getClass().getMethod( "setJobtrackerPort", String.class ) ) );
-      items.add(
-        new ArgumentWrapper( BLOCKING_EXECUTION, BaseMessages.getString( getClass(), "BlockingExecution.Label" ), false,
-          this,
-          getClass().getMethod( "getBlockingExecution" ),
-          getClass().getMethod( "setBlockingExecution", String.class ) ) );
-      items.add( new ArgumentWrapper( BLOCKING_POLLING_INTERVAL,
-        BaseMessages.getString( getClass(), "BlockingPollingInterval.Label" ), false, this,
-        getClass().getMethod( "getBlockingPollingInterval" ),
-        getClass().getMethod( "setBlockingPollingInterval", String.class ) ) );
+      items.add( new ArgumentWrapper( NAMENODE_HOST, BaseMessages.getString( getClass(), "NamenodeHost.Label" ), false,
+          this, getClass().getMethod( "getNamenodeHost" ), getClass().getMethod( "setNamenodeHost", String.class ) ) );
+      items.add( new ArgumentWrapper( NAMENODE_PORT, BaseMessages.getString( getClass(), "NamenodePort.Label" ), false,
+          this, getClass().getMethod( "getNamenodePort" ), getClass().getMethod( "setNamenodePort", String.class ) ) );
+      items.add( new ArgumentWrapper( JOBTRACKER_HOST, BaseMessages.getString( getClass(), "JobtrackerHost.Label" ),
+          false, this, getClass().getMethod( "getJobtrackerHost" ), getClass().getMethod( "setJobtrackerHost",
+              String.class ) ) );
+      items.add( new ArgumentWrapper( JOBTRACKER_PORT, BaseMessages.getString( getClass(), "JobtrackerPort.Label" ),
+          false, this, getClass().getMethod( "getJobtrackerPort" ), getClass().getMethod( "setJobtrackerPort",
+              String.class ) ) );
+      items.add( new ArgumentWrapper( BLOCKING_EXECUTION, BaseMessages
+          .getString( getClass(), "BlockingExecution.Label" ), false, this, getClass().getMethod(
+            "getBlockingExecution" ), getClass().getMethod( "setBlockingExecution", String.class ) ) );
+      items.add( new ArgumentWrapper( BLOCKING_POLLING_INTERVAL, BaseMessages.getString( getClass(),
+          "BlockingPollingInterval.Label" ), false, this, getClass().getMethod( "getBlockingPollingInterval" ),
+          getClass().getMethod( "setBlockingPollingInterval", String.class ) ) );
     } catch ( NoSuchMethodException ex ) {
       throw new RuntimeException( ex );
     }
@@ -206,11 +205,15 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * Silently set the following properties: {@code database, connect, username, password}.
-   *
-   * @param database Database name
-   * @param connect  Connection string (JDBC connection URL)
-   * @param username Username
-   * @param password Password
+   * 
+   * @param database
+   *          Database name
+   * @param connect
+   *          Connection string (JDBC connection URL)
+   * @param username
+   *          Username
+   * @param password
+   *          Password
    */
   public void setConnectionInfo( String database, String connect, String username, String password ) {
     this.database = database;
@@ -620,7 +623,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * Sets the mode based on the enum value
-   *
+   * 
    * @param mode
    */
   public void setMode( JobEntryMode mode ) {

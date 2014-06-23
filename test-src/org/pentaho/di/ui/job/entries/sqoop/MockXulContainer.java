@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.sqoop;
 
@@ -41,17 +41,17 @@ import java.util.List;
 public class MockXulContainer implements XulContainer {
 
   @Override
-  public void addComponent(XulComponent xulComponent) {
+  public void addComponent( XulComponent xulComponent ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void addComponentAt(XulComponent xulComponent, int i) {
+  public void addComponentAt( XulComponent xulComponent, int i ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void removeComponent(XulComponent xulComponent) {
+  public void removeComponent( XulComponent xulComponent ) {
     throw new UnsupportedOperationException();
   }
 
@@ -61,7 +61,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void suppressLayout(boolean b) {
+  public void suppressLayout( boolean b ) {
     throw new UnsupportedOperationException();
   }
 
@@ -71,7 +71,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setManagedObject(Object o) {
+  public void setManagedObject( Object o ) {
     throw new UnsupportedOperationException();
   }
 
@@ -81,7 +81,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setId(String s) {
+  public void setId( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -96,12 +96,12 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setFlex(int i) {
+  public void setFlex( int i ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setOnblur(String s) {
+  public void setOnblur( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -111,7 +111,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setWidth(int i) {
+  public void setWidth( int i ) {
     throw new UnsupportedOperationException();
   }
 
@@ -121,7 +121,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setHeight(int i) {
+  public void setHeight( int i ) {
     throw new UnsupportedOperationException();
   }
 
@@ -131,17 +131,17 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+  public void addPropertyChangeListener( PropertyChangeListener propertyChangeListener ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+  public void removePropertyChangeListener( PropertyChangeListener propertyChangeListener ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setDisabled(boolean b) {
+  public void setDisabled( boolean b ) {
     throw new UnsupportedOperationException();
   }
 
@@ -151,7 +151,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setTooltiptext(String s) {
+  public void setTooltiptext( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -161,7 +161,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setBgcolor(String s) {
+  public void setBgcolor( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -171,7 +171,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setPadding(int i) {
+  public void setPadding( int i ) {
     throw new UnsupportedOperationException();
   }
 
@@ -181,7 +181,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setSpacing(int i) {
+  public void setSpacing( int i ) {
     throw new UnsupportedOperationException();
   }
 
@@ -191,7 +191,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void adoptAttributes(XulComponent xulComponent) {
+  public void adoptAttributes( XulComponent xulComponent ) {
     throw new UnsupportedOperationException();
   }
 
@@ -201,7 +201,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setInsertbefore(String s) {
+  public void setInsertbefore( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -211,7 +211,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setInsertafter(String s) {
+  public void setInsertafter( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -221,7 +221,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setPosition(int i) {
+  public void setPosition( int i ) {
     throw new UnsupportedOperationException();
   }
 
@@ -231,7 +231,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setRemoveelement(boolean b) {
+  public void setRemoveelement( boolean b ) {
     throw new UnsupportedOperationException();
   }
 
@@ -241,7 +241,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setVisible(boolean b) {
+  public void setVisible( boolean b ) {
     throw new UnsupportedOperationException();
   }
 
@@ -251,7 +251,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setAlign(String s) {
+  public void setAlign( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -261,7 +261,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setContext(String s) {
+  public void setContext( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -271,7 +271,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setPopup(String s) {
+  public void setPopup( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -281,7 +281,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setMenu(String s) {
+  public void setMenu( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -291,7 +291,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setOndrag(String s) {
+  public void setOndrag( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -301,7 +301,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setDrageffect(String s) {
+  public void setDrageffect( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -311,7 +311,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setOndrop(String s) {
+  public void setOndrop( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -321,7 +321,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setDropvetoer(String s) {
+  public void setDropvetoer( String s ) {
     throw new UnsupportedOperationException();
   }
 
@@ -331,7 +331,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setBindingProvider(BindingProvider bindingProvider) {
+  public void setBindingProvider( BindingProvider bindingProvider ) {
     throw new UnsupportedOperationException();
   }
 
@@ -361,7 +361,7 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setNamespace(String s, String s1) {
+  public void setNamespace( String s, String s1 ) {
     throw new UnsupportedOperationException();
   }
 
@@ -371,32 +371,32 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public XulComponent getElementById(String s) {
+  public XulComponent getElementById( String s ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public XulComponent getElementByXPath(String s) {
+  public XulComponent getElementByXPath( String s ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public List<XulComponent> getElementsByTagName(String s) {
+  public List<XulComponent> getElementsByTagName( String s ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void addChild(Element element) {
+  public void addChild( Element element ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void addChildAt(Element element, int i) {
+  public void addChildAt( Element element, int i ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void removeChild(Element element) {
+  public void removeChild( Element element ) {
     throw new UnsupportedOperationException();
   }
 
@@ -411,27 +411,27 @@ public class MockXulContainer implements XulContainer {
   }
 
   @Override
-  public void setAttributes(List<Attribute> attributes) {
+  public void setAttributes( List<Attribute> attributes ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setAttribute(Attribute attribute) {
+  public void setAttribute( Attribute attribute ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void setAttribute(String s, String s1) {
+  public void setAttribute( String s, String s1 ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public String getAttributeValue(String s) {
+  public String getAttributeValue( String s ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void replaceChild(XulComponent xulComponent, XulComponent xulComponent1) throws XulDomException {
+  public void replaceChild( XulComponent xulComponent, XulComponent xulComponent1 ) throws XulDomException {
     throw new UnsupportedOperationException();
   }
 }
