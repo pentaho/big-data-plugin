@@ -67,7 +67,7 @@ public class S3FileOutput extends TextFileOutput {
     try {
       FileSystemOptions opts = new FileSystemOptions();
       S3FileOutputMeta s3Meta = (S3FileOutputMeta) meta;
-      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(opts,
+      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
         new StaticUserAuthenticator( null,
             Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getAccessKey() ) ),
             Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getSecretKey() ) ) ) );
