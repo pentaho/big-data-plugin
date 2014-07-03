@@ -573,10 +573,10 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     fdDateTimeFormat.top = new FormAttachment( wSpecifyFormat, margin );
     fdDateTimeFormat.right = new FormAttachment( 100, 0 );
     wDateTimeFormat.setLayoutData( fdDateTimeFormat );
-    String dats[] = Const.getDateFormats();
-    for ( int x = 0; x < dats.length; x++ )
-      wDateTimeFormat.add( dats[x] );
-
+    String[] dates = Const.getDateFormats();
+    for ( int x = 0; x < dates.length; x++ ) {
+      wDateTimeFormat.add( dates[x] );
+    }
     wbShowFiles = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
     props.setLook( wbShowFiles );
     wbShowFiles.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.ShowFiles.Button" ) );
@@ -588,12 +588,12 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       public void widgetSelected( SelectionEvent e ) {
         TextFileOutputMeta tfoi = new TextFileOutputMeta();
         getInfo( tfoi );
-        String files[] = tfoi.getFiles( transMeta );
+        String[] files = tfoi.getFiles( transMeta );
         if ( files != null && files.length > 0 ) {
           EnterSelectionDialog esd =
               new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
                   "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                  "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
+                    "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
           esd.setViewOnly();
           esd.open();
         } else {
@@ -982,14 +982,15 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     final int FieldsRows = input.getOutputFields().length;
 
     // Prepare a list of possible formats...
-    String nums[] = Const.getNumberFormats();
-    int totsize = dats.length + nums.length;
-    String formats[] = new String[totsize];
-    for ( int x = 0; x < dats.length; x++ )
-      formats[x] = dats[x];
-    for ( int x = 0; x < nums.length; x++ )
-      formats[dats.length + x] = nums[x];
-
+    String[] nums = Const.getNumberFormats();
+    int totsize = dates.length + nums.length;
+    String[] formats = new String[totsize];
+    for ( int x = 0; x < dates.length; x++ ) {
+      formats[x] = dates[x];
+    }
+    for ( int x = 0; x < nums.length; x++ ) {
+      formats[dates.length + x] = nums[x];
+    }
     colinf = new ColumnInfo[FieldsCols];
     colinf[0] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NameColumn.Column" ),
@@ -1215,8 +1216,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
     shell.open();
     while ( !shell.isDisposed() ) {
-      if ( !display.readAndDispatch() )
+      if ( !display.readAndDispatch() ) {
         display.sleep();
+      }
     }
     return stepname;
   }
@@ -1230,8 +1232,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wFilename.setEnabled( !wFileNameInField.getSelection() );
 
     if ( wFileNameInField.getSelection() ) {
-      if ( !wDoNotOpenNewFileInit.getSelection() )
+      if ( !wDoNotOpenNewFileInit.getSelection() ) {
         wDoNotOpenNewFileInit.setSelection( true );
+      }
       wAddDate.setSelection( false );
       wAddTime.setSelection( false );
       wSpecifyFormat.setSelection( false );
@@ -1248,12 +1251,14 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wlAddStepnr.setEnabled( !wFileNameInField.getSelection() );
     wAddPartnr.setEnabled( !wFileNameInField.getSelection() );
     wlAddPartnr.setEnabled( !wFileNameInField.getSelection() );
-    if ( wFileNameInField.getSelection() )
+    if ( wFileNameInField.getSelection() ) {
       wSplitEvery.setText( "0" );
+    }
     wSplitEvery.setEnabled( !wFileNameInField.getSelection() );
     wlSplitEvery.setEnabled( !wFileNameInField.getSelection() );
-    if ( wFileNameInField.getSelection() )
+    if ( wFileNameInField.getSelection() ) {
       wEndedLine.setText( "" );
+    }
     wEndedLine.setEnabled( !wFileNameInField.getSelection() );
     wbShowFiles.setEnabled( !wFileNameInField.getSelection() );
     wbFilename.setEnabled( !wFileNameInField.getSelection() );
@@ -1272,7 +1277,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     Set<String> keySet = fields.keySet();
     List<String> entries = new ArrayList<String>( keySet );
 
-    String fieldNames[] = (String[]) entries.toArray( new String[entries.size()] );
+    String[] fieldNames = (String[]) entries.toArray( new String[entries.size()] );
 
     Const.sortStrings( fieldNames );
     colinf[0].setComboValues( fieldNames );
@@ -1307,8 +1312,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       // Now select the default!
       String defEncoding = Const.getEnvironmentVariable( "file.encoding", "UTF-8" );
       int idx = Const.indexOfString( defEncoding, wEncoding.getItems() );
-      if ( idx >= 0 )
+      if ( idx >= 0 ) {
         wEncoding.select( idx );
+      }
     }
   }
 
@@ -1320,8 +1326,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
         if ( r != null ) {
           wFileNameField.setItems( r.getFieldNames() );
         }
-        if ( field != null )
+        if ( field != null ) {
           wFileNameField.setText( field );
+        }
       } catch ( KettleException ke ) {
         new ErrorDialog( shell,
             BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogTitle" ), BaseMessages
@@ -1335,29 +1342,36 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
    * Copy information from the meta-data input to the dialog fields.
    */
   public void getData() {
-    if ( input.getFileName() != null )
+    if ( input.getFileName() != null ) {
       wFilename.setText( input.getFileName() );
+    }
     wDoNotOpenNewFileInit.setSelection( input.isDoNotOpenNewFileInit() );
     wCreateParentFolder.setSelection( input.isCreateParentFolder() );
-    if ( input.getExtension() != null )
+    if ( input.getExtension() != null ) {
       wExtension.setText( input.getExtension() );
-    if ( input.getSeparator() != null )
+    }
+    if ( input.getSeparator() != null ) {
       wSeparator.setText( input.getSeparator() );
-    if ( input.getEnclosure() != null )
+    }
+    if ( input.getEnclosure() != null ) {
       wEnclosure.setText( input.getEnclosure() );
-    if ( input.getFileFormat() != null )
+    }
+    if ( input.getFileFormat() != null ) {
       wFormat.setText( input.getFileFormat() );
-    if ( input.getFileCompression() != null )
+    }
+    if ( input.getFileCompression() != null ) {
       wCompression.setText( input.getFileCompression() );
-    if ( input.getEncoding() != null )
+    }
+    if ( input.getEncoding() != null ) {
       wEncoding.setText( input.getEncoding() );
-    if ( input.getEndedLine() != null )
+    }
+    if ( input.getEndedLine() != null ) {
       wEndedLine.setText( input.getEndedLine() );
-
+    }
     wFileNameInField.setSelection( input.isFileNameInField() );
-    if ( input.getFileNameField() != null )
+    if ( input.getFileNameField() != null ) {
       wFileNameField.setText( input.getFileNameField() );
-
+    }
     wSplitEvery.setText( "" + input.getSplitEvery() );
 
     wEnclForced.setSelection( input.isEnclosureForced() );
@@ -1365,8 +1379,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wFooter.setSelection( input.isFooterEnabled() );
     wAddDate.setSelection( input.isDateInFilename() );
     wAddTime.setSelection( input.isTimeInFilename() );
-    if ( input.getDateTimeFormat() != null )
+    if ( input.getDateTimeFormat() != null ) {
       wDateTimeFormat.setText( input.getDateTimeFormat() );
+    }
     wSpecifyFormat.setSelection( input.isSpecifyingFormat() );
 
     wAppend.setSelection( input.isFileAppended() );
@@ -1382,27 +1397,35 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       TextFileField field = input.getOutputFields()[i];
 
       TableItem item = wFields.table.getItem( i );
-      if ( field.getName() != null )
+      if ( field.getName() != null ) {
         item.setText( 1, field.getName() );
+      }
       item.setText( 2, field.getTypeDesc() );
-      if ( field.getFormat() != null )
+      if ( field.getFormat() != null ) {
         item.setText( 3, field.getFormat() );
-      if ( field.getLength() >= 0 )
+      }
+      if ( field.getLength() >= 0 ) {
         item.setText( 4, "" + field.getLength() );
-      if ( field.getPrecision() >= 0 )
+      }
+      if ( field.getPrecision() >= 0 ) {
         item.setText( 5, "" + field.getPrecision() );
-      if ( field.getCurrencySymbol() != null )
+      }
+      if ( field.getCurrencySymbol() != null ) {
         item.setText( 6, field.getCurrencySymbol() );
-      if ( field.getDecimalSymbol() != null )
+      }
+      if ( field.getDecimalSymbol() != null ) {
         item.setText( 7, field.getDecimalSymbol() );
-      if ( field.getGroupingSymbol() != null )
+      }
+      if ( field.getGroupingSymbol() != null ) {
         item.setText( 8, field.getGroupingSymbol() );
+      }
       String trim = field.getTrimTypeDesc();
-      if ( trim != null )
+      if ( trim != null ) {
         item.setText( 9, trim );
-      if ( field.getNullString() != null )
+      }
+      if ( field.getNullString() != null ) {
         item.setText( 10, field.getNullString() );
-
+      }
     }
 
     wFields.optWidth( true );
@@ -1468,14 +1491,14 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       field.setGroupingSymbol( item.getText( 8 ) );
       field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 9 ) ) );
       field.setNullString( item.getText( 10 ) );
-      tfoi.getOutputFields()[i] = field;
+      ( tfoi.getOutputFields() )[i] = field;
     }
   }
 
   private void ok() {
-    if ( Const.isEmpty( wStepname.getText() ) )
+    if ( Const.isEmpty( wStepname.getText() ) ) {
       return;
-
+    }
     stepname = wStepname.getText(); // return value
 
     getInfo( input );
@@ -1502,8 +1525,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
                 for ( int m = 0; m < le - pr; m++ ) {
                   mask += "0";
                 }
-                if ( pr > 0 )
+                if ( pr > 0 ) {
                   mask += ".";
+                }
                 for ( int m = 0; m < pr; m++ ) {
                   mask += "0";
                 }
@@ -1553,9 +1577,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       }
     }
 
-    for ( int i = 0; i < input.getOutputFields().length; i++ )
+    for ( int i = 0; i < input.getOutputFields().length; i++ ) {
       input.getOutputFields()[i].setTrimType( ValueMetaInterface.TRIM_TYPE_BOTH );
-
+    }
     wFields.optWidth( true );
   }
 

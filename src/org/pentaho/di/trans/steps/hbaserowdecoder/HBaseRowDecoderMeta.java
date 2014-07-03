@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.trans.steps.hbaserowdecoder;
 
@@ -61,12 +61,11 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * 
  */
-@Step(id = "HBaseRowDecoder", image = "HBRD.png", 
-  name = "HBaseRowDecoder.Name", description = "HBaseRowDecoder.Description", 
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  i18nPackageName="org.pentaho.di.trans.steps.hbaserowdecoder")
-public class HBaseRowDecoderMeta extends BaseStepMeta implements
-    StepMetaInterface {
+@Step( id = "HBaseRowDecoder", image = "HBRD.png", name = "HBaseRowDecoder.Name",
+    description = "HBaseRowDecoder.Description",
+    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )
+public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterface {
 
   /** The incoming field that contains the HBase row key */
   protected String m_incomingKeyField = "";
@@ -80,9 +79,10 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements
   /**
    * Set the incoming field that holds the HBase row key
    * 
-   * @param inKey the name of the field that holds the key
+   * @param inKey
+   *          the name of the field that holds the key
    */
-  public void setIncomingKeyField(String inKey) {
+  public void setIncomingKeyField( String inKey ) {
     m_incomingKeyField = inKey;
   }
 
@@ -98,10 +98,10 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements
   /**
    * Set the incoming field that holds the HBase row Result object
    * 
-   * @param inResult the name of the field that holds the HBase row Result
-   *          object
+   * @param inResult
+   *          the name of the field that holds the HBase row Result object
    */
-  public void setIncomingResultField(String inResult) {
+  public void setIncomingResultField( String inResult ) {
     m_incomingResultField = inResult;
   }
 
@@ -117,9 +117,10 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements
   /**
    * Set the mapping to use for decoding the row
    * 
-   * @param m the mapping to use
+   * @param m
+   *          the mapping to use
    */
-  public void setMapping(Mapping m) {
+  public void setMapping( Mapping m ) {
     m_mapping = m;
   }
 
@@ -138,81 +139,73 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements
   }
 
   @Override
-  public void getFields(RowMetaInterface rowMeta, String origin,
-      RowMetaInterface[] info, StepMeta nextStep, VariableSpace space)
-      throws KettleStepException {
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+      VariableSpace space ) throws KettleStepException {
 
     rowMeta.clear(); // start afresh - eats the input
 
-    if (m_mapping != null) {
-      if (!Const.isEmpty(m_mapping.getMappingName())) {
+    if ( m_mapping != null ) {
+      if ( !Const.isEmpty( m_mapping.getMappingName() ) ) {
         int kettleType;
 
-        if (m_mapping.getKeyType() == Mapping.KeyType.DATE
-            || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE) {
+        if ( m_mapping.getKeyType() == Mapping.KeyType.DATE
+            || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
           kettleType = ValueMetaInterface.TYPE_DATE;
-        } else if (m_mapping.getKeyType() == Mapping.KeyType.STRING) {
+        } else if ( m_mapping.getKeyType() == Mapping.KeyType.STRING ) {
           kettleType = ValueMetaInterface.TYPE_STRING;
-        } else if (m_mapping.getKeyType() == Mapping.KeyType.BINARY) {
+        } else if ( m_mapping.getKeyType() == Mapping.KeyType.BINARY ) {
           kettleType = ValueMetaInterface.TYPE_BINARY;
         } else {
           kettleType = ValueMetaInterface.TYPE_INTEGER;
         }
 
-        ValueMetaInterface keyMeta = new ValueMeta(m_mapping.getKeyName(),
-            kettleType);
+        ValueMetaInterface keyMeta = new ValueMeta( m_mapping.getKeyName(), kettleType );
 
-        keyMeta.setOrigin(origin);
-        rowMeta.addValueMeta(keyMeta);
+        keyMeta.setOrigin( origin );
+        rowMeta.addValueMeta( keyMeta );
 
         // Add the rest of the fields in the mapping
-        Map<String, HBaseValueMeta> mappedColumnsByAlias = m_mapping
-            .getMappedColumns();
+        Map<String, HBaseValueMeta> mappedColumnsByAlias = m_mapping.getMappedColumns();
         Set<String> aliasSet = mappedColumnsByAlias.keySet();
-        for (String alias : aliasSet) {
-          HBaseValueMeta columnMeta = mappedColumnsByAlias.get(alias);
-          columnMeta.setOrigin(origin);
-          rowMeta.addValueMeta(columnMeta);
+        for ( String alias : aliasSet ) {
+          HBaseValueMeta columnMeta = mappedColumnsByAlias.get( alias );
+          columnMeta.setOrigin( origin );
+          rowMeta.addValueMeta( columnMeta );
         }
       }
     }
   }
 
-  public void check(List<CheckResultInterface> remarks, TransMeta transMeta,
-      StepMeta stepMeta, RowMetaInterface prev, String[] input,
-      String[] output, RowMetaInterface info) {
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
+      String[] input, String[] output, RowMetaInterface info ) {
 
     CheckResult cr;
 
-    if ((prev == null) || (prev.size() == 0)) {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_WARNING,
-          "Not receiving any fields from previous steps!", stepMeta);
-      remarks.add(cr);
+    if ( ( prev == null ) || ( prev.size() == 0 ) ) {
+      cr = new CheckResult(
+          CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
+      remarks.add( cr );
     } else {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_OK,
-          "Step is connected to previous one, receiving " + prev.size()
-              + " fields", stepMeta);
-      remarks.add(cr);
+      cr =
+          new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is connected to previous one, receiving " + prev.size()
+              + " fields", stepMeta );
+      remarks.add( cr );
     }
 
     // See if we have input streams leading to this step!
-    if (input.length > 0) {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_OK,
-          "Step is receiving info from other steps.", stepMeta);
-      remarks.add(cr);
+    if ( input.length > 0 ) {
+      cr = new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is receiving info from other steps.", stepMeta );
+      remarks.add( cr );
     } else {
-      cr = new CheckResult(CheckResult.TYPE_RESULT_ERROR,
-          "No input received from other steps!", stepMeta);
-      remarks.add(cr);
+      cr = new CheckResult( CheckResult.TYPE_RESULT_ERROR, "No input received from other steps!", stepMeta );
+      remarks.add( cr );
     }
   }
 
-  public StepInterface getStep(StepMeta stepMeta,
-      StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans) {
+  public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
+      TransMeta transMeta, Trans trans ) {
 
-    return new HBaseRowDecoder(stepMeta, stepDataInterface, copyNr, transMeta,
-        trans);
+    return new HBaseRowDecoder( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   public StepDataInterface getStepData() {
@@ -223,77 +216,70 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
-    if (!Const.isEmpty(m_incomingKeyField)) {
-      retval.append("\n    ").append(
-          XMLHandler.addTagValue("incoming_key_field", m_incomingKeyField));
+    if ( !Const.isEmpty( m_incomingKeyField ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "incoming_key_field", m_incomingKeyField ) );
     }
-    if (!Const.isEmpty(m_incomingResultField)) {
-      retval.append("\n    ").append(
-          XMLHandler
-              .addTagValue("incoming_result_field", m_incomingResultField));
+    if ( !Const.isEmpty( m_incomingResultField ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "incoming_result_field", m_incomingResultField ) );
     }
 
-    if (m_mapping != null) {
-      retval.append(m_mapping.getXML());
+    if ( m_mapping != null ) {
+      retval.append( m_mapping.getXML() );
     }
 
     return retval.toString();
   }
 
-  public void loadXML(Node stepnode, List<DatabaseMeta> databases,
-      Map<String, Counter> counters) throws KettleXMLException {
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters )
+    throws KettleXMLException {
 
-    m_incomingKeyField = XMLHandler.getTagValue(stepnode, "incoming_key_field");
-    m_incomingResultField = XMLHandler.getTagValue(stepnode,
-        "incoming_result_field");
+    m_incomingKeyField = XMLHandler.getTagValue( stepnode, "incoming_key_field" );
+    m_incomingResultField = XMLHandler.getTagValue( stepnode, "incoming_result_field" );
 
     m_mapping = new Mapping();
-    m_mapping.loadXML(stepnode);
+    m_mapping.loadXML( stepnode );
 
   }
 
-  public void readRep(Repository rep, ObjectId id_step,
-      List<DatabaseMeta> databases, Map<String, Counter> counters)
-      throws KettleException {
+  public void readRep( Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters )
+    throws KettleException {
 
-    m_incomingKeyField = rep.getStepAttributeString(id_step, 0,
-        "incoming_key_field");
-    m_incomingResultField = rep.getStepAttributeString(id_step, 0,
-        "incoming_result_field");
+    m_incomingKeyField = rep.getStepAttributeString( id_step, 0, "incoming_key_field" );
+    m_incomingResultField = rep.getStepAttributeString( id_step, 0, "incoming_result_field" );
 
     m_mapping = new Mapping();
-    m_mapping.readRep(rep, id_step);
+    m_mapping.readRep( rep, id_step );
   }
 
-  public void saveRep(Repository rep, ObjectId id_transformation,
-      ObjectId id_step) throws KettleException {
+  public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
 
-    if (!Const.isEmpty(m_incomingKeyField)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0,
-          "incoming_key_field", m_incomingKeyField);
+    if ( !Const.isEmpty( m_incomingKeyField ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "incoming_key_field", m_incomingKeyField );
     }
-    if (!Const.isEmpty(m_incomingResultField)) {
-      rep.saveStepAttribute(id_transformation, id_step, 0,
-          "incoming_result_field", m_incomingResultField);
+    if ( !Const.isEmpty( m_incomingResultField ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "incoming_result_field", m_incomingResultField );
     }
 
-    if (m_mapping != null) {
-      m_mapping.saveRep(rep, id_transformation, id_step);
+    if ( m_mapping != null ) {
+      m_mapping.saveRep( rep, id_transformation, id_step );
     }
   }
 
   /**
    * Get the UI for this step.
    * 
-   * @param shell a <code>Shell</code> value
-   * @param meta a <code>StepMetaInterface</code> value
-   * @param transMeta a <code>TransMeta</code> value
-   * @param name a <code>String</code> value
+   * @param shell
+   *          a <code>Shell</code> value
+   * @param meta
+   *          a <code>StepMetaInterface</code> value
+   * @param transMeta
+   *          a <code>TransMeta</code> value
+   * @param name
+   *          a <code>String</code> value
    * @return a <code>StepDialogInterface</code> value
    */
-  public StepDialogInterface getDialog(Shell shell, StepMetaInterface meta,
-      TransMeta transMeta, String name) {
+  public StepDialogInterface getDialog( Shell shell, StepMetaInterface meta, TransMeta transMeta, String name ) {
 
-    return new HBaseRowDecoderDialog(shell, meta, transMeta, name);
+    return new HBaseRowDecoderDialog( shell, meta, transMeta, name );
   }
 }

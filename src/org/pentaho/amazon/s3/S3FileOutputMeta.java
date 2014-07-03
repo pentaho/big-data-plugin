@@ -45,9 +45,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 @Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3FileOutput.Name",
-  description = "S3FileOutput.Description", 
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
-  i18nPackageName="org.pentaho.amazon.s3")
+    description = "S3FileOutput.Description",
+    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
+    i18nPackageName = "org.pentaho.amazon.s3" )
 public class S3FileOutputMeta extends TextFileOutputMeta {
 
   private static final String ACCESS_KEY_TAG = "access_key";
@@ -91,10 +91,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     StringBuffer retval = new StringBuffer( 1000 );
 
     retval.append( super.getXML() );
-    retval.append( "      " )
-      .append( XMLHandler.addTagValue( ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
-    retval.append( "      " )
-      .append( XMLHandler.addTagValue( SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
+    retval.append( "      " ).append(
+        XMLHandler.addTagValue( ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
+    retval.append( "      " ).append(
+        XMLHandler.addTagValue( SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
 
     return retval.toString();
   }
@@ -104,10 +104,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     throws KettleException {
     try {
       super.saveRep( rep, metaStore, id_transformation, id_step );
-      rep.saveStepAttribute( id_transformation, id_step, ACCESS_KEY_TAG,
-        Encr.encryptPasswordIfNotUsingVariables( accessKey ) );
-      rep.saveStepAttribute( id_transformation, id_step, SECRET_KEY_TAG,
-        Encr.encryptPasswordIfNotUsingVariables( secretKey ) );
+      rep.saveStepAttribute( id_transformation, id_step, ACCESS_KEY_TAG, Encr
+          .encryptPasswordIfNotUsingVariables( accessKey ) );
+      rep.saveStepAttribute( id_transformation, id_step, SECRET_KEY_TAG, Encr
+          .encryptPasswordIfNotUsingVariables( secretKey ) );
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
@@ -144,14 +144,14 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
-                                Trans trans ) {
+      Trans trans ) {
     return new S3FileOutput( stepMeta, stepDataInterface, cnr, transMeta, trans );
   }
 
   /**
    * New filenames obey the rule s3://<any_string>/<s3_bucket_name>/<path>. However, we maintain old filenames
    * s3://<access_key>:<secret_key>@s3/<s3_bucket_name>/<path>
-   *
+   * 
    * @param filename
    * @return
    */

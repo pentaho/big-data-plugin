@@ -46,7 +46,7 @@ public class S3FileOutput extends TextFileOutput {
   private FileSystemOptions fsOptions;
 
   public S3FileOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                         Trans trans ) {
+      Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
@@ -60,7 +60,7 @@ public class S3FileOutput extends TextFileOutput {
 
   protected OutputStream getOutputStream( String vfsFilename, VariableSpace space, boolean append )
     throws KettleFileException {
-    return KettleVFS.getOutputStream( vfsFilename, space, getFsOptions() , append );
+    return KettleVFS.getOutputStream( vfsFilename, space, getFsOptions(), append );
   }
 
   protected FileSystemOptions createFileSystemOptions() throws KettleFileException {

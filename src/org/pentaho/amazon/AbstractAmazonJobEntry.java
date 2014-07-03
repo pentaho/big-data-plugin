@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.amazon;
 
@@ -27,8 +27,7 @@ import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 
 /**
- * created by: rfellows
- * date:       5/24/12
+ * created by: rfellows date: 5/24/12
  */
 public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Cloneable, JobEntryInterface {
 
@@ -45,12 +44,11 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
   protected boolean blocking;
   protected String loggingInterval = "60"; // 60 seconds default
 
-
   public String getHadoopJobName() {
     return hadoopJobName;
   }
 
-  public void setHadoopJobName(String hadoopJobName) {
+  public void setHadoopJobName( String hadoopJobName ) {
     this.hadoopJobName = hadoopJobName;
   }
 
@@ -58,7 +56,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return hadoopJobFlowId;
   }
 
-  public void setHadoopJobFlowId(String hadoopJobFlowId) {
+  public void setHadoopJobFlowId( String hadoopJobFlowId ) {
     this.hadoopJobFlowId = hadoopJobFlowId;
   }
 
@@ -66,7 +64,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return accessKey;
   }
 
-  public void setAccessKey(String accessKey) {
+  public void setAccessKey( String accessKey ) {
     this.accessKey = accessKey;
   }
 
@@ -74,7 +72,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return secretKey;
   }
 
-  public void setSecretKey(String secretKey) {
+  public void setSecretKey( String secretKey ) {
     this.secretKey = secretKey;
   }
 
@@ -82,7 +80,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return jarUrl;
   }
 
-  public void setJarUrl(String jarUrl) {
+  public void setJarUrl( String jarUrl ) {
     this.jarUrl = jarUrl;
   }
 
@@ -90,7 +88,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return stagingDir;
   }
 
-  public void setStagingDir(String stagingDir) {
+  public void setStagingDir( String stagingDir ) {
     this.stagingDir = stagingDir;
   }
 
@@ -98,7 +96,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return numInstances;
   }
 
-  public void setNumInstances(String numInstances) {
+  public void setNumInstances( String numInstances ) {
     this.numInstances = numInstances;
   }
 
@@ -106,7 +104,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return masterInstanceType;
   }
 
-  public void setMasterInstanceType(String masterInstanceType) {
+  public void setMasterInstanceType( String masterInstanceType ) {
     this.masterInstanceType = masterInstanceType;
   }
 
@@ -114,7 +112,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return slaveInstanceType;
   }
 
-  public void setSlaveInstanceType(String slaveInstanceType) {
+  public void setSlaveInstanceType( String slaveInstanceType ) {
     this.slaveInstanceType = slaveInstanceType;
   }
 
@@ -122,7 +120,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return cmdLineArgs;
   }
 
-  public void setCmdLineArgs(String cmdLineArgs) {
+  public void setCmdLineArgs( String cmdLineArgs ) {
     this.cmdLineArgs = cmdLineArgs;
   }
 
@@ -130,7 +128,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return blocking;
   }
 
-  public void setBlocking(boolean blocking) {
+  public void setBlocking( boolean blocking ) {
     this.blocking = blocking;
   }
 
@@ -138,18 +136,18 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     return loggingInterval;
   }
 
-  public void setLoggingInterval(String loggingInterval) {
+  public void setLoggingInterval( String loggingInterval ) {
     this.loggingInterval = loggingInterval;
   }
 
   protected AWSCredentials awsCredentials = new AWSCredentials() {
 
     public String getAWSSecretKey() {
-      return environmentSubstitute(secretKey);
+      return environmentSubstitute( secretKey );
     }
 
     public String getAWSAccessKeyId() {
-      return environmentSubstitute(accessKey);
+      return environmentSubstitute( accessKey );
     }
   };
 }

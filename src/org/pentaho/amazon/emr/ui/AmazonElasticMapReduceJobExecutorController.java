@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.amazon.emr.ui;
 
@@ -44,15 +44,16 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
   @Override
   protected void syncModel() {
     super.syncModel();
-    ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById(XUL_JAR_URL);
-    this.jarUrl = ((Text) tempBox.getTextControl()).getText();
+    ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JAR_URL );
+    this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
   }
 
   @Override
   protected String buildValidationErrorMessages() {
     String validationErrors = super.buildValidationErrorMessages();
-    if (StringUtil.isEmpty(jarUrl)) {
-      validationErrors += BaseMessages.getString(PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR) + "\n";
+    if ( StringUtil.isEmpty( jarUrl ) ) {
+      validationErrors +=
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR ) + "\n";
     }
     return validationErrors;
   }
@@ -63,9 +64,11 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
 
     FileSystemOptions opts = getFileSystemOptions();
 
-    FileObject selectedFile = browse(fileFilters, fileFilterNames, getVariableSpace().environmentSubstitute(jarUrl), opts, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE, true);
-    if (selectedFile != null) {
-      setJarUrl(selectedFile.getName().getURI());
+    FileObject selectedFile =
+        browse( fileFilters, fileFilterNames, getVariableSpace().environmentSubstitute( jarUrl ), opts,
+            VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE, true );
+    if ( selectedFile != null ) {
+      setJarUrl( selectedFile.getName().getURI() );
     }
   }
 
@@ -75,7 +78,7 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
   }
 
   @Override
-  public void setJobEntry(AbstractAmazonJobEntry jobEntry) {
-    this.jobEntry = (AmazonElasticMapReduceJobExecutor)jobEntry;
+  public void setJobEntry( AbstractAmazonJobEntry jobEntry ) {
+    this.jobEntry = (AmazonElasticMapReduceJobExecutor) jobEntry;
   }
 }

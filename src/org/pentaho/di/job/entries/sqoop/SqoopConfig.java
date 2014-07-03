@@ -1,29 +1,33 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.job.entries.sqoop;
 
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.*;
+import org.pentaho.di.job.ArgumentWrapper;
+import org.pentaho.di.job.BlockableJobConfig;
+import org.pentaho.di.job.CommandLineArgument;
+import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.job.Password;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -95,69 +99,69 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   private String mode;
 
   // Common arguments
-  @CommandLineArgument(name = CONNECT)
+  @CommandLineArgument( name = CONNECT )
   private String connect;
 
-  @CommandLineArgument(name = "connection-manager")
+  @CommandLineArgument( name = "connection-manager" )
   private String connectionManager;
-  @CommandLineArgument(name = DRIVER)
+  @CommandLineArgument( name = DRIVER )
   private String driver;
-  @CommandLineArgument(name = USERNAME)
+  @CommandLineArgument( name = USERNAME )
   private String username;
-  @CommandLineArgument(name = PASSWORD)
+  @CommandLineArgument( name = PASSWORD )
   @Password
   private String password;
-  @CommandLineArgument(name = VERBOSE, flag = true)
+  @CommandLineArgument( name = VERBOSE, flag = true )
   private String verbose;
-  @CommandLineArgument(name = "connection-param-file")
+  @CommandLineArgument( name = "connection-param-file" )
   private String connectionParamFile;
-  @CommandLineArgument(name = "hadoop-home")
+  @CommandLineArgument( name = "hadoop-home" )
   private String hadoopHome;
   // Output line formatting arguments
-  @CommandLineArgument(name = "enclosed-by")
+  @CommandLineArgument( name = "enclosed-by" )
   private String enclosedBy;
 
-  @CommandLineArgument(name = "escaped-by")
+  @CommandLineArgument( name = "escaped-by" )
   private String escapedBy;
-  @CommandLineArgument(name = "fields-terminated-by")
+  @CommandLineArgument( name = "fields-terminated-by" )
   private String fieldsTerminatedBy;
-  @CommandLineArgument(name = "lines-terminated-by")
+  @CommandLineArgument( name = "lines-terminated-by" )
   private String linesTerminatedBy;
-  @CommandLineArgument(name = "optionally-enclosed-by")
+  @CommandLineArgument( name = "optionally-enclosed-by" )
   private String optionallyEnclosedBy;
-  @CommandLineArgument(name = "mysql-delimiters", flag = true)
+  @CommandLineArgument( name = "mysql-delimiters", flag = true )
   private String mysqlDelimiters;
   // Input parsing arguments
-  @CommandLineArgument(name = "input-enclosed-by")
+  @CommandLineArgument( name = "input-enclosed-by" )
   private String inputEnclosedBy;
 
-  @CommandLineArgument(name = "input-escaped-by")
+  @CommandLineArgument( name = "input-escaped-by" )
   private String inputEscapedBy;
-  @CommandLineArgument(name = "input-fields-terminated-by")
+  @CommandLineArgument( name = "input-fields-terminated-by" )
   private String inputFieldsTerminatedBy;
-  @CommandLineArgument(name = "input-lines-terminated-by")
+  @CommandLineArgument( name = "input-lines-terminated-by" )
   private String inputLinesTerminatedBy;
-  @CommandLineArgument(name = "input-optionally-enclosed-by")
+  @CommandLineArgument( name = "input-optionally-enclosed-by" )
   private String inputOptionallyEnclosedBy;
   // Code generation arguments
-  @CommandLineArgument(name = "bindir")
+  @CommandLineArgument( name = "bindir" )
   private String binDir;
 
-  @CommandLineArgument(name = "class-name")
+  @CommandLineArgument( name = "class-name" )
   private String className;
-  @CommandLineArgument(name = "jar-file")
+  @CommandLineArgument( name = "jar-file" )
   private String jarFile;
-  @CommandLineArgument(name = OUTDIR)
+  @CommandLineArgument( name = OUTDIR )
   private String outdir;
-  @CommandLineArgument(name = "package-name")
+  @CommandLineArgument( name = "package-name" )
   private String packageName;
-  @CommandLineArgument(name = "map-column-java")
+  @CommandLineArgument( name = "map-column-java" )
   private String mapColumnJava;
 
   // Shared Input/Export options
-  @CommandLineArgument(name = TABLE)
+  @CommandLineArgument( name = TABLE )
   private String table;
-  @CommandLineArgument(name = "num-mappers")
+  @CommandLineArgument( name = "num-mappers" )
   private String numMappers;
   private String commandLine;
 
@@ -168,23 +172,27 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   public AbstractModelList<ArgumentWrapper> getAdvancedArgumentsList() {
     final AbstractModelList<ArgumentWrapper> items = new AbstractModelList<ArgumentWrapper>();
 
-    items.addAll(SqoopUtils.findAllArguments(this));
+    items.addAll( SqoopUtils.findAllArguments( this ) );
 
     try {
-      items.add(new ArgumentWrapper(NAMENODE_HOST, BaseMessages.getString(getClass(), "NamenodeHost.Label"), false, this,
-        getClass().getMethod("getNamenodeHost"), getClass().getMethod("setNamenodeHost", String.class)));
-      items.add(new ArgumentWrapper(NAMENODE_PORT, BaseMessages.getString(getClass(), "NamenodePort.Label"), false, this,
-        getClass().getMethod("getNamenodePort"), getClass().getMethod("setNamenodePort", String.class)));
-      items.add(new ArgumentWrapper(JOBTRACKER_HOST, BaseMessages.getString(getClass(), "JobtrackerHost.Label"), false, this,
-        getClass().getMethod("getJobtrackerHost"), getClass().getMethod("setJobtrackerHost", String.class)));
-      items.add(new ArgumentWrapper(JOBTRACKER_PORT, BaseMessages.getString(getClass(), "JobtrackerPort.Label"), false, this,
-        getClass().getMethod("getJobtrackerPort"), getClass().getMethod("setJobtrackerPort", String.class)));
-      items.add(new ArgumentWrapper(BLOCKING_EXECUTION, BaseMessages.getString(getClass(), "BlockingExecution.Label"), false, this,
-        getClass().getMethod("getBlockingExecution"), getClass().getMethod("setBlockingExecution", String.class)));
-      items.add(new ArgumentWrapper(BLOCKING_POLLING_INTERVAL, BaseMessages.getString(getClass(), "BlockingPollingInterval.Label"), false, this,
-        getClass().getMethod("getBlockingPollingInterval"), getClass().getMethod("setBlockingPollingInterval", String.class)));
-    } catch (NoSuchMethodException ex) {
-      throw new RuntimeException(ex);
+      items.add( new ArgumentWrapper( NAMENODE_HOST, BaseMessages.getString( getClass(), "NamenodeHost.Label" ), false,
+          this, getClass().getMethod( "getNamenodeHost" ), getClass().getMethod( "setNamenodeHost", String.class ) ) );
+      items.add( new ArgumentWrapper( NAMENODE_PORT, BaseMessages.getString( getClass(), "NamenodePort.Label" ), false,
+          this, getClass().getMethod( "getNamenodePort" ), getClass().getMethod( "setNamenodePort", String.class ) ) );
+      items.add( new ArgumentWrapper( JOBTRACKER_HOST, BaseMessages.getString( getClass(), "JobtrackerHost.Label" ),
+          false, this, getClass().getMethod( "getJobtrackerHost" ), getClass().getMethod( "setJobtrackerHost",
+              String.class ) ) );
+      items.add( new ArgumentWrapper( JOBTRACKER_PORT, BaseMessages.getString( getClass(), "JobtrackerPort.Label" ),
+          false, this, getClass().getMethod( "getJobtrackerPort" ), getClass().getMethod( "setJobtrackerPort",
+              String.class ) ) );
+      items.add( new ArgumentWrapper( BLOCKING_EXECUTION, BaseMessages
+          .getString( getClass(), "BlockingExecution.Label" ), false, this, getClass().getMethod(
+            "getBlockingExecution" ), getClass().getMethod( "setBlockingExecution", String.class ) ) );
+      items.add( new ArgumentWrapper( BLOCKING_POLLING_INTERVAL, BaseMessages.getString( getClass(),
+          "BlockingPollingInterval.Label" ), false, this, getClass().getMethod( "getBlockingPollingInterval" ),
+          getClass().getMethod( "setBlockingPollingInterval", String.class ) ) );
+    } catch ( NoSuchMethodException ex ) {
+      throw new RuntimeException( ex );
     }
 
     return items;
@@ -197,13 +205,17 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * Silently set the following properties: {@code database, connect, username, password}.
-   *
-   * @param database Database name
-   * @param connect Connection string (JDBC connection URL)
-   * @param username Username
-   * @param password Password
+   * 
+   * @param database
+   *          Database name
+   * @param connect
+   *          Connection string (JDBC connection URL)
+   * @param username
+   *          Username
+   * @param password
+   *          Password
    */
-  public void setConnectionInfo(String database, String connect, String username, String password) {
+  public void setConnectionInfo( String database, String connect, String username, String password ) {
     this.database = database;
     this.connect = connect;
     this.username = username;
@@ -221,13 +233,13 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   /**
-   * Copy the current connection information into the "advanced" fields. These are temporary session properties
-   * used to aid the user during configuration via UI.
+   * Copy the current connection information into the "advanced" fields. These are temporary session properties used to
+   * aid the user during configuration via UI.
    */
   public void copyConnectionInfoToAdvanced() {
-    setConnectFromAdvanced(getConnect());
-    setUsernameFromAdvanced(getUsername());
-    setPasswordFromAdvanced(getPassword());
+    setConnectFromAdvanced( getConnect() );
+    setUsernameFromAdvanced( getUsername() );
+    setPasswordFromAdvanced( getPassword() );
   }
 
   // All getters/setters below this line
@@ -236,97 +248,97 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     return namenodeHost;
   }
 
-  public void setNamenodeHost(String namenodeHost) {
+  public void setNamenodeHost( String namenodeHost ) {
     String old = this.namenodeHost;
     this.namenodeHost = namenodeHost;
-    pcs.firePropertyChange(NAMENODE_HOST, old, this.namenodeHost);
+    pcs.firePropertyChange( NAMENODE_HOST, old, this.namenodeHost );
   }
 
   public String getNamenodePort() {
     return namenodePort;
   }
 
-  public void setNamenodePort(String namenodePort) {
+  public void setNamenodePort( String namenodePort ) {
     String old = this.namenodePort;
     this.namenodePort = namenodePort;
-    pcs.firePropertyChange(NAMENODE_PORT, old, this.namenodePort);
+    pcs.firePropertyChange( NAMENODE_PORT, old, this.namenodePort );
   }
 
   public String getJobtrackerHost() {
     return jobtrackerHost;
   }
 
-  public void setJobtrackerHost(String jobtrackerHost) {
+  public void setJobtrackerHost( String jobtrackerHost ) {
     String old = this.jobtrackerHost;
     this.jobtrackerHost = jobtrackerHost;
-    pcs.firePropertyChange(JOBTRACKER_HOST, old, this.jobtrackerHost);
+    pcs.firePropertyChange( JOBTRACKER_HOST, old, this.jobtrackerHost );
   }
 
   public String getJobtrackerPort() {
     return jobtrackerPort;
   }
 
-  public void setJobtrackerPort(String jobtrackerPort) {
+  public void setJobtrackerPort( String jobtrackerPort ) {
     String old = this.jobtrackerPort;
     this.jobtrackerPort = jobtrackerPort;
-    pcs.firePropertyChange(JOBTRACKER_PORT, old, this.jobtrackerPort);
+    pcs.firePropertyChange( JOBTRACKER_PORT, old, this.jobtrackerPort );
   }
 
   public String getDatabase() {
     return database;
   }
 
-  public void setDatabase(String database) {
+  public void setDatabase( String database ) {
     String old = this.database;
     this.database = database;
-    pcs.firePropertyChange(DATABASE, old, this.database);
+    pcs.firePropertyChange( DATABASE, old, this.database );
   }
 
   public String getSchema() {
     return schema;
   }
 
-  public void setSchema(String schema) {
+  public void setSchema( String schema ) {
     String old = this.schema;
     this.schema = schema;
-    pcs.firePropertyChange(SCHEMA, old, this.schema);
+    pcs.firePropertyChange( SCHEMA, old, this.schema );
   }
 
   public String getConnect() {
     return connect;
   }
 
-  public void setConnect(String connect) {
+  public void setConnect( String connect ) {
     String old = this.connect;
     this.connect = connect;
-    pcs.firePropertyChange(CONNECT, old, this.connect);
+    pcs.firePropertyChange( CONNECT, old, this.connect );
   }
 
   public String getUsername() {
     return username;
   }
 
-  public void setUsername(String username) {
+  public void setUsername( String username ) {
     String old = this.username;
     this.username = username;
-    pcs.firePropertyChange(USERNAME, old, this.username);
+    pcs.firePropertyChange( USERNAME, old, this.username );
   }
 
   public String getPassword() {
     return password;
   }
 
-  public void setPassword(String password) {
+  public void setPassword( String password ) {
     String old = this.password;
     this.password = password;
-    pcs.firePropertyChange(PASSWORD, old, this.password);
+    pcs.firePropertyChange( PASSWORD, old, this.password );
   }
 
   public String getConnectFromAdvanced() {
     return connectFromAdvanced;
   }
 
-  public void setConnectFromAdvanced(String connectFromAdvanced) {
+  public void setConnectFromAdvanced( String connectFromAdvanced ) {
     this.connectFromAdvanced = connectFromAdvanced;
   }
 
@@ -334,7 +346,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     return usernameFromAdvanced;
   }
 
-  public void setUsernameFromAdvanced(String usernameFromAdvanced) {
+  public void setUsernameFromAdvanced( String usernameFromAdvanced ) {
     this.usernameFromAdvanced = usernameFromAdvanced;
   }
 
@@ -342,7 +354,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     return passwordFromAdvanced;
   }
 
-  public void setPasswordFromAdvanced(String passwordFromAdvanced) {
+  public void setPasswordFromAdvanced( String passwordFromAdvanced ) {
     this.passwordFromAdvanced = passwordFromAdvanced;
   }
 
@@ -350,250 +362,250 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     return connectionManager;
   }
 
-  public void setConnectionManager(String connectionManager) {
+  public void setConnectionManager( String connectionManager ) {
     String old = this.connectionManager;
     this.connectionManager = connectionManager;
-    pcs.firePropertyChange(CONNECTION_MANAGER, old, this.connectionManager);
+    pcs.firePropertyChange( CONNECTION_MANAGER, old, this.connectionManager );
   }
 
   public String getDriver() {
     return driver;
   }
 
-  public void setDriver(String driver) {
+  public void setDriver( String driver ) {
     String old = this.driver;
     this.driver = driver;
-    pcs.firePropertyChange(DRIVER, old, this.driver);
+    pcs.firePropertyChange( DRIVER, old, this.driver );
   }
 
   public String getVerbose() {
     return verbose;
   }
 
-  public void setVerbose(String verbose) {
+  public void setVerbose( String verbose ) {
     String old = this.verbose;
     this.verbose = verbose;
-    pcs.firePropertyChange(VERBOSE, old, this.verbose);
+    pcs.firePropertyChange( VERBOSE, old, this.verbose );
   }
 
   public String getConnectionParamFile() {
     return connectionParamFile;
   }
 
-  public void setConnectionParamFile(String connectionParamFile) {
+  public void setConnectionParamFile( String connectionParamFile ) {
     String old = this.connectionParamFile;
     this.connectionParamFile = connectionParamFile;
-    pcs.firePropertyChange(CONNECTION_PARAM_FILE, old, this.connectionParamFile);
+    pcs.firePropertyChange( CONNECTION_PARAM_FILE, old, this.connectionParamFile );
   }
 
   public String getHadoopHome() {
     return hadoopHome;
   }
 
-  public void setHadoopHome(String hadoopHome) {
+  public void setHadoopHome( String hadoopHome ) {
     String old = this.hadoopHome;
     this.hadoopHome = hadoopHome;
-    pcs.firePropertyChange(HADOOP_HOME, old, this.hadoopHome);
+    pcs.firePropertyChange( HADOOP_HOME, old, this.hadoopHome );
   }
 
   public String getEnclosedBy() {
     return enclosedBy;
   }
 
-  public void setEnclosedBy(String enclosedBy) {
+  public void setEnclosedBy( String enclosedBy ) {
     String old = this.enclosedBy;
     this.enclosedBy = enclosedBy;
-    pcs.firePropertyChange(ENCLOSED_BY, old, this.enclosedBy);
+    pcs.firePropertyChange( ENCLOSED_BY, old, this.enclosedBy );
   }
 
   public String getEscapedBy() {
     return escapedBy;
   }
 
-  public void setEscapedBy(String escapedBy) {
+  public void setEscapedBy( String escapedBy ) {
     String old = this.escapedBy;
     this.escapedBy = escapedBy;
-    pcs.firePropertyChange(ESCAPED_BY, old, this.escapedBy);
+    pcs.firePropertyChange( ESCAPED_BY, old, this.escapedBy );
   }
 
   public String getFieldsTerminatedBy() {
     return fieldsTerminatedBy;
   }
 
-  public void setFieldsTerminatedBy(String fieldsTerminatedBy) {
+  public void setFieldsTerminatedBy( String fieldsTerminatedBy ) {
     String old = this.fieldsTerminatedBy;
     this.fieldsTerminatedBy = fieldsTerminatedBy;
-    pcs.firePropertyChange(FIELDS_TERMINATED_BY, old, this.fieldsTerminatedBy);
+    pcs.firePropertyChange( FIELDS_TERMINATED_BY, old, this.fieldsTerminatedBy );
   }
 
   public String getLinesTerminatedBy() {
     return linesTerminatedBy;
   }
 
-  public void setLinesTerminatedBy(String linesTerminatedBy) {
+  public void setLinesTerminatedBy( String linesTerminatedBy ) {
     String old = this.linesTerminatedBy;
     this.linesTerminatedBy = linesTerminatedBy;
-    pcs.firePropertyChange(LINES_TERMINATED_BY, old, this.linesTerminatedBy);
+    pcs.firePropertyChange( LINES_TERMINATED_BY, old, this.linesTerminatedBy );
   }
 
   public String getOptionallyEnclosedBy() {
     return optionallyEnclosedBy;
   }
 
-  public void setOptionallyEnclosedBy(String optionallyEnclosedBy) {
+  public void setOptionallyEnclosedBy( String optionallyEnclosedBy ) {
     String old = this.optionallyEnclosedBy;
     this.optionallyEnclosedBy = optionallyEnclosedBy;
-    pcs.firePropertyChange(OPTIONALLY_ENCLOSED_BY, old, this.optionallyEnclosedBy);
+    pcs.firePropertyChange( OPTIONALLY_ENCLOSED_BY, old, this.optionallyEnclosedBy );
   }
 
   public String getMysqlDelimiters() {
     return mysqlDelimiters;
   }
 
-  public void setMysqlDelimiters(String mysqlDelimiters) {
+  public void setMysqlDelimiters( String mysqlDelimiters ) {
     String old = this.mysqlDelimiters;
     this.mysqlDelimiters = mysqlDelimiters;
-    pcs.firePropertyChange(MYSQL_DELIMITERS, old, this.mysqlDelimiters);
+    pcs.firePropertyChange( MYSQL_DELIMITERS, old, this.mysqlDelimiters );
   }
 
   public String getInputEnclosedBy() {
     return inputEnclosedBy;
   }
 
-  public void setInputEnclosedBy(String inputEnclosedBy) {
+  public void setInputEnclosedBy( String inputEnclosedBy ) {
     String old = this.inputEnclosedBy;
     this.inputEnclosedBy = inputEnclosedBy;
-    pcs.firePropertyChange(INPUT_ENCLOSED_BY, old, this.inputEnclosedBy);
+    pcs.firePropertyChange( INPUT_ENCLOSED_BY, old, this.inputEnclosedBy );
   }
 
   public String getInputEscapedBy() {
     return inputEscapedBy;
   }
 
-  public void setInputEscapedBy(String inputEscapedBy) {
+  public void setInputEscapedBy( String inputEscapedBy ) {
     String old = this.inputEscapedBy;
     this.inputEscapedBy = inputEscapedBy;
-    pcs.firePropertyChange(INPUT_ESCAPED_BY, old, this.inputEscapedBy);
+    pcs.firePropertyChange( INPUT_ESCAPED_BY, old, this.inputEscapedBy );
   }
 
   public String getInputFieldsTerminatedBy() {
     return inputFieldsTerminatedBy;
   }
 
-  public void setInputFieldsTerminatedBy(String inputFieldsTerminatedBy) {
+  public void setInputFieldsTerminatedBy( String inputFieldsTerminatedBy ) {
     String old = this.inputFieldsTerminatedBy;
     this.inputFieldsTerminatedBy = inputFieldsTerminatedBy;
-    pcs.firePropertyChange(INPUT_FIELDS_TERMINATED_BY, old, this.inputFieldsTerminatedBy);
+    pcs.firePropertyChange( INPUT_FIELDS_TERMINATED_BY, old, this.inputFieldsTerminatedBy );
   }
 
   public String getInputLinesTerminatedBy() {
     return inputLinesTerminatedBy;
   }
 
-  public void setInputLinesTerminatedBy(String inputLinesTerminatedBy) {
+  public void setInputLinesTerminatedBy( String inputLinesTerminatedBy ) {
     String old = this.inputLinesTerminatedBy;
     this.inputLinesTerminatedBy = inputLinesTerminatedBy;
-    pcs.firePropertyChange(INPUT_LINES_TERMINATED_BY, old, this.inputLinesTerminatedBy);
+    pcs.firePropertyChange( INPUT_LINES_TERMINATED_BY, old, this.inputLinesTerminatedBy );
   }
 
   public String getInputOptionallyEnclosedBy() {
     return inputOptionallyEnclosedBy;
   }
 
-  public void setInputOptionallyEnclosedBy(String inputOptionallyEnclosedBy) {
+  public void setInputOptionallyEnclosedBy( String inputOptionallyEnclosedBy ) {
     String old = this.inputOptionallyEnclosedBy;
     this.inputOptionallyEnclosedBy = inputOptionallyEnclosedBy;
-    pcs.firePropertyChange(INPUT_OPTIONALLY_ENCLOSED_BY, old, this.inputOptionallyEnclosedBy);
+    pcs.firePropertyChange( INPUT_OPTIONALLY_ENCLOSED_BY, old, this.inputOptionallyEnclosedBy );
   }
 
   public String getBinDir() {
     return binDir;
   }
 
-  public void setBinDir(String binDir) {
+  public void setBinDir( String binDir ) {
     String old = this.binDir;
     this.binDir = binDir;
-    pcs.firePropertyChange(BIN_DIR, old, this.binDir);
+    pcs.firePropertyChange( BIN_DIR, old, this.binDir );
   }
 
   public String getClassName() {
     return className;
   }
 
-  public void setClassName(String className) {
+  public void setClassName( String className ) {
     String old = this.className;
     this.className = className;
-    pcs.firePropertyChange(CLASS_NAME, old, this.className);
+    pcs.firePropertyChange( CLASS_NAME, old, this.className );
   }
 
   public String getJarFile() {
     return jarFile;
   }
 
-  public void setJarFile(String jarFile) {
+  public void setJarFile( String jarFile ) {
     String old = this.jarFile;
     this.jarFile = jarFile;
-    pcs.firePropertyChange(JAR_FILE, old, this.jarFile);
+    pcs.firePropertyChange( JAR_FILE, old, this.jarFile );
   }
 
   public String getOutdir() {
     return outdir;
   }
 
-  public void setOutdir(String outdir) {
+  public void setOutdir( String outdir ) {
     String old = this.outdir;
     this.outdir = outdir;
-    pcs.firePropertyChange(OUTDIR, old, this.outdir);
+    pcs.firePropertyChange( OUTDIR, old, this.outdir );
   }
 
   public String getPackageName() {
     return packageName;
   }
 
-  public void setPackageName(String packageName) {
+  public void setPackageName( String packageName ) {
     String old = this.packageName;
     this.packageName = packageName;
-    pcs.firePropertyChange(PACKAGE_NAME, old, this.packageName);
+    pcs.firePropertyChange( PACKAGE_NAME, old, this.packageName );
   }
 
   public String getMapColumnJava() {
     return mapColumnJava;
   }
 
-  public void setMapColumnJava(String mapColumnJava) {
+  public void setMapColumnJava( String mapColumnJava ) {
     String old = this.mapColumnJava;
     this.mapColumnJava = mapColumnJava;
-    pcs.firePropertyChange(MAP_COLUMN_JAVA, old, this.mapColumnJava);
+    pcs.firePropertyChange( MAP_COLUMN_JAVA, old, this.mapColumnJava );
   }
 
   public String getTable() {
     return table;
   }
 
-  public void setTable(String table) {
+  public void setTable( String table ) {
     String old = this.table;
     this.table = table;
-    pcs.firePropertyChange(TABLE, old, this.table);
+    pcs.firePropertyChange( TABLE, old, this.table );
   }
 
   public String getNumMappers() {
     return numMappers;
   }
 
-  public void setNumMappers(String numMappers) {
+  public void setNumMappers( String numMappers ) {
     String old = this.numMappers;
     this.numMappers = numMappers;
-    pcs.firePropertyChange(NUM_MAPPERS, old, this.numMappers);
+    pcs.firePropertyChange( NUM_MAPPERS, old, this.numMappers );
   }
 
   public String getCommandLine() {
     return commandLine;
   }
 
-  public void setCommandLine(String commandLine) {
+  public void setCommandLine( String commandLine ) {
     String old = this.commandLine;
     this.commandLine = commandLine;
-    pcs.firePropertyChange(COMMAND_LINE, old, this.commandLine);
+    pcs.firePropertyChange( COMMAND_LINE, old, this.commandLine );
   }
 
   public String getMode() {
@@ -602,8 +614,8 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   public JobEntryMode getModeAsEnum() {
     try {
-      return JobEntryMode.valueOf(getMode());
-    } catch (Exception ex) {
+      return JobEntryMode.valueOf( getMode() );
+    } catch ( Exception ex ) {
       // Not a valid ui mode, return the default
       return JobEntryMode.QUICK_SETUP;
     }
@@ -611,15 +623,16 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * Sets the mode based on the enum value
+   * 
    * @param mode
    */
-  public void setMode(JobEntryMode mode) {
-    setMode(mode.name());
+  public void setMode( JobEntryMode mode ) {
+    setMode( mode.name() );
   }
 
-  public void setMode(String mode) {
+  public void setMode( String mode ) {
     String old = this.mode;
     this.mode = mode;
-    pcs.firePropertyChange(MODE, old, this.mode);
+    pcs.firePropertyChange( MODE, old, this.mode );
   }
 }

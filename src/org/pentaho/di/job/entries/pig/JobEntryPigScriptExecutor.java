@@ -59,44 +59,44 @@ import org.pentaho.hadoop.shim.spi.PigShim.ExecutionMode;
 import org.w3c.dom.Node;
 
 /**
- * Job entry that executes a Pig script either on a hadoop cluster or
- * locally.
+ * Job entry that executes a Pig script either on a hadoop cluster or locally.
  * 
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-@JobEntry(id = "HadoopPigScriptExecutorPlugin", image = "HDE.png",
-  name = "HadoopPigScriptExecutorPlugin.Name", description = "HadoopPigScriptExecutorPlugin.Description", 
-  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  i18nPackageName="org.pentaho.di.job.entries.pig")
+@JobEntry( id = "HadoopPigScriptExecutorPlugin", image = "HDE.png", name = "HadoopPigScriptExecutorPlugin.Name",
+    description = "HadoopPigScriptExecutorPlugin.Description",
+    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+    i18nPackageName = "org.pentaho.di.job.entries.pig" )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
-  
-  private static Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
-  
+
+  private static Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
+                                                                 // $NON-NLS-1$
+
   /** Hostname of the job tracker */
   protected String m_jobTrackerHostname = "";
-  
+
   /** Port that the job tracker is listening on */
   protected String m_jobTrackerPort = "";
-  
+
   /** Name node hostname */
   protected String m_hdfsHostname = "";
-  
+
   /** Port that the name node is listening on */
   protected String m_hdfsPort = "";
-  
+
   /** URL to the pig script to execute */
   protected String m_scriptFile = "";
-  
+
   /** True if the job entry should block until the script has executed */
   protected boolean m_enableBlocking;
-  
+
   /** True if the script should execute locally, rather than on a hadoop cluster */
   protected boolean m_localExecution;
 
   /** Parameters for the script */
   protected HashMap<String, String> m_params = new HashMap<String, String>();
-  
+
   /**
    * An extended PrintWriter that sends output to Kettle's logging
    * 
@@ -104,170 +104,182 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    */
   class KettleLoggingPrintWriter extends PrintWriter {
     public KettleLoggingPrintWriter() {
-      super(System.out);
+      super( System.out );
     }
 
     @Override
-    public void println(String string) {
-      logBasic(string);
+    public void println( String string ) {
+      logBasic( string );
     }
 
     @Override
-    public void println(Object obj) {
-      println(obj.toString());
+    public void println( Object obj ) {
+      println( obj.toString() );
     }
 
     @Override
-    public void write(String string) {
-      println(string);
+    public void write( String string ) {
+      println( string );
     }
 
     @Override
-    public void print(String string) {
-      println(string);
+    public void print( String string ) {
+      println( string );
     }
 
     @Override
-    public void print(Object obj) {
-      print(obj.toString());
+    public void print( Object obj ) {
+      print( obj.toString() );
     }
 
     @Override
     public void close() {
       flush();
     }
-  }  
-  
-  /* (non-Javadoc)
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see org.pentaho.di.job.entry.JobEntryBase#getXML()
    */
   public String getXML() {
     StringBuffer retval = new StringBuffer();
-    retval.append(super.getXML());
-    retval.append("    ").append(XMLHandler.addTagValue("hdfs_hostname", m_hdfsHostname));
-    retval.append("    ").append(XMLHandler.addTagValue("hdfs_port", m_hdfsPort));
-    retval.append("    ").append(XMLHandler.addTagValue("jobtracker_hostname", m_jobTrackerHostname));
-    retval.append("    ").append(XMLHandler.addTagValue("jobtracker_port", m_jobTrackerPort));
-    retval.append("    ").append(XMLHandler.addTagValue("script_file", m_scriptFile));
-    retval.append("    ").append(XMLHandler.addTagValue("enable_blocking", m_enableBlocking));
-    retval.append("    ").append(XMLHandler.addTagValue("local_execution", m_localExecution));
-    
-    retval.append("    <script_parameters>").append(Const.CR);
-    if (m_params != null) {
-      for (String name : m_params.keySet()) {
-        String value = m_params.get(name);
-        if (!Const.isEmpty(name) && !Const.isEmpty(value)) {
-          retval.append("      <parameter>").append(Const.CR);
-          retval.append("        ").append(XMLHandler.addTagValue("name", name));
-          retval.append("        ").append(XMLHandler.addTagValue("value", value));
-          retval.append("      </parameter>").append(Const.CR);
+    retval.append( super.getXML() );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "hdfs_hostname", m_hdfsHostname ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "hdfs_port", m_hdfsPort ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "jobtracker_hostname", m_jobTrackerHostname ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "jobtracker_port", m_jobTrackerPort ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "script_file", m_scriptFile ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "enable_blocking", m_enableBlocking ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "local_execution", m_localExecution ) );
+
+    retval.append( "    <script_parameters>" ).append( Const.CR );
+    if ( m_params != null ) {
+      for ( String name : m_params.keySet() ) {
+        String value = m_params.get( name );
+        if ( !Const.isEmpty( name ) && !Const.isEmpty( value ) ) {
+          retval.append( "      <parameter>" ).append( Const.CR );
+          retval.append( "        " ).append( XMLHandler.addTagValue( "name", name ) );
+          retval.append( "        " ).append( XMLHandler.addTagValue( "value", value ) );
+          retval.append( "      </parameter>" ).append( Const.CR );
         }
       }
     }
-    retval.append("    </script_parameters>").append(Const.CR);
-    
+    retval.append( "    </script_parameters>" ).append( Const.CR );
+
     return retval.toString();
   }
-  
-  /* (non-Javadoc)
-   * @see org.pentaho.di.job.entry.JobEntryInterface#loadXML(org.w3c.dom.Node, java.util.List, java.util.List, org.pentaho.di.repository.Repository)
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.pentaho.di.job.entry.JobEntryInterface#loadXML(org.w3c.dom.Node, java.util.List, java.util.List,
+   * org.pentaho.di.repository.Repository)
    */
-  public void loadXML(Node entrynode, List<DatabaseMeta> databases,
-      List<SlaveServer> slaveServers, Repository repository) throws KettleXMLException {
-    super.loadXML(entrynode, databases, slaveServers);
-    
-    m_hdfsHostname = XMLHandler.getTagValue(entrynode, "hdfs_hostname");
-    m_hdfsPort = XMLHandler.getTagValue(entrynode, "hdfs_port");
-    m_jobTrackerHostname = XMLHandler.getTagValue(entrynode, "jobtracker_hostname");
-    m_jobTrackerPort = XMLHandler.getTagValue(entrynode, "jobtracker_port");
-    m_scriptFile = XMLHandler.getTagValue(entrynode, "script_file");
-    m_enableBlocking = XMLHandler.getTagValue(entrynode, "enable_blocking").equalsIgnoreCase("Y");
-    m_localExecution = XMLHandler.getTagValue(entrynode, "local_execution").equalsIgnoreCase("Y");    
-    
+  public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers,
+      Repository repository ) throws KettleXMLException {
+    super.loadXML( entrynode, databases, slaveServers );
+
+    m_hdfsHostname = XMLHandler.getTagValue( entrynode, "hdfs_hostname" );
+    m_hdfsPort = XMLHandler.getTagValue( entrynode, "hdfs_port" );
+    m_jobTrackerHostname = XMLHandler.getTagValue( entrynode, "jobtracker_hostname" );
+    m_jobTrackerPort = XMLHandler.getTagValue( entrynode, "jobtracker_port" );
+    m_scriptFile = XMLHandler.getTagValue( entrynode, "script_file" );
+    m_enableBlocking = XMLHandler.getTagValue( entrynode, "enable_blocking" ).equalsIgnoreCase( "Y" );
+    m_localExecution = XMLHandler.getTagValue( entrynode, "local_execution" ).equalsIgnoreCase( "Y" );
+
     // Script parameters
     m_params = new HashMap<String, String>();
-    Node paramList = XMLHandler.getSubNode(entrynode, "script_parameters");
-    if (paramList != null) {
-      int numParams = XMLHandler.countNodes(paramList, "parameter");
-      for (int i = 0; i < numParams; i++) {
-        Node paramNode = XMLHandler.getSubNodeByNr(paramList, "parameter", i);
-        String name = XMLHandler.getTagValue(paramNode, "name");
-        String value = XMLHandler.getTagValue(paramNode, "value");
-        m_params.put(name, value);
+    Node paramList = XMLHandler.getSubNode( entrynode, "script_parameters" );
+    if ( paramList != null ) {
+      int numParams = XMLHandler.countNodes( paramList, "parameter" );
+      for ( int i = 0; i < numParams; i++ ) {
+        Node paramNode = XMLHandler.getSubNodeByNr( paramList, "parameter", i );
+        String name = XMLHandler.getTagValue( paramNode, "name" );
+        String value = XMLHandler.getTagValue( paramNode, "value" );
+        m_params.put( name, value );
       }
     }
   }
-  
-  /* (non-Javadoc)
-   * @see org.pentaho.di.job.entry.JobEntryBase#loadRep(org.pentaho.di.repository.Repository, org.pentaho.di.repository.ObjectId, java.util.List, java.util.List)
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.pentaho.di.job.entry.JobEntryBase#loadRep(org.pentaho.di.repository.Repository,
+   * org.pentaho.di.repository.ObjectId, java.util.List, java.util.List)
    */
-  public void loadRep(Repository rep, ObjectId id_jobentry, 
-      List<DatabaseMeta> databases, List<SlaveServer> slaveServers) 
-    throws KettleException {
-    if (rep != null) {
-      super.loadRep(rep, id_jobentry, databases, slaveServers);
-      
-      setHDFSHostname(rep.getJobEntryAttributeString(id_jobentry, "hdfs_hostname"));
-      setHDFSPort(rep.getJobEntryAttributeString(id_jobentry, "hdfs_port"));
-      setJobTrackerHostname(rep.getJobEntryAttributeString(id_jobentry, "jobtracker_hostname"));
-      setJobTrackerPort(rep.getJobEntryAttributeString(id_jobentry, "jobtracker_port"));
-      setScriptFilename(rep.getJobEntryAttributeString(id_jobentry, "script_file"));
-      setEnableBlocking(rep.getJobEntryAttributeBoolean(id_jobentry, "enable_blocking"));
-      setLocalExecution(rep.getJobEntryAttributeBoolean(id_jobentry, "local_execution"));
-      
+  public void loadRep( Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases,
+      List<SlaveServer> slaveServers ) throws KettleException {
+    if ( rep != null ) {
+      super.loadRep( rep, id_jobentry, databases, slaveServers );
+
+      setHDFSHostname( rep.getJobEntryAttributeString( id_jobentry, "hdfs_hostname" ) );
+      setHDFSPort( rep.getJobEntryAttributeString( id_jobentry, "hdfs_port" ) );
+      setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "jobtracker_hostname" ) );
+      setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "jobtracker_port" ) );
+      setScriptFilename( rep.getJobEntryAttributeString( id_jobentry, "script_file" ) );
+      setEnableBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "enable_blocking" ) );
+      setLocalExecution( rep.getJobEntryAttributeBoolean( id_jobentry, "local_execution" ) );
+
       // Script parameters
       m_params = new HashMap<String, String>();
-      int numParams = rep.countNrJobEntryAttributes(id_jobentry, "param_name");
-      if (numParams > 0) {
-        for (int i = 0; i < numParams; i++) {
-          String name = rep.getJobEntryAttributeString(id_jobentry, i, "param_name");
-          String value = rep.getJobEntryAttributeString(id_jobentry, i, "param_value");
-          m_params.put(name, value);
+      int numParams = rep.countNrJobEntryAttributes( id_jobentry, "param_name" );
+      if ( numParams > 0 ) {
+        for ( int i = 0; i < numParams; i++ ) {
+          String name = rep.getJobEntryAttributeString( id_jobentry, i, "param_name" );
+          String value = rep.getJobEntryAttributeString( id_jobentry, i, "param_value" );
+          m_params.put( name, value );
         }
       }
     } else {
-      throw new KettleException("Unable to load from a repository. The repository is null.");
+      throw new KettleException( "Unable to load from a repository. The repository is null." );
     }
   }
-  
-  /* (non-Javadoc)
-   * @see org.pentaho.di.job.entry.JobEntryBase#saveRep(org.pentaho.di.repository.Repository, org.pentaho.di.repository.ObjectId)
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.pentaho.di.job.entry.JobEntryBase#saveRep(org.pentaho.di.repository.Repository,
+   * org.pentaho.di.repository.ObjectId)
    */
-  public void saveRep(Repository rep, ObjectId id_job) throws KettleException {
-    if (rep != null) {
-      super.saveRep(rep, id_job);
-      
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "hdfs_hostname", m_hdfsHostname);
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "hdfs_port", m_hdfsPort);
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "jobtracker_hostname", m_jobTrackerHostname);
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "jobtracker_port", m_jobTrackerPort);
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "script_file", m_scriptFile);
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "enable_blocking", m_enableBlocking);
-      rep.saveJobEntryAttribute(id_job, getObjectId(), "local_execution", m_localExecution);
-      
-      if (m_params != null) {
+  public void saveRep( Repository rep, ObjectId id_job ) throws KettleException {
+    if ( rep != null ) {
+      super.saveRep( rep, id_job );
+
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", m_hdfsHostname );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", m_hdfsPort );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "jobtracker_hostname", m_jobTrackerHostname );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "jobtracker_port", m_jobTrackerPort );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "script_file", m_scriptFile );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "enable_blocking", m_enableBlocking );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "local_execution", m_localExecution );
+
+      if ( m_params != null ) {
         int i = 0;
-        for (String name : m_params.keySet()) {
-          String value = m_params.get(name);
-          if (!Const.isEmpty(name) && !Const.isEmpty(value)) {
-            rep.saveJobEntryAttribute(id_job, getObjectId(), i, "param_name", name);
-            rep.saveJobEntryAttribute(id_job, getObjectId(), i, "param_value", value);
+        for ( String name : m_params.keySet() ) {
+          String value = m_params.get( name );
+          if ( !Const.isEmpty( name ) && !Const.isEmpty( value ) ) {
+            rep.saveJobEntryAttribute( id_job, getObjectId(), i, "param_name", name );
+            rep.saveJobEntryAttribute( id_job, getObjectId(), i, "param_value", value );
             i++;
           }
         }
       }
     } else {
-      throw new KettleException("Unable to save to a repository. The repository is null.");
+      throw new KettleException( "Unable to save to a repository. The repository is null." );
     }
   }
-  
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see org.pentaho.di.job.entry.JobEntryBase#evaluates()
    */
   public boolean evaluates() {
     return true;
   }
-  
+
   /**
    * Get the job tracker host name
    * 
@@ -276,16 +288,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public String getJobTrackerHostname() {
     return m_jobTrackerHostname;
   }
-  
+
   /**
    * Set the job tracker host name
    * 
-   * @param jt the job tracker host name
+   * @param jt
+   *          the job tracker host name
    */
-  public void setJobTrackerHostname(String jt) {
+  public void setJobTrackerHostname( String jt ) {
     m_jobTrackerHostname = jt;
   }
-  
+
   /**
    * Get the job tracker port
    * 
@@ -294,16 +307,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public String getJobTrackerPort() {
     return m_jobTrackerPort;
   }
-  
+
   /**
    * Set the job tracker port
    * 
-   * @param jp the job tracker port
+   * @param jp
+   *          the job tracker port
    */
-  public void setJobTrackerPort(String jp) {
+  public void setJobTrackerPort( String jp ) {
     m_jobTrackerPort = jp;
   }
-  
+
   /**
    * Get the HDFS host name
    * 
@@ -312,16 +326,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public String getHDFSHostname() {
     return m_hdfsHostname;
   }
-  
+
   /**
    * Set the HDFS host name
    * 
-   * @param nameN the HDFS host name
+   * @param nameN
+   *          the HDFS host name
    */
-  public void setHDFSHostname(String nameN) {
+  public void setHDFSHostname( String nameN ) {
     m_hdfsHostname = nameN;
   }
-  
+
   /**
    * Get the HDFS port
    * 
@@ -330,16 +345,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public String getHDFSPort() {
     return m_hdfsPort;
   }
-  
+
   /**
    * Set the HDFS port
    * 
-   * @param p the HDFS port
+   * @param p
+   *          the HDFS port
    */
-  public void setHDFSPort(String p) {
+  public void setHDFSPort( String p ) {
     m_hdfsPort = p;
   }
-  
+
   /**
    * Get whether the job entry will block until the script finishes
    * 
@@ -348,45 +364,46 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public boolean getEnableBlocking() {
     return m_enableBlocking;
   }
-  
+
   /**
    * Set whether the job will block until the script finishes
    * 
-   * @param block true if the job entry is to block until the script finishes
+   * @param block
+   *          true if the job entry is to block until the script finishes
    */
-  public void setEnableBlocking(boolean block) {
+  public void setEnableBlocking( boolean block ) {
     m_enableBlocking = block;
   }
-  
+
   /**
-   * Set whether the script is to be run locally rather than on a hadoop
-   * cluster
+   * Set whether the script is to be run locally rather than on a hadoop cluster
    * 
-   * @param l true if the script is to run locally
+   * @param l
+   *          true if the script is to run locally
    */
-  public void setLocalExecution(boolean l) {
+  public void setLocalExecution( boolean l ) {
     m_localExecution = l;
   }
-  
+
   /**
-   * Get whether the script is to run locally rather than on a hadoop
-   * cluster
+   * Get whether the script is to run locally rather than on a hadoop cluster
    * 
    * @return true if the script is to run locally
    */
   public boolean getLocalExecution() {
     return m_localExecution;
   }
-  
+
   /**
    * Set the URL to the pig script to run
    * 
-   * @param filename the URL to the pig script
+   * @param filename
+   *          the URL to the pig script
    */
-  public void setScriptFilename(String filename) {
+  public void setScriptFilename( String filename ) {
     m_scriptFile = filename;
   }
-  
+
   /**
    * Get the URL to the pig script to run
    * 
@@ -395,16 +412,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public String getScriptFilename() {
     return m_scriptFile;
   }
-  
+
   /**
    * Set the values of parameters to replace in the script
    * 
-   * @param params a HashMap mapping parameter names to values
+   * @param params
+   *          a HashMap mapping parameter names to values
    */
-  public void setScriptParameters(HashMap<String, String> params) {
+  public void setScriptParameters( HashMap<String, String> params ) {
     m_params = params;
   }
-  
+
   /**
    * Get the values of parameters to replace in the script
    * 
@@ -413,110 +431,112 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public HashMap<String, String> getScriptParameters() {
     return m_params;
   }
-  
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see org.pentaho.di.job.entry.JobEntryInterface#execute(org.pentaho.di.core.Result, int)
    */
-  public Result execute(final Result result, int arg1) throws KettleException {
-    
-    result.setNrErrors(0);
-    
+  public Result execute( final Result result, int arg1 ) throws KettleException {
+
+    result.setNrErrors( 0 );
+
     // Set up an appender that will send all pig log messages to Kettle's log
     // via logBasic().
     KettleLoggingPrintWriter klps = new KettleLoggingPrintWriter();
-    WriterAppender pigToKettleAppender = new WriterAppender(new Log4jKettleLayout(true), klps);
-    
-    Logger pigLogger = Logger.getLogger("org.apache.pig");
+    WriterAppender pigToKettleAppender = new WriterAppender( new Log4jKettleLayout( true ), klps );
+
+    Logger pigLogger = Logger.getLogger( "org.apache.pig" );
     Log4jFileAppender appender = null;
     String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
     LogWriter logWriter = LogWriter.getInstance();
     try {
-      appender = LogWriter.createFileAppender(logFileName, true, false);
-      logWriter.addAppender(appender);
-      log.setLogLevel(parentJob.getLogLevel());
-      if (pigLogger != null) {
-        pigLogger.addAppender(pigToKettleAppender);
+      appender = LogWriter.createFileAppender( logFileName, true, false );
+      logWriter.addAppender( appender );
+      log.setLogLevel( parentJob.getLogLevel() );
+      if ( pigLogger != null ) {
+        pigLogger.addAppender( pigToKettleAppender );
       }
-    } catch (Exception e) {
-      logError(BaseMessages.getString(PKG, "JobEntryPigScriptExecutor.FailedToOpenLogFile", logFileName, e.toString())); //$NON-NLS-1$
-      logError(Const.getStackTracker(e));    
-    }    
-    
-    if (Const.isEmpty(m_scriptFile)) {
-      throw new KettleException(BaseMessages.getString(PKG, 
-          "JobEntryPigScriptExecutor.Error.NoPigScriptSpecified"));
+    } catch ( Exception e ) {
+      logError( BaseMessages
+          .getString( PKG, "JobEntryPigScriptExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
+      logError( Const.getStackTracker( e ) );
+    }
+
+    if ( Const.isEmpty( m_scriptFile ) ) {
+      throw new KettleException(
+          BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Error.NoPigScriptSpecified" ) );
     }
 
     try {
       URL scriptU = null;
       String scriptFileS = m_scriptFile;
-      scriptFileS = environmentSubstitute(scriptFileS);
-      if (scriptFileS.indexOf("://") == -1) {
-        File scriptFile = new File(scriptFileS);
+      scriptFileS = environmentSubstitute( scriptFileS );
+      if ( scriptFileS.indexOf( "://" ) == -1 ) {
+        File scriptFile = new File( scriptFileS );
         scriptU = scriptFile.toURI().toURL();
       } else {
-        scriptU = new URL(scriptFileS);
+        scriptU = new URL( scriptFileS );
       }
 
-      HadoopConfiguration active = HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
+      HadoopConfiguration active =
+          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
       HadoopShim hadoopShim = active.getHadoopShim();
       final PigShim pigShim = active.getPigShim();
       // Make sure we can execute locally if desired
-      if (m_localExecution && !pigShim.isLocalExecutionSupported()) {
-        throw new KettleException(BaseMessages.getString(PKG, 
-            "JobEntryPigScriptExecutor.Warning.LocalExecution"));
+      if ( m_localExecution && !pigShim.isLocalExecutionSupported() ) {
+        throw new KettleException( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.LocalExecution" ) );
       }
-      
+
       // configure for connection to hadoop
       Configuration conf = hadoopShim.createConfiguration();
-      if (!m_localExecution) {
-        String hdfsHost = environmentSubstitute(m_hdfsHostname);
-        String hdfsP = environmentSubstitute(m_hdfsPort);
-        String jobTrackerHost = environmentSubstitute(m_jobTrackerHostname);
-        String jobTP = environmentSubstitute(m_jobTrackerPort);
-        
-        List<String> configMessages = new ArrayList<String>();
-        hadoopShim.configureConnectionInformation(hdfsHost, hdfsP, 
-            jobTrackerHost, jobTP, conf, configMessages);
-        for (String m : configMessages) {
-          logBasic(m);
-        }        
-      }
-      
-      final Properties properties = new Properties();
-      pigShim.configure(properties, m_localExecution ? null : conf);
+      if ( !m_localExecution ) {
+        String hdfsHost = environmentSubstitute( m_hdfsHostname );
+        String hdfsP = environmentSubstitute( m_hdfsPort );
+        String jobTrackerHost = environmentSubstitute( m_jobTrackerHostname );
+        String jobTP = environmentSubstitute( m_jobTrackerPort );
 
-      // transform the map type to list type which can been accepted by ParameterSubstitutionPreprocessor                                           
-      List<String> paramList = new ArrayList<String>();
-      if (m_params != null){
-        for (Map.Entry<String, String> entry : m_params.entrySet()) {
-          String name = entry.getKey();
-          name = environmentSubstitute(name); // do environment variable substitution
-          String value = entry.getValue();
-          value = environmentSubstitute(value); // do environment variable substitution
-          paramList.add(name + "=" + value);
+        List<String> configMessages = new ArrayList<String>();
+        hadoopShim.configureConnectionInformation( hdfsHost, hdfsP, jobTrackerHost, jobTP, conf, configMessages );
+        for ( String m : configMessages ) {
+          logBasic( m );
         }
       }
-      
-      final String pigScript = pigShim.substituteParameters(scriptU, paramList);
-      final ExecutionMode execMode = (m_localExecution ? ExecutionMode.LOCAL : ExecutionMode.MAPREDUCE);
-      
-      if (m_enableBlocking) {
-        int[] executionStatus = pigShim.executeScript(pigScript, execMode, properties);
-        logBasic(BaseMessages.getString(PKG, 
-          "JobEntryPigScriptExecutor.JobCompletionStatus", 
-          "" + executionStatus[0], "" + executionStatus[1]));
-        
-        if (executionStatus[1] > 0) {
-          result.setStopped(true);
-          result.setNrErrors(executionStatus[1]);
-          result.setResult(false);
+
+      final Properties properties = new Properties();
+      pigShim.configure( properties, m_localExecution ? null : conf );
+
+      // transform the map type to list type which can been accepted by ParameterSubstitutionPreprocessor
+      List<String> paramList = new ArrayList<String>();
+      if ( m_params != null ) {
+        for ( Map.Entry<String, String> entry : m_params.entrySet() ) {
+          String name = entry.getKey();
+          name = environmentSubstitute( name ); // do environment variable substitution
+          String value = entry.getValue();
+          value = environmentSubstitute( value ); // do environment variable substitution
+          paramList.add( name + "=" + value );
         }
-        
-        removeAppender(appender, pigToKettleAppender);
-        if (appender != null) {
-          ResultFile resultFile = new ResultFile(ResultFile.FILE_TYPE_LOG, appender.getFile(), parentJob.getJobname(), getName());
-          result.getResultFiles().put(resultFile.getFile().toString(), resultFile);
+      }
+
+      final String pigScript = pigShim.substituteParameters( scriptU, paramList );
+      final ExecutionMode execMode = ( m_localExecution ? ExecutionMode.LOCAL : ExecutionMode.MAPREDUCE );
+
+      if ( m_enableBlocking ) {
+        int[] executionStatus = pigShim.executeScript( pigScript, execMode, properties );
+        logBasic( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobCompletionStatus",
+            "" + executionStatus[0], "" + executionStatus[1] ) );
+
+        if ( executionStatus[1] > 0 ) {
+          result.setStopped( true );
+          result.setNrErrors( executionStatus[1] );
+          result.setResult( false );
+        }
+
+        removeAppender( appender, pigToKettleAppender );
+        if ( appender != null ) {
+          ResultFile resultFile =
+              new ResultFile( ResultFile.FILE_TYPE_LOG, appender.getFile(), parentJob.getJobname(), getName() );
+          result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
         }
       } else {
         final Log4jFileAppender fa = appender;
@@ -524,51 +544,50 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         Thread runThread = new Thread() {
           public void run() {
             try {
-              int[] executionStatus = pigShim.executeScript(pigScript, execMode, properties);
-              logBasic(BaseMessages.getString(PKG, 
-                  "JobEntryPigScriptExecutor.JobCompletionStatus", 
-                  "" + executionStatus[0], "" + executionStatus[1]));              
-            } catch (Exception ex) {
+              int[] executionStatus = pigShim.executeScript( pigScript, execMode, properties );
+              logBasic( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobCompletionStatus", ""
+                  + executionStatus[0], "" + executionStatus[1] ) );
+            } catch ( Exception ex ) {
               ex.printStackTrace();
-              result.setStopped(true);
-              result.setNrErrors(1);
-              result.setResult(false);
+              result.setStopped( true );
+              result.setNrErrors( 1 );
+              result.setResult( false );
             } finally {
-              removeAppender(fa, ptk);
-              if (fa != null) {
-                ResultFile resultFile = new ResultFile(ResultFile.FILE_TYPE_LOG, fa.getFile(), parentJob.getJobname(), getName());
-                result.getResultFiles().put(resultFile.getFile().toString(), resultFile);
+              removeAppender( fa, ptk );
+              if ( fa != null ) {
+                ResultFile resultFile =
+                    new ResultFile( ResultFile.FILE_TYPE_LOG, fa.getFile(), parentJob.getJobname(), getName() );
+                result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
               }
             }
           }
         };
-        
+
         runThread.start();
-      }            
-    } catch (Exception ex) {
+      }
+    } catch ( Exception ex ) {
       ex.printStackTrace();
-      result.setStopped(true);
-      result.setNrErrors(1);
-      result.setResult(false);
-      logError(ex.getMessage(), ex); 
+      result.setStopped( true );
+      result.setNrErrors( 1 );
+      result.setResult( false );
+      logError( ex.getMessage(), ex );
     }
-        
+
     return result;
   }
-  
-  protected void removeAppender(Log4jFileAppender appender, 
-      WriterAppender pigToKettleAppender) {
-    
+
+  protected void removeAppender( Log4jFileAppender appender, WriterAppender pigToKettleAppender ) {
+
     // remove the file appender from kettle logging
-    if (appender != null) {
-      LogWriter.getInstance().removeAppender(appender);
-      appender.close();      
+    if ( appender != null ) {
+      LogWriter.getInstance().removeAppender( appender );
+      appender.close();
     }
-    
-    Logger pigLogger = Logger.getLogger("org.apache.pig");
-    if (pigLogger != null && pigToKettleAppender != null) {
-      pigLogger.removeAppender(pigToKettleAppender);
+
+    Logger pigLogger = Logger.getLogger( "org.apache.pig" );
+    if ( pigLogger != null && pigToKettleAppender != null ) {
+      pigLogger.removeAppender( pigToKettleAppender );
       pigToKettleAppender.close();
-    }    
-  }  
+    }
+  }
 }

@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.trans.steps.hadoopexit;
 
@@ -50,12 +50,12 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.w3c.dom.Node;
 
-@Step(id = "HadoopExitPlugin", image = "MRO.png", 
-  name = "HadoopExitPlugin.Name", description = "HadoopExitPlugin.Description", 
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  i18nPackageName="org.pentaho.di.trans.steps.hadoopexit")
+@Step( id = "HadoopExitPlugin", image = "MRO.png", name = "HadoopExitPlugin.Name",
+    description = "HadoopExitPlugin.Description",
+    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    i18nPackageName = "org.pentaho.di.trans.steps.hadoopexit" )
 public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
-  private static Class<?> PKG = HadoopExit.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+  private static Class<?> PKG = HadoopExit.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
 
   private static String OUT_KEY_FIELDNAME = "outkeyfieldname";
 
@@ -69,16 +69,17 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
     super();
   }
 
-  public void loadXML(Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters)
-      throws KettleXMLException {
-    readData(stepnode);
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters )
+    throws KettleXMLException {
+    readData( stepnode );
   }
 
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
-    retval.append("    ").append(XMLHandler.addTagValue(HadoopExitMeta.OUT_KEY_FIELDNAME, getOutKeyFieldname()));
-    retval.append("    ").append(XMLHandler.addTagValue(HadoopExitMeta.OUT_VALUE_FIELDNAME, getOutValueFieldname()));
+    retval.append( "    " ).append( XMLHandler.addTagValue( HadoopExitMeta.OUT_KEY_FIELDNAME, getOutKeyFieldname() ) );
+    retval.append( "    " )
+        .append( XMLHandler.addTagValue( HadoopExitMeta.OUT_VALUE_FIELDNAME, getOutValueFieldname() ) );
 
     return retval.toString();
   }
@@ -88,38 +89,38 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
     return retval;
   }
 
-  private void readData(Node stepnode) {
-    setOutKeyFieldname(XMLHandler.getTagValue(stepnode, HadoopExitMeta.OUT_KEY_FIELDNAME)); //$NON-NLS-1$
-    setOutValueFieldname(XMLHandler.getTagValue(stepnode, HadoopExitMeta.OUT_VALUE_FIELDNAME)); //$NON-NLS-1$
+  private void readData( Node stepnode ) {
+    setOutKeyFieldname( XMLHandler.getTagValue( stepnode, HadoopExitMeta.OUT_KEY_FIELDNAME ) ); //$NON-NLS-1$
+    setOutValueFieldname( XMLHandler.getTagValue( stepnode, HadoopExitMeta.OUT_VALUE_FIELDNAME ) ); //$NON-NLS-1$
   }
 
   public void setDefault() {
-    setOutKeyFieldname(null);
-    setOutValueFieldname(null);
+    setOutKeyFieldname( null );
+    setOutValueFieldname( null );
   }
 
-  public void readRep(Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters)
-      throws KettleException {
-    setOutKeyFieldname(rep.getStepAttributeString(id_step, HadoopExitMeta.OUT_KEY_FIELDNAME)); //$NON-NLS-1$
-    setOutValueFieldname(rep.getStepAttributeString(id_step, HadoopExitMeta.OUT_VALUE_FIELDNAME)); //$NON-NLS-1$
+  public void readRep( Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters )
+    throws KettleException {
+    setOutKeyFieldname( rep.getStepAttributeString( id_step, HadoopExitMeta.OUT_KEY_FIELDNAME ) ); //$NON-NLS-1$
+    setOutValueFieldname( rep.getStepAttributeString( id_step, HadoopExitMeta.OUT_VALUE_FIELDNAME ) ); //$NON-NLS-1$
   }
 
-  public void saveRep(Repository rep, ObjectId id_transformation, ObjectId id_step) throws KettleException {
-    rep.saveStepAttribute(id_transformation, id_step, HadoopExitMeta.OUT_KEY_FIELDNAME, getOutKeyFieldname()); //$NON-NLS-1$
-    rep.saveStepAttribute(id_transformation, id_step, HadoopExitMeta.OUT_VALUE_FIELDNAME, getOutValueFieldname()); //$NON-NLS-1$
+  public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+    rep.saveStepAttribute( id_transformation, id_step, HadoopExitMeta.OUT_KEY_FIELDNAME, getOutKeyFieldname() ); //$NON-NLS-1$
+    rep.saveStepAttribute( id_transformation, id_step, HadoopExitMeta.OUT_VALUE_FIELDNAME, getOutValueFieldname() ); //$NON-NLS-1$
   }
 
-  public void getFields(RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-      VariableSpace space) throws KettleStepException {
-    
-    ValueMetaInterface key = rowMeta.searchValueMeta(getOutKeyFieldname());
-    ValueMetaInterface value = rowMeta.searchValueMeta(getOutValueFieldname());
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+      VariableSpace space ) throws KettleStepException {
 
-    if (key == null) {
-      throw new KettleStepException(BaseMessages.getString(PKG, "Error.InvalidKeyField", getOutKeyFieldname()));
+    ValueMetaInterface key = rowMeta.searchValueMeta( getOutKeyFieldname() );
+    ValueMetaInterface value = rowMeta.searchValueMeta( getOutValueFieldname() );
+
+    if ( key == null ) {
+      throw new KettleStepException( BaseMessages.getString( PKG, "Error.InvalidKeyField", getOutKeyFieldname() ) );
     }
-    if (value == null) {
-      throw new KettleStepException(BaseMessages.getString(PKG, "Error.InvalidValueField", getOutValueFieldname()));
+    if ( value == null ) {
+      throw new KettleStepException( BaseMessages.getString( PKG, "Error.InvalidValueField", getOutValueFieldname() ) );
     }
 
     // The output consists of 2 fields: outKey and outValue
@@ -127,52 +128,57 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
     //
     ValueMetaInterface keyMeta = key.clone();
     ValueMetaInterface valueMeta = value.clone();
-    
-    keyMeta.setName("outKey");
-    valueMeta.setName("outValue");
-    
+
+    keyMeta.setName( "outKey" );
+    valueMeta.setName( "outValue" );
+
     rowMeta.clear();
 
-    rowMeta.addValueMeta(keyMeta);
-    rowMeta.addValueMeta(valueMeta);
+    rowMeta.addValueMeta( keyMeta );
+    rowMeta.addValueMeta( valueMeta );
   }
 
-  public void check(List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepinfo, RowMetaInterface prev,
-      String input[], String output[], RowMetaInterface info) {
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepinfo, RowMetaInterface prev,
+      String[] input, String[] output, RowMetaInterface info ) {
     CheckResult cr;
 
     // Make sure we have an input stream that contains the desired field names
-    if (prev == null || prev.size() == 0) {
-      cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG,
-          "HadoopExitMeta.CheckResult.NoDataStream"), stepinfo); //$NON-NLS-1$
-      remarks.add(cr);
+    if ( prev == null || prev.size() == 0 ) {
+      cr =
+          new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString( PKG,
+              "HadoopExitMeta.CheckResult.NoDataStream" ), stepinfo ); //$NON-NLS-1$
+      remarks.add( cr );
     } else {
-      List<String> fieldnames = Arrays.asList(prev.getFieldNames());
+      List<String> fieldnames = Arrays.asList( prev.getFieldNames() );
 
       HadoopExitMeta stepMeta = (HadoopExitMeta) stepinfo.getStepMetaInterface();
 
-      if ((stepMeta.getOutKeyFieldname() == null) || stepMeta.getOutValueFieldname() == null) {
-        cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG,
-            "HadoopExitMeta.CheckResult.NoSpecifiedFields", prev.size() + ""), stepinfo); //$NON-NLS-1$ //$NON-NLS-2$
-        remarks.add(cr);
+      if ( ( stepMeta.getOutKeyFieldname() == null ) || stepMeta.getOutValueFieldname() == null ) {
+        cr =
+            new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString( PKG,
+                "HadoopExitMeta.CheckResult.NoSpecifiedFields", prev.size() + "" ), stepinfo ); //$NON-NLS-1$ //$NON-NLS-2$
+        remarks.add( cr );
       } else {
 
-        if (fieldnames.contains(stepMeta.getOutKeyFieldname()) && fieldnames.contains(stepMeta.getOutValueFieldname())) {
-          cr = new CheckResult(CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString(PKG,
-              "HadoopExitMeta.CheckResult.StepRecevingData", prev.size() + ""), stepinfo); //$NON-NLS-1$ //$NON-NLS-2$
-          remarks.add(cr);
+        if ( fieldnames.contains( stepMeta.getOutKeyFieldname() )
+            && fieldnames.contains( stepMeta.getOutValueFieldname() ) ) {
+          cr =
+              new CheckResult( CheckResultInterface.TYPE_RESULT_OK, BaseMessages.getString( PKG,
+                  "HadoopExitMeta.CheckResult.StepRecevingData", prev.size() + "" ), stepinfo ); //$NON-NLS-1$ //$NON-NLS-2$
+          remarks.add( cr );
         } else {
-          cr = new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString(PKG,
-              "HadoopExitMeta.CheckResult.NotRecevingSpecifiedFields", prev.size() + ""), stepinfo); //$NON-NLS-1$ //$NON-NLS-2$
-          remarks.add(cr);
+          cr =
+              new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR, BaseMessages.getString( PKG,
+                  "HadoopExitMeta.CheckResult.NotRecevingSpecifiedFields", prev.size() + "" ), stepinfo ); //$NON-NLS-1$ //$NON-NLS-2$
+          remarks.add( cr );
         }
       }
     }
   }
 
-  public StepInterface getStep(StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta tr,
-      Trans trans) {
-    return new HadoopExit(stepMeta, stepDataInterface, cnr, tr, trans);
+  public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta tr,
+      Trans trans ) {
+    return new HadoopExit( stepMeta, stepDataInterface, cnr, tr, trans );
   }
 
   public StepDataInterface getStepData() {
@@ -183,7 +189,7 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
     return outKeyFieldname;
   }
 
-  public void setOutKeyFieldname(String arg) {
+  public void setOutKeyFieldname( String arg ) {
     outKeyFieldname = arg;
   }
 
@@ -191,7 +197,7 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
     return outValueFieldname;
   }
 
-  public void setOutValueFieldname(String arg) {
+  public void setOutValueFieldname( String arg ) {
     outValueFieldname = arg;
   }
 }

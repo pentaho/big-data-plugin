@@ -56,7 +56,7 @@ import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
- * created by: rfellows date:       5/24/12
+ * created by: rfellows date: 5/24/12
  */
 public abstract class AbstractAmazonJobExecutorController extends AbstractXulEventHandler {
 
@@ -78,7 +78,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String BLOCKING = "blocking"; //$NON-NLS-1$
   public static final String LOGGING_INTERVAL = "loggingInterval"; //$NON-NLS-1$
 
-
   /* XUL Element id's */
   public static final String XUL_JOBENTRY_HADOOPJOB_NAME = "jobentry-hadoopjob-name";
   public static final String XUL_ACCESS_KEY1 = "access-key";
@@ -95,23 +94,22 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   /* Messages */
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR =
-    "AmazonElasticMapReduceJobExecutor.JobEntryName.Error";
+      "AmazonElasticMapReduceJobExecutor.JobEntryName.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR =
-    "AmazonElasticMapReduceJobExecutor.JobFlowName.Error";
+      "AmazonElasticMapReduceJobExecutor.JobFlowName.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR =
-    "AmazonElasticMapReduceJobExecutor.AccessKey.Error";
+      "AmazonElasticMapReduceJobExecutor.AccessKey.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR =
-    "AmazonElasticMapReduceJobExecutor.SecretKey.Error";
+      "AmazonElasticMapReduceJobExecutor.SecretKey.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR =
-    "AmazonElasticMapReduceJobExecutor.StagingDir.Error";
+      "AmazonElasticMapReduceJobExecutor.StagingDir.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR =
-    "AmazonElasticMapReduceJobExecutor.MasterInstanceType.Error";
+      "AmazonElasticMapReduceJobExecutor.MasterInstanceType.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR =
-    "AmazonElasticMapReduceJobExecutor.SlaveInstanceType.Error";
+      "AmazonElasticMapReduceJobExecutor.SlaveInstanceType.Error";
   public static final String MSG_DIALOG_ERROR = "Dialog.Error";
   public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR =
-    "AmazonElasticMapReduceJobExecutor.JarURL.Error";
-
+      "AmazonElasticMapReduceJobExecutor.JarURL.Error";
 
   protected String jobEntryName;
   protected String hadoopJobName;
@@ -152,7 +150,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected void syncModel() {
     ExtTextbox tempBox =
-      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
+        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
     this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY1 );
     this.accessKey = ( (Text) tempBox.getTextControl() ).getText();
@@ -181,40 +179,41 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     String validationErrors = "";
     if ( StringUtil.isEmpty( getJobEntryName() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR ) + "\n";
     }
     if ( StringUtil.isEmpty( getHadoopJobName() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR ) + "\n";
     }
     if ( StringUtil.isEmpty( getAccessKey() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR ) + "\n";
     }
     if ( StringUtil.isEmpty( getSecretKey() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR ) + "\n";
     }
     String s3Protocol = S3FileProvider.SCHEME + "://";
     String sdir = getVariableSpace().environmentSubstitute( stagingDir );
     if ( StringUtil.isEmpty( getStagingDir() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
     } else if ( !sdir.startsWith( s3Protocol ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
     }
 
-    /*if (numInstances <= 0) {
-      validationErrors += BaseMessages.getString(PKG, "AmazonElasticMapReduceJobExecutor.NumInstances.Error") + "\n";
-    }*/
+    /*
+     * if (numInstances <= 0) { validationErrors += BaseMessages.getString(PKG,
+     * "AmazonElasticMapReduceJobExecutor.NumInstances.Error") + "\n"; }
+     */
     if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR ) + "\n";
     }
     if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
       validationErrors +=
-        BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR ) + "\n";
+          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR ) + "\n";
     }
     return validationErrors;
   }
@@ -261,7 +260,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void cancel() {
     XulDialog xulDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
     Shell shell = (Shell) xulDialog.getRootObject();
     if ( !shell.isDisposed() ) {
       WindowProperty winprop = new WindowProperty( shell );
@@ -273,11 +272,11 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void openErrorDialog( String title, String message ) {
     XulDialog errorDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.setTitle( title );
 
     XulTextbox errorMessage =
-      (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
+        (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
     errorMessage.setValue( message );
 
     errorDialog.show();
@@ -285,7 +284,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void closeErrorDialog() {
     XulDialog errorDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.hide();
   }
 
@@ -295,7 +294,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
       VfsFileChooserDialog fileChooserDialog =
-        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
+          Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
@@ -307,18 +306,16 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
-        new StaticUserAuthenticator( null,
-          getVariableSpace().environmentSubstitute( getAccessKey() ),
-          getVariableSpace().environmentSubstitute( getSecretKey() )
-        );
+          new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( getAccessKey() ),
+              getVariableSpace().environmentSubstitute( getSecretKey() ) );
 
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
     return opts;
   }
 
-  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri )
-    throws KettleException, FileSystemException {
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri ) throws KettleException,
+    FileSystemException {
     return browse( fileFilters, fileFilterNames, fileUri, new FileSystemOptions() );
   }
 
@@ -333,12 +330,12 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-                            int fileDialogMode ) throws KettleException, FileSystemException {
+      int fileDialogMode ) throws KettleException, FileSystemException {
     return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, false );
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-                            int fileDialogMode, boolean showFileScheme ) throws KettleException, FileSystemException {
+      int fileDialogMode, boolean showFileScheme ) throws KettleException, FileSystemException {
     getFileChooserHelper().setShowFileScheme( showFileScheme );
     return getFileChooserHelper().browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode );
   }
@@ -552,10 +549,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public FileObject resolveFile( String fileUri ) throws FileSystemException, KettleFileException {
     VariableSpace vs = getVariableSpace();
     FileSystemOptions opts = new FileSystemOptions();
-    DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator(
-      opts,
-      new StaticUserAuthenticator( null, getAccessKey(), getSecretKey() )
-    );
+    DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
+        new StaticUserAuthenticator( null, getAccessKey(), getSecretKey() ) );
     FileObject file = KettleVFS.getFileObject( fileUri, vs, opts );
     return file;
   }
@@ -563,7 +558,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected S3VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
     if ( helper == null ) {
       XulDialog xulDialog =
-        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+          (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
       Shell shell = (Shell) xulDialog.getRootObject();
 
       helper = new S3VfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
@@ -574,10 +569,10 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public void help() {
     JobEntryInterface jobEntry = getJobEntry();
     XulDialog xulDialog =
-      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
     Shell shell = (Shell) xulDialog.getRootObject();
     PluginInterface plugin =
-      PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+        PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
   }
 

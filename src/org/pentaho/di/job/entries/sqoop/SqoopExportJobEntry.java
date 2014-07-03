@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.job.entries.sqoop;
 
@@ -39,15 +39,11 @@ import java.util.List;
 /**
  * Provides a way to orchestrate <a href="http://sqoop.apache.org/">Sqoop</a> exports.
  */
-@JobEntry(id = "SqoopExport",
-  name = "Sqoop.Export.PluginName",
-  description = "Sqoop.Export.PluginDescription",
-  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  image = "sqoop-export.png",
-  i18nPackageName = "org.pentaho.di.job.entries.sqoop",
-  version = "1"
-)
-public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig> implements ProvidesDatabaseConnectionInformation {
+@JobEntry( id = "SqoopExport", name = "Sqoop.Export.PluginName", description = "Sqoop.Export.PluginDescription",
+    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "sqoop-export.png",
+    i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1" )
+public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig> implements
+    ProvidesDatabaseConnectionInformation {
 
   // Database meta object for UI interactions. Populated during transformation load or configuration changes via UI.
   private transient DatabaseMeta databaseMeta;
@@ -78,7 +74,7 @@ public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig
    */
   @Override
   public String getTableName() {
-    return environmentSubstitute(getJobConfig().getTable());
+    return environmentSubstitute( getJobConfig().getTable() );
   }
 
   /**
@@ -86,14 +82,15 @@ public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig
    */
   @Override
   public String getSchemaName() {
-    return environmentSubstitute(getJobConfig().getSchema());
+    return environmentSubstitute( getJobConfig().getSchema() );
   }
 
   @Override
   public String getMissingDatabaseConnectionInformationMessage() {
-    if (Const.isEmpty(getJobConfig().getDatabase()) && !Const.isEmpty(getJobConfig().getConnect())) {
-      // We're using advanced configuration, alert the user we cannot visualize unless we're not using a database managed by Kettle
-      return BaseMessages.getString(AbstractSqoopJobEntry.class, "ErrorMustConfigureDatabaseConnectionFromList");
+    if ( Const.isEmpty( getJobConfig().getDatabase() ) && !Const.isEmpty( getJobConfig().getConnect() ) ) {
+      // We're using advanced configuration, alert the user we cannot visualize unless we're not using a database
+      // managed by Kettle
+      return BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorMustConfigureDatabaseConnectionFromList" );
     }
     // Use the default error message
     return null;
@@ -103,26 +100,29 @@ public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig
    * Additionally sets the database meta if a database is set.
    */
   @Override
-  public void loadXML(Node node, List<DatabaseMeta> databaseMetas, List<SlaveServer> slaveServers, Repository repository) throws KettleXMLException {
-    super.loadXML(node, databaseMetas, slaveServers, repository);
-    setDatabaseMeta(DatabaseMeta.findDatabase(databaseMetas, getJobConfig().getDatabase()));
+  public void loadXML( Node node, List<DatabaseMeta> databaseMetas, List<SlaveServer> slaveServers,
+      Repository repository ) throws KettleXMLException {
+    super.loadXML( node, databaseMetas, slaveServers, repository );
+    setDatabaseMeta( DatabaseMeta.findDatabase( databaseMetas, getJobConfig().getDatabase() ) );
   }
 
   /**
    * Additionally sets the database meta if a database is set.
    */
   @Override
-  public void loadRep(Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases, List<SlaveServer> slaveServers) throws KettleException {
-    super.loadRep(rep, id_jobentry, databases, slaveServers);
-    setDatabaseMeta(DatabaseMeta.findDatabase(databases, getJobConfig().getDatabase()));
+  public void loadRep( Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases,
+      List<SlaveServer> slaveServers ) throws KettleException {
+    super.loadRep( rep, id_jobentry, databases, slaveServers );
+    setDatabaseMeta( DatabaseMeta.findDatabase( databases, getJobConfig().getDatabase() ) );
   }
 
   /**
    * Set the current database meta.
-   *
-   * @param databaseMeta Database meta representing the database this job is currently configured to export to
+   * 
+   * @param databaseMeta
+   *          Database meta representing the database this job is currently configured to export to
    */
-  public void setDatabaseMeta(DatabaseMeta databaseMeta) {
+  public void setDatabaseMeta( DatabaseMeta databaseMeta ) {
     this.databaseMeta = databaseMeta;
   }
 }

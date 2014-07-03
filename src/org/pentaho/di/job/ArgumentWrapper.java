@@ -1,24 +1,24 @@
 /*******************************************************************************
-*
-* Pentaho Big Data
-*
-* Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
-*
-*******************************************************************************
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-******************************************************************************/
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.job;
 
@@ -38,11 +38,11 @@ public class ArgumentWrapper implements XulEventSource {
   private Method getter;
   private Method setter;
 
-  public ArgumentWrapper(String name, String displayName, boolean flag, Object target, Method getter, Method setter) {
-    if (name == null || target == null || getter == null || setter == null) {
+  public ArgumentWrapper( String name, String displayName, boolean flag, Object target, Method getter, Method setter ) {
+    if ( name == null || target == null || getter == null || setter == null ) {
       throw new NullPointerException();
     }
-    validateAccessors(getter, setter);
+    validateAccessors( getter, setter );
 
     this.name = name;
     this.displayName = displayName;
@@ -52,12 +52,12 @@ public class ArgumentWrapper implements XulEventSource {
     this.setter = setter;
   }
 
-  private void validateAccessors(Method getter, Method setter) {
-    if (getter.getReturnType() != String.class) {
-      throw new IllegalArgumentException("Invalid getter method. Method must return a String,");
+  private void validateAccessors( Method getter, Method setter ) {
+    if ( getter.getReturnType() != String.class ) {
+      throw new IllegalArgumentException( "Invalid getter method. Method must return a String," );
     }
-    if (setter.getParameterTypes().length < 1 || setter.getParameterTypes()[0] != String.class) {
-      throw new IllegalArgumentException("Invalid setter method. Method must accept a single String parameter.");
+    if ( setter.getParameterTypes().length < 1 || setter.getParameterTypes()[0] != String.class ) {
+      throw new IllegalArgumentException( "Invalid setter method. Method must accept a single String parameter." );
     }
   }
 
@@ -65,7 +65,7 @@ public class ArgumentWrapper implements XulEventSource {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName( String name ) {
     this.name = name;
   }
 
@@ -73,23 +73,27 @@ public class ArgumentWrapper implements XulEventSource {
     return displayName;
   }
 
-  public void setDisplayName(String displayName) {
+  public void setDisplayName( String displayName ) {
     this.displayName = displayName;
   }
 
-  public void setValue(String value) {
+  public void setValue( String value ) {
     try {
-      setter.invoke(target, value);
-    } catch (Exception ex) {
-      throw new RuntimeException("error setting value for argument " + getName(), ex);
+      if ( "".equals( value ) ) {
+        value = null;
+      }
+
+      setter.invoke( target, value );
+    } catch ( Exception ex ) {
+      throw new RuntimeException( "error setting value for argument " + getName(), ex );
     }
   }
 
   public String getValue() {
     try {
-      return String.class.cast(getter.invoke(target));
-    } catch (Exception ex) {
-      throw new RuntimeException("error retrieving value for argument " + getName(), ex);
+      return String.class.cast( getter.invoke( target ) );
+    } catch ( Exception ex ) {
+      throw new RuntimeException( "error retrieving value for argument " + getName(), ex );
     }
   }
 
@@ -97,24 +101,29 @@ public class ArgumentWrapper implements XulEventSource {
     return flag;
   }
 
-  public void setFlag(boolean flag) {
+  public void setFlag( boolean flag ) {
     this.flag = flag;
   }
 
   /**
    * Uses the argument's name to determine equality.
-   *
-   * @param o another argument
+   * 
+   * @param o
+   *          another argument
    * @return {@code true} if {@code o} is an {@link ArgumentWrapper} and its name equals this argument's name
    */
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+  public boolean equals( Object o ) {
+    if ( this == o ) {
+      return true;
+    }
+    if ( o == null || getClass() != o.getClass() ) {
+      return false;
+    }
 
     ArgumentWrapper that = (ArgumentWrapper) o;
 
-    return this.name.equals(that.name);
+    return this.name.equals( that.name );
   }
 
   @Override
@@ -123,12 +132,12 @@ public class ArgumentWrapper implements XulEventSource {
   }
 
   @Override
-  public void addPropertyChangeListener(PropertyChangeListener listener) {
+  public void addPropertyChangeListener( PropertyChangeListener listener ) {
     // Do nothing, this object is a wrapper and firing events here propagates to too many objects
   }
 
   @Override
-  public void removePropertyChangeListener(PropertyChangeListener listener) {
+  public void removePropertyChangeListener( PropertyChangeListener listener ) {
     // Do nothing, this object is a wrapper and firing events here propagates to too many objects
   }
 }
