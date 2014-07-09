@@ -49,6 +49,7 @@ import org.pentaho.amazon.AmazonS3FileSystemBootstrap;
 import org.pentaho.amazon.AmazonSpoonPlugin;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -225,11 +226,11 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
           AmazonS3 s3Client = new AmazonS3Client( new AWSCredentials() {
 
             public String getAWSSecretKey() {
-              return environmentSubstitute( wSecretKey.getText() );
+              return Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( wSecretKey.getText() ) );
             }
 
             public String getAWSAccessKeyId() {
-              return environmentSubstitute( wAccessKey.getText() );
+              return Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( wAccessKey.getText() ) );
             }
           } );
           s3Client.getS3AccountOwner();
@@ -329,8 +330,8 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
 
   private void handleConnectionButton() {
     if ( !Const.isEmpty( wAccessKey.getText() ) && !Const.isEmpty( wSecretKey.getText() ) ) {
-      accessKey = getVariableSpace().environmentSubstitute( wAccessKey.getText() );
-      secretKey = getVariableSpace().environmentSubstitute( wSecretKey.getText() );
+      accessKey = Encr.decryptPasswordOptionallyEncrypted( getVariableSpace().environmentSubstitute( wAccessKey.getText() ) );
+      secretKey = Encr.decryptPasswordOptionallyEncrypted( getVariableSpace().environmentSubstitute( wSecretKey.getText() ) );
       wConnectionButton.setEnabled( true );
     } else {
       accessKey = null;
@@ -370,8 +371,8 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
         new StaticUserAuthenticator( null,
-          getVariableSpace().environmentSubstitute( getAccessKey() ),
-          getVariableSpace().environmentSubstitute( getSecretKey() )
+          Encr.decryptPasswordOptionallyEncrypted( getVariableSpace().environmentSubstitute( getAccessKey() ) ),
+          Encr.decryptPasswordOptionallyEncrypted( getVariableSpace().environmentSubstitute( getSecretKey() ) )
         );
 
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
