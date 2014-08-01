@@ -292,4 +292,26 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
     return false;
   }
 
+  private StringBuilder getConnectSqlForNotDefaultDatabaseName() {
+    StringBuilder sql = new StringBuilder( "use " );
+    sql.append( getDatabaseName() ).append( ';' ).append( ' ' );
+    return sql;
+  }
+
+  /**
+   * @return The SQL to execute right after connecting
+   */
+  @Override
+  public String getConnectSQL() {
+    StringBuilder sql = getConnectSqlForNotDefaultDatabaseName();
+    return sql.append( super.getConnectSQL() ).toString();
+  }
+
+  /**
+   * @param sql The SQL to execute right after connecting
+   */
+  @Override
+  public void setConnectSQL( String sql ) {
+    super.setConnectSQL( sql.replace( getConnectSqlForNotDefaultDatabaseName(), "" ) );
+  }
 }
