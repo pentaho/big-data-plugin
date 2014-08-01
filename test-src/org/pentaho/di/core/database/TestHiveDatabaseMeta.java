@@ -27,6 +27,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Properties;
+
 public class TestHiveDatabaseMeta {
 
   @Before
@@ -59,5 +61,14 @@ public class TestHiveDatabaseMeta {
 
     alias = dbm.generateColumnAlias( 2, "alias2" );
     assertEquals( "_col2", alias );
+  }
+
+
+  @Test
+  public void testGetConnectSQL() throws Throwable {
+    HiveDatabaseMeta dbm = new HiveDatabaseMeta( 0, 5 );
+    dbm.setAttributes( new Properties() );
+    dbm.setDatabaseName( "default" );
+    assertEquals( dbm.getConnectSQL(), "use default; " );
   }
 }

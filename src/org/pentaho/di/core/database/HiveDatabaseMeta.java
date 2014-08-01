@@ -24,10 +24,11 @@ package org.pentaho.di.core.database;
 
 import java.sql.Driver;
 
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+
+import static org.pentaho.di.core.Const.*;
 
 @DatabaseMetaPlugin( type = "HIVE", typeDescription = "Hadoop Hive" )
 public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterface {
@@ -154,7 +155,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public String getURL( String hostname, String port, String databaseName ) throws KettleDatabaseException {
 
-    if ( Const.isEmpty( port ) ) {
+    if ( isEmpty( port ) ) {
       Integer.toString( getDefaultDatabasePort() );
     }
 
@@ -294,5 +295,33 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public boolean supportsBatchUpdates() {
     return false;
+  }
+
+  private StringBuilder getConnectSqlForNotDefaultDatabaseName() {
+    StringBuilder sql = new StringBuilder( "use " );
+    sql.append( getDatabaseName() ).append( ';' ).append( ' ' );
+    return sql;
+  }
+
+  /**
+   * @return The SQL to execute right after connecting
+   */
+  @Override
+  public String getConnectSQL() {
+    StringBuilder sql = getConnectSqlForNotDefaultDatabaseName();
+    String superSql = super.getConnectSQL();
+    if ( !isEmpty( superSql ) ) {
+      return sql.append( superSql ).toString();
+    }
+    return sql.toString();
+  }
+
+  /**
+   * @param sql
+   *          The SQL to execute right after connecting
+   */
+  @Override
+  public void setConnectSQL( String sql ) {
+    super.setConnectSQL( sql.replaceAll( getConnectSqlForNotDefaultDatabaseName().toString(), "" ) );
   }
 }
