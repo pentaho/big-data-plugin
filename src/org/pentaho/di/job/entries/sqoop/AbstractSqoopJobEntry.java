@@ -42,6 +42,7 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.AbstractJobEntry;
+import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.JobEntryUtils;
 import org.pentaho.di.job.LoggingProxy;
 import org.pentaho.di.job.entry.JobEntryInterface;
@@ -313,14 +314,27 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    */
   public void configure( HadoopShim shim, S sqoopConfig, Configuration conf ) throws KettleException {
     try {
+      String dbName, dbUrl, dbUser, dbPassword;
+      if ( sqoopConfig.getModeAsEnum() == JobEntryMode.ADVANCED_LIST ) {
+        dbName = null;
+        dbUrl = sqoopConfig.getConnectFromAdvanced();
+        dbUser = sqoopConfig.getUsernameFromAdvanced();
+        dbPassword = sqoopConfig.getPasswordFromAdvanced();
+      } else {
+        DatabaseMeta databaseMeta = parentJob.getJobMeta().findDatabase( sqoopConfig.getDatabase() );
+        dbName = databaseMeta.getName();
+        dbUrl = databaseMeta.getURL();
+        dbUser = databaseMeta.getUsername();
+        dbPassword = databaseMeta.getPassword();
+      }
+      sqoopConfig.setConnectionInfo( environmentSubstitute( dbName ),
+        environmentSubstitute( dbUrl ), environmentSubstitute( dbUser ),
+        environmentSubstitute( dbPassword ) );
+
       List<String> messages = new ArrayList<String>();
-      DatabaseMeta databaseMeta = parentJob.getJobMeta().findDatabase( sqoopConfig.getDatabase() );
-      sqoopConfig.setConnectionInfo( environmentSubstitute( databaseMeta.getName() ),
-          environmentSubstitute( databaseMeta.getURL() ), environmentSubstitute( databaseMeta.getUsername() ),
-          environmentSubstitute( databaseMeta.getPassword() ) );
       shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),
-          environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
-              .getJobtrackerHost() ), environmentSubstitute( sqoopConfig.getJobtrackerPort() ), conf, messages );
+        environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
+          .getJobtrackerHost() ), environmentSubstitute( sqoopConfig.getJobtrackerPort() ), conf, messages );
       for ( String m : messages ) {
         logBasic( m );
       }
