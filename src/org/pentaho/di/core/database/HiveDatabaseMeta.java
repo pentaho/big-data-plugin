@@ -24,10 +24,12 @@ package org.pentaho.di.core.database;
 
 import java.sql.Driver;
 
-import org.pentaho.di.core.Const;
+
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+
+import static org.pentaho.di.core.Const.*;
 
 @DatabaseMetaPlugin( type = "HIVE", typeDescription = "Hadoop Hive" )
 public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterface {
@@ -44,9 +46,11 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Package protected constructor for unit testing.
-   *
-   * @param majorVersion The majorVersion to set for the driver
-   * @param minorVersion The minorVersion to set for the driver
+   * 
+   * @param majorVersion
+   *          The majorVersion to set for the driver
+   * @param minorVersion
+   *          The minorVersion to set for the driver
    * @throws Throwable
    */
   HiveDatabaseMeta( int majorVersion, int minorVersion ) throws Throwable {
@@ -61,7 +65,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   @Override
   public String getAddColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-                                       String pk, boolean semicolon ) {
+      String pk, boolean semicolon ) {
 
     return "ALTER TABLE " + tablename + " ADD " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
 
@@ -81,7 +85,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    */
   @Override
   public String getFieldDefinition( ValueMetaInterface v, String tk, String pk, boolean useAutoinc,
-                                    boolean addFieldname, boolean addCr ) {
+      boolean addFieldname, boolean addCr ) {
 
     String retval = "";
 
@@ -94,7 +98,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
     }
 
     int type = v.getType();
-    switch( type ) {
+    switch ( type ) {
 
       case ValueMetaInterface.TYPE_BOOLEAN:
         retval += "BOOLEAN";
@@ -125,7 +129,8 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
           } else {
             retval += "INT";
           }
-        } else {          // Floating point values...
+        } else {
+          // Floating point values...
           if ( length > 15 ) {
             retval += "FLOAT";
           } else {
@@ -143,7 +148,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   @Override
   public String getModifyColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-                                          String pk, boolean semicolon ) {
+      String pk, boolean semicolon ) {
 
     return "ALTER TABLE " + tablename + " MODIFY " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
   }
@@ -151,7 +156,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public String getURL( String hostname, String port, String databaseName ) throws KettleDatabaseException {
 
-    if ( Const.isEmpty( port ) ) {
+    if ( isEmpty( port ) ) {
       Integer.toString( getDefaultDatabasePort() );
     }
 
@@ -166,7 +171,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Build the SQL to count the number of rows in the passed table.
-   *
+   * 
    * @param tableName
    * @return
    */
@@ -211,9 +216,9 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   /**
    * Check that the version of the driver being used is at least the driver you want. If you do not care about the minor
    * version, pass in a 0 (The assumption being that the minor version will ALWAYS be 0 or greater)
-   *
+   * 
    * @return true: the version being used is equal to or newer than the one you requested false: the version being used
-   * is older than the one you requested
+   *         is older than the one you requested
    */
   protected boolean isDriverVersion( int majorVersion, int minorVersion ) {
     if ( driverMajorVersion == null ) {
@@ -236,7 +241,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Quotes around table names are not valid Hive QL
-   * <p/>
+   * 
    * return an empty string for the start quote
    */
   public String getStartQuote() {
@@ -245,7 +250,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Quotes around table names are not valid Hive QL
-   * <p/>
+   * 
    * return an empty string for the end quote
    */
   public String getEndQuote() {
@@ -274,7 +279,8 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   }
 
   /**
-   * @param tableName The table to be truncated.
+   * @param tableName
+   *          The table to be truncated.
    * @return The SQL statement to truncate a table: remove all rows from it without a transaction
    */
   @Override
@@ -304,14 +310,19 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public String getConnectSQL() {
     StringBuilder sql = getConnectSqlForNotDefaultDatabaseName();
-    return sql.append( super.getConnectSQL() ).toString();
+    String superSql = super.getConnectSQL();
+    if ( !isEmpty( superSql ) ) {
+      return sql.append( superSql ).toString();
+    }
+    return sql.toString();
   }
 
   /**
-   * @param sql The SQL to execute right after connecting
+   * @param sql
+   *          The SQL to execute right after connecting
    */
   @Override
   public void setConnectSQL( String sql ) {
-    super.setConnectSQL( sql.replace( getConnectSqlForNotDefaultDatabaseName(), "" ) );
+    super.setConnectSQL( sql.replaceAll( getConnectSqlForNotDefaultDatabaseName().toString(), "" ) );
   }
 }
