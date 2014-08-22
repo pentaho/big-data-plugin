@@ -195,7 +195,8 @@ public class HBaseInput extends BaseStep implements StepInterface {
       }
 
       HBaseInputData.initializeScan( m_hbAdmin, m_bytesUtil, m_tableMapping, dateOrNumberConversionMaskForKey, m_meta
-          .getKeyStartValue(), m_meta.getKeyStopValue(), m_meta.getScannerCacheSize(), log, this );
+          .getKeyStartValue(), m_meta.getKeyStopValue(), m_meta.getScannerCacheSize(),
+          m_meta.getKeyStartIsPrefixFilter(), m_meta.getMatchAnyFilter(), log, this );
 
       // LIMIT THE SCAN TO JUST THE COLUMNS IN THE MAPPING
       // User-selected output columns?
