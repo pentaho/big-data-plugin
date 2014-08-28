@@ -77,6 +77,8 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
   private String jarUrl = "";
 
+  private String driverClass = "";
+
   private boolean isSimple = true;
 
   private String cmdLineArgs;
@@ -122,6 +124,14 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
   public void setJarUrl( String jarUrl ) {
     this.jarUrl = jarUrl;
+  }
+
+  public String getDriverClass() {
+    return driverClass;
+  }
+
+  public void setDriverClass( String driverClass ) {
+    this.driverClass = driverClass;
   }
 
   public boolean isSimple() {
@@ -709,6 +719,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
     isSimple = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "simple" ) );
     jarUrl = XMLHandler.getTagValue( entrynode, "jar_url" );
+    driverClass = XMLHandler.getTagValue( entrynode, "driver_class" );
     cmdLineArgs = XMLHandler.getTagValue( entrynode, "command_line_args" );
     simpleBlocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "simple_blocking" ) );
     blocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "blocking" ) );
@@ -756,6 +767,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
     retval.append( "      " ).append( XMLHandler.addTagValue( "simple", isSimple ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "jar_url", jarUrl ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "driver_class", driverClass ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "command_line_args", cmdLineArgs ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "simple_blocking", simpleBlocking ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) );
@@ -806,6 +818,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       setSimple( rep.getJobEntryAttributeBoolean( id_jobentry, "simple" ) );
 
       setJarUrl( rep.getJobEntryAttributeString( id_jobentry, "jar_url" ) );
+      setDriverClass( rep.getJobEntryAttributeString( id_jobentry, "driver_class" ) );
       setCmdLineArgs( rep.getJobEntryAttributeString( id_jobentry, "command_line_args" ) );
       setSimpleBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "simple_blocking" ) );
       setBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "blocking" ) );
@@ -857,6 +870,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       rep.saveJobEntryAttribute( id_job, getObjectId(), "simple", isSimple ); //$NON-NLS-1$
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "jar_url", jarUrl ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "driver_class", driverClass ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "simple_blocking", simpleBlocking ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking ); //$NON-NLS-1$

@@ -2,20 +2,20 @@
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <dialog id="job-entry-dialog"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    xmlns:pen="http://www.pentaho.org/2008/xul" 
+    xmlns:pen="http://www.pentaho.org/2008/xul"
 	title="${JobEntryDialog.Title}"
 	resizable="true"
     height="450" width="700"
 	appicon="ui/images/spoon.ico"
 	buttons="extra1,accept,cancel"
-	buttonalign="end" 
+	buttonalign="end"
     buttonlabelextra1="${Dialog.Help}"
 	buttonlabelaccept="${Dialog.Accept}"
 	buttonlabelcancel="${Dialog.Cancel}"
     ondialogextra1="jobEntryController.help()"
 	ondialogaccept="jobEntryController.accept()"
 	ondialogcancel="jobEntryController.cancel()">
-	
+
 	<vbox>
 		<grid>
 			<columns>
@@ -34,13 +34,23 @@
 				<row>
 					<label value="${JobEntryHadoopJobExecutor.JarUrl.Label}" />
 					<hbox>
-						<textbox pen:customclass="variabletextbox" id="jar-url" flex="1" width="400" multiline="false"/>
+						<textbox pen:customclass="variabletextbox" id="jar-url" flex="1" width="400" multiline="false" />
 						<button id="browseJarUrl" label="${JobEntryHadoopJobExecutor.JarUrl.Browse}" onclick="jobEntryController.browseJar()"/>
 					</hbox>
 				</row>
+        <row>
+          <label value="${JobEntryHadoopJobExecutor.Driver.Class.Label}" />
+          <menulist id="driver-class" editable="true">
+            <menupopup>
+              <menuitem label="www.mozilla.org" />
+              <menuitem label="www.xulplanet.com" />
+              <menuitem label="www.dmoz.org" />
+            </menupopup>
+          </menulist>
+        </row>
 			</rows>
 		</grid>
-		
+
 		<groupbox>
 			<caption label="${JobEntryHadoopJobExecutor.Configuration.Label}"/>
 			<hbox>
@@ -50,7 +60,7 @@
 			<vbox id="content-pane" />
 		</groupbox>
 	</vbox>
-	
+
 	<vbox id="simple-configuration" hidden="true">
 	 <grid>
 	   <columns>
@@ -73,7 +83,7 @@
      </rows>
    </grid>
 	</vbox>
-	
+
 	<vbox id="advanced-configuration" hidden="true" flex="1">
 		<tabbox>
 			<tabs>
@@ -116,7 +126,7 @@
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.OutputPath.Label}" />
     							<textbox pen:customclass="variabletextbox" id="output-path" flex="1" multiline="false"/>
-    						</row>    						
+    						</row>
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.InputFormat.Label}" />
     							<textbox pen:customclass="variabletextbox" id="classes-input-format" flex="1" multiline="false"/>
@@ -158,7 +168,7 @@
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.NumReduceTasks.Label}" />
     							<textbox pen:customclass="variabletextbox" id="num-reduce-tasks" flex="1" multiline="false"/>
-    						</row>    						    						
+    						</row>
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Blocking.Label}" />
     							<checkbox id="blocking" flex="1" command="jobEntryController.invertBlocking()"/>

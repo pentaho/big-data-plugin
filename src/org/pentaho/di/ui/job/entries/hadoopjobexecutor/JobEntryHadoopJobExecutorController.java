@@ -22,8 +22,6 @@
 
 package org.pentaho.di.ui.job.entries.hadoopjobexecutor;
 
-import java.io.File;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
@@ -44,10 +42,16 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.ui.xul.XulDomException;
 import org.pentaho.ui.xul.XulEventSourceAdapter;
+import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulVbox;
+import org.pentaho.ui.xul.dom.DocumentFactory;
+import org.pentaho.ui.xul.dom.Element;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
+import org.pentaho.ui.xul.jface.tags.JfaceMenuList;
 import org.pentaho.ui.xul.util.AbstractModelList;
+
+import java.io.File;
 
 public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler {
 
@@ -56,12 +60,14 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   public static final String JOB_ENTRY_NAME = "jobEntryName"; //$NON-NLS-1$
   public static final String HADOOP_JOB_NAME = "hadoopJobName"; //$NON-NLS-1$
   public static final String JAR_URL = "jarUrl"; //$NON-NLS-1$
+  public static final String DRIVER_CLASS = "driverClass"; //$NON-NLS-1$
   public static final String IS_SIMPLE = "isSimple"; //$NON-NLS-1$
   public static final String USER_DEFINED = "userDefined"; //$NON-NLS-1$
 
   private String jobEntryName;
   private String hadoopJobName;
   private String jarUrl = "";
+  private String driverClass = "";
 
   private boolean isSimple = true;
 
@@ -84,11 +90,16 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   public void accept() {
 
+
     ExtTextbox tempBox =
         (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
     this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jar-url" );
     this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
+
+    JfaceMenuList tempList = (JfaceMenuList) getXulDomContainer().getDocumentRoot().getElementById( "driver-class" );
+    this.driverClass = tempList.getValue();
+
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "command-line-arguments" );
     sConf.cmdLineArgs = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-key-class" );
@@ -127,6 +138,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     jobEntry.setHadoopJobName( hadoopJobName );
     jobEntry.setSimple( isSimple );
     jobEntry.setJarUrl( jarUrl );
+    jobEntry.setDriverClass( driverClass );
     jobEntry.setCmdLineArgs( sConf.getCommandLineArgs() );
     jobEntry.setSimpleBlocking( sConf.isSimpleBlocking() );
     jobEntry.setSimpleLoggingInterval( sConf.getSimpleLoggingInterval() );
@@ -163,6 +175,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       setHadoopJobName( jobEntry.getHadoopJobName() );
       setSimple( jobEntry.isSimple() );
       setJarUrl( jobEntry.getJarUrl() );
+      setDriverClass( jobEntry.getDriverClass() );
       sConf.setCommandLineArgs( jobEntry.getCmdLineArgs() );
       sConf.setSimpleBlocking( jobEntry.isSimpleBlocking() );
       sConf.setSimpleLoggingInterval( jobEntry.getSimpleLoggingInterval() );
@@ -177,6 +190,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jar-url" );
+      tempBox.setVariableSpace( varSpace );
+      JfaceMenuList tempList = (JfaceMenuList) getXulDomContainer().getDocumentRoot().getElementById( "driver-class" );
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "command-line-arguments" );
       tempBox.setVariableSpace( varSpace );
@@ -288,6 +303,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       String name = file.getName();
       String parentFolderSelection = file.getParentFile().toString();
 
+      getClassList();
+
       if ( !Const.isEmpty( parentFolder ) && parentFolder.equals( parentFolderSelection ) ) {
         setJarUrl( "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + name );
       } else {
@@ -345,12 +362,24 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     return jarUrl;
   }
 
+  public String getDriverClass(){
+    return driverClass;
+  }
+
   public void setJarUrl( String jarUrl ) {
     String previousVal = this.jarUrl;
     String newVal = jarUrl;
 
     this.jarUrl = jarUrl;
     firePropertyChange( JobEntryHadoopJobExecutorController.JAR_URL, previousVal, newVal );
+  }
+
+  public void setDriverClass( String driverClass ) {
+    String previousVal = this.driverClass;
+    String newVal = driverClass;
+
+    this.driverClass = driverClass;
+    firePropertyChange( JobEntryHadoopJobExecutorController.DRIVER_CLASS, previousVal, newVal );
   }
 
   public boolean isSimple() {
@@ -679,5 +708,25 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     PluginInterface plugin =
         PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
+  }
+
+  /**
+   * Set list of classes from specified jar file
+   * @return
+   */
+  public String getClassList(){
+    JfaceMenuList tempList = (JfaceMenuList) getXulDomContainer().getDocumentRoot().getElementById( "driver-class" );
+
+    tempList.removeAllChildren();
+
+    try {
+      Element newElement = DocumentFactory.createElement( "new list item #1" );
+      tempList.addChild( newElement );
+      setDriverClass("");
+    }
+    catch(XulException e){
+      // do something
+    }
+    return null;
   }
 }
