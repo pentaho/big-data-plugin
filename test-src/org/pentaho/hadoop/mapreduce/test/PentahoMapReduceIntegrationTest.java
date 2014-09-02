@@ -253,7 +253,7 @@ public class PentahoMapReduceIntegrationTest {
     }
 
     if ( reducerTransformationFile != null ) {
-      conf.setReducerClass( (Class<? extends Reducer>) GenericTransReduce.class );
+      conf.setReducerClass( GenericTransReduce.class );
       transMeta = new TransMeta( reducerTransformationFile );
       transConfig = new TransConfiguration( transMeta, transExecConfig );
       conf.set( "transformation-reduce-xml", transConfig.getXML() );
@@ -309,7 +309,7 @@ public class PentahoMapReduceIntegrationTest {
         return;
       }
       if ( !collection.containsKey( arg0 ) ) {
-        collection.put( (Object) arg0, new ArrayList<Object>() );
+        collection.put( arg0, new ArrayList<Object>() );
       }
 
       collection.get( arg0 ).add( arg1 );
@@ -442,7 +442,7 @@ public class PentahoMapReduceIntegrationTest {
     long stop = System.currentTimeMillis();
     System.out.println( "Executed " + ROWS + " in " + ( stop - start ) + "ms" );
     System.out.println( "Average: " + ( ( stop - start ) / (float) ROWS ) + "ms" );
-    System.out.println( "Rows/Second: " + ( (float) ROWS / ( ( stop - start ) / 1000f ) ) );
+    System.out.println( "Rows/Second: " + ( ROWS / ( ( stop - start ) / 1000f ) ) );
 
     class CountValues {
       private Object workingKey;
@@ -489,7 +489,7 @@ public class PentahoMapReduceIntegrationTest {
     start = System.currentTimeMillis();
     for ( Object key : inputCollector.getCollection().keySet() ) {
       System.out.println( "reducing: " + key );
-      reducer.reduce( (Text) key, (Iterator) new ArrayList( inputCollector.getCollection().get( key ) ).iterator(),
+      reducer.reduce( (Text) key, new ArrayList( inputCollector.getCollection().get( key ) ).iterator(),
           outputCollector, reporter );
     }
     reducer.close();
@@ -497,7 +497,7 @@ public class PentahoMapReduceIntegrationTest {
     stop = System.currentTimeMillis();
     System.out.println( "Executed " + ROWS + " in " + ( stop - start ) + "ms" );
     System.out.println( "Average: " + ( ( stop - start ) / (float) ROWS ) + "ms" );
-    System.out.println( "Rows/Second: " + ( (float) ROWS / ( ( stop - start ) / 1000f ) ) );
+    System.out.println( "Rows/Second: " + ( ROWS / ( ( stop - start ) / 1000f ) ) );
 
     assertNotNull( outputCollector );
     assertNotNull( outputCollector.getCollection() );
@@ -677,6 +677,7 @@ public class PentahoMapReduceIntegrationTest {
     for ( int i = 0; i < RUNS; i++ ) {
       MockOutputCollector outputCollector = new MockOutputCollector();
       combiner.reduce( new Text( String.valueOf( i ) ), input.iterator(), outputCollector, reporter );
+      combiner.close();
       outputCollector.close();
       Exception ex = combiner.getException();
       if ( ex != null ) {
@@ -710,6 +711,7 @@ public class PentahoMapReduceIntegrationTest {
     for ( int i = 0; i < RUNS; i++ ) {
       MockOutputCollector outputCollector = new MockOutputCollector();
       reducer.reduce( new Text( String.valueOf( i ) ), input.iterator(), outputCollector, reporter );
+      reducer.close();
       outputCollector.close();
       Exception ex = reducer.getException();
       if ( ex != null ) {
