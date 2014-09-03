@@ -23,9 +23,12 @@
 package org.pentaho.di.core.hadoop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -45,6 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.plugins.KettleLifecyclePluginType;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.Plugin;
@@ -60,6 +64,10 @@ import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.MockHadoopShim;
 
 public class HadoopConfigurationBootstrapTest {
+  /**
+   * 
+   */
+  private static final String TEST_MESSAGE = "Test message";
   private static Plugin plugin = new Plugin( new String[] { HadoopSpoonPlugin.PLUGIN_ID }, StepPluginType.class,
       LifecyclePluginType.class.getAnnotation( PluginMainClassType.class ).value(), "", "", "", null, false, false,
       new HashMap<Class<?>, String>(), new ArrayList<String>(), null, getPluginURL() );
@@ -332,4 +340,19 @@ public class HadoopConfigurationBootstrapTest {
           .getMessage() );
     }
   }
+  
+  @Test
+  public void testLifecycleExceptionWithSevereFalseThrows_WhenConfigurationExceptionOccursOnEnvInit() throws Exception {
+    HadoopConfigurationBootstrap hadoopConfigurationBootstrap = new HadoopConfigurationBootstrap();
+    HadoopConfigurationBootstrap hadoopConfigurationBootstrapSpy = spy( hadoopConfigurationBootstrap );
+    doThrow( new ConfigurationException( TEST_MESSAGE ) ).when( hadoopConfigurationBootstrapSpy ).getProvider();
+    try {
+      hadoopConfigurationBootstrapSpy.onEnvironmentInit();
+      fail( "Expected LifecycleException exception but wasn't" );
+    } catch ( LifecycleException lcExc ) {
+      assertFalse( lcExc.isSevere() );
+    }
+  }
+  
+
 }

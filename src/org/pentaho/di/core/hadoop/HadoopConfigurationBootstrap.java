@@ -246,7 +246,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
       getInstance().getProvider();
     } catch ( ConfigurationException e ) {
       throw new LifecycleException( BaseMessages.getString( PKG,
-          "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, true );
+          "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, false );
     }
   }
 
