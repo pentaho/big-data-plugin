@@ -44,7 +44,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Package protected constructor for unit testing.
-   * 
+   *
    * @param majorVersion
    *          The majorVersion to set for the driver
    * @param minorVersion
@@ -169,7 +169,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Build the SQL to count the number of rows in the passed table.
-   * 
+   *
    * @param tableName
    * @return
    */
@@ -214,7 +214,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   /**
    * Check that the version of the driver being used is at least the driver you want. If you do not care about the minor
    * version, pass in a 0 (The assumption being that the minor version will ALWAYS be 0 or greater)
-   * 
+   *
    * @return true: the version being used is equal to or newer than the one you requested false: the version being used
    *         is older than the one you requested
    */
@@ -239,7 +239,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Quotes around table names are not valid Hive QL
-   * 
+   *
    * return an empty string for the start quote
    */
   public String getStartQuote() {
@@ -248,7 +248,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Quotes around table names are not valid Hive QL
-   * 
+   *
    * return an empty string for the end quote
    */
   public String getEndQuote() {
@@ -294,5 +294,33 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public boolean supportsBatchUpdates() {
     return false;
+  }
+
+  private StringBuilder getConnectSqlForNotDefaultDatabaseName() {
+    StringBuilder sql = new StringBuilder( "use " );
+    sql.append( getDatabaseName() ).append( ';' ).append( ' ' );
+    return sql;
+  }
+
+  /**
+   * @return The SQL to execute right after connecting
+   */
+  @Override
+  public String getConnectSQL() {
+    StringBuilder sql = getConnectSqlForNotDefaultDatabaseName();
+    String superSql = super.getConnectSQL();
+    if ( !Const.isEmpty( superSql ) ) {
+      return sql.append( superSql ).toString();
+    }
+    return sql.toString();
+  }
+
+  /**
+   * @param sql
+   *          The SQL to execute right after connecting
+   */
+  @Override
+  public void setConnectSQL( String sql ) {
+    super.setConnectSQL( sql.replaceAll( getConnectSqlForNotDefaultDatabaseName().toString(), "" ) );
   }
 }
