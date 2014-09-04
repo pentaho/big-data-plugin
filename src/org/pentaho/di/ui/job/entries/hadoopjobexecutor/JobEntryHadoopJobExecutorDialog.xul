@@ -38,16 +38,13 @@
 						<button id="browseJarUrl" label="${JobEntryHadoopJobExecutor.JarUrl.Browse}" onclick="jobEntryController.browseJar()"/>
 					</hbox>
 				</row>
-        <row>
-          <label value="${JobEntryHadoopJobExecutor.Driver.Class.Label}" />
-          <menulist id="driver-class" editable="true">
-            <menupopup>
-              <menuitem label="www.mozilla.org" />
-              <menuitem label="www.xulplanet.com" />
-              <menuitem label="www.dmoz.org" />
-            </menupopup>
-          </menulist>
-        </row>
+                <row>
+                    <label value="${JobEntryHadoopJobExecutor.Driver.Class.Label}" />
+                    <menulist pen:customclass="variablemenulist" id="driver-class" editable="true" flex="1">
+                        <menupopup>
+                        </menupopup>
+                    </menulist>
+                </row>
 			</rows>
 		</grid>
 

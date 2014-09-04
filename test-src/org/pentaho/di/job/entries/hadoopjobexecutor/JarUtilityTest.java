@@ -67,8 +67,8 @@ public class JarUtilityTest {
    * @return A Java archive with the class packaged within and manifest configured to use it as the main class.
    */
   private JavaArchive createTestJarWithMainClass( String name, Class<?> mainClass ) {
-    JavaArchive archive = ShrinkWrap.create( JavaArchive.class, "test.jar" );
-    StringAsset manifest = new StringAsset( "Main-Class: " + getClass().getName() + "\n" );
+    JavaArchive archive = ShrinkWrap.create( JavaArchive.class, name );
+    StringAsset manifest = new StringAsset( "Main-Class: " + mainClass.getName().replaceAll("\\.","/") + "\n" );
     archive.addAsManifestResource( manifest, MANIFEST_FILE_NAME );
     archive.addClass( getClass() );
     return archive;
@@ -127,6 +127,21 @@ public class JarUtilityTest {
 
     Class<?> mainClass = util.getMainClassFromManifest( exportFile.toURI().toURL(), getClass().getClassLoader() );
     assertNull( mainClass );
+  }
+
+  @Test
+  public void testGetClassByNameFromJar() throws Exception {
+    JarUtility util = new JarUtility();
+    JavaArchive archive = createTestJarWithMainClass( "test_classByName.jar", getClass() );
+    File exportFile = new File( TEST_PATH, archive.getName() );
+    archive.as( ZipExporter.class ).exportTo( exportFile );
+
+    assertTrue( exportFile.exists() );
+
+    Class<?> mainClass = util.getClassByName(
+      this.getClass().getName(), exportFile.toURI().toURL(), getClass().getClassLoader());
+    assertEquals( getClass(), mainClass );
+
   }
 
 }
