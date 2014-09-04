@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -77,6 +78,8 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
   private String jarUrl = "";
 
+  private String driverClass = "";
+
   private boolean isSimple = true;
 
   private String cmdLineArgs;
@@ -122,6 +125,14 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
   public void setJarUrl( String jarUrl ) {
     this.jarUrl = jarUrl;
+  }
+
+  public String getDriverClass() {
+    return driverClass;
+  }
+
+  public void setDriverClass( String driverClass ) {
+    this.driverClass = driverClass;
   }
 
   public boolean isSimple() {
@@ -316,16 +327,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     }
 
     try {
-      URL resolvedJarUrl = null;
-      String jarUrlS = environmentSubstitute( jarUrl );
-      if ( jarUrlS.indexOf( "://" ) == -1 ) {
-        // default to file://
-        File jarFile = new File( jarUrlS );
-        resolvedJarUrl = jarFile.toURI().toURL();
-      } else {
-        resolvedJarUrl = new URL( jarUrlS );
-      }
-
+      URL resolvedJarUrl = resolveJarUrl( jarUrl );
       if ( log.isDetailed() ) {
         logDetailed( BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.ResolvedJar", resolvedJarUrl
             .toExternalForm() ) );
@@ -342,78 +344,71 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
           logError( BaseMessages.getString( PKG, "ErrorParsingLogInterval", simpleLoggingIntervalS, simpleLogInt ) );
         }
 
-        final Class<?> mainClass = util.getMainClassFromManifest( resolvedJarUrl, shim.getClass().getClassLoader() );
+        final Class<?> mainClass = locateDriverClass( resolvedJarUrl, shim );
 
         if ( log.isDetailed() ) {
+          logDetailed(BaseMessages.getString(
+            PKG, "JobEntryHadoopJobExecutor.UsingDriverClass", mainClass == null ? "null" : mainClass.getName() ) );
           logDetailed( BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.SimpleMode" ) );
         }
-        List<Class<?>> classesWithMains = new ArrayList<Class<?>>();
-        if ( mainClass == null ) {
-          classesWithMains.addAll( util.getClassesInJarWithMain( resolvedJarUrl.toExternalForm(), shim.getClass()
-              .getClassLoader() ) );
-        } else {
-          classesWithMains.add( mainClass );
-        }
-        final AtomicInteger threads = new AtomicInteger( classesWithMains.size() );
+        final AtomicInteger threads = new AtomicInteger( 1 );
         final NoExitSecurityManager nesm = new NoExitSecurityManager( System.getSecurityManager() );
         smStack.setSecurityManager( nesm );
         try {
-          for ( final Class<?> clazz : classesWithMains ) {
-            Runnable r = new Runnable() {
-              public void run() {
+          Runnable r = new Runnable() {
+            public void run() {
+              try {
                 try {
-                  try {
-                    executeMainMethod( clazz );
-                  } finally {
-                    restoreSecurityManager( threads, nesm );
-                  }
-                } catch ( NoExitSecurityManager.NoExitSecurityException ex ) {
+                  executeMainMethod( mainClass );
+                } finally {
+                  restoreSecurityManager( threads, nesm );
+                }
+              } catch ( NoExitSecurityManager.NoExitSecurityException ex ) {
+                // Only log if we're blocking and waiting for this to complete
+                if ( simpleBlocking ) {
+                  logExitStatus( result, mainClass, ex );
+                }
+              } catch ( InvocationTargetException ex ) {
+                if ( ex.getTargetException() instanceof NoExitSecurityManager.NoExitSecurityException ) {
                   // Only log if we're blocking and waiting for this to complete
                   if ( simpleBlocking ) {
-                    logExitStatus( result, clazz, ex );
+                    logExitStatus( result, mainClass, (NoExitSecurityManager.NoExitSecurityException) ex
+                      .getTargetException() );
                   }
-                } catch ( InvocationTargetException ex ) {
-                  if ( ex.getTargetException() instanceof NoExitSecurityManager.NoExitSecurityException ) {
-                    // Only log if we're blocking and waiting for this to complete
-                    if ( simpleBlocking ) {
-                      logExitStatus( result, clazz, (NoExitSecurityManager.NoExitSecurityException) ex
-                          .getTargetException() );
-                    }
-                  } else {
-                    throw new RuntimeException( ex );
-                  }
-                } catch ( Exception ex ) {
+                } else {
                   throw new RuntimeException( ex );
                 }
+              } catch ( Exception ex ) {
+                throw new RuntimeException( ex );
               }
-            };
-            Thread t = new Thread( r );
-            t.setDaemon( true );
-            t.setUncaughtExceptionHandler( new Thread.UncaughtExceptionHandler() {
-              @Override
-              public void uncaughtException( Thread t, Throwable e ) {
-                restoreSecurityManager( threads, nesm );
-                if ( simpleBlocking ) {
-                  // Only log if we're blocking and waiting for this to complete
-                  logError( BaseMessages.getString( JobEntryHadoopJobExecutor.class,
-                      "JobEntryHadoopJobExecutor.ErrorExecutingClass", clazz.getName() ), e );
-                  result.setResult( false );
-                }
+            }
+          };
+          Thread t = new Thread( r );
+          t.setDaemon( true );
+          t.setUncaughtExceptionHandler( new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException( Thread t, Throwable e ) {
+              restoreSecurityManager( threads, nesm );
+              if ( simpleBlocking ) {
+                // Only log if we're blocking and waiting for this to complete
+                logError( BaseMessages.getString( JobEntryHadoopJobExecutor.class,
+                  "JobEntryHadoopJobExecutor.ErrorExecutingClass", mainClass.getName() ), e );
+                result.setResult( false );
               }
-            } );
-            nesm.addBlockedThread( t );
-            t.start();
-            if ( simpleBlocking ) {
-              // wait until the thread is done
-              do {
-                logDetailed( BaseMessages.getString( JobEntryHadoopJobExecutor.class,
-                    "JobEntryHadoopJobExecutor.Blocking", clazz.getName() ) );
-                t.join( simpleLogInt * 1000 );
-              } while ( !parentJob.isStopped() && t.isAlive() );
-              if ( t.isAlive() ) {
-                // Kill thread if it's still running. The job must have been stopped.
-                t.interrupt();
-              }
+            }
+          } );
+          nesm.addBlockedThread( t );
+          t.start();
+          if ( simpleBlocking ) {
+            // wait until the thread is done
+            do {
+              logDetailed( BaseMessages.getString(JobEntryHadoopJobExecutor.class,
+                "JobEntryHadoopJobExecutor.Blocking", mainClass.getName() ) );
+              t.join( simpleLogInt * 1000 );
+            } while ( !parentJob.isStopped() && t.isAlive() );
+            if ( t.isAlive() ) {
+              // Kill thread if it's still running. The job must have been stopped.
+              t.interrupt();
             }
           }
         } finally {
@@ -596,6 +591,38 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     return result;
   }
 
+  private Class<?> locateDriverClass( final URL resolvedJarUrl, final HadoopShim shim )
+    throws IOException, ClassNotFoundException {
+    if ( Const.isEmpty( driverClass ) ) {
+      Class<?> mainClass = util.getMainClassFromManifest( resolvedJarUrl, shim.getClass().getClassLoader() );
+      if ( mainClass == null ) {
+        List<Class<?>> mainClasses =
+          util.getClassesInJarWithMain( resolvedJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
+        if ( mainClasses.size() == 1 ) {
+          return mainClasses.get( 0 );
+        } else if ( mainClasses.isEmpty() ) {
+          throw new RuntimeException( BaseMessages.getString( PKG, "ErrorDriverClassNotSpecified" ) );
+        } else {
+          throw new RuntimeException( BaseMessages.getString( PKG, "ErrorMultipleDriverClasses" ) );
+        }
+      }
+      return mainClass;
+    } else {
+      return util.getClassByName( getDriverClass(), resolvedJarUrl, shim.getClass().getClassLoader() );
+    }
+  }
+
+  public URL resolveJarUrl( final String jarUrl ) throws MalformedURLException {
+    String jarUrlS = environmentSubstitute( jarUrl );
+    if ( jarUrlS.indexOf( "://" ) == -1 ) {
+      // default to file://
+      File jarFile = new File( jarUrlS );
+      return jarFile.toURI().toURL();
+    } else {
+      return new URL( jarUrlS );
+    }
+  }
+
   /**
    * Log messages indicating completion (success/failure) of component tasks for the provided running job.
    * 
@@ -709,6 +736,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
     isSimple = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "simple" ) );
     jarUrl = XMLHandler.getTagValue( entrynode, "jar_url" );
+    driverClass = XMLHandler.getTagValue( entrynode, "driver_class" );
     cmdLineArgs = XMLHandler.getTagValue( entrynode, "command_line_args" );
     simpleBlocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "simple_blocking" ) );
     blocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "blocking" ) );
@@ -756,6 +784,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
     retval.append( "      " ).append( XMLHandler.addTagValue( "simple", isSimple ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "jar_url", jarUrl ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "driver_class", driverClass ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "command_line_args", cmdLineArgs ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "simple_blocking", simpleBlocking ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) );
@@ -806,6 +835,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       setSimple( rep.getJobEntryAttributeBoolean( id_jobentry, "simple" ) );
 
       setJarUrl( rep.getJobEntryAttributeString( id_jobentry, "jar_url" ) );
+      setDriverClass( rep.getJobEntryAttributeString( id_jobentry, "driver_class" ) );
       setCmdLineArgs( rep.getJobEntryAttributeString( id_jobentry, "command_line_args" ) );
       setSimpleBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "simple_blocking" ) );
       setBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "blocking" ) );
@@ -857,6 +887,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       rep.saveJobEntryAttribute( id_job, getObjectId(), "simple", isSimple ); //$NON-NLS-1$
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "jar_url", jarUrl ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "driver_class", driverClass ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "simple_blocking", simpleBlocking ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking ); //$NON-NLS-1$

@@ -56,8 +56,54 @@ public class JarUtility {
    * @throws ClassNotFoundException
    *           Error locating the main class as defined in the manifest
    */
-  public Class<?> getMainClassFromManifest( URL jarUrl, ClassLoader parentClassLoader ) throws IOException,
-    ClassNotFoundException {
+  public Class<?> getMainClassFromManifest( URL jarUrl, ClassLoader parentClassLoader )
+    throws IOException, ClassNotFoundException {
+    JarFile jarFile = getJarFile( jarUrl, parentClassLoader );
+    try {
+      Manifest manifest = jarFile.getManifest();
+      String className = manifest == null ? null : manifest.getMainAttributes().getValue( "Main-Class" );
+      return loadClassByName( className, jarUrl, parentClassLoader );
+    } finally {
+      jarFile.close();
+    }
+  }
+
+  /**
+   * Load the specified class from the specified jar and return the Class object
+   *
+   * @param className
+   *          Name of class to load
+   * @param jarUrl
+   *          URL to the Jar file
+   * @param parentClassLoader
+   *          Class loader to delegate to when loading classes outside the jar.
+   * @return Class defined by className parameter, {@code null} if not defined.
+   * @throws IOException
+   *           Error opening jar file
+   * @throws ClassNotFoundException
+   *           Error locating the main class as defined in the manifest
+   */
+  public Class<?> getClassByName( String className, URL jarUrl, ClassLoader parentClassLoader )
+    throws IOException, ClassNotFoundException {
+    JarFile jarFile = getJarFile( jarUrl, parentClassLoader );
+    try {
+      return loadClassByName( className, jarUrl, parentClassLoader );
+    } finally {
+      jarFile.close();
+    }
+  }
+
+  private Class<?> loadClassByName( final String className, final URL jarUrl, final ClassLoader parentClassLoader )
+    throws ClassNotFoundException {
+    if ( className != null ) {
+      URLClassLoader cl = new URLClassLoader( new URL[] { jarUrl }, parentClassLoader );
+      return cl.loadClass( className.replaceAll( "/", "." ) );
+    } else {
+      return null;
+    }
+  }
+
+  private JarFile getJarFile( final URL jarUrl, final ClassLoader parentClassLoader ) throws IOException {
     if ( jarUrl == null || parentClassLoader == null ) {
       throw new NullPointerException();
     }
@@ -69,18 +115,7 @@ public class JarUtility {
     } catch ( IOException ex ) {
       throw new IOException( "Error opening job jar: " + jarUrl, ex );
     }
-    try {
-      Manifest manifest = jarFile.getManifest();
-      String className = manifest == null ? null : manifest.getMainAttributes().getValue( "Main-Class" );
-      if ( className != null ) {
-        URLClassLoader cl = new URLClassLoader( new URL[] { jarUrl }, parentClassLoader );
-        return cl.loadClass( className );
-      } else {
-        return null;
-      }
-    } finally {
-      jarFile.close();
-    }
+    return jarFile;
   }
 
   public List<Class<?>> getClassesInJarWithMain( String jarUrl, ClassLoader parentClassloader )
@@ -124,7 +159,7 @@ public class JarUtility {
           classes.add( loader.loadClass( className ) );
         }
       }
-    } catch ( Exception e ) {
+    } catch ( Throwable e ) {
       e.printStackTrace();
     }
     return classes;

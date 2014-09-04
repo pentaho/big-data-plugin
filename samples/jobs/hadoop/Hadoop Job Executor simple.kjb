@@ -41,6 +41,7 @@
       <hadoop_job_name>PDI Hadoop - WordCount - Simple</hadoop_job_name>
       <simple>Y</simple>
       <jar_url>.&#47;samples&#47;jobs&#47;hadoop&#47;pentaho-mapreduce-sample.jar</jar_url>
+      <driver_class>org.pentaho.hadoop.sample.wordcount.WordCount</driver_class>
       <command_line_args>--input=&#47;wordcount&#47;input --output=&#47;wordcount&#47;output --hdfsHost=hadoop-server:8020 --jobTrackerHost=hadoop-server:8021</command_line_args>
       <simple_blocking>Y</simple_blocking>
       <blocking>Y</blocking>
