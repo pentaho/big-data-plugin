@@ -48,7 +48,7 @@ import org.pentaho.ui.xul.XulEventSourceAdapter;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulVbox;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
-import org.pentaho.ui.xul.jface.tags.JfaceMenuList;
+import org.pentaho.ui.xul.jface.tags.JfaceCMenuList;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
 import java.io.File;
@@ -103,7 +103,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jar-url" );
     this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
 
-    JfaceMenuList tempList = (JfaceMenuList) getXulDomContainer().getDocumentRoot().getElementById( "driver-class" );
+    JfaceCMenuList tempList = (JfaceCMenuList) getXulDomContainer().getDocumentRoot().getElementById( "driver-class" );
     this.driverClass = tempList.getValue();
 
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "command-line-arguments" );

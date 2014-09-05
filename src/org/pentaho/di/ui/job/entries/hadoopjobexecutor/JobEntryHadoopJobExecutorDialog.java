@@ -82,6 +82,7 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     SwtXulLoader swtXulLoader = new SwtXulLoader();
     swtXulLoader.registerClassLoader( getClass().getClassLoader() );
     swtXulLoader.register( "VARIABLETEXTBOX", "org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox" );
+    swtXulLoader.register( "VARIABLEMENULIST", "org.pentaho.di.ui.core.database.dialog.tags.ExtMenuList" );
     swtXulLoader.setOuterContext( shell );
 
     container =
