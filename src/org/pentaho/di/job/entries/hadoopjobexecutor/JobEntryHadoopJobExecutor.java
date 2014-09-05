@@ -608,7 +608,8 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       }
       return mainClass;
     } else {
-      return util.getClassByName( getDriverClass(), resolvedJarUrl, shim.getClass().getClassLoader() );
+      return util.getClassByName(
+        environmentSubstitute( getDriverClass() ), resolvedJarUrl, shim.getClass().getClassLoader() );
     }
   }
 
