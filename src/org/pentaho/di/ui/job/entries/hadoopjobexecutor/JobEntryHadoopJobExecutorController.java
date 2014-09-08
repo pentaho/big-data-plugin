@@ -39,6 +39,7 @@ import org.pentaho.di.job.entries.hadoopjobexecutor.JarUtility;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
@@ -757,6 +758,9 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
         setDriverClass( saveDriverClass );
       }
     } catch ( Throwable e ) {
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
+      Shell shell = (Shell) xulDialog.getRootObject();
+      new ErrorDialog( shell, "Error", "Unable to populate Driver Class list", e );
       setDriverClasses( Collections.<String>emptyList() );
     }
   }
