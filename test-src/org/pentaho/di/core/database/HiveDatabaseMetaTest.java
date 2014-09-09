@@ -23,13 +23,14 @@
 package org.pentaho.di.core.database;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Properties;
 
-public class TestHiveDatabaseMeta {
+public class HiveDatabaseMetaTest {
 
   @Before
   public void setup() {
@@ -70,5 +71,29 @@ public class TestHiveDatabaseMeta {
     dbm.setAttributes( new Properties() );
     dbm.setDatabaseName( "default" );
     assertEquals( dbm.getConnectSQL(), "use default; " );
+  }
+  
+  @Test
+  public void testGetConnectSQL2() throws Throwable {
+    HiveDatabaseMeta dbm = new HiveDatabaseMeta( 0, 5 );
+    dbm.setAttributes( new Properties() );
+    dbm.setDatabaseName( "default" );
+    assertEquals( dbm.getConnectSQL(), "use default; " );
+    dbm.setDatabaseName( "hdp" );
+    assertEquals( dbm.getConnectSQL().trim(), "use hdp;" );
+    assertFalse( dbm.getConnectSQL().equals( "use default; " ) );
+  }
+  
+  @Test
+  public void testGetConnectSQL3() throws Throwable {
+    HiveDatabaseMeta dbm = new HiveDatabaseMeta( 0, 5 );
+    dbm.setAttributes( new Properties() );
+    dbm.setDatabaseName( "default" );
+    assertEquals( dbm.getConnectSQL(), "use default; " );
+    String oldSql = dbm.getConnectSQL();
+    dbm.setDatabaseName( "hdp" );
+    dbm.setConnectSQL( oldSql );
+    assertEquals( dbm.getConnectSQL().trim(), "use hdp;" );
+    assertFalse( dbm.getConnectSQL().equals( "use default; " ) );
   }
 }

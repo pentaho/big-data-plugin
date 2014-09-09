@@ -310,6 +310,17 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
     StringBuilder sql = getConnectSqlForNotDefaultDatabaseName();
     String superSql = super.getConnectSQL();
     if ( !Const.isEmpty( superSql ) ) {
+      int startPos = superSql.indexOf( "use " );
+      if( startPos >= 0 ){
+        int endPos = superSql.indexOf( ";", startPos );
+        if( endPos >= 0 ){
+          if( endPos <superSql.length() ) {
+            endPos++;
+          }
+          String superSql1 = superSql.substring( 0, startPos ) + superSql.substring( endPos );
+          superSql = superSql1;
+        }
+      }
       return sql.append( superSql ).toString();
     }
     return sql.toString();
