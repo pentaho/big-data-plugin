@@ -340,7 +340,7 @@ public class HadoopConfigurationBootstrapTest {
           .getMessage() );
     }
   }
-  
+
   @Test
   public void testLifecycleExceptionWithSevereFalseThrows_WhenConfigurationExceptionOccursOnEnvInit() throws Exception {
     HadoopConfigurationBootstrap hadoopConfigurationBootstrap = new HadoopConfigurationBootstrap();
@@ -353,6 +353,6 @@ public class HadoopConfigurationBootstrapTest {
       assertFalse( lcExc.isSevere() );
     }
   }
-  
+
 
 }
