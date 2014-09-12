@@ -51,6 +51,8 @@ import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
+import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.api.fs.Path;
@@ -332,8 +334,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         logDetailed( BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.ResolvedJar", resolvedJarUrl
             .toExternalForm() ) );
       }
-      HadoopShim shim =
-          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+      HadoopShim shim = getHadoopConfiguration().getHadoopShim();
 
       if ( isSimple ) {
         String simpleLoggingIntervalS = environmentSubstitute( getSimpleLoggingInterval() );
@@ -510,7 +511,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
           }
         }
 
-        conf.setJar( jarUrl );
+        conf.setJar( environmentSubstitute( jarUrl ) );
 
         String numMapTasksS = environmentSubstitute( numMapTasks );
         String numReduceTasksS = environmentSubstitute( numReduceTasks );
@@ -951,5 +952,17 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
   public void setSimpleBlocking( boolean simpleBlocking ) {
     this.simpleBlocking = simpleBlocking;
+  }
+
+  /**
+   * Get the {@link org.pentaho.hadoop.shim.HadoopConfiguration} to use when executing. This is by default loaded from
+   * {@link HadoopConfigurationRegistry}.
+   *
+   * @return a valid Hadoop configuration
+   * @throws org.pentaho.hadoop.shim.ConfigurationException
+   *           Error locating a valid hadoop configuration
+   */
+  protected HadoopConfiguration getHadoopConfiguration() throws ConfigurationException {
+    return HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
   }
 }
