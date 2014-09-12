@@ -33,6 +33,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.WriterAppender;
+import org.apache.log4j.Level;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -447,6 +448,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     WriterAppender pigToKettleAppender = new WriterAppender( new Log4jKettleLayout( true ), klps );
 
     Logger pigLogger = Logger.getLogger( "org.apache.pig" );
+    pigLogger.setLevel( Level.INFO );
     Log4jFileAppender appender = null;
     String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
     LogWriter logWriter = LogWriter.getInstance();
