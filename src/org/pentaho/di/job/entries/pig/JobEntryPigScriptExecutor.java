@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.WriterAppender;
 import org.pentaho.di.cluster.SlaveServer;
@@ -42,11 +43,15 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
+import org.pentaho.di.core.logging.KettleLogChannelAppender;
 import org.pentaho.di.core.logging.Log4jFileAppender;
 import org.pentaho.di.core.logging.Log4jKettleLayout;
+import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.logging.LogWriter;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.Job;
+import org.pentaho.di.job.JobListener;
 import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
@@ -96,7 +101,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   /** Parameters for the script */
   protected HashMap<String, String> m_params = new HashMap<String, String>();
-
+  
   /**
    * An extended PrintWriter that sends output to Kettle's logging
    * 
@@ -447,6 +452,8 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     WriterAppender pigToKettleAppender = new WriterAppender( new Log4jKettleLayout( true ), klps );
 
     Logger pigLogger = Logger.getLogger( "org.apache.pig" );
+    Level log4jLevel = getLog4jLevel(parentJob.getLogLevel());
+    pigLogger.setLevel( log4jLevel );
     Log4jFileAppender appender = null;
     String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
     LogWriter logWriter = LogWriter.getInstance();
@@ -541,7 +548,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       } else {
         final Log4jFileAppender fa = appender;
         final WriterAppender ptk = pigToKettleAppender;
-        Thread runThread = new Thread() {
+        final Thread runThread = new Thread() {
           public void run() {
             try {
               int[] executionStatus = pigShim.executeScript( pigScript, execMode, properties );
@@ -564,6 +571,20 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         };
 
         runThread.start();
+        parentJob.addJobListener( new JobListener() {
+
+          @Override
+          public void jobStarted( Job job ) throws KettleException {
+          }
+
+          @Override
+          public void jobFinished( Job job ) throws KettleException {
+            if ( runThread.isAlive() ) {
+              logMinimal( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.AsynctaskStillRunning",
+                  getName(), job.getJobname() ) );
+            }
+          }
+        } );
       }
     } catch ( Exception ex ) {
       ex.printStackTrace();
@@ -574,6 +595,12 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     }
 
     return result;
+  }
+  
+  private Level getLog4jLevel( LogLevel level ) {
+    // KettleLogChannelAppender does not exists in Kette core, so we'll use it from kettle5-log4j-plugin.
+    Level log4jLevel = KettleLogChannelAppender.LOG_LEVEL_MAP.get( level );
+    return log4jLevel != null ? log4jLevel : Level.INFO;
   }
 
   protected void removeAppender( Log4jFileAppender appender, WriterAppender pigToKettleAppender ) {
