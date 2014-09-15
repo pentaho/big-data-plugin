@@ -81,7 +81,8 @@ public class JobEntryHadoopJobExecutorTest {
           doAnswer( new Answer() {
             @Override public Object answer( InvocationOnMock invocation ) throws Throwable {
               String jobUrl = (String) invocation.getArguments()[ 0 ];
-              if ( path.equals( jobUrl ) ) {
+              File tmpFile = new File( jobUrl );
+              if ( path.equals( tmpFile.getAbsolutePath() ) ) {
                 return null;
               } else {
                 throw new ConfigurationException(
@@ -121,7 +122,7 @@ public class JobEntryHadoopJobExecutorTest {
     jobExecutor.setBlocking( true );
 
     file.deleteOnExit();
-    jobExecutor.setJarUrl( "${java.io.tmpdir}" + file.getName() );
+    jobExecutor.setJarUrl( "${java.io.tmpdir}${file.separator}" + file.getName() );
     jobExecutor.setSimple( false );
     Result result = new Result();
     try {
