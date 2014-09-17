@@ -23,9 +23,9 @@
 package org.pentaho.di.core.hadoop;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -342,7 +342,7 @@ public class HadoopConfigurationBootstrapTest {
   }
 
   @Test
-  public void testLifecycleExceptionWithSevereFalseThrows_WhenConfigurationExceptionOccursOnEnvInit() throws Exception {
+  public void testLifecycleExceptionWithSevereTrueThrows_WhenConfigurationExceptionOccursOnEnvInit() throws Exception {
     HadoopConfigurationBootstrap hadoopConfigurationBootstrap = new HadoopConfigurationBootstrap();
     HadoopConfigurationBootstrap hadoopConfigurationBootstrapSpy = spy( hadoopConfigurationBootstrap );
     doThrow( new ConfigurationException( TEST_MESSAGE ) ).when( hadoopConfigurationBootstrapSpy ).getProvider();
@@ -350,7 +350,7 @@ public class HadoopConfigurationBootstrapTest {
       hadoopConfigurationBootstrapSpy.onEnvironmentInit();
       fail( "Expected LifecycleException exception but wasn't" );
     } catch ( LifecycleException lcExc ) {
-      assertFalse( lcExc.isSevere() );
+      assertTrue( lcExc.isSevere() );
     }
   }
 
