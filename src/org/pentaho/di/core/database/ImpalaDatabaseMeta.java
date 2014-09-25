@@ -157,8 +157,14 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
     if ( Const.isEmpty( port ) ) {
       Integer.toString( getDefaultDatabasePort() );
     }
-
-    return "jdbc:hive2://" + hostname + ":" + port + "/" + databaseName + ";auth=noSasl";
+    String principal = getAttributes().getProperty( "principal" );
+    String extraPrincipal =
+      getAttributes().getProperty( ATTRIBUTE_PREFIX_EXTRA_OPTION + getPluginId() + ".principal" );
+    if ( principal != null || extraPrincipal != null ) {
+      return "jdbc:hive2://" + hostname + ":" + port + "/" + databaseName;
+    } else {
+      return "jdbc:hive2://" + hostname + ":" + port + "/" + databaseName + ";auth=noSasl";
+    }
   }
 
   @Override
