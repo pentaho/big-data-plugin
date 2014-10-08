@@ -25,6 +25,7 @@ package org.pentaho.di.job.entries.hadooptransjobexecutor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,6 +59,8 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
 import org.pentaho.di.repository.StringObjectId;
+import org.pentaho.di.resource.ResourceDefinition;
+import org.pentaho.di.resource.ResourceNamingInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransConfiguration;
 import org.pentaho.di.trans.TransExecutionConfiguration;
@@ -79,6 +82,7 @@ import org.pentaho.hadoop.shim.api.mapred.RunningJob;
 import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent;
 import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent.Status;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 import com.thoughtworks.xstream.XStream;
@@ -1596,5 +1600,36 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     }
     return null;
 
+  }
+
+  @Override
+  public String exportResources(
+    final VariableSpace space, final Map<String, ResourceDefinition> definitions,
+    final ResourceNamingInterface namingInterface, final Repository repository, final IMetaStore metaStore )
+    throws KettleException {
+    mapTrans = loadAndExport(
+      space, definitions, namingInterface, repository, metaStore, mapTrans, mapRepositoryReference,
+      mapRepositoryDir, mapRepositoryFile );
+    combinerTrans = loadAndExport(
+      space, definitions, namingInterface, repository, metaStore, combinerTrans, combinerRepositoryReference,
+      combinerRepositoryDir, combinerRepositoryFile );
+    reduceTrans = loadAndExport(
+      space, definitions, namingInterface, repository, metaStore, reduceTrans, reduceRepositoryReference,
+      reduceRepositoryDir, reduceRepositoryFile );
+
+    return null;
+  }
+
+  private String loadAndExport( VariableSpace space, Map<String, ResourceDefinition> definitions,
+                                ResourceNamingInterface namingInterface, Repository repository, IMetaStore metaStore,
+                                String trans, ObjectId repositoryReference, String repositoryDir,
+                                String repositoryFile )
+    throws KettleException {
+    if ( trans != null ) {
+      TransMeta transMeta = loadTransMeta( space, rep, trans, repositoryReference, repositoryDir, repositoryFile );
+      return "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + transMeta.exportResources(
+        transMeta, definitions, namingInterface, repository, metaStore );
+    }
+    return trans;
   }
 }

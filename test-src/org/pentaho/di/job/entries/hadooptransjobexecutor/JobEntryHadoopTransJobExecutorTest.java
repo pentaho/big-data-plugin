@@ -29,26 +29,35 @@ import static org.junit.Assert.fail;
 
 import static org.easymock.EasyMock.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.VFS;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.Plugin;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.ObjectId;
+import org.pentaho.di.resource.ResourceDefinition;
+import org.pentaho.di.resource.ResourceNamingInterface;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.steps.hadoopenter.HadoopEnterMeta;
 import org.pentaho.di.trans.steps.hadoopexit.HadoopExitMeta;
@@ -331,5 +340,47 @@ public class JobEntryHadoopTransJobExecutorTest {
     verify( rep );
 
     assertEquals( "5", exec.getNumReduceTasks() );
+  }
+
+  @Test
+  public void testExportDefinitionHasMapperCombinerReducer() throws Throwable {
+    JobEntryHadoopTransJobExecutor exec = new JobEntryHadoopTransJobExecutor();
+    ResourceNamingInterface naming = Mockito.mock( ResourceNamingInterface.class );
+
+    File mapTrans = setupTransFile( naming, "mapTrans" );
+    exec.setMapTrans( mapTrans.getAbsolutePath() );
+
+    File combTrans = setupTransFile( naming, "combTrans" );
+    exec.setCombinerTrans( combTrans.getAbsolutePath() );
+
+    File reduceTrans = setupTransFile( naming, "reduceTrans" );
+    exec.setReduceTrans( reduceTrans.getAbsolutePath() );
+
+    HashMap<String, ResourceDefinition> definitions = new HashMap<String, ResourceDefinition>();
+    exec.exportResources( exec, definitions, naming, null, null );
+    assertEquals( 3, definitions.size() );
+    assertDefinition( mapTrans, definitions );
+    assertDefinition( combTrans, definitions );
+    assertDefinition( reduceTrans, definitions );
+  }
+
+  private void assertDefinition( final File transFile, final HashMap<String, ResourceDefinition> definitions )
+    throws FileSystemException, KettleFileException {
+    ResourceDefinition definition =
+      definitions.get( KettleVFS.getFileObject( transFile.getAbsolutePath() ).getURL().toString() );
+    assertEquals( transFile.getName(), definition.getFilename() );
+    assertTrue( definition.getContent().startsWith( "<transformation" ) );
+  }
+
+  private File setupTransFile( final ResourceNamingInterface naming, final String transName )
+    throws IOException, KettleFileException {
+    File transFile = File.createTempFile( transName, ".ktr" );
+    transFile.deleteOnExit();
+    IOUtils.write( "<transformation/>", new FileOutputStream( transFile ) );
+    Mockito.when(
+      naming.nameResource( transFile.getName(),
+        KettleVFS.getFileObject( transFile.getAbsolutePath() ).getParent().getURL().toString(),
+        "ktr", ResourceNamingInterface.FileNamingType.TRANSFORMATION ) ).thenReturn( transFile.getName() );
+    return transFile;
   }
 }
