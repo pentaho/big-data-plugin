@@ -25,6 +25,7 @@ package org.pentaho.di.job.entries.hadooptransjobexecutor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,6 +59,8 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
 import org.pentaho.di.repository.StringObjectId;
+import org.pentaho.di.resource.ResourceDefinition;
+import org.pentaho.di.resource.ResourceNamingInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransConfiguration;
 import org.pentaho.di.trans.TransExecutionConfiguration;
@@ -79,6 +82,7 @@ import org.pentaho.hadoop.shim.api.mapred.RunningJob;
 import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent;
 import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent.Status;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 import com.thoughtworks.xstream.XStream;
@@ -1596,5 +1600,57 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     }
     return null;
 
+  }
+
+  /**
+   * Exports the mapper, combiner and reducer transformations to a flat-file system, adding content with filename keys
+   * to a set of definitions. The supplied resource naming interface allows the object to name appropriately without
+   * worrying about those parts of the implementation specific details.
+   *
+   * @param space
+   *          The variable space to resolve (environment) variables with.
+   * @param definitions
+   *          The map containing the filenames and content
+   * @param namingInterface
+   *          The resource naming interface allows the object to be named appropriately
+   * @param repository
+   *          The repository to load resources from
+   * @param metaStore
+   *          the metaStore to load external metadata from
+   *
+   * @return The filename for this object. (also contained in the definitions map)
+   * @throws KettleException
+   *           in case something goes wrong during the export
+   */
+  @Override
+  public String exportResources(
+    final VariableSpace space, final Map<String, ResourceDefinition> definitions,
+    final ResourceNamingInterface namingInterface, final Repository repository, final IMetaStore metaStore )
+    throws KettleException {
+    mapTrans = loadAndExport(
+      space, definitions, namingInterface, repository, metaStore, mapTrans, mapRepositoryReference,
+      mapRepositoryDir, mapRepositoryFile );
+    combinerTrans = loadAndExport(
+      space, definitions, namingInterface, repository, metaStore, combinerTrans, combinerRepositoryReference,
+      combinerRepositoryDir, combinerRepositoryFile );
+    reduceTrans = loadAndExport(
+      space, definitions, namingInterface, repository, metaStore, reduceTrans, reduceRepositoryReference,
+      reduceRepositoryDir, reduceRepositoryFile );
+
+    return null;
+  }
+
+  private String loadAndExport( VariableSpace space, Map<String, ResourceDefinition> definitions,
+                                ResourceNamingInterface namingInterface, Repository repository, IMetaStore metaStore,
+                                String trans, ObjectId repositoryReference, String repositoryDir,
+                                String repositoryFile )
+    throws KettleException {
+    final TransMeta transMeta = loadTransMeta(
+      space, repository, trans, repositoryReference, repositoryDir, repositoryFile );
+    if ( transMeta != null ) {
+      return "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + transMeta.exportResources(
+        transMeta, definitions, namingInterface, repository, metaStore );
+    }
+    return trans;
   }
 }
