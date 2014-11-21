@@ -51,7 +51,7 @@ public class HadoopEnterDialog extends BaseStepXulDialog implements StepDialogIn
     super( "org/pentaho/di/ui/trans/steps/hadoopenter/dialog.xul", parent, (BaseStepMeta) in, tr, sname );
 
     typeList = new ArrayList<String>();
-    for ( String type : ValueMeta.getTypes() ) {
+    for ( String type : ValueMeta.getAllTypes() ) {
       typeList.add( type );
     }
 
