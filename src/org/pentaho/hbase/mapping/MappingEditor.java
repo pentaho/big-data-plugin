@@ -426,6 +426,28 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     m_fieldsView.setLayoutData( fd );
   }
 
+  public void updateConfiguration() {
+    if ( m_connectionProblem ) {
+     if ( !m_currentConfiguration.equals( m_configProducer.getCurrentConfiguration() ) ) {
+       // try again - perhaps the user has corrected connection information
+       m_connectionProblem = false;
+       m_currentConfiguration = m_configProducer.getCurrentConfiguration();
+       m_admin = null;
+      }
+    }
+  }
+	
+  public void createHBaseConnection() throws Exception {
+    HBaseConnection hbAdmin = null;
+    if (m_admin == null) {
+      hbAdmin = m_configProducer.getHBaseConnection();
+      hbAdmin.checkHBaseAvailable();
+
+      m_admin = new MappingAdmin();
+      m_admin.setConnection( hbAdmin );
+    }
+  }
+
   private void populateTableWithTupleTemplate() {
     Table table = m_fieldsView.table;
 
@@ -570,23 +592,14 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       return;
     }
 
-    if ( m_connectionProblem ) {
-      if ( !m_currentConfiguration.equals( m_configProducer.getCurrentConfiguration() ) ) {
-        // try again - perhaps the user has corrected connection information
-        m_connectionProblem = false;
-        m_currentConfiguration = m_configProducer.getCurrentConfiguration();
-      }
-    }
+    updateConfiguration();
 
     if ( ( m_existingTableNamesCombo.getItemCount() == 0 || force ) && !m_connectionProblem ) {
       String existingName = m_existingTableNamesCombo.getText();
       m_existingTableNamesCombo.removeAll();
       try {
-        HBaseConnection hbAdmin = m_configProducer.getHBaseConnection();
-        hbAdmin.checkHBaseAvailable();
-
-        m_admin = new MappingAdmin();
-        m_admin.setConnection( hbAdmin );
+        createHBaseConnection();
+        HBaseConnection hbAdmin = m_admin.getConnection();
 
         List<String> tables = hbAdmin.listTableNames();
 
@@ -625,6 +638,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       return;
     }
 
+    updateConfiguration();
+    
     try {
       boolean ok =
           MessageDialog.openConfirm( m_shell, Messages.getString( "MappingDialog.Info.Title.ConfirmDelete" ), Messages
@@ -632,6 +647,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
                   tableName ) );
 
       if ( ok ) {
+    	createHBaseConnection();
+    	  
         boolean result =
             m_admin.deleteMapping( m_existingTableNamesCombo.getText().trim(), m_existingMappingNamesCombo.getText()
                 .trim() );
@@ -651,6 +668,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       }
       return;
     } catch ( Exception ex ) {
+    	m_connectionProblem = true;
       MessageDialog.openError( m_shell, Messages.getString( "MappingDialog.Error.Title.DeleteMapping" ), Messages
           .getString( "MappingDialog.Error.Message.DeleteMappingIO", m_existingMappingNamesCombo.getText().trim(),
               tableName, ex.getMessage() ) );
@@ -914,11 +932,15 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     String tableName = theMapping.getTableName();
 
     if ( m_allowTableCreate ) {
-      // check for existence of the table. If table doesn't exist
-      // prompt for creation
-      HBaseConnection hbAdmin = m_admin.getConnection();
+    	
+    	updateConfiguration();	
 
       try {
+    	createHBaseConnection();
+    	// check for existence of the table. If table doesn't exist
+        // prompt for creation
+        HBaseConnection hbAdmin = m_admin.getConnection();
+        
         if ( !hbAdmin.tableExists( tableName ) ) {
           boolean result =
               MessageDialog.openConfirm( m_shell, "Create table", "Table \"" + tableName
@@ -974,6 +996,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
           populateTableCombo( true );
         }
       } catch ( Exception ex ) {
+    	m_connectionProblem = true;  
         new ErrorDialog( m_shell, Messages.getString( "MappingDialog.Error.Title.ErrorCreatingTable" ), Messages
             .getString( "MappingDialog.Error.Message.ErrorCreatingTable" )
             + " \"" + m_existingTableNamesCombo.getText().trim() + "\"", ex );
@@ -1076,7 +1099,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       }
     }
 
+    updateConfiguration();
+    
     try {
+      createHBaseConnection();
       if ( m_admin.mappingExists( tableName, m_existingMappingNamesCombo.getText().trim() ) ) {
 
         Mapping mapping = m_admin.getMapping( tableName, m_existingMappingNamesCombo.getText().trim() );
@@ -1085,6 +1111,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       }
 
     } catch ( Exception ex ) {
+      m_connectionProblem = true;
       // inform the user via popup
       new ErrorDialog( m_shell, Messages.getString( "MappingDialog.Error.Title.ErrorLoadingMapping" ), Messages
           .getString( "MappingDialog.Error.Message.ErrorLoadingMapping" ), ex );
@@ -1105,8 +1132,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     m_familyCI.setComboValues( new String[] { "" } );
     m_existingMappingNamesCombo.removeAll();
 
+    updateConfiguration();
     if ( m_admin != null && !Const.isEmpty( tableName ) ) {
       try {
+    	createHBaseConnection();
 
         // first get the existing mapping names (if any)
         List<String> mappingNames = m_admin.getMappingNames( tableName );
@@ -1129,6 +1158,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         return;
 
       } catch ( Exception e ) {
+    	  m_connectionProblem = true;
         showConnectionErrorDialog( e );
       }
     }
