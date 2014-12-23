@@ -29,11 +29,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.commons.vfs.VFS;
+import org.apache.pig.PigServer;
+import org.apache.pig.tools.grunt.GruntParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.KettleEnvironment;
@@ -48,6 +52,23 @@ import org.pentaho.hadoop.shim.common.CommonSqoopShim;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 
 public class JobEntryPigScriptExecutorTest {
+
+  class TestPigShim extends CommonPigShim {
+    @Override public int[] executeScript( String pigScript, ExecutionMode executionMode, Properties properties )
+      throws Exception {
+      ClassLoader cl = Thread.currentThread().getContextClassLoader();
+      Thread.currentThread().setContextClassLoader( getClass().getClassLoader() );
+      try {
+        PigServer pigServer = new PigServer( getExecType( executionMode ), properties );
+        GruntParser grunt = new GruntParser( new StringReader( pigScript ) );
+        grunt.setInteractive( false );
+        grunt.setParams( pigServer );
+        return grunt.parseStopOnError( false );
+      } finally {
+        Thread.currentThread().setContextClassLoader( cl );
+      }
+    }
+  }
 
   StringBuffer m_reference;
 
@@ -78,7 +99,7 @@ public class JobEntryPigScriptExecutorTest {
     HadoopConfigurationProvider provider = new HadoopConfigurationProvider() {
 
       HadoopConfiguration config = new HadoopConfiguration( VFS.getManager().resolveFile( "ram:///" ), "test", "test",
-          new CommonHadoopShim(), new CommonSqoopShim(), new CommonPigShim() );
+          new CommonHadoopShim(), new CommonSqoopShim(), new TestPigShim() );
 
       @Override
       public boolean hasConfiguration( String id ) {
