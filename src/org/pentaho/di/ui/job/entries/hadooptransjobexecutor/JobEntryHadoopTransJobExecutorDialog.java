@@ -23,10 +23,12 @@
 package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadooptransjobexecutor.JobEntryHadoopTransJobExecutor;
@@ -38,6 +40,7 @@ import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
 import org.pentaho.ui.xul.binding.Binding.Type;
+import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
 import org.pentaho.ui.xul.components.XulTextbox;
@@ -193,6 +196,19 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     controller.init();
     
     bf.createBinding( controller, "namedConfigurations", "named-configurations", "elements" ).fireSourceChanged();
+    bf.createBinding( "named-configurations", "selectedIndex", controller, "selectedNamedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
+      public NamedConfiguration sourceToTarget( final Integer index ) {
+        List<NamedConfiguration> configurations = controller.getNamedConfigurations();
+        if ( index == -1 || configurations.isEmpty() ) {
+          return null;
+        }
+        return configurations.get( index );
+      }
+
+      public Integer targetToSource( final NamedConfiguration value ) {
+        return null;
+      }
+    }).fireSourceChanged();
   }
 
   public JobEntryInterface open() {
