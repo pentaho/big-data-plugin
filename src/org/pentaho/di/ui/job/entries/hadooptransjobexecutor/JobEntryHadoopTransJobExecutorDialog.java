@@ -189,7 +189,10 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     controller.setJobEntry( (JobEntryHadoopTransJobExecutor) jobEntry );
     controller.setShell( parent );
     controller.setRepository( rep );
+    controller.setJobMeta( jobMeta );
     controller.init();
+    
+    bf.createBinding( controller, "namedConfigurations", "named-configurations", "elements" ).fireSourceChanged();
   }
 
   public JobEntryInterface open() {
