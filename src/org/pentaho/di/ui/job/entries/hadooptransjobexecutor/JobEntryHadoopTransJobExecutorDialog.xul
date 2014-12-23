@@ -8,7 +8,7 @@
     xmlns:pen="http://www.pentaho.org/2008/xul" 
 	title="${JobEntryDialog.Title}"
 	resizable="true"
-    height="420" width="735"
+    height="430" width="735"
 	appicon="ui/images/spoon.ico"
 	buttons="extra1,accept,cancel"
 	buttonalign="end"
@@ -249,6 +249,26 @@
     						<column flex="1"/>
     					</columns>
     					<rows>
+							<row>
+								<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.Label}" width="200"/>
+								<grid>
+									<columns>
+										<column/>
+										<column/>
+										<column/>
+									</columns>
+									<rows>
+										<row>
+											<menulist id="named-configurations" pen:binding="name">
+											    <menupopup>
+											    </menupopup>
+											</menulist>
+											<button id="newNamedConfiguration" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.Edit}" onclick="jobEntryController.editNamedConfiguration()"/>
+											<button id="editNamedConfiguration" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.New}" onclick="jobEntryController.newNamedConfiguration()"/>
+										</row>
+									</rows>
+								</grid>
+							</row>    					
     						<row>
     							<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.HDFSHostname.Label}" />
     							<textbox pen:customclass="variabletextbox" id="hdfs-hostname" flex="1" multiline="false"/>

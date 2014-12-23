@@ -23,6 +23,8 @@
 package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -31,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -39,6 +42,7 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadooptransjobexecutor.JobEntryHadoopTransJobExecutor;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -156,9 +160,11 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String mapperStorageType = "";
   private String combinerStorageType = "";
   private String reducerStorageType = "";
+  private List<NamedConfiguration> namedConfigurations;
 
   protected Shell shell;
   private Repository rep;
+  private JobMeta jobMeta;
 
   private JobEntryHadoopTransJobExecutor jobEntry;
 
@@ -591,6 +597,10 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public void setRepository( Repository rep ) {
     this.rep = rep;
+  }
+
+  public void setJobMeta( JobMeta jobMeta ) {
+    this.jobMeta = jobMeta;
   }
 
   public void cancel() {
@@ -1435,6 +1445,18 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     this.reduceRepositoryReference = reduceRepositoryReference;
   }
 
+  public List<NamedConfiguration> getNamedConfigurations() {
+    this.namedConfigurations = new ArrayList<NamedConfiguration>();
+    if ( jobMeta != null ) {
+      this.namedConfigurations = jobMeta.getNamedConfigurations();
+    } 
+    return namedConfigurations;
+  }
+  
+  public void setNamedConfigurations( List <NamedConfiguration> namedConfigurations ) {
+    this.namedConfigurations = namedConfigurations;
+  }
+
   public void openErrorDialog( String title, String message ) {
     XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "hadoop-error-dialog" );
     errorDialog.setTitle( title );
@@ -1474,5 +1496,13 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     PluginInterface plugin =
         PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
+  }
+  
+  public void editNamedConfiguration() {
+    //TODO
+  }
+  
+  public void newNamedConfiguration() {
+  //TODO
   }
 }
