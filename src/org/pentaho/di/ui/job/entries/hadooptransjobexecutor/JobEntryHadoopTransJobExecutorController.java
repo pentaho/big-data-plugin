@@ -165,6 +165,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   protected Shell shell;
   private Repository rep;
   private JobMeta jobMeta;
+  private NamedConfiguration selectedNamedConfiguration;
 
   private JobEntryHadoopTransJobExecutor jobEntry;
 
@@ -1499,10 +1500,28 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
   
   public void editNamedConfiguration() {
-    //TODO
+    if ( isSelectedNamedConfiguration() ) {
+      Spoon spoon = Spoon.getInstance();
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      spoon.delegates.nc.editNamedConfiguration( jobMeta, this.selectedNamedConfiguration, shell );
+      firePropertyChange( "namedConfigurations", this.selectedNamedConfiguration, getNamedConfigurations() );
+    }
   }
   
   public void newNamedConfiguration() {
-  //TODO
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    spoon.delegates.nc.newNamedConfiguration( jobMeta, shell);   
+    firePropertyChange( "namedConfigurations", null, getNamedConfigurations() );
+  }
+  
+  public void setSelectedNamedConfiguration( NamedConfiguration configuration ) {
+    this.selectedNamedConfiguration = configuration;
+  }
+  
+  public boolean isSelectedNamedConfiguration() {
+    return this.selectedNamedConfiguration != null;
   }
 }
