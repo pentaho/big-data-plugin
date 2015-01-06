@@ -222,20 +222,35 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     this.inputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
     this.outputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
-    
+
     JfaceMenuList<?> ncBox = (JfaceMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "named-configurations" );
-    setConfigurationName( ncBox.getSelectedItem() );    
-    // pull settings from NamedConfig
-    try {
-      NamedConfiguration nc = NamedConfigurationManager.getInstance().read( configurationName, rep.getMetaStore() );
+    setConfigurationName( ncBox.getSelectedItem() );
+
+    NamedConfiguration nc = null;
+    if ( rep != null ) {
+      try {
+        nc = NamedConfigurationManager.getInstance().read( configurationName, rep.getMetaStore() );
+      } catch ( MetaStoreException e ) {
+        openErrorDialog( BaseMessages.getString( PKG, "Dialog.Error" ), e.getMessage() );
+      }
+    }
+
+    if ( nc == null ) {
+      for ( NamedConfiguration tmp : jobMeta.getNamedConfigurations() ) {
+        if ( tmp.getName().equals( configurationName ) ) {
+          nc = tmp;
+          break;
+        }
+      }
+    }
+
+    if ( nc != null ) {
       setHdfsHostname( nc.getPropertyValue( "HDFS", "hostname" ) );
       setHdfsPort( nc.getPropertyValue( "HDFS", "port" ) );
       setJobTrackerHostname( nc.getPropertyValue( "JobTracker", "hostname" ) );
       setJobTrackerPort( nc.getPropertyValue( "JobTracker", "port" ) );
-    } catch (MetaStoreException e) {
-      openErrorDialog( BaseMessages.getString( PKG, "Dialog.Error" ), e.getMessage() );
     }
-    
+
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
     this.numMapTasks = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
