@@ -56,7 +56,6 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
@@ -1325,7 +1324,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedConfiguration nc = null;
-      if ( !StringUtils.isEmpty( getConfigurationName() ) && 
+      if ( rep != null && !StringUtils.isEmpty( getConfigurationName() ) && 
           NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
         // pull config from NamedConfiguration
         nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );

@@ -43,6 +43,7 @@ import org.pentaho.ui.xul.binding.Binding.Type;
 import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
+import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulTree;
@@ -202,8 +203,23 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
         return null;
       }
     }).fireSourceChanged();
+    
+    selectNamedConfiguration();
+    
   }
 
+  private void selectNamedConfiguration() {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
+    for ( NamedConfiguration nc : controller.getNamedConfigurations() ) {
+      String cn = this.jobEntry.getConfigurationName();
+      if ( cn != null && cn.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+        controller.setSelectedNamedConfiguration( nc );
+      }
+    }    
+  }
+  
   public JobEntryInterface open() {
     XulDialog dialog = (XulDialog) container.getDocumentRoot().getElementById( "job-entry-dialog" ); //$NON-NLS-1$
     dialog.show();

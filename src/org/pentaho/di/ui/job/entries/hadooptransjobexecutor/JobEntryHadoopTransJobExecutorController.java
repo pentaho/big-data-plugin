@@ -1537,7 +1537,20 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     Shell shell = (Shell) xulDialog.getRootObject();
     spoon.delegates.nc.newNamedConfiguration( jobMeta, shell );   
     firePropertyChange( "namedConfigurations", null, getNamedConfigurations() );
+    selectNamedConfiguration();
   }
+  
+  private void selectNamedConfiguration() {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) getXulDomContainer().getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
+    for ( NamedConfiguration nc : getNamedConfigurations() ) {
+      String cn = this.jobEntry.getConfigurationName();
+      if ( cn != null && cn.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+        setSelectedNamedConfiguration( nc );
+      }
+    }    
+  }  
   
   public void setSelectedNamedConfiguration( NamedConfiguration configuration ) {
     this.selectedNamedConfiguration = configuration;
