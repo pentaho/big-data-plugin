@@ -24,7 +24,9 @@ package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -262,6 +264,17 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     if ( StringUtil.isEmpty( jobEntryName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.JobEntryName.Error" ) + "\n";
     }
+    if ( nc == null ) {
+      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedConfigurationNotProvided.Error" ) + "\n";
+    } else {
+      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
+      requiredProps.put( "HDFS", new String[] { "hostname", "port" } );
+      requiredProps.put( "JobTracker", new String[] { "hostname", "port" } );
+      if ( !nc.hasValuesFor( requiredProps ) ) {
+        validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedConfigurationPropertyMissing.Error" ) + "\n";
+      }
+    }
+    
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error" ) + "\n";
     }
@@ -439,16 +452,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
       tempBox.setVariableSpace( varSpace );
-      /*
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
-      tempBox.setVariableSpace( varSpace );
-      */
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
