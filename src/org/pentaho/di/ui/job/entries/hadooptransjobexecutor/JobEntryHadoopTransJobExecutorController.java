@@ -274,7 +274,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedConfigurationPropertyMissing.Error" ) + "\n";
       }
     }
-    
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error" ) + "\n";
     }

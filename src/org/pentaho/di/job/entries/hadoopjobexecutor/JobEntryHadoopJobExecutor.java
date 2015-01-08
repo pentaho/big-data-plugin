@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.StringUtils;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -44,6 +45,8 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.Log4jFileAppender;
 import org.pentaho.di.core.logging.LogWriter;
+import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryBase;
@@ -59,6 +62,7 @@ import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.api.mapred.RunningJob;
 import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.w3c.dom.Node;
 
 @JobEntry( id = "HadoopJobExecutorPlugin", image = "HDE.png", name = "HadoopJobExecutorPlugin.Name",
@@ -94,11 +98,14 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
   private String inputFormatClass;
   private String outputFormatClass;
 
+  // ******************************************
+  private String configurationName;
+  // ******************************************
   private String hdfsHostname;
   private String hdfsPort;
-
   private String jobTrackerHostname;
   private String jobTrackerPort;
+  // ******************************************
 
   private String inputPath;
   private String outputPath;
@@ -209,6 +216,14 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     this.outputFormatClass = outputFormatClass;
   }
 
+  public String getConfigurationName() {
+    return configurationName;
+  }
+
+  public void setConfigurationName(String configurationName) {
+    this.configurationName = configurationName;
+  }
+  
   public String getHdfsHostname() {
     return hdfsHostname;
   }
@@ -755,10 +770,9 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     outputValueClass = XMLHandler.getTagValue( entrynode, "output_value_class" );
     outputFormatClass = XMLHandler.getTagValue( entrynode, "output_format_class" );
 
-    hdfsHostname = XMLHandler.getTagValue( entrynode, "hdfs_hostname" );
-    hdfsPort = XMLHandler.getTagValue( entrynode, "hdfs_port" );
-    jobTrackerHostname = XMLHandler.getTagValue( entrynode, "job_tracker_hostname" );
-    jobTrackerPort = XMLHandler.getTagValue( entrynode, "job_tracker_port" );
+    loadClusterConfig( null, rep, entrynode );
+    setRepository( rep );
+
     // numMapTasks = Integer.parseInt(XMLHandler.getTagValue(entrynode, "num_map_tasks"));
     numMapTasks = XMLHandler.getTagValue( entrynode, "num_map_tasks" );
     // numReduceTasks = Integer.parseInt(XMLHandler.getTagValue(entrynode, "num_reduce_tasks"));
@@ -779,6 +793,60 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     }
   }
 
+  private void loadClusterConfig( ObjectId id_jobentry, Repository rep, Node entrynode ) {
+    boolean configLoaded = false;
+    try {
+      // attempt to load from named configuration
+      if ( entrynode != null ) {
+        setConfigurationName( XMLHandler.getTagValue( entrynode, "configuration_name" ) ); //$NON-NLS-1$
+      } else if ( rep != null ) {
+        setConfigurationName( rep.getJobEntryAttributeString( id_jobentry, "configuration_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
+      } 
+
+      // load from system first, then fall back to copy stored with job (AbstractMeta)
+      NamedConfiguration nc = null;
+      if ( rep != null && !StringUtils.isEmpty( getConfigurationName() ) && 
+          NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
+        // pull config from NamedConfiguration
+        nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
+      } else {
+        // TODO: need a way to get config from JobMeta!
+        // nc = getParentJob().getJobMeta().findNamedConfiguration( getConfigurationName() );
+      }
+      if ( nc != null ) {
+        setJobTrackerHostname( nc.getGroup( "JobTracker" ).getProperty( "hostname" ).getPropertyValue() );
+        setJobTrackerPort( nc.getGroup( "JobTracker" ).getProperty( "port" ).getPropertyValue() );
+        setHdfsHostname( nc.getGroup( "HDFS" ).getProperty( "hostname" ).getPropertyValue() );
+        setHdfsPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
+        configLoaded = true;        
+      }
+    } catch ( Throwable t ) {
+      t.printStackTrace();
+      logDebug( t.getMessage(), t );
+    }    
+
+    if ( !configLoaded ) {
+      if ( entrynode != null ) {
+        // load default values for cluster & legacy fallback
+        setHdfsHostname( XMLHandler.getTagValue( entrynode, "hdfs_hostname" ) ); //$NON-NLS-1$
+        setHdfsPort( XMLHandler.getTagValue( entrynode, "hdfs_port" ) ); //$NON-NLS-1$
+        setJobTrackerHostname( XMLHandler.getTagValue( entrynode, "job_tracker_hostname" ) ); //$NON-NLS-1$
+        setJobTrackerPort( XMLHandler.getTagValue( entrynode, "job_tracker_port" ) ); //$NON-NLS-1$
+      } else if ( rep != null ) {
+        // load default values for cluster & legacy fallback
+        try {
+          setHdfsHostname( rep.getJobEntryAttributeString( id_jobentry, "hdfs_hostname" ) );
+          setHdfsPort( rep.getJobEntryAttributeString( id_jobentry, "hdfs_port" ) ); //$NON-NLS-1$
+          setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_hostname" ) ); //$NON-NLS-1$
+          setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) ); //$NON-NLS-1$
+        } catch ( KettleException ke ) {
+          ke.printStackTrace();
+          logError( ke.getMessage(), ke );
+        } 
+      }
+    }
+  }    
+  
   public String getXML() {
     StringBuffer retval = new StringBuffer( 1024 );
     retval.append( super.getXML() );
@@ -804,10 +872,25 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     retval.append( "      " ).append( XMLHandler.addTagValue( "output_value_class", outputValueClass ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "output_format_class", outputFormatClass ) );
 
-    retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_hostname", hdfsHostname ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_port", hdfsPort ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_hostname", jobTrackerHostname ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_port", jobTrackerPort ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "configuration_name", configurationName ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    // TODO: need a way to get the configuration from the repo and fall back to JobMeta
+    try {
+      if ( rep != null && !StringUtils.isEmpty( getConfigurationName() ) && 
+          NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
+        // pull config from NamedConfiguration
+        NamedConfiguration nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
+        setJobTrackerHostname( nc.getGroup( "JobTracker" ).getProperty( "hostname" ).getPropertyValue() );
+        setJobTrackerPort( nc.getGroup( "JobTracker" ).getProperty( "port" ).getPropertyValue() );
+        setHdfsHostname( nc.getGroup( "HDFS" ).getProperty( "hostname" ).getPropertyValue() );
+        setHdfsPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
+      }
+    } catch ( MetaStoreException e ) {
+    }  
+    retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_hostname", hdfsHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_port", hdfsPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_hostname", jobTrackerHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_port", jobTrackerPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_map_tasks", numMapTasks ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_reduce_tasks", numReduceTasks ) );
 
@@ -854,10 +937,9 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       setOutputValueClass( rep.getJobEntryAttributeString( id_jobentry, "output_value_class" ) );
       setOutputFormatClass( rep.getJobEntryAttributeString( id_jobentry, "output_format_class" ) );
 
-      setHdfsHostname( rep.getJobEntryAttributeString( id_jobentry, "hdfs_hostname" ) );
-      setHdfsPort( rep.getJobEntryAttributeString( id_jobentry, "hdfs_port" ) );
-      setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_hostname" ) );
-      setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) );
+      loadClusterConfig( id_jobentry, rep, null );
+      setRepository( rep );
+      
       // setNumMapTasks(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "num_map_tasks")).intValue());
       setNumMapTasks( rep.getJobEntryAttributeString( id_jobentry, "num_map_tasks" ) );
       // setNumReduceTasks(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "num_reduce_tasks")).intValue());
@@ -906,11 +988,25 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_key_class", outputKeyClass ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_value_class", outputValueClass ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_format_class", outputFormatClass ); //$NON-NLS-1$
-
+      
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "configuration_name", configurationName ); //$NON-NLS-1$
+      try {
+        if ( !StringUtils.isEmpty( getConfigurationName() ) && 
+            NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
+          // pull config from NamedConfiguration
+          NamedConfiguration nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
+          setJobTrackerHostname( nc.getGroup( "JobTracker" ).getProperty( "hostname" ).getPropertyValue() );
+          setJobTrackerPort( nc.getGroup( "JobTracker" ).getProperty( "port" ).getPropertyValue() );
+          setHdfsHostname( nc.getGroup( "HDFS" ).getProperty( "hostname" ).getPropertyValue() );
+          setHdfsPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
+        }
+      } catch ( MetaStoreException e ) {
+      } 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", hdfsHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", hdfsPort ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "job_tracker_hostname", jobTrackerHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "job_tracker_port", jobTrackerPort ); //$NON-NLS-1$
+      
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_map_tasks", numMapTasks ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_reduce_tasks", numReduceTasks ); //$NON-NLS-1$
 

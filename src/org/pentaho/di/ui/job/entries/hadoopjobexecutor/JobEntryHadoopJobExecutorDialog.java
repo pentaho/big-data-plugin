@@ -23,10 +23,12 @@
 package org.pentaho.di.ui.job.entries.hadoopjobexecutor;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
@@ -39,9 +41,11 @@ import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
+import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
 import org.pentaho.ui.xul.binding.Binding.Type;
+import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulRadio;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
@@ -74,7 +78,7 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
   };
 
   public JobEntryHadoopJobExecutorDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
-    throws XulException, DocumentException {
+      throws XulException, DocumentException, Throwable {
     super( parent, jobEntry, rep, jobMeta );
 
     this.jobEntry = (JobEntryHadoopJobExecutor) jobEntry;
@@ -142,14 +146,6 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     bf.createBinding( "input-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.INPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "output-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.OUTPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    bf.createBinding( "hdfs-hostname", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.HDFS_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "hdfs-port", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.HDFS_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "job-tracker-hostname", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.JOB_TRACKER_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "job-tracker-port", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.JOB_TRACKER_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
-
     ( (XulRadio) container.getDocumentRoot().getElementById( "simpleRadioButton" ) ).setSelected( this.jobEntry
         .isSimple() ); //$NON-NLS-1$
     ( (XulRadio) container.getDocumentRoot().getElementById( "advancedRadioButton" ) ).setSelected( !this.jobEntry
@@ -176,10 +172,41 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     bf.createBinding( controller.getUserDefined(), "children", variablesTree, "elements" ); //$NON-NLS-1$//$NON-NLS-2$
     bf.setBindingType( Type.BI_DIRECTIONAL );
 
+    controller.setJobMeta( jobMeta );
+    controller.setRepository( rep );
     controller.setJobEntry( (JobEntryHadoopJobExecutor) jobEntry );
     controller.init();
+    
+    bf.createBinding( controller, "namedConfigurations", "named-configurations", "elements" ).fireSourceChanged();
+    bf.createBinding( "named-configurations", "selectedIndex", controller.getAdvancedConfiguration(), "selectedNamedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
+      public NamedConfiguration sourceToTarget( final Integer index ) {
+        List<NamedConfiguration> configurations = controller.getNamedConfigurations();
+        if ( index == -1 || configurations.isEmpty() ) {
+          return null;
+        }
+        return configurations.get( index );
+      }
+
+      public Integer targetToSource( final NamedConfiguration value ) {
+        return null;
+      }
+    }).fireSourceChanged();
+    
+    selectNamedConfiguration();    
   }
 
+  private void selectNamedConfiguration() {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
+    for ( NamedConfiguration nc : controller.getNamedConfigurations() ) {
+      String cn = this.jobEntry.getConfigurationName();
+      if ( cn != null && cn.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+        controller.getAdvancedConfiguration().setSelectedNamedConfiguration( nc );
+      }
+    }    
+  }
+  
   public JobEntryInterface open() {
     XulDialog dialog = (XulDialog) container.getDocumentRoot().getElementById( "job-entry-dialog" ); //$NON-NLS-1$
     dialog.show();
