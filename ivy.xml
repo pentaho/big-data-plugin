@@ -61,6 +61,9 @@
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr31-package" rev="${dependency.hadoop-shims-mapr31.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-mapr31-package" type="zip"/>
     </dependency>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr401-package" rev="${dependency.hadoop-shims-mapr401.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-mapr401-package" type="zip"/>
+    </dependency>
   
     <dependency org="commons-httpclient" name="commons-httpclient" rev="${dependency.commons-httpclient.revision}" />
     
