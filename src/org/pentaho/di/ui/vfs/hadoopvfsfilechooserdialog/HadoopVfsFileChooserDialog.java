@@ -57,6 +57,7 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
@@ -129,6 +130,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   boolean isHighAvailabilityCluster = false;
 
   String schemeName = "hdfs";
+  
+  private NamedConfigurationWidget namedConfigurationWidget = null;
 
   public HadoopVfsFileChooserDialog( String schemeName, String displayName, VfsFileChooserDialog vfsFileChooserDialog,
       FileObject rootFile, FileObject initialFile ) {
@@ -158,13 +161,15 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     GridData gData = new GridData( SWT.FILL, SWT.FILL, true, false );
     connectionGroup.setLayoutData( gData );
     connectionGroup.setLayout( connectionGroupLayout );
+    
+    namedConfigurationWidget = new NamedConfigurationWidget( connectionGroup );
 
     // The composite we need in the group
     Composite textFieldPanel = new Composite( connectionGroup, SWT.NONE );
     GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
     textFieldPanel.setLayoutData( gridData );
     textFieldPanel.setLayout( new GridLayout( 5, false ) );
-
+    
     // URL label and text field
     wlUrl = new Label( textFieldPanel, SWT.RIGHT );
     wlUrl.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.URL.Label" ) ); //$NON-NLS-1$
@@ -446,5 +451,9 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       hadoopConfig = provider.getActiveConfiguration();
     }
     return hadoopConfig;
+  }
+  
+  public NamedConfigurationWidget getNamedConfigurationWidget() {
+    return namedConfigurationWidget;
   }
 }
