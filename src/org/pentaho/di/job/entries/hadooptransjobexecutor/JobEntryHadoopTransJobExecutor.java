@@ -373,7 +373,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     return configurationName;
   }
 
-  public void setConfigurationName(String configurationName) {
+  public void setConfigurationName( String configurationName ) {
     this.configurationName = configurationName;
   }
   
@@ -1574,7 +1574,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_format_class", outputFormatClass ); //$NON-NLS-1$
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "configuration_name", configurationName ); //$NON-NLS-1$
-      
       try {
         if ( !StringUtils.isEmpty( getConfigurationName() ) && 
             NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
