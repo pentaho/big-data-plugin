@@ -46,7 +46,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
 import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -63,7 +62,6 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 /**
  * Job entry dialog for the PigScriptExecutor - job entry that executes a Pig script either on a hadoop cluster or
@@ -412,7 +410,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_wName.setText( Const.NVL( m_jobEntry.getName(), "" ) );
 
     // need setSelectItem
-    //namedConfigWidget.setSelectedNamedConfiguration( m_jobEntry.getConfigurationName() );
+    namedConfigWidget.setSelectedNamedConfiguration( m_jobEntry.getConfigurationName() );
     
     m_pigScriptText.setText( Const.NVL( m_jobEntry.getScriptFilename(), "" ) );
     m_enableBlockingBut.setSelection( m_jobEntry.getEnableBlocking() );
