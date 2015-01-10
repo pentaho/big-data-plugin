@@ -23,10 +23,12 @@
 package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
 import java.util.Enumeration;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadooptransjobexecutor.JobEntryHadoopTransJobExecutor;
@@ -38,8 +40,10 @@ import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
 import org.pentaho.ui.xul.binding.Binding.Type;
+import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
+import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulTree;
@@ -165,13 +169,6 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     bf.createBinding( "clean-output-path", "selected", controller,
         JobEntryHadoopTransJobExecutorController.CLEAN_OUTPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    bf.createBinding( "hdfs-hostname", "value", controller, JobEntryHadoopTransJobExecutorController.HDFS_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "hdfs-port", "value", controller, JobEntryHadoopTransJobExecutorController.HDFS_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "job-tracker-hostname", "value", controller,
-        JobEntryHadoopTransJobExecutorController.JOB_TRACKER_HOSTNAME ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "job-tracker-port", "value", controller,
-        JobEntryHadoopTransJobExecutorController.JOB_TRACKER_PORT ); //$NON-NLS-1$ //$NON-NLS-2$
-
     XulTree variablesTree = (XulTree) container.getDocumentRoot().getElementById( "fields-table" ); //$NON-NLS-1$
     bf.setBindingType( Type.ONE_WAY );
     bf.createBinding( controller.getUserDefined(), "children", variablesTree, "elements" ); //$NON-NLS-1$//$NON-NLS-2$
@@ -189,9 +186,40 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     controller.setJobEntry( (JobEntryHadoopTransJobExecutor) jobEntry );
     controller.setShell( parent );
     controller.setRepository( rep );
+    controller.setJobMeta( jobMeta );
     controller.init();
+    
+    bf.createBinding( controller, "namedConfigurations", "named-configurations", "elements" ).fireSourceChanged();
+    bf.createBinding( "named-configurations", "selectedIndex", controller, "selectedNamedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
+      public NamedConfiguration sourceToTarget( final Integer index ) {
+        List<NamedConfiguration> configurations = controller.getNamedConfigurations();
+        if ( index == -1 || configurations.isEmpty() ) {
+          return null;
+        }
+        return configurations.get( index );
+      }
+
+      public Integer targetToSource( final NamedConfiguration value ) {
+        return null;
+      }
+    }).fireSourceChanged();
+    
+    selectNamedConfiguration();
+    
   }
 
+  private void selectNamedConfiguration() {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
+    for ( NamedConfiguration nc : controller.getNamedConfigurations() ) {
+      String cn = this.jobEntry.getConfigurationName();
+      if ( cn != null && cn.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+        controller.setSelectedNamedConfiguration( nc );
+      }
+    }    
+  }
+  
   public JobEntryInterface open() {
     XulDialog dialog = (XulDialog) container.getDocumentRoot().getElementById( "job-entry-dialog" ); //$NON-NLS-1$
     dialog.show();

@@ -23,6 +23,10 @@
 package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -31,6 +35,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -39,6 +45,7 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadooptransjobexecutor.JobEntryHadoopTransJobExecutor;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -50,10 +57,12 @@ import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
 import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
+import org.pentaho.ui.xul.jface.tags.JfaceMenuList;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
 public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHandler {
@@ -90,10 +99,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   public static final String CLEAN_OUTPUT_PATH = "cleanOutputPath"; //$NON-NLS-1$
   public static final String BLOCKING = "blocking"; //$NON-NLS-1$
   public static final String LOGGING_INTERVAL = "loggingInterval"; //$NON-NLS-1$
+  
   public static final String HDFS_HOSTNAME = "hdfsHostname"; //$NON-NLS-1$
   public static final String HDFS_PORT = "hdfsPort"; //$NON-NLS-1$
   public static final String JOB_TRACKER_HOSTNAME = "jobTrackerHostname"; //$NON-NLS-1$
   public static final String JOB_TRACKER_PORT = "jobTrackerPort"; //$NON-NLS-1$
+  
   public static final String NUM_MAP_TASKS = "numMapTasks"; //$NON-NLS-1$
   public static final String NUM_REDUCE_TASKS = "numReduceTasks"; //$NON-NLS-1$
 
@@ -114,10 +125,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String inputFormatClass;
   private String outputFormatClass;
 
+  private String configurationName;
   private String hdfsHostname;
   private String hdfsPort;
   private String jobTrackerHostname;
   private String jobTrackerPort;
+  
   private String inputPath;
   private String outputPath;
 
@@ -156,9 +169,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String mapperStorageType = "";
   private String combinerStorageType = "";
   private String reducerStorageType = "";
+  private List<NamedConfiguration> namedConfigurations;
 
   protected Shell shell;
   private Repository rep;
+  private JobMeta jobMeta;
+  private NamedConfiguration selectedNamedConfiguration;
 
   private JobEntryHadoopTransJobExecutor jobEntry;
 
@@ -178,7 +194,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void accept() {
-
     ExtTextbox tempBox =
         (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
     this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
@@ -209,14 +224,35 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     this.inputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
     this.outputFormatClass = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
-    this.hdfsHostname = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
-    this.hdfsPort = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
-    this.jobTrackerHostname = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
-    this.jobTrackerPort = ( (Text) tempBox.getTextControl() ).getText();
+
+    JfaceMenuList<?> ncBox = (JfaceMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "named-configurations" );
+    setConfigurationName( ncBox.getSelectedItem() );
+
+    NamedConfiguration nc = null;
+    if ( rep != null ) {
+      try {
+        nc = NamedConfigurationManager.getInstance().read( configurationName, rep.getMetaStore() );
+      } catch ( MetaStoreException e ) {
+        openErrorDialog( BaseMessages.getString( PKG, "Dialog.Error" ), e.getMessage() );
+      }
+    }
+
+    if ( nc == null ) {
+      for ( NamedConfiguration tmp : jobMeta.getNamedConfigurations() ) {
+        if ( tmp.getName().equals( configurationName ) ) {
+          nc = tmp;
+          break;
+        }
+      }
+    }
+
+    if ( nc != null ) {
+      setHdfsHostname( nc.getPropertyValue( "HDFS", "hostname" ) );
+      setHdfsPort( nc.getPropertyValue( "HDFS", "port" ) );
+      setJobTrackerHostname( nc.getPropertyValue( "JobTracker", "hostname" ) );
+      setJobTrackerPort( nc.getPropertyValue( "JobTracker", "port" ) );
+    }
+
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
     this.numMapTasks = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-reduce-tasks" );
@@ -227,6 +263,16 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     String validationErrors = "";
     if ( StringUtil.isEmpty( jobEntryName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.JobEntryName.Error" ) + "\n";
+    }
+    if ( nc == null ) {
+      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedConfigurationNotProvided.Error" ) + "\n";
+    } else {
+      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
+      requiredProps.put( "HDFS", new String[] { "hostname", "port" } );
+      requiredProps.put( "JobTracker", new String[] { "hostname", "port" } );
+      if ( !nc.hasValuesFor( requiredProps ) ) {
+        validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedConfigurationPropertyMissing.Error" ) + "\n";
+      }
     }
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error" ) + "\n";
@@ -348,6 +394,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     jobEntry.setSuppressOutputOfValue( isSuppressOutputOfValue() );
 
     jobEntry.setOutputFormatClass( getOutputFormatClass() );
+    jobEntry.setConfigurationName( this.configurationName );
     jobEntry.setHdfsHostname( getHdfsHostname() );
     jobEntry.setHdfsPort( getHdfsPort() );
     jobEntry.setJobTrackerHostname( getJobTrackerHostname() );
@@ -361,7 +408,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     cancel();
   }
 
-  @SuppressWarnings( { "unchecked", "rawtypes" } )
+  @SuppressWarnings( { "rawtypes" } )
   public void init() throws Throwable {
     if ( jobEntry != null ) {
       // common/simple
@@ -403,14 +450,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-input-format" );
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "classes-output-format" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-hostname" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "hdfs-port" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-hostname" );
-      tempBox.setVariableSpace( varSpace );
-      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "job-tracker-port" );
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );
       tempBox.setVariableSpace( varSpace );
@@ -550,10 +589,13 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       // setOutputKeyClass(jobEntry.getOutputKeyClass());
       // setOutputValueClass(jobEntry.getOutputValueClass());
       setOutputFormatClass( jobEntry.getOutputFormatClass() );
+      
+      setConfigurationName( jobEntry.getConfigurationName() );
       setHdfsHostname( jobEntry.getHdfsHostname() );
       setHdfsPort( jobEntry.getHdfsPort() );
       setJobTrackerHostname( jobEntry.getJobTrackerHostname() );
       setJobTrackerPort( jobEntry.getJobTrackerPort() );
+
       setNumMapTasks( jobEntry.getNumMapTasks() );
       setNumReduceTasks( jobEntry.getNumReduceTasks() );
     }
@@ -593,6 +635,10 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     this.rep = rep;
   }
 
+  public void setJobMeta( JobMeta jobMeta ) {
+    this.jobMeta = jobMeta;
+  }
+
   public void cancel() {
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
 
@@ -615,8 +661,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public void mapTransBrowse() {
     if ( getMapperStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
-      final ExtTextbox tempBox =
-          (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" );
       browseLocalFilesystem( new StringResultSetter() {
         @Override
         public void set( String val ) {
@@ -658,8 +702,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public void combinerTransBrowse() {
     if ( getCombinerStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
-      final ExtTextbox tempBox =
-          (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" );
       browseLocalFilesystem( new StringResultSetter() {
         @Override
         public void set( String val ) {
@@ -701,8 +743,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public void reduceTransBrowse() {
     if ( getReducerStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
-      final ExtTextbox tempBox =
-          (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" );
       browseLocalFilesystem( new StringResultSetter() {
         @Override
         public void set( String val ) {
@@ -1078,16 +1118,20 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     firePropertyChange( OUTPUT_FORMAT_CLASS, previousVal, newVal );
   }
 
+  public String getConfigurationName() {
+    return configurationName;
+  }
+
+  public void setConfigurationName(String configurationName) {
+    this.configurationName = configurationName;
+  }
+  
   public String getHdfsHostname() {
     return hdfsHostname;
   }
 
   public void setHdfsHostname( String hdfsHostname ) {
-    String previousVal = this.hdfsHostname;
-    String newVal = hdfsHostname;
-
     this.hdfsHostname = hdfsHostname;
-    firePropertyChange( HDFS_HOSTNAME, previousVal, newVal );
   }
 
   public String getHdfsPort() {
@@ -1095,11 +1139,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void setHdfsPort( String hdfsPort ) {
-    String previousVal = this.hdfsPort;
-    String newVal = hdfsPort;
-
     this.hdfsPort = hdfsPort;
-    firePropertyChange( HDFS_PORT, previousVal, newVal );
   }
 
   public String getJobTrackerHostname() {
@@ -1107,11 +1147,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void setJobTrackerHostname( String jobTrackerHostname ) {
-    String previousVal = this.jobTrackerHostname;
-    String newVal = jobTrackerHostname;
-
     this.jobTrackerHostname = jobTrackerHostname;
-    firePropertyChange( JOB_TRACKER_HOSTNAME, previousVal, newVal );
   }
 
   public String getJobTrackerPort() {
@@ -1119,11 +1155,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void setJobTrackerPort( String jobTrackerPort ) {
-    String previousVal = this.jobTrackerPort;
-    String newVal = jobTrackerPort;
-
     this.jobTrackerPort = jobTrackerPort;
-    firePropertyChange( JOB_TRACKER_PORT, previousVal, newVal );
   }
 
   public String getInputPath() {
@@ -1435,6 +1467,18 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     this.reduceRepositoryReference = reduceRepositoryReference;
   }
 
+  public List<NamedConfiguration> getNamedConfigurations() {
+    this.namedConfigurations = new ArrayList<NamedConfiguration>();
+    if ( jobMeta != null ) {
+      this.namedConfigurations = jobMeta.getNamedConfigurations();
+    } 
+    return namedConfigurations;
+  }
+  
+  public void setNamedConfigurations( List <NamedConfiguration> namedConfigurations ) {
+    this.namedConfigurations = namedConfigurations;
+  }
+
   public void openErrorDialog( String title, String message ) {
     XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "hadoop-error-dialog" );
     errorDialog.setTitle( title );
@@ -1474,5 +1518,44 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     PluginInterface plugin =
         PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
+  }
+  
+  public void editNamedConfiguration() {
+    if ( isSelectedNamedConfiguration() ) {
+      Spoon spoon = Spoon.getInstance();
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      spoon.delegates.nc.editNamedConfiguration( jobMeta, this.selectedNamedConfiguration, shell );
+      firePropertyChange( "namedConfigurations", this.selectedNamedConfiguration, getNamedConfigurations() );
+    }
+  }
+  
+  public void newNamedConfiguration() {
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    spoon.delegates.nc.newNamedConfiguration( jobMeta, shell );   
+    firePropertyChange( "namedConfigurations", null, getNamedConfigurations() );
+    selectNamedConfiguration();
+  }
+  
+  private void selectNamedConfiguration() {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) getXulDomContainer().getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
+    for ( NamedConfiguration nc : getNamedConfigurations() ) {
+      String cn = this.jobEntry.getConfigurationName();
+      if ( cn != null && cn.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+        setSelectedNamedConfiguration( nc );
+      }
+    }    
+  }  
+  
+  public void setSelectedNamedConfiguration( NamedConfiguration configuration ) {
+    this.selectedNamedConfiguration = configuration;
+  }
+  
+  public boolean isSelectedNamedConfiguration() {
+    return this.selectedNamedConfiguration != null;
   }
 }
