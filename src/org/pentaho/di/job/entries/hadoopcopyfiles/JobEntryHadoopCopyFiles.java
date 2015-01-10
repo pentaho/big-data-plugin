@@ -22,8 +22,15 @@
 
 package org.pentaho.di.job.entries.hadoopcopyfiles;
 
+import java.util.List;
+
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
+import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
+import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 @JobEntry( id = "HadoopCopyFilesPlugin", image = "HDM.png", name = "HadoopCopyFilesPlugin.Name",
     description = "HadoopCopyFilesPlugin.Description",
@@ -37,5 +44,14 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   public JobEntryHadoopCopyFiles( String name ) {
     super( name );
+    
+    VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
+    List<CustomVfsUiPanel> customPanels = dialog.getCustomVfsUiPanels();
+    for( CustomVfsUiPanel panel : customPanels ) {
+      if( panel instanceof HadoopVfsFileChooserDialog ) {
+        NamedConfigurationWidget namedConfigurationWidget = ( ( HadoopVfsFileChooserDialog ) panel ).getNamedConfigurationWidget();
+        namedConfigurationWidget.initiate();
+      }
+    }
   }
 }
