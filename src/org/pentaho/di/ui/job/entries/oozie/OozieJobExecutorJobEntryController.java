@@ -29,7 +29,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.vfs.FileObject;
+import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -40,10 +42,13 @@ import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorConfig;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorJobEntry;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
+import org.pentaho.ui.xul.components.XulMenuList;
+import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.stereotype.Bindable;
 import org.pentaho.ui.xul.util.AbstractModelList;
@@ -68,6 +73,8 @@ public class OozieJobExecutorJobEntryController extends
   private transient boolean advancedArgumentsChanged = false;
   protected XulTree variablesTree = null;
 
+  private Binding namedConfigurationsBinding = null;
+  
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label)
    */
@@ -147,13 +154,43 @@ public class OozieJobExecutorJobEntryController extends
   }
 
   @Override
-  protected void createBindings( OozieJobExecutorConfig config, XulDomContainer container,
+  protected void createBindings( final OozieJobExecutorConfig config, XulDomContainer container,
       BindingFactory bindingFactory, Collection<Binding> bindings ) {
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
     bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.JOB_ENTRY_NAME,
         BlockableJobConfig.JOB_ENTRY_NAME, VALUE ) );
-    bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_URL,
-        OozieJobExecutorConfig.OOZIE_URL, VALUE ) );
+    
+    //config.setRepository( rep );
+    config.setJobMeta( jobMeta );
+    String configName = config.getConfigurationName();
+    
+    namedConfigurationsBinding = bindingFactory.createBinding( config, "namedConfigurations", "named-configurations", "elements" );
+    try {
+      namedConfigurationsBinding.fireSourceChanged();
+    } catch ( Throwable ignored ) {
+    }
+    bindings.add( namedConfigurationsBinding );
+    Binding selectedNamedConfigBinding = bindingFactory.createBinding( "named-configurations", "selectedIndex", config, "namedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
+      public NamedConfiguration sourceToTarget( final Integer index ) {
+        List<NamedConfiguration> configurations = config.getNamedConfigurations();
+        if ( index == -1 || configurations.isEmpty() ) {
+          return null;
+        }
+        return configurations.get( index );
+      }
+
+      public Integer targetToSource( final NamedConfiguration value ) {
+        return null;
+      }
+    } );
+    try {
+      selectedNamedConfigBinding.fireSourceChanged();
+    } catch ( Throwable ignored ) {
+    }
+    bindings.add( selectedNamedConfigBinding );
+    
+    selectNamedConfiguration( configName );    
+    
     bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG,
         OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE ) );
 
@@ -204,6 +241,41 @@ public class OozieJobExecutorJobEntryController extends
 
   }
 
+  public void selectNamedConfiguration( String configName ) {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
+    for ( NamedConfiguration nc : jobMeta.getNamedConfigurations() ) {
+      if ( configName != null && configName.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+      }
+    }    
+  }
+  
+  public void editNamedConfiguration() {
+    String cn = config.getConfigurationName();
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    spoon.delegates.nc.editNamedConfiguration( jobMeta, config.getNamedConfiguration(), shell );
+    firePropertyChange( "namedConfigurations", config.getConfigurationName(), config.getNamedConfigurations() );
+    selectNamedConfiguration( cn );
+  }
+  
+  public void newNamedConfiguration() {
+    String cn = config.getConfigurationName();
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    spoon.delegates.nc.newNamedConfiguration( jobMeta, shell );
+    config.setNamedConfigurations(jobMeta.getNamedConfigurations());
+    firePropertyChange( "namedConfigurations", null, config.getNamedConfigurations() );
+    try {
+      namedConfigurationsBinding.fireSourceChanged();
+    } catch ( Throwable ignored ) {
+    }
+    selectNamedConfiguration( cn );
+  }
+  
   @Bindable
   public void addNewProperty() {
     advancedArgumentsChanged = true;
@@ -233,6 +305,18 @@ public class OozieJobExecutorJobEntryController extends
   @Bindable
   public void accept() {
     syncModel();
+    
+    List<String> warnings = jobEntry.getValidationWarnings( getConfig(), false );
+    if ( !warnings.isEmpty() ) {
+      StringBuilder sb = new StringBuilder();
+      for ( String warning : warnings ) {
+        sb.append( warning ).append( "\n" );
+      }
+      showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
+          .toString() );
+      return;
+    }
+    
     super.accept();
   }
 

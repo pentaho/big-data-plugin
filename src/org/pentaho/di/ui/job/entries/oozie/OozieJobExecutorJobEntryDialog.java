@@ -78,12 +78,18 @@ public class OozieJobExecutorJobEntryDialog extends JobEntryDialog implements Jo
     BindingFactory bf = new DefaultBindingFactory();
     bf.setDocument( container.getDocumentRoot() );
     controller = createController( jobEntry, container, bf );
+    controller.setJobMeta( jobMeta );    
+    
+    String configName = controller.getConfig().getConfigurationName();
+    
     container.addEventHandler( controller );
 
     // Load up the SWT-XUL runtime and initialize it with our container
     final XulRunner runner = new SwtXulRunner();
     runner.addContainer( container );
     runner.initialize();
+
+    controller.selectNamedConfiguration(configName);
   }
 
   protected OozieJobExecutorJobEntryController createController( OozieJobExecutorJobEntry jobEntry,

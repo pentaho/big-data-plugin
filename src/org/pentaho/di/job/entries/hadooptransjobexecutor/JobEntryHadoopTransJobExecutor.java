@@ -1340,7 +1340,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         configLoaded = true;        
       }
     } catch ( Throwable t ) {
-      t.printStackTrace();
       logDebug( t.getMessage(), t );
     }    
 
@@ -1359,7 +1358,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
           setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_hostname" ) ); //$NON-NLS-1$
           setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
-          ke.printStackTrace();
           logError( ke.getMessage(), ke );
         } 
       }
@@ -1427,6 +1425,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         setHdfsPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
       }
     } catch ( MetaStoreException e ) {
+      logDebug( e.getMessage(), e );
     }  
     retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_hostname", hdfsHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_port", hdfsPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1585,6 +1584,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
           setHdfsPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
         }
       } catch ( MetaStoreException e ) {
+        logDebug( e.getMessage(), e );
       }      
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", hdfsHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", hdfsPort ); //$NON-NLS-1$
