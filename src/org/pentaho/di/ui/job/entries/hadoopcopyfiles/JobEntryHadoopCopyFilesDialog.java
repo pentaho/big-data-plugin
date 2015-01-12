@@ -22,6 +22,8 @@
 
 package org.pentaho.di.ui.job.entries.hadoopcopyfiles;
 
+import java.util.List;
+
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
@@ -61,6 +63,7 @@ import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -68,6 +71,8 @@ import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements JobEntryDialogInterface {
@@ -935,6 +940,16 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
       }
       VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
       fileChooserDialog.defaultInitialFile = defaultInitialFile;
+      
+      List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+      for( CustomVfsUiPanel panel : customPanels ) {
+        if( panel instanceof HadoopVfsFileChooserDialog ) {
+          NamedConfigurationWidget namedConfigurationWidget = ( ( HadoopVfsFileChooserDialog ) panel ).getNamedConfigurationWidget();
+          namedConfigurationWidget.initiate();
+          ( ( HadoopVfsFileChooserDialog ) panel ).initializeConnectionPanel( defaultInitialFile );
+        }
+      }
+      
       selectedFile =
           fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, new String[] { "*.*" },
               FILETYPES, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );

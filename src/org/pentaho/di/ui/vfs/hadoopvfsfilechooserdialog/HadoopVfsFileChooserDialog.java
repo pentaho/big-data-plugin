@@ -31,32 +31,30 @@ import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.provider.GenericFileName;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
@@ -79,30 +77,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
 
   // for logging
   private LogChannel log = new LogChannel( this );
-
-  // URL label and field
-  private Label wlUrl;
-  private Text wUrl;
-  private GridData fdlUrl, fdUrl;
-
-  // Port label and field
-  private Label wlPort;
-  private Text wPort;
-  private GridData fdlPort, fdPort;
-
-  // UserID label and field
-  private Label wlUserID;
-  private Text wUserID;
-  private GridData fdlUserID, fdUserID;
-
-  // Password label and field
-  private Label wlPassword;
-  private Text wPassword;
-  private GridData fdlPassword, fdPassword;
-
-  // Place holder - for creating a blank widget in a grid layout
-  private Label wPlaceHolderLabel;
-  private GridData fdlPlaceHolderLabel;
 
   // Connection button
   private Button wConnectionButton;
@@ -129,6 +103,12 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   boolean isHighAvailabilityCluster = false;
 
   String schemeName = "hdfs";
+  
+  private String ncHostname = null;
+  private String ncPort = null;
+  private String ncUsername = null;
+  private String ncPassword = null;
+  private NamedConfigurationWidget namedConfigurationWidget = null;
 
   public HadoopVfsFileChooserDialog( String schemeName, String displayName, VfsFileChooserDialog vfsFileChooserDialog,
       FileObject rootFile, FileObject initialFile ) {
@@ -143,7 +123,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     setLayout( new GridLayout( 1, false ) );
 
     createConnectionPanel();
-    initializeConnectionPanel();
   }
 
   private void createConnectionPanel() {
@@ -158,82 +137,23 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     GridData gData = new GridData( SWT.FILL, SWT.FILL, true, false );
     connectionGroup.setLayoutData( gData );
     connectionGroup.setLayout( connectionGroupLayout );
+    
+    namedConfigurationWidget = new NamedConfigurationWidget( connectionGroup );
+    namedConfigurationWidget.addSelectionListener( new SelectionListener() {
+      public void widgetSelected( SelectionEvent evt ) {
+        handleConnectionButton();
+      }
+      
+      public void widgetDefaultSelected( SelectionEvent evt ) {
+      }
+    } );
 
     // The composite we need in the group
     Composite textFieldPanel = new Composite( connectionGroup, SWT.NONE );
     GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
     textFieldPanel.setLayoutData( gridData );
     textFieldPanel.setLayout( new GridLayout( 5, false ) );
-
-    // URL label and text field
-    wlUrl = new Label( textFieldPanel, SWT.RIGHT );
-    wlUrl.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.URL.Label" ) ); //$NON-NLS-1$
-    fdlUrl = new GridData();
-    fdlUrl.widthHint = 75;
-    wlUrl.setLayoutData( fdlUrl );
-    wUrl = new Text( textFieldPanel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    fdUrl = new GridData();
-    fdUrl.widthHint = 150;
-    wUrl.setLayoutData( fdUrl );
-    wUrl.setText( Props.getInstance().getCustomParameter( "HadoopVfsFileChooserDialog.host", "localhost" ) );
-    wUrl.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent arg0 ) {
-        handleConnectionButton();
-      }
-    } );
-
-    // UserID label and field
-    wlUserID = new Label( textFieldPanel, SWT.RIGHT );
-    wlUserID.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.UserID.Label" ) ); //$NON-NLS-1$
-    fdlUserID = new GridData();
-    fdlUserID.widthHint = 75;
-    wlUserID.setLayoutData( fdlUserID );
-
-    wUserID = new Text( textFieldPanel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    fdUserID = new GridData();
-    fdUserID.widthHint = 150;
-    wUserID.setLayoutData( fdUserID );
-    wUserID.setText( Props.getInstance().getCustomParameter( "HadoopVfsFileChooserDialog.user", "" ) );
-
-    // Place holder
-    wPlaceHolderLabel = new Label( textFieldPanel, SWT.RIGHT );
-    wPlaceHolderLabel.setText( "" );
-    fdlPlaceHolderLabel = new GridData();
-    fdlPlaceHolderLabel.widthHint = 75;
-    wlUserID.setLayoutData( fdlPlaceHolderLabel );
-
-    // Port label and text field
-    wlPort = new Label( textFieldPanel, SWT.RIGHT );
-    wlPort.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.Port.Label" ) ); //$NON-NLS-1$
-    fdlPort = new GridData();
-    fdlPort.widthHint = 75;
-    wlPort.setLayoutData( fdlPort );
-
-    wPort = new Text( textFieldPanel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    fdPort = new GridData();
-    fdPort.widthHint = 150;
-    wPort.setLayoutData( fdPort );
-    wPort.setText( Props.getInstance().getCustomParameter( "HadoopVfsFileChooserDialog.port", "9000" ) );
-    wPort.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent arg0 ) {
-        handleConnectionButton();
-      }
-    } );
-
-    // password label and field
-    wlPassword = new Label( textFieldPanel, SWT.RIGHT );
-    wlPassword.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.Password.Label" ) ); //$NON-NLS-1$
-    fdlPassword = new GridData();
-    fdlPassword.widthHint = 75;
-    wlPassword.setLayoutData( fdlPassword );
-
-    wPassword = new Text( textFieldPanel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wPassword.setEchoChar( '*' );
-    fdPassword = new GridData();
-    fdPassword.widthHint = 150;
-    wPassword.setLayoutData( fdPassword );
-    wPassword.setText( Props.getInstance().getCustomParameter( "HadoopVfsFileChooserDialog.password", "" ) );
-
+    
     // Connection button
     wConnectionButton = new Button( textFieldPanel, SWT.CENTER );
     fdConnectionButton = new GridData();
@@ -243,10 +163,12 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     wConnectionButton.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.ConnectionButton.Label" ) );
     wConnectionButton.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
+        
+        loadNamedConfiguration();
 
         // Store the successful connection info to hand off to VFS
-        connectedHostname = wUrl.getText();
-        connectedPortString = wPort.getText();
+        connectedHostname = ncHostname;
+        connectedPortString = ncPort;
 
         try {
 
@@ -289,10 +211,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
                 }
               }
             } else {
-              String hostname = wUrl.getText();
+              String hostname = ncHostname;
               int port = 0;
               try {
-                port = Integer.parseInt( wPort.getText() );
+                port = Integer.parseInt( ncPort );
               } catch ( NumberFormatException nfe ) {
                 // ignore, use default
               }
@@ -336,10 +258,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
           return;
         }
 
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.host", wUrl.getText() );
+        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.host", ncHostname );
         Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.port", connectedPortString );
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.user", wUserID.getText() );
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.password", wPassword.getText() );
+        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.user", ncUsername );
+        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.password", ncPassword );
 
         FileObject root = rootFile;
         try {
@@ -376,8 +298,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       }
     } );
 
-    // set the tab order
-    textFieldPanel.setTabList( new Control[] { wUrl, wPort, wUserID, wPassword, wConnectionButton } );
   }
 
   /**
@@ -389,31 +309,32 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   public String buildHadoopFileSystemUrlString() {
     StringBuffer urlString = new StringBuffer( schemeName );
     urlString.append( "://" );
-    if ( wUserID.getText() != null && !"".equals( wUserID.getText() ) ) {
+    if ( ncUsername != null && !ncUsername.trim().equals( "" )) {
 
-      urlString.append( wUserID.getText() );
+      urlString.append( ncUsername );
       urlString.append( ":" );
-      urlString.append( wPassword.getText() );
+      urlString.append( ncPassword );
       urlString.append( "@" );
     }
 
-    urlString.append( wUrl.getText() );
-    if ( !Const.isEmpty( wPort.getText() ) ) {
+    urlString.append( ncHostname );
+    if ( !Const.isEmpty( ncPort ) ) {
       urlString.append( ":" );
-      urlString.append( wPort.getText() );
+      urlString.append( ncPort );
     }
     return urlString.toString();
   }
 
-  private void initializeConnectionPanel() {
+  public void initializeConnectionPanel( FileObject defaultInitialFile ) {
+    this.initialFile = defaultInitialFile;
     if ( initialFile != null && initialFile.getName().getScheme().equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
-      // populate the server and port fields
       try {
+        //TODO EC Resolve Named Config based on hostname, port, userId and password?
         GenericFileName genericFileName = (GenericFileName) initialFile.getFileSystem().getRoot().getName();
-        wUrl.setText( genericFileName.getHostName() );
-        wPort.setText( String.valueOf( genericFileName.getPort() ) );
-        wUserID.setText( genericFileName.getUserName() == null ? "" : genericFileName.getUserName() ); //$NON-NLS-1$
-        wPassword.setText( genericFileName.getPassword() == null ? "" : genericFileName.getPassword() ); //$NON-NLS-1$
+        String hostName =  genericFileName.getHostName();
+        String port =  String.valueOf( genericFileName.getPort() ) ;
+        String userId = genericFileName.getUserName() == null ? "" : genericFileName.getUserName();
+        String password =  genericFileName.getPassword() == null ? "" : genericFileName.getPassword(); 
       } catch ( FileSystemException fse ) {
         showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
             PKG, "HadoopVfsFileChooserDialog.FileSystem.error" ), fse.getMessage() );
@@ -432,7 +353,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   }
 
   private void handleConnectionButton() {
-    if ( !Const.isEmpty( wUrl.getText() ) ) {
+    loadNamedConfiguration();
+    if ( !Const.isEmpty( ncHostname ) ) {
       wConnectionButton.setEnabled( true );
     } else {
       wConnectionButton.setEnabled( false );
@@ -446,5 +368,19 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       hadoopConfig = provider.getActiveConfiguration();
     }
     return hadoopConfig;
+  }
+  
+  private void loadNamedConfiguration() {
+    NamedConfiguration namedConfiguration = namedConfigurationWidget.getSelectedNamedConfiguration();
+    if ( namedConfiguration != null ) {
+      ncHostname = namedConfiguration.getPropertyValue( "HDFS", "hostname" );
+      ncPort = namedConfiguration.getPropertyValue( "HDFS", "port" );
+      ncUsername = namedConfiguration.getPropertyValue( "HDFS", "username" );
+      ncPassword = namedConfiguration.getPropertyValue( "HDFS", "password" );
+    }
+  }
+  
+  public NamedConfigurationWidget getNamedConfigurationWidget() {
+    return namedConfigurationWidget;
   }
 }
