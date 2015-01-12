@@ -487,7 +487,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
         setZookeeperHosts( nc.getGroup( "ZooKeeper" ).getProperty( "hostname" ).getPropertyValue() );
         setZookeeperPort( nc.getGroup( "ZooKeeper" ).getProperty( "port" ).getPropertyValue() );
       }
-    } catch ( MetaStoreException ignored ) {
+    } catch ( MetaStoreException e ) {
+      logDebug( e.getMessage(), e );
     }  
     
     if ( !Const.isEmpty( m_zookeeperHosts ) ) {

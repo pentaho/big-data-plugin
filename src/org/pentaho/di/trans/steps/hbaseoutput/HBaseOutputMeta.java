@@ -300,7 +300,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
         setZookeeperHosts( nc.getGroup( "ZooKeeper" ).getProperty( "hostname" ).getPropertyValue() );
         setZookeeperPort( nc.getGroup( "ZooKeeper" ).getProperty( "port" ).getPropertyValue() );
       }
-    } catch ( MetaStoreException ignored ) {
+    } catch ( MetaStoreException e ) {
+      logDebug( e.getMessage(), e );
     }  
     
     if ( !Const.isEmpty( m_zookeeperHosts ) ) {
@@ -393,8 +394,9 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
         setZookeeperHosts( nc.getGroup( "ZooKeeper" ).getProperty( "hostname" ).getPropertyValue() );
         setZookeeperPort( nc.getGroup( "ZooKeeper" ).getProperty( "port" ).getPropertyValue() );
       }
-    } catch ( MetaStoreException ignored ) {
-    }        
+    } catch ( MetaStoreException e ) {
+      logDebug( e.getMessage(), e );
+    }  
     
     if ( !Const.isEmpty( m_zookeeperHosts ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "zookeeper_hosts", m_zookeeperHosts );
