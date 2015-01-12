@@ -89,7 +89,7 @@ public class OozieJobExecutorJobEntryDialog extends JobEntryDialog implements Jo
     runner.addContainer( container );
     runner.initialize();
 
-    controller.selectNamedConfiguration(configName);
+    controller.selectNamedConfiguration( configName );
   }
 
   protected OozieJobExecutorJobEntryController createController( OozieJobExecutorJobEntry jobEntry,
