@@ -23,7 +23,9 @@
 package org.pentaho.di.trans.steps.hbaseoutput;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -47,19 +49,23 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.hbase.mapping.ConfigurationProducer;
@@ -91,11 +97,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
   private CTabItem m_editorTab;
 
-  // Zookeeper host(s) line
-  private TextVar m_zookeeperQuorumText;
-
-  // Zookeeper port
-  private TextVar m_zookeeperPortText;
+  NamedConfigurationWidget namedConfigWidget;
 
   // Core config line
   private Button m_coreConfigBut;
@@ -201,56 +203,24 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     configLayout.marginHeight = 3;
     wConfigComp.setLayout( configLayout );
 
-    // zookeeper line
-    Label zookeeperLab = new Label( wConfigComp, SWT.RIGHT );
-    zookeeperLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Zookeeper.Label" ) );
-    zookeeperLab.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Zookeeper.TipText" ) );
-    props.setLook( zookeeperLab );
+    Label namedConfigLab = new Label( wConfigComp, SWT.RIGHT );
+    namedConfigLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedConfig.Label" ) );
+    namedConfigLab.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedConfig.TipText" ) );
+    props.setLook( namedConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( 0, margin );
+    fd.top = new FormAttachment( 0, 10 );
     fd.right = new FormAttachment( middle, -margin );
-    zookeeperLab.setLayoutData( fd );
-
-    m_zookeeperQuorumText = new TextVar( transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_zookeeperQuorumText );
-    m_zookeeperQuorumText.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_zookeeperQuorumText.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_zookeeperQuorumText.setToolTipText( transMeta.environmentSubstitute( m_zookeeperQuorumText.getText() ) );
-      }
-    } );
+    namedConfigLab.setLayoutData( fd );
+    
+    namedConfigWidget = new NamedConfigurationWidget( wConfigComp, false );
+    namedConfigWidget.initiate();
+    props.setLook( namedConfigWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    m_zookeeperQuorumText.setLayoutData( fd );
-
-    // zookeeper port
-    Label zookeeperPortLab = new Label( wConfigComp, SWT.RIGHT );
-    zookeeperPortLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ZookeeperPort.Label" ) );
-    props.setLook( zookeeperPortLab );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_zookeeperQuorumText, margin );
-    fd.right = new FormAttachment( middle, -margin );
-    zookeeperPortLab.setLayoutData( fd );
-
-    m_zookeeperPortText = new TextVar( transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_zookeeperPortText );
-    m_zookeeperPortText.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_zookeeperPortText.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_zookeeperPortText.setToolTipText( transMeta.environmentSubstitute( m_zookeeperPortText.getText() ) );
-      }
-    } );
-    fd = new FormData();
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_zookeeperQuorumText, margin );
-    fd.left = new FormAttachment( middle, 0 );
-    m_zookeeperPortText.setLayoutData( fd );
+    namedConfigWidget.setLayoutData( fd );    
 
     // core config line
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
@@ -260,7 +230,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     props.setLook( coreConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_zookeeperPortText, margin );
+    fd.top = new FormAttachment( namedConfigWidget, margin );
     fd.right = new FormAttachment( middle, -margin );
     coreConfigLab.setLayoutData( fd );
 
@@ -269,7 +239,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     m_coreConfigBut.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_zookeeperPortText, 0 );
+    fd.top = new FormAttachment( namedConfigWidget, 0 );
     m_coreConfigBut.setLayoutData( fd );
 
     m_coreConfigBut.addSelectionListener( new SelectionAdapter() {
@@ -308,7 +278,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_zookeeperPortText, margin );
+    fd.top = new FormAttachment( namedConfigWidget, margin );
     fd.right = new FormAttachment( m_coreConfigBut, -margin );
     m_coreConfigText.setLayoutData( fd );
 
@@ -631,6 +601,32 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   }
 
   protected void ok() {
+    if ( Const.isEmpty( m_stepnameText.getText() ) ) {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "System.StepJobEntryNameMissing.Title" ) );
+      mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "System.JobEntryNameMissing.Msg" ) );
+      mb.open();
+      return;
+    }
+    if ( namedConfigWidget.getSelectedNamedConfiguration() == null ) {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
+      mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ConfigurationNotSelected.Msg" ) );
+      mb.open();
+      return;      
+    } else {
+      NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
+      requiredProps.put( "ZooKeeper", new String[] { "hostname", "port" } );
+      if ( !nc.hasValuesFor( requiredProps ) ) {
+        MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+        mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
+        mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ConfigurationMissingValues.Msg" ) );
+        mb.open();
+        return;      
+      }
+    }    
+    
     stepname = m_stepnameText.getText();
 
     updateMetaConnectionDetails( m_currentMeta );
@@ -707,8 +703,13 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       return;
     }
 
-    meta.setZookeeperHosts( m_zookeeperQuorumText.getText() );
-    meta.setZookeeperPort( m_zookeeperPortText.getText() );
+    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    if ( nc != null ) {
+      meta.setConfigurationName( nc.getName() );
+      meta.setZookeeperHosts( nc.getPropertyValue( "ZooKeeper", "hostname" ) );
+      meta.setZookeeperPort( nc.getPropertyValue( "ZooKeeper", "port" ) );
+    }
+    
     meta.setCoreConfigURL( m_coreConfigText.getText() );
     meta.setDefaulConfigURL( m_defaultConfigText.getText() );
     meta.setTargetTableName( m_mappedTableNamesCombo.getText() );
@@ -720,12 +721,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   }
 
   private void getData() {
-    if ( !Const.isEmpty( m_currentMeta.getZookeeperHosts() ) ) {
-      m_zookeeperQuorumText.setText( m_currentMeta.getZookeeperHosts() );
-    }
-    if ( !Const.isEmpty( m_currentMeta.getZookeeperPort() ) ) {
-      m_zookeeperPortText.setText( m_currentMeta.getZookeeperPort() );
-    }
+
+    namedConfigWidget.setSelectedNamedConfiguration( m_currentMeta.getConfigurationName() );
 
     if ( !Const.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
       m_coreConfigText.setText( m_currentMeta.getCoreConfigURL() );
@@ -775,14 +772,12 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       defaultConf = transMeta.environmentSubstitute( m_defaultConfigText.getText() );
     }
 
-    if ( !Const.isEmpty( m_zookeeperQuorumText.getText() ) ) {
-      zookeeperHosts = transMeta.environmentSubstitute( m_zookeeperQuorumText.getText() );
-    }
-
-    if ( !Const.isEmpty( m_zookeeperPortText.getText() ) ) {
-      zookeeperPort = transMeta.environmentSubstitute( m_zookeeperPortText.getText() );
-    }
-
+    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    if ( nc != null ) {
+      zookeeperHosts = transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "hostname"  ) );
+      zookeeperPort =  transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "port" ) );
+    }   
+    
     if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
       throw new Exception( BaseMessages.getString( HBaseOutputMeta.PKG,
           "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );

@@ -35,11 +35,27 @@
             <rows>
                 <row>
                     <hbox padding="5">
-                        <label value="${Oozie.JobExecutor.OozieUrl.Label}" />
+						<label value="${Oozie.JobExecutor.NamedConfiguration.Label}"/>
                     </hbox>
                     <!-- Wrap with an hbox so all components align -->
                     <hbox flex="1" padding="5">
-                        <textbox pen:customclass="variabletextbox" id="oozieUrl" flex="1"/>
+						<grid>
+							<columns>
+								<column/>
+								<column/>
+								<column/>
+							</columns>
+							<rows>
+								<row>
+									<menulist id="named-configurations" pen:binding="name">
+									    <menupopup>
+									    </menupopup>
+									</menulist>
+									<button id="newNamedConfiguration" label="${Oozie.JobExecutor.NamedConfiguration.Edit}" onclick="controller.editNamedConfiguration()"/>
+									<button id="editNamedConfiguration" label="${Oozie.JobExecutor.NamedConfiguration.New}" onclick="controller.newNamedConfiguration()"/>
+								</row>
+							</rows>
+						</grid>
                     </hbox>
                 </row>
                 <row>

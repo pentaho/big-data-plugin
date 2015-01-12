@@ -23,6 +23,7 @@
 package org.pentaho.di.ui.job.entries.pig;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -163,14 +164,14 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     // named config line
     Label namedConfigLab = new Label( shell, SWT.RIGHT );
     props.setLook( namedConfigLab );
-    namedConfigLab.setText(BaseMessages.getString(PKG, "JobEntryPigScriptExecutor.NamedConfig.Label"));
+    namedConfigLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedConfig.Label" ) );
     fd = new FormData();
-    fd.left = new FormAttachment(0, 0);
-    fd.top = new FormAttachment(m_wName, margin);
-    fd.right = new FormAttachment(middle, -margin);
+    fd.left = new FormAttachment( 0, 0 );
+    fd.top = new FormAttachment( m_wName, 10 );
+    fd.right = new FormAttachment( middle, -margin );
     namedConfigLab.setLayoutData(fd);    
     
-    namedConfigWidget = new NamedConfigurationWidget( shell );
+    namedConfigWidget = new NamedConfigurationWidget( shell, false );
     namedConfigWidget.initiate();
     props.setLook( namedConfigWidget );
     fd = new FormData();
@@ -446,11 +447,29 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
     if ( nc != null ) {
+      
+      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
+      requiredProps.put( "HDFS", new String[] { "hostname", "port" } );
+      requiredProps.put( "JobTracker", new String[] { "hostname", "port" } );
+      if ( !nc.hasValuesFor( requiredProps ) ) {
+        MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+        mb.setText( BaseMessages.getString( PKG,  "Dialog.Error" ) );
+        mb.setMessage( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ConfigurationMissingValues.Msg" ) );
+        mb.open();
+        return;      
+      }
+      
       m_jobEntry.setConfigurationName( nc.getName() );
       m_jobEntry.setHDFSHostname( nc.getPropertyValue( "HDFS", "hostname" ) );
       m_jobEntry.setHDFSPort( nc.getPropertyValue( "HDFS", "port" ) );
       m_jobEntry.setJobTrackerHostname( nc.getPropertyValue( "JobTracker", "hostname" ) );
       m_jobEntry.setJobTrackerPort( nc.getPropertyValue( "JobTracker", "port" ) );
+    } else {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( BaseMessages.getString( PKG, "Dialog.Error" ) );
+      mb.setMessage( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ConfigurationNameMissing.Msg" ) );
+      mb.open();
+      return;
     }
     
     m_jobEntry.setScriptFilename( m_pigScriptText.getText() );

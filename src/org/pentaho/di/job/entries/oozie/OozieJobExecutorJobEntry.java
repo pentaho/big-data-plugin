@@ -27,13 +27,18 @@ import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
+import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -80,22 +85,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     return new OozieJobExecutorConfig();
   }
 
-  /**
-   * Validates the current configuration of the step.
-   * <p/>
-   * <strong>To be valid in Quick Setup mode:</strong>
-   * <ul>
-   * <li>Name is required</li>
-   * <li>Oozie URL is required and must be a valid oozie location</li>
-   * <li>Workflow Properties file path is required and must be a valid job properties file</li>
-   * </ul>
-   * 
-   * @param config
-   *          Configuration to validate
-   * @return
-   */
-  @Override
-  public List<String> getValidationWarnings( OozieJobExecutorConfig config ) {
+  public List<String> getValidationWarnings( OozieJobExecutorConfig config, boolean checkOozieConnection ) {
     List<String> messages = new ArrayList<String>();
 
     // verify there is a job name
@@ -103,23 +93,49 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.JobName" ) );
     }
 
-    if ( StringUtil.isEmpty( config.getOozieUrl() ) ) {
-      messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+    if ( StringUtil.isEmpty( config.getConfigurationName() ) ) {
+      messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
     } else {
       try {
-        // oozie url is valid and client & ws versions are compatible
-        oozieClient = getOozieClient( config );
-        oozieClient.getProtocolUrl();
-        oozieClient.validateWSVersion();
-      } catch ( OozieClientException e ) {
-        if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
-            || ( e.getCause() != null
-              && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
-          messages
-              .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
-        } else {
-          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
-              "ValidationMessages.Incompatible.Oozie.Versions", oozieClient.getClientBuildVersion() ) );
+        // load from system first, then fall back to copy stored with job (AbstractMeta)
+        NamedConfiguration nc = null;
+        if ( rep != null && !StringUtils.isEmpty( jobConfig.getConfigurationName() ) && 
+            NamedConfigurationManager.getInstance().contains( jobConfig.getConfigurationName(), rep.getMetaStore() ) ) {
+          // pull config from NamedConfiguration
+          nc = NamedConfigurationManager.getInstance().read( jobConfig.getConfigurationName(), rep.getMetaStore() );
+        }
+        if ( nc == null ) {
+          nc = config.getNamedConfiguration();
+        }
+        
+        Map<String, String[]> requiredProps = new HashMap<String, String[]>();
+        requiredProps.put( "Oozie", new String[] { "url" } );
+        if ( nc == null ) {
+          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
+        } else if ( !nc.hasValuesFor( requiredProps ) ) {
+          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+        }
+        
+      } catch ( Throwable t ) {
+        messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+      }
+      
+      if ( checkOozieConnection ) {
+        try {
+          // oozie url is valid and client & ws versions are compatible
+          oozieClient = getOozieClient( config );
+          oozieClient.getProtocolUrl();
+          oozieClient.validateWSVersion();
+        } catch ( OozieClientException e ) {
+          if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
+              || ( e.getCause() != null
+                && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
+            messages
+                .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
+          } else {
+            messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
+                "ValidationMessages.Incompatible.Oozie.Versions", oozieClient.getClientBuildVersion() ) );
+          }
         }
       }
     }
@@ -134,7 +150,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         Properties props = getProperties( config );
 
         // make sure it has at minimum a workflow definition (need app path)
-        if ( !oozieClient.hasAppPath( props ) ) {
+        if ( checkOozieConnection && !oozieClient.hasAppPath( props ) ) {
           messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
               "ValidationMessages.App.Path.Property.Missing" ) );
         }
@@ -163,6 +179,25 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     }
 
     return messages;
+  }  
+  
+  /**
+   * Validates the current configuration of the step.
+   * <p/>
+   * <strong>To be valid in Quick Setup mode:</strong>
+   * <ul>
+   * <li>Name is required</li>
+   * <li>Oozie URL is required and must be a valid oozie location</li>
+   * <li>Workflow Properties file path is required and must be a valid job properties file</li>
+   * </ul>
+   * 
+   * @param config
+   *          Configuration to validate
+   * @return
+   */
+  @Override
+  public List<String> getValidationWarnings( OozieJobExecutorConfig config ) {
+    return getValidationWarnings( config, true );
   }
 
   public Properties getPropertiesFromFile( OozieJobExecutorConfig config ) throws IOException, KettleFileException {
@@ -278,11 +313,34 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   }
 
   public OozieClient getOozieClient() {
-    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( jobConfig.getOozieUrl() ) );
+    return getOozieClient( jobConfig );
   }
 
   public OozieClient getOozieClient( OozieJobExecutorConfig config ) {
-    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( config.getOozieUrl() ) );
+    String oozieUrl = config.getOozieUrl();
+    
+    try {
+      // load from system first, then fall back to copy stored with job (AbstractMeta)
+      NamedConfiguration nc = null;
+      if ( rep != null && !StringUtils.isEmpty( jobConfig.getConfigurationName() ) && 
+          NamedConfigurationManager.getInstance().contains( jobConfig.getConfigurationName(), rep.getMetaStore() ) ) {
+        // pull config from NamedConfiguration
+        nc = NamedConfigurationManager.getInstance().read( jobConfig.getConfigurationName(), rep.getMetaStore() );
+      } else {
+        nc = config.getNamedConfiguration();
+      }
+
+      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
+      requiredProps.put( "Oozie", new String[] { "url" } );
+      
+      if ( nc != null && nc.hasValuesFor( requiredProps ) ) {
+        oozieUrl = nc.getGroup( "Oozie" ).getProperty( "url" ).getPropertyValue();
+      }    
+    } catch ( Throwable ignored ) {
+      logDebug( ignored.getMessage(), ignored );
+    }  
+    
+    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( oozieUrl ) );
   }
 
 }

@@ -25,8 +25,10 @@ package org.pentaho.di.job.entries.oozie;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
 import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.stereotype.Bindable;
@@ -40,10 +42,17 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
 
   public static final String OOZIE_WORKFLOW = "oozieWorkflow";
   public static final String OOZIE_URL = "oozieUrl";
+  public static final String NAMED_CONFIGURATION = "namedConfiguration";
   public static final String OOZIE_WORKFLOW_CONFIG = "oozieWorkflowConfig";
   public static final String OOZIE_WORKFLOW_PROPERTIES = "oozieWorkflowProperties";
   public static final String MODE = "mode";
 
+  private transient JobMeta jobMeta;
+  
+  private transient List<NamedConfiguration> namedConfigurations;
+  private transient NamedConfiguration namedConfiguration = null; // selected
+  private String configurationName; // saved (String)
+  
   private String oozieUrl = null;
   private String oozieWorkflowConfig = null;
   private String oozieWorkflow = null;
@@ -52,6 +61,9 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   private ArrayList<PropertyEntry> workflowProperties = null;
   private String mode = null;
 
+  public OozieJobExecutorConfig() {
+  }
+  
   @Bindable
   public String getOozieUrl() {
     return oozieUrl;
@@ -64,6 +76,44 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
     pcs.firePropertyChange( OOZIE_URL, prev, this.oozieUrl );
   }
 
+  @Bindable
+  public String getConfigurationName() {
+    return configurationName;
+  }
+
+  @Bindable
+  public void setConfigurationName(String configurationName) {
+    this.configurationName = configurationName;
+  }  
+  
+  @Bindable
+  public NamedConfiguration getNamedConfiguration() {
+    return namedConfiguration;
+  }
+
+  @Bindable
+  public void setNamedConfiguration( NamedConfiguration namedConfiguration ) {
+    this.namedConfiguration = namedConfiguration;
+    if ( namedConfiguration != null ) {
+      this.configurationName = namedConfiguration.getName();
+      this.oozieUrl = namedConfiguration.getPropertyValue( "Oozie", "url" );
+    }
+  }  
+  
+  @Bindable
+  public List<NamedConfiguration> getNamedConfigurations() {
+    this.namedConfigurations = new ArrayList<NamedConfiguration>();
+    if ( jobMeta != null ) {
+      this.namedConfigurations = jobMeta.getNamedConfigurations();
+    } 
+    return namedConfigurations;
+  }
+
+  @Bindable
+  public void setNamedConfigurations( List <NamedConfiguration> namedConfigurations ) {
+    this.namedConfigurations = namedConfigurations;
+  }
+  
   @Bindable
   public String getOozieWorkflowConfig() {
     return oozieWorkflowConfig;
@@ -137,5 +187,9 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
     this.mode = mode;
     pcs.firePropertyChange( MODE, old, this.mode );
   }
-
+  
+  public void setJobMeta( JobMeta jobMeta ) {
+    this.jobMeta = jobMeta;
+  }  
+  
 }
