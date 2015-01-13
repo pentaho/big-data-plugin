@@ -44,11 +44,9 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
   /**
    * Package protected constructor for unit testing.
-   * 
-   * @param majorVersion
-   *          The majorVersion to set for the driver
-   * @param minorVersion
-   *          The minorVersion to set for the driver
+   *
+   * @param majorVersion The majorVersion to set for the driver
+   * @param minorVersion The minorVersion to set for the driver
    * @throws Throwable
    */
   ImpalaDatabaseMeta( int majorVersion, int minorVersion ) throws Throwable {
@@ -58,12 +56,12 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
   @Override
   public int[] getAccessTypeList() {
-    return new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE };
+    return new int[]{ DatabaseMeta.TYPE_ACCESS_NATIVE };
   }
 
   @Override
   public String getAddColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-      String pk, boolean semicolon ) {
+                                       String pk, boolean semicolon ) {
 
     return "ALTER TABLE " + tablename + " ADD " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
 
@@ -72,8 +70,8 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   @Override
   public String getDriverClass() {
 
-    // !!! We will probably have to change this if we are providing our own driver,
-    // i.e., before our code is committed to the Hadoop Hive project.
+    //  !!!  We will probably have to change this if we are providing our own driver,
+    //  i.e., before our code is committed to the Hadoop Hive project.
     return DRIVER_CLASS_NAME;
   }
 
@@ -83,7 +81,7 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
    */
   @Override
   public String getFieldDefinition( ValueMetaInterface v, String tk, String pk, boolean useAutoinc,
-      boolean addFieldname, boolean addCr ) {
+                                    boolean addFieldname, boolean addCr ) {
 
     String retval = "";
 
@@ -102,9 +100,22 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
         retval += "BOOLEAN";
         break;
 
-      // Hive does not support DATE
+      // Hive does not support DATE until 0.12 - check Impala version against Hive
       case ValueMetaInterface.TYPE_DATE:
-        retval += "STRING";
+        if ( isDriverVersion( 0, 12 ) ) {
+          retval += "DATE";
+        } else {
+          throw new IllegalArgumentException( "Date types not supported in this version of Impala" );
+        }
+        break;
+
+      // Hive does not support DATE until 0.8 - check Impala version against Hive
+      case ValueMetaInterface.TYPE_TIMESTAMP:
+        if ( isDriverVersion( 0, 8 ) ) {
+          retval += "TIMESTAMP";
+        } else {
+          throw new IllegalArgumentException( "Timestamp types not supported in this version of Impala" );
+        }
         break;
 
       case ValueMetaInterface.TYPE_STRING:
@@ -146,7 +157,7 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
   @Override
   public String getModifyColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-      String pk, boolean semicolon ) {
+                                          String pk, boolean semicolon ) {
 
     return "ALTER TABLE " + tablename + " MODIFY " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
   }
@@ -170,12 +181,12 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   @Override
   public String[] getUsedLibraries() {
 
-    return new String[] { JAR_FILE };
+    return new String[]{ JAR_FILE };
   }
 
   /**
    * Build the SQL to count the number of rows in the passed table.
-   * 
+   *
    * @param tableName
    * @return
    */
@@ -190,8 +201,8 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
       return suggestedName;
     } else {
       // For version 0.5 and prior:
-      // Column aliases are currently not supported in Hive. The default column alias
-      // generated is in the format '_col##' where ## = column index. Use this format
+      // Column aliases are currently not supported in Hive.  The default column alias
+      // generated is in the format '_col##' where ## = column index.  Use this format
       // so the result can be mapped back correctly.
       return "_col" + String.valueOf( columnIndex ); //$NON-NLS-1$
     }
@@ -220,9 +231,9 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   /**
    * Check that the version of the driver being used is at least the driver you want. If you do not care about the minor
    * version, pass in a 0 (The assumption being that the minor version will ALWAYS be 0 or greater)
-   * 
+   *
    * @return true: the version being used is equal to or newer than the one you requested false: the version being used
-   *         is older than the one you requested
+   * is older than the one you requested
    */
   protected boolean isDriverVersion( int majorVersion, int minorVersion ) {
     if ( driverMajorVersion == null ) {
@@ -245,7 +256,7 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
   /**
    * Quotes around table names are not valid Hive QL
-   * 
+   * <p/>
    * return an empty string for the start quote
    */
   public String getStartQuote() {
@@ -254,7 +265,7 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
   /**
    * Quotes around table names are not valid Hive QL
-   * 
+   * <p/>
    * return an empty string for the end quote
    */
   public String getEndQuote() {
@@ -279,6 +290,6 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
    */
   @Override
   public String[] getViewTypes() {
-    return new String[] { "VIEW", "VIRTUAL_VIEW" };
+    return new String[]{ "VIEW", "VIRTUAL_VIEW" };
   }
 }
