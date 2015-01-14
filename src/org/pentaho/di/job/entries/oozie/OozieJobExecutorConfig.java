@@ -25,11 +25,13 @@ package org.pentaho.di.job.entries.oozie;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.PropertyEntry;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.stereotype.Bindable;
 
@@ -49,9 +51,9 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
 
   private transient JobMeta jobMeta;
   
-  private transient List<NamedConfiguration> namedConfigurations;
-  private transient NamedConfiguration namedConfiguration = null; // selected
-  private String configurationName; // saved (String)
+  private transient List<NamedCluster> namedClusters;
+  private transient NamedCluster namedCluster = null; // selected
+  private String clusterName; // saved (String)
   
   private String oozieUrl = null;
   private String oozieWorkflowConfig = null;
@@ -77,41 +79,45 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   }
 
   @Bindable
-  public String getConfigurationName() {
-    return configurationName;
+  public String getClusterName() {
+    return clusterName;
   }
 
   @Bindable
-  public void setConfigurationName(String configurationName) {
-    this.configurationName = configurationName;
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
   }  
   
   @Bindable
-  public NamedConfiguration getNamedConfiguration() {
-    return namedConfiguration;
+  public NamedCluster getNamedCluster() {
+    return namedCluster;
   }
 
   @Bindable
-  public void setNamedConfiguration( NamedConfiguration namedConfiguration ) {
-    this.namedConfiguration = namedConfiguration;
-    if ( namedConfiguration != null ) {
-      this.configurationName = namedConfiguration.getName();
-      this.oozieUrl = namedConfiguration.getPropertyValue( "Oozie", "url" );
+  public void setNamedCluster( NamedCluster namedCluster ) {
+    this.namedCluster = namedCluster;
+    if ( namedCluster != null ) {
+      this.clusterName = namedCluster.getName();
+      this.oozieUrl = namedCluster.getOozieUrl();
     }
   }  
   
   @Bindable
-  public List<NamedConfiguration> getNamedConfigurations() {
-    this.namedConfigurations = new ArrayList<NamedConfiguration>();
+  public List<NamedCluster> getNamedClusters() {
+    this.namedClusters = new ArrayList<NamedCluster>();
     if ( jobMeta != null ) {
-      this.namedConfigurations = jobMeta.getNamedConfigurations();
+      try {
+        this.namedClusters = NamedClusterManager.getInstance().list( jobMeta.getMetaStore() );
+      } catch (MetaStoreException e) {
+        return namedClusters;
+      }
     } 
-    return namedConfigurations;
+    return namedClusters;
   }
 
   @Bindable
-  public void setNamedConfigurations( List <NamedConfiguration> namedConfigurations ) {
-    this.namedConfigurations = namedConfigurations;
+  public void setNamedClusters( List <NamedCluster> namedClusters ) {
+    this.namedClusters = namedClusters;
   }
   
   @Bindable

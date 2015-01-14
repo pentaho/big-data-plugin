@@ -31,7 +31,8 @@ import java.util.Properties;
 import org.apache.commons.vfs.FileObject;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -43,6 +44,7 @@ import org.pentaho.di.job.entries.oozie.OozieJobExecutorConfig;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorJobEntry;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingConvertor;
@@ -73,7 +75,7 @@ public class OozieJobExecutorJobEntryController extends
   private transient boolean advancedArgumentsChanged = false;
   protected XulTree variablesTree = null;
 
-  private Binding namedConfigurationsBinding = null;
+  private Binding namedClustersBinding = null;
   
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label)
@@ -162,34 +164,34 @@ public class OozieJobExecutorJobEntryController extends
     
     //config.setRepository( rep );
     config.setJobMeta( jobMeta );
-    String configName = config.getConfigurationName();
+    String clusterName = config.getClusterName();
     
-    namedConfigurationsBinding = bindingFactory.createBinding( config, "namedConfigurations", "named-configurations", "elements" );
+    namedClustersBinding = bindingFactory.createBinding( config, "namedClusters", "named-clusters", "elements" );
     try {
-      namedConfigurationsBinding.fireSourceChanged();
+      namedClustersBinding.fireSourceChanged();
     } catch ( Throwable ignored ) {
     }
-    bindings.add( namedConfigurationsBinding );
-    Binding selectedNamedConfigBinding = bindingFactory.createBinding( "named-configurations", "selectedIndex", config, "namedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
-      public NamedConfiguration sourceToTarget( final Integer index ) {
-        List<NamedConfiguration> configurations = config.getNamedConfigurations();
-        if ( index == -1 || configurations.isEmpty() ) {
+    bindings.add( namedClustersBinding );
+    Binding selectedNamedClusterBinding = bindingFactory.createBinding( "named-clusters", "selectedIndex", config, "namedCluster", new BindingConvertor<Integer, NamedCluster>() {
+      public NamedCluster sourceToTarget( final Integer index ) {
+        List<NamedCluster> clusters = config.getNamedClusters();
+        if ( index == -1 || clusters.isEmpty() ) {
           return null;
         }
-        return configurations.get( index );
+        return clusters.get( index );
       }
 
-      public Integer targetToSource( final NamedConfiguration value ) {
+      public Integer targetToSource( final NamedCluster value ) {
         return null;
       }
     } );
     try {
-      selectedNamedConfigBinding.fireSourceChanged();
+      selectedNamedClusterBinding.fireSourceChanged();
     } catch ( Throwable ignored ) {
     }
-    bindings.add( selectedNamedConfigBinding );
+    bindings.add( selectedNamedClusterBinding );
     
-    selectNamedConfiguration( configName );    
+    selectNamedCluster( clusterName );    
     
     bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG,
         OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE ) );
@@ -241,10 +243,23 @@ public class OozieJobExecutorJobEntryController extends
 
   }
 
-  public void selectNamedConfiguration( String configName ) {
+  private List<NamedCluster> getNamedClusters() {
+    List<NamedCluster> namedClusters = new ArrayList<NamedCluster>();
+    Spoon spoon = Spoon.getInstance();
+    if ( jobMeta != null ) {
+      try {
+        namedClusters = NamedClusterManager.getInstance().list( spoon.getMetaStore() );
+      } catch ( MetaStoreException e ) {
+        return namedClusters;
+      }
+    } 
+    return namedClusters;
+  }
+  
+  public void selectNamedCluster( String configName ) {
     @SuppressWarnings("unchecked")
-    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
-    for ( NamedConfiguration nc : jobMeta.getNamedConfigurations() ) {
+    XulMenuList<NamedCluster> namedConfigMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    for ( NamedCluster nc : getNamedClusters() ) {
       if ( configName != null && configName.equals( nc.getName() ) ) {
         namedConfigMenu.setSelectedItem( nc );
       }
@@ -252,28 +267,28 @@ public class OozieJobExecutorJobEntryController extends
   }
   
   public void editNamedConfiguration() {
-    String cn = config.getConfigurationName();
+    String cn = config.getClusterName();
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.editNamedConfiguration( jobMeta, config.getNamedConfiguration(), shell );
-    firePropertyChange( "namedConfigurations", config.getConfigurationName(), config.getNamedConfigurations() );
-    selectNamedConfiguration( cn );
+    spoon.delegates.nc.editNamedCluster( spoon.getMetaStore(), config.getNamedCluster(), shell );
+    firePropertyChange( "namedClusters", config.getClusterName(), config.getNamedClusters() );
+    selectNamedCluster( cn );
   }
   
   public void newNamedConfiguration() {
-    String cn = config.getConfigurationName();
+    String cn = config.getClusterName();
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.newNamedConfiguration( jobMeta, shell );
-    config.setNamedConfigurations(jobMeta.getNamedConfigurations());
-    firePropertyChange( "namedConfigurations", null, config.getNamedConfigurations() );
+    spoon.delegates.nc.newNamedCluster( jobMeta, spoon.getMetaStore(), shell );
+    config.setNamedClusters( getNamedClusters() );
+    firePropertyChange( "namedClusters", null, config.getNamedClusters() );
     try {
-      namedConfigurationsBinding.fireSourceChanged();
+      namedClustersBinding.fireSourceChanged();
     } catch ( Throwable ignored ) {
     }
-    selectNamedConfiguration( cn );
+    selectNamedCluster( cn );
   }
   
   @Bindable

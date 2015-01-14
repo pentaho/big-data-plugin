@@ -146,7 +146,7 @@
     					</columns>
     					<rows>
 							<row>
-								<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.Label}" width="200"/>
+								<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
 								<grid>
 									<columns>
 										<column/>
@@ -155,34 +155,16 @@
 									</columns>
 									<rows>
 										<row>
-											<menulist id="named-configurations" pen:binding="name">
+											<menulist id="named-clusters" pen:binding="name">
 											    <menupopup>
 											    </menupopup>
 											</menulist>
-											<button id="newNamedConfiguration" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.Edit}" onclick="jobEntryController.editNamedConfiguration()"/>
-											<button id="editNamedConfiguration" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.New}" onclick="jobEntryController.newNamedConfiguration()"/>
+											<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
+											<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
 										</row>
 									</rows>
 								</grid>
 							</row>    	    					
-    					<!--
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.HDFSHostname.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="hdfs-hostname" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.HDFSPort.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="hdfs-port" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.JobTrackerHostname.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="job-tracker-hostname" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.JobTrackerPort.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="job-tracker-port" flex="1" multiline="false"/>
-    						</row>
-    					-->
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
     							<textbox pen:customclass="variabletextbox" id="num-map-tasks" flex="1" multiline="false"/>

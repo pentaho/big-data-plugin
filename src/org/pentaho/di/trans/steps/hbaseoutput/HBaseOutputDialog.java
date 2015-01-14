@@ -23,11 +23,10 @@
 package org.pentaho.di.trans.steps.hbaseoutput;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.drools.util.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -55,7 +54,7 @@ import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -65,7 +64,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
-import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.hbase.mapping.ConfigurationProducer;
@@ -97,7 +96,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
   private CTabItem m_editorTab;
 
-  NamedConfigurationWidget namedConfigWidget;
+  NamedClusterWidget namedClusterWidget;
 
   // Core config line
   private Button m_coreConfigBut;
@@ -213,14 +212,14 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     fd.right = new FormAttachment( middle, -margin );
     namedConfigLab.setLayoutData( fd );
     
-    namedConfigWidget = new NamedConfigurationWidget( wConfigComp, false );
-    namedConfigWidget.initiate();
-    props.setLook( namedConfigWidget );
+    namedClusterWidget = new NamedClusterWidget( wConfigComp, false );
+    namedClusterWidget.initiate();
+    props.setLook( namedClusterWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    namedConfigWidget.setLayoutData( fd );    
+    namedClusterWidget.setLayoutData( fd );    
 
     // core config line
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
@@ -230,7 +229,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     props.setLook( coreConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( middle, -margin );
     coreConfigLab.setLayoutData( fd );
 
@@ -239,7 +238,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     m_coreConfigBut.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, 0 );
+    fd.top = new FormAttachment( namedClusterWidget, 0 );
     m_coreConfigBut.setLayoutData( fd );
 
     m_coreConfigBut.addSelectionListener( new SelectionAdapter() {
@@ -278,7 +277,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( m_coreConfigBut, -margin );
     m_coreConfigText.setLayoutData( fd );
 
@@ -608,17 +607,15 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       mb.open();
       return;
     }
-    if ( namedConfigWidget.getSelectedNamedConfiguration() == null ) {
+    if ( namedClusterWidget.getSelectedNamedCluster() == null ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
       mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ConfigurationNotSelected.Msg" ) );
       mb.open();
       return;      
     } else {
-      NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
-      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
-      requiredProps.put( "ZooKeeper", new String[] { "hostname", "port" } );
-      if ( !nc.hasValuesFor( requiredProps ) ) {
+      NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+      if ( StringUtils.isEmpty( nc.getZooKeeperHost() ) ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
         mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ConfigurationMissingValues.Msg" ) );
@@ -703,11 +700,11 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       return;
     }
 
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      meta.setConfigurationName( nc.getName() );
-      meta.setZookeeperHosts( nc.getPropertyValue( "ZooKeeper", "hostname" ) );
-      meta.setZookeeperPort( nc.getPropertyValue( "ZooKeeper", "port" ) );
+      meta.setClusterName( nc.getName() );
+      meta.setZookeeperHosts( nc.getZooKeeperHost() );
+      meta.setZookeeperPort( "" + nc.getZooKeeperPort() );
     }
     
     meta.setCoreConfigURL( m_coreConfigText.getText() );
@@ -722,7 +719,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
   private void getData() {
 
-    namedConfigWidget.setSelectedNamedConfiguration( m_currentMeta.getConfigurationName() );
+    namedClusterWidget.setSelectedNamedCluster( m_currentMeta.getClusterName() );
 
     if ( !Const.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
       m_coreConfigText.setText( m_currentMeta.getCoreConfigURL() );
@@ -772,10 +769,10 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       defaultConf = transMeta.environmentSubstitute( m_defaultConfigText.getText() );
     }
 
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      zookeeperHosts = transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "hostname"  ) );
-      zookeeperPort =  transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "port" ) );
+      zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      zookeeperPort =  transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
     }   
     
     if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {

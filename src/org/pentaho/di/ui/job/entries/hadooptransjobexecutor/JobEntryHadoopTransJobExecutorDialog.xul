@@ -250,7 +250,7 @@
     					</columns>
     					<rows>
 							<row>
-								<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.Label}" width="200"/>
+								<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
 								<grid>
 									<columns>
 										<column/>
@@ -259,12 +259,12 @@
 									</columns>
 									<rows>
 										<row>
-											<menulist id="named-configurations" pen:binding="name">
+											<menulist id="named-clusters" pen:binding="name">
 											    <menupopup>
 											    </menupopup>
 											</menulist>
-											<button id="newNamedConfiguration" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.Edit}" onclick="jobEntryController.editNamedConfiguration()"/>
-											<button id="editNamedConfiguration" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedConfiguration.New}" onclick="jobEntryController.newNamedConfiguration()"/>
+											<button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
+											<button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
 										</row>
 									</rows>
 								</grid>

@@ -49,7 +49,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.TransMeta;
@@ -58,7 +58,7 @@ import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
-import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboValuesSelectionListener;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -85,7 +85,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
   protected boolean m_allowTableCreate;
 
-  protected NamedConfigurationWidget namedConfigWidget;
+  protected NamedClusterWidget namedClusterWidget;
   
   // table name line
   protected CCombo m_existingTableNamesCombo;
@@ -152,23 +152,23 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     props.setLook( this );
 
     if ( showConnectWidgets ) {
-      Label namedConfigLab = new Label( this, SWT.RIGHT );
-      namedConfigLab.setText( Messages.getString( "MappingDialog.NamedConfiguration.Label" ) );
-      props.setLook( namedConfigLab );
+      Label namedClusterLabel = new Label( this, SWT.RIGHT );
+      namedClusterLabel.setText( Messages.getString( "MappingDialog.NamedCluster.Label" ) );
+      props.setLook( namedClusterLabel );
       FormData fd = new FormData();
       fd.left = new FormAttachment( 0, 0 );
       fd.top = new FormAttachment( 0, margin );
       fd.right = new FormAttachment( middle, -margin );
-      namedConfigLab.setLayoutData( fd );
+      namedClusterLabel.setLayoutData( fd );
 
-      namedConfigWidget = new NamedConfigurationWidget( this, false );
-      namedConfigWidget.initiate();
-      props.setLook( namedConfigWidget );
+      namedClusterWidget = new NamedClusterWidget( this, false );
+      namedClusterWidget.initiate();
+      props.setLook( namedClusterWidget );
       fd = new FormData();
       fd.left = new FormAttachment( middle, 0 );
       fd.top = new FormAttachment( 0, 10 );
       fd.right = new FormAttachment( 100, 0 );
-      namedConfigWidget.setLayoutData( fd );
+      namedClusterWidget.setLayoutData( fd );
 
       m_currentConfiguration = m_configProducer.getCurrentConfiguration();
     }
@@ -180,7 +180,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     if ( showConnectWidgets ) {
-      fd.top = new FormAttachment( namedConfigWidget, margin );
+      fd.top = new FormAttachment( namedClusterWidget, margin );
     } else {
       fd.top = new FormAttachment( 0, margin );
     }
@@ -193,7 +193,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     if ( showConnectWidgets ) {
-      fd.top = new FormAttachment( namedConfigWidget, 0 );
+      fd.top = new FormAttachment( namedClusterWidget, 0 );
     } else {
       fd.top = new FormAttachment( 0, 0 );
     }
@@ -212,7 +212,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     fd.left = new FormAttachment( middle, 0 );
     fd.right = new FormAttachment( m_getTableNames, -margin );
     if ( showConnectWidgets ) {
-      fd.top = new FormAttachment( namedConfigWidget, margin );
+      fd.top = new FormAttachment( namedClusterWidget, margin );
     } else {
       fd.top = new FormAttachment( 0, margin );
     }
@@ -1123,10 +1123,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     String zookeeperHosts = null;
     String zookeeperPort = null;
 
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      zookeeperHosts = m_transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "hostname"  ) );
-      zookeeperPort =  m_transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "port" ) );
+      zookeeperHosts = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      zookeeperPort =  m_transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
     }      
     
     conf = HBaseInputData.getHBaseConnection( zookeeperHosts, zookeeperPort, null, null, null );
@@ -1138,11 +1138,11 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     String host = "";
     String port = "";
     
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     
     if ( nc != null ) {
-      host = m_transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "hostname"  ) );
-      port =  m_transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "port" ) );
+      host = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      port =  m_transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
     }
     return host + ":" + port;
   }

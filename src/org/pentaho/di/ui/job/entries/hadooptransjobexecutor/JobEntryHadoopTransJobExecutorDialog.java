@@ -28,7 +28,7 @@ import java.util.ResourceBundle;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadooptransjobexecutor.JobEntryHadoopTransJobExecutor;
@@ -189,33 +189,33 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     controller.setJobMeta( jobMeta );
     controller.init();
     
-    bf.createBinding( controller, "namedConfigurations", "named-configurations", "elements" ).fireSourceChanged();
-    bf.createBinding( "named-configurations", "selectedIndex", controller, "selectedNamedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
-      public NamedConfiguration sourceToTarget( final Integer index ) {
-        List<NamedConfiguration> configurations = controller.getNamedConfigurations();
-        if ( index == -1 || configurations.isEmpty() ) {
+    bf.createBinding( controller, "namedClusters", "named-clusters", "elements" ).fireSourceChanged();
+    bf.createBinding( "named-clusters", "selectedIndex", controller, "selectedNamedCluster", new BindingConvertor<Integer, NamedCluster>() {
+      public NamedCluster sourceToTarget( final Integer index ) {
+        List<NamedCluster> clusters = controller.getNamedClusters();
+        if ( index == -1 || clusters.isEmpty() ) {
           return null;
         }
-        return configurations.get( index );
+        return clusters.get( index );
       }
 
-      public Integer targetToSource( final NamedConfiguration value ) {
+      public Integer targetToSource( final NamedCluster value ) {
         return null;
       }
     }).fireSourceChanged();
     
-    selectNamedConfiguration();
+    selectNamedCluster();
     
   }
 
-  private void selectNamedConfiguration() {
+  private void selectNamedCluster() {
     @SuppressWarnings("unchecked")
-    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
-    for ( NamedConfiguration nc : controller.getNamedConfigurations() ) {
-      String cn = this.jobEntry.getConfigurationName();
+    XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    for ( NamedCluster nc : controller.getNamedClusters() ) {
+      String cn = this.jobEntry.getClusterName();
       if ( cn != null && cn.equals( nc.getName() ) ) {
-        namedConfigMenu.setSelectedItem( nc );
-        controller.setSelectedNamedConfiguration( nc );
+        namedClusterMenu.setSelectedItem( nc );
+        controller.setSelectedNamedCluster( nc );
       }
     }    
   }

@@ -37,8 +37,8 @@ import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -93,26 +93,24 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.JobName" ) );
     }
 
-    if ( StringUtil.isEmpty( config.getConfigurationName() ) ) {
+    if ( StringUtil.isEmpty( config.getClusterName() ) ) {
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
     } else {
       try {
         // load from system first, then fall back to copy stored with job (AbstractMeta)
-        NamedConfiguration nc = null;
-        if ( rep != null && !StringUtils.isEmpty( jobConfig.getConfigurationName() ) && 
-            NamedConfigurationManager.getInstance().contains( jobConfig.getConfigurationName(), rep.getMetaStore() ) ) {
+        NamedCluster nc = null;
+        if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() ) && 
+            NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
           // pull config from NamedConfiguration
-          nc = NamedConfigurationManager.getInstance().read( jobConfig.getConfigurationName(), rep.getMetaStore() );
+          nc = NamedClusterManager.getInstance().read( jobConfig.getClusterName(), rep.getMetaStore() );
         }
         if ( nc == null ) {
-          nc = config.getNamedConfiguration();
+          nc = config.getNamedCluster();
         }
         
-        Map<String, String[]> requiredProps = new HashMap<String, String[]>();
-        requiredProps.put( "Oozie", new String[] { "url" } );
         if ( nc == null ) {
           messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
-        } else if ( !nc.hasValuesFor( requiredProps ) ) {
+        } else if ( StringUtils.isEmpty( nc.getOozieUrl() ) ) {
           messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
         }
         
@@ -321,23 +319,23 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     
     try {
       // load from system first, then fall back to copy stored with job (AbstractMeta)
-      NamedConfiguration nc = null;
-      if ( rep != null && !StringUtils.isEmpty( jobConfig.getConfigurationName() ) && 
-          NamedConfigurationManager.getInstance().contains( jobConfig.getConfigurationName(), rep.getMetaStore() ) ) {
+      NamedCluster nc = null;
+      if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() ) && 
+          NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedConfiguration
-        nc = NamedConfigurationManager.getInstance().read( jobConfig.getConfigurationName(), rep.getMetaStore() );
+        nc = NamedClusterManager.getInstance().read( jobConfig.getClusterName(), rep.getMetaStore() );
       } else {
-        nc = config.getNamedConfiguration();
+        nc = config.getNamedCluster();
       }
 
       Map<String, String[]> requiredProps = new HashMap<String, String[]>();
       requiredProps.put( "Oozie", new String[] { "url" } );
       
-      if ( nc != null && nc.hasValuesFor( requiredProps ) ) {
-        oozieUrl = nc.getGroup( "Oozie" ).getProperty( "url" ).getPropertyValue();
+      if ( nc != null && !StringUtils.isEmpty( nc.getOozieUrl() ) ) {
+        oozieUrl = nc.getOozieUrl();
       }    
-    } catch ( Throwable ignored ) {
-      logDebug( ignored.getMessage(), ignored );
+    } catch ( Throwable t ) {
+      logDebug( t.getMessage(), t );
     }  
     
     return oozieClientFactory.create( getVariableSpace().environmentSubstitute( oozieUrl ) );

@@ -28,7 +28,7 @@ import java.util.ResourceBundle;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
@@ -41,10 +41,10 @@ import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
+import org.pentaho.ui.xul.binding.Binding.Type;
 import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
-import org.pentaho.ui.xul.binding.Binding.Type;
 import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulRadio;
 import org.pentaho.ui.xul.components.XulTextbox;
@@ -177,32 +177,32 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     controller.setJobEntry( (JobEntryHadoopJobExecutor) jobEntry );
     controller.init();
     
-    bf.createBinding( controller, "namedConfigurations", "named-configurations", "elements" ).fireSourceChanged();
-    bf.createBinding( "named-configurations", "selectedIndex", controller.getAdvancedConfiguration(), "selectedNamedConfiguration", new BindingConvertor<Integer, NamedConfiguration>() {
-      public NamedConfiguration sourceToTarget( final Integer index ) {
-        List<NamedConfiguration> configurations = controller.getNamedConfigurations();
-        if ( index == -1 || configurations.isEmpty() ) {
+    bf.createBinding( controller, "namedClusters", "named-clusters", "elements" ).fireSourceChanged();
+    bf.createBinding( "named-clusters", "selectedIndex", controller.getAdvancedConfiguration(), "selectedNamedCluster", new BindingConvertor<Integer, NamedCluster>() {
+      public NamedCluster sourceToTarget( final Integer index ) {
+        List<NamedCluster> clusters = controller.getNamedClusters();
+        if ( index == -1 || clusters.isEmpty() ) {
           return null;
         }
-        return configurations.get( index );
+        return clusters.get( index );
       }
 
-      public Integer targetToSource( final NamedConfiguration value ) {
+      public Integer targetToSource( final NamedCluster value ) {
         return null;
       }
     }).fireSourceChanged();
     
-    selectNamedConfiguration();    
+    selectNamedCluster();    
   }
 
-  private void selectNamedConfiguration() {
+  private void selectNamedCluster() {
     @SuppressWarnings("unchecked")
-    XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) container.getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
-    for ( NamedConfiguration nc : controller.getNamedConfigurations() ) {
-      String cn = this.jobEntry.getConfigurationName();
+    XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    for ( NamedCluster nc : controller.getNamedClusters() ) {
+      String cn = this.jobEntry.getClusterName();
       if ( cn != null && cn.equals( nc.getName() ) ) {
-        namedConfigMenu.setSelectedItem( nc );
-        controller.getAdvancedConfiguration().setSelectedNamedConfiguration( nc );
+        namedClusterMenu.setSelectedItem( nc );
+        controller.getAdvancedConfiguration().setSelectedNamedCluster( nc );
       }
     }    
   }

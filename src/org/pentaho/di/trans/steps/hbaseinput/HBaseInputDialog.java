@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.drools.util.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -56,7 +57,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
@@ -65,7 +66,7 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
-import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboValuesSelectionListener;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -98,7 +99,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
   private CTabItem m_editorTab;
 
-  NamedConfigurationWidget namedConfigWidget;
+  NamedClusterWidget namedClusterWidget;
 
   // Core config line
   private Button m_coreConfigBut;
@@ -233,24 +234,24 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     configLayout.marginHeight = 3;
     wConfigComp.setLayout( configLayout );
 
-    Label namedConfigLab = new Label( wConfigComp, SWT.RIGHT );
-    namedConfigLab.setText( Messages.getString( "HBaseInputDialog.NamedConfig.Label" ) );
-    namedConfigLab.setToolTipText( Messages.getString( "HBaseInputDialog.NamedConfig.TipText" ) );
-    props.setLook( namedConfigLab );
+    Label namedClusterLab = new Label( wConfigComp, SWT.RIGHT );
+    namedClusterLab.setText( Messages.getString( "HBaseInputDialog.NamedCluster.Label" ) );
+    namedClusterLab.setToolTipText( Messages.getString( "HBaseInputDialog.NamedCluster.TipText" ) );
+    props.setLook( namedClusterLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.top = new FormAttachment( 0, 10 );
     fd.right = new FormAttachment( middle, -margin );
-    namedConfigLab.setLayoutData( fd );
+    namedClusterLab.setLayoutData( fd );
     
-    namedConfigWidget = new NamedConfigurationWidget( wConfigComp, false );
-    namedConfigWidget.initiate();
-    props.setLook( namedConfigWidget );
+    namedClusterWidget = new NamedClusterWidget( wConfigComp, false );
+    namedClusterWidget.initiate();
+    props.setLook( namedClusterWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    namedConfigWidget.setLayoutData( fd );    
+    namedClusterWidget.setLayoutData( fd );    
 
     // core config line
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
@@ -259,7 +260,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     props.setLook( coreConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( middle, -margin );
     coreConfigLab.setLayoutData( fd );
 
@@ -268,7 +269,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     m_coreConfigBut.setText( Messages.getString( "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, 0 );
+    fd.top = new FormAttachment( namedClusterWidget, 0 );
     m_coreConfigBut.setLayoutData( fd );
 
     m_coreConfigBut.addSelectionListener( new SelectionAdapter() {
@@ -307,7 +308,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( m_coreConfigBut, -margin );
     m_coreConfigText.setLayoutData( fd );
 
@@ -921,11 +922,11 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
   protected void updateMetaConnectionDetails( HBaseInputMeta meta ) {
 
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      meta.setConfigurationName( nc.getName() );
-      meta.setZookeeperHosts( nc.getPropertyValue( "ZooKeeper", "hostname" ) );
-      meta.setZookeeperPort( nc.getPropertyValue( "ZooKeeper", "port" ) );
+      meta.setClusterName( nc.getName() );
+      meta.setZookeeperHosts( nc.getZooKeeperHost() );
+      meta.setZookeeperPort( "" + nc.getZooKeeperPort() );
     }
     
     meta.setCoreConfigURL( m_coreConfigText.getText() );
@@ -942,17 +943,15 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       mb.open();
       return;
     }
-    if ( namedConfigWidget.getSelectedNamedConfiguration() == null ) {
+    if ( namedClusterWidget.getSelectedNamedCluster() == null ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( Messages.getString( "Dialog.Error" ) );
       mb.setMessage( Messages.getString( "HBaseInputDialog.ConfigurationNotSelected.Msg" ) );
       mb.open();
       return;      
     } else {
-      NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
-      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
-      requiredProps.put( "ZooKeeper", new String[] { "hostname", "port" } );
-      if ( !nc.hasValuesFor( requiredProps ) ) {
+      NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+      if ( StringUtils.isEmpty( nc.getZooKeeperHost() ) ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( Messages.getString( "Dialog.Error" ) );
         mb.setMessage( Messages.getString( "HBaseInputDialog.ConfigurationMissingValues.Msg" ) );
@@ -1106,7 +1105,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
   private void getData() {
 
-    namedConfigWidget.setSelectedNamedConfiguration( m_currentMeta.getConfigurationName() );
+    namedClusterWidget.setSelectedNamedCluster( m_currentMeta.getClusterName() );
 
     if ( !Const.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
       m_coreConfigText.setText( m_currentMeta.getCoreConfigURL() );
@@ -1184,10 +1183,10 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     String zookeeperHosts = "";
     String zookeeperPort = "";
 
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      zookeeperHosts = transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "hostname"  ) );
-      zookeeperPort =  transMeta.environmentSubstitute( nc.getPropertyValue( "ZooKeeper", "port" ) );
+      zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      zookeeperPort =  transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
     }
     
     if ( !Const.isEmpty( m_coreConfigText.getText() ) ) {
@@ -1212,9 +1211,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     
     String zookeeperQuorumText = null;
     
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      zookeeperQuorumText = nc.getPropertyValue( "ZooKeeper", "hostname"  );
+      zookeeperQuorumText = nc.getZooKeeperHost();
     }        
     
     boolean displayFieldsEmbeddedMapping =

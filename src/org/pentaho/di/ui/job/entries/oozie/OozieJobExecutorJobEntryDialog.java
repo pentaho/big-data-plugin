@@ -80,7 +80,7 @@ public class OozieJobExecutorJobEntryDialog extends JobEntryDialog implements Jo
     controller = createController( jobEntry, container, bf );
     controller.setJobMeta( jobMeta );    
     
-    String configName = controller.getConfig().getConfigurationName();
+    String clusterName = controller.getConfig().getClusterName();
     
     container.addEventHandler( controller );
 
@@ -89,7 +89,7 @@ public class OozieJobExecutorJobEntryDialog extends JobEntryDialog implements Jo
     runner.addContainer( container );
     runner.initialize();
 
-    controller.selectNamedConfiguration( configName );
+    controller.selectNamedCluster( clusterName );
   }
 
   protected OozieJobExecutorJobEntryController createController( OozieJobExecutorJobEntry jobEntry,

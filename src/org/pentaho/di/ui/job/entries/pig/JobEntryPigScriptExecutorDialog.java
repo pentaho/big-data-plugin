@@ -23,8 +23,8 @@
 package org.pentaho.di.ui.job.entries.pig;
 
 import java.util.HashMap;
-import java.util.Map;
 
+import org.drools.util.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -47,7 +47,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
@@ -56,7 +56,7 @@ import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.gui.WindowProperty;
-import org.pentaho.di.ui.core.namedconfig.NamedConfigurationWidget;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -91,7 +91,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
   private TableView m_scriptParams;
 
-  NamedConfigurationWidget namedConfigWidget;
+  NamedClusterWidget namedClusterWidget;
   
   protected JobEntryPigScriptExecutor m_jobEntry;
 
@@ -162,23 +162,23 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_wName.setLayoutData( fd );
 
     // named config line
-    Label namedConfigLab = new Label( shell, SWT.RIGHT );
-    props.setLook( namedConfigLab );
-    namedConfigLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedConfig.Label" ) );
+    Label namedClusterLabel = new Label( shell, SWT.RIGHT );
+    props.setLook( namedClusterLabel );
+    namedClusterLabel.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedCluster.Label" ) );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.top = new FormAttachment( m_wName, 10 );
     fd.right = new FormAttachment( middle, -margin );
-    namedConfigLab.setLayoutData(fd);    
+    namedClusterLabel.setLayoutData(fd);    
     
-    namedConfigWidget = new NamedConfigurationWidget( shell, false );
-    namedConfigWidget.initiate();
-    props.setLook( namedConfigWidget );
+    namedClusterWidget = new NamedClusterWidget( shell, false );
+    namedClusterWidget.initiate();
+    props.setLook( namedClusterWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( m_wName, margin );
     fd.left = new FormAttachment (middle, 0 );
-    namedConfigWidget.setLayoutData( fd );
+    namedClusterWidget.setLayoutData( fd );
 
     // script file line
     Label scriptFileLab = new Label( shell, SWT.RIGHT );
@@ -186,7 +186,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     scriptFileLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.PigScript.Label" ) );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( middle, -margin );
     scriptFileLab.setLayoutData( fd );
 
@@ -195,7 +195,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_pigScriptBrowseBut.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, 0 );
+    fd.top = new FormAttachment( namedClusterWidget, 0 );
     m_pigScriptBrowseBut.setLayoutData( fd );
     m_pigScriptBrowseBut.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
@@ -213,7 +213,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( namedConfigWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( m_pigScriptBrowseBut, -margin );
     m_pigScriptText.setLayoutData( fd );
 
@@ -379,7 +379,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     boolean local = m_localExecutionBut.getSelection();
     
-    namedConfigWidget.setEnabled( !local );
+    namedClusterWidget.setEnabled( !local );
   }
 
   protected void openDialog() {
@@ -411,7 +411,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_wName.setText( Const.NVL( m_jobEntry.getName(), "" ) );
 
     // need setSelectItem
-    namedConfigWidget.setSelectedNamedConfiguration( m_jobEntry.getConfigurationName() );
+    namedClusterWidget.setSelectedNamedCluster( m_jobEntry.getClusterName() );
     
     m_pigScriptText.setText( Const.NVL( m_jobEntry.getScriptFilename(), "" ) );
     m_enableBlockingBut.setSelection( m_jobEntry.getEnableBlocking() );
@@ -445,13 +445,9 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     m_jobEntry.setName( m_wName.getText() );
 
-    NamedConfiguration nc = namedConfigWidget.getSelectedNamedConfiguration();
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      
-      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
-      requiredProps.put( "HDFS", new String[] { "hostname", "port" } );
-      requiredProps.put( "JobTracker", new String[] { "hostname", "port" } );
-      if ( !nc.hasValuesFor( requiredProps ) ) {
+      if ( StringUtils.isEmpty( nc.getHdfsHost() ) || StringUtils.isEmpty( nc.getJobTrackerHost() ) ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( BaseMessages.getString( PKG,  "Dialog.Error" ) );
         mb.setMessage( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ConfigurationMissingValues.Msg" ) );
@@ -459,11 +455,11 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
         return;      
       }
       
-      m_jobEntry.setConfigurationName( nc.getName() );
-      m_jobEntry.setHDFSHostname( nc.getPropertyValue( "HDFS", "hostname" ) );
-      m_jobEntry.setHDFSPort( nc.getPropertyValue( "HDFS", "port" ) );
-      m_jobEntry.setJobTrackerHostname( nc.getPropertyValue( "JobTracker", "hostname" ) );
-      m_jobEntry.setJobTrackerPort( nc.getPropertyValue( "JobTracker", "port" ) );
+      m_jobEntry.setClusterName( nc.getName() );
+      m_jobEntry.setHDFSHostname( nc.getHdfsHost() );
+      m_jobEntry.setHDFSPort( "" + nc.getHdfsPort() );
+      m_jobEntry.setJobTrackerHostname( nc.getJobTrackerHost() );
+      m_jobEntry.setJobTrackerPort( "" + nc.getJobTrackerPort() );
     } else {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( PKG, "Dialog.Error" ) );

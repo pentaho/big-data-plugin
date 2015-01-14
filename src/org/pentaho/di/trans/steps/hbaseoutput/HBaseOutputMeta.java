@@ -34,8 +34,8 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -65,8 +65,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected static Class<?> PKG = HBaseOutputMeta.class;
 
-  /** NamedConfiguration name to pull zookeeper hosts/port from */
-  protected String configurationName;
+  /** NamedCluster name to pull zookeeper hosts/port from */
+  protected String clusterName;
   
   /** comma separated list of hosts that the zookeeper quorum is running on */
   protected String m_zookeeperHosts;
@@ -121,22 +121,22 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   /**
-   * Get the name of the configuration used to load the zookeeper hosts/port
+   * Get the name of the cluster used to load the zookeeper hosts/port
    * 
    * @return the name of the configuration
    */
-  public String getConfigurationName() {
-    return configurationName;
+  public String getClusterName() {
+    return clusterName;
   }
 
   /**
-   * Set the name of the configuration to use to load the zookeeper hosts/port from.
+   * Set the name of the cluster to use to load the zookeeper hosts/port from.
    * 
    * @param configurationName
-   *         the NamedConfiguration name to set
+   *         the NamedCluster name to set
    */
-  public void setConfigurationName( String configurationName ) {
-    this.configurationName = configurationName;
+  public void setClusterName( String clusterName ) {
+    this.clusterName = clusterName;
   }    
   
   public void setZookeeperHosts( String z ) {
@@ -245,24 +245,21 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     try {
       // attempt to load from named configuration
       if ( entrynode != null ) {
-        setConfigurationName( XMLHandler.getTagValue( entrynode, "configuration_name" ) ); //$NON-NLS-1$
+        setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
-        setConfigurationName( rep.getJobEntryAttributeString( id_jobentry, "configuration_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
       } 
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
-      NamedConfiguration nc = null;
-      if ( rep != null && !StringUtils.isEmpty( getConfigurationName() ) && 
-          NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
-        // pull config from NamedConfiguration
-        nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
-      } else {
-        // TODO: need a way to get config from JobMeta!
-        // nc = getParentJob().getJobMeta().findNamedConfiguration( getConfigurationName() );
+      NamedCluster nc = null;
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
+          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+        // pull config from NamedCluster 
+        nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
       }
       if ( nc != null ) {
-        setZookeeperHosts( nc.getGroup( "ZooKeeper" ).getProperty( "hostname" ).getPropertyValue() );
-        setZookeeperPort( nc.getGroup( "ZooKeeper" ).getProperty( "port" ).getPropertyValue() );
+        setZookeeperHosts( nc.getZooKeeperHost() );
+        setZookeeperPort( "" + nc.getZooKeeperPort() );
         configLoaded = true;        
       }
     } catch ( Throwable t ) {
@@ -290,15 +287,15 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
-    retval.append( "\n    " ).append( XMLHandler.addTagValue( "configuration_name", configurationName ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    retval.append( "\n    " ).append( XMLHandler.addTagValue( "cluster_name", clusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
     // TODO: need a way to get the configuration from the repo and fall back to TransMeta
     try {
-      if ( repository != null && !StringUtils.isEmpty( getConfigurationName() ) && 
-          NamedConfigurationManager.getInstance().contains( getConfigurationName(), repository.getMetaStore() ) ) {
-        // pull config from NamedConfiguration
-        NamedConfiguration nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), repository.getMetaStore() );
-        setZookeeperHosts( nc.getGroup( "ZooKeeper" ).getProperty( "hostname" ).getPropertyValue() );
-        setZookeeperPort( nc.getGroup( "ZooKeeper" ).getProperty( "port" ).getPropertyValue() );
+      if ( repository != null && !StringUtils.isEmpty( getClusterName() ) && 
+          NamedClusterManager.getInstance().contains( getClusterName(), repository.getMetaStore() ) ) {
+        // pull config from NamedCluster
+        NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), repository.getMetaStore() );
+        setZookeeperHosts( nc.getZooKeeperHost() );
+        setZookeeperPort( "" + nc.getZooKeeperPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
@@ -385,14 +382,14 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
-    rep.saveStepAttribute( id_transformation, getObjectId(), "configuration_name", configurationName ); //$NON-NLS-1$
+    rep.saveStepAttribute( id_transformation, getObjectId(), "cluster_name", clusterName ); //$NON-NLS-1$
     try {
-      if ( !StringUtils.isEmpty( getConfigurationName() ) && 
-          NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
-        // pull config from NamedConfiguration
-        NamedConfiguration nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
-        setZookeeperHosts( nc.getGroup( "ZooKeeper" ).getProperty( "hostname" ).getPropertyValue() );
-        setZookeeperPort( nc.getGroup( "ZooKeeper" ).getProperty( "port" ).getPropertyValue() );
+      if ( !StringUtils.isEmpty( getClusterName() ) && 
+        NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+        // pull config from NamedCluster
+        NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
+        setZookeeperHosts( nc.getZooKeeperHost() );
+        setZookeeperPort( "" + nc.getZooKeeperPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );

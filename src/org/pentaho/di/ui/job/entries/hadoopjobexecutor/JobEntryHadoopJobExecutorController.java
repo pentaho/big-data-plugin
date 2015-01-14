@@ -26,10 +26,9 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import org.drools.util.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
@@ -37,8 +36,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -90,7 +89,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   private boolean isSimple = true;
 
-  private List<NamedConfiguration> namedConfigurations;
+  private List<NamedCluster> namedClusters;
   
   private SimpleConfiguration sConf = new SimpleConfiguration();
   private AdvancedConfiguration aConf = new AdvancedConfiguration();
@@ -147,33 +146,24 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "logging-interval" );
     aConf.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
 
-    JfaceMenuList<?> ncBox = (JfaceMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "named-configurations" );
-    aConf.setConfigurationName( ncBox.getSelectedItem() );
+    JfaceMenuList<?> ncBox = (JfaceMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "named-clusters" );
+    aConf.setClusterName( ncBox.getSelectedItem() );
 
-    NamedConfiguration nc = null;
+    NamedCluster nc = null;
     if ( !isSimple() ) {
       if ( rep != null ) {
         try {
-          nc = NamedConfigurationManager.getInstance().read( aConf.getConfigurationName(), rep.getMetaStore() );
+          nc = NamedClusterManager.getInstance().read( aConf.getClusterName(), rep.getMetaStore() );
         } catch ( MetaStoreException e ) {
           openErrorDialog( BaseMessages.getString( PKG, "Dialog.Error" ), e.getMessage() );
         }
       }
   
-      if ( nc == null && jobMeta != null ) {
-        for ( NamedConfiguration tmp : jobMeta.getNamedConfigurations() ) {
-          if ( tmp.getName().equals( aConf.getConfigurationName() ) ) {
-            nc = tmp;
-            break;
-          }
-        }
-      }
-      
       if ( nc != null ) {
-        aConf.setHdfsHostname( nc.getPropertyValue( "HDFS", "hostname" ) );
-        aConf.setHdfsPort( nc.getPropertyValue( "HDFS", "port" ) );
-        aConf.setJobTrackerHostname( nc.getPropertyValue( "JobTracker", "hostname" ) );
-        aConf.setJobTrackerPort( nc.getPropertyValue( "JobTracker", "port" ) );
+        aConf.setHdfsHostname( nc.getHdfsHost() );
+        aConf.setHdfsPort( "" + nc.getHdfsPort() );
+        aConf.setJobTrackerHostname( nc.getJobTrackerHost() );
+        aConf.setJobTrackerPort( "" + nc.getJobTrackerPort() );
       }    
     }
     
@@ -182,13 +172,10 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.JobEntryName.Error" ) + "\n";
     }
     if ( !isSimple() && nc == null ) {
-      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedConfigurationNotProvided.Error" ) + "\n";
+      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedClusterNotProvided.Error" ) + "\n";
     } else if ( !isSimple() ) {
-      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
-      requiredProps.put( "HDFS", new String[] { "hostname", "port" } );
-      requiredProps.put( "JobTracker", new String[] { "hostname", "port" } );
-      if ( !nc.hasValuesFor( requiredProps ) ) {
-        validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedConfigurationPropertyMissing.Error" ) + "\n";
+      if ( StringUtils.isEmpty( nc.getHdfsHost() ) || StringUtils.isEmpty( nc.getJobTrackerHost() ) ) {
+        validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedClusterPropertyMissing.Error" ) + "\n";
       }
     }    
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
@@ -223,7 +210,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     jobEntry.setOutputValueClass( aConf.getOutputValueClass() );
     jobEntry.setOutputFormatClass( aConf.getOutputFormatClass() );
     
-    jobEntry.setConfigurationName( aConf.getConfigurationName() );
+    jobEntry.setClusterName( aConf.getClusterName() );
     jobEntry.setHdfsHostname( aConf.getHdfsHostname() );
     jobEntry.setHdfsPort( aConf.getHdfsPort() );
     jobEntry.setJobTrackerHostname( aConf.getJobTrackerHostname() );
@@ -303,7 +290,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       aConf.setOutputKeyClass( jobEntry.getOutputKeyClass() );
       aConf.setOutputValueClass( jobEntry.getOutputValueClass() );
       aConf.setOutputFormatClass( jobEntry.getOutputFormatClass() );
-      aConf.setConfigurationName( jobEntry.getConfigurationName() );
+      aConf.setClusterName( jobEntry.getClusterName() );
       aConf.setHdfsHostname( jobEntry.getHdfsHostname() );
       aConf.setHdfsPort( jobEntry.getHdfsPort() );
       aConf.setJobTrackerHostname( jobEntry.getJobTrackerHostname() );
@@ -498,17 +485,21 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     this.jobEntry = jobEntry;
   }
 
-  public List<NamedConfiguration> getNamedConfigurations() {
-    this.namedConfigurations = new ArrayList<NamedConfiguration>();
+  public List<NamedCluster> getNamedClusters() {
+    this.namedClusters = new ArrayList<NamedCluster>();
     if ( jobMeta != null ) {
-      this.namedConfigurations = jobMeta.getNamedConfigurations();
+      try {
+        this.namedClusters = NamedClusterManager.getInstance().list( jobMeta.getMetaStore() );
+      } catch (MetaStoreException e) {
+        return namedClusters;
+      }
     } 
-    return namedConfigurations;
+    return namedClusters;
   }
   
-  public void setNamedConfigurations( List <NamedConfiguration> namedConfigurations ) {
-    this.namedConfigurations = namedConfigurations;
-  }  
+  public void setNamedClusters( List <NamedCluster> namedClusters ) {
+    this.namedClusters = namedClusters;
+  }
   
   public void openErrorDialog( String title, String message ) {
     XulDialog errorDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "hadoop-error-dialog" );
@@ -596,9 +587,9 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     private String inputFormatClass;
     private String outputFormatClass;
 
-    private NamedConfiguration selectedNamedConfiguration;
+    private NamedCluster selectedNamedCluster;
     
-    private String configurationName;
+    private String clusterName;
     private String hdfsHostname;
     private String hdfsPort;
     private String jobTrackerHostname;
@@ -696,12 +687,12 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       firePropertyChange( AdvancedConfiguration.OUTPUT_FORMAT_CLASS, previousVal, newVal );
     }
 
-    public String getConfigurationName() {
-      return configurationName;
+    public String getClusterName() {
+      return clusterName;
     }
 
-    public void setConfigurationName(String configurationName) {
-      this.configurationName = configurationName;
+    public void setClusterName(String clusterName) {
+      this.clusterName = clusterName;
     }    
     
     public String getHdfsHostname() {
@@ -824,64 +815,64 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       firePropertyChange( AdvancedConfiguration.NUM_REDUCE_TASKS, previousVal, newVal );
     }
     
-    public void editNamedConfiguration() {
-      if ( isSelectedNamedConfiguration() ) {
+    public void editNamedCluster() {
+      if ( isSelectedNamedCluster() ) {
         Spoon spoon = Spoon.getInstance();
         XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
         Shell shell = (Shell) xulDialog.getRootObject();
-        spoon.delegates.nc.editNamedConfiguration( jobMeta, this.selectedNamedConfiguration, shell );
-        firePropertyChange( "namedConfigurations", this.selectedNamedConfiguration, getNamedConfigurations() );
+        spoon.delegates.nc.editNamedCluster( spoon.getMetaStore(), this.selectedNamedCluster, shell );
+        firePropertyChange( "namedClusters", this.selectedNamedCluster, getNamedClusters() );
       }
     }
     
-    public void newNamedConfiguration() {
+    public void newNamedCluster() {
       Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      spoon.delegates.nc.newNamedConfiguration( jobMeta, shell );   
-      firePropertyChange( "namedConfigurations", null, getNamedConfigurations() );
-      selectNamedConfiguration();
+      spoon.delegates.nc.newNamedCluster( jobMeta, spoon.getMetaStore(), shell );   
+      firePropertyChange( "namedClusters", null, getNamedClusters() );
+      selectNamedCluster();
     }
     
-    private void selectNamedConfiguration() {
+    private void selectNamedCluster() {
       @SuppressWarnings("unchecked")
-      XulMenuList<NamedConfiguration> namedConfigMenu = (XulMenuList<NamedConfiguration>) getXulDomContainer().getDocumentRoot().getElementById( "named-configurations" ); //$NON-NLS-1$
-      for ( NamedConfiguration nc : getNamedConfigurations() ) {
-        String cn = JobEntryHadoopJobExecutorController.this.jobEntry.getConfigurationName();
+      XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) getXulDomContainer().getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+      for ( NamedCluster nc : getNamedClusters() ) {
+        String cn = JobEntryHadoopJobExecutorController.this.jobEntry.getClusterName();
         if ( cn != null && cn.equals( nc.getName() ) ) {
-          namedConfigMenu.setSelectedItem( nc );
-          setSelectedNamedConfiguration( nc );
+          namedClusterMenu.setSelectedItem( nc );
+          setSelectedNamedCluster( nc );
         }
       }    
     }  
     
-    public void setSelectedNamedConfiguration( NamedConfiguration configuration ) {
-      this.selectedNamedConfiguration = configuration;
+    public void setSelectedNamedCluster( NamedCluster namedCluster ) {
+      this.selectedNamedCluster = namedCluster;
     }
     
-    public boolean isSelectedNamedConfiguration() {
-      return this.selectedNamedConfiguration != null;
+    public boolean isSelectedNamedCluster() {
+      return this.selectedNamedCluster != null;
     }    
     
   }
 
-  public void editNamedConfiguration() {
-    if ( aConf.isSelectedNamedConfiguration() ) {
+  public void editNamedCluster() {
+    if ( aConf.isSelectedNamedCluster() ) {
       Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      spoon.delegates.nc.editNamedConfiguration( jobMeta, aConf.selectedNamedConfiguration, shell );
-      firePropertyChange( "namedConfigurations", aConf.selectedNamedConfiguration, getNamedConfigurations() );
+      spoon.delegates.nc.editNamedCluster( spoon.getMetaStore(), aConf.selectedNamedCluster, shell );
+      firePropertyChange( "namedClusters", aConf.selectedNamedCluster, getNamedClusters() );
     }
   }
   
-  public void newNamedConfiguration() {
+  public void newNamedCluster() {
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.newNamedConfiguration( jobMeta, shell );   
-    firePropertyChange( "namedConfigurations", null, getNamedConfigurations() );
-    aConf.selectNamedConfiguration();
+    spoon.delegates.nc.newNamedCluster( jobMeta, spoon.getMetaStore(), shell );   
+    firePropertyChange( "namedClusters", null, getNamedClusters() );
+    aConf.selectNamedCluster();
   }  
   
   public void help() {

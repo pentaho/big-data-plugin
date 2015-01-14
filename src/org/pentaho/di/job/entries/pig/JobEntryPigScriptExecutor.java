@@ -49,8 +49,8 @@ import org.pentaho.di.core.logging.Log4jFileAppender;
 import org.pentaho.di.core.logging.Log4jKettleLayout;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.logging.LogWriter;
-import org.pentaho.di.core.namedconfig.NamedConfigurationManager;
-import org.pentaho.di.core.namedconfig.model.NamedConfiguration;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
@@ -83,7 +83,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
                                                                  // $NON-NLS-1$
 
   /** Hostname of the job tracker */
-  protected String m_configurationName = "";
+  protected String m_clusterName = "";
   
   /** Hostname of the job tracker */
   protected String m_jobTrackerHostname = "";
@@ -155,26 +155,26 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     try {
       // attempt to load from named configuration
       if ( entrynode != null ) {
-        setConfigurationName( XMLHandler.getTagValue( entrynode, "configuration_name" ) ); //$NON-NLS-1$
+        setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
-        setConfigurationName( rep.getJobEntryAttributeString( id_jobentry, "configuration_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
       } 
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
-      NamedConfiguration nc = null;
-      if ( rep != null && !StringUtils.isEmpty( getConfigurationName() ) && 
-          NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
+      NamedCluster nc = null;
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
+          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedConfiguration
-        nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
+        nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
       } else {
         // TODO: need a way to get config from JobMeta!
         // nc = getParentJob().getJobMeta().findNamedConfiguration( getConfigurationName() );
       }
       if ( nc != null ) {
-        setJobTrackerHostname( nc.getGroup( "JobTracker" ).getProperty( "hostname" ).getPropertyValue() );
-        setJobTrackerPort( nc.getGroup( "JobTracker" ).getProperty( "port" ).getPropertyValue() );
-        setHDFSHostname( nc.getGroup( "HDFS" ).getProperty( "hostname" ).getPropertyValue() );
-        setHDFSPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
+        setJobTrackerHostname( nc.getJobTrackerHost() );
+        setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        setHDFSHostname( nc.getHdfsHost() );
+        setHDFSPort( "" + nc.getHdfsPort() );
         configLoaded = true;        
       }
     } catch ( Throwable t ) {
@@ -211,17 +211,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     StringBuffer retval = new StringBuffer();
     retval.append( super.getXML() );
 
-    retval.append( "      " ).append( XMLHandler.addTagValue( "configuration_name", m_configurationName ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    retval.append( "      " ).append( XMLHandler.addTagValue( "cluster_name", m_clusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
     // TODO: need a way to get the configuration from the repo and fall back to JobMeta
     try {
-      if ( rep != null && !StringUtils.isEmpty( getConfigurationName() ) && 
-          NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
+          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedConfiguration
-        NamedConfiguration nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
-        setJobTrackerHostname( nc.getGroup( "JobTracker" ).getProperty( "hostname" ).getPropertyValue() );
-        setJobTrackerPort( nc.getGroup( "JobTracker" ).getProperty( "port" ).getPropertyValue() );
-        setHDFSHostname( nc.getGroup( "HDFS" ).getProperty( "hostname" ).getPropertyValue() );
-        setHDFSPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
+        NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
+        setJobTrackerHostname( nc.getJobTrackerHost() );
+        setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        setHDFSHostname( nc.getHdfsHost() );
+        setHDFSPort( "" + nc.getHdfsPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
@@ -326,16 +326,16 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     if ( rep != null ) {
       super.saveRep( rep, id_job );
 
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "configuration_name", m_configurationName ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "cluster_name", m_clusterName ); //$NON-NLS-1$
       try {
-        if ( !StringUtils.isEmpty( getConfigurationName() ) && 
-            NamedConfigurationManager.getInstance().contains( getConfigurationName(), rep.getMetaStore() ) ) {
+        if ( !StringUtils.isEmpty( getClusterName() ) && 
+            NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
           // pull config from NamedConfiguration
-          NamedConfiguration nc = NamedConfigurationManager.getInstance().read( getConfigurationName(), rep.getMetaStore() );
-          setJobTrackerHostname( nc.getGroup( "JobTracker" ).getProperty( "hostname" ).getPropertyValue() );
-          setJobTrackerPort( nc.getGroup( "JobTracker" ).getProperty( "port" ).getPropertyValue() );
-          setHDFSHostname( nc.getGroup( "HDFS" ).getProperty( "hostname" ).getPropertyValue() );
-          setHDFSPort( nc.getGroup( "HDFS" ).getProperty( "port" ).getPropertyValue() );
+          NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
+          setJobTrackerHostname( nc.getJobTrackerHost() );
+          setJobTrackerPort( "" + nc.getJobTrackerPort() );
+          setHDFSHostname( nc.getHdfsHost() );
+          setHDFSPort( "" + nc.getHdfsPort() );
         }
       } catch ( MetaStoreException e ) {
         logDebug( e.getMessage(), e );
@@ -378,8 +378,8 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    * 
    * @return the configuration name
    */
-  public String getConfigurationName() {
-    return m_configurationName;
+  public String getClusterName() {
+    return m_clusterName;
   }
 
   /**
@@ -388,8 +388,8 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    * @param configurationName
    *          the configuration name
    */
-  public void setConfigurationName( String configurationName ) {
-    this.m_configurationName = configurationName;
+  public void setClusterName( String clusterName ) {
+    this.m_clusterName = clusterName;
   }  
   
   /**
