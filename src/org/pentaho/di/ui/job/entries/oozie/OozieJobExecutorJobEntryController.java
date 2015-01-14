@@ -29,7 +29,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.vfs.FileObject;
+import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -39,11 +41,15 @@ import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorConfig;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorJobEntry;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
+import org.pentaho.ui.xul.components.XulMenuList;
+import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.stereotype.Bindable;
 import org.pentaho.ui.xul.util.AbstractModelList;
@@ -68,6 +74,8 @@ public class OozieJobExecutorJobEntryController extends
   private transient boolean advancedArgumentsChanged = false;
   protected XulTree variablesTree = null;
 
+  private Binding namedClustersBinding = null;
+  
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label)
    */
@@ -147,13 +155,42 @@ public class OozieJobExecutorJobEntryController extends
   }
 
   @Override
-  protected void createBindings( OozieJobExecutorConfig config, XulDomContainer container,
+  protected void createBindings( final OozieJobExecutorConfig config, XulDomContainer container,
       BindingFactory bindingFactory, Collection<Binding> bindings ) {
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
     bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.JOB_ENTRY_NAME,
         BlockableJobConfig.JOB_ENTRY_NAME, VALUE ) );
-    bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_URL,
-        OozieJobExecutorConfig.OOZIE_URL, VALUE ) );
+    
+    //config.setRepository( rep );
+    String clusterName = config.getClusterName();
+    
+    namedClustersBinding = bindingFactory.createBinding( config, "namedClusters", "named-clusters", "elements" );
+    try {
+      namedClustersBinding.fireSourceChanged();
+    } catch ( Throwable ignored ) {
+    }
+    bindings.add( namedClustersBinding );
+    Binding selectedNamedClusterBinding = bindingFactory.createBinding( "named-clusters", "selectedIndex", config, "namedCluster", new BindingConvertor<Integer, NamedCluster>() {
+      public NamedCluster sourceToTarget( final Integer index ) {
+        List<NamedCluster> clusters = config.getNamedClusters();
+        if ( index == -1 || clusters.isEmpty() ) {
+          return null;
+        }
+        return clusters.get( index );
+      }
+
+      public Integer targetToSource( final NamedCluster value ) {
+        return null;
+      }
+    } );
+    try {
+      selectedNamedClusterBinding.fireSourceChanged();
+    } catch ( Throwable ignored ) {
+    }
+    bindings.add( selectedNamedClusterBinding );
+    
+    selectNamedCluster( clusterName );    
+    
     bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG,
         OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE ) );
 
@@ -204,6 +241,45 @@ public class OozieJobExecutorJobEntryController extends
 
   }
 
+  private List<NamedCluster> getNamedClusters() {
+    return NamedClusterUIHelper.getNamedClusters();
+  }
+  
+  public void selectNamedCluster( String configName ) {
+    @SuppressWarnings("unchecked")
+    XulMenuList<NamedCluster> namedConfigMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    for ( NamedCluster nc : getNamedClusters() ) {
+      if ( configName != null && configName.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+      }
+    }    
+  }
+  
+  public void editNamedCluster() {
+    String cn = config.getClusterName();
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    spoon.delegates.nc.editNamedCluster( null, config.getNamedCluster(), shell );
+    firePropertyChange( "namedClusters", config.getClusterName(), config.getNamedClusters() );
+    selectNamedCluster( cn );
+  }
+  
+  public void newNamedCluster() {
+    String cn = config.getClusterName();
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    spoon.delegates.nc.newNamedCluster( jobMeta, null, shell );
+    config.setNamedClusters( getNamedClusters() );
+    firePropertyChange( "namedClusters", null, config.getNamedClusters() );
+    try {
+      namedClustersBinding.fireSourceChanged();
+    } catch ( Throwable ignored ) {
+    }
+    selectNamedCluster( cn );
+  }
+  
   @Bindable
   public void addNewProperty() {
     advancedArgumentsChanged = true;
@@ -233,6 +309,18 @@ public class OozieJobExecutorJobEntryController extends
   @Bindable
   public void accept() {
     syncModel();
+    
+    List<String> warnings = jobEntry.getValidationWarnings( getConfig(), false );
+    if ( !warnings.isEmpty() ) {
+      StringBuilder sb = new StringBuilder();
+      for ( String warning : warnings ) {
+        sb.append( warning ).append( "\n" );
+      }
+      showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
+          .toString() );
+      return;
+    }
+    
     super.accept();
   }
 

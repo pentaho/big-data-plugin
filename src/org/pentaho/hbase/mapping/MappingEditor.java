@@ -49,6 +49,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.TransMeta;
@@ -57,10 +58,10 @@ import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboValuesSelectionListener;
 import org.pentaho.di.ui.core.widget.TableView;
-import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.hbase.shim.api.HBaseValueMeta;
 import org.pentaho.hbase.shim.api.Mapping;
 import org.pentaho.hbase.shim.spi.HBaseConnection;
@@ -84,9 +85,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
   protected boolean m_allowTableCreate;
 
-  protected TextVar m_zookeeperHostText;
-  protected TextVar m_zookeeperPortText;
-
+  protected NamedClusterWidget namedClusterWidget;
+  
   // table name line
   protected CCombo m_existingTableNamesCombo;
   protected Button m_getTableNames;
@@ -152,39 +152,23 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     props.setLook( this );
 
     if ( showConnectWidgets ) {
-      Label zooHostLab = new Label( this, SWT.RIGHT );
-      zooHostLab.setText( "Zookeeper host" );
-      props.setLook( zooHostLab );
+      Label namedClusterLabel = new Label( this, SWT.RIGHT );
+      namedClusterLabel.setText( Messages.getString( "MappingDialog.NamedCluster.Label" ) );
+      props.setLook( namedClusterLabel );
       FormData fd = new FormData();
       fd.left = new FormAttachment( 0, 0 );
-      fd.top = new FormAttachment( 0, margin );
+      fd.top = new FormAttachment( 0, 10 );
       fd.right = new FormAttachment( middle, -margin );
-      zooHostLab.setLayoutData( fd );
+      namedClusterLabel.setLayoutData( fd );
 
-      m_zookeeperHostText = new TextVar( transMeta, this, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-      props.setLook( m_zookeeperHostText );
+      namedClusterWidget = new NamedClusterWidget( this, false );
+      namedClusterWidget.initiate();
+      props.setLook( namedClusterWidget );
       fd = new FormData();
       fd.left = new FormAttachment( middle, 0 );
-      fd.top = new FormAttachment( 0, margin );
+      fd.top = new FormAttachment( 0, 10 );
       fd.right = new FormAttachment( 100, 0 );
-      m_zookeeperHostText.setLayoutData( fd );
-
-      Label zooPortLab = new Label( this, SWT.RIGHT );
-      zooPortLab.setText( "Zookeeper port" );
-      props.setLook( zooPortLab );
-      fd = new FormData();
-      fd.left = new FormAttachment( 0, 0 );
-      fd.top = new FormAttachment( m_zookeeperHostText, margin );
-      fd.right = new FormAttachment( middle, -margin );
-      zooPortLab.setLayoutData( fd );
-
-      m_zookeeperPortText = new TextVar( transMeta, this, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-      props.setLook( m_zookeeperPortText );
-      fd = new FormData();
-      fd.left = new FormAttachment( middle, 0 );
-      fd.top = new FormAttachment( m_zookeeperHostText, margin );
-      fd.right = new FormAttachment( 100, 0 );
-      m_zookeeperPortText.setLayoutData( fd );
+      namedClusterWidget.setLayoutData( fd );
 
       m_currentConfiguration = m_configProducer.getCurrentConfiguration();
     }
@@ -196,7 +180,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     if ( showConnectWidgets ) {
-      fd.top = new FormAttachment( m_zookeeperPortText, margin );
+      fd.top = new FormAttachment( namedClusterWidget, margin );
     } else {
       fd.top = new FormAttachment( 0, margin );
     }
@@ -209,7 +193,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     if ( showConnectWidgets ) {
-      fd.top = new FormAttachment( m_zookeeperPortText, 0 );
+      fd.top = new FormAttachment( namedClusterWidget, 0 );
     } else {
       fd.top = new FormAttachment( 0, 0 );
     }
@@ -228,7 +212,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     fd.left = new FormAttachment( middle, 0 );
     fd.right = new FormAttachment( m_getTableNames, -margin );
     if ( showConnectWidgets ) {
-      fd.top = new FormAttachment( m_zookeeperPortText, margin );
+      fd.top = new FormAttachment( namedClusterWidget, margin );
     } else {
       fd.top = new FormAttachment( 0, margin );
     }
@@ -1139,14 +1123,12 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     String zookeeperHosts = null;
     String zookeeperPort = null;
 
-    if ( !Const.isEmpty( m_zookeeperHostText.getText() ) ) {
-      zookeeperHosts = m_transMeta.environmentSubstitute( m_zookeeperHostText.getText() );
-    }
-
-    if ( !Const.isEmpty( m_zookeeperPortText.getText() ) ) {
-      zookeeperPort = m_transMeta.environmentSubstitute( m_zookeeperPortText.getText() );
-    }
-
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    if ( nc != null ) {
+      zookeeperHosts = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      zookeeperPort =  m_transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
+    }      
+    
     conf = HBaseInputData.getHBaseConnection( zookeeperHosts, zookeeperPort, null, null, null );
 
     return conf;
@@ -1155,11 +1137,12 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   public String getCurrentConfiguration() {
     String host = "";
     String port = "";
-    if ( !Const.isEmpty( m_zookeeperHostText.getText() ) ) {
-      host = m_zookeeperHostText.getText();
-    }
-    if ( !Const.isEmpty( m_zookeeperPortText.getText() ) ) {
-      port = m_zookeeperPortText.getText();
+    
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    
+    if ( nc != null ) {
+      host = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      port =  m_transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
     }
     return host + ":" + port;
   }
