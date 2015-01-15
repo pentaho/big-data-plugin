@@ -24,6 +24,7 @@ package org.pentaho.di.ui.job.entries.pig;
 
 import java.util.HashMap;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -46,6 +47,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
@@ -54,6 +56,7 @@ import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -79,16 +82,6 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
   private Text m_wName;
 
-  private Label m_hdfsLab;
-  private TextVar m_hdfsHostname;
-  private Label m_hdfsPortLab;
-  private TextVar m_hdfsPort;
-
-  private Label m_jobTrackerLab;
-  private TextVar m_jobTrackerHostname;
-  private Label m_jobTrackerPortLab;
-  private TextVar m_jobTrackerPort;
-
   private TextVar m_pigScriptText;
   private Button m_pigScriptBrowseBut;
 
@@ -98,6 +91,8 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
   private TableView m_scriptParams;
 
+  NamedClusterWidget namedClusterWidget;
+  
   protected JobEntryPigScriptExecutor m_jobEntry;
 
   private boolean m_isMapR = false;
@@ -166,105 +161,24 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     fd.right = new FormAttachment( 100, 0 );
     m_wName.setLayoutData( fd );
 
-    // hdfs line
-    m_hdfsLab = new Label( shell, SWT.RIGHT );
-    props.setLook( m_hdfsLab );
-    m_hdfsLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.HDFSHostname.Label" ) );
+    // named config line
+    Label namedClusterLabel = new Label( shell, SWT.RIGHT );
+    props.setLook( namedClusterLabel );
+    namedClusterLabel.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedCluster.Label" ) );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_wName, margin );
+    fd.top = new FormAttachment( m_wName, 10 );
     fd.right = new FormAttachment( middle, -margin );
-    m_hdfsLab.setLayoutData( fd );
-
-    m_hdfsHostname = new TextVar( jobMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_hdfsHostname );
-    m_hdfsHostname.addModifyListener( lsMod );
-
-    // set the tool tip to the contents with any env variables expanded
-    m_hdfsHostname.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_hdfsHostname.setToolTipText( jobMeta.environmentSubstitute( m_hdfsHostname.getText() ) );
-      }
-    } );
+    namedClusterLabel.setLayoutData(fd);    
+    
+    namedClusterWidget = new NamedClusterWidget( shell, false );
+    namedClusterWidget.initiate();
+    props.setLook( namedClusterWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( m_wName, margin );
-    fd.left = new FormAttachment( middle, 0 );
-    m_hdfsHostname.setLayoutData( fd );
-
-    // hdfs port line
-    m_hdfsPortLab = new Label( shell, SWT.RIGHT );
-    props.setLook( m_hdfsPortLab );
-    m_hdfsPortLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.HDFSPort.Label" ) );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_hdfsHostname, margin );
-    fd.right = new FormAttachment( middle, -margin );
-    m_hdfsPortLab.setLayoutData( fd );
-
-    m_hdfsPort = new TextVar( jobMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_hdfsPort );
-    m_hdfsPort.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_hdfsPort.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_hdfsPort.setToolTipText( jobMeta.environmentSubstitute( m_hdfsPort.getText() ) );
-      }
-    } );
-    fd = new FormData();
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_hdfsHostname, margin );
-    fd.left = new FormAttachment( middle, 0 );
-    m_hdfsPort.setLayoutData( fd );
-
-    // job tracker line
-    m_jobTrackerLab = new Label( shell, SWT.RIGHT );
-    props.setLook( m_jobTrackerLab );
-    m_jobTrackerLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobtrackerHostname.Label" ) );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_hdfsPort, margin );
-    fd.right = new FormAttachment( middle, -margin );
-    m_jobTrackerLab.setLayoutData( fd );
-
-    m_jobTrackerHostname = new TextVar( jobMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_jobTrackerHostname );
-    m_jobTrackerHostname.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_jobTrackerHostname.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_jobTrackerHostname.setToolTipText( jobMeta.environmentSubstitute( m_jobTrackerHostname.getText() ) );
-      }
-    } );
-    fd = new FormData();
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_hdfsPort, margin );
-    fd.left = new FormAttachment( middle, 0 );
-    m_jobTrackerHostname.setLayoutData( fd );
-
-    m_jobTrackerPortLab = new Label( shell, SWT.RIGHT );
-    props.setLook( m_jobTrackerPortLab );
-    m_jobTrackerPortLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobtrackerPort.Label" ) );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_jobTrackerHostname, margin );
-    fd.right = new FormAttachment( middle, -margin );
-    m_jobTrackerPortLab.setLayoutData( fd );
-
-    m_jobTrackerPort = new TextVar( jobMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_jobTrackerPort );
-    m_jobTrackerPort.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_jobTrackerPort.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_jobTrackerPort.setToolTipText( jobMeta.environmentSubstitute( m_jobTrackerPort.getText() ) );
-      }
-    } );
-    fd = new FormData();
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_jobTrackerHostname, margin );
-    fd.left = new FormAttachment( middle, 0 );
-    m_jobTrackerPort.setLayoutData( fd );
+    fd.left = new FormAttachment (middle, 0 );
+    namedClusterWidget.setLayoutData( fd );
 
     // script file line
     Label scriptFileLab = new Label( shell, SWT.RIGHT );
@@ -272,7 +186,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     scriptFileLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.PigScript.Label" ) );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_jobTrackerPort, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( middle, -margin );
     scriptFileLab.setLayoutData( fd );
 
@@ -281,7 +195,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_pigScriptBrowseBut.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_jobTrackerPort, 0 );
+    fd.top = new FormAttachment( namedClusterWidget, 0 );
     m_pigScriptBrowseBut.setLayoutData( fd );
     m_pigScriptBrowseBut.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
@@ -299,7 +213,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_jobTrackerPort, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( m_pigScriptBrowseBut, -margin );
     m_pigScriptText.setLayoutData( fd );
 
@@ -464,14 +378,8 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     }
 
     boolean local = m_localExecutionBut.getSelection();
-    m_hdfsLab.setEnabled( !local );
-    m_hdfsHostname.setEnabled( !local );
-    m_hdfsPortLab.setEnabled( !local );
-    m_hdfsPort.setEnabled( !local );
-    m_jobTrackerLab.setEnabled( !local );
-    m_jobTrackerHostname.setEnabled( !local );
-    m_jobTrackerPortLab.setEnabled( !local );
-    m_jobTrackerPort.setEnabled( !local );
+    
+    namedClusterWidget.setEnabled( !local );
   }
 
   protected void openDialog() {
@@ -502,19 +410,9 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
   protected void getData() {
     m_wName.setText( Const.NVL( m_jobEntry.getName(), "" ) );
 
-    if ( !Const.isEmpty( m_jobEntry.getHDFSHostname() ) ) {
-      m_hdfsHostname.setText( m_jobEntry.getHDFSHostname() );
-    }
-    if ( !Const.isEmpty( m_jobEntry.getHDFSPort() ) ) {
-      m_hdfsPort.setText( m_jobEntry.getHDFSPort() );
-    }
-    if ( !Const.isEmpty( m_jobEntry.getJobTrackerHostname() ) ) {
-      m_jobTrackerHostname.setText( m_jobEntry.getJobTrackerHostname() );
-    }
-    if ( !Const.isEmpty( m_jobEntry.getJobTrackerPort() ) ) {
-      m_jobTrackerPort.setText( m_jobEntry.getJobTrackerPort() );
-    }
-
+    // need setSelectItem
+    namedClusterWidget.setSelectedNamedCluster( m_jobEntry.getClusterName() );
+    
     m_pigScriptText.setText( Const.NVL( m_jobEntry.getScriptFilename(), "" ) );
     m_enableBlockingBut.setSelection( m_jobEntry.getEnableBlocking() );
     m_localExecutionBut.setSelection( m_jobEntry.getLocalExecution() );
@@ -547,10 +445,29 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     m_jobEntry.setName( m_wName.getText() );
 
-    m_jobEntry.setHDFSHostname( m_hdfsHostname.getText() );
-    m_jobEntry.setHDFSPort( m_hdfsPort.getText() );
-    m_jobEntry.setJobTrackerHostname( m_jobTrackerHostname.getText() );
-    m_jobEntry.setJobTrackerPort( m_jobTrackerPort.getText() );
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    if ( nc != null ) {
+      if ( StringUtils.isEmpty( nc.getHdfsHost() ) || StringUtils.isEmpty( nc.getJobTrackerHost() ) ) {
+        MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+        mb.setText( BaseMessages.getString( PKG,  "Dialog.Error" ) );
+        mb.setMessage( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedClusterMissingValues.Msg" ) );
+        mb.open();
+        return;      
+      }
+      
+      m_jobEntry.setClusterName( nc.getName() );
+      m_jobEntry.setHDFSHostname( nc.getHdfsHost() );
+      m_jobEntry.setHDFSPort( "" + nc.getHdfsPort() );
+      m_jobEntry.setJobTrackerHostname( nc.getJobTrackerHost() );
+      m_jobEntry.setJobTrackerPort( "" + nc.getJobTrackerPort() );
+    } else {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( BaseMessages.getString( PKG, "Dialog.Error" ) );
+      mb.setMessage( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedClusterMissing.Msg" ) );
+      mb.open();
+      return;
+    }
+    
     m_jobEntry.setScriptFilename( m_pigScriptText.getText() );
     m_jobEntry.setEnableBlocking( m_enableBlockingBut.getSelection() );
     m_jobEntry.setLocalExecution( m_localExecutionBut.getSelection() );

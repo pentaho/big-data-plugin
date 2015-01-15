@@ -25,9 +25,11 @@ package org.pentaho.di.job.entries.oozie;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.PropertyEntry;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.stereotype.Bindable;
 
@@ -44,6 +46,10 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   public static final String OOZIE_WORKFLOW_PROPERTIES = "oozieWorkflowProperties";
   public static final String MODE = "mode";
 
+  private transient List<NamedCluster> namedClusters;
+  private transient NamedCluster namedCluster = null; // selected
+  private String clusterName; // saved (String)
+  
   private String oozieUrl = null;
   private String oozieWorkflowConfig = null;
   private String oozieWorkflow = null;
@@ -52,6 +58,9 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   private ArrayList<PropertyEntry> workflowProperties = null;
   private String mode = null;
 
+  public OozieJobExecutorConfig() {
+  }
+  
   @Bindable
   public String getOozieUrl() {
     return oozieUrl;
@@ -64,6 +73,41 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
     pcs.firePropertyChange( OOZIE_URL, prev, this.oozieUrl );
   }
 
+  @Bindable
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  @Bindable
+  public void setClusterName(String clusterName) {
+    this.clusterName = clusterName;
+  }  
+  
+  @Bindable
+  public NamedCluster getNamedCluster() {
+    return namedCluster;
+  }
+
+  @Bindable
+  public void setNamedCluster( NamedCluster namedCluster ) {
+    this.namedCluster = namedCluster;
+    if ( namedCluster != null ) {
+      this.clusterName = namedCluster.getName();
+      this.oozieUrl = namedCluster.getOozieUrl();
+    }
+  }  
+  
+  @Bindable
+  public List<NamedCluster> getNamedClusters() {
+    this.namedClusters = NamedClusterUIHelper.getNamedClusters();
+    return namedClusters;
+  }
+
+  @Bindable
+  public void setNamedClusters( List <NamedCluster> namedClusters ) {
+    this.namedClusters = namedClusters;
+  }
+  
   @Bindable
   public String getOozieWorkflowConfig() {
     return oozieWorkflowConfig;

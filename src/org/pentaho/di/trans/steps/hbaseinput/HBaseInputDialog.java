@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -50,11 +51,13 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
@@ -63,6 +66,7 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboValuesSelectionListener;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -95,11 +99,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
   private CTabItem m_editorTab;
 
-  // Zookeeper host(s) line
-  private TextVar m_zookeeperQuorumText;
-
-  // Zookeeper port
-  private TextVar m_zookeeperPortText;
+  NamedClusterWidget namedClusterWidget;
 
   // Core config line
   private Button m_coreConfigBut;
@@ -234,56 +234,24 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     configLayout.marginHeight = 3;
     wConfigComp.setLayout( configLayout );
 
-    // zookeeper line
-    Label zookeeperLab = new Label( wConfigComp, SWT.RIGHT );
-    zookeeperLab.setText( Messages.getString( "HBaseInputDialog.Zookeeper.Label" ) );
-    zookeeperLab.setToolTipText( Messages.getString( "HBaseInputDialog.Zookeeper.TipText" ) );
-    props.setLook( zookeeperLab );
+    Label namedClusterLab = new Label( wConfigComp, SWT.RIGHT );
+    namedClusterLab.setText( Messages.getString( "HBaseInputDialog.NamedCluster.Label" ) );
+    namedClusterLab.setToolTipText( Messages.getString( "HBaseInputDialog.NamedCluster.TipText" ) );
+    props.setLook( namedClusterLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( 0, margin );
+    fd.top = new FormAttachment( 0, 10 );
     fd.right = new FormAttachment( middle, -margin );
-    zookeeperLab.setLayoutData( fd );
-
-    m_zookeeperQuorumText = new TextVar( transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_zookeeperQuorumText );
-    m_zookeeperQuorumText.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_zookeeperQuorumText.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_zookeeperQuorumText.setToolTipText( transMeta.environmentSubstitute( m_zookeeperQuorumText.getText() ) );
-      }
-    } );
+    namedClusterLab.setLayoutData( fd );
+    
+    namedClusterWidget = new NamedClusterWidget( wConfigComp, false );
+    namedClusterWidget.initiate();
+    props.setLook( namedClusterWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    m_zookeeperQuorumText.setLayoutData( fd );
-
-    // zookeeper port
-    Label zookeeperPortLab = new Label( wConfigComp, SWT.RIGHT );
-    zookeeperPortLab.setText( Messages.getString( "HBaseInputDialog.ZookeeperPort.Label" ) );
-    props.setLook( zookeeperPortLab );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_zookeeperQuorumText, margin );
-    fd.right = new FormAttachment( middle, -margin );
-    zookeeperPortLab.setLayoutData( fd );
-
-    m_zookeeperPortText = new TextVar( transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( m_zookeeperPortText );
-    m_zookeeperPortText.addModifyListener( lsMod );
-    // set the tool tip to the contents with any env variables expanded
-    m_zookeeperPortText.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        m_zookeeperPortText.setToolTipText( transMeta.environmentSubstitute( m_zookeeperPortText.getText() ) );
-      }
-    } );
-    fd = new FormData();
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_zookeeperQuorumText, margin );
-    fd.left = new FormAttachment( middle, 0 );
-    m_zookeeperPortText.setLayoutData( fd );
+    namedClusterWidget.setLayoutData( fd );    
 
     // core config line
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
@@ -292,7 +260,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     props.setLook( coreConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_zookeeperPortText, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( middle, -margin );
     coreConfigLab.setLayoutData( fd );
 
@@ -301,7 +269,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     m_coreConfigBut.setText( Messages.getString( "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( m_zookeeperPortText, 0 );
+    fd.top = new FormAttachment( namedClusterWidget, 0 );
     m_coreConfigBut.setLayoutData( fd );
 
     m_coreConfigBut.addSelectionListener( new SelectionAdapter() {
@@ -340,7 +308,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_zookeeperPortText, margin );
+    fd.top = new FormAttachment( namedClusterWidget, margin );
     fd.right = new FormAttachment( m_coreConfigBut, -margin );
     m_coreConfigText.setLayoutData( fd );
 
@@ -800,9 +768,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
         // try to fill in the type
         String alias = tableItem.getText( 1 );
-        HBaseValueMeta vm = null;
         if ( !Const.isEmpty( alias ) ) {
-          vm = setFilterTableTypeColumn( tableItem );
+          setFilterTableTypeColumn( tableItem );
         }
         int type = ValueMeta.getType( tableItem.getText( 2 ) );
         switch ( type ) {
@@ -954,8 +921,14 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   }
 
   protected void updateMetaConnectionDetails( HBaseInputMeta meta ) {
-    meta.setZookeeperHosts( m_zookeeperQuorumText.getText() );
-    meta.setZookeeperPort( m_zookeeperPortText.getText() );
+
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    if ( nc != null ) {
+      meta.setClusterName( nc.getName() );
+      meta.setZookeeperHosts( nc.getZooKeeperHost() );
+      meta.setZookeeperPort( "" + nc.getZooKeeperPort() );
+    }
+    
     meta.setCoreConfigURL( m_coreConfigText.getText() );
     meta.setDefaulConfigURL( m_defaultConfigText.getText() );
     meta.setSourceTableName( m_mappedTableNamesCombo.getText() );
@@ -964,7 +937,27 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
   protected void ok() {
     if ( Const.isEmpty( m_stepnameText.getText() ) ) {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( Messages.getString( "System.StepJobEntryNameMissing.Title" ) );
+      mb.setMessage( Messages.getString( "System.JobEntryNameMissing.Msg" ) );
+      mb.open();
       return;
+    }
+    if ( namedClusterWidget.getSelectedNamedCluster() == null ) {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( Messages.getString( "Dialog.Error" ) );
+      mb.setMessage( Messages.getString( "HBaseInputDialog.NamedClusterNotSelected.Msg" ) );
+      mb.open();
+      return;      
+    } else {
+      NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+      if ( StringUtils.isEmpty( nc.getZooKeeperHost() ) ) {
+        MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+        mb.setText( Messages.getString( "Dialog.Error" ) );
+        mb.setMessage( Messages.getString( "HBaseInputDialog.NamedClusterMissingValues.Msg" ) );
+        mb.open();
+        return;      
+      }
     }
 
     stepname = m_stepnameText.getText();
@@ -1112,12 +1105,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
   private void getData() {
 
-    if ( !Const.isEmpty( m_currentMeta.getZookeeperHosts() ) ) {
-      m_zookeeperQuorumText.setText( m_currentMeta.getZookeeperHosts() );
-    }
-    if ( !Const.isEmpty( m_currentMeta.getZookeeperPort() ) ) {
-      m_zookeeperPortText.setText( m_currentMeta.getZookeeperPort() );
-    }
+    namedClusterWidget.setSelectedNamedCluster( m_currentMeta.getClusterName() );
 
     if ( !Const.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
       m_coreConfigText.setText( m_currentMeta.getCoreConfigURL() );
@@ -1195,20 +1183,18 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     String zookeeperHosts = "";
     String zookeeperPort = "";
 
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    if ( nc != null ) {
+      zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
+      zookeeperPort =  transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
+    }
+    
     if ( !Const.isEmpty( m_coreConfigText.getText() ) ) {
       coreConf = transMeta.environmentSubstitute( m_coreConfigText.getText() );
     }
 
     if ( !Const.isEmpty( m_defaultConfigText.getText() ) ) {
       defaultConf = transMeta.environmentSubstitute( m_defaultConfigText.getText() );
-    }
-
-    if ( !Const.isEmpty( m_zookeeperQuorumText.getText() ) ) {
-      zookeeperHosts = transMeta.environmentSubstitute( m_zookeeperQuorumText.getText() );
-    }
-
-    if ( !Const.isEmpty( m_zookeeperPortText.getText() ) ) {
-      zookeeperPort = transMeta.environmentSubstitute( m_zookeeperPortText.getText() );
     }
 
     if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
@@ -1222,10 +1208,18 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   }
 
   private void checkKeyInformation( boolean quiet, boolean readFieldsFromMapping ) {
+    
+    String zookeeperQuorumText = null;
+    
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    if ( nc != null ) {
+      zookeeperQuorumText = nc.getZooKeeperHost();
+    }        
+    
     boolean displayFieldsEmbeddedMapping =
         ( ( m_mappingEditor.getMapping( false, null ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
-        ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( m_zookeeperQuorumText.getText() ) )
+        ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) )
             && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
 
     if ( displayFieldsEmbeddedMapping || displayFieldsMappingFromHBase ) {
