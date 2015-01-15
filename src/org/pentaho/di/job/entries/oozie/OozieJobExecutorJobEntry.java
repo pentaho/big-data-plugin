@@ -27,9 +27,7 @@ import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.StringUtils;
@@ -93,7 +91,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.JobName" ) );
     }
 
-    if ( StringUtil.isEmpty( config.getClusterName() ) ) {
+    if ( StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
     } else {
       try {
@@ -108,32 +106,34 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           nc = config.getNamedCluster();
         }
         
-        if ( nc == null ) {
-          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
-        } else if ( StringUtils.isEmpty( nc.getOozieUrl() ) ) {
-          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+        if ( !checkOozieConnection ) {
+          if ( nc == null ) {
+            messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
+          } else if ( StringUtils.isEmpty( nc.getOozieUrl() ) ) {
+            messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+          }
         }
         
       } catch ( Throwable t ) {
         messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
       }
-      
-      if ( checkOozieConnection ) {
-        try {
-          // oozie url is valid and client & ws versions are compatible
-          oozieClient = getOozieClient( config );
-          oozieClient.getProtocolUrl();
-          oozieClient.validateWSVersion();
-        } catch ( OozieClientException e ) {
-          if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
-              || ( e.getCause() != null
-                && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
-            messages
-                .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
-          } else {
-            messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
-                "ValidationMessages.Incompatible.Oozie.Versions", oozieClient.getClientBuildVersion() ) );
-          }
+    }
+    
+    if ( checkOozieConnection && !StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
+      try {
+        // oozie url is valid and client & ws versions are compatible
+        oozieClient = getOozieClient( config );
+        oozieClient.getProtocolUrl();
+        oozieClient.validateWSVersion();
+      } catch ( OozieClientException e ) {
+        if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
+            || ( e.getCause() != null
+              && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
+          messages
+              .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
+        } else {
+          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
+              "ValidationMessages.Incompatible.Oozie.Versions", oozieClient.getClientBuildVersion() ) );
         }
       }
     }
@@ -310,13 +310,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     setJobResultFailed( jobResult );
   }
 
-  public OozieClient getOozieClient() {
-    return getOozieClient( jobConfig );
-  }
-
-  public OozieClient getOozieClient( OozieJobExecutorConfig config ) {
+  public String getEffectiveOozieUrl( OozieJobExecutorConfig config ) {
     String oozieUrl = config.getOozieUrl();
-    
     try {
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
@@ -328,16 +323,21 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         nc = config.getNamedCluster();
       }
 
-      Map<String, String[]> requiredProps = new HashMap<String, String[]>();
-      requiredProps.put( "Oozie", new String[] { "url" } );
-      
       if ( nc != null && !StringUtils.isEmpty( nc.getOozieUrl() ) ) {
         oozieUrl = nc.getOozieUrl();
       }    
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
-    }  
-    
+    }
+    return oozieUrl;
+  }
+  
+  public OozieClient getOozieClient() {
+    return getOozieClient( jobConfig );
+  }
+
+  public OozieClient getOozieClient( OozieJobExecutorConfig config ) {
+    String oozieUrl = getEffectiveOozieUrl( config );
     return oozieClientFactory.create( getVariableSpace().environmentSubstitute( oozieUrl ) );
   }
 
