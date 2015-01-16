@@ -183,15 +183,15 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         // load default values for cluster & legacy fallback
         setHDFSHostname( XMLHandler.getTagValue( entrynode, "hdfs_hostname" ) ); //$NON-NLS-1$
         setHDFSPort( XMLHandler.getTagValue( entrynode, "hdfs_port" ) ); //$NON-NLS-1$
-        setJobTrackerHostname( XMLHandler.getTagValue( entrynode, "job_tracker_hostname" ) ); //$NON-NLS-1$
-        setJobTrackerPort( XMLHandler.getTagValue( entrynode, "job_tracker_port" ) ); //$NON-NLS-1$
+        setJobTrackerHostname( XMLHandler.getTagValue( entrynode, "jobtracker_hostname" ) ); //$NON-NLS-1$
+        setJobTrackerPort( XMLHandler.getTagValue( entrynode, "jobtracker_port" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
         // load default values for cluster & legacy fallback
         try {
           setHDFSHostname( rep.getJobEntryAttributeString( id_jobentry, "hdfs_hostname" ) );
           setHDFSPort( rep.getJobEntryAttributeString( id_jobentry, "hdfs_port" ) ); //$NON-NLS-1$
-          setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_hostname" ) ); //$NON-NLS-1$
-          setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) ); //$NON-NLS-1$
+          setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "jobtracker_hostname" ) ); //$NON-NLS-1$
+          setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "jobtracker_port" ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
           logError( ke.getMessage(), ke );
         } 
