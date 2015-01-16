@@ -893,7 +893,12 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       }
       if ( Const.isEmpty( driverClass ) ) {
         setDriverClasses( driverClasses );
-        final Class<?> mainClass = jarUtil.getMainClassFromManifest( resolvedJarUrl, shim.getClass().getClassLoader() );
+        Class<?> mainClass;
+        try {
+          mainClass = jarUtil.getMainClassFromManifest( resolvedJarUrl, shim.getClass().getClassLoader() );
+        } catch ( Exception e ) {
+          mainClass = null;
+        }
         if ( mainClass != null ) {
           setDriverClass( mainClass.getName() );
         } else if ( !driverClasses.isEmpty() ) {
