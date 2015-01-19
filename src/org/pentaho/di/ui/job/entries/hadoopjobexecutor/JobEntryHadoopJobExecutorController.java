@@ -157,9 +157,9 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   
       if ( nc != null ) {
         aConf.setHdfsHostname( nc.getHdfsHost() );
-        aConf.setHdfsPort( "" + nc.getHdfsPort() );
+        aConf.setHdfsPort( nc.getHdfsPort() );
         aConf.setJobTrackerHostname( nc.getJobTrackerHost() );
-        aConf.setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        aConf.setJobTrackerPort( nc.getJobTrackerPort() );
       }    
     }
     

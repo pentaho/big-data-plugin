@@ -169,9 +169,9 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       }
       if ( nc != null ) {
         setJobTrackerHostname( nc.getJobTrackerHost() );
-        setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        setJobTrackerPort( nc.getJobTrackerPort() );
         setHDFSHostname( nc.getHdfsHost() );
-        setHDFSPort( "" + nc.getHdfsPort() );
+        setHDFSPort( nc.getHdfsPort() );
         configLoaded = true;        
       }
     } catch ( Throwable t ) {
@@ -215,9 +215,9 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
         setJobTrackerHostname( nc.getJobTrackerHost() );
-        setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        setJobTrackerPort( nc.getJobTrackerPort() );
         setHDFSHostname( nc.getHdfsHost() );
-        setHDFSPort( "" + nc.getHdfsPort() );
+        setHDFSPort( nc.getHdfsPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
@@ -329,9 +329,9 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
           // pull config from NamedCluster
           NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
           setJobTrackerHostname( nc.getJobTrackerHost() );
-          setJobTrackerPort( "" + nc.getJobTrackerPort() );
+          setJobTrackerPort( nc.getJobTrackerPort() );
           setHDFSHostname( nc.getHdfsHost() );
-          setHDFSPort( "" + nc.getHdfsPort() );
+          setHDFSPort( nc.getHdfsPort() );
         }
       } catch ( MetaStoreException e ) {
         logDebug( e.getMessage(), e );
