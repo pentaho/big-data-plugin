@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
@@ -167,9 +166,6 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     String validationErrors = "";
     if ( StringUtil.isEmpty( jobEntryName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.JobEntryName.Error" ) + "\n";
-    }
-    if ( StringUtils.isEmpty( aConf.getHdfsHostname() ) || StringUtils.isEmpty( aConf.getJobTrackerHostname() ) ) {
-      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedClusterPropertyMissing.Error" ) + "\n";
     }
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.HadoopJobName.Error" ) + "\n";

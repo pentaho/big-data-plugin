@@ -447,14 +447,6 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      if ( StringUtils.isEmpty( nc.getHdfsHost() ) || StringUtils.isEmpty( nc.getJobTrackerHost() ) ) {
-        MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
-        mb.setText( BaseMessages.getString( PKG,  "Dialog.Error" ) );
-        mb.setMessage( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.NamedClusterMissingValues.Msg" ) );
-        mb.open();
-        return;      
-      }
-      
       m_jobEntry.setClusterName( nc.getName() );
       m_jobEntry.setHDFSHostname( nc.getHdfsHost() );
       m_jobEntry.setHDFSPort( "" + nc.getHdfsPort() );

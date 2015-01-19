@@ -25,7 +25,6 @@ package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 import java.io.File;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
@@ -253,10 +252,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     }
     if ( nc == null ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedClusterNotProvided.Error" ) + "\n";
-    } else {
-      if ( StringUtils.isEmpty( nc.getHdfsHost() ) || StringUtils.isEmpty( nc.getJobTrackerHost() ) ) {
-        validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NamedClusterPropertyMissing.Error" ) + "\n";
-      }
     }
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error" ) + "\n";
