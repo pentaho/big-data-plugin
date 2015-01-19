@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
@@ -147,8 +148,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     JfaceMenuList<?> ncBox = (JfaceMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "named-clusters" );
     aConf.setClusterName( ncBox.getSelectedItem() );
 
-    NamedCluster nc = null;
-    if ( !isSimple() ) {
+    if ( !isSimple() && aConf.getClusterName() != null ) {
+      NamedCluster nc = null;
       try {
         nc = NamedClusterUIHelper.getNamedCluster( aConf.getClusterName() );
       } catch ( MetaStoreException e ) {
@@ -157,9 +158,9 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   
       if ( nc != null ) {
         aConf.setHdfsHostname( nc.getHdfsHost() );
-        aConf.setHdfsPort( "" + nc.getHdfsPort() );
+        aConf.setHdfsPort( nc.getHdfsPort() );
         aConf.setJobTrackerHostname( nc.getJobTrackerHost() );
-        aConf.setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        aConf.setJobTrackerPort( nc.getJobTrackerPort() );
       }    
     }
     
@@ -167,13 +168,9 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     if ( StringUtil.isEmpty( jobEntryName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.JobEntryName.Error" ) + "\n";
     }
-    if ( !isSimple() && nc == null ) {
-      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedClusterNotProvided.Error" ) + "\n";
-    } else if ( !isSimple() ) {
-      if ( StringUtils.isEmpty( nc.getHdfsHost() ) || StringUtils.isEmpty( nc.getJobTrackerHost() ) ) {
-        validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedClusterPropertyMissing.Error" ) + "\n";
-      }
-    }    
+    if ( StringUtils.isEmpty( aConf.getHdfsHostname() ) || StringUtils.isEmpty( aConf.getJobTrackerHostname() ) ) {
+      validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.NamedClusterPropertyMissing.Error" ) + "\n";
+    }
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.HadoopJobName.Error" ) + "\n";
     }
@@ -843,18 +840,22 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   public void editNamedCluster() {
     try {
-    if ( aConf.isSelectedNamedCluster() ) {
       Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      spoon.delegates.nc.editNamedCluster( null, aConf.selectedNamedCluster, shell );
-      firePropertyChange( "namedClusters", aConf.selectedNamedCluster, getNamedClusters() );
-    }
+      NamedCluster namedCluster;
+      if ( aConf.isSelectedNamedCluster() ) {
+        namedCluster = aConf.selectedNamedCluster;
+      } else {
+        namedCluster = getLocalCluster();
+      }
+      spoon.delegates.nc.editNamedCluster( null, namedCluster, shell );
+      firePropertyChange( "namedClusters", namedCluster, getNamedClusters() );
     } catch (Throwable t) {
       t.printStackTrace();
     }
   }
-  
+
   public void newNamedCluster() {
     try {
     Spoon spoon = Spoon.getInstance();
@@ -866,8 +867,17 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     } catch (Throwable t) {
       t.printStackTrace();
     }
-  }  
-  
+  }
+
+  private NamedCluster getLocalCluster() {
+    NamedCluster local = NamedClusterManager.getInstance().getClusterTemplate();
+    local.setHdfsHost( aConf.getHdfsHostname() );
+    local.setHdfsPort( aConf.getHdfsPort() );
+    local.setJobTrackerHost( aConf.getJobTrackerHostname() );
+    local.setJobTrackerPort( aConf.getJobTrackerPort() );
+    return local;
+  }
+
   public void help() {
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
     Shell shell = (Shell) xulDialog.getRootObject();
