@@ -1328,9 +1328,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       }
       if ( nc != null ) {
         setJobTrackerHostname( nc.getJobTrackerHost() );
-        setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        setJobTrackerPort( nc.getJobTrackerPort() );
         setHdfsHostname( nc.getHdfsHost() );
-        setHdfsPort( "" + nc.getHdfsPort() );
+        setHdfsPort( nc.getHdfsPort() );
         configLoaded = true;        
       }
     } catch ( Throwable t ) {
@@ -1413,9 +1413,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
         setJobTrackerHostname( nc.getJobTrackerHost() );
-        setJobTrackerPort( "" + nc.getJobTrackerPort() );
+        setJobTrackerPort( nc.getJobTrackerPort() );
         setHdfsHostname( nc.getHdfsHost() );
-        setHdfsPort( "" + nc.getHdfsPort() );
+        setHdfsPort( nc.getHdfsPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
@@ -1572,9 +1572,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
           // pull config from NamedCluster
           NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
           setJobTrackerHostname( nc.getJobTrackerHost() );
-          setJobTrackerPort( "" + nc.getJobTrackerPort() );
+          setJobTrackerPort( nc.getJobTrackerPort() );
           setHdfsHostname( nc.getHdfsHost() );
-          setHdfsPort( "" + nc.getHdfsPort() );
+          setHdfsPort( nc.getHdfsPort() );
         }
       } catch ( MetaStoreException e ) {
         logDebug( e.getMessage(), e );

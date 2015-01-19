@@ -1126,7 +1126,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
       zookeeperHosts = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
-      zookeeperPort =  m_transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
+      zookeeperPort =  m_transMeta.environmentSubstitute( nc.getZooKeeperPort() );
     }      
     
     conf = HBaseInputData.getHBaseConnection( zookeeperHosts, zookeeperPort, null, null, null );
@@ -1142,7 +1142,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     
     if ( nc != null ) {
       host = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
-      port =  m_transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
+      port =  m_transMeta.environmentSubstitute( nc.getZooKeeperPort() );
     }
     return host + ":" + port;
   }

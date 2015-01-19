@@ -259,7 +259,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       }
       if ( nc != null ) {
         setZookeeperHosts( nc.getZooKeeperHost() );
-        setZookeeperPort( "" + nc.getZooKeeperPort() );
+        setZookeeperPort( nc.getZooKeeperPort() );
         configLoaded = true;        
       }
     } catch ( Throwable t ) {
@@ -294,7 +294,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), repository.getMetaStore() );
         setZookeeperHosts( nc.getZooKeeperHost() );
-        setZookeeperPort( "" + nc.getZooKeeperPort() );
+        setZookeeperPort( nc.getZooKeeperPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
@@ -388,7 +388,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
         setZookeeperHosts( nc.getZooKeeperHost() );
-        setZookeeperPort( "" + nc.getZooKeeperPort() );
+        setZookeeperPort( nc.getZooKeeperPort() );
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );

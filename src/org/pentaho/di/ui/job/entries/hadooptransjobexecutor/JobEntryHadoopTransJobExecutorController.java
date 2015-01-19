@@ -235,9 +235,9 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
     if ( nc != null ) {
       setHdfsHostname( nc.getHdfsHost() );
-      setHdfsPort( "" + nc.getHdfsPort() );
+      setHdfsPort( nc.getHdfsPort() );
       setJobTrackerHostname( nc.getJobTrackerHost() );
-      setJobTrackerPort( "" + nc.getJobTrackerPort() );
+      setJobTrackerPort( nc.getJobTrackerPort() );
     }
 
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "num-map-tasks" );

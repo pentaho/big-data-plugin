@@ -926,7 +926,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     if ( nc != null ) {
       meta.setClusterName( nc.getName() );
       meta.setZookeeperHosts( nc.getZooKeeperHost() );
-      meta.setZookeeperPort( "" + nc.getZooKeeperPort() );
+      meta.setZookeeperPort( nc.getZooKeeperPort() );
     }
     
     meta.setCoreConfigURL( m_coreConfigText.getText() );
@@ -1186,7 +1186,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
       zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
-      zookeeperPort =  transMeta.environmentSubstitute( "" + nc.getZooKeeperPort() );
+      zookeeperPort =  transMeta.environmentSubstitute( nc.getZooKeeperPort() );
     }
     
     if ( !Const.isEmpty( m_coreConfigText.getText() ) ) {

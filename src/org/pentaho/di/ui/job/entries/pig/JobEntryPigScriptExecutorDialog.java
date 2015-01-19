@@ -457,9 +457,9 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
       
       m_jobEntry.setClusterName( nc.getName() );
       m_jobEntry.setHDFSHostname( nc.getHdfsHost() );
-      m_jobEntry.setHDFSPort( "" + nc.getHdfsPort() );
+      m_jobEntry.setHDFSPort( nc.getHdfsPort() );
       m_jobEntry.setJobTrackerHostname( nc.getJobTrackerHost() );
-      m_jobEntry.setJobTrackerPort( "" + nc.getJobTrackerPort() );
+      m_jobEntry.setJobTrackerPort( nc.getJobTrackerPort() );
     } else {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( PKG, "Dialog.Error" ) );
