@@ -166,7 +166,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       props.setLook( namedClusterWidget );
       fd = new FormData();
       fd.left = new FormAttachment( middle, 0 );
-      fd.top = new FormAttachment( 0, 10 );
+      fd.top = new FormAttachment( 0, margin );
       fd.right = new FormAttachment( 100, 0 );
       namedClusterWidget.setLayoutData( fd );
 
@@ -225,10 +225,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     // mapping names
     Label mappingNameLab = new Label( this, SWT.RIGHT );
     mappingNameLab.setText( Messages.getString( "MappingDialog.MappingName.Label" ) );
-    props.setLook( tableNameLab );
+    props.setLook( mappingNameLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_getTableNames, 0 );
+    fd.top = new FormAttachment( m_getTableNames, margin );
     fd.right = new FormAttachment( middle, -margin );
     mappingNameLab.setLayoutData( fd );
 
@@ -236,7 +236,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     props.setLook( m_existingMappingNamesCombo );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_getTableNames, 0 );
+    fd.top = new FormAttachment( m_getTableNames, margin );
     fd.right = new FormAttachment( 100, 0 );
     m_existingMappingNamesCombo.setLayoutData( fd );
 
