@@ -102,14 +102,6 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
 
       // Hive does not support DATE until 0.12 - check Impala version against Hive
       case ValueMetaInterface.TYPE_DATE:
-        if ( isDriverVersion( 0, 12 ) ) {
-          retval += "DATE";
-        } else {
-          throw new IllegalArgumentException( "Date types not supported in this version of Impala" );
-        }
-        break;
-
-      // Hive does not support DATE until 0.8 - check Impala version against Hive
       case ValueMetaInterface.TYPE_TIMESTAMP:
         if ( isDriverVersion( 0, 8 ) ) {
           retval += "TIMESTAMP";
