@@ -306,7 +306,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   }
 
   public void browseJar() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
     Shell shell = (Shell) xulDialog.getRootObject();
     FileDialog dialog = new FileDialog( shell, SWT.OPEN );
     dialog.setFilterExtensions( new String[] { "*.jar;*.zip" } );
