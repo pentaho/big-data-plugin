@@ -108,6 +108,7 @@
 	      <fileset dir="${lib.dir}">
 			<exclude name="kettle-*.jar" />
 			<exclude name="pentaho-xul-*.jar" />
+			<exclude name="metastore-*.jar" />
 			<exclude name="metro-*.jar" />
 			<exclude name="log4j-*.jar" />
 			<exclude name="jface*.jar" />
