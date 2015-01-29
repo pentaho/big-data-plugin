@@ -50,6 +50,7 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
 import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -176,6 +177,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private JobEntryHadoopTransJobExecutor jobEntry;
 
   private AbstractModelList<UserDefinedItem> userDefined = new AbstractModelList<UserDefinedItem>();
+
+  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );;
 
   public JobEntryHadoopTransJobExecutorController() throws Throwable {
   }
@@ -1501,7 +1504,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      spoon.delegates.nc.editNamedCluster( null, this.selectedNamedCluster, shell );
+      ncDelegate.editNamedCluster( null, this.selectedNamedCluster, shell );
       firePropertyChange( "namedClusters", this.selectedNamedCluster, getNamedClusters() );
     }
   }
@@ -1510,7 +1513,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.newNamedCluster( jobMeta, null, shell );   
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
     firePropertyChange( "namedClusters", null, getNamedClusters() );
     selectNamedCluster();
   }

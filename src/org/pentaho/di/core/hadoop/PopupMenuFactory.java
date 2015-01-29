@@ -1,0 +1,140 @@
+/*! ******************************************************************************
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+package org.pentaho.di.core.hadoop;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Tree;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
+import org.pentaho.di.ui.spoon.Spoon;
+
+public class PopupMenuFactory {
+
+  private Spoon spoon = null;
+  private static Class<?> PKG = PopupMenuFactory.class;
+  private HadoopClusterDelegate ncDelegate = null;
+  public static PopupMenuFactory popupMenuFactory = null;
+  private Menu newMenu = null;
+  private Menu maintMenu = null;
+  private NamedCluster selectedNamedCluster = null;
+
+  public PopupMenuFactory() {
+    spoon = Spoon.getInstance();
+    ncDelegate = new HadoopClusterDelegate( spoon );
+  }
+
+  public Menu createNewPopupMenu( final Tree selectionTree ) {
+    if ( newMenu == null ) {
+      newMenu = new Menu( selectionTree );
+      createPopupMenu( newMenu, BaseMessages.getString( Spoon.class, "Spoon.Menu.Popup.BASE.New" ),
+          new NewNamedClusterCommand() );
+    }
+    return newMenu;
+  }
+
+  public Menu createMaintPopupMenu( final Tree selectionTree, NamedCluster selectedNamedCluster ) {
+    this.selectedNamedCluster = selectedNamedCluster;
+    if ( maintMenu == null ) {
+      maintMenu = new Menu( selectionTree );
+      createPopupMenu( maintMenu, BaseMessages.getString( Spoon.class, "Spoon.Menu.Popup.BASE.New" ),
+          new NewNamedClusterCommand() );
+      createPopupMenu( maintMenu, BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.Edit" ),
+          new EditNamedClusterCommand() );
+      createPopupMenu( maintMenu, BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.Duplicate" ),
+          new DuplicateNamedClusterCommand() );
+      createPopupMenu( maintMenu, BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.Delete" ),
+          new DeleteNamedClusterCommand() );
+    }
+    return maintMenu;
+  }
+
+  private void createPopupMenu( Menu parentMenu, String label, final NamedClusterCommand command ) {
+    MenuItem deleteMenuItem = new MenuItem( parentMenu, SWT.NONE );
+    deleteMenuItem.setText( label );
+    deleteMenuItem.addSelectionListener( new SelectionListener() {
+      public void widgetSelected( SelectionEvent selectionEvent ) {
+        command.execute();
+      }
+
+      public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
+      }
+    } );
+  }
+
+  interface NamedClusterCommand {
+    public void execute();
+  }
+
+  class NewNamedClusterCommand implements NamedClusterCommand {
+    public void execute() {
+      VariableSpace vs = null;
+      if ( spoon.getActiveMeta() instanceof TransMeta ) {
+        vs = spoon.getActiveTransformation();
+      } else {
+        vs = spoon.getActiveJob();
+      }
+      ncDelegate.newNamedCluster( vs, spoon.metaStore, spoon.getShell() );
+    }
+  }
+
+  class EditNamedClusterCommand implements NamedClusterCommand {
+    public void execute() {
+      ncDelegate.editNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
+    }
+  }
+
+  class DuplicateNamedClusterCommand implements NamedClusterCommand {
+    public void execute() {
+      ncDelegate.dupeNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
+    }
+  }
+
+  class DeleteNamedClusterCommand implements NamedClusterCommand {
+    public void execute() {
+      MessageBox mb = new MessageBox( spoon.getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION );
+      mb.setMessage( BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Message",
+          selectedNamedCluster.getName() ) );
+      mb.setText( BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Title" ) );
+      int response = mb.open();
+      if ( response != SWT.YES ) {
+        return;
+      }
+      ncDelegate.delNamedCluster( spoon.metaStore, selectedNamedCluster );
+    }
+  }
+
+  public static PopupMenuFactory newInstance() {
+    if ( popupMenuFactory == null ) {
+      popupMenuFactory = new PopupMenuFactory();
+    }
+    return popupMenuFactory;
+  }
+}

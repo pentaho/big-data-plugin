@@ -42,6 +42,7 @@ import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorConfig;
 import org.pentaho.di.job.entries.oozie.OozieJobExecutorJobEntry;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
@@ -75,6 +76,8 @@ public class OozieJobExecutorJobEntryController extends
   protected XulTree variablesTree = null;
 
   private Binding namedClustersBinding = null;
+
+  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );;
   
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label)
@@ -260,7 +263,7 @@ public class OozieJobExecutorJobEntryController extends
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.editNamedCluster( null, config.getNamedCluster(), shell );
+    ncDelegate.editNamedCluster( null, config.getNamedCluster(), shell );
     firePropertyChange( "namedClusters", config.getClusterName(), config.getNamedClusters() );
     selectNamedCluster( cn );
   }
@@ -270,7 +273,7 @@ public class OozieJobExecutorJobEntryController extends
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.newNamedCluster( jobMeta, null, shell );
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
     config.setNamedClusters( getNamedClusters() );
     firePropertyChange( "namedClusters", null, config.getNamedClusters() );
     try {
