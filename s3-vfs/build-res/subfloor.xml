@@ -69,51 +69,51 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 <project name="subfloor" basedir="." default="default" xmlns:ivy="antlib:org.apache.ivy.ant">
   <description>
-    -------------------------------------------------------------------------------
-    subfloor.xml provides tasks needed to perform a project build.
-    It is typically not used directly but imported by each project's build.xml
-    file. The build.xml file can override tasks when customization is required.
+-------------------------------------------------------------------------------
+     subfloor.xml provides tasks needed to perform a project build.
+     It is typically not used directly but imported by each project's build.xml
+     file.  The build.xml file can override tasks when customization is required.
 
-    MAIN TARGETS
-    ============
-    * clean / clean-all :
+MAIN TARGETS
+============
+  * clean / clean-all :
     remove all artifacts of the build, clean-all adds the removal
     of any library or jar dependencies downloaded as part of the build
 
-    * resolve :
+  * resolve :
     download/refresh library or jar dependencies needed for the build (uses Apache IVY)
 
-    * compile :
+  * compile :
     run javac on the project's source
 
-    * jar :
+  * jar :
     creates a jar file
 
-    * dist :
+  * dist :
     creates all project distributables
 
-    * test :
+  * test :
     runs JUnit tests from your project's test source
 
-    SPECIAL TARGETS
-    ============
-    * publish-local :
+SPECIAL TARGETS
+============
+  * publish-local :
     builds a jar for your project and registers it with the local artifact repository isolated
-    to your machine at $HOME/.ivy2/local. Further executions of the the resolve target by this
+    to your machine at $HOME/.ivy2/local.  Further executions of the the resolve target by this
     or other projects will find your published jar.
 
-    * ivy-clean* :
+  * ivy-clean* :
     this family of targets helps reset your IVY environment in the event that you are having
     difficulty resolving dependencies
 
-    TYPICAL TARGET SEQUENCE
-    ============
-    * clean-all resolve dist :
-    a good start to build all project distributables from scratch. Note that jar dependencies
-    will not be downloaded unless you explicitly run the resolve target. We made the resolution
+TYPICAL TARGET SEQUENCE
+============
+  * clean-all resolve dist :
+    a good start to build all project distributables from scratch.  Note that jar dependencies
+    will not be downloaded unless you explicitly run the resolve target.  We made the resolution
     and retrieval completely discretionary since there are many situations in which
     you will not want to get or refresh dependencies, e.g. if you are offline with no Internet
-    access. In such case, you could just run "dist" if the set of jars you already have are
+    access.  In such case, you could just run "dist" if the set of jars you already have are
     sufficient.
 
   </description>
@@ -178,7 +178,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             description="Prefer SVNKit binding over the command line client for native svn support (defaults to true)"/>
   <property name="ivy.url"
             value="http://nexus.pentaho.org/content/groups/omni/org/apache/ivy/ivy/2.3.0/ivy-2.3.0.jar"
-            description="The URL to the current release of Apache IVY"/>
+            description="The URL to the current release of Apache IVY" />
 
   <!-- Enunciate properties -->
   <property name="enunciate.home" value="${basedir}/enunciate"/>
@@ -206,10 +206,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             description="Unit test xml reports are placed here"/>
   <property name="testreports.html.dir"
             value="${testreports.dir}/html"
-            description="Unit test html reports are placed here"/>
-  <property name="junit.haltonfailure" value="no" description="Fail the build if a test fails"/>
-  <property name="junit.haltonerror" value="no" description="Fail the build if a error occurs"/>
-  <property name="junit.maxmemory" value="256M" description="Heap size when Junit is run in fork mode"/>
+            description="Unit test html reports are placed here" />
+  <property name="junit.haltonfailure" value="no" description="Fail the build if a test fails" />
+  <property name="junit.haltonerror" value="no" description="Fail the build if a error occurs" />
+  <property name="junit.maxmemory" value="256M" description="Heap size when Junit is run in fork mode" />
   <property name="junit.forkmode"
             value="perTest"
             description="Defines whether JUnit forks a new JVM for each test. Use 'once' for faster test runs, and 'perTest' for complete tests."/>
@@ -218,13 +218,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   <!-- Code Coverage properties -->
   <property name="instrumented.classes.dir"
             value="${testbin.dir}/instrumented-classes"
-            description="Directory where instrumented project classes are placed for use by code coverage utility"/>
+            description="Directory where instrumented project classes are placed for use by code coverage utility" />
   <property name="jacoco.version"
-            value="0.7.4.201502262128"
-            description="The version of jacoco to use for code coverage"/>
+            value="0.7.2.201409121644"
+            description="The version of jacoco to use for code coverage" />
   <property name="cobertura.version"
             value="2.0.3"
-            description="The version of cobertura to use for code coverage"/>
+            description="The version of cobertura to use for code coverage" />
   <property name="cobertura.data.dir"
             value="${testbin.dir}/cobertura-bin"
             description="Temporary data directory used by Cobertura"/>
@@ -257,10 +257,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             description="Base directory where this project's license files reside"/>
   <property name="res.dir"
             value="${basedir}/res"
-            description="Directory that holds resources not included in the source tree"/>
-  <property name="source.zip.filename" value="${ivy.artifact.id}-${project.revision}-sources.zip"/>
-  <property name="source.tar.filename" value="${ivy.artifact.id}-${project.revision}-sources.tar.gz"/>
-  <property name="source.publish" value="true"/>
+            description="Directory that holds resources not included in the source tree" />
+  <property name="source.zip.filename" value="${ivy.artifact.id}-${project.revision}-sources.zip" />
+  <property name="source.tar.filename" value="${ivy.artifact.id}-${project.revision}-sources.tar.gz" />
+  <property name="source.publish" value="true" />
 
   <!-- Ivy properties -->
   <property name="ivy.settingsurl"
@@ -304,26 +304,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
   <!-- Sonar properties -->
 
-  <property name="sonar-ant-task-version" value="2.2"/>
+  <property name="sonar-ant-task-version" value="2.2" />
   <property name="sonar.classname" value="org.sonar.ant.SonarTask"/>
-  <property name="sonar.hostname" value="10.177.176.23"/>
-  <property name="sonar.port" value="9000"/>
-  <property name="sonar.host.url" value="http://${sonar.hostname}:${sonar.port}"/>
-  <property name="sonar.jdbc.username" value="sonar"/>
-  <property name="sonar.jdbc.password" value=""/>
-  <property name="sonar.jdbc.dbname" value="sonar"/>
-  <property name="sonar.jdbc.url" value="jdbc:postgresql://${sonar.hostname}/${sonar.jdbc.dbname}"/>
-  <property name="sonar.jdbc.driverClassName" value="org.postgresql.Driver"/>
-  <property name="sonar.sourceEncoding" value="UTF-8"/>
-  <property name="sonar.java.coveragePlugin" value="jacoco"/>
+  <property name="sonar.hostname" value="10.177.176.23" />
+  <property name="sonar.port" value="9000" />
+  <property name="sonar.host.url" value="http://${sonar.hostname}:${sonar.port}" />
+  <property name="sonar.jdbc.username" value="sonar" />
+  <property name="sonar.jdbc.password" value="" />
+  <property name="sonar.jdbc.dbname" value="sonar" />
+  <property name="sonar.jdbc.url" value="jdbc:postgresql://${sonar.hostname}/${sonar.jdbc.dbname}" />
+  <property name="sonar.jdbc.driverClassName" value="org.postgresql.Driver" />
+  <property name="sonar.sourceEncoding" value="UTF-8" />
+  <property name="sonar.java.coveragePlugin" value="jacoco" />
 
-  <!-- Jacoco properties -->
-  <property name="jacoco.report.dir" location="${bin.dir}/reports/jacoco" />
-  <property name="jacoco.execfile.path" location="${jacoco.report.dir}/jacoco.exec"/>
-  <property name="jacoco.it.execfile.path" location="${jacoco.report.dir}/jacoco-it.exec"/>
 
-  <!-- Maven properties -->
-  <property name="maven.options" value="-q"/>
 
   <!-- Load the manifest file (if any) as a properties file -->
   <property name="dist.manifest.file"
@@ -464,6 +458,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
   <!--=======================================================================
+      build-sonar
+
+      Runs a typical build process (cobertura+sonar)
+      ====================================================================-->
+  <target name="build-sonar" depends="clean-all,resolve,sonar,dist-source,dist" />
+
+
+  <!--=======================================================================
       build-testless
 
       Runs a typical build process to create the project locally (no testing)
@@ -498,6 +500,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       Sonar plugin
       ====================================================================-->
   <target name="continuous-sonar" depends="build-sonar, publish"/>
+
+  <!--=======================================================================
+      continuous-sonar
+
+      Runs a typical continuous integration build including project dist,
+      test, and coverage artifacts, deploys metrics to sonar
+      This only uses Jacoco for coverage.
+      Cobertura coverage was always pushed to Sonar by using the Jenkins
+      Sonar plugin
+      ====================================================================-->
+  <target name="continuous-sonar" depends="build-sonar, publish" />
 
 
   <!--=======================================================================
@@ -1243,7 +1256,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       Removes all checkstyle artifacts
       ====================================================================-->
   <target name="clean-checkstyle">
-    <delete dir="${checkstyle.dir}"/>
+    <delete dir="${checkstyle.dir}" />
   </target>
 
 
@@ -1558,16 +1571,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
            haltonfailure="${junit.haltonfailure}"
            haltonerror="${junit.haltonerror}"
            printsummary="yes">
-      <sysproperty key="java.awt.headless" value="${headless.unittest}"/>
+      <sysproperty key="java.awt.headless" value="${headless.unittest}" />
 
       <syspropertyset>
         <propertyref prefix="junit.sysprop."/>
         <mapper type="glob" from="junit.sysprop.*" to="*"/>
       </syspropertyset>
 
-      <classpath refid="test.classpath"/>
-      <formatter type="xml"/>
-      <test name="${testcase}" todir="${testreports.xml.dir}" if="testcase"/>
+      <classpath refid="test.classpath" />
+      <formatter type="xml" />
+      <test name="${testcase}" todir="${testreports.xml.dir}" if="testcase" />
       <batchtest fork="yes" todir="${testreports.xml.dir}" unless="testcase">
         <fileset dir="${testsrc.dir}" casesensitive="yes">
           <include name="**/*Test.java"/>
@@ -1662,10 +1675,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
   <!--=======================================================================
-  enunciate
+	enunciate
 
-  Generates enunciate documentation for the resoruce
-  classes comprising the BIServer REST api
+	Generates enunciate documentation for the resoruce
+	classes comprising the BIServer REST api
   ====================================================================-->
   <target name="enunciate" depends="resolve-enunciate">
     <path id="enunciate.classpath">
@@ -1696,8 +1709,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <include name="**/*.java"/>
       <!-- have to exclude class that contains jersey multipart endpoint until http://jira.codehaus.org/browse/ENUNCIATE-537 is fixed -->
 
-      <classpath refid="enunciate.classpath"/>
-      <export artifactId="docs" destination="${dist.dir}/${enunciate.packagename}.zip"/>
+      <classpath refid="enunciate.classpath" />
+      <export artifactId="docs" destination="${dist.dir}/${enunciate.packagename}.zip" />
     </enunciate>
   </target>
 
@@ -1754,6 +1767,83 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          basedir="${javadoc.dir}"
          includes="**/*"
          excludes="**/Thumbs.db"/>
+  </target>
+
+
+
+  <!--=======================================================================
+      install-jacoco
+
+      Downloads and installs Jacoco ant tasks
+      ====================================================================-->
+  <target name="install-jacoco" depends="install-ivy">
+    <taskdef-with-ivy organisation="org.jacoco" module="org.jacoco.ant" revision="${jacoco.version}" resource="org/jacoco/ant/antlib.xml" classname="org.jacoco.ant.CoverageTask" />
+  </target>
+
+  <!--=======================================================================
+			jacoco-test-coverage
+
+      Compiles and runs all the tests for the project
+      ====================================================================-->
+  <target name="jacoco" depends="install-jacoco,compile,compile-tests, init-test-reports" description="Compiles and runs unit tests with Jacoco code coverage.">
+
+		<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask">
+				<classpath>
+						<path refid="classpath"/>
+				</classpath>
+		</taskdef>
+
+    <path id="jacoco.classpath">
+      <fileset dir="${subfloor.resources.dir}/org.jacoco.ant-${jacoco.version}">
+        <include name="*.jar" />
+      </fileset>
+    </path>
+
+		<!-- Import the JaCoCo Ant Task -->
+		<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+				<classpath>
+						<path refid="jacoco.classpath"/>
+				</classpath>
+		</taskdef>
+
+
+		<!-- Run unit tests, adding the JaCoCo agent -->
+		<jacoco:coverage destfile="${bin.dir}/jacoco.exec" xmlns:jacoco="antlib:org.jacoco.ant">
+
+			<junit maxmemory="${junit.maxmemory}"
+						 dir="${junit.base.dir}"
+						 fork="yes"
+						 forkmode="${junit.forkmode}"
+						 failureProperty="test.failed"
+						 haltonfailure="${junit.haltonfailure}"
+						 haltonerror="${junit.haltonerror}"
+						 printsummary="yes">
+				<sysproperty key="java.awt.headless" value="${headless.unittest}" />
+
+				<syspropertyset>
+					<propertyref prefix="junit.sysprop." />
+					<mapper type="glob" from="junit.sysprop.*" to="*"/>
+				</syspropertyset>
+
+				<classpath refid="test.classpath" />
+				<classpath refid="jacoco.classpath" />
+				<formatter type="xml" />
+				<test name="${testcase}" todir="${testreports.xml.dir}" if="testcase" />
+				<batchtest fork="yes" todir="${testreports.xml.dir}" unless="testcase">
+					<fileset dir="${testsrc.dir}" casesensitive="yes">
+						<include name="**/*Test.java" />
+					</fileset>
+				</batchtest>
+			</junit>
+		</jacoco:coverage>
+
+		<junitreport todir="${testreports.html.dir}">
+			<fileset dir="${testreports.xml.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${testreports.html.dir}" />
+		</junitreport>
+
   </target>
 
 
@@ -1878,7 +1968,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       ====================================================================-->
   <target name="cobertura"
           description="Runs tests in an instrumented environment and produces Cobertura test coverage reports"
-          depends="clean-cobertura,install-cobertura,compile,compile-tests,test,cobertura.instrument-classes,cobertura.test-instrumented,cobertura.xml-report,cobertura.html-report"/>
+          depends="clean-cobertura,install-cobertura,compile,compile-tests,test,cobertura.instrument-classes,cobertura.test-instrumented,cobertura.xml-report,cobertura.html-report" />
 
 
   <!--=======================================================================
@@ -2246,79 +2336,76 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <tattletale.report source="${basedir}" destination="${tattletale.reports.dir}"/>
   </target>
 
-  <!--=======================================================================
-      install-sonar
+<!--=======================================================================
+    install-sonar
 
-      (Fetches and) installs SONAR ant plugin for use by this ant script
-      ====================================================================-->
+    (Fetches and) installs SONAR ant plugin for use by this ant script
+    ====================================================================-->
   <target name="install-sonar" depends="install-antcontrib">
-    <taskdef-with-ivy organisation="org.codehaus.sonar-plugins" module="sonar-ant-task"
-                      revision="${sonar-ant-task-version}" resource="org/sonar/ant/antlib.xml"
-                      classname="${sonar.classname}"/>
+    <taskdef-with-ivy organisation="org.codehaus.sonar-plugins" module="sonar-ant-task" revision="${sonar-ant-task-version}" resource="org/sonar/ant/antlib.xml" classname="${sonar.classname}" />
   </target>
 
-  <!--=======================================================================
-  sonar
+    <!--=======================================================================
+    sonar
 
-  Execute the sonar analysis and publish to a sonar server specified by:
-  sonar.jdbc.url
-  sonar.jdbc.driverClassName
-  sonar.jdbc.username
-  sonar.jdbc.password
-  sonar.host.url
+    Execute the sonar analysis and publish to a sonar server specified by:
+    sonar.jdbc.url
+    sonar.jdbc.driverClassName
+    sonar.jdbc.username
+    sonar.jdbc.password
+    sonar.host.url
 
-  At this time, the defaults will work for everything except
-  sonar.jdbc.password which is is empty by default.
+    At this time, the defaults will work for everything except
+    sonar.jdbc.password which is is empty by default.
 
-  Also, SCM_BRANCH is a required parameter.
-  ====================================================================-->
-  <target name="sonar" depends="install-sonar,jacoco">
+    Also, SCM_BRANCH is a required parameter.
+    ====================================================================-->
+  <target name="sonar" depends="install-sonar, jacoco ">
 
-    <path id="sonar.classpath">
+   <path id="sonar.classpath">
       <fileset dir="${subfloor.resources.dir}/sonar-ant-task-${sonar-ant-task-version}">
-        <include name="*.jar"/>
+        <include name="*.jar" />
       </fileset>
     </path>
 
-    <!-- Import the Sonar Ant Task -->
-    <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
-      <classpath>
-        <path refid="sonar.classpath"/>
-      </classpath>
-    </taskdef>
+		<!-- Import the Sonar Ant Task -->
+		<taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
+				<classpath>
+						<path refid="sonar.classpath"/>
+				</classpath>
+		</taskdef>
 
 
-    <property name="sonar.host.url" value="${sonar.host.url}"/>
-    <property name="sonar.jdbc.url" value="${sonar.jdbc.url}"/>
-    <property name="sonar.jdbc.driverClassName" value="${sonar.jdbc.driverClassName}"/>
+    <property name="sonar.host.url" value="${sonar.host.url}" />
+    <property name="sonar.jdbc.url" value="${sonar.jdbc.url}" />
+    <property name="sonar.jdbc.driverClassName" value="${sonar.jdbc.driverClassName}" />
     <!-- the username and password of your database -->
-    <property name="sonar.jdbc.username" value="${sonar.jdbc.username}"/>
-    <property name="sonar.jdbc.password" value="${sonar.jdbc.password}"/>
+    <property name="sonar.jdbc.username" value="${sonar.jdbc.username}" />
+    <property name="sonar.jdbc.password" value="${sonar.jdbc.password}" />
 
-    <property name="sonar.branch" value="${SCM_BRANCH}"/>
-    <property name="sonar.projectKey" value="${ivy.artifact.group}:${ivy.artifact.id}"/>
-    <property name="sonar.projectName" value="${ivy.artifact.id}"/>
-    <property name="sonar.projectVersion" value="${project.revision}"/>
-    <property name="sonar.language" value="java"/>
-    <property name="sonar.sources" value="${src.dir}"/>
-    <property name="sonar.java.binaries" value="${classes.dir}"/>
-    <property name="sonar.java.libraries" value="${lib.dir}"/>
-    <property name="sonar.sourceEncoding" value="${sonar.sourceEncoding}"/>
-    <property name="sonar.tests" value="${testsrc.dir}"/>
-    <property name="sonar.java.coveragePlugin" value="${sonar.java.coveragePlugin}"/>
-    <if>
-      <equals arg1="${sonar.java.coveragePlugin}" arg2="cobertura"/>
-      <then>
-        <property name="sonar.cobertura.reportPath" value="${coberturareports.xml.dir}/coverage.xml"/>
-      </then>
-      <else>
-        <property name="sonar.jacoco.reportPath" value="${jacoco.execfile.path}"/>
-        <property name="sonar.jacoco.itReportPath" value="${jacoco.it.execfile.path}"/>
-      </else>
-    </if>
-    <property name="sonar.junit.reportsPath" value="${testreports.xml.dir}"/>
+    <property name="sonar.branch" value="${SCM_BRANCH}" />
+		<property name="sonar.projectKey" value="${ivy.artifact.group}:${ivy.artifact.id}" />
+		<property name="sonar.projectName" value="${impl.title}" />
+		<property name="sonar.projectVersion" value="${project.revision}" />
+		<property name="sonar.language" value="java" />
+		<property name="sonar.sources" value="${src.dir}" />
+		<property name="sonar.java.binaries" value="${classes.dir}" />
+		<property name="sonar.java.libraries" value="${lib.dir}" />
+		<property name="sonar.sourceEncoding" value="${sonar.sourceEncoding}" />
+    <property name="sonar.tests" value="${testsrc.dir}" />
+    <property name="sonar.java.coveragePlugin" value="${sonar.java.coveragePlugin}" />
+		<if>
+			<equals arg1="${sonar.java.coveragePlugin}" arg2="cobertura" />
+			<then>
+				<property name="sonar.cobertura.reportPath" value="${coberturareports.xml.dir}/coverage.xml" />
+			</then>
+			<else>
+				<property name="sonar.jacoco.reportPath" value="${bin.dir}/jacoco.exec" />
+			</else>
+		</if>
+    <property name="sonar.junit.reportsPath"  value="${testreports.xml.dir}" />
 
-    <sonar:sonar xmlns:sonar="antlib:org.sonar.ant"/>
+  	<sonar:sonar xmlns:sonar="antlib:org.sonar.ant"/>
 
   </target>
 
