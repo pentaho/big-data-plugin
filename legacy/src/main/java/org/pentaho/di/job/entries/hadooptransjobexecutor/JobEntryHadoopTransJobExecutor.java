@@ -504,7 +504,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
 
     try {
-      appender = LogWriter.createFileAppender( logFileName, true, false );
+      appender = LogWriter.createFileAppender( logFileName, false, false );
       LogWriter.getInstance().addAppender( appender );
       log.setLogLevel( parentJob.getLogLevel() );
     } catch ( Exception e ) {
