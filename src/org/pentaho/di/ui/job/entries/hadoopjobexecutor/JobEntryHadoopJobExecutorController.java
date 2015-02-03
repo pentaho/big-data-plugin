@@ -53,6 +53,7 @@ import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -98,6 +99,8 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   private JobMeta jobMeta;
   
   private AbstractModelList<UserDefinedItem> userDefined = new AbstractModelList<UserDefinedItem>();
+
+  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );;
 
   protected VariableSpace getVariableSpace() {
     if ( Spoon.getInstance().getActiveTransformation() != null ) {
@@ -798,7 +801,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
         Spoon spoon = Spoon.getInstance();
         XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
         Shell shell = (Shell) xulDialog.getRootObject();
-        spoon.delegates.nc.editNamedCluster( null, this.selectedNamedCluster, shell );
+        ncDelegate.editNamedCluster( null, this.selectedNamedCluster, shell );
         firePropertyChange( "namedClusters", this.selectedNamedCluster, getNamedClusters() );
       }
     }
@@ -807,7 +810,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      spoon.delegates.nc.newNamedCluster( jobMeta, null, shell );   
+      ncDelegate.newNamedCluster( jobMeta, null, shell );
       firePropertyChange( "namedClusters", null, getNamedClusters() );
       selectNamedCluster();
     }
@@ -845,7 +848,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       } else {
         namedCluster = getLocalCluster();
       }
-      spoon.delegates.nc.editNamedCluster( null, namedCluster, shell );
+      ncDelegate.editNamedCluster( null, namedCluster, shell );
       firePropertyChange( "namedClusters", namedCluster, getNamedClusters() );
     } catch (Throwable t) {
       t.printStackTrace();
@@ -857,7 +860,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    spoon.delegates.nc.newNamedCluster( jobMeta, null, shell );   
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
     firePropertyChange( "namedClusters", null, getNamedClusters() );
     aConf.selectNamedCluster();
     } catch (Throwable t) {
