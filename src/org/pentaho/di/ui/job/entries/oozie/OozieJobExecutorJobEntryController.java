@@ -77,8 +77,6 @@ public class OozieJobExecutorJobEntryController extends
 
   private Binding namedClustersBinding = null;
 
-  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );;
-  
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label)
    */
@@ -260,9 +258,9 @@ public class OozieJobExecutorJobEntryController extends
   
   public void editNamedCluster() {
     String cn = config.getClusterName();
-    Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
+    HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );
     ncDelegate.editNamedCluster( null, config.getNamedCluster(), shell );
     firePropertyChange( "namedClusters", config.getClusterName(), config.getNamedClusters() );
     selectNamedCluster( cn );
@@ -270,9 +268,9 @@ public class OozieJobExecutorJobEntryController extends
   
   public void newNamedCluster() {
     String cn = config.getClusterName();
-    Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
+    HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );
     ncDelegate.newNamedCluster( jobMeta, null, shell );
     config.setNamedClusters( getNamedClusters() );
     firePropertyChange( "namedClusters", null, config.getNamedClusters() );
