@@ -168,7 +168,7 @@ public class NamedClusterDialog extends Dialog {
 
   public void ok() {
     result = namedCluster.getName();
-    if ( StringUtils.isEmpty( result ) ) {
+    if ( StringUtils.isBlank( result ) ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Error" ) );
       mb.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.ClusterNameMissing" ) );
