@@ -294,4 +294,9 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
   public boolean supportsBatchUpdates() {
     return false;
   }
+
+  @Override
+  public boolean supportsTimeStampToDateConversion() {
+    return false;
+  }
 }

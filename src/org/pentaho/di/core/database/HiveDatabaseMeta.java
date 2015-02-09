@@ -343,4 +343,9 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   public void setConnectSQL( String sql ) {
     super.setConnectSQL( sql.replaceAll( getConnectSqlForNotDefaultDatabaseName().toString(), "" ) );
   }
+
+  @Override
+  public boolean supportsTimeStampToDateConversion() {
+    return false;
+  }
 }
