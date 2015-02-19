@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -10,7 +10,7 @@
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,9 @@
  ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.hadoopcopyfiles;
+
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
@@ -52,6 +55,7 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
@@ -61,6 +65,7 @@ import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -68,6 +73,8 @@ import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements JobEntryDialogInterface {
@@ -165,11 +172,13 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
   private FormData fdlDestinationIsAFile, fdDestinationIsAFile;
 
   private FormData fdbeSourceFileFolder, fdbaSourceFileFolder, fdbdSourceFileFolder;
+  
+  private Map<String, String> namedClusterURLMapping = null;
 
   public JobEntryHadoopCopyFilesDialog( Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
     super( parent, jobEntryInt, rep, jobMeta );
     jobEntry = (JobEntryCopyFiles) jobEntryInt;
-
+    namedClusterURLMapping = ( ( JobEntryHadoopCopyFiles ) jobEntry ).getNamedClusterURLMapping();
     if ( this.jobEntry.getName() == null ) {
       this.jobEntry.setName( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Name.Default" ) );
     }
@@ -903,6 +912,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
         nr++;
       }
     }
+    ( ( JobEntryHadoopCopyFiles ) jobEntry ).setNamedClusterURLMapping( namedClusterURLMapping );
     dispose();
   }
 
@@ -935,12 +945,39 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
       }
       VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
       fileChooserDialog.defaultInitialFile = defaultInitialFile;
+      
+      NamedClusterWidget namedClusterWidget = null;
+      List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+      
+      for( CustomVfsUiPanel panel : customPanels ) {
+        if( panel instanceof HadoopVfsFileChooserDialog ) {
+          namedClusterWidget = ( ( HadoopVfsFileChooserDialog ) panel ).getNamedClusterWidget();
+          namedClusterWidget.initiate();
+          if ( initialFile != null ) {
+            String ncName = namedClusterURLMapping.get( initialFile.getURL().toString() );
+            namedClusterWidget.setSelectedNamedCluster( ncName );
+            ( ( HadoopVfsFileChooserDialog ) panel ).initializeConnectionPanel( initialFile );
+          }
+        }
+      }
+      
       selectedFile =
           fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, new String[] { "*.*" },
               FILETYPES, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
+      
+      CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
+      if( currentPanel instanceof HadoopVfsFileChooserDialog ) {
+        namedClusterWidget = ( ( HadoopVfsFileChooserDialog ) currentPanel ).getNamedClusterWidget();
+      }
 
       if ( selectedFile != null ) {
-        textVar.setText( selectedFile.getURL().toString() );
+        String url = selectedFile.getURL().toString();
+        textVar.setText( url );
+        
+        NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+        if ( nc != null ) {
+          namedClusterURLMapping.put( url, nc.getName() );
+        }
       }
 
       return selectedFile;
