@@ -293,6 +293,9 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    */
   @Override
   public String getTruncateTableStatement( String tableName ) {
+    if ( isDriverVersion(0, 11) ) {
+      return "TRUNCATE TABLE " + tableName;
+    }
     return null;
   }
 
