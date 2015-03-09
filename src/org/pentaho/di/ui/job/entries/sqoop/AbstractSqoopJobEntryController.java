@@ -96,7 +96,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   // or other user-driven events.
   protected boolean suppressEventHandling = false;
 
-  protected HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );
+  protected HadoopClusterDelegate ncDelegate;
 
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label).
@@ -151,6 +151,10 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     USE_ADVANCED_OPTIONS_CLUSTER = new NamedCluster();
     USE_ADVANCED_OPTIONS_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.UseAdvancedOptions" ) );
+    Spoon spoon = Spoon.getInstance();
+    if( spoon != null ) {
+      ncDelegate = new HadoopClusterDelegate( spoon );
+    }
   }
 
   /**
@@ -675,7 +679,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   protected void setUiMode( JobEntryMode mode ) {
     switch ( mode ) {
       case QUICK_SETUP:
-        if ( !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) && !suppressEventHandling ) {
+        if ( selectedNamedCluster != null && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) && !suppressEventHandling ) {
           config.clearAdvancedNamedConfigurationInfo();
         }
         toggleQuickMode( true );
