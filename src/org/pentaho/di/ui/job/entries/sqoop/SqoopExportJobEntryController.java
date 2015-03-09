@@ -27,16 +27,20 @@ import static org.pentaho.di.job.entries.sqoop.SqoopExportConfig.EXPORT_DIR;
 import java.util.Collection;
 
 import org.apache.commons.vfs.FileObject;
+import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.di.job.entries.sqoop.SqoopExportConfig;
 import org.pentaho.di.job.entries.sqoop.SqoopExportJobEntry;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
+import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
@@ -84,5 +88,23 @@ public class SqoopExportJobEntryController extends
     // Set the database meta based on the current database
     jobEntry.setDatabaseMeta( jobMeta.findDatabase( config.getDatabase() ) );
     super.accept();
+  }
+
+  public void editNamedCluster() {
+    if ( isSelectedNamedCluster() ) {
+      Spoon spoon = Spoon.getInstance();
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
+      populateNamedClusters();
+    }
+  }
+
+  public void newNamedCluster() {
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
+    populateNamedClusters();
   }
 }

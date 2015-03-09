@@ -78,34 +78,26 @@
               <column flex="1"/>
             </columns>
             <rows>
-              <row>
-                <label value="${Sqoop.JobEntry.NamenodeHost.Label}"/>
-                <!-- Wrap with an hbox so all components align -->
-                <hbox flex="1">
-                  <textbox pen:customclass="variabletextbox" id="namenodeHost" flex="1"/>
-                </hbox>
-              </row>
-              <row>
-                <label value="${Sqoop.JobEntry.NamenodePort.Label}"/>
-                <!-- Wrap with an hbox so all components align -->
-                <hbox flex="1">
-                  <textbox pen:customclass="variabletextbox" id="namenodePort" flex="1"/>
-                </hbox>
-              </row>
-              <row>
-                <label value="${Sqoop.JobEntry.JobtrackerHost.Label}"/>
-                <!-- Wrap with an hbox so all components align -->
-                <hbox flex="1">
-                  <textbox pen:customclass="variabletextbox" id="jobtrackerHost" flex="1"/>
-                </hbox>
-              </row>
-              <row>
-                <label value="${Sqoop.JobEntry.JobtrackerPort.Label}"/>
-                <!-- Wrap with an hbox so all components align -->
-                <hbox flex="1">
-                  <textbox pen:customclass="variabletextbox" id="jobtrackerPort" flex="1"/>
-                </hbox>
-              </row>
+                <row>
+                    <label value="${Sqoop.JobEntry.NamedCluster.Label}" width="200"/>
+                    <grid>
+                        <columns>
+                            <column/>
+                            <column/>
+                            <column/>
+                        </columns>
+                        <rows>
+                            <row>
+                                <menulist id="named-clusters" pen:binding="name">
+                                    <menupopup>
+                                    </menupopup>
+                                </menulist>
+                                <button id="editNamedCluster" label="${Sqoop.JobEntry.NamedCluster.Edit}" onclick="controller.editNamedCluster()"/>
+                                <button id="newNamedCluster" label="${Sqoop.JobEntry.NamedCluster.New}" onclick="controller.newNamedCluster()"/>
+                            </row>
+                        </rows>
+                    </grid>
+                </row>
               <row>
                 <label value="${Sqoop.JobEntry.Import.Target.Directory.Label}"/>
                 <!-- Wrap with an hbox so all components align -->

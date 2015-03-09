@@ -39,6 +39,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.AbstractJobEntry;
@@ -48,6 +49,7 @@ import org.pentaho.di.job.LoggingProxy;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
@@ -332,9 +334,18 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
         environmentSubstitute( dbPassword ) );
 
       List<String> messages = new ArrayList<String>();
-      shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),
-        environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
-          .getJobtrackerHost() ), environmentSubstitute( sqoopConfig.getJobtrackerPort() ), conf, messages );
+
+      String clusterName = sqoopConfig.getClusterName();
+      if ( clusterName != null ) {
+        NamedCluster nc = NamedClusterUIHelper.getNamedCluster( clusterName );
+        shim.configureConnectionInformation( environmentSubstitute( nc.getHdfsHost() ), environmentSubstitute( nc.getHdfsPort() ),
+            environmentSubstitute( nc.getJobTrackerHost() ), environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+      } else {
+        shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),
+             environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
+                .getJobtrackerHost() ), environmentSubstitute( sqoopConfig.getJobtrackerPort() ), conf, messages );
+      }
+
       for ( String m : messages ) {
         logBasic( m );
       }

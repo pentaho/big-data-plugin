@@ -27,6 +27,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.Database;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
@@ -36,12 +37,18 @@ import org.pentaho.di.job.entries.sqoop.SqoopUtils;
 import org.pentaho.di.ui.core.database.dialog.DatabaseDialog;
 import org.pentaho.di.ui.core.database.dialog.DatabaseExplorerDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
 import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
+import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.components.XulButton;
+import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.containers.XulDeck;
 import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.util.AbstractModelList;
@@ -74,15 +81,22 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   // The following is overwritten in init() with the i18n string
   protected DatabaseItem USE_ADVANCED_OPTIONS = new DatabaseItem( "@@advanced@@", "Use Advanced Options" );
 
+  private NamedCluster CHOOSE_AVAILABLE_CLUSTER;
+  private NamedCluster USE_ADVANCED_OPTIONS_CLUSTER;
+
   protected AbstractModelList<ArgumentWrapper> advancedArguments;
   private AbstractModelList<DatabaseItem> databaseConnections;
+  private AbstractModelList<NamedCluster> namedClusters;
   private DatabaseItem selectedDatabaseConnection;
   private DatabaseDialog databaseDialog;
+  protected NamedCluster selectedNamedCluster;
 
   // Flag to indicate we shouldn't handle any events. Useful for preventing unwanted synchronization during
   // initialization
   // or other user-driven events.
   protected boolean suppressEventHandling = false;
+
+  protected HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );
 
   /**
    * The text for the Quick Setup/Advanced Options mode toggle (label).
@@ -128,6 +142,15 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     this.config = (S) jobEntry.getJobConfig().clone();
     this.advancedArguments = new AbstractModelList<ArgumentWrapper>();
     this.databaseConnections = new AbstractModelList<DatabaseItem>();
+    this.namedClusters = new AbstractModelList<NamedCluster>();
+
+    CHOOSE_AVAILABLE_CLUSTER = new NamedCluster();
+    CHOOSE_AVAILABLE_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
+        "DatabaseName.ChooseAvailable" ) );
+
+    USE_ADVANCED_OPTIONS_CLUSTER = new NamedCluster();
+    USE_ADVANCED_OPTIONS_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
+        "DatabaseName.UseAdvancedOptions" ) );
   }
 
   /**
@@ -151,12 +174,10 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   @Override
   protected void createBindings( S config, XulDomContainer container, BindingFactory bindingFactory,
       Collection<Binding> bindings ) {
+
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
     bindings.add( bindingFactory.createBinding( config, JOB_ENTRY_NAME, JOB_ENTRY_NAME, VALUE ) );
-    bindings.add( bindingFactory.createBinding( config, NAMENODE_HOST, NAMENODE_HOST, VALUE ) );
-    bindings.add( bindingFactory.createBinding( config, NAMENODE_PORT, NAMENODE_PORT, VALUE ) );
-    bindings.add( bindingFactory.createBinding( config, JOBTRACKER_HOST, JOBTRACKER_HOST, VALUE ) );
-    bindings.add( bindingFactory.createBinding( config, JOBTRACKER_PORT, JOBTRACKER_PORT, VALUE ) );
+
     // TODO Determine if separate schema field is required, this has to be provided as part of the --table argument
     // anyway.
     // bindings.add(bindingFactory.createBinding(config, SCHEMA, SCHEMA, VALUE));
@@ -167,6 +188,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     bindingFactory.setBindingType( Binding.Type.ONE_WAY );
     bindings.add( bindingFactory.createBinding( this, "modeToggleLabel", getModeToggleLabelElementId(), VALUE ) );
     bindings.add( bindingFactory.createBinding( databaseConnections, "children", "connection", "elements" ) );
+    bindings.add( bindingFactory.createBinding( namedClusters, "children", "named-clusters", "elements" ) );
 
     XulTree variablesTree = (XulTree) container.getDocumentRoot().getElementById( "advanced-table" );
     bindings.add( bindingFactory.createBinding( advancedArguments, "children", variablesTree, "elements" ) );
@@ -176,10 +198,85 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     bindingFactory.createBinding( config, "username", this, "usernameChanged" );
     bindingFactory.createBinding( config, "password", this, "passwordChanged" );
 
+    bindingFactory.createBinding( config, SqoopConfig.NAMENODE_HOST, this, "advancedNamedConfiguration" );
+    bindingFactory.createBinding( config, SqoopConfig.NAMENODE_PORT, this, "advancedNamedConfiguration" );
+    bindingFactory.createBinding( config, SqoopConfig.JOBTRACKER_HOST, this, "advancedNamedConfiguration" );
+    bindingFactory.createBinding( config, SqoopConfig.JOBTRACKER_PORT, this, "advancedNamedConfiguration" );
+
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
     // Specifically create this binding after the databaseConnections binding so the list is populated before we attempt
     // to select an item
     bindings.add( bindingFactory.createBinding( this, SELECTED_DATABASE_CONNECTION, "connection", "selectedItem" ) );
+    bindings.add( bindingFactory.createBinding( "named-clusters", "selectedIndex", this, "selectedNamedCluster",
+        new BindingConvertor<Integer, NamedCluster>() {
+          public NamedCluster sourceToTarget( final Integer index ) {
+            if ( index == -1 ) {
+              return null;
+            }
+            return namedClusters.get( index );
+          }
+
+          public Integer targetToSource( final NamedCluster namedCluster ) {
+            return namedClusters.indexOf( namedCluster );
+          }
+        } ) );
+  }
+
+  protected void initializeNamedClusterSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<NamedCluster> namedClusterMenu =
+        (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    try {
+      String cn = config.getClusterName();
+      if ( cn != null ) {
+        NamedCluster namedCluster = NamedClusterUIHelper.getNamedCluster( cn );
+        namedClusterMenu.setSelectedItem( namedCluster );
+        setSelectedNamedCluster( namedCluster );
+      } else if ( cn == null
+          && ( config.getNamenodeHost() != null || config.getNamenodePort() != null
+              || config.getJobtrackerHost() != null || config.getJobtrackerPort() != null ) ) {
+        setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
+      } else {
+        setSelectedNamedCluster( CHOOSE_AVAILABLE_CLUSTER );
+      }
+    } catch ( MetaStoreException e ) {
+      jobEntry.logError( e.getMessage() );
+    }
+  }
+
+  public AbstractModelList<NamedCluster> getNamedClusters() {
+    return this.namedClusters;
+  }
+
+  public void setNamedClusters( AbstractModelList<NamedCluster> namedClusters ) {
+    this.namedClusters = namedClusters;
+  }
+
+  public void setSelectedNamedCluster( NamedCluster namedCluster ) {
+    this.selectedNamedCluster = namedCluster;
+    if ( !suppressEventHandling ) {
+      if ( namedCluster != null && !namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER )
+          && !namedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) ) {
+        config.setClusterName( namedCluster.getName() );
+        config.clearAdvancedNamedConfigurationInfo();
+      } else if ( namedCluster != null && namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER ) ) {
+        config.setClusterName( null );
+        config.clearAdvancedNamedConfigurationInfo();
+      } else {
+        config.setClusterName( null );
+      }
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedNamedCluster", null, this.selectedNamedCluster );
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  public boolean isSelectedNamedCluster() {
+    return this.selectedNamedCluster != null;
   }
 
   /**
@@ -200,6 +297,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     // Suppress event handling while we're initializing to prevent unwanted value changes
     suppressEventHandling = true;
     populateDatabases();
+    populateNamedClusters();
     setModeToggleLabel( BaseMessages.getString( AbstractSqoopJobEntry.class, MODE_I18N_STRINGS[0] ) );
     // customizeModeToggleLabel(getModeToggleLabelElementId());
   }
@@ -213,6 +311,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     // Manually set the current database, if it is valid, to sync the UI buttons since we suppressed their event
     // handling while initializing bindings
     setSelectedDatabaseConnection( createDatabaseItem( getConfig().getDatabase() ) );
+    initializeNamedClusterSelection();
   }
 
   /**
@@ -243,6 +342,13 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     updateDatabaseItemsList();
   }
 
+  protected void populateNamedClusters() {
+    namedClusters.clear();
+    namedClusters.addAll( NamedClusterUIHelper.getNamedClusters() );
+    namedClusters.add( CHOOSE_AVAILABLE_CLUSTER );
+    namedClusters.add( USE_ADVANCED_OPTIONS_CLUSTER );
+  }
+
   /**
    * This is used to be notified when the connect string changes so we can remove the selection from the database
    * dropdown.
@@ -255,6 +361,14 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         setSelectedDatabaseConnection( USE_ADVANCED_OPTIONS );
       } else {
         setSelectedDatabaseConnection( NO_DATABASE );
+      }
+    }
+  }
+
+  public void setAdvancedNamedConfiguration( String value ) {
+    if ( !suppressEventHandling ) {
+      if ( value != null ) {
+        setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
       }
     }
   }
@@ -561,6 +675,9 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   protected void setUiMode( JobEntryMode mode ) {
     switch ( mode ) {
       case QUICK_SETUP:
+        if ( !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) && !suppressEventHandling ) {
+          config.clearAdvancedNamedConfigurationInfo();
+        }
         toggleQuickMode( true );
         break;
       case ADVANCED_LIST:
@@ -749,7 +866,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         EnterSelectionDialog dialog =
             new EnterSelectionDialog( getShell(), schemas, BaseMessages.getString( AbstractSqoopJobEntry.class,
                 "AvailableSchemas.Title" ), BaseMessages.getString( AbstractSqoopJobEntry.class,
-                  "AvailableSchemas.Message" ) );
+                "AvailableSchemas.Message" ) );
         String schema = dialog.open();
         if ( schema != null ) {
           getConfig().setSchema( schema );

@@ -22,12 +22,15 @@
 
 package org.pentaho.di.job.entries.sqoop;
 
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.Password;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -165,6 +168,8 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   private String numMappers;
   private String commandLine;
 
+  private String clusterName;
+
   /**
    * @return all known arguments for this config object. Some arguments may be synthetic and represent properties
    *         directly set on this config object for the purpose of showing them in the list view of the UI.
@@ -187,15 +192,33 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
               String.class ) ) );
       items.add( new ArgumentWrapper( BLOCKING_EXECUTION, BaseMessages
           .getString( getClass(), "BlockingExecution.Label" ), false, this, getClass().getMethod(
-            "getBlockingExecution" ), getClass().getMethod( "setBlockingExecution", String.class ) ) );
+          "getBlockingExecution" ), getClass().getMethod( "setBlockingExecution", String.class ) ) );
       items.add( new ArgumentWrapper( BLOCKING_POLLING_INTERVAL, BaseMessages.getString( getClass(),
           "BlockingPollingInterval.Label" ), false, this, getClass().getMethod( "getBlockingPollingInterval" ),
           getClass().getMethod( "setBlockingPollingInterval", String.class ) ) );
     } catch ( NoSuchMethodException ex ) {
       throw new RuntimeException( ex );
     }
-
     return items;
+  }
+
+  public NamedCluster getNamedCluster() {
+    NamedCluster namedCluster = null;
+    try {
+      if ( clusterName != null ) {
+        namedCluster = NamedClusterUIHelper.getNamedCluster( clusterName );
+      }
+    } catch ( MetaStoreException ex ) {
+      throw new RuntimeException( ex );
+    }
+    return namedCluster;
+  }
+
+  public void clearAdvancedNamedConfigurationInfo() {
+    this.namenodeHost = null;
+    this.namenodePort = null;
+    this.jobtrackerHost = null;
+    this.jobtrackerPort = null;
   }
 
   @Override
@@ -243,46 +266,6 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   // All getters/setters below this line
-
-  public String getNamenodeHost() {
-    return namenodeHost;
-  }
-
-  public void setNamenodeHost( String namenodeHost ) {
-    String old = this.namenodeHost;
-    this.namenodeHost = namenodeHost;
-    pcs.firePropertyChange( NAMENODE_HOST, old, this.namenodeHost );
-  }
-
-  public String getNamenodePort() {
-    return namenodePort;
-  }
-
-  public void setNamenodePort( String namenodePort ) {
-    String old = this.namenodePort;
-    this.namenodePort = namenodePort;
-    pcs.firePropertyChange( NAMENODE_PORT, old, this.namenodePort );
-  }
-
-  public String getJobtrackerHost() {
-    return jobtrackerHost;
-  }
-
-  public void setJobtrackerHost( String jobtrackerHost ) {
-    String old = this.jobtrackerHost;
-    this.jobtrackerHost = jobtrackerHost;
-    pcs.firePropertyChange( JOBTRACKER_HOST, old, this.jobtrackerHost );
-  }
-
-  public String getJobtrackerPort() {
-    return jobtrackerPort;
-  }
-
-  public void setJobtrackerPort( String jobtrackerPort ) {
-    String old = this.jobtrackerPort;
-    this.jobtrackerPort = jobtrackerPort;
-    pcs.firePropertyChange( JOBTRACKER_PORT, old, this.jobtrackerPort );
-  }
 
   public String getDatabase() {
     return database;
@@ -634,5 +617,69 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     String old = this.mode;
     this.mode = mode;
     pcs.firePropertyChange( MODE, old, this.mode );
+  }
+
+  public String getClusterName() {
+    return clusterName;
+  }
+
+  public void setClusterName( String clusterName ) {
+    this.clusterName = clusterName;
+  }
+
+  public String getNamenodeHost() {
+    NamedCluster namedCluster = getNamedCluster();
+    if ( namedCluster != null ) {
+      namenodeHost = namedCluster.getHdfsHost();
+    }
+    return namenodeHost;
+  }
+
+  public void setNamenodeHost( String namenodeHost ) {
+    String old = this.namenodeHost;
+    this.namenodeHost = namenodeHost;
+    pcs.firePropertyChange( NAMENODE_HOST, old, this.namenodeHost );
+  }
+
+  public String getNamenodePort() {
+    NamedCluster namedCluster = getNamedCluster();
+    if ( namedCluster != null ) {
+      namenodePort = namedCluster.getHdfsPort();
+    }
+    return namenodePort;
+  }
+
+  public void setNamenodePort( String namenodePort ) {
+    String old = this.namenodePort;
+    this.namenodePort = namenodePort;
+    pcs.firePropertyChange( NAMENODE_PORT, old, this.namenodePort );
+  }
+
+  public String getJobtrackerHost() {
+    NamedCluster namedCluster = getNamedCluster();
+    if ( namedCluster != null ) {
+      jobtrackerHost = namedCluster.getJobTrackerHost();
+    }
+    return jobtrackerHost;
+  }
+
+  public void setJobtrackerHost( String jobtrackerHost ) {
+    String old = this.jobtrackerHost;
+    this.jobtrackerHost = jobtrackerHost;
+    pcs.firePropertyChange( JOBTRACKER_HOST, old, this.jobtrackerHost );
+  }
+
+  public String getJobtrackerPort() {
+    NamedCluster namedCluster = getNamedCluster();
+    if ( namedCluster != null ) {
+      jobtrackerPort = namedCluster.getJobTrackerPort();
+    }
+    return jobtrackerPort;
+  }
+
+  public void setJobtrackerPort( String jobtrackerPort ) {
+    String old = this.jobtrackerPort;
+    this.jobtrackerPort = jobtrackerPort;
+    pcs.firePropertyChange( JOBTRACKER_PORT, old, this.jobtrackerPort );
   }
 }

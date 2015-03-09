@@ -23,6 +23,7 @@
 package org.pentaho.di.ui.job.entries.sqoop;
 
 import org.apache.commons.vfs.FileObject;
+import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.i18n.BaseMessages;
@@ -30,9 +31,11 @@ import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.di.job.entries.sqoop.SqoopImportConfig;
 import org.pentaho.di.job.entries.sqoop.SqoopImportJobEntry;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
+import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.Collection;
@@ -78,5 +81,23 @@ public class SqoopImportJobEntryController extends
     } catch ( KettleFileException e ) {
       getJobEntry().logError( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorBrowsingDirectory" ), e );
     }
+  }
+
+  public void editNamedCluster() {
+    if ( isSelectedNamedCluster() ) {
+      Spoon spoon = Spoon.getInstance();
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
+      populateNamedClusters();
+    }
+  }
+
+  public void newNamedCluster() {
+    Spoon spoon = Spoon.getInstance();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
+    populateNamedClusters();
   }
 }
