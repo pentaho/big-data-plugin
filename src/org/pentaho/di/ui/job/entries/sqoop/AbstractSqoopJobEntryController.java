@@ -29,29 +29,31 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.ArgumentWrapper;
+import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
-import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.entries.sqoop.SqoopConfig;
 import org.pentaho.di.job.entries.sqoop.SqoopUtils;
 import org.pentaho.di.ui.core.database.dialog.DatabaseDialog;
 import org.pentaho.di.ui.core.database.dialog.DatabaseExplorerDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
-import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
-import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.components.XulButton;
-import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.containers.XulDeck;
 import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.util.AbstractModelList;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.Collection;
 import java.util.List;
@@ -81,12 +83,10 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   // The following is overwritten in init() with the i18n string
   protected DatabaseItem USE_ADVANCED_OPTIONS = new DatabaseItem( "@@advanced@@", "Use Advanced Options" );
 
-  private NamedCluster CHOOSE_AVAILABLE_CLUSTER;
   private NamedCluster USE_ADVANCED_OPTIONS_CLUSTER;
 
   protected AbstractModelList<ArgumentWrapper> advancedArguments;
   private AbstractModelList<DatabaseItem> databaseConnections;
-  private AbstractModelList<NamedCluster> namedClusters;
   private DatabaseItem selectedDatabaseConnection;
   private DatabaseDialog databaseDialog;
   protected NamedCluster selectedNamedCluster;
@@ -142,11 +142,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     this.config = (S) jobEntry.getJobConfig().clone();
     this.advancedArguments = new AbstractModelList<ArgumentWrapper>();
     this.databaseConnections = new AbstractModelList<DatabaseItem>();
-    this.namedClusters = new AbstractModelList<NamedCluster>();
-
-    CHOOSE_AVAILABLE_CLUSTER = new NamedCluster();
-    CHOOSE_AVAILABLE_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
-        "DatabaseName.ChooseAvailable" ) );
 
     USE_ADVANCED_OPTIONS_CLUSTER = new NamedCluster();
     USE_ADVANCED_OPTIONS_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
@@ -192,7 +187,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     bindingFactory.setBindingType( Binding.Type.ONE_WAY );
     bindings.add( bindingFactory.createBinding( this, "modeToggleLabel", getModeToggleLabelElementId(), VALUE ) );
     bindings.add( bindingFactory.createBinding( databaseConnections, "children", "connection", "elements" ) );
-    bindings.add( bindingFactory.createBinding( namedClusters, "children", "named-clusters", "elements" ) );
 
     XulTree variablesTree = (XulTree) container.getDocumentRoot().getElementById( "advanced-table" );
     bindings.add( bindingFactory.createBinding( advancedArguments, "children", variablesTree, "elements" ) );
@@ -211,76 +205,50 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     // Specifically create this binding after the databaseConnections binding so the list is populated before we attempt
     // to select an item
     bindings.add( bindingFactory.createBinding( this, SELECTED_DATABASE_CONNECTION, "connection", "selectedItem" ) );
-    bindings.add( bindingFactory.createBinding( "named-clusters", "selectedIndex", this, "selectedNamedCluster",
-        new BindingConvertor<Integer, NamedCluster>() {
-          public NamedCluster sourceToTarget( final Integer index ) {
-            if ( index == -1 ) {
-              return null;
-            }
-            return namedClusters.get( index );
-          }
-
-          public Integer targetToSource( final NamedCluster namedCluster ) {
-            return namedClusters.indexOf( namedCluster );
-          }
-        } ) );
   }
 
   protected void initializeNamedClusterSelection() {
-    @SuppressWarnings( "unchecked" )
-    XulMenuList<NamedCluster> namedClusterMenu =
-        (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
     try {
       String cn = config.getClusterName();
       if ( cn != null ) {
         NamedCluster namedCluster = NamedClusterUIHelper.getNamedCluster( cn );
-        namedClusterMenu.setSelectedItem( namedCluster );
         setSelectedNamedCluster( namedCluster );
       } else if ( cn == null
           && ( config.getNamenodeHost() != null || config.getNamenodePort() != null
               || config.getJobtrackerHost() != null || config.getJobtrackerPort() != null ) ) {
         setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
       } else {
-        setSelectedNamedCluster( CHOOSE_AVAILABLE_CLUSTER );
+        setSelectedNamedCluster( null );
       }
     } catch ( MetaStoreException e ) {
       jobEntry.logError( e.getMessage() );
     }
   }
 
-  public AbstractModelList<NamedCluster> getNamedClusters() {
-    return this.namedClusters;
-  }
-
-  public void setNamedClusters( AbstractModelList<NamedCluster> namedClusters ) {
-    this.namedClusters = namedClusters;
-  }
-
   public void setSelectedNamedCluster( NamedCluster namedCluster ) {
     this.selectedNamedCluster = namedCluster;
-    if ( !suppressEventHandling ) {
-      if ( namedCluster != null && !namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER )
-          && !namedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) ) {
-        config.setClusterName( namedCluster.getName() );
-        config.clearAdvancedNamedConfigurationInfo();
-      } else if ( namedCluster != null && namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER ) ) {
-        config.setClusterName( null );
-        config.clearAdvancedNamedConfigurationInfo();
-      } else {
-        config.setClusterName( null );
-      }
-
-      suppressEventHandling = true;
-      try {
-        firePropertyChange( "selectedNamedCluster", null, this.selectedNamedCluster );
-      } finally {
-        suppressEventHandling = false;
-      }
+    if ( namedCluster != null && !namedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) ) {
+      config.setClusterName( namedCluster.getName() );
+      config.clearAdvancedNamedConfigurationInfo();
+    } else if ( namedCluster == null ) {
+      config.setClusterName( null );
+      config.clearAdvancedNamedConfigurationInfo();
+    } else {
+      config.setClusterName( null );
     }
   }
 
-  public boolean isSelectedNamedCluster() {
-    return this.selectedNamedCluster != null;
+  protected void extractNamedClusterFromVfsFileChooser() {
+    VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
+    CustomVfsUiPanel currentPanel = dialog.getCurrentPanel();
+    if ( currentPanel != null && currentPanel instanceof HadoopVfsFileChooserDialog ) {
+      HadoopVfsFileChooserDialog hadoopVfsFileChooserDialog = (HadoopVfsFileChooserDialog) currentPanel;
+      NamedClusterWidget ncWidget = hadoopVfsFileChooserDialog.getNamedClusterWidget();
+      NamedCluster selectedNamedCluster = ncWidget.getSelectedNamedCluster();
+      if ( selectedNamedCluster != null ) {
+        setSelectedNamedCluster( selectedNamedCluster );
+      }
+    }
   }
 
   /**
@@ -301,7 +269,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     // Suppress event handling while we're initializing to prevent unwanted value changes
     suppressEventHandling = true;
     populateDatabases();
-    populateNamedClusters();
     setModeToggleLabel( BaseMessages.getString( AbstractSqoopJobEntry.class, MODE_I18N_STRINGS[0] ) );
     // customizeModeToggleLabel(getModeToggleLabelElementId());
   }
@@ -346,13 +313,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     updateDatabaseItemsList();
   }
 
-  protected void populateNamedClusters() {
-    namedClusters.clear();
-    namedClusters.addAll( NamedClusterUIHelper.getNamedClusters() );
-    namedClusters.add( CHOOSE_AVAILABLE_CLUSTER );
-    namedClusters.add( USE_ADVANCED_OPTIONS_CLUSTER );
-  }
-
   /**
    * This is used to be notified when the connect string changes so we can remove the selection from the database
    * dropdown.
@@ -370,10 +330,8 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   }
 
   public void setAdvancedNamedConfiguration( String value ) {
-    if ( !suppressEventHandling ) {
-      if ( value != null ) {
-        setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
-      }
+    if ( value != null ) {
+      setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
     }
   }
 
@@ -902,5 +860,4 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       getConfig().setTable( std.getTableName() );
     }
   }
-
 }
