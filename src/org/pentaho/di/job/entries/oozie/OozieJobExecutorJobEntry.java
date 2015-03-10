@@ -30,10 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang.StringUtils;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -80,22 +83,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     return new OozieJobExecutorConfig();
   }
 
-  /**
-   * Validates the current configuration of the step.
-   * <p/>
-   * <strong>To be valid in Quick Setup mode:</strong>
-   * <ul>
-   * <li>Name is required</li>
-   * <li>Oozie URL is required and must be a valid oozie location</li>
-   * <li>Workflow Properties file path is required and must be a valid job properties file</li>
-   * </ul>
-   * 
-   * @param config
-   *          Configuration to validate
-   * @return
-   */
-  @Override
-  public List<String> getValidationWarnings( OozieJobExecutorConfig config ) {
+  public List<String> getValidationWarnings( OozieJobExecutorConfig config, boolean checkOozieConnection ) {
     List<String> messages = new ArrayList<String>();
 
     // verify there is a job name
@@ -103,9 +91,35 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.JobName" ) );
     }
 
-    if ( StringUtil.isEmpty( config.getOozieUrl() ) ) {
-      messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+    if ( StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
+      messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
     } else {
+      try {
+        // load from system first, then fall back to copy stored with job (AbstractMeta)
+        NamedCluster nc = null;
+        if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() ) && 
+            NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
+          // pull config from NamedCluster
+          nc = NamedClusterManager.getInstance().read( jobConfig.getClusterName(), rep.getMetaStore() );
+        }
+        if ( nc == null ) {
+          nc = config.getNamedCluster();
+        }
+        
+        if ( !checkOozieConnection ) {
+          if ( nc == null ) {
+            messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
+          } else if ( StringUtils.isEmpty( nc.getOozieUrl() ) ) {
+            messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+          }
+        }
+        
+      } catch ( Throwable t ) {
+        messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+      }
+    }
+    
+    if ( checkOozieConnection && !StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
       try {
         // oozie url is valid and client & ws versions are compatible
         oozieClient = getOozieClient( config );
@@ -134,7 +148,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         Properties props = getProperties( config );
 
         // make sure it has at minimum a workflow definition (need app path)
-        if ( !oozieClient.hasAppPath( props ) ) {
+        if ( checkOozieConnection && !oozieClient.hasAppPath( props ) ) {
           messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
               "ValidationMessages.App.Path.Property.Missing" ) );
         }
@@ -163,6 +177,25 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     }
 
     return messages;
+  }  
+  
+  /**
+   * Validates the current configuration of the step.
+   * <p/>
+   * <strong>To be valid in Quick Setup mode:</strong>
+   * <ul>
+   * <li>Name is required</li>
+   * <li>Oozie URL is required and must be a valid oozie location</li>
+   * <li>Workflow Properties file path is required and must be a valid job properties file</li>
+   * </ul>
+   * 
+   * @param config
+   *          Configuration to validate
+   * @return
+   */
+  @Override
+  public List<String> getValidationWarnings( OozieJobExecutorConfig config ) {
+    return getValidationWarnings( config, true );
   }
 
   public Properties getPropertiesFromFile( OozieJobExecutorConfig config ) throws IOException, KettleFileException {
@@ -277,12 +310,35 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     setJobResultFailed( jobResult );
   }
 
+  public String getEffectiveOozieUrl( OozieJobExecutorConfig config ) {
+    String oozieUrl = config.getOozieUrl();
+    try {
+      // load from system first, then fall back to copy stored with job (AbstractMeta)
+      NamedCluster nc = null;
+      if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() ) && 
+          NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
+        // pull config from NamedCluster
+        nc = NamedClusterManager.getInstance().read( jobConfig.getClusterName(), rep.getMetaStore() );
+      } else {
+        nc = config.getNamedCluster();
+      }
+
+      if ( nc != null && !StringUtils.isEmpty( nc.getOozieUrl() ) ) {
+        oozieUrl = nc.getOozieUrl();
+      }    
+    } catch ( Throwable t ) {
+      logDebug( t.getMessage(), t );
+    }
+    return oozieUrl;
+  }
+  
   public OozieClient getOozieClient() {
-    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( jobConfig.getOozieUrl() ) );
+    return getOozieClient( jobConfig );
   }
 
   public OozieClient getOozieClient( OozieJobExecutorConfig config ) {
-    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( config.getOozieUrl() ) );
+    String oozieUrl = getEffectiveOozieUrl( config );
+    return oozieClientFactory.create( getVariableSpace().environmentSubstitute( oozieUrl ) );
   }
 
 }

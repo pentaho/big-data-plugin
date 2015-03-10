@@ -23,7 +23,9 @@
     <dependency org="org.slf4j"                        name="slf4j-log4j12"        rev="1.7.3"           transitive="false"/>
 
     <dependency org="org.eclipse.swt.win32.win32" name="x86" rev="3.3.0-v3346" transitive="false" /> 
-    <dependency org="org.eclipse" name="jface" rev="3.3.0-I20070606-0010" transitive="false" /> 
+    <dependency org="org.eclipse" name="jface" rev="3.3.0-I20070606-0010" transitive="false" />
+    <dependency org="org.eclipse.equinox"   name="common"              rev="3.3.0-v20070426"      transitive="false"/> 
+    <dependency org="org.eclipse.core" name="commands" rev="3.3.0-I20070605-0010" transitive="false"/>
 
     <dependency org="pentaho-kettle" name="kettle-engine" rev="${dependency.kettle.revision}" transitive="false" conf="default->default"
       changing="true" />
@@ -49,17 +51,14 @@
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hadoop-20-package" rev="${dependency.hadoop-shims-hadoop-20.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-hadoop-20-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh47-package" rev="${dependency.hadoop-shims-cdh47.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-cdh47-package" type="zip"/>
-    </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh52-package" rev="${dependency.hadoop-shims-cdh52.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-cdh52-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp21-package" rev="${dependency.hadoop-shims-hdp21.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-hdp21-package" type="zip"/>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp22-package" rev="${dependency.hadoop-shims-hdp22.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-hdp22-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr31-package" rev="${dependency.hadoop-shims-mapr31.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-mapr31-package" type="zip"/>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr401-package" rev="${dependency.hadoop-shims-mapr401.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-mapr401-package" type="zip"/>
     </dependency>
   
     <dependency org="commons-httpclient" name="commons-httpclient" rev="${dependency.commons-httpclient.revision}" />

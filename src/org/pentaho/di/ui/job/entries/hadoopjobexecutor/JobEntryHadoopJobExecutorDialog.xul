@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="hadoop-window-wrapper">
+
 <dialog id="job-entry-dialog"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:pen="http://www.pentaho.org/2008/xul"
@@ -142,22 +145,26 @@
     						<column flex="1"/>
     					</columns>
     					<rows>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.HDFSHostname.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="hdfs-hostname" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.HDFSPort.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="hdfs-port" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.JobTrackerHostname.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="job-tracker-hostname" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.JobTrackerPort.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="job-tracker-port" flex="1" multiline="false"/>
-    						</row>
+							<row>
+								<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
+								<grid>
+									<columns>
+										<column/>
+										<column/>
+										<column/>
+									</columns>
+									<rows>
+										<row>
+											<menulist id="named-clusters" pen:binding="name">
+											    <menupopup>
+											    </menupopup>
+											</menulist>
+											<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
+											<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
+										</row>
+									</rows>
+								</grid>
+							</row>    	    					
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
     							<textbox pen:customclass="variabletextbox" id="num-map-tasks" flex="1" multiline="false"/>
@@ -190,3 +197,12 @@
 		</tabbox>
 	</vbox>
 </dialog>
+
+  <!--  ###############################################################################   -->
+  <!--     ERROR DIALOG: Dialog to display error text                                     -->
+  <!--  ###############################################################################   -->   
+  <dialog id="hadoop-error-dialog" title="${Dialog.Error}" buttonlabelaccept="${Dialog.Accept}" buttons="accept" ondialogaccept="jobEntryController.closeErrorDialog()" width="600" height="300" buttonalign="center">
+        <textbox id="hadoop-error-message" value="${errorDialog.errorOccurred}" multiline="true" readonly="true" flex="1" />
+  </dialog>
+  
+</window>

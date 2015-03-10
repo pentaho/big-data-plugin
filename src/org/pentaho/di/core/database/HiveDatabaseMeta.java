@@ -45,10 +45,8 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   /**
    * Package protected constructor for unit testing.
    *
-   * @param majorVersion
-   *          The majorVersion to set for the driver
-   * @param minorVersion
-   *          The minorVersion to set for the driver
+   * @param majorVersion The majorVersion to set for the driver
+   * @param minorVersion The minorVersion to set for the driver
    * @throws Throwable
    */
   HiveDatabaseMeta( int majorVersion, int minorVersion ) throws Throwable {
@@ -58,12 +56,12 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   @Override
   public int[] getAccessTypeList() {
-    return new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE };
+    return new int[]{ DatabaseMeta.TYPE_ACCESS_NATIVE };
   }
 
   @Override
   public String getAddColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-      String pk, boolean semicolon ) {
+                                       String pk, boolean semicolon ) {
 
     return "ALTER TABLE " + tablename + " ADD " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
 
@@ -72,8 +70,8 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public String getDriverClass() {
 
-    // !!! We will probably have to change this if we are providing our own driver,
-    // i.e., before our code is committed to the Hadoop Hive project.
+    //  !!!  We will probably have to change this if we are providing our own driver,
+    //  i.e., before our code is committed to the Hadoop Hive project.
     return DRIVER_CLASS_NAME;
   }
 
@@ -83,7 +81,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    */
   @Override
   public String getFieldDefinition( ValueMetaInterface v, String tk, String pk, boolean useAutoinc,
-      boolean addFieldname, boolean addCr ) {
+                                    boolean addFieldname, boolean addCr ) {
 
     String retval = "";
 
@@ -102,9 +100,22 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
         retval += "BOOLEAN";
         break;
 
-      // Hive does not support DATE
+      // Hive does not support DATE until 0.12
       case ValueMetaInterface.TYPE_DATE:
-        retval += "STRING";
+        if ( isDriverVersion( 0, 12 ) ) {
+          retval += "DATE";
+        } else {
+          throw new IllegalArgumentException( "Date types not supported in this version of Hive" );
+        }
+        break;
+
+      // Hive does not support DATE until 0.8
+      case ValueMetaInterface.TYPE_TIMESTAMP:
+        if ( isDriverVersion( 0, 8 ) ) {
+          retval += "TIMESTAMP";
+        } else {
+          throw new IllegalArgumentException( "Timestamp types not supported in this version of Hive" );
+        }
         break;
 
       case ValueMetaInterface.TYPE_STRING:
@@ -146,7 +157,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   @Override
   public String getModifyColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-      String pk, boolean semicolon ) {
+                                          String pk, boolean semicolon ) {
 
     return "ALTER TABLE " + tablename + " MODIFY " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
   }
@@ -164,7 +175,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public String[] getUsedLibraries() {
 
-    return new String[] { JAR_FILE };
+    return new String[]{ JAR_FILE };
   }
 
   /**
@@ -184,8 +195,8 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
       return suggestedName;
     } else {
       // For version 0.5 and prior:
-      // Column aliases are currently not supported in Hive. The default column alias
-      // generated is in the format '_col##' where ## = column index. Use this format
+      // Column aliases are currently not supported in Hive.  The default column alias
+      // generated is in the format '_col##' where ## = column index.  Use this format
       // so the result can be mapped back correctly.
       return "_col" + String.valueOf( columnIndex ); //$NON-NLS-1$
     }
@@ -216,7 +227,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    * version, pass in a 0 (The assumption being that the minor version will ALWAYS be 0 or greater)
    *
    * @return true: the version being used is equal to or newer than the one you requested false: the version being used
-   *         is older than the one you requested
+   * is older than the one you requested
    */
   protected boolean isDriverVersion( int majorVersion, int minorVersion ) {
     if ( driverMajorVersion == null ) {
@@ -239,7 +250,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Quotes around table names are not valid Hive QL
-   *
+   * <p/>
    * return an empty string for the start quote
    */
   public String getStartQuote() {
@@ -248,7 +259,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   /**
    * Quotes around table names are not valid Hive QL
-   *
+   * <p/>
    * return an empty string for the end quote
    */
   public String getEndQuote() {
@@ -273,16 +284,18 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    */
   @Override
   public String[] getViewTypes() {
-    return new String[] { "VIEW", "VIRTUAL_VIEW" };
+    return new String[]{ "VIEW", "VIRTUAL_VIEW" };
   }
 
   /**
-   * @param tableName
-   *          The table to be truncated.
+   * @param tableName The table to be truncated.
    * @return The SQL statement to truncate a table: remove all rows from it without a transaction
    */
   @Override
   public String getTruncateTableStatement( String tableName ) {
+    if ( isDriverVersion(0, 11) ) {
+      return "TRUNCATE TABLE " + tableName;
+    }
     return null;
   }
 
@@ -311,10 +324,10 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
     String superSql = super.getConnectSQL();
     if ( !Const.isEmpty( superSql ) ) {
       int startPos = superSql.indexOf( "use " );
-      if( startPos >= 0 ){
+      if ( startPos >= 0 ) {
         int endPos = superSql.indexOf( ";", startPos );
-        if( endPos >= 0 ){
-          if( endPos <superSql.length() ) {
+        if ( endPos >= 0 ) {
+          if ( endPos < superSql.length() ) {
             endPos++;
           }
           String superSql1 = superSql.substring( 0, startPos ) + superSql.substring( endPos );
@@ -327,11 +340,15 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   }
 
   /**
-   * @param sql
-   *          The SQL to execute right after connecting
+   * @param sql The SQL to execute right after connecting
    */
   @Override
   public void setConnectSQL( String sql ) {
     super.setConnectSQL( sql.replaceAll( getConnectSqlForNotDefaultDatabaseName().toString(), "" ) );
+  }
+
+  @Override
+  public boolean supportsTimeStampToDateConversion() {
+    return false;
   }
 }

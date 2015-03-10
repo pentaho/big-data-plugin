@@ -8,7 +8,7 @@
     xmlns:pen="http://www.pentaho.org/2008/xul" 
 	title="${JobEntryDialog.Title}"
 	resizable="true"
-    height="420" width="735"
+    height="430" width="735"
 	appicon="ui/images/spoon.ico"
 	buttons="extra1,accept,cancel"
 	buttonalign="end"
@@ -249,22 +249,26 @@
     						<column flex="1"/>
     					</columns>
     					<rows>
-    						<row>
-    							<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.HDFSHostname.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="hdfs-hostname" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.HDFSPort.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="hdfs-port" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.JobTrackerHostname.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="job-tracker-hostname" flex="1" multiline="false"/>
-    						</row>
-    						<row>
-    							<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.JobTrackerPort.Label}" />
-    							<textbox pen:customclass="variabletextbox" id="job-tracker-port" flex="1" multiline="false"/>
-    						</row>
+							<row>
+								<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
+								<grid>
+									<columns>
+										<column/>
+										<column/>
+										<column/>
+									</columns>
+									<rows>
+										<row>
+											<menulist id="named-clusters" pen:binding="name">
+											    <menupopup>
+											    </menupopup>
+											</menulist>
+											<button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
+											<button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
+										</row>
+									</rows>
+								</grid>
+							</row>    					
     						<row>
     							<label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
     							<textbox pen:customclass="variabletextbox" id="num-map-tasks" flex="1" multiline="false"/>
