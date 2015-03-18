@@ -160,7 +160,8 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
     fdAccessKey = new GridData();
     fdAccessKey.widthHint = 150;
     wAccessKey.setLayoutData( fdAccessKey );
-    wAccessKey.setText( Props.getInstance().getCustomParameter( "S3VfsFileChooserDialog.AccessKey", "" ) );
+    wAccessKey.setText( Encr.decryptPasswordOptionallyEncrypted(
+      Props.getInstance().getCustomParameter( "S3VfsFileChooserDialog.AccessKey", "" ) ) );
 
     wAccessKey.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent arg0 ) {
@@ -186,7 +187,8 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
     fdSecretKey = new GridData();
     fdSecretKey.widthHint = 300;
     wSecretKey.setLayoutData( fdSecretKey );
-    wSecretKey.setText( Props.getInstance().getCustomParameter( "S3VfsFileChooserDialog.SecretKey", "" ) );
+    wSecretKey.setText( Encr.decryptPasswordOptionallyEncrypted(
+      Props.getInstance().getCustomParameter( "S3VfsFileChooserDialog.SecretKey", "" ) ) );
 
     wSecretKey.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent arg0 ) {
@@ -236,8 +238,10 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
           s3Client.getS3AccountOwner();
 
           // s3 credentials valid, continue
-          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.AccessKey", wAccessKey.getText() );
-          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.SecretKey", wSecretKey.getText() );
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.AccessKey",
+            Encr.encryptPasswordIfNotUsingVariables( wAccessKey.getText() ) );
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.SecretKey",
+            Encr.encryptPasswordIfNotUsingVariables( wSecretKey.getText() ) );
 
           try {
             FileObject root = rootFile;
