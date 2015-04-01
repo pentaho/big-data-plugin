@@ -306,6 +306,13 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
    */
   protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String schemeRestriction,
       String defaultScheme, boolean showFileScheme ) throws KettleFileException {
+    String[] schemeRestrictions = new String[1];
+    schemeRestrictions[0] = schemeRestriction;
+    return browseVfs( root, initial, dialogMode, schemeRestrictions, showFileScheme, defaultScheme );
+  }
+
+  protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String[] schemeRestrictions,
+      boolean showFileScheme, String defaultScheme ) throws KettleFileException {
 
     if ( initial == null ) {
       initial = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
@@ -321,7 +328,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
     VfsFileChooserHelper fileChooserHelper =
         new VfsFileChooserHelper( getShell(), Spoon.getInstance().getVfsFileChooserDialog( root, initial ), jobEntry );
     fileChooserHelper.setDefaultScheme( defaultScheme );
-    fileChooserHelper.setSchemeRestriction( schemeRestriction );
+    fileChooserHelper.setSchemeRestrictions( schemeRestrictions );
     fileChooserHelper.setShowFileScheme( showFileScheme );
     try {
       return fileChooserHelper.browse( getFileFilters(), getFileFilterNames(), initial.getName().getURI(), dialogMode );
@@ -330,7 +337,6 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
     } catch ( FileSystemException e ) {
       throw new KettleFileException( e );
     }
-
   }
 
   protected String[] getFileFilters() {
