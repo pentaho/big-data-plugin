@@ -72,7 +72,7 @@ public class NamedClusterManager {
       clusterTemplate.setJobTrackerHost( "localhost" );
       clusterTemplate.setJobTrackerPort( "8032" );
       clusterTemplate.setZooKeeperHost( "localhost" );
-      clusterTemplate.setZooKeeperPort( "2888" );
+      clusterTemplate.setZooKeeperPort( "2181" );
       clusterTemplate.setOozieUrl( "http://localhost:8080/oozie" );
     }
     return clusterTemplate.clone();
