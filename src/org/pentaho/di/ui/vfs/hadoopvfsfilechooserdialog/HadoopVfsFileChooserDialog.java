@@ -45,9 +45,12 @@ import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
@@ -366,6 +369,21 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       ncPort = namedCluster.getHdfsPort() != null ?  namedCluster.getHdfsPort() : "";
       ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
       ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
+      
+      ncHostname = getVariableSpace().environmentSubstitute( ncHostname );
+      ncPort = getVariableSpace().environmentSubstitute( ncPort );
+      ncUsername = getVariableSpace().environmentSubstitute( ncUsername );
+      ncPassword = getVariableSpace().environmentSubstitute( ncPassword );
+    }
+  }
+  
+  public VariableSpace getVariableSpace() {
+    if ( Spoon.getInstance().getActiveTransformation() != null ) {
+      return Spoon.getInstance().getActiveTransformation();
+    } else if ( Spoon.getInstance().getActiveJob() != null ) {
+      return Spoon.getInstance().getActiveJob();
+    } else {
+      return new Variables();
     }
   }
   
