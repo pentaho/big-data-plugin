@@ -57,7 +57,7 @@ import org.pentaho.oozie.shim.api.OozieJob;
  */
 @JobEntry( id = "OozieJobExecutor", name = "Oozie.JobExecutor.PluginName",
     description = "Oozie.JobExecutor.PluginDescription",
-    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "oozie-job-executor.png",
+    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "oozie-job-executor.svg",
     i18nPackageName = "org.pentaho.di.job.entries.oozie", version = "1" )
 public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorConfig> implements Cloneable,
     JobEntryInterface {

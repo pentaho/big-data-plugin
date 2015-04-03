@@ -86,10 +86,9 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
   private void refreshNamedClusterSubtree( SelectionTreeExtension selectionTreeExtension ) {
 
     TreeItem tiRootName = selectionTreeExtension.getTiRootName();
-    AbstractMeta meta = selectionTreeExtension.getMeta();
     GUIResource guiResource = selectionTreeExtension.getGuiResource();
 
-    TreeItem tiNcTitle = createTreeItem( tiRootName, STRING_NAMED_CLUSTERS, guiResource.getImageBol() );
+    TreeItem tiNcTitle = createTreeItem( tiRootName, STRING_NAMED_CLUSTERS, guiResource.getImageFolder() );
 
     List<NamedCluster> namedClusters;
     try {
@@ -106,7 +105,7 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
         continue;
       }
 
-      createTreeItem( tiNcTitle, namedCluster.getName(), guiResource.getImageConnection() );
+      createTreeItem( tiNcTitle, namedCluster.getName(), guiResource.getImageConnectionTree() );
     }
   }
 
