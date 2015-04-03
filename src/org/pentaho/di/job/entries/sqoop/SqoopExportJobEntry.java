@@ -40,7 +40,7 @@ import java.util.List;
  * Provides a way to orchestrate <a href="http://sqoop.apache.org/">Sqoop</a> exports.
  */
 @JobEntry( id = "SqoopExport", name = "Sqoop.Export.PluginName", description = "Sqoop.Export.PluginDescription",
-    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "sqoop-export.png",
+    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "sqoop-export.svg",
     i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1" )
 public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig> implements
     ProvidesDatabaseConnectionInformation {

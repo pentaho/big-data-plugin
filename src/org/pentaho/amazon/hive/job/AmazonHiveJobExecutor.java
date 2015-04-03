@@ -75,7 +75,7 @@ import com.amazonaws.services.s3.model.S3Object;
  * AmazonHiveJobExecutor A job entry plug-in class to submits a Hive job into the AWS Elastic MapReduce service from
  * Pentaho Data Integration (Kettle).
  */
-@JobEntry( id = "HiveJobExecutorPlugin", image = "AWS-HIVE.png", name = "HiveJobExecutorPlugin.Name",
+@JobEntry( id = "HiveJobExecutorPlugin", image = "AWS-HIVE.svg", name = "HiveJobExecutorPlugin.Name",
     description = "HiveJobExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
     i18nPackageName = "org.pentaho.amazon.hive.job" )

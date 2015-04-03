@@ -25,7 +25,7 @@ package org.pentaho.di.trans.steps.hadoopenter;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.trans.steps.injector.InjectorMeta;
 
-@Step( id = "HadoopEnterPlugin", image = "MRI.png", name = "HadoopEnterPlugin.Name",
+@Step( id = "HadoopEnterPlugin", image = "MRI.svg", name = "HadoopEnterPlugin.Name",
     description = "HadoopEnterPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopenter" )
