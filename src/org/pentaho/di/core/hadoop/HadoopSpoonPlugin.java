@@ -29,7 +29,6 @@ import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.MapRFSFileChooserDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 @LifecyclePlugin( id = "HadoopSpoonPlugin", name = "Hadoop Spoon Plugin" )
@@ -47,8 +46,8 @@ public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
     dialog.addVFSUIPanel( new HadoopVfsFileChooserDialog( HDFS_SCHEME, HDFS_SCHEME_DISPLAY_NAME, dialog, null, null ) );
     dialog
-        .addVFSUIPanel( new MapRFSFileChooserDialog(
-            MAPRFS_SCHEME, MAPRFS_SCHEME_DISPLAY_NAME, dialog ) );
+        .addVFSUIPanel( new HadoopVfsFileChooserDialog(
+            MAPRFS_SCHEME, MAPRFS_SCHEME_DISPLAY_NAME, dialog, null, null ) );
   }
 
   public void onExit( LifeEventHandler arg0 ) throws LifecycleException {

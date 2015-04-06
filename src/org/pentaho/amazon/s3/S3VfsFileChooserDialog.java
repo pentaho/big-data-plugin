@@ -303,10 +303,6 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
   public void activate() {
     wAccessKey.setVariables( getVariableSpace() );
     wSecretKey.setVariables( getVariableSpace() );
-    vfsFileChooserDialog.setRootFile( null );
-    vfsFileChooserDialog.setInitialFile( null );
-    vfsFileChooserDialog.openFileCombo.setText( "s3://" );
-    vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
     super.activate();
   }
 

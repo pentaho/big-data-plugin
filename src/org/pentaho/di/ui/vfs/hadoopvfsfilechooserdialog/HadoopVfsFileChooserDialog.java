@@ -143,7 +143,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     namedClusterWidget.addSelectionListener( new SelectionListener() {
       public void widgetSelected( SelectionEvent evt ) {
         handleConnectionButton();
-        activate();
       }
       
       public void widgetDefaultSelected( SelectionEvent evt ) {
@@ -294,8 +293,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
           }
           return;
         }
-        vfsFileChooserDialog.setRootFile( root );
         vfsFileChooserDialog.setSelectedFile( root );
+        vfsFileChooserDialog.setRootFile( root );
         rootFile = root;
       }
     } );
@@ -390,12 +389,4 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   public NamedClusterWidget getNamedClusterWidget() {
     return namedClusterWidget;
   }
-
-  public void activate() {
-    vfsFileChooserDialog.setRootFile( null );
-    vfsFileChooserDialog.setInitialFile( null );
-    vfsFileChooserDialog.openFileCombo.setText( "hdfs://" );
-    vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
-  }
-
 }

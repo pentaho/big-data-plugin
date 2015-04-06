@@ -41,7 +41,7 @@ public class VfsFileChooserHelper {
   private VariableSpace variableSpace = null;
   private FileSystemOptions fileSystemOptions = null;
   private String defaultScheme = "file";
-  private String[] schemeRestrictions = null;
+  private String schemeRestriction = null;
   private boolean showFileScheme = true;
 
   public VfsFileChooserHelper( Shell shell, VfsFileChooserDialog fileChooserDialog, VariableSpace variableSpace ) {
@@ -54,7 +54,6 @@ public class VfsFileChooserHelper {
     this.shell = shell;
     this.variableSpace = variableSpace;
     this.fileSystemOptions = fileSystemOptions;
-    this.schemeRestrictions = new String[0];
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri ) throws KettleException,
@@ -94,12 +93,12 @@ public class VfsFileChooserHelper {
     if ( initialFile != null ) {
       selectedFile =
           fileChooserDialog
-              .open( shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), initialFile.getName()
-                  .getPath(), fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode );
+              .open( shell, getSchemeRestriction(), getDefaultScheme(), showFileScheme(), initialFile.getName()
+                  .getPath(), fileFilters, fileFilterNames, fileDialogMode, returnsUserAuthenticatedFileObjects() );
     } else {
       selectedFile =
-          fileChooserDialog.open( shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), null,
-              fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode );
+          fileChooserDialog.open( shell, getSchemeRestriction(), getDefaultScheme(), showFileScheme(), null,
+              fileFilters, fileFilterNames, fileDialogMode, returnsUserAuthenticatedFileObjects() );
     }
 
     return selectedFile;
@@ -130,20 +129,11 @@ public class VfsFileChooserHelper {
   }
 
   public String getSchemeRestriction() {
-    String schemaRestriction = null;
-    if ( this.schemeRestrictions != null && this.schemeRestrictions.length > 0 ) {
-      schemaRestriction = this.schemeRestrictions[0];
-    }
-    return schemaRestriction;
+    return schemeRestriction;
   }
 
   public void setSchemeRestriction( String schemeRestriction ) {
-    this.schemeRestrictions = new String[0];
-    this.schemeRestrictions[0] = schemeRestriction;
-  }
-
-  public void setSchemeRestrictions ( String[] schemeRestrictions ) {
-    this.schemeRestrictions = schemeRestrictions;
+    this.schemeRestriction = schemeRestriction;
   }
 
   public boolean showFileScheme() {
