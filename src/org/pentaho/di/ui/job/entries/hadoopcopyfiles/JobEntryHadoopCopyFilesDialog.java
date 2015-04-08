@@ -948,16 +948,19 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
       
       NamedClusterWidget namedClusterWidget = null;
       List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
-      
+      String ncName = null;
+      HadoopVfsFileChooserDialog hadoopDialog = null;
       for( CustomVfsUiPanel panel : customPanels ) {
         if( panel instanceof HadoopVfsFileChooserDialog ) {
-          namedClusterWidget = ( ( HadoopVfsFileChooserDialog ) panel ).getNamedClusterWidget();
+          hadoopDialog = ( ( HadoopVfsFileChooserDialog ) panel );
+          namedClusterWidget = hadoopDialog.getNamedClusterWidget();
           namedClusterWidget.initiate();
+          ncName = null;
           if ( initialFile != null ) {
-            String ncName = namedClusterURLMapping.get( initialFile.getURL().toString() );
-            namedClusterWidget.setSelectedNamedCluster( ncName );
-            ( ( HadoopVfsFileChooserDialog ) panel ).initializeConnectionPanel( initialFile );
-          }
+            ncName = namedClusterURLMapping.get( initialFile.getURL().toString() );
+          } 
+          hadoopDialog.setNamedCluster( ncName );
+          hadoopDialog.initializeConnectionPanel( initialFile );
         }
       }
       
