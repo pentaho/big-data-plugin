@@ -27,9 +27,12 @@ import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileSystemOptions;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
@@ -61,10 +64,15 @@ public class VfsFileChooserHelper {
     FileSystemException {
     return browse( fileFilters, fileFilterNames, fileUri, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
   }
-
+  
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode )
+      throws KettleException, FileSystemException {
+      return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode );
+  }
+
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode, boolean showLocation )
     throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode );
+    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation );
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts )
@@ -74,6 +82,11 @@ public class VfsFileChooserHelper {
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
       int fileDialogMode ) throws KettleException, FileSystemException {
+   return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, true );
+  }
+  
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
+      int fileDialogMode, boolean showLocation ) throws KettleException, FileSystemException {
     // Get current file
     FileObject rootFile = null;
     FileObject initialFile = null;
@@ -95,15 +108,15 @@ public class VfsFileChooserHelper {
       selectedFile =
           fileChooserDialog
               .open( shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), initialFile.getName()
-                  .getPath(), fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode );
+                  .getPath(), fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode, showLocation );
     } else {
       selectedFile =
           fileChooserDialog.open( shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), null,
-              fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode );
+              fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode, showLocation );
     }
 
     return selectedFile;
-  }
+  }  
 
   public VariableSpace getVariableSpace() {
     return variableSpace;
@@ -157,5 +170,16 @@ public class VfsFileChooserHelper {
   protected boolean returnsUserAuthenticatedFileObjects() {
     return false;
   }
-
+  
+  public void setNamedCluster( NamedCluster namedCluster ) {
+    VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
+    for ( CustomVfsUiPanel currentPanel : dialog.getCustomVfsUiPanels() ) {
+      if ( currentPanel != null && currentPanel instanceof HadoopVfsFileChooserDialog ) {
+        HadoopVfsFileChooserDialog hadoopVfsFileChooserDialog = (HadoopVfsFileChooserDialog) currentPanel;
+        if ( namedCluster != null ) {
+          hadoopVfsFileChooserDialog.setNamedCluster( namedCluster.getName() );
+        }
+      }  
+    }
+  }   
 }

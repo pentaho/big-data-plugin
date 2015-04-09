@@ -29,12 +29,10 @@ import java.util.ArrayList;
 
 import org.apache.commons.vfs.FileObject;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.MessageBox;
@@ -79,10 +77,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   // for logging
   private LogChannel log = new LogChannel( this );
 
-  // Connection button
-  private Button wConnectionButton;
-  private GridData fdConnectionButton;
-
   // Default root file - used to avoid NPE when rootFile was not provided
   // and the browser is resolved
   FileObject defaultInitialFile = null;
@@ -110,6 +104,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   private String ncUsername = "";
   private String ncPassword = "";
   private NamedClusterWidget namedClusterWidget = null;
+  private String namedCluster = null;
 
   public HadoopVfsFileChooserDialog( String schemeName, String displayName, VfsFileChooserDialog vfsFileChooserDialog,
       FileObject rootFile, FileObject initialFile ) {
@@ -140,166 +135,21 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     connectionGroup.setLayout( connectionGroupLayout );
     
     namedClusterWidget = new NamedClusterWidget( connectionGroup, true );
-    namedClusterWidget.addSelectionListener( new SelectionListener() {
-      public void widgetSelected( SelectionEvent evt ) {
-        handleConnectionButton();
-        activate();
+    namedClusterWidget.addModifyListener( new ModifyListener() {
+      public void modifyText( ModifyEvent evt ) {
+        try {
+          connect();
+        } catch (Exception e) {
+          //To prevent errors from multiple event firings.
+        }
       }
-      
-      public void widgetDefaultSelected( SelectionEvent evt ) {
-      }
-    } );
+    });
 
     // The composite we need in the group
     Composite textFieldPanel = new Composite( connectionGroup, SWT.NONE );
     GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
     textFieldPanel.setLayoutData( gridData );
     textFieldPanel.setLayout( new GridLayout( 5, false ) );
-    
-    // Connection button
-    wConnectionButton = new Button( textFieldPanel, SWT.CENTER );
-    fdConnectionButton = new GridData();
-    fdConnectionButton.widthHint = 75;
-    wConnectionButton.setLayoutData( fdConnectionButton );
-
-    wConnectionButton.setText( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.ConnectionButton.Label" ) );
-    wConnectionButton.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        
-        loadNamedCluster();
-
-        // Store the successful connection info to hand off to VFS
-        connectedHostname = ncHostname;
-        connectedPortString = ncPort;
-
-        try {
-
-          // Create list of addresses to try. In non-HA environments, this will likely only have
-          // one entry.
-          ArrayList<InetSocketAddress> addressList = new ArrayList<InetSocketAddress>();
-
-          // Before creating a socket, see if there is some name resolution we need to do
-          // For example, in High Availability clusters, we might need to resolve the cluster name
-          // (with no port) to a list of host:port pairs to try in sequence.
-          // NOTE: If we could set the HDFS retry limit for the Test capability, we wouldn't need this
-          // code. It's been fixed in later versions of Hadoop, but we can't be sure which version we're
-          // using, or if a particular distribution has incorporated the fix.
-          HadoopConfiguration hadoopConfig = getHadoopConfig();
-          if ( hadoopConfig != null ) {
-            HadoopShim shim = hadoopConfig.getHadoopShim();
-            Configuration conf = shim.createConfiguration();
-            String haNameNodes = conf.get( HDFS_HA_CLUSTER_NAMENODES_PROP );
-            if ( !Const.isEmpty( haNameNodes ) ) {
-
-              String[] haNameNode = haNameNodes.split( NAMENODE_LIST_DELIMITER );
-              if ( !Const.isEmpty( haNameNode ) ) {
-                for ( String nameNode : haNameNode ) {
-                  String nameNodeResolveProperty = HDFS_HA_CLUSTER_NAMENODE_RESOLVE_PREFIX + nameNode;
-                  String nameNodeHostAndPort = conf.get( nameNodeResolveProperty );
-                  if ( !Const.isEmpty( nameNodeHostAndPort ) ) {
-                    String[] nameNodeParams = nameNodeHostAndPort.split( NAMENODE_HOSTNAME_PORT_DELIMITER );
-                    String hostname = nameNodeParams[0];
-                    int port = 0;
-                    if ( nameNodeParams.length > 1 ) {
-                      try {
-                        port = Integer.parseInt( nameNodeParams[1] );
-                      } catch ( NumberFormatException nfe ) {
-                        // ignore, use default
-                      }
-                    }
-                    addressList.add( new InetSocketAddress( hostname, port ) );
-                    isHighAvailabilityCluster = true;
-                  }
-                }
-              }
-            } else {
-              String hostname = ncHostname;
-              int port = 0;
-              try {
-                port = Integer.parseInt( ncPort );
-              } catch ( NumberFormatException nfe ) {
-                // ignore, use default
-              }
-              addressList.add( new InetSocketAddress( hostname, port ) );
-              isHighAvailabilityCluster = false;
-            }
-
-            boolean success = false;
-            StringBuffer connectMessage = new StringBuffer();
-            for ( int i = 0; !success && i < addressList.size(); i++ ) {
-              InetSocketAddress address = addressList.get( i );
-              connectMessage.append( "Connect " );
-              connectMessage.append( address.getHostName() );
-              connectMessage.append( NAMENODE_HOSTNAME_PORT_DELIMITER );
-              connectMessage.append( address.getPort() );
-              Socket testHdfsSocket = new Socket( address.getHostName(), address.getPort() );
-              try {
-                testHdfsSocket.getOutputStream();
-                testHdfsSocket.close();
-                success = true;
-                connectedHostname = address.getHostName();
-                connectedPortString = Integer.toString( address.getPort() );
-                connectMessage.append( "=success!" );
-              } catch ( IOException ioe ) {
-                // Add errors to message string, but otherwise ignore, we'll check for success later
-                connectMessage.append( "=failed, " );
-                connectMessage.append( ioe.getMessage() );
-                connectMessage.append( System.getProperty( "line.separator" ) );
-              }
-            }
-            if ( !success ) {
-              throw new IOException( connectMessage.toString() );
-            }
-          } else {
-            throw new Exception( "No active Hadoop Configuration specified!" );
-          }
-
-        } catch ( Throwable t ) {
-          showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
-              PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
-          return;
-        }
-
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.host", ncHostname );
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.port", connectedPortString );
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.user", ncUsername );
-        Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.password", ncPassword );
-
-        FileObject root = rootFile;
-        try {
-          root = KettleVFS.getFileObject( buildHadoopFileSystemUrlString() );
-        } catch ( KettleFileException e1 ) {
-          // Search for "unsupported scheme" message. The actual string has parameters that we won't be able to match,
-          // so build a string with
-          // known (dummy) params, then split to get the beginning string, then compare against the current exception's
-          // message.
-          final String unsupportedSchemeMessage =
-              BaseMessages.getString( HadoopConfiguration.class, "Error.UnsupportedSchemeForConfiguration", "@!@",
-                  "!@!" );
-          final String unsupportedSchemeMessagePrefix = unsupportedSchemeMessage.split( "@!@" )[0];
-          final String message = e1.getMessage();
-          if ( message.contains( unsupportedSchemeMessagePrefix ) ) {
-            try {
-              HadoopConfiguration hadoopConfig = getHadoopConfig();
-              String hadoopConfigName = ( hadoopConfig == null ) ? "Unknown" : hadoopConfig.getName();
-              showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages
-                  .getString( PKG, "HadoopVfsFileChooserDialog.Connection.schemeError", hadoopConfigName ), message );
-            } catch ( ConfigurationException ce ) {
-              showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages
-                  .getString( PKG, "HadoopVfsFileChooserDialog.Connection.error" ), ce.getMessage() );
-            }
-          } else {
-            showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages
-                .getString( PKG, "HadoopVfsFileChooserDialog.Connection.error" ), e1.getMessage() );
-          }
-          return;
-        }
-        vfsFileChooserDialog.setRootFile( root );
-        vfsFileChooserDialog.setSelectedFile( root );
-        rootFile = root;
-      }
-    } );
-
   }
 
   /**
@@ -332,8 +182,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     if ( initialFile != null && initialFile.getName().getScheme().equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
       //TODO activate HDFS
     }
-
-    handleConnectionButton();
   }
 
   private void showMessageAndLog( String title, String message, String messageToLog ) {
@@ -342,15 +190,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     box.setMessage( message );
     log.logError( messageToLog );
     box.open();
-  }
-
-  private void handleConnectionButton() {
-    loadNamedCluster();
-    if ( !Const.isEmpty( ncHostname ) ) {
-      wConnectionButton.setEnabled( true );
-    } else {
-      wConnectionButton.setEnabled( false );
-    }
   }
 
   private HadoopConfiguration getHadoopConfig() throws ConfigurationException {
@@ -391,11 +230,161 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     return namedClusterWidget;
   }
 
+  public void setNamedCluster( String namedCluster ) {
+    this.namedCluster = namedCluster;
+  }
+  
   public void activate() {
+    ncHostname = "";
+    ncPort = "";
+    ncUsername = "";
+    ncPassword = "";
+    namedClusterWidget.setSelectedNamedCluster( namedCluster );
+  }
+
+  public void connect() {
+      
     vfsFileChooserDialog.setRootFile( null );
     vfsFileChooserDialog.setInitialFile( null );
     vfsFileChooserDialog.openFileCombo.setText( "hdfs://" );
     vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
+    
+    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    if ( nc == null ) {
+      return;
+    }
+    
+    loadNamedCluster();
+
+    // Store the successful connection info to hand off to VFS
+    connectedHostname = ncHostname;
+    connectedPortString = ncPort;
+
+    try {
+
+      // Create list of addresses to try. In non-HA environments, this will likely only have
+      // one entry.
+      ArrayList<InetSocketAddress> addressList = new ArrayList<InetSocketAddress>();
+
+      // Before creating a socket, see if there is some name resolution we need to do
+      // For example, in High Availability clusters, we might need to resolve the cluster name
+      // (with no port) to a list of host:port pairs to try in sequence.
+      // NOTE: If we could set the HDFS retry limit for the Test capability, we wouldn't need this
+      // code. It's been fixed in later versions of Hadoop, but we can't be sure which version we're
+      // using, or if a particular distribution has incorporated the fix.
+      HadoopConfiguration hadoopConfig = getHadoopConfig();
+      if ( hadoopConfig != null ) {
+        HadoopShim shim = hadoopConfig.getHadoopShim();
+        Configuration conf = shim.createConfiguration();
+        String haNameNodes = conf.get( HDFS_HA_CLUSTER_NAMENODES_PROP );
+        if ( !Const.isEmpty( haNameNodes ) ) {
+
+          String[] haNameNode = haNameNodes.split( NAMENODE_LIST_DELIMITER );
+          if ( !Const.isEmpty( haNameNode ) ) {
+            for ( String nameNode : haNameNode ) {
+              String nameNodeResolveProperty = HDFS_HA_CLUSTER_NAMENODE_RESOLVE_PREFIX + nameNode;
+              String nameNodeHostAndPort = conf.get( nameNodeResolveProperty );
+              if ( !Const.isEmpty( nameNodeHostAndPort ) ) {
+                String[] nameNodeParams = nameNodeHostAndPort.split( NAMENODE_HOSTNAME_PORT_DELIMITER );
+                String hostname = nameNodeParams[0];
+                int port = 0;
+                if ( nameNodeParams.length > 1 ) {
+                  try {
+                    port = Integer.parseInt( nameNodeParams[1] );
+                  } catch ( NumberFormatException nfe ) {
+                    // ignore, use default
+                  }
+                }
+                addressList.add( new InetSocketAddress( hostname, port ) );
+                isHighAvailabilityCluster = true;
+              }
+            }
+          }
+        } else {
+          String hostname = ncHostname;
+          int port = 0;
+          try {
+            port = Integer.parseInt( ncPort );
+          } catch ( NumberFormatException nfe ) {
+            // ignore, use default
+          }
+          addressList.add( new InetSocketAddress( hostname, port ) );
+          isHighAvailabilityCluster = false;
+        }
+
+        boolean success = false;
+        StringBuffer connectMessage = new StringBuffer();
+        for ( int i = 0; !success && i < addressList.size(); i++ ) {
+          InetSocketAddress address = addressList.get( i );
+          connectMessage.append( "Connect " );
+          connectMessage.append( address.getHostName() );
+          connectMessage.append( NAMENODE_HOSTNAME_PORT_DELIMITER );
+          connectMessage.append( address.getPort() );
+          Socket testHdfsSocket = new Socket( address.getHostName(), address.getPort() );
+          try {
+            testHdfsSocket.getOutputStream();
+            testHdfsSocket.close();
+            success = true;
+            connectedHostname = address.getHostName();
+            connectedPortString = Integer.toString( address.getPort() );
+            connectMessage.append( "=success!" );
+          } catch ( IOException ioe ) {
+            // Add errors to message string, but otherwise ignore, we'll check for success later
+            connectMessage.append( "=failed, " );
+            connectMessage.append( ioe.getMessage() );
+            connectMessage.append( System.getProperty( "line.separator" ) );
+          }
+        }
+        if ( !success ) {
+          throw new IOException( connectMessage.toString() );
+        }
+      } else {
+        throw new Exception( "No active Hadoop Configuration specified!" );
+      }
+
+    } catch ( Throwable t ) {
+      showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
+          PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
+      return;
+    }
+
+    Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.host", ncHostname );
+    Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.port", connectedPortString );
+    Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.user", ncUsername );
+    Props.getInstance().setCustomParameter( "HadoopVfsFileChooserDialog.password", ncPassword );
+
+    FileObject root = rootFile;
+    try {
+      root = KettleVFS.getFileObject( buildHadoopFileSystemUrlString() );
+    } catch ( KettleFileException e1 ) {
+      // Search for "unsupported scheme" message. The actual string has parameters that we won't be able to match,
+      // so build a string with
+      // known (dummy) params, then split to get the beginning string, then compare against the current exception's
+      // message.
+      final String unsupportedSchemeMessage =
+          BaseMessages.getString( HadoopConfiguration.class, "Error.UnsupportedSchemeForConfiguration", "@!@",
+              "!@!" );
+      final String unsupportedSchemeMessagePrefix = unsupportedSchemeMessage.split( "@!@" )[0];
+      final String message = e1.getMessage();
+      if ( message.contains( unsupportedSchemeMessagePrefix ) ) {
+        try {
+          HadoopConfiguration hadoopConfig = getHadoopConfig();
+          String hadoopConfigName = ( hadoopConfig == null ) ? "Unknown" : hadoopConfig.getName();
+          showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages
+              .getString( PKG, "HadoopVfsFileChooserDialog.Connection.schemeError", hadoopConfigName ), message );
+        } catch ( ConfigurationException ce ) {
+          showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages
+              .getString( PKG, "HadoopVfsFileChooserDialog.Connection.error" ), ce.getMessage() );
+        }
+      } else {
+        showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages
+            .getString( PKG, "HadoopVfsFileChooserDialog.Connection.error" ), e1.getMessage() );
+      }
+      return;
+    }
+    vfsFileChooserDialog.setRootFile( root );
+    vfsFileChooserDialog.setSelectedFile( root );
+    rootFile = root;
   }
 
 }

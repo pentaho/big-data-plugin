@@ -78,7 +78,7 @@ public class SqoopImportJobEntryController extends
 
       FileObject targetDir =
           browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
-              false, HadoopSpoonPlugin.HDFS_SCHEME );
+              false, HadoopSpoonPlugin.HDFS_SCHEME, selectedNamedCluster, false );
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
       if ( okPressed ) {
@@ -89,4 +89,20 @@ public class SqoopImportJobEntryController extends
       getJobEntry().logError( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorBrowsingDirectory" ), e );
     }
   }
+  
+  public void editNamedCluster() {
+    if ( isSelectedNamedCluster() ) {
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
+      populateNamedClusters();
+    }
+  }
+
+  public void newNamedCluster() {
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
+    populateNamedClusters();
+  }  
 }

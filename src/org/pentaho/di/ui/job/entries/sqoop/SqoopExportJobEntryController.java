@@ -30,7 +30,6 @@ import org.apache.commons.vfs.FileObject;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
@@ -75,10 +74,10 @@ public class SqoopExportJobEntryController extends
       String[] schemeRestrictions = new String[2];
       schemeRestrictions[0] = HadoopSpoonPlugin.HDFS_SCHEME;
       schemeRestrictions[1] = HadoopSpoonPlugin.MAPRFS_SCHEME;
-
+      
       FileObject exportDir =
           browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
-              false, HadoopSpoonPlugin.HDFS_SCHEME );
+              false, HadoopSpoonPlugin.HDFS_SCHEME, selectedNamedCluster, false );
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
       if ( okPressed ) {
@@ -96,4 +95,20 @@ public class SqoopExportJobEntryController extends
     jobEntry.setDatabaseMeta( jobMeta.findDatabase( config.getDatabase() ) );
     super.accept();
   }
+  
+  public void editNamedCluster() {
+    if ( isSelectedNamedCluster() ) {
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
+      populateNamedClusters();
+    }
+  }
+
+  public void newNamedCluster() {
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    ncDelegate.newNamedCluster( jobMeta, null, shell );
+    populateNamedClusters();
+  }  
 }
