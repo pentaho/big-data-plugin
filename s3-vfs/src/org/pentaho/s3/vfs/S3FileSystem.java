@@ -26,6 +26,7 @@ import org.apache.commons.vfs.provider.URLFileName;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.security.AWSCredentials;
+import org.jets3t.service.security.ProviderCredentials;
 
 public class S3FileSystem extends AbstractFileSystem implements FileSystem {
 
@@ -45,7 +46,7 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
   }
 
   public S3Service getS3Service() {
-    if (service == null || service.getAWSCredentials() == null || service.getAWSCredentials().getAccessKey() == null) {
+    if (service == null || service.getProviderCredentials() == null || service.getProviderCredentials().getAccessKey() == null) {
 
       UserAuthenticator userAuthenticator = DefaultFileSystemConfigBuilder.getInstance().getUserAuthenticator(getFileSystemOptions());
 
@@ -60,11 +61,11 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
         awsAccessKey = ((URLFileName) getRootName()).getUserName();
         awsSecretKey = ((URLFileName) getRootName()).getPassword();
       }
-      AWSCredentials awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey);
+      ProviderCredentials awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey);
       try {
         service = new RestS3Service(awsCredentials);
       } catch (Throwable t) {
-        System.out.println("Could not getS3Service() for " + awsCredentials);
+        System.out.println("Could not getS3Service() for " + awsCredentials.getLogString());
         t.printStackTrace();
       }
     }

@@ -19,15 +19,11 @@ package org.pentaho.s3.vfs;
 
 import org.apache.commons.vfs.FileName;
 import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileType;
 import org.apache.commons.vfs.provider.FileNameParser;
 import org.apache.commons.vfs.provider.URLFileName;
 import org.apache.commons.vfs.provider.URLFileNameParser;
 import org.apache.commons.vfs.provider.VfsComponentContext;
-import org.apache.commons.vfs.provider.url.UrlFileName;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 
 public class S3FileNameParser extends URLFileNameParser {
 
@@ -47,20 +43,28 @@ public class S3FileNameParser extends URLFileNameParser {
     if(fileName == null) {
       s = encodeAccessKeys(s);
     }
-    URLFileName name = (URLFileName)super.parseUri(vfsComponentContext, fileName, s);
+    URLFileName name = (URLFileName) super.parseUri( vfsComponentContext, fileName, s );
+    FileType type = name.getType();
 
+    /* There is a problem with parsing bucket uri which has not char "/" at the end.
+     * In this case UrlParser parse URI and return filename with type file.
+     * As S3 does not allow to store files without buckets - so bucket is always a folder
+      */
+    if ( FileType.FILE.equals( type ) && name.getPath().split( "/" ).length == 2 ) {
+      type = FileType.FOLDER;
+    }
     String user = name.getUserName();
     String password = name.getPassword();
     return new S3FileName(
-        name.getScheme(),
-        name.getHostName(),
-        name.getPort(),
-        getDefaultPort(),
-        user,
-        password,
-        name.getPath(),
-        name.getType(),
-        name.getQueryString());
+      name.getScheme(),
+      name.getHostName(),
+      name.getPort(),
+      getDefaultPort(),
+      user,
+      password,
+      name.getPath(),
+      type,
+      name.getQueryString() );
   }
 
   public String encodeAccessKeys(String url) {

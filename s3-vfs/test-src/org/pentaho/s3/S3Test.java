@@ -66,9 +66,9 @@ public class S3Test {
     fsManager = VFS.getManager();
 
     Properties settings = new Properties();
-    settings.load(S3Test.class.getResourceAsStream("/test-settings.properties"));
-    awsAccessKey = settings.getProperty("awsAccessKey");
-    awsSecretKey = settings.getProperty("awsSecretKey");
+    settings.load( S3Test.class.getResourceAsStream( "/test-settings.properties" ) );
+    awsAccessKey = settings.getProperty( "awsAccessKey" );
+    awsSecretKey = settings.getProperty( "awsSecretKey" );
 
     AWSCredentials awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey);
 
@@ -219,6 +219,46 @@ public class S3Test {
     bucket.delete(deleteFileSelector);
     assertEquals(false, bucket.exists());
   }
+
+  @Test
+  public void createDeleteRecursive() throws Exception {
+    assertNotNull("FileSystemManager is null", fsManager);
+
+    FileObject bucket = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test" ) );
+    // assertEquals(false, bucket.exists());
+    bucket.createFolder();
+    assertEquals(true, bucket.exists());
+
+    FileObject s3FileOut = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test/folder1/folder11" ) );
+    s3FileOut.createFolder();
+    assertEquals(true, s3FileOut.exists());
+
+    s3FileOut = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test/folder1/child" ) );
+    s3FileOut.createFile();
+    OutputStream out = s3FileOut.getContent().getOutputStream();
+    out.write(HELLO_S3_STR.getBytes());
+    out.close();
+
+    s3FileOut = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test/folder2/child" ) );
+    s3FileOut.createFile();
+    out = s3FileOut.getContent().getOutputStream();
+    out.write(HELLO_S3_STR.getBytes());
+    out.close();
+
+    bucket = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test" ) );
+    printFileObject( bucket, 0 );
+
+    FileObject parentFolder1 = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test/folder1" ) );
+    parentFolder1.delete( deleteFileSelector );
+    assertEquals( false, parentFolder1.exists() );
+
+    bucket = fsManager.resolveFile( buildS3URL( "/mdamour_create_delete_test" ) );
+    printFileObject( bucket, 0 );
+
+    bucket.delete(deleteFileSelector);
+    assertEquals(false, bucket.exists());
+  }
+
 
   @Test
   public void listChildren() throws Exception {
