@@ -30,31 +30,41 @@ import org.apache.commons.vfs.UserAuthenticationData;
 import org.apache.commons.vfs.provider.AbstractOriginatingFileProvider;
 
 public class S3FileProvider extends AbstractOriginatingFileProvider {
-  
+
   /**
    * The scheme this provider was designed to support
    */
   public static final String SCHEME = "s3";
 
-  /** User Information. */
+  /**
+   * User Information.
+   */
   public static final String ATTR_USER_INFO = "UI";
 
-  /** Authentication types. */
-  public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
-      UserAuthenticationData.PASSWORD };
+  /**
+   * Authentication types.
+   */
+  public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES =
+    new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
+        UserAuthenticationData.PASSWORD };
 
-  /** The provider's capabilities. */
-  protected static final Collection<Capability> capabilities = Collections.unmodifiableCollection(Arrays.asList(new Capability[] { Capability.CREATE, Capability.DELETE,
-      Capability.RENAME, Capability.GET_TYPE, Capability.LIST_CHILDREN, Capability.READ_CONTENT, Capability.URI, Capability.WRITE_CONTENT,
-      Capability.GET_LAST_MODIFIED, Capability.RANDOM_ACCESS_READ }));
+  /**
+   * The provider's capabilities.
+   */
+  protected static final Collection<Capability> capabilities =
+    Collections.unmodifiableCollection( Arrays.asList( new Capability[] { Capability.CREATE, Capability.DELETE,
+        Capability.RENAME, Capability.GET_TYPE, Capability.LIST_CHILDREN, Capability.READ_CONTENT, Capability.URI,
+        Capability.WRITE_CONTENT,
+        Capability.GET_LAST_MODIFIED, Capability.RANDOM_ACCESS_READ } ) );
 
   public S3FileProvider() {
     super();
-    setFileNameParser(S3FileNameParser.getInstance());
+    setFileNameParser( S3FileNameParser.getInstance() );
   }
 
-  protected FileSystem doCreateFileSystem(final FileName name, final FileSystemOptions fileSystemOptions) throws FileSystemException {
-    return new S3FileSystem(name, fileSystemOptions);
+  protected FileSystem doCreateFileSystem( final FileName name, final FileSystemOptions fileSystemOptions )
+    throws FileSystemException {
+    return new S3FileSystem( name, fileSystemOptions );
   }
 
   public Collection<Capability> getCapabilities() {

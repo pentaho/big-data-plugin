@@ -25,13 +25,14 @@ import org.apache.commons.vfs.provider.URLFileName;
 import org.apache.commons.vfs.provider.URLFileNameParser;
 import org.apache.commons.vfs.provider.VfsComponentContext;
 
+
 public class S3FileNameParser extends URLFileNameParser {
 
   private static final S3FileNameParser INSTANCE = new S3FileNameParser();
 
   public S3FileNameParser() {
     // S3 wants port 843, but the web service will use this by default
-    super(843);
+    super( 843 );
   }
 
   public static FileNameParser getInstance() {
@@ -39,9 +40,10 @@ public class S3FileNameParser extends URLFileNameParser {
   }
 
   @Override
-  public FileName parseUri(VfsComponentContext vfsComponentContext, FileName fileName, String s) throws FileSystemException {
-    if(fileName == null) {
-      s = encodeAccessKeys(s);
+  public FileName parseUri( VfsComponentContext vfsComponentContext, FileName fileName, String s )
+    throws FileSystemException {
+    if ( fileName == null ) {
+      s = encodeAccessKeys( s );
     }
     URLFileName name = (URLFileName) super.parseUri( vfsComponentContext, fileName, s );
     FileType type = name.getType();
@@ -67,20 +69,21 @@ public class S3FileNameParser extends URLFileNameParser {
       name.getQueryString() );
   }
 
-  public String encodeAccessKeys(String url) {
-    int hostNameIndex = url.indexOf("@s3") == -1 ? url.indexOf("@S3") : url.indexOf("@s3");
-    if (url.startsWith("s3://") && hostNameIndex != -1) {
+  public String encodeAccessKeys( String url ) {
+    int hostNameIndex = url.indexOf( "@s3" ) == -1 ? url.indexOf( "@S3" ) : url.indexOf( "@s3" );
+    if ( url.startsWith( "s3://" ) && hostNameIndex != -1 ) {
       try {
-        String auth = url.substring(5, hostNameIndex);
+        String auth = url.substring( 5, hostNameIndex );
 
         // access key is everything up to the first colon (:)
-        String accessKey = auth.substring(0, auth.indexOf(":")).replaceAll("\\+", "%2B").replaceAll("/", "%2F");
+        String accessKey = auth.substring( 0, auth.indexOf( ":" ) ).replaceAll( "\\+", "%2B" ).replaceAll( "/", "%2F" );
 
         // secret key is everything after it
-        String secretKey = auth.substring(auth.indexOf(":") + 1).replaceAll("\\+", "%2B").replaceAll("/", "%2F");;
+        String secretKey =
+          auth.substring( auth.indexOf( ":" ) + 1 ).replaceAll( "\\+", "%2B" ).replaceAll( "/", "%2F" );
 
-        return "s3://" + accessKey + ":" + secretKey + url.substring(hostNameIndex);
-      } catch (StringIndexOutOfBoundsException e) {
+        return "s3://" + accessKey + ":" + secretKey + url.substring( hostNameIndex );
+      } catch ( StringIndexOutOfBoundsException e ) {
         return url;
       }
     } else {

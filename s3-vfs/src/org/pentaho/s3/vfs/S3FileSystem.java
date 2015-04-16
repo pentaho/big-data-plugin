@@ -19,7 +19,12 @@ package org.pentaho.s3.vfs;
 
 import java.util.Collection;
 
-import org.apache.commons.vfs.*;
+import org.apache.commons.vfs.FileName;
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystem;
+import org.apache.commons.vfs.FileSystemOptions;
+import org.apache.commons.vfs.UserAuthenticationData;
+import org.apache.commons.vfs.UserAuthenticator;
 import org.apache.commons.vfs.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs.provider.AbstractFileSystem;
 import org.apache.commons.vfs.provider.URLFileName;
@@ -32,40 +37,42 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
 
   private S3Service service;
 
-  protected S3FileSystem(final FileName rootName, final FileSystemOptions fileSystemOptions) {
-    super(rootName, null, fileSystemOptions);
+  protected S3FileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
+    super( rootName, null, fileSystemOptions );
   }
 
-  @SuppressWarnings("unchecked")
-  protected void addCapabilities(Collection caps) {
-    caps.addAll(S3FileProvider.capabilities);
+  @SuppressWarnings( "unchecked" )
+  protected void addCapabilities( Collection caps ) {
+    caps.addAll( S3FileProvider.capabilities );
   }
 
-  protected FileObject createFile(FileName name) throws Exception {
-    return new S3FileObject(name, this);
+  protected FileObject createFile( FileName name ) throws Exception {
+    return new S3FileObject( name, this );
   }
 
   public S3Service getS3Service() {
-    if (service == null || service.getProviderCredentials() == null || service.getProviderCredentials().getAccessKey() == null) {
+    if ( service == null || service.getProviderCredentials() == null
+      || service.getProviderCredentials().getAccessKey() == null ) {
 
-      UserAuthenticator userAuthenticator = DefaultFileSystemConfigBuilder.getInstance().getUserAuthenticator(getFileSystemOptions());
+      UserAuthenticator userAuthenticator =
+        DefaultFileSystemConfigBuilder.getInstance().getUserAuthenticator( getFileSystemOptions() );
 
       String awsAccessKey = null;
       String awsSecretKey = null;
 
-      if(userAuthenticator != null) {
-        UserAuthenticationData data = userAuthenticator.requestAuthentication(S3FileProvider.AUTHENTICATOR_TYPES);
-        awsAccessKey = String.valueOf(data.getData(UserAuthenticationData.USERNAME));
-        awsSecretKey = String.valueOf(data.getData(UserAuthenticationData.PASSWORD));
+      if ( userAuthenticator != null ) {
+        UserAuthenticationData data = userAuthenticator.requestAuthentication( S3FileProvider.AUTHENTICATOR_TYPES );
+        awsAccessKey = String.valueOf( data.getData( UserAuthenticationData.USERNAME ) );
+        awsSecretKey = String.valueOf( data.getData( UserAuthenticationData.PASSWORD ) );
       } else {
-        awsAccessKey = ((URLFileName) getRootName()).getUserName();
-        awsSecretKey = ((URLFileName) getRootName()).getPassword();
+        awsAccessKey = ( (URLFileName) getRootName() ).getUserName();
+        awsSecretKey = ( (URLFileName) getRootName() ).getPassword();
       }
-      ProviderCredentials awsCredentials = new AWSCredentials(awsAccessKey, awsSecretKey);
+      ProviderCredentials awsCredentials = new AWSCredentials( awsAccessKey, awsSecretKey );
       try {
-        service = new RestS3Service(awsCredentials);
-      } catch (Throwable t) {
-        System.out.println("Could not getS3Service() for " + awsCredentials.getLogString());
+        service = new RestS3Service( awsCredentials );
+      } catch ( Throwable t ) {
+        System.out.println( "Could not getS3Service() for " + awsCredentials.getLogString() );
         t.printStackTrace();
       }
     }
