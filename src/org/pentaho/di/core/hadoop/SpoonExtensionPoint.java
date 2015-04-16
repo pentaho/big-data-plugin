@@ -22,12 +22,10 @@
 
 package org.pentaho.di.core.hadoop;
 
-import java.util.Enumeration;
 import java.util.ResourceBundle;
 
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.repository.repositoryexplorer.ControllerInitializationException;
 import org.pentaho.di.ui.repository.repositoryexplorer.controllers.NamedClustersController;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -36,6 +34,7 @@ import org.pentaho.di.ui.spoon.SpoonPerspective;
 import org.pentaho.di.ui.spoon.SpoonPlugin;
 import org.pentaho.di.ui.spoon.SpoonPluginCategories;
 import org.pentaho.di.ui.spoon.SpoonPluginInterface;
+import org.pentaho.di.ui.spoon.XulSpoonResourceBundle;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 
@@ -46,15 +45,7 @@ public class SpoonExtensionPoint implements SpoonPluginInterface {
 
   private LogChannelInterface log = new LogChannel( SpoonExtensionPoint.class.getName() );
 
-  private ResourceBundle resourceBundle = new ResourceBundle() {
-    public Enumeration<String> getKeys() {
-      return null;
-    }
-
-    protected Object handleGetObject( String key ) {
-      return BaseMessages.getString( PKG, key );
-    }
-  };  
+  private ResourceBundle resourceBundle = new XulSpoonResourceBundle( PKG );
 
   public void applyToContainer( String category, XulDomContainer container ) throws XulException {
     try {
