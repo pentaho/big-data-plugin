@@ -57,8 +57,8 @@
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp22-package" rev="${dependency.hadoop-shims-hdp22.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-hdp22-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr401-package" rev="${dependency.hadoop-shims-mapr401.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-mapr401-package" type="zip"/>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr410-package" rev="${dependency.hadoop-shims-mapr410.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-mapr410-package" type="zip"/>
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-emr34-package" rev="${dependency.hadoop-shims-emr34.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-emr34-package" type="zip"/>
