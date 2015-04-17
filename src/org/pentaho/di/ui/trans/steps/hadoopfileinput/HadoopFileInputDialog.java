@@ -29,8 +29,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Vector;
 
 import org.apache.commons.vfs.FileObject;
@@ -70,7 +72,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.compress.CompressionProvider;
 import org.pentaho.di.core.compress.CompressionProviderFactory;
@@ -78,7 +79,10 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.gui.TextFileInputFieldInterface;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.util.StringUtil;
@@ -102,6 +106,7 @@ import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -112,6 +117,8 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.steps.textfileinput.TextFileCSVImportProgressDialog;
 import org.pentaho.di.ui.trans.steps.textfileinput.TextFileImportWizardPage1;
 import org.pentaho.di.ui.trans.steps.textfileinput.TextFileImportWizardPage2;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogInterface {
@@ -119,6 +126,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private static Class<?> PKG = HadoopFileInputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
 
   private LogChannel log = new LogChannel( this );
+  private Map<String, String> transientMappings = null;
+  private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
   private static final String[] YES_NO_COMBO = new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.No" ),
     BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) };
@@ -388,6 +397,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     super( parent, (BaseStepMeta) in, transMeta, sname );
     input = (TextFileInputMeta) in;
     firstClickOnDateLocale = true;
+    transientMappings = ( ( HadoopFileInputMeta ) input ).getNamedClusterURLMapping();
   }
 
   public String open() {
@@ -647,11 +657,44 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
           VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
           fileChooserDialog.defaultInitialFile = defaultInitialFile;
+
+          NamedClusterWidget namedClusterWidget = null;
+          List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+          String ncName = null;
+          HadoopVfsFileChooserDialog hadoopDialog = null;
+          for ( CustomVfsUiPanel panel : customPanels ) {
+            if ( panel instanceof HadoopVfsFileChooserDialog ) {
+              hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
+              namedClusterWidget = hadoopDialog.getNamedClusterWidget();
+              namedClusterWidget.initiate();
+              ncName = null;
+              if ( initialFile != null ) {
+                ncName = transientMappings.get( initialFile.getURL().toString() );
+              }
+              hadoopDialog.setNamedCluster( ncName );
+              hadoopDialog.initializeConnectionPanel( initialFile );
+            }
+          }
+          
           FileObject selectedFile =
               fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, fileFilters,
                   fileFilterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
+          
+          CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
+          if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
+            namedClusterWidget = ( (HadoopVfsFileChooserDialog) currentPanel ).getNamedClusterWidget();
+          }
+          
           if ( selectedFile != null ) {
+            
+            String url = selectedFile.getURL().toString();
             wFilename.setText( selectedFile.getURL().toString() );
+            
+            NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+            if ( nc != null ) {
+              transientMappings.put( url, nc.getName() );
+            }
+            
           }
         } catch ( KettleFileException ex ) {
           log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.KettleFileException" ) );
@@ -2171,8 +2214,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       wFilenameList.removeAll();
 
       for ( int i = 0; i < in.getFileName().length; i++ ) {
+        String sourceUrl = in.getFileName()[i];
+        String clusterName = transientMappings.get( sourceUrl );
+        sourceUrl = namedClusterManager.processURLsubstitution( clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME );
+        
         wFilenameList
-            .add( new String[] { in.getFileName()[i], in.getFileMask()[i],
+            .add( new String[] { sourceUrl, in.getFileMask()[i],
               in.getRequiredFilesDesc( in.getFileRequired()[i] ),
               in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
       }
@@ -2439,7 +2486,15 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     int nrfields = wFields.nrNonEmpty();
     int nrfilters = wFilter.nrNonEmpty();
     meta.allocate( nrfiles, nrfields, nrfilters );
-
+    
+    Map<String, String> namedClusterURLMappings = new HashMap<String, String>();
+    String[] items = wFilenameList.getItems( 0 );
+    for ( int i = 0; i < items.length; i++ ) {
+      String source = items[i];
+      processNamedClusterURLMapping( source, namedClusterURLMappings );
+    }
+    ( ( HadoopFileInputMeta ) input ).setNamedClusterURLMapping( namedClusterURLMappings );
+    
     meta.setFileName( wFilenameList.getItems( 0 ) );
     meta.setFileMask( wFilenameList.getItems( 1 ) );
     meta.setFileRequired( wFilenameList.getItems( 2 ) );
@@ -3015,5 +3070,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   public String toString() {
     return this.getClass().getName();
   }
-
+  
+  private void processNamedClusterURLMapping( String locationURL, Map namedClusterURLMappings ) {
+    // The locationURL has to correspond to a NamedCluster otherwise it was modified by the user
+    // thus breaking the URL/NamedCluster link.
+    String cluster = transientMappings.get( locationURL );
+    if ( cluster != null ) {
+      namedClusterURLMappings.put( locationURL, cluster );
+    } else {
+      // The locationURL was modified thus the link to the NamedCluster is lost.
+      namedClusterURLMappings.put( locationURL, "" );
+    }
+  }  
 }
