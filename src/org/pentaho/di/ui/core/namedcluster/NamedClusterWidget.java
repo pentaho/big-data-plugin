@@ -22,11 +22,18 @@
 
 package org.pentaho.di.ui.core.namedcluster;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
@@ -36,8 +43,6 @@ import org.pentaho.di.ui.core.namedcluster.dialog.NamedClusterComposite;
 import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-
-import java.util.List;
 
 public class NamedClusterWidget extends Composite {
 
@@ -143,6 +148,7 @@ public class NamedClusterWidget extends Composite {
   }
 
   public void setSelectedNamedCluster( String name ) {
+    nameClusterCombo.deselectAll();
     for ( int i = 0; i < nameClusterCombo.getItemCount(); i++ ) {
       if ( nameClusterCombo.getItem( i ).equals( name ) ) {
         nameClusterCombo.select( i );
@@ -151,7 +157,7 @@ public class NamedClusterWidget extends Composite {
     }
   }
 
-  public void addSelectionListener( SelectionListener selectionListener ) {
-    nameClusterCombo.addSelectionListener( selectionListener );
+  public void addModifyListener( ModifyListener selectionListener ) {
+    nameClusterCombo.addModifyListener( selectionListener );
   }
 }

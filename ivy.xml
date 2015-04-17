@@ -51,14 +51,17 @@
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hadoop-20-package" rev="${dependency.hadoop-shims-hadoop-20.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-hadoop-20-package" type="zip"/>
     </dependency>
-    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh52-package" rev="${dependency.hadoop-shims-cdh52.revision}" changing="true">
-      <artifact name="pentaho-hadoop-shims-cdh52-package" type="zip"/>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-cdh53-package" rev="${dependency.hadoop-shims-cdh53.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-cdh53-package" type="zip"/>
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-hdp22-package" rev="${dependency.hadoop-shims-hdp22.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-hdp22-package" type="zip"/>
     </dependency>
     <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-mapr401-package" rev="${dependency.hadoop-shims-mapr401.revision}" changing="true">
       <artifact name="pentaho-hadoop-shims-mapr401-package" type="zip"/>
+    </dependency>
+    <dependency conf="shim->default" org="pentaho" name="pentaho-hadoop-shims-emr32-package" rev="${dependency.hadoop-shims-emr32.revision}" changing="true">
+      <artifact name="pentaho-hadoop-shims-emr32-package" type="zip"/>
     </dependency>
   
     <dependency org="commons-httpclient" name="commons-httpclient" rev="${dependency.commons-httpclient.revision}" />
@@ -81,7 +84,9 @@
     <dependency org="pentaho" name="pentaho-vfs-browser" rev="${dependency.pentaho-vfs-browser.revision}" transitive="false" conf="default->default"
       changing="true" />
     <dependency org="pentaho" name="pentaho-s3-vfs" rev="${dependency.pentaho-s3-vfs.revision}" transitive="false" conf="default->default" changing="true" />
-    <dependency org="net.java.dev.jets3t" name="jets3t" rev="0.7.4" transitive="false" conf="default->default"/>
+    <dependency org="net.java.dev.jets3t" name="jets3t" rev="0.9.3" transitive="false" conf="default->default"/>
+    <dependency org="org.apache.httpcomponents" name="httpclient" rev="4.4" transitive="false" conf="default->default"/>
+    <dependency org="org.apache.httpcomponents" name="httpcore" rev="4.4" transitive="false" conf="default->default"/>
     <dependency org="com.amazonaws" name="aws-java-sdk" rev="1.0.008" transitive="false"/>
       
 	<dependency org="dom4j"              name="dom4j"              rev="1.6.1">
