@@ -65,7 +65,7 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.w3c.dom.Node;
 
-@JobEntry( id = "HadoopJobExecutorPlugin", image = "HDE.png", name = "HadoopJobExecutorPlugin.Name",
+@JobEntry( id = "HadoopJobExecutorPlugin", image = "HDE.svg", name = "HadoopJobExecutorPlugin.Name",
     description = "HadoopJobExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
     i18nPackageName = "org.pentaho.di.job.entries.hadoopjobexecutor" )

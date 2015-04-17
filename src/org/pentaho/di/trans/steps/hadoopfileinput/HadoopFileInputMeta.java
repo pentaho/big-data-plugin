@@ -25,7 +25,7 @@ package org.pentaho.di.trans.steps.hadoopfileinput;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.trans.steps.textfileinput.TextFileInputMeta;
 
-@Step( id = "HadoopFileInputPlugin", image = "HDI.png", name = "HadoopFileInputPlugin.Name",
+@Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
     description = "HadoopFileInputPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileinput" )

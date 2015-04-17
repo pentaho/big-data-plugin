@@ -61,7 +61,7 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * 
  */
-@Step( id = "HBaseRowDecoder", image = "HBRD.png", name = "HBaseRowDecoder.Name",
+@Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )

@@ -44,7 +44,7 @@ import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
-@Step( id = "S3FileOutputPlugin", image = "S3O.png", name = "S3FileOutput.Name",
+@Step( id = "S3FileOutputPlugin", image = "S3O.svg", name = "S3FileOutput.Name",
     description = "S3FileOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
     i18nPackageName = "org.pentaho.amazon.s3" )

@@ -71,7 +71,7 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-@Step( id = "AvroInput", image = "Avro.png", name = "AvroInput.Name", description = "AvroInput.Description",
+@Step( id = "AvroInput", image = "Avro.svg", name = "AvroInput.Name", description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.avroinput" )
 public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {

@@ -72,20 +72,26 @@ public class SqoopImportJobEntryController extends
     // path = resolveFile(getConfig().getExportDir());
 
     try {
+      String[] schemeRestrictions = new String[2];
+      schemeRestrictions[0] = HadoopSpoonPlugin.HDFS_SCHEME;
+      schemeRestrictions[1] = HadoopSpoonPlugin.MAPRFS_SCHEME;
+
       FileObject targetDir =
-          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, HadoopSpoonPlugin.HDFS_SCHEME,
-              HadoopSpoonPlugin.HDFS_SCHEME, false );
-      if ( targetDir != null ) {
-        getConfig().setTargetDir( targetDir.getName().getPath() );
+          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
+              false, HadoopSpoonPlugin.HDFS_SCHEME, selectedNamedCluster, false );
+      VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
+      boolean okPressed = dialog.okPressed;
+      if ( okPressed ) {
+        getConfig().setTargetDir( targetDir != null ? targetDir.getName().getPath() : null );
+        extractNamedClusterFromVfsFileChooser();
       }
     } catch ( KettleFileException e ) {
       getJobEntry().logError( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorBrowsingDirectory" ), e );
     }
   }
-
+  
   public void editNamedCluster() {
     if ( isSelectedNamedCluster() ) {
-      Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
       Shell shell = (Shell) xulDialog.getRootObject();
       ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
@@ -94,10 +100,9 @@ public class SqoopImportJobEntryController extends
   }
 
   public void newNamedCluster() {
-    Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
     Shell shell = (Shell) xulDialog.getRootObject();
     ncDelegate.newNamedCluster( jobMeta, null, shell );
     populateNamedClusters();
-  }
+  }  
 }
