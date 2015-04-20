@@ -218,10 +218,19 @@ public class NamedClusterManager {
           ncPort = getVariableSpace().environmentSubstitute( ncPort );
           ncUsername = getVariableSpace().environmentSubstitute( ncUsername );
           ncPassword = getVariableSpace().environmentSubstitute( ncPassword );
+          
+          ncHostname = ncHostname != null ? ncHostname.trim() : "";
+          ncPort = ncPort != null ? ncPort.trim() : "";
+          ncUsername = ncUsername != null ? ncUsername.trim() : "";
+          ncPassword = ncPassword != null ? ncPassword.trim() : "";
+          
           UrlFileName file =
               new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername,
                   ncPassword, null, null, null );
           clusterURL = file.getURI();
+          if ( clusterURL.endsWith( "/" ) ) {
+            clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+          }
         }
       }
     } catch ( Exception e ) {
