@@ -8,9 +8,9 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.11</version>
     <!--
-       https://github.com/pentaho/maven-parent-poms/blob/pentaho-ce-jar-parent-pom-1.0.5/pentaho-ce-jar-parent-pom/pom.xml
+       https://github.com/pentaho/maven-parent-poms/blob/pentaho-ce-jar-parent-pom-1.0.11/pentaho-ce-jar-parent-pom/pom.xml
     -->
   </parent>
   <name>pentaho-spark-plugin</name>
