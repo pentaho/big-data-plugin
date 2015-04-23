@@ -68,7 +68,8 @@ import org.w3c.dom.Node;
 @JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/SparkSubmit.png", id = "SparkSubmit",
     name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    i18nPackageName = "org.pentaho.di.job.entries.spark" )
+    i18nPackageName = "org.pentaho.di.job.entries.spark",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Spark+Submit" )
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
   private static Class<?> PKG = JobEntrySparkSubmit.class; // for i18n purposes, needed by Translator2!!
 
