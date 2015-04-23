@@ -97,6 +97,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   // way hostname and port resolutions (for Connect Test and HDFS) are done.
   boolean isHighAvailabilityCluster = false;
 
+  boolean activateConnection = false;
+
   String schemeName = "hdfs";
   
   private String ncHostname = "";
@@ -138,7 +140,9 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     namedClusterWidget.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent evt ) {
         try {
-          connect();
+          if ( activateConnection ) {
+            connect();
+          }
         } catch (Exception e) {
           //To prevent errors from multiple event firings.
         }
@@ -239,7 +243,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     ncPort = "";
     ncUsername = "";
     ncPassword = "";
+
+    activateConnection = false;
     namedClusterWidget.setSelectedNamedCluster( namedCluster );
+    activateConnection = true;
   }
 
   public void connect() {
