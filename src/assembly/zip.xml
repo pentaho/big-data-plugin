@@ -5,12 +5,13 @@
   <formats>
     <format>zip</format>
   </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
       <directory>${project.build.directory}</directory>
-      <outputDirectory>${project.name}-${project.version}</outputDirectory>
+      <outputDirectory>${project.name}</outputDirectory>
       <includes>
-        <include>${project.name}-${project.version}.jar</include>
+        <include>*.jar</include>
       </includes>
     </fileSet>
   </fileSets>
