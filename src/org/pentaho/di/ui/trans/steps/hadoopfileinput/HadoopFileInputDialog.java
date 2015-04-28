@@ -2216,7 +2216,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       for ( int i = 0; i < in.getFileName().length; i++ ) {
         String sourceUrl = in.getFileName()[i];
         String clusterName = transientMappings.get( sourceUrl );
-        sourceUrl = namedClusterManager.processURLsubstitution( clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME );
+        sourceUrl =
+            namedClusterManager.processURLsubstitution(
+                clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME, metaStore, variables );
         
         wFilenameList
             .add( new String[] { sourceUrl, in.getFileMask()[i],
@@ -3071,7 +3073,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return this.getClass().getName();
   }
   
-  private void processNamedClusterURLMapping( String locationURL, Map namedClusterURLMappings ) {
+  private void processNamedClusterURLMapping( String locationURL, Map<String, String> namedClusterURLMappings ) {
     // The locationURL has to correspond to a NamedCluster otherwise it was modified by the user
     // thus breaking the URL/NamedCluster link.
     String cluster = transientMappings.get( locationURL );
