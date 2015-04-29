@@ -61,7 +61,7 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * 
  */
-@Step( id = "HBaseRowDecoder", image = "HBRD.png", name = "HBaseRowDecoder.Name",
+@Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )
@@ -145,7 +145,6 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     rowMeta.clear(); // start afresh - eats the input
 
     if ( m_mapping != null ) {
-      if ( !Const.isEmpty( m_mapping.getMappingName() ) ) {
         int kettleType;
 
         if ( m_mapping.getKeyType() == Mapping.KeyType.DATE
@@ -171,7 +170,6 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
           HBaseValueMeta columnMeta = mappedColumnsByAlias.get( alias );
           columnMeta.setOrigin( origin );
           rowMeta.addValueMeta( columnMeta );
-        }
       }
     }
   }

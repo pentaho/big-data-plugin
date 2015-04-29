@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -306,7 +307,23 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
    */
   protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String schemeRestriction,
       String defaultScheme, boolean showFileScheme ) throws KettleFileException {
+    String[] schemeRestrictions = new String[1];
+    schemeRestrictions[0] = schemeRestriction;
+    return browseVfs( root, initial, dialogMode, schemeRestrictions, showFileScheme, defaultScheme );
+  }
 
+  protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String[] schemeRestrictions,
+      boolean showFileScheme, String defaultScheme ) throws KettleFileException {
+    return browseVfs( root, initial, dialogMode, schemeRestrictions, showFileScheme, defaultScheme, null );
+  }
+  
+  protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String[] schemeRestrictions,
+      boolean showFileScheme, String defaultScheme, NamedCluster namedCluster ) throws KettleFileException {
+    return browseVfs( root, initial, dialogMode, schemeRestrictions,  showFileScheme, defaultScheme, namedCluster, true );
+  }
+  
+  protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String[] schemeRestrictions,
+      boolean showFileScheme, String defaultScheme, NamedCluster namedCluster, boolean showLocation ) throws KettleFileException {
     if ( initial == null ) {
       initial = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
     }
@@ -321,17 +338,19 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
     VfsFileChooserHelper fileChooserHelper =
         new VfsFileChooserHelper( getShell(), Spoon.getInstance().getVfsFileChooserDialog( root, initial ), jobEntry );
     fileChooserHelper.setDefaultScheme( defaultScheme );
-    fileChooserHelper.setSchemeRestriction( schemeRestriction );
+    fileChooserHelper.setSchemeRestrictions( schemeRestrictions );
     fileChooserHelper.setShowFileScheme( showFileScheme );
+    if ( namedCluster != null ) {
+      fileChooserHelper.setNamedCluster( namedCluster );
+    }
     try {
-      return fileChooserHelper.browse( getFileFilters(), getFileFilterNames(), initial.getName().getURI(), dialogMode );
+      return fileChooserHelper.browse( getFileFilters(), getFileFilterNames(), initial.getName().getURI(), dialogMode, showLocation );
     } catch ( KettleException e ) {
       throw new KettleFileException( e );
     } catch ( FileSystemException e ) {
       throw new KettleFileException( e );
-    }
-
-  }
+    }    
+  }  
 
   protected String[] getFileFilters() {
     return DEFAULT_FILE_FILTERS;

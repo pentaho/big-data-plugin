@@ -63,6 +63,8 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.compress.CompressionProviderFactory;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -77,6 +79,7 @@ import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -84,6 +87,8 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialogInterface {
@@ -222,6 +227,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   private Map<String, Integer> inputFields;
 
   private boolean gotPreviousFields = false;
+
+  private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
   public HadoopFileOutputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
@@ -1163,9 +1170,34 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
           VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
           fileChooserDialog.defaultInitialFile = defaultInitialFile;
+          
+          NamedClusterWidget namedClusterWidget = null;
+          List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+          String ncName = null;
+          HadoopVfsFileChooserDialog hadoopDialog = null;
+          for ( CustomVfsUiPanel panel : customPanels ) {
+            if ( panel instanceof HadoopVfsFileChooserDialog ) {
+              hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
+              namedClusterWidget = hadoopDialog.getNamedClusterWidget();
+              namedClusterWidget.initiate();
+              ncName = null;
+              if ( initialFile != null ) {
+                HadoopFileOutputMeta meta = ( HadoopFileOutputMeta ) input;
+                ncName = meta.getSourceConfigurationName();
+              }
+              hadoopDialog.setNamedCluster( ncName );
+              hadoopDialog.initializeConnectionPanel( initialFile );
+            }
+          }
+          
           FileObject selectedFile =
               fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, fileFilters,
                   fileFilterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
+          
+          CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
+          if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
+            namedClusterWidget = ( (HadoopVfsFileChooserDialog) currentPanel ).getNamedClusterWidget();
+          }
 
           if ( selectedFile != null ) {
             String filename = selectedFile.getURL().toString();
@@ -1177,6 +1209,12 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
               wFilename.setText( filename.substring( 0, filename.length() - ( extension.length() + 1 ) ) );
             } else {
               wFilename.setText( filename );
+            }
+
+            NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+            if ( nc != null ) {
+              HadoopFileOutputMeta meta = ( HadoopFileOutputMeta ) input;
+              meta.setSourceConfigurationName( nc.getName() );
             }
           }
         } catch ( KettleFileException ex ) {
@@ -1343,7 +1381,11 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
    */
   public void getData() {
     if ( input.getFileName() != null ) {
-      wFilename.setText( input.getFileName() );
+      HadoopFileOutputMeta meta = ( HadoopFileOutputMeta ) input;
+      String ncName = meta.getSourceConfigurationName();
+      String fileName = input.getFileName();
+      fileName = namedClusterManager.processURLsubstitution( ncName, fileName, HadoopSpoonPlugin.HDFS_SCHEME );
+      wFilename.setText( fileName );
     }
     wDoNotOpenNewFileInit.setSelection( input.isDoNotOpenNewFileInit() );
     wCreateParentFolder.setSelection( input.isCreateParentFolder() );

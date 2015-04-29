@@ -56,7 +56,7 @@ import org.w3c.dom.Node;
  * @author matt
  * @since 4.2.0-M1
  */
-@Step( id = "CouchDbInput", image = "couchdb-input.png", name = "CouchDbInput.Name",
+@Step( id = "CouchDbInput", image = "couchdb-input.svg", name = "CouchDbInput.Name",
     description = "CouchDbInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.couchdbinput" )

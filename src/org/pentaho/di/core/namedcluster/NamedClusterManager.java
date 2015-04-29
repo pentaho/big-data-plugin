@@ -26,7 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.vfs.FileName;
+import org.apache.commons.vfs.provider.url.UrlFileName;
+import org.apache.commons.vfs.provider.url.UrlFileNameParser;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
@@ -72,7 +80,7 @@ public class NamedClusterManager {
       clusterTemplate.setJobTrackerHost( "localhost" );
       clusterTemplate.setJobTrackerPort( "8032" );
       clusterTemplate.setZooKeeperHost( "localhost" );
-      clusterTemplate.setZooKeeperPort( "2888" );
+      clusterTemplate.setZooKeeperPort( "2181" );
       clusterTemplate.setOozieUrl( "http://localhost:8080/oozie" );
     }
     return clusterTemplate.clone();
@@ -182,4 +190,98 @@ public class NamedClusterManager {
     return false;
   }
   
+  /**
+   * This method generates the URL from the specific NamedCluster using the specified scheme.
+   *
+   * @param scheme
+   *          the name of the scheme to use to create the URL
+   * @param clusterName
+   *          the name of the NamedCluster to use to create the URL
+   * @return the generated URL from the specific NamedCluster or null if an error occurs
+   */
+  public String generateURL( String scheme, String clusterName ) {
+    String clusterURL = null;
+    try {
+      if ( !Const.isEmpty( scheme ) && !Const.isEmpty( clusterName ) ) {
+        NamedCluster namedCluster = read( clusterName, Spoon.getInstance().getMetaStore() );
+        String ncHostname = null, ncPort = null, ncUsername = null, ncPassword = null;
+        if ( namedCluster != null ) {
+
+          if ( scheme.equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
+            ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost() : "";
+            ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort() : "";
+            ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
+            ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
+          }
+
+          ncHostname = getVariableSpace().environmentSubstitute( ncHostname );
+          ncPort = getVariableSpace().environmentSubstitute( ncPort );
+          ncUsername = getVariableSpace().environmentSubstitute( ncUsername );
+          ncPassword = getVariableSpace().environmentSubstitute( ncPassword );
+          
+          ncHostname = ncHostname != null ? ncHostname.trim() : "";
+          ncPort = ncPort != null ? ncPort.trim() : "";
+          ncUsername = ncUsername != null ? ncUsername.trim() : "";
+          ncPassword = ncPassword != null ? ncPassword.trim() : "";
+          
+          UrlFileName file =
+              new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername,
+                  ncPassword, null, null, null );
+          clusterURL = file.getURI();
+          if ( clusterURL.endsWith( "/" ) ) {
+            clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+          }
+        }
+      }
+    } catch ( Exception e ) {
+      clusterURL = null;
+    }
+    return clusterURL;
+  }
+
+  /**
+   * Utility method to be used by generateURL 
+   * @return VariableSpace 
+   */
+  private VariableSpace getVariableSpace() {
+    if ( Spoon.getInstance().getActiveTransformation() != null ) {
+      return Spoon.getInstance().getActiveTransformation();
+    } else if ( Spoon.getInstance().getActiveJob() != null ) {
+      return Spoon.getInstance().getActiveJob();
+    } else {
+      return new Variables();
+    }
+  }
+  
+  /**
+   * This method performs the root URL substitution with the URL of the specified NamedCluster
+   *
+   * @param clusterName
+   *          the NamedCluster to use to generate the URL for the substitution
+   * @param incomingURL
+   *          the URL whose root will be replaced
+   * @param scheme
+   *          the scheme to be used to generate the URL of the specified NamedCluster
+   * @return the generated URL or the incoming URL if an error occurs
+   */
+  public String processURLsubstitution( String clusterName, String incomingURL, String scheme ) {
+    String outgoingURL = null;
+    try {
+      String clusterURL = generateURL( scheme, clusterName );
+
+      if ( clusterURL == null ) {
+        outgoingURL = incomingURL;
+      } else {
+        UrlFileNameParser parser = new UrlFileNameParser();
+        FileName fileName = parser.parseUri( null, null, incomingURL );
+        StringBuffer buffer = new StringBuffer();
+        buffer.append( clusterURL );
+        buffer.append( fileName.getPath() );
+        outgoingURL = buffer.toString();
+      }
+    } catch ( Exception e ) {
+      outgoingURL = null;
+    }
+    return outgoingURL;
+  }
 }
