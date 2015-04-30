@@ -243,8 +243,6 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     fdSparkSubmit.top = new FormAttachment( sparkSubmitLabel, MARGIN_SMALL );
     sparkSubmit.setLayoutData( fdSparkSubmit );
 
-    sparkSubmit.addSelectionListener( lsDef );
-
     browseSparkSubmit.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
         FileDialog dialog = new FileDialog( shell, SWT.OPEN );
@@ -307,8 +305,6 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     fdJar.right = new FormAttachment( browseJar, -MARGIN_SMALL );
     fdJar.top = new FormAttachment( jarLabel, MARGIN_SMALL );
     jar.setLayoutData( fdJar );
-
-    jar.addSelectionListener( lsDef );
 
     browseJar.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
