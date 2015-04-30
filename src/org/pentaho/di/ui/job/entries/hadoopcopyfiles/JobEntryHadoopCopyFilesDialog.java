@@ -847,13 +847,17 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
         if ( jobEntry.source_filefolder[i] != null ) {
           String sourceUrl = jobEntry.source_filefolder[i];
           String clusterName = transientMappings.get( sourceUrl );
-          sourceUrl = namedClusterManager.processURLsubstitution( clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME );
+          sourceUrl = 
+              namedClusterManager.processURLsubstitution(
+                  clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobEntry );
           ti.setText( 1, sourceUrl );
         }
         if ( jobEntry.destination_filefolder[i] != null ) {
           String destinationURL = jobEntry.destination_filefolder[i];
           String clusterName = transientMappings.get( destinationURL );
-          destinationURL = namedClusterManager.processURLsubstitution( clusterName, destinationURL, HadoopSpoonPlugin.HDFS_SCHEME );
+          destinationURL =
+              namedClusterManager.processURLsubstitution(
+                  clusterName, destinationURL, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobEntry );
           ti.setText( 2, destinationURL );
         }
         if ( jobEntry.wildcard[i] != null ) {
@@ -929,7 +933,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
     dispose();
   }
 
-  private void processNamedClusterURLMapping( String locationURL, Map namedClusterURLMappings ) {
+  private void processNamedClusterURLMapping( String locationURL, Map<String, String> namedClusterURLMappings ) {
     // The locationURL has to correspond to a NamedCluster otherwise it was modified by the user
     // thus breaking the URL/NamedCluster link.
     String cluster = transientMappings.get( locationURL );

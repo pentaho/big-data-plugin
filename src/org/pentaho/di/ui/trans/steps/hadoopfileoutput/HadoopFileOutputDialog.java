@@ -1384,7 +1384,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       HadoopFileOutputMeta meta = ( HadoopFileOutputMeta ) input;
       String ncName = meta.getSourceConfigurationName();
       String fileName = input.getFileName();
-      fileName = namedClusterManager.processURLsubstitution( ncName, fileName, HadoopSpoonPlugin.HDFS_SCHEME );
+      fileName =
+          namedClusterManager.processURLsubstitution(
+              ncName, fileName, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), variables );
       wFilename.setText( fileName );
     }
     wDoNotOpenNewFileInit.setSelection( input.isDoNotOpenNewFileInit() );

@@ -107,17 +107,18 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
     String ncName = XMLHandler.getTagValue( fnode, DESTINATION_CONFIGURATION_NAME );
     return storeUrl( destination_filefolder, ncName );
   }
-  
-  
-  private String storeUrl(String url, String ncName) {
-    url = namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME );
+
+  private String storeUrl( String url, String ncName ) {
+    url =
+        namedClusterManager.processURLsubstitution(
+            ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), getVariables() );
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       namedClusterURLMapping.put( url, ncName );
     }
     return url;
   }
-  
-  public void setNamedClusterURLMapping( Map mappings ) {
+
+  public void setNamedClusterURLMapping( Map<String, String> mappings ) {
     this.namedClusterURLMapping = mappings;
   }
   

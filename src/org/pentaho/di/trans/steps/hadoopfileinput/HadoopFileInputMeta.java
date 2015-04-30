@@ -34,6 +34,7 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileinput.TextFileInputMeta;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 @Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
@@ -77,14 +78,23 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
   }
 
   private String storeUrl( String url, String ncName ) {
-    url = namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME );
+    url = 
+        namedClusterManager.processURLsubstitution( 
+            ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), null );
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       namedClusterURLMapping.put( url, ncName );
     }
     return url;
   }
 
-  public void setNamedClusterURLMapping( Map mappings ) {
+  private IMetaStore getMetaStore() {
+    if ( repository != null ) {
+      return repository.getMetaStore();
+    }
+    return null;
+  }
+
+  public void setNamedClusterURLMapping( Map<String, String> mappings ) {
     this.namedClusterURLMapping = mappings;
   }
 
