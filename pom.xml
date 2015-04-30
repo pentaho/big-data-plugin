@@ -18,11 +18,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dependency.junit.junit.version>4.5</dependency.junit.junit.version>
     <dependency.org.mockito.mockito-all.version>1.9.5</dependency.org.mockito.mockito-all.version>
-    <dependency.pentaho-kettle.kettle-core.version>TRUNK-SNAPSHOT</dependency.pentaho-kettle.kettle-core.version>
-    <dependency.pentaho-kettle.kettle-engine.version>TRUNK-SNAPSHOT</dependency.pentaho-kettle.kettle-engine.version>
-    <dependency.pentaho-kettle.kettle-engine-test.version>TRUNK-SNAPSHOT</dependency.pentaho-kettle.kettle-engine-test.version>
-    <dependency.pentaho-kettle.kettle-ui-swt.version>TRUNK-SNAPSHOT</dependency.pentaho-kettle.kettle-ui-swt.version>
-    <dependency.pentaho.metastore.version>TRUNK-SNAPSHOT</dependency.pentaho.metastore.version>
+    <dependency.pentaho-kettle.kettle-core.version>${project.version}</dependency.pentaho-kettle.kettle-core.version>
+    <dependency.pentaho-kettle.kettle-engine.version>${project.version}</dependency.pentaho-kettle.kettle-engine.version>
+    <dependency.pentaho-kettle.kettle-engine-test.version>${project.version}</dependency.pentaho-kettle.kettle-engine-test.version>
+    <dependency.pentaho-kettle.kettle-ui-swt.version>${project.version}</dependency.pentaho-kettle.kettle-ui-swt.version>
+    <dependency.pentaho.metastore.version>${project.version}</dependency.pentaho.metastore.version>
   </properties>
   <scm>
     <developerConnection>
