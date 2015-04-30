@@ -22,11 +22,16 @@
 
 package org.pentaho.di.core.hadoop;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TreeItem;
-import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.SwtUniversalImage;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
@@ -35,15 +40,15 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.namedcluster.dialog.NamedClusterDialog;
 import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.spoon.SelectionTreeExtension;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.util.SwtSvgImageUtil;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-
-import java.util.List;
 
 @ExtensionPoint( id = "HadoopClusterViewTreeExtension", description = "Refreshes named cluster subtree",
     extensionPointId = "SpoonViewTreeExtension" )
@@ -52,7 +57,8 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
 
   private Spoon spoon = null;
   private HadoopClusterDelegate ncDelegate = null;
-  private static Class<?> PKG = Spoon.class;
+  private Image hadoopClusterImage = null;
+  private static Class<?> PKG = Spoon.class; 
   public static final String
       STRING_NAMED_CLUSTERS =
       BaseMessages.getString( NamedClusterDialog.class, "NamedClusterDialog.STRING_NAMED_CLUSTERS" );
@@ -62,6 +68,7 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
   public HadoopClusterViewTreeExtension() {
     spoon = Spoon.getInstance();
     ncDelegate = new HadoopClusterDelegate( spoon );
+    hadoopClusterImage = getHadoopClusterImage( spoon.getDisplay() );
   }
 
   public void callExtensionPoint( LogChannelInterface log, Object extension ) throws KettleException {
@@ -105,7 +112,7 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
         continue;
       }
 
-      createTreeItem( tiNcTitle, namedCluster.getName(), guiResource.getImageConnectionTree() );
+      createTreeItem( tiNcTitle, namedCluster.getName(), hadoopClusterImage );
     }
   }
 
@@ -136,4 +143,17 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
 
     return string.toUpperCase().contains( filter.toUpperCase() );
   }
+  
+  private Image getHadoopClusterImage( Display display ) {
+    final SwtUniversalImage swtImage =
+        SwtSvgImageUtil.getUniversalImage( display, getClass().getClassLoader(), "hadoop_clusters.svg" );
+    Image image = swtImage.getAsBitmapForSize( display, ConstUI.MEDIUM_ICON_SIZE, ConstUI.MEDIUM_ICON_SIZE );
+    display.addListener( SWT.Dispose, new Listener() {
+      public void handleEvent( Event event ) {
+        swtImage.dispose();
+      }
+    } );
+    return image;
+  }
+  
 }

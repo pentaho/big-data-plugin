@@ -22,12 +22,12 @@
 
 package org.pentaho.di.core.hadoop;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Tree;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -38,6 +38,8 @@ import org.pentaho.di.ui.spoon.Spoon;
 
 public class PopupMenuFactory {
 
+  private static final int RESULT_YES = 0;
+  
   private Spoon spoon = null;
   private static Class<?> PKG = PopupMenuFactory.class;
   private HadoopClusterDelegate ncDelegate = null;
@@ -54,7 +56,7 @@ public class PopupMenuFactory {
   public Menu createNewPopupMenu( final Tree selectionTree ) {
     if ( newMenu == null ) {
       newMenu = new Menu( selectionTree );
-      createPopupMenu( newMenu, BaseMessages.getString( Spoon.class, "Spoon.Menu.Popup.BASE.New" ),
+      createPopupMenu( newMenu, BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.New" ),
           new NewNamedClusterCommand() );
     }
     return newMenu;
@@ -64,7 +66,7 @@ public class PopupMenuFactory {
     this.selectedNamedCluster = selectedNamedCluster;
     if ( maintMenu == null ) {
       maintMenu = new Menu( selectionTree );
-      createPopupMenu( maintMenu, BaseMessages.getString( Spoon.class, "Spoon.Menu.Popup.BASE.New" ),
+      createPopupMenu( maintMenu, BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.New" ),
           new NewNamedClusterCommand() );
       createPopupMenu( maintMenu, BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.Edit" ),
           new EditNamedClusterCommand() );
@@ -119,12 +121,18 @@ public class PopupMenuFactory {
 
   class DeleteNamedClusterCommand implements NamedClusterCommand {
     public void execute() {
-      MessageBox mb = new MessageBox( spoon.getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION );
-      mb.setMessage( BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Message",
-          selectedNamedCluster.getName() ) );
-      mb.setText( BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Title" ) );
-      int response = mb.open();
-      if ( response != SWT.YES ) {
+      String title = BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Title" );
+      String message =
+          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Message",
+              selectedNamedCluster.getName() );
+      String deleteButton = BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Delete" );
+      String doNotDeleteButton =
+          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.DoNotDelete" );
+      MessageDialog dialog =
+          new MessageDialog( spoon.getShell(), title, null, message, MessageDialog.WARNING, new String[] {
+            deleteButton, doNotDeleteButton }, 0 );
+      int response = dialog.open();
+      if ( response != RESULT_YES ) {
         return;
       }
       ncDelegate.delNamedCluster( spoon.metaStore, selectedNamedCluster );
