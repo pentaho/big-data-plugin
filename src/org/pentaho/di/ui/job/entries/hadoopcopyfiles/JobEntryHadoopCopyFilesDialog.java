@@ -32,9 +32,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -52,7 +54,6 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
-import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.job.entries.copyfiles.JobEntryCopyFilesDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
@@ -80,26 +81,17 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   protected void initUI() {
     super.initUI();
     shell.setText( BaseMessages.getString( PKG, "JobHadoopCopyFiles.Title" ) );
-    wbSourceDirectory.setText( BaseMessages.getString( PKG, "JobCopyFiles.Browse.Label" ) );
-    wbDestinationDirectory.setText( BaseMessages.getString( PKG, "JobCopyFiles.Browse.Label" ) );
   }
-  
-  protected SelectionAdapter getSourceSelectionAdapter() {
+
+  protected SelectionAdapter getFileSelectionAdapter() {
     return new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
-        setSelectedFile( wSourceFileFolder );
+        String path = wFields.getActiveTableItem().getText( wFields.getActiveTableColumn() );
+        setSelectedFile( path );
       }
     };
   }
 
-  protected SelectionAdapter getDestinationSelectionAdapter() {
-    return new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        setSelectedFile( wDestinationFileFolder );
-      }
-    };    
-  }
-  
   /**
    * Copy information from the meta-data input to the dialog fields.
    */
@@ -208,7 +200,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     }
   }
 
-  private FileObject setSelectedFile( TextVar textVar ) {
+  private FileObject setSelectedFile( String path ) {
 
     FileObject selectedFile = null;
 
@@ -218,9 +210,9 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       FileObject initialFile = null;
       FileObject defaultInitialFile = null;
 
-      if ( textVar.getText() != null ) {
+      if ( path != null ) {
 
-        String fileName = jobMeta.environmentSubstitute( textVar.getText() );
+        String fileName = jobMeta.environmentSubstitute( path );
 
         if ( fileName != null && !fileName.equals( "" ) ) {
           try {
@@ -271,12 +263,15 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
 
       if ( selectedFile != null ) {
         String url = selectedFile.getURL().toString();
-        textVar.setText( url );
-        
         NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
         if ( nc != null ) {
+          url = 
+              namedClusterManager.processURLsubstitution(
+                  nc.getName(), url, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobEntry );
           transientMappings.put( url, nc.getName() );
         }
+        
+        wFields.getActiveTableItem().setText( wFields.getActiveTableColumn(), url );
       }
       
       return selectedFile;
