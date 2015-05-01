@@ -1087,7 +1087,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( BASE_PKG, "System.Button.Cancel" ) );
 
-    setButtonPositions( new Button[] { wOK, wCancel }, margin, wTabFolder );
+    positionBottomRightButtons( shell, new Button[] { wOK, wCancel }, margin, wTabFolder );
 
     // Add listeners
     lsOK = new Listener() {
