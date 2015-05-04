@@ -13,7 +13,7 @@
        https://github.com/pentaho/maven-parent-poms/blob/pentaho-ce-jar-parent-pom-1.0.11/pentaho-ce-jar-parent-pom/pom.xml
     -->
   </parent>
-  <name>pentaho-spark-plugin</name>
+  <name>pdi-spark-plugin</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dependency.junit.junit.version>4.5</dependency.junit.junit.version>
