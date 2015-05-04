@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>pentaho</groupId>
-  <artifactId>pentaho-spark-plugin</artifactId>
+  <artifactId>pdi-spark-plugin</artifactId>
   <version>TRUNK-SNAPSHOT</version>
   <packaging>jar</packaging>
   <parent>
