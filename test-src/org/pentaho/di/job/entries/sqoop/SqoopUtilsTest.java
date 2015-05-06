@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -37,7 +37,6 @@ import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.entries.helper.PersistentPropertyChangeListener;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 public class SqoopUtilsTest {
@@ -47,6 +46,12 @@ public class SqoopUtilsTest {
 
     @CommandLineArgument( name = "strictlyNotEmpty" )
     private String strictlyNotEmpty;
+
+    @CommandLineArgument( name = "a-param", prefix = "--", order = 100 )
+    private String aParam;
+
+    @CommandLineArgument( name = "single-dash", prefix = "-", order = 50 )
+    private String singleDash;
 
     public String getTest() {
       return test;
@@ -66,6 +71,26 @@ public class SqoopUtilsTest {
       String old = this.strictlyNotEmpty;
       this.strictlyNotEmpty = strictlyNotEmpty;
       pcs.firePropertyChange( "strictlyNotEmpty", old, this.strictlyNotEmpty );
+    }
+
+    public String getSingleDash() {
+      return singleDash;
+    }
+
+    public void setSingleDash( String singleDash ) {
+      String old = this.singleDash;
+      this.singleDash = singleDash;
+      pcs.firePropertyChange( "singleDash", old, this.singleDash );
+    }
+
+    public String getAParam() {
+      return aParam;
+    }
+
+    public void setAParam( String aParam ) {
+      String old = this.aParam;
+      this.aParam = aParam;
+      pcs.firePropertyChange( "aParam", old, this.aParam );
     }
   }
 
@@ -233,7 +258,7 @@ public class SqoopUtilsTest {
     config.setOptionallyEnclosedBy( "\\t" );
 
     assertEquals(
-        "--connect jdbc:oracle:thin://bogus/testing --optionally-enclosed-by \"\\t\" --bindir \"dir with space\" --table testing",
+        "--bindir \"dir with space\" --connect jdbc:oracle:thin://bogus/testing --optionally-enclosed-by \"\\t\" --table testing",
         SqoopUtils.generateCommandLineString( config, null ) );
   }
 
@@ -252,7 +277,7 @@ public class SqoopUtilsTest {
     cfg.setTest( Boolean.TRUE.toString() );
     cfg.setStrictlyNotEmpty( "   " );
 
-    assertEquals( "--test --strictlyNotEmpty \"   \"", SqoopUtils.generateCommandLineString( cfg, null ) );
+    assertEquals( "--strictlyNotEmpty \"   \" --test", SqoopUtils.generateCommandLineString( cfg, null ) );
   }
 
   @Test
@@ -267,7 +292,7 @@ public class SqoopUtilsTest {
     config.setOptionallyEnclosedBy( "\\t" );
 
     assertEquals(
-        "--password password!!! --optionally-enclosed-by \"\\t\" --bindir \"dir with space\" --table testing",
+        "--bindir \"dir with space\" --optionally-enclosed-by \"\\t\" --password password!!! --table testing",
         SqoopUtils.generateCommandLineString( config, null ) );
 
     config.setPassword( "${password}" );
@@ -330,7 +355,7 @@ public class SqoopUtilsTest {
       SqoopUtils.configureFromCommandLine( config, "-P", null );
       fail( "Expected KettleException for invalid argument" );
     } catch ( KettleException ex ) {
-      assertEquals( "Unknown argument(s): -P", ex.getMessage().trim() );
+      assertEquals( "Unknown argument(s): P", ex.getMessage().trim() );
     }
   }
 
@@ -413,6 +438,31 @@ public class SqoopUtilsTest {
     assertEquals( "there should be a couple of args", 2, args.size() );
     assertEquals( "the first arg does not match ", args.get( 0 ), "--num-mappers" );
     assertEquals( "the second arg does not match ", args.get( 1 ), "55" );
+  }
+
+  @Test
+  public void configureFromCommandLine_single_dash() throws Exception {
+    MockConfig config = new MockConfig();
+
+    SqoopUtils.configureFromCommandLine( config, "-single-dash sd-value1", null );
+    assertEquals( "the parameters has to be recongnized by name regardless of prefix '-'",
+        "sd-value1", config.getSingleDash() );
+
+    SqoopUtils.configureFromCommandLine( config, "--single-dash sd-value2", null );
+    assertEquals( "the parameters has to be recongnized by name regardless of prefix '--'",
+        "sd-value2", config.getSingleDash() );
+  }
+
+  @Test
+  public void generateCommandLineString_order_and_prefix() throws Exception {
+    MockConfig config = new MockConfig();
+
+    config.setSingleDash( "sd-value3" );
+    config.setAParam( "a-param-value" );
+    assertEquals( "order should obey 'order' attribute "
+                + "even though it's not according to lexigraphical sort",
+        "-single-dash sd-value3 --a-param a-param-value",
+        SqoopUtils.generateCommandLineString( config, null ) );
   }
 
 }

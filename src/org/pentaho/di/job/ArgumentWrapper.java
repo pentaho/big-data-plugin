@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,11 +34,16 @@ public class ArgumentWrapper implements XulEventSource {
   private String name;
   private String displayName;
   private boolean flag;
+  private String prefix;
+  private int order;
+
   private Object target;
   private Method getter;
   private Method setter;
 
-  public ArgumentWrapper( String name, String displayName, boolean flag, Object target, Method getter, Method setter ) {
+  public ArgumentWrapper( String name, String displayName,
+      boolean flag, String prefix, int order,
+      Object target, Method getter, Method setter ) {
     if ( name == null || target == null || getter == null || setter == null ) {
       throw new NullPointerException();
     }
@@ -47,6 +52,8 @@ public class ArgumentWrapper implements XulEventSource {
     this.name = name;
     this.displayName = displayName;
     this.flag = flag;
+    this.prefix = prefix;
+    this.order = order;
     this.target = target;
     this.getter = getter;
     this.setter = setter;
@@ -139,5 +146,21 @@ public class ArgumentWrapper implements XulEventSource {
   @Override
   public void removePropertyChangeListener( PropertyChangeListener listener ) {
     // Do nothing, this object is a wrapper and firing events here propagates to too many objects
+  }
+
+  public String getPrefix() {
+    return prefix;
+  }
+
+  public void setPrefix( String prefix ) {
+    this.prefix = prefix;
+  }
+
+  public int getOrder() {
+    return order;
+  }
+
+  public void setOrder( int order ) {
+    this.order = order;
   }
 }

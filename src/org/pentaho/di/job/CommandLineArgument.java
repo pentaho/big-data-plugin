@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -59,4 +59,16 @@ public @interface CommandLineArgument {
    * @return true if this argument represents a flag or switch.
    */
   boolean flag() default false;
+
+  /**
+   * Arguments could be prefixed different in a different way (double dash by default)
+   * @return prefix to be used with the argument
+   */
+  String prefix() default "--";
+
+  /**
+   * Some arguments have to follow a particular precedence
+   * @return sort order for the argument
+   */
+  int order() default 100;
 }

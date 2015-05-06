@@ -153,14 +153,14 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     CHOOSE_AVAILABLE_CLUSTER = new NamedCluster();
     CHOOSE_AVAILABLE_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.ChooseAvailable" ) );
-    CHOOSE_AVAILABLE_CLUSTER.setVariable("valid", "false");
+    CHOOSE_AVAILABLE_CLUSTER.setVariable( "valid", "false" );
 
     USE_ADVANCED_OPTIONS_CLUSTER = new NamedCluster();
     USE_ADVANCED_OPTIONS_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.UseAdvancedOptions" ) );
-    USE_ADVANCED_OPTIONS_CLUSTER.setVariable("valid", "false");
+    USE_ADVANCED_OPTIONS_CLUSTER.setVariable( "valid", "false" );
     Spoon spoon = Spoon.getInstance();
-    if( spoon != null ) {
+    if ( spoon != null ) {
       ncDelegate = new HadoopClusterDelegate( spoon );
     }
   }
@@ -687,7 +687,9 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   protected void setUiMode( JobEntryMode mode ) {
     switch ( mode ) {
       case QUICK_SETUP:
-        if ( selectedNamedCluster != null && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) && !suppressEventHandling ) {
+        if ( selectedNamedCluster != null
+          && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER )
+          && !suppressEventHandling ) {
           config.clearAdvancedNamedConfigurationInfo();
         }
         toggleQuickMode( true );
@@ -732,7 +734,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       }
     } else if ( JobEntryMode.ADVANCED_COMMAND_LINE.equals( newMode ) ) {
       // Sync config properties -> command line
-      getConfig().setCommandLine( SqoopUtils.generateCommandLineString( getConfig(), getJobEntry() ) );
+      getConfig().setCommandLine( SqoopUtils.generateCommandLineString( getConfig(), null ) );
     }
 
     if ( JobEntryMode.ADVANCED_LIST.equals( newMode ) ) {
@@ -770,7 +772,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   protected boolean syncCommandLineToConfig() {
     try {
       // Sync command line -> config properties
-      SqoopUtils.configureFromCommandLine( getConfig(), getConfig().getCommandLine(), getJobEntry() );
+      SqoopUtils.configureFromCommandLine( getConfig(), getConfig().getCommandLine(), null );
       return true;
     } catch ( Exception ex ) {
       showErrorDialog( BaseMessages.getString( AbstractSqoopJobEntry.class, "Dialog.Error" ), BaseMessages.getString(
@@ -876,9 +878,9 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       if ( null != schemas && schemas.length > 0 ) {
         schemas = Const.sortStrings( schemas );
         EnterSelectionDialog dialog =
-            new EnterSelectionDialog( getShell(), schemas, BaseMessages.getString( AbstractSqoopJobEntry.class,
-                "AvailableSchemas.Title" ), BaseMessages.getString( AbstractSqoopJobEntry.class,
-                "AvailableSchemas.Message" ) );
+          new EnterSelectionDialog( getShell(), schemas,
+              BaseMessages.getString( AbstractSqoopJobEntry.class, "AvailableSchemas.Title" ),
+              BaseMessages.getString( AbstractSqoopJobEntry.class, "AvailableSchemas.Message" ) );
         String schema = dialog.open();
         if ( schema != null ) {
           getConfig().setSchema( schema );
@@ -922,5 +924,5 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         setSelectedNamedCluster( selectedNamedCluster );
       }
     }
-  }  
+  }
 }

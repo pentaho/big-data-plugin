@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -69,9 +69,9 @@ public class HadoopExitMetaTest {
       meta.getFields( rowMeta, null, null, null, null );
       fail( "expected exception" );
     } catch ( Exception ex ) {
-      assertEquals( "\n"
-          + BaseMessages.getString( HadoopExitMeta.class, "Error.InvalidKeyField", meta.getOutKeyFieldname() ) + "\n",
-          ex.getMessage() );
+      assertEquals(
+          BaseMessages.getString( HadoopExitMeta.class, "Error.InvalidKeyField", meta.getOutKeyFieldname() ).trim(),
+          ex.getMessage().trim() );
     }
 
     // Check that the meta was not modified
@@ -98,9 +98,9 @@ public class HadoopExitMetaTest {
       meta.getFields( rowMeta, null, null, null, null );
       fail( "expected exception" );
     } catch ( Exception ex ) {
-      assertEquals( "\n"
-          + BaseMessages.getString( HadoopExitMeta.class, "Error.InvalidValueField", meta.getOutValueFieldname() )
-          + "\n", ex.getMessage() );
+      assertEquals(
+          BaseMessages.getString( HadoopExitMeta.class, "Error.InvalidValueField", meta.getOutValueFieldname() ).trim(),
+          ex.getMessage().trim() );
     }
 
     // Check that the meta was not modified
