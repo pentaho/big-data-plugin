@@ -26,6 +26,9 @@ import static org.pentaho.di.job.entry.validator.AndValidator.putValidators;
 import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.StreamTokenizer;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -372,7 +375,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
    *
    * @return The spark-submit command
    */
-  public List<String> getCmds() {
+  public List<String> getCmds() throws IOException {
     List<String> cmds = new ArrayList<String>();
 
     cmds.add( environmentSubstitute( scriptPath ) );
@@ -402,10 +405,10 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     cmds.add( jar );
 
     if ( !Const.isEmpty( args ) ) {
-      String[] argArray = environmentSubstitute( args ).split( " " );
-      for ( String anArgArray : argArray ) {
-        if ( !Const.isEmpty( anArgArray ) ) {
-          cmds.add( anArgArray );
+      List<String> argArray = parseCommandLine( args );
+      for ( String anArg : argArray ) {
+        if ( !Const.isEmpty( anArg ) ) {
+          cmds.add( anArg );
         }
       }
     }
@@ -414,7 +417,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   }
 
   @VisibleForTesting
-  protected boolean validate ( ) {
+  protected boolean validate( ) {
     boolean valid = true;
     if ( Const.isEmpty( scriptPath ) || !new File( environmentSubstitute( scriptPath ) ).exists() ) {
       logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.SparkSubmitPathInvalid" ) );
@@ -439,21 +442,20 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
    * @return The Result of the operation
    */
   public Result execute( Result result, int nr ) {
-
     if ( !validate() ) {
       result.setResult( false );
       return result;
     }
 
-    List<String> cmds = getCmds();
-
-    logBasic( "Submitting Spark Script" );
-
-    if ( log.isDetailed() ) {
-      logDetailed( cmds.toString() );
-    }
-
     try {
+      List<String> cmds = getCmds();
+
+      logBasic( "Submitting Spark Script" );
+
+      if ( log.isDetailed() ) {
+        logDetailed( cmds.toString() );
+      }
+
       // Build the environment variable list...
       ProcessBuilder procBuilder = new ProcessBuilder( cmds );
       Map<String, String> env = procBuilder.environment();
@@ -570,6 +572,49 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     andValidator().validate( this, "master", remarks, putValidators( notBlankValidator() ) );
     andValidator().validate( this, "jar", remarks, putValidators( notBlankValidator() ) );
     andValidator().validate( this, "className", remarks, putValidators( notBlankValidator() ) );
+  }
+
+  /**
+   * Parse a string into arguments as if it were provided on the command line.
+   *
+   * @param commandLineString
+   *          A command line string.
+   * @return List of parsed arguments
+   * @throws IOException
+   *           when the command line could not be parsed
+   */
+  public List<String> parseCommandLine( String commandLineString ) throws IOException {
+    List<String> args = new ArrayList<String>();
+    StringReader reader = new StringReader( commandLineString );
+    try {
+      StreamTokenizer tokenizer = new StreamTokenizer( reader );
+      // Treat a dash as an ordinary character so it gets included in the token
+      tokenizer.ordinaryChar( '-' );
+      tokenizer.ordinaryChar( '.' );
+      tokenizer.ordinaryChars( '0', '9' );
+      // Treat all characters as word characters so nothing is parsed out
+      tokenizer.wordChars( '\u0000', '\uFFFF' );
+
+      // Re-add whitespace characters
+      tokenizer.whitespaceChars( 0, ' ' );
+
+      // Use " and ' as quote characters
+      tokenizer.quoteChar( '"' );
+      tokenizer.quoteChar( '\'' );
+
+      // Add all non-null string values tokenized from the string to the argument list
+      while ( tokenizer.nextToken() != StreamTokenizer.TT_EOF ) {
+        if ( tokenizer.sval != null ) {
+          String s = tokenizer.sval;
+          s = environmentSubstitute( s );
+          args.add( s );
+        }
+      }
+    } finally {
+      reader.close();
+    }
+
+    return args;
   }
 
   public static void main( String[] args ) {
