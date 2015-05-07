@@ -28,6 +28,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemOptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -97,7 +99,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   // way hostname and port resolutions (for Connect Test and HDFS) are done.
   boolean isHighAvailabilityCluster = false;
 
-  boolean activateConnection = false;
+  boolean activate = false;
 
   String schemeName = "hdfs";
   
@@ -115,6 +117,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     this.rootFile = rootFile;
     this.initialFile = initialFile;
     this.vfsFileChooserDialog = vfsFileChooserDialog;
+
     // Create the Hadoop panel
     GridData gridData = new GridData( SWT.FILL, SWT.CENTER, true, false );
     setLayoutData( gridData );
@@ -140,9 +143,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     namedClusterWidget.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent evt ) {
         try {
-          if ( activateConnection ) {
-            connect();
-          }
+          connect();
         } catch (Exception e) {
           //To prevent errors from multiple event firings.
         }
@@ -239,18 +240,20 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   }
   
   public void activate() {
+    activate = true;
+    
     ncHostname = "";
     ncPort = "";
     ncUsername = "";
     ncPassword = "";
 
-    activateConnection = false;
     namedClusterWidget.setSelectedNamedCluster( namedCluster );
-    activateConnection = true;
+    
+    super.activate();
+    activate = false;
   }
 
   public void connect() {
-      
     vfsFileChooserDialog.setRootFile( null );
     vfsFileChooserDialog.setInitialFile( null );
     vfsFileChooserDialog.openFileCombo.setText( "hdfs://" );
@@ -350,8 +353,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       }
 
     } catch ( Throwable t ) {
-      showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
-          PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
+      if ( !activate ) {
+        showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
+            PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
+      }
       return;
     }
 
@@ -364,6 +369,9 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     try {
       root = KettleVFS.getFileObject( buildHadoopFileSystemUrlString() );
     } catch ( KettleFileException e1 ) {
+      if ( activate ) {
+        return;
+      }
       // Search for "unsupported scheme" message. The actual string has parameters that we won't be able to match,
       // so build a string with
       // known (dummy) params, then split to get the beginning string, then compare against the current exception's
@@ -392,6 +400,27 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     vfsFileChooserDialog.setRootFile( root );
     vfsFileChooserDialog.setSelectedFile( root );
     rootFile = root;
+  }
+
+  public FileObject resolveFile( String fileUri ) throws FileSystemException {
+    try {
+      return KettleVFS.getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
+    } catch ( KettleFileException e ) {
+      throw new FileSystemException( e );
+    }
+  }
+
+  public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
+    try {
+      return KettleVFS.getFileObject( fileUri, getVariableSpace(), opts );
+    } catch ( KettleFileException e ) {
+      throw new FileSystemException( e );
+    }
+  }
+
+  protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
+    FileSystemOptions opts = new FileSystemOptions();
+    return opts;
   }
 
 }
