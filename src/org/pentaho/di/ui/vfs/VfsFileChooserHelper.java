@@ -72,9 +72,15 @@ public class VfsFileChooserHelper {
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode, boolean showLocation )
     throws KettleException, FileSystemException {
-    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation );
+    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation, true );
   }
 
+  public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, int fileDialogMode, 
+      boolean showLocation, boolean showCustomUI )
+      throws KettleException, FileSystemException {
+    return browse( fileFilters, fileFilterNames, fileUri, fileSystemOptions, fileDialogMode, showLocation, showCustomUI );
+  }
+  
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts )
     throws KettleException, FileSystemException {
     return browse( fileFilters, fileFilterNames, fileUri, opts, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
@@ -82,15 +88,14 @@ public class VfsFileChooserHelper {
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
       int fileDialogMode ) throws KettleException, FileSystemException {
-   return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, true );
+   return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, true, true );
   }
-  
+
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-      int fileDialogMode, boolean showLocation ) throws KettleException, FileSystemException {
+      int fileDialogMode, boolean showLocation, boolean showCustomUI ) throws KettleException, FileSystemException {
     // Get current file
     FileObject rootFile = null;
     FileObject initialFile = null;
-    FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
     if ( fileUri != null ) {
       initialFile = KettleVFS.getFileObject( fileUri, variableSpace, opts );
@@ -100,20 +105,12 @@ public class VfsFileChooserHelper {
     rootFile = initialFile.getFileSystem().getRoot();
     fileChooserDialog.setRootFile( rootFile );
     fileChooserDialog.setInitialFile( initialFile );
-
     fileChooserDialog.defaultInitialFile = rootFile;
 
     FileObject selectedFile = null;
-    if ( initialFile != null ) {
-      selectedFile =
-          fileChooserDialog
-              .open( shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), initialFile.getName()
-                  .getPath(), fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode, showLocation );
-    } else {
-      selectedFile =
-          fileChooserDialog.open( shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), null,
-              fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode, showLocation );
-    }
+    selectedFile = fileChooserDialog.open( 
+        shell, this.schemeRestrictions, getDefaultScheme(), showFileScheme(), initialFile.getName().getPath(), 
+        fileFilters, fileFilterNames, returnsUserAuthenticatedFileObjects(), fileDialogMode, showLocation, showCustomUI );
 
     return selectedFile;
   }  
