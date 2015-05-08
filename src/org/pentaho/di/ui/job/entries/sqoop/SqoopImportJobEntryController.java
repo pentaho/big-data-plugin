@@ -86,7 +86,7 @@ public class SqoopImportJobEntryController extends
 
       FileObject targetDir =
           browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
-              false, schemeRestrictions[0], selectedNamedCluster, false );
+              false, schemeRestrictions[0], selectedNamedCluster, false, false );
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
       if ( okPressed ) {
