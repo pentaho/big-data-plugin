@@ -270,4 +270,18 @@ public class NamedClusterManager {
     }
     return outgoingURL;
   }
+  
+  public NamedCluster getNamedClusterByName( String namedCluster, IMetaStore metastore ) {
+    try {
+      List<NamedCluster> namedClusters = list( metastore );
+      for ( NamedCluster nc : namedClusters ) {
+        if ( nc.getName().equals( namedCluster ) ) {
+          return nc;
+        }
+      }
+    } catch ( MetaStoreException e ) {
+      return null;
+    }
+    return null;
+  }
 }

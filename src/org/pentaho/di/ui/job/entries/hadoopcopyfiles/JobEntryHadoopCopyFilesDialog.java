@@ -26,17 +26,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -54,25 +53,24 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
+import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.job.entries.copyfiles.JobEntryCopyFilesDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   private static Class<?> BASE_PKG = JobEntryCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
   private static Class<?> PKG = JobEntryHadoopCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
-
   private LogChannel log = new LogChannel( this );
-
-  private Map<String, String> transientMappings = null;
-  private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
+  private JobEntryHadoopCopyFiles jobEntryHadoopCopyFiles;
 
   public JobEntryHadoopCopyFilesDialog( Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
     super( parent, jobEntryInt, rep, jobMeta );
     jobEntry = (JobEntryCopyFiles) jobEntryInt;
-    transientMappings = ( ( JobEntryHadoopCopyFiles ) jobEntry ).getNamedClusterURLMapping();
+    jobEntryHadoopCopyFiles = (JobEntryHadoopCopyFiles) jobEntry;
     if ( this.jobEntry.getName() == null ) {
       this.jobEntry.setName( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Name.Default" ) );
     }
@@ -87,7 +85,8 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     return new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
         String path = wFields.getActiveTableItem().getText( wFields.getActiveTableColumn() );
-        setSelectedFile( path );
+        String clusterName = wFields.getActiveTableItem().getText( wFields.getActiveTableColumn() - 1 );
+        setSelectedFile( path, clusterName );
       }
     };
   }
@@ -96,33 +95,48 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
    * Copy information from the meta-data input to the dialog fields.
    */
   public void getData() {
+
     if ( jobEntry.getName() != null ) {
       wName.setText( jobEntry.getName() );
     }
     wName.selectAll();
     wCopyEmptyFolders.setSelection( jobEntry.copy_empty_folders );
-    
+
     if ( jobEntry.source_filefolder != null ) {
       for ( int i = 0; i < jobEntry.source_filefolder.length; i++ ) {
         TableItem ti = wFields.table.getItem( i );
         if ( jobEntry.source_filefolder[i] != null ) {
           String sourceUrl = jobEntry.source_filefolder[i];
-          String clusterName = transientMappings.get( sourceUrl );
-          sourceUrl = 
-              namedClusterManager.processURLsubstitution(
-                  clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobEntry );
-          ti.setText( 1, sourceUrl );
-        }
-        if ( jobEntry.destination_filefolder[i] != null ) {
-          String destinationURL = jobEntry.destination_filefolder[i];
-          String clusterName = transientMappings.get( destinationURL );
-          destinationURL =
-              namedClusterManager.processURLsubstitution(
-                  clusterName, destinationURL, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobEntry );
-          ti.setText( 2, destinationURL );
+          String clusterName = jobEntryHadoopCopyFiles.getClusterNameBy( sourceUrl );
+          if ( clusterName != null ) {
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            ti.setText( 1, clusterName );
+            sourceUrl =
+                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ? sourceUrl
+                    : jobEntryHadoopCopyFiles.getUrlPath( sourceUrl );
+          }
+          ti.setText( 2, sourceUrl );
         }
         if ( jobEntry.wildcard[i] != null ) {
           ti.setText( 3, jobEntry.wildcard[i] );
+        }
+        if ( jobEntry.destination_filefolder[i] != null && !Const.isEmpty( jobEntry.destination_filefolder[i] ) ) {
+          String destinationURL = jobEntry.destination_filefolder[i];
+          String clusterName = jobEntryHadoopCopyFiles.getClusterNameBy( destinationURL );
+          if ( clusterName != null ) {
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.LOCAL_DEST_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.STATIC_DEST_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            ti.setText( 4, clusterName );
+            destinationURL =
+                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ? destinationURL
+                    : jobEntryHadoopCopyFiles.getUrlPath( destinationURL );
+          }
+          ti.setText( 5, destinationURL );
         }
       }
       wFields.setRowNums();
@@ -134,9 +148,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     wRemoveSourceFiles.setSelection( jobEntry.remove_source_files );
     wDestinationIsAFile.setSelection( jobEntry.destination_is_a_file );
     wCreateDestinationFolder.setSelection( jobEntry.create_destination_folder );
-
     wAddFileToResult.setSelection( jobEntry.add_result_filesname );
-
   }
 
   protected void ok() {
@@ -172,35 +184,31 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     jobEntry.wildcard = new String[nr];
     nr = 0;
     for ( int i = 0; i < nritems; i++ ) {
-      String source = wFields.getNonEmpty( i ).getText( 1 );
-      String dest = wFields.getNonEmpty( i ).getText( 2 );
+
+      String sourceNc = wFields.getNonEmpty( i ).getText( 1 );
+      sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.LOCAL_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.STATIC_SOURCE_FILE + i : sourceNc;
+      String source = wFields.getNonEmpty( i ).getText( 2 );
       String wild = wFields.getNonEmpty( i ).getText( 3 );
-      if ( source != null && source.length() != 0 ) {
-        jobEntry.source_filefolder[nr] = source;
-        processNamedClusterURLMapping( source, namedClusterURLMappings );
-        jobEntry.destination_filefolder[nr] = dest;
-        processNamedClusterURLMapping( dest, namedClusterURLMappings );
+      String destNc = wFields.getNonEmpty( i ).getText( 4 );
+      destNc = destNc.equals( LOCAL_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.LOCAL_DEST_FILE + i : destNc;
+      destNc = destNc.equals( STATIC_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.STATIC_DEST_FILE + i : destNc;
+      String dest = wFields.getNonEmpty( i ).getText( 5 );
+
+      if ( source != null && source.length() != 0 && jobEntry.source_filefolder.length > 0 ) {
+        jobEntry.source_filefolder[nr] =
+            jobEntryHadoopCopyFiles.loadURL( source, sourceNc, getMetaStore(), namedClusterURLMappings );
+        jobEntry.destination_filefolder[nr] =
+            jobEntryHadoopCopyFiles.loadURL( dest, destNc, getMetaStore(), namedClusterURLMappings );
         jobEntry.wildcard[nr] = wild;
         nr++;
       }
     }
-    ( (JobEntryHadoopCopyFiles) jobEntry ).setNamedClusterURLMapping( namedClusterURLMappings );
+    jobEntryHadoopCopyFiles.setNamedClusterURLMapping( namedClusterURLMappings );
     dispose();
   }
 
-  private void processNamedClusterURLMapping( String locationURL, Map<String, String> namedClusterURLMappings ) {
-    // The locationURL has to correspond to a NamedCluster otherwise it was modified by the user
-    // thus breaking the URL/NamedCluster link.
-    String cluster = transientMappings.get( locationURL );
-    if ( cluster != null ) {
-      namedClusterURLMappings.put( locationURL, cluster );
-    } else {
-      // The locationURL was modified thus the link to the NamedCluster is lost.
-      namedClusterURLMappings.put( locationURL, "" );
-    }
-  }
-
-  private FileObject setSelectedFile( String path ) {
+  private FileObject setSelectedFile( String path, String clusterName ) {
 
     FileObject selectedFile = null;
 
@@ -233,47 +241,59 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       }
       VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
       fileChooserDialog.defaultInitialFile = defaultInitialFile;
-      
+
       NamedClusterWidget namedClusterWidget = null;
-      List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
-      String ncName = null;
-      HadoopVfsFileChooserDialog hadoopDialog = null;
-      for( CustomVfsUiPanel panel : customPanels ) {
-        if( panel instanceof HadoopVfsFileChooserDialog ) {
-          hadoopDialog = ( ( HadoopVfsFileChooserDialog ) panel );
-          namedClusterWidget = hadoopDialog.getNamedClusterWidget();
-          namedClusterWidget.initiate();
-          ncName = null;
-          if ( initialFile != null ) {
-            ncName = transientMappings.get( initialFile.getURL().toString() );
-          } 
-          hadoopDialog.setNamedCluster( ncName );
-          hadoopDialog.initializeConnectionPanel( initialFile );
+
+      if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
+        selectedFile =
+            fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, new String[] { "*.*" },
+                FILETYPES, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+      } else {
+        NamedCluster namedCluster =
+            NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
+        if ( namedCluster != null ) {
+          if ( namedCluster.isMapr() ) {
+            selectedFile =
+                fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.MAPRFS_SCHEME },
+                    HadoopSpoonPlugin.MAPRFS_SCHEME, true, path, new String[] { "*.*" }, FILETYPES, true,
+                    VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+          } else {
+            List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+            for ( CustomVfsUiPanel panel : customPanels ) {
+              if ( panel instanceof HadoopVfsFileChooserDialog ) {
+                HadoopVfsFileChooserDialog hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
+                namedClusterWidget = hadoopDialog.getNamedClusterWidget();
+                namedClusterWidget.initiate();
+                hadoopDialog.setNamedCluster( clusterName );
+                hadoopDialog.initializeConnectionPanel( initialFile );
+              }
+            }
+            selectedFile =
+                fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
+                    HadoopSpoonPlugin.HDFS_SCHEME, true, path, new String[] { "*.*" }, FILETYPES, true,
+                    VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+          }
         }
       }
-      
-      selectedFile =
-          fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, new String[] { "*.*" },
-              FILETYPES, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
-      
+
       CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
-      if( currentPanel instanceof HadoopVfsFileChooserDialog ) {
-        namedClusterWidget = ( ( HadoopVfsFileChooserDialog ) currentPanel ).getNamedClusterWidget();
+      if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
+        namedClusterWidget = ( (HadoopVfsFileChooserDialog) currentPanel ).getNamedClusterWidget();
       }
 
       if ( selectedFile != null ) {
         String url = selectedFile.getURL().toString();
         NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-        if ( nc != null ) {
-          url = 
-              namedClusterManager.processURLsubstitution(
-                  nc.getName(), url, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobEntry );
-          transientMappings.put( url, nc.getName() );
+
+        if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
+        } else if ( nc != null ) {
+          url = jobEntryHadoopCopyFiles.getUrlPath( url );
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, nc.getName() );
         }
-        
         wFields.getActiveTableItem().setText( wFields.getActiveTableColumn(), url );
       }
-      
+
       return selectedFile;
 
     } catch ( KettleFileException ex ) {
@@ -286,11 +306,24 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   }
 
   protected Image getImage() {
-    return GUIResource.getInstance().getImage( "HDM.svg", getClass().getClassLoader(), ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );    
-  }  
-  
+    return GUIResource.getInstance().getImage( "HDM.svg", getClass().getClassLoader(), ConstUI.ICON_SIZE,
+        ConstUI.ICON_SIZE );
+  }
+
   public boolean showFileButtons() {
     return false;
-  }  
-  
+  }
+
+  protected void setComboValues( ColumnInfo colInfo ) {
+    try {
+      super.setComboValues( colInfo );
+      String[] comboValues = colInfo.getComboValues();
+      String[] namedClusters =
+          NamedClusterManager.getInstance().listNames( getMetaStore() ).toArray( new String[0] );
+      String[] values = (String[]) ArrayUtils.addAll( comboValues, namedClusters );
+      colInfo.setComboValues( values );
+    } catch ( MetaStoreException e ) {
+      log.logError( e.getMessage() );
+    }
+  }
 }
