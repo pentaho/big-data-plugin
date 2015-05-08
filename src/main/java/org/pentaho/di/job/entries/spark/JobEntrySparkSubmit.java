@@ -25,11 +25,13 @@ package org.pentaho.di.job.entries.spark;
 import static org.pentaho.di.job.entry.validator.AndValidator.putValidators;
 import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -376,8 +378,11 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     cmds.add( environmentSubstitute( scriptPath ) );
     cmds.add( "--master" );
     cmds.add( environmentSubstitute( master ) );
-    cmds.add( "--class" );
-    cmds.add( environmentSubstitute( className ) );
+
+    if ( !Const.isEmpty( className ) ) {
+      cmds.add( "--class" );
+      cmds.add( environmentSubstitute( className ) );
+    }
 
     for ( String confParam : configParams ) {
       cmds.add( "--conf" );
@@ -408,12 +413,37 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     return cmds;
   }
 
+  @VisibleForTesting
+  protected boolean validate ( ) {
+    boolean valid = true;
+    if ( Const.isEmpty( scriptPath ) || !new File( environmentSubstitute( scriptPath ) ).exists() ) {
+      logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.SparkSubmitPathInvalid" ) );
+      valid = false;
+    }
+
+    if ( Const.isEmpty( master ) ) {
+      logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.MasterURLEmpty" ) );
+      valid = false;
+    }
+    if ( Const.isEmpty( jar ) ) {
+      logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.JarPathEmpty" ) );
+      valid = false;
+    }
+
+    return valid;
+  }
+
   /**
    * Executes the spark-submit command and returns a Result
    *
    * @return The Result of the operation
    */
   public Result execute( Result result, int nr ) {
+
+    if ( !validate() ) {
+      result.setResult( false );
+      return result;
+    }
 
     List<String> cmds = getCmds();
 

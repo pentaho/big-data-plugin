@@ -28,6 +28,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
+
 public class JobEntrySparkSubmitTest {
   @Test
   public void testGetCmds() {
@@ -48,5 +51,19 @@ public class JobEntrySparkSubmitTest {
     String[] expected = new String[] { "scriptPath", "--master", "master_url", "--class", "class_name",
         "--conf", "name1=value1", "--conf", "name2=value 2", "--driver-memory", "driverMemory", "--executor-memory", "executorMemory", "jar_path", "arg1", "arg2" };
     Assert.assertArrayEquals( expected, ss.getCmds().toArray() );
+  }
+
+  @Test
+  public void testValidate () {
+    JobEntrySparkSubmit ss = spy( new JobEntrySparkSubmit() );
+    doNothing().when( ss ).logError( anyString() );
+    Assert.assertFalse( ss.validate() );
+    // Use working dir which exists
+    ss.setScriptPath( "." );
+    Assert.assertFalse( ss.validate() );
+    ss.setMaster( "master-url" );
+    Assert.assertFalse( "Jar path", ss.validate() );
+    ss.setJar( "jar-path" );
+    Assert.assertTrue( "Validation should pass", ss.validate() );
   }
 }
