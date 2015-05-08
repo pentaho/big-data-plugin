@@ -153,10 +153,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     CHOOSE_AVAILABLE_CLUSTER = new NamedCluster();
     CHOOSE_AVAILABLE_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.ChooseAvailable" ) );
+    CHOOSE_AVAILABLE_CLUSTER.setVariable("valid", "false");
 
     USE_ADVANCED_OPTIONS_CLUSTER = new NamedCluster();
     USE_ADVANCED_OPTIONS_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.UseAdvancedOptions" ) );
+    USE_ADVANCED_OPTIONS_CLUSTER.setVariable("valid", "false");
     Spoon spoon = Spoon.getInstance();
     if( spoon != null ) {
       ncDelegate = new HadoopClusterDelegate( spoon );

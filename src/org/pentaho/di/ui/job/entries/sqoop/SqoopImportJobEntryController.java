@@ -72,13 +72,21 @@ public class SqoopImportJobEntryController extends
     // path = resolveFile(getConfig().getExportDir());
 
     try {
-      String[] schemeRestrictions = new String[2];
-      schemeRestrictions[0] = HadoopSpoonPlugin.HDFS_SCHEME;
-      schemeRestrictions[1] = HadoopSpoonPlugin.MAPRFS_SCHEME;
+      String[] schemeRestrictions = new String[1];
+      if ( selectedNamedCluster != null && !"false".equals( selectedNamedCluster.getVariable( "valid" ) ) ) {
+        if ( selectedNamedCluster.isMapr() ) {
+          schemeRestrictions[0] = HadoopSpoonPlugin.MAPRFS_SCHEME;
+        } else {
+          schemeRestrictions[0] = HadoopSpoonPlugin.HDFS_SCHEME;
+        }
+      } else {
+        // must select cluster
+        return;
+      }
 
       FileObject targetDir =
           browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
-              false, HadoopSpoonPlugin.HDFS_SCHEME, selectedNamedCluster, false );
+              false, schemeRestrictions[0], selectedNamedCluster, false );
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
       if ( okPressed ) {

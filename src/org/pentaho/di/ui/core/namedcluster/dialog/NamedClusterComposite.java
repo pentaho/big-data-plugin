@@ -26,12 +26,16 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -168,6 +172,20 @@ public class NamedClusterComposite extends Composite {
       public void keyPressed( KeyEvent event ) {
       }
     } );
+
+    final Button maprButton = new Button( mainParent, SWT.CHECK );
+    maprButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR" ) );
+    maprButton.setToolTipText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR.Title" ) );
+    maprButton.setLayoutData( gridData );
+    props.setLook( maprButton );
+    maprButton.setSelection( namedCluster.isMapr() );
+    maprButton.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        super.widgetSelected( e );
+        namedCluster.setMapr( maprButton.getSelection() );
+      }
+    } );
+
     
     return mainParent;
   }

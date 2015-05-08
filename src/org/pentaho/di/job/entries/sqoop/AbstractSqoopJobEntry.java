@@ -338,8 +338,12 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       String clusterName = sqoopConfig.getClusterName();
       if ( clusterName != null ) {
         NamedCluster nc = NamedClusterUIHelper.getNamedCluster( clusterName );
-        shim.configureConnectionInformation( environmentSubstitute( nc.getHdfsHost() ), environmentSubstitute( nc.getHdfsPort() ),
-            environmentSubstitute( nc.getJobTrackerHost() ), environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+        if ( nc.isMapr() ) {
+          shim.configureConnectionInformation( "", "", "", "", conf, messages );
+        } else {
+          shim.configureConnectionInformation( environmentSubstitute( nc.getHdfsHost() ), environmentSubstitute( nc.getHdfsPort() ),
+              environmentSubstitute( nc.getJobTrackerHost() ), environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+        }
       } else {
         shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),
              environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
