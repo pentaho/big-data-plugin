@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,12 +28,13 @@ import java.io.StringReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.pentaho.di.core.exception.KettleException;
@@ -57,6 +58,7 @@ public class SqoopUtils {
    * Prefix to append before an argument's name when building up a list of command-line arguments, e.g. "--"
    */
   public static final String ARG_PREFIX = "--";
+  public static final String ARG_PREFIX_1 = "-";
 
   // Properties used to escape/unescape strings for command line string (de)serialization
   private static final String WHITESPACE = " ";
@@ -200,8 +202,9 @@ public class SqoopUtils {
     int peekAhead = i;
     while ( i < args.size() ) {
       String arg = args.get( i );
-      if ( isArgName( arg ) ) {
-        arg = arg.substring( ARG_PREFIX.length() );
+      int prefLen = isArgName( arg );
+      if ( prefLen > 0 ) {
+        arg = arg.substring( prefLen );
       }
 
       String value = null;
@@ -210,7 +213,7 @@ public class SqoopUtils {
         value = args.get( peekAhead );
       }
 
-      if ( isArgName( value ) ) {
+      if ( isArgName( value ) > 0 ) {
         // Current arg is possibly a boolean flag, set value to null now
         value = null;
         // We're only consuming one element
@@ -236,8 +239,17 @@ public class SqoopUtils {
    *          Possible argument name
    * @return {@code true} if the string represents an argument name (is prefixed with ARG_PREFIX)
    */
-  private static boolean isArgName( String s ) {
-    return s != null && s.startsWith( ARG_PREFIX ) && s.length() > ARG_PREFIX.length();
+  private static int isArgName( String s ) {
+    if ( s != null ) {
+      if ( s.startsWith( ARG_PREFIX ) && s.length() > ARG_PREFIX.length() ) {
+        return ARG_PREFIX.length();
+      }
+      if ( s.startsWith( ARG_PREFIX_1 ) && s.length() > ARG_PREFIX_1.length() ) {
+        return ARG_PREFIX_1.length();
+      }
+    }
+
+    return 0;
   }
 
   /**
@@ -434,10 +446,10 @@ public class SqoopUtils {
       value = variableSpace.environmentSubstitute( value );
     }
     if ( arg.isFlag() && Boolean.parseBoolean( value ) ) {
-      args.add( ARG_PREFIX + arg.getName() );
+      args.add( arg.getPrefix() + arg.getName() );
     } else if ( !arg.isFlag() && value != null ) {
       if ( !StringUtil.isEmpty( value ) ) {
-        args.add( ARG_PREFIX + arg.getName() );
+        args.add( arg.getPrefix() + arg.getName() );
         args.add( value );
       }
     }
@@ -452,7 +464,22 @@ public class SqoopUtils {
    * @return Ordered set of arguments representing all {@link CommandLineArgument}-annotated fields in {@code o}
    */
   public static Set<? extends ArgumentWrapper> findAllArguments( Object o ) {
-    Set<ArgumentWrapper> arguments = new LinkedHashSet<ArgumentWrapper>();
+    Set<ArgumentWrapper> arguments = new TreeSet<ArgumentWrapper>(
+        new Comparator<ArgumentWrapper>() {
+          @Override
+          /*
+           * Sort by order then by name
+           */
+          public int compare( ArgumentWrapper o1, ArgumentWrapper o2 ) {
+            int diff = o1.getOrder() - o2.getOrder();
+            if ( diff != 0 ) {
+              return diff;
+            }
+
+            return o1.getName().compareTo( o2.getName() );
+          }
+        }
+    );
 
     Class<?> aClass = o.getClass();
     while ( aClass != null ) {
@@ -462,7 +489,8 @@ public class SqoopUtils {
           String fieldName = f.getName().substring( 0, 1 ).toUpperCase() + f.getName().substring( 1 );
           Method getter = findMethod( aClass, fieldName, null, "get", "is" );
           Method setter = findMethod( aClass, fieldName, new Class<?>[] { f.getType() }, "set" );
-          arguments.add( new ArgumentWrapper( anno.name(), getDisplayName( anno ), anno.flag(), o, getter, setter ) );
+          arguments.add( new ArgumentWrapper( anno.name(), getDisplayName( anno ), anno.flag(),
+              anno.prefix(), anno.order(), o, getter, setter ) );
         }
       }
       aClass = aClass.getSuperclass();

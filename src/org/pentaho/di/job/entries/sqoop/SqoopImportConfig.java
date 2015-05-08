@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -48,8 +48,6 @@ public class SqoopImportConfig extends SqoopConfig {
   public static final String WHERE = "where";
   public static final String COMPRESS = "compress";
   public static final String COMPRESSION_CODEC = "compressionCodec";
-  public static final String NULL_STRING = "nullString";
-  public static final String NULL_NON_STRING = "nullNonString";
 
   // Incremental import arguments
   public static final String CHECK_COLUMN = "checkColumn";
@@ -57,16 +55,12 @@ public class SqoopImportConfig extends SqoopConfig {
   public static final String LAST_VALUE = "lastValue";
 
   // Hive arguments
-  public static final String HIVE_HOME = "hiveHome";
   public static final String HIVE_IMPORT = "hiveImport";
   public static final String HIVE_OVERWRITE = "hiveOverwrite";
   public static final String CREATE_HIVE_TABLE = "createHiveTable";
   public static final String HIVE_TABLE = "hiveTable";
   public static final String HIVE_DROP_IMPORT_DELIMS = "hiveDropImportDelims";
   public static final String HIVE_DELIMS_REPLACEMENT = "hiveDelimsReplacement";
-  public static final String HIVE_PARTITION_KEY = "hivePartitionKey";
-  public static final String HIVE_PARTITION_VALUE = "hivePartitionValue";
-  public static final String MAP_COLUMN_HIVE = "mapColumnHive";
 
   // HBase arguments
   public static final String COLUMN_FAMILY = "columnFamily";
@@ -75,6 +69,30 @@ public class SqoopImportConfig extends SqoopConfig {
   public static final String HBASE_TABLE = "hbaseTable";
   public static final String HBASE_ZOOKEEPER_QUORUM = "hbaseZookeeperQuorum";
   public static final String HBASE_ZOOKEEPER_CLIENT_PORT = "hbaseZookeeperClientPort";
+
+  public static final String AS_PARQUETFILE = "asParquetfile";
+  public static final String DELETE_TARGET_DIR = "deletTargetDir";
+
+  public static final String FETCH_SIZE = "fetchSize";
+  public static final String MERGE_KEY = "mergeKey";
+
+  public static final String HIVE_DATABASE = "hiveDatabase";
+  public static final String HBASE_BULKLOADER = "hbaseBulkload";
+
+  public static final String CREATE_HCATALOG_TABLE = "createHcatalogTable";
+  public static final String HCATALOG_STORAGE_STANZA = "hcatalogStorageStanza";
+
+  public static final String ACCUMULO_BATCH_SIZE = "accumuloBatchSize";
+  public static final String ACCUMULO_COLUMN_FAMILY = "accumuloColumnFamily";
+  public static final String ACCUMULO_CREATE_TABLE = "accumuloCreateTable";
+  public static final String ACCUMULO_INSTANCE = "accumuloInstance";
+  public static final String ACCUMULO_MAX_LATENCY = "accumuloMaxLatency";
+  public static final String ACCUMULO_PASSWORD = "accumuloPassword";
+  public static final String ACCUMULO_ROW_KEY = "accumuloRowKey";
+  public static final String ACCUMULO_TABLE = "accumuloTable";
+  public static final String ACCUMULO_USER = "accumuloUser";
+  public static final String ACCUMULO_VISIBILITY = "accumuloVisibility";
+  public static final String ACCUMULO_ZOOKEPERS = "accumuloZookeepers";
 
   // Import control arguments
   @CommandLineArgument( name = "target-dir" )
@@ -109,10 +127,6 @@ public class SqoopImportConfig extends SqoopConfig {
   private String compress;
   @CommandLineArgument( name = "compression-codec" )
   private String compressionCodec;
-  @CommandLineArgument( name = "null-string" )
-  private String nullString;
-  @CommandLineArgument( name = "null-non-string" )
-  private String nullNonString;
 
   // Incremental import arguments
   @CommandLineArgument( name = "check-column" )
@@ -123,8 +137,6 @@ public class SqoopImportConfig extends SqoopConfig {
   private String lastValue;
 
   // Hive arguments
-  @CommandLineArgument( name = "hive-home" )
-  private String hiveHome;
   @CommandLineArgument( name = "hive-import", flag = true )
   private String hiveImport;
   @CommandLineArgument( name = "hive-overwrite", flag = true )
@@ -137,12 +149,6 @@ public class SqoopImportConfig extends SqoopConfig {
   private String hiveDropImportDelims;
   @CommandLineArgument( name = "hive-delims-replacement" )
   private String hiveDelimsReplacement;
-  @CommandLineArgument( name = "hive-partition-key" )
-  private String hivePartitionKey;
-  @CommandLineArgument( name = "hive-partition-value" )
-  private String hivePartitionValue;
-  @CommandLineArgument( name = "map-column-hive" )
-  private String mapColumnHive;
 
   // HBase arguments
   @CommandLineArgument( name = "column-family" )
@@ -153,6 +159,55 @@ public class SqoopImportConfig extends SqoopConfig {
   private String hbaseRowKey;
   @CommandLineArgument( name = "hbase-table" )
   private String hbaseTable;
+
+  @CommandLineArgument( name = "as-parquetfile", flag = true )
+  private String asParquetfile;
+  @CommandLineArgument( name = "delete-target-dir", flag = true )
+  private String deleteTargetDir;
+
+  @CommandLineArgument( name = "fetch-size" )
+  private String fetchSize;
+  @CommandLineArgument( name = "merge-key" )
+  private String mergeKey;
+
+  @CommandLineArgument( name = "hive-database" )
+  private String hiveDatabase;
+
+  @CommandLineArgument( name = "hbase-bulkload", flag = true )
+  private String hbaseBulkload;
+
+  @CommandLineArgument( name = "create-hcatalog-table", flag = true )
+  private String createHcatalogTable;
+  @CommandLineArgument( name = "hcatalog-storage-stanza" )
+  private String hcatalogStorageStanza;
+
+  @CommandLineArgument( name = "accumulo-batch-size" )
+  private String accumuloBatchSize;
+  @CommandLineArgument( name = "accumulo-column-family" )
+  private String accumuloColumnFamily;
+  @CommandLineArgument( name = "accumulo-create-table", flag = true )
+  private String accumuloCreateTable;
+  @CommandLineArgument( name = "accumulo-instance" )
+  private String accumuloInstance;
+  @CommandLineArgument( name = "accumulo-max-latency" )
+  private String accumuloMaxLatency;
+  @CommandLineArgument( name = "accumulo-password" )
+  private String accumuloPassword;
+  @CommandLineArgument( name = "accumulo-row-key" )
+  private String accumuloRowKey;
+  @CommandLineArgument( name = "accumulo-table" )
+  private String accumuloTable;
+  @CommandLineArgument( name = "accumulo-user" )
+  private String accumuloUser;
+  @CommandLineArgument( name = "accumulo-visibility" )
+  private String accumuloVisibility;
+  @CommandLineArgument( name = "accumulo-zookeepers" )
+  private String accumuloZookeepers;
+
+  @CommandLineArgument( name = "input-null-non-string" )
+  private String inputNullNonString;
+  @CommandLineArgument( name = "input-null-string" )
+  private String inputNullString;
 
   // Non command line arguments for configuring HBase connection information
   private String hbaseZookeeperQuorum;
@@ -318,26 +373,6 @@ public class SqoopImportConfig extends SqoopConfig {
     pcs.firePropertyChange( COMPRESSION_CODEC, old, this.compressionCodec );
   }
 
-  public String getNullString() {
-    return nullString;
-  }
-
-  public void setNullString( String nullString ) {
-    String old = this.nullString;
-    this.nullString = nullString;
-    pcs.firePropertyChange( NULL_STRING, old, this.nullString );
-  }
-
-  public String getNullNonString() {
-    return nullNonString;
-  }
-
-  public void setNullNonString( String nullNonString ) {
-    String old = this.nullNonString;
-    this.nullNonString = nullNonString;
-    pcs.firePropertyChange( NULL_NON_STRING, old, this.nullNonString );
-  }
-
   public String getCheckColumn() {
     return checkColumn;
   }
@@ -366,16 +401,6 @@ public class SqoopImportConfig extends SqoopConfig {
     String old = this.lastValue;
     this.lastValue = lastValue;
     pcs.firePropertyChange( LAST_VALUE, old, this.lastValue );
-  }
-
-  public String getHiveHome() {
-    return hiveHome;
-  }
-
-  public void setHiveHome( String hiveHome ) {
-    String old = this.hiveHome;
-    this.hiveHome = hiveHome;
-    pcs.firePropertyChange( HIVE_HOME, old, this.hiveHome );
   }
 
   public String getHiveImport() {
@@ -436,36 +461,6 @@ public class SqoopImportConfig extends SqoopConfig {
     String old = this.hiveDelimsReplacement;
     this.hiveDelimsReplacement = hiveDelimsReplacement;
     pcs.firePropertyChange( HIVE_DELIMS_REPLACEMENT, old, this.hiveDelimsReplacement );
-  }
-
-  public String getHivePartitionKey() {
-    return hivePartitionKey;
-  }
-
-  public void setHivePartitionKey( String hivePartitionKey ) {
-    String old = this.hivePartitionKey;
-    this.hivePartitionKey = hivePartitionKey;
-    pcs.firePropertyChange( HIVE_PARTITION_KEY, old, this.hivePartitionKey );
-  }
-
-  public String getHivePartitionValue() {
-    return hivePartitionValue;
-  }
-
-  public void setHivePartitionValue( String hivePartitionValue ) {
-    String old = this.hivePartitionValue;
-    this.hivePartitionValue = hivePartitionValue;
-    pcs.firePropertyChange( HIVE_PARTITION_VALUE, old, this.hivePartitionValue );
-  }
-
-  public String getMapColumnHive() {
-    return mapColumnHive;
-  }
-
-  public void setMapColumnHive( String mapColumnHive ) {
-    String old = this.mapColumnHive;
-    this.mapColumnHive = mapColumnHive;
-    pcs.firePropertyChange( MAP_COLUMN_HIVE, old, this.mapColumnHive );
   }
 
   public String getColumnFamily() {
@@ -544,10 +539,12 @@ public class SqoopImportConfig extends SqoopConfig {
 
     try {
       items.add( index, new ArgumentWrapper( HBASE_ZOOKEEPER_QUORUM, BaseMessages.getString( getClass(),
-          "HBaseZookeeperQuorum.Label" ), false, this, getClass().getMethod( "getHbaseZookeeperQuorum" ), getClass()
+          "HBaseZookeeperQuorum.Label" ),
+          false, "", 0, this, getClass().getMethod( "getHbaseZookeeperQuorum" ), getClass()
             .getMethod( "setHbaseZookeeperQuorum", String.class ) ) );
       items.add( index + 1, new ArgumentWrapper( HBASE_ZOOKEEPER_CLIENT_PORT, BaseMessages.getString( getClass(),
-          "HBaseZookeeperClientPort.Label" ), false, this, getClass().getMethod( "getHbaseZookeeperClientPort" ),
+          "HBaseZookeeperClientPort.Label" ),
+          false, "", 0, this, getClass().getMethod( "getHbaseZookeeperClientPort" ),
           getClass().getMethod( "setHbaseZookeeperClientPort", String.class ) ) );
     } catch ( NoSuchMethodException ex ) {
       throw new RuntimeException( ex );
@@ -555,4 +552,195 @@ public class SqoopImportConfig extends SqoopConfig {
 
     return items;
   }
+
+  public String getAsParquetfile() {
+    return asParquetfile;
+  }
+
+  public void setAsParquetfile( String asParquetfile ) {
+    String old = this.asParquetfile;
+    this.asParquetfile = asParquetfile;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getDeleteTargetDir() {
+    return deleteTargetDir;
+  }
+
+  public void setDeleteTargetDir( String deleteTargetDir ) {
+    String old = this.asParquetfile;
+    this.deleteTargetDir = deleteTargetDir;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getFetchSize() {
+    return fetchSize;
+  }
+
+  public void setFetchSize( String fetchSize ) {
+    String old = this.asParquetfile;
+    this.fetchSize = fetchSize;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getMergeKey() {
+    return mergeKey;
+  }
+
+  public void setMergeKey( String mergeKey ) {
+    String old = this.asParquetfile;
+    this.mergeKey = mergeKey;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getHiveDatabase() {
+    return hiveDatabase;
+  }
+
+  public void setHiveDatabase( String hiveDatabase ) {
+    String old = this.asParquetfile;
+    this.hiveDatabase = hiveDatabase;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getHbaseBulkload() {
+    return hbaseBulkload;
+  }
+
+  public void setHbaseBulkload( String hbaseBulkload ) {
+    String old = this.asParquetfile;
+    this.hbaseBulkload = hbaseBulkload;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getCreateHcatalogTable() {
+    return createHcatalogTable;
+  }
+
+  public void setCreateHcatalogTable( String createHcatalogTable ) {
+    String old = this.asParquetfile;
+    this.createHcatalogTable = createHcatalogTable;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getHcatalogStorageStanza() {
+    return hcatalogStorageStanza;
+  }
+
+  public void setHcatalogStorageStanza( String hcatalogStorageStanza ) {
+    String old = this.asParquetfile;
+    this.hcatalogStorageStanza = hcatalogStorageStanza;
+    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+  }
+
+  public String getAccumuloBatchSize() {
+    return accumuloBatchSize;
+  }
+
+  public void setAccumuloBatchSize( String accumuloBatchSize ) {
+    String old = this.accumuloBatchSize;
+    this.accumuloBatchSize = accumuloBatchSize;
+    pcs.firePropertyChange( ACCUMULO_BATCH_SIZE, old, this.accumuloBatchSize );
+  }
+
+  public String getAccumuloColumnFamily() {
+    return accumuloColumnFamily;
+  }
+
+  public void setAccumuloColumnFamily( String accumuloColumnFamily ) {
+    String old = this.accumuloColumnFamily;
+    this.accumuloColumnFamily = accumuloColumnFamily;
+    pcs.firePropertyChange( ACCUMULO_COLUMN_FAMILY, old, this.accumuloColumnFamily );
+  }
+
+  public String getAccumuloCreateTable() {
+    return accumuloCreateTable;
+  }
+
+  public void setAccumuloCreateTable( String accumuloCreateTable ) {
+    String old = this.accumuloCreateTable;
+    this.accumuloCreateTable = accumuloCreateTable;
+    pcs.firePropertyChange( ACCUMULO_CREATE_TABLE, old, this.accumuloCreateTable );
+  }
+
+  public String getAccumuloInstance() {
+    return accumuloInstance;
+  }
+
+  public void setAccumuloInstance( String accumuloInstance ) {
+    String old = this.accumuloInstance;
+    this.accumuloInstance = accumuloInstance;
+    pcs.firePropertyChange( ACCUMULO_INSTANCE, old, this.accumuloInstance );
+  }
+
+  public String getAccumuloMaxLatency() {
+    return accumuloMaxLatency;
+  }
+
+  public void setAccumuloMaxLatency( String accumuloMaxLatency ) {
+    String old = this.accumuloMaxLatency;
+    this.accumuloMaxLatency = accumuloMaxLatency;
+    pcs.firePropertyChange( ACCUMULO_MAX_LATENCY, old, this.accumuloMaxLatency );
+  }
+
+  public String getAccumuloPassword() {
+    return accumuloPassword;
+  }
+
+  public void setAccumuloPassword( String accumuloPassword ) {
+    String old = this.accumuloPassword;
+    this.accumuloPassword = accumuloPassword;
+    pcs.firePropertyChange( ACCUMULO_PASSWORD, old, this.accumuloPassword );
+  }
+
+  public String getAccumuloRowKey() {
+    return accumuloRowKey;
+  }
+
+  public void setAccumuloRowKey( String accumuloRowKey ) {
+    String old = this.accumuloRowKey;
+    this.accumuloRowKey = accumuloRowKey;
+    pcs.firePropertyChange( ACCUMULO_ROW_KEY, old, this.accumuloRowKey );
+  }
+
+  public String getAccumuloTable() {
+    return accumuloTable;
+  }
+
+  public void setAccumuloTable( String accumuloTable ) {
+    String old = this.accumuloTable;
+    this.accumuloTable = accumuloTable;
+    pcs.firePropertyChange( ACCUMULO_TABLE, old, this.accumuloTable );
+  }
+
+  public String getAccumuloUser() {
+    return accumuloUser;
+  }
+
+  public void setAccumuloUser( String accumuloUser ) {
+    String old = this.accumuloUser;
+    this.accumuloUser = accumuloUser;
+    pcs.firePropertyChange( ACCUMULO_USER, old, this.accumuloUser );
+  }
+
+  public String getAccumuloVisibility() {
+    return accumuloVisibility;
+  }
+
+  public void setAccumuloVisibility( String accumuloVisibility ) {
+    String old = this.accumuloVisibility;
+    this.accumuloVisibility = accumuloVisibility;
+    pcs.firePropertyChange( ACCUMULO_VISIBILITY, old, this.accumuloVisibility );
+  }
+
+  public String getAccumuloZookeepers() {
+    return accumuloZookeepers;
+  }
+
+  public void setAccumuloZookeepers( String accumuloZookeepers ) {
+    String old = this.accumuloZookeepers;
+    this.accumuloZookeepers = accumuloZookeepers;
+    pcs.firePropertyChange( ACCUMULO_ZOOKEPERS, old, this.accumuloZookeepers );
+  }
+
 }

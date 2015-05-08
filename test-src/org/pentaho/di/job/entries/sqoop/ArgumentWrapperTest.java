@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -54,9 +54,9 @@ public class ArgumentWrapperTest {
 
   @Test
   public void testEquals() {
-    ArgumentWrapper a = new ArgumentWrapper( "arg", null, false, new SqoopImportConfig(), GETTER, SETTER );
-    ArgumentWrapper b = new ArgumentWrapper( "arg", null, true, new SqoopExportConfig(), GETTER, SETTER );
-    ArgumentWrapper c = new ArgumentWrapper( "arg2", null, true, new SqoopExportConfig(), GETTER, SETTER );
+    ArgumentWrapper a = new ArgumentWrapper( "arg", null, false, "", 0, new SqoopImportConfig(), GETTER, SETTER );
+    ArgumentWrapper b = new ArgumentWrapper( "arg", null, true, "", 0, new SqoopExportConfig(), GETTER, SETTER );
+    ArgumentWrapper c = new ArgumentWrapper( "arg2", null, true, "", 0, new SqoopExportConfig(), GETTER, SETTER );
 
     assertTrue( a.equals( a ) );
     assertTrue( a.equals( b ) );
@@ -67,9 +67,9 @@ public class ArgumentWrapperTest {
 
   @Test
   public void testHashCode() {
-    ArgumentWrapper a = new ArgumentWrapper( "arg", null, false, new SqoopImportConfig(), GETTER, SETTER );
-    ArgumentWrapper b = new ArgumentWrapper( "arg", null, true, new SqoopExportConfig(), GETTER, SETTER );
-    ArgumentWrapper c = new ArgumentWrapper( "arg2", null, true, new SqoopExportConfig(), GETTER, SETTER );
+    ArgumentWrapper a = new ArgumentWrapper( "arg", null, false, "", 0, new SqoopImportConfig(), GETTER, SETTER );
+    ArgumentWrapper b = new ArgumentWrapper( "arg", null, true, "", 0, new SqoopExportConfig(), GETTER, SETTER );
+    ArgumentWrapper c = new ArgumentWrapper( "arg2", null, true, "", 0, new SqoopExportConfig(), GETTER, SETTER );
 
     assertEquals( a.hashCode(), b.hashCode() );
     assertFalse( a.hashCode() == c.hashCode() );
@@ -77,68 +77,72 @@ public class ArgumentWrapperTest {
 
   @Test( expected = NullPointerException.class )
   public void instantiation_null_name() {
-    new ArgumentWrapper( null, "display", false, new SqoopImportConfig(), GETTER, SETTER );
+    new ArgumentWrapper( null, "display", false, "", 0, new SqoopImportConfig(), GETTER, SETTER );
   }
 
   @Test( expected = NullPointerException.class )
   public void instantiation_null_object() {
-    new ArgumentWrapper( "name", "display", false, null, GETTER, SETTER );
+    new ArgumentWrapper( "name", "display", false, "", 0, null, GETTER, SETTER );
   }
 
   @Test( expected = NullPointerException.class )
   public void instantiation_null_setter() {
-    new ArgumentWrapper( "name", "display", false, new SqoopExportConfig(), GETTER, null );
+    new ArgumentWrapper( "name", "display", false, "", 0, new SqoopExportConfig(), GETTER, null );
   }
 
   @Test( expected = NullPointerException.class )
   public void instantiation_null_getter() throws Exception {
-    new ArgumentWrapper( "name", "display", false, new SqoopExportConfig(), null, SETTER );
+    new ArgumentWrapper( "name", "display", false, "", 0, new SqoopExportConfig(), null, SETTER );
   }
 
   @Test( expected = IllegalArgumentException.class )
   public void instantiation_wrong_setter_method_parameters() throws NoSuchMethodException {
     Method m = getClass().getMethod( "instantiation_wrong_setter_method_parameters" );
     assertNotNull( m );
-    new ArgumentWrapper( "name", "display", false, new SqoopExportConfig(), GETTER, m );
+    new ArgumentWrapper( "name", "display", false, "", 0, new SqoopExportConfig(), GETTER, m );
   }
 
   @Test( expected = IllegalArgumentException.class )
   public void instantiation_wrong_setter_method_parameters2() throws NoSuchMethodException {
     Method m = TestInterface.class.getMethod( "testSetter", Boolean.class );
     assertNotNull( m );
-    new ArgumentWrapper( "name", "display", false, new SqoopExportConfig(), GETTER, m );
+    new ArgumentWrapper( "name", "display", false, "", 0, new SqoopExportConfig(), GETTER, m );
   }
 
   @Test( expected = IllegalArgumentException.class )
   public void instantiation_wrong_getter_method_return_type() throws NoSuchMethodException {
     Method m = getClass().getMethod( "instantiation_wrong_getter_method_return_type" );
     assertNotNull( m );
-    new ArgumentWrapper( "name", "display", false, new SqoopExportConfig(), m, SETTER );
+    new ArgumentWrapper( "name", "display", false, "", 0, new SqoopExportConfig(), m, SETTER );
   }
 
   @Test
   public void instantiation() {
     SqoopImportConfig testObj = new SqoopImportConfig();
-    ArgumentWrapper arg1 = new ArgumentWrapper( "name1", "display1", false, testObj, GETTER, SETTER );
-    ArgumentWrapper arg2 = new ArgumentWrapper( "name2", "display2", true, testObj, GETTER, SETTER );
+    ArgumentWrapper arg1 = new ArgumentWrapper( "name1", "display1", false, "--", 50, testObj, GETTER, SETTER );
+    ArgumentWrapper arg2 = new ArgumentWrapper( "name2", "display2", true, "-", 100, testObj, GETTER, SETTER );
 
     assertNotNull( arg1 );
     assertEquals( "name1", arg1.getName() );
     assertEquals( "display1", arg1.getDisplayName() );
     assertFalse( arg1.isFlag() );
     assertNull( arg1.getValue() );
+    assertEquals( "--", arg1.getPrefix() );
+    assertEquals( 50, arg1.getOrder() );
 
     assertNotNull( arg2 );
     assertEquals( "name2", arg2.getName() );
     assertEquals( "display2", arg2.getDisplayName() );
     assertTrue( arg2.isFlag() );
     assertNull( arg2.getValue() );
+    assertEquals( "-", arg2.getPrefix() );
+    assertEquals( 100, arg2.getOrder() );
   }
 
   @Test
   public void setName() {
     SqoopImportConfig testObj = new SqoopImportConfig();
-    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, testObj, GETTER, SETTER );
+    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, "", 0, testObj, GETTER, SETTER );
     arg.setName( "testing" );
     assertEquals( "testing", arg.getName() );
   }
@@ -146,7 +150,7 @@ public class ArgumentWrapperTest {
   @Test
   public void setDisplayName() {
     SqoopImportConfig testObj = new SqoopImportConfig();
-    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, testObj, GETTER, SETTER );
+    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, "", 0, testObj, GETTER, SETTER );
     arg.setDisplayName( "testing" );
     assertEquals( "testing", arg.getDisplayName() );
   }
@@ -156,7 +160,7 @@ public class ArgumentWrapperTest {
     SqoopImportConfig testObj = new SqoopImportConfig();
     PersistentPropertyChangeListener listener = new PersistentPropertyChangeListener();
     testObj.addPropertyChangeListener( FIELD_NAME, listener );
-    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, testObj, GETTER, SETTER );
+    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, "", 0, testObj, GETTER, SETTER );
     assertNull( testObj.getJobEntryName() );
     arg.setValue( "testing" );
     assertEquals( "testing", testObj.getJobEntryName() );
@@ -167,14 +171,14 @@ public class ArgumentWrapperTest {
   public void getValue() {
     SqoopImportConfig testObj = new SqoopImportConfig();
     testObj.setJobEntryName( "testing" );
-    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, testObj, GETTER, SETTER );
+    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, "", 0, testObj, GETTER, SETTER );
     assertEquals( "testing", arg.getValue() );
   }
 
   @Test
   public void setFlag() {
     SqoopImportConfig testObj = new SqoopImportConfig();
-    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, testObj, GETTER, SETTER );
+    ArgumentWrapper arg = new ArgumentWrapper( "name", "display", false, "", 0, testObj, GETTER, SETTER );
     assertFalse( arg.isFlag() );
     arg.setFlag( true );
     assertTrue( arg.isFlag() );

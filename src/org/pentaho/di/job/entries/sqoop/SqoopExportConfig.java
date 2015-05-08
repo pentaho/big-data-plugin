@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,12 +31,13 @@ public class SqoopExportConfig extends SqoopConfig {
   public static final String EXPORT_DIR = "exportDir";
   public static final String UPDATE_KEY = "updateKey";
   public static final String UPDATE_MODE = "updateMode";
-  public static final String INPUT_NULL_STRING = "inputNullString";
   public static final String DIRECT = "direct";
   public static final String STAGING_TABLE = "stagingTable";
   public static final String CLEAR_STAGING_TABLE = "clearStagingTable";
   public static final String BATCH = "batch";
-  public static final String INPUT_NULL_NON_STRING = "inputNullNonString";
+
+  public static final String CALL = "call";
+  public static final String COLUMNS = "columns";
 
   @CommandLineArgument( name = "export-dir" )
   private String exportDir;
@@ -52,10 +53,11 @@ public class SqoopExportConfig extends SqoopConfig {
   private String clearStagingTable;
   @CommandLineArgument( name = BATCH, flag = true )
   private String batch;
-  @CommandLineArgument( name = "input-null-string" )
-  private String inputNullString;
-  @CommandLineArgument( name = "input-null-non-string" )
-  private String inputNullNonString;
+
+  @CommandLineArgument( name = "call" )
+  private String call;
+  @CommandLineArgument( name = "columns" )
+  private String columns;
 
   public String getExportDir() {
     return exportDir;
@@ -127,23 +129,24 @@ public class SqoopExportConfig extends SqoopConfig {
     pcs.firePropertyChange( BATCH, old, this.batch );
   }
 
-  public String getInputNullString() {
-    return inputNullString;
+  public String getCall() {
+    return call;
   }
 
-  public void setInputNullString( String inputNullString ) {
-    String old = this.inputNullString;
-    this.inputNullString = inputNullString;
-    pcs.firePropertyChange( INPUT_NULL_STRING, old, this.inputNullString );
+  public void setCall( String call ) {
+    String old = this.call;
+    this.call = call;
+    pcs.firePropertyChange( CALL, old, this.call );
   }
 
-  public String getInputNullNonString() {
-    return inputNullNonString;
+  public String getColumns() {
+    return columns;
   }
 
-  public void setInputNullNonString( String inputNullNonString ) {
-    String old = this.inputNullNonString;
-    this.inputNullNonString = inputNullNonString;
-    pcs.firePropertyChange( INPUT_NULL_NON_STRING, old, this.inputNullNonString );
+  public void setColumns( String columns ) {
+    String old = this.columns;
+    this.columns = columns;
+    pcs.firePropertyChange( COLUMNS, old, this.columns );
   }
+
 }
