@@ -36,6 +36,7 @@ import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
 import org.apache.commons.vfs.provider.AbstractFileObject;
 import org.jets3t.service.S3Service;
+import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
@@ -169,28 +170,39 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   }
 
   protected FileType doGetType() throws Exception {
-
-    if ( getName().getPath().equals( "" ) || getName().getPath().equals( DELIMITER ) ) {
-      return FileType.FOLDER;
-    }
-
-    S3FileObject parent = (S3FileObject) getParent();
-    if ( parent.folders == null || parent.folders.isEmpty() ) {
-      // Refresh the list of children from our parent so we can determine if we're a folder or not
-      // TODO This should be cleaned up so we don't have to fetch all children. Ideally within #getS3Object().
-      parent.doListChildren();
-    }
-    if ( ( (S3FileObject) getParent() ).folders.contains( getName().getBaseName() ) ) {
-      return FileType.FOLDER;
-    }
-
     S3Bucket bucket = null;
-    S3Object object = null;
     try {
       bucket = getS3Bucket();
     } catch ( Exception ex ) {
       // ignored
     }
+    if ( getName().getPath().equals( "" ) || getName().getPath().equals( DELIMITER ) || getName().getPath()
+      .endsWith( DELIMITER ) ) {
+      return FileType.FOLDER;
+    }
+    String s3Path = getBucketRelativeS3Path();
+    if ( s3Path.isEmpty() && bucket != null ) {
+      return FileType.FOLDER;
+    }
+    if ( !s3Path.endsWith( DELIMITER ) ) {
+      s3Path = s3Path.concat( DELIMITER );
+    }
+    S3Object objectEndsWithDelimiter = null;
+    try {
+      objectEndsWithDelimiter = fileSystem.getS3Service().getObject( getS3BucketName(), s3Path );
+    } catch ( Exception e ) {
+      try {
+        if ( fileSystem.getS3Service().listObjects( getS3BucketName(), s3Path, null ).length != 0 ) {
+          return FileType.FOLDER;
+        }
+      } catch ( S3ServiceException se ) {
+       // ignored
+      }
+    }
+    if ( objectEndsWithDelimiter != null ) {
+      return FileType.FOLDER;
+    }
+    S3Object object = null;
     try {
       object = getS3Object( false );
     } catch ( Exception ex ) {

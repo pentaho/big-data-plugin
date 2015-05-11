@@ -68,6 +68,7 @@ public class S3FileObjectTest {
     //specify the behaviour of S3 Service
     when( s3ServiceMock.getBucket( BUCKET_NAME ) ).thenReturn( testBucket );
     when( s3ServiceMock.getObject( testBucket, OBJECT_NAME ) ).thenReturn( s3Object );
+    when( s3ServiceMock.getObject( BUCKET_NAME, OBJECT_NAME ) ).thenReturn( s3Object );
     when( s3ServiceMock.createBucket( BUCKET_NAME ) )
       .thenThrow( new S3ServiceException() ); // throw exception if bucket exists
     when( fileSystemSpy.getS3Service() ).thenReturn( s3ServiceMock );
