@@ -25,11 +25,15 @@ package org.pentaho.di.trans.steps.hadoopfileinput;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.vfs.FileName;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -43,55 +47,55 @@ import org.w3c.dom.Node;
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileinput" )
 public class HadoopFileInputMeta extends TextFileInputMeta {
 
+  private VariableSpace variableSpace;
   private Map<String, String> namedClusterURLMapping = null;
-  private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
   private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
+
+  private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
+  public static final String LOCAL_SOURCE_FILE = "LOCAL-SOURCE-FILE-";
+  public static final String STATIC_SOURCE_FILE = "STATIC-SOURCE-FILE-";
+  public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
+  public static final String S3_DEST_FILE = "S3-DEST-FILE-";
 
   public HadoopFileInputMeta() {
     namedClusterURLMapping = new HashMap<String, String>();
   }
 
-  protected String loadSource( Node filenode, Node filenamenode, int i ) {
+  protected String loadSource( Node filenode, Node filenamenode, int i, IMetaStore metaStore ) {
     String source_filefolder = XMLHandler.getNodeValue( filenamenode );
     Node sourceNode = XMLHandler.getSubNodeByNr( filenode, SOURCE_CONFIGURATION_NAME, i );
     String source = XMLHandler.getNodeValue( sourceNode );
-    return storeUrl( source_filefolder, source );
+    return loadUrl( source_filefolder, source, metaStore, namedClusterURLMapping );
   }
 
   protected void saveSource( StringBuffer retVal, String source ) {
-    retVal.append( "      " ).append( XMLHandler.addTagValue( "name", source ) );
     String namedCluster = namedClusterURLMapping.get( source );
+    retVal.append( "      " ).append( XMLHandler.addTagValue( "name", source ) );
     retVal.append( "          " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, namedCluster ) );
   }
 
   protected String loadSourceRep( Repository rep, ObjectId id_step, int i ) throws KettleException {
     String source_filefolder = rep.getStepAttributeString( id_step, i, "file_name" );
     String ncName = rep.getJobEntryAttributeString( id_step, i, SOURCE_CONFIGURATION_NAME );
-    return storeUrl( source_filefolder, ncName );
+    return loadUrl( source_filefolder, ncName, repository != null ? repository.getMetaStore() : null,
+        namedClusterURLMapping );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, int i, String fileName )
     throws KettleException {
-    rep.saveStepAttribute( id_transformation, id_step, i, "file_name", fileName );
     String namedCluster = namedClusterURLMapping.get( fileName );
+    rep.saveStepAttribute( id_transformation, id_step, i, "file_name", fileName );
     rep.saveStepAttribute( id_transformation, id_step, i, SOURCE_CONFIGURATION_NAME, namedCluster );
   }
 
-  private String storeUrl( String url, String ncName ) {
-    url = 
-        namedClusterManager.processURLsubstitution( 
-            ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), null );
+  public String loadUrl( String url, String ncName, IMetaStore metastore, Map mappings ) {
+    url =
+        namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
+            variableSpace );
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
-      namedClusterURLMapping.put( url, ncName );
+      mappings.put( url, ncName );
     }
     return url;
-  }
-
-  private IMetaStore getMetaStore() {
-    if ( repository != null ) {
-      return repository.getMetaStore();
-    }
-    return null;
   }
 
   public void setNamedClusterURLMapping( Map<String, String> mappings ) {
@@ -100,5 +104,24 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
 
   public Map<String, String> getNamedClusterURLMapping() {
     return this.namedClusterURLMapping;
+  }
+
+  public String getClusterNameBy( String url ) {
+    return this.namedClusterURLMapping.get( url );
+  }
+
+  public String getUrlPath( String source ) {
+    try {
+      UrlFileNameParser parser = new UrlFileNameParser();
+      FileName fileName = parser.parseUri( null, null, source );
+      source = fileName.getPath();
+    } catch ( FileSystemException e ) {
+      source = null;
+    }
+    return source;
+  }
+
+  public void setVariableSpace( VariableSpace variableSpace ) {
+    this.variableSpace = variableSpace;
   }
 }

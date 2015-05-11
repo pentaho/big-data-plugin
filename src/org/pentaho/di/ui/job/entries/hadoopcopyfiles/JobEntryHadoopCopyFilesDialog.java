@@ -207,7 +207,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       destNc = destNc.equals( S3_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.S3_DEST_FILE + i : destNc;
       String dest = wFields.getNonEmpty( i ).getText( 5 );
 
-      if ( source != null && source.length() != 0 && jobEntry.source_filefolder.length > 0 ) {
+      if ( !Const.isEmpty( source ) && jobEntry.source_filefolder.length > 0 ) {
         jobEntry.source_filefolder[nr] =
             jobEntryHadoopCopyFiles.loadURL( source, sourceNc, getMetaStore(), namedClusterURLMappings );
         jobEntry.destination_filefolder[nr] =
