@@ -52,7 +52,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     //    service = fileSystem.getS3Service();
   }
 
-  protected String getS3BucketName() throws Exception {
+  protected String getS3BucketName() {
     String bucketName = getName().getPath();
     if ( bucketName.indexOf( DELIMITER, 1 ) > 1 ) {
       // this file is a file, to get the bucket, remove the name from the path
@@ -275,6 +275,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     S3Object s3Object = getS3Object( false );
     s3Object.setKey( newfile.getName().getBaseName() );
     fileSystem.getS3Service().renameObject( getS3BucketName(), getName().getBaseName(), s3Object );
+    s3ChildrenMap.remove( getS3BucketName() );
   }
 
   protected long doGetLastModifiedTime() throws Exception {
@@ -350,4 +351,13 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     }
   }
 
+  @Override protected void handleCreate( FileType newType ) throws Exception {
+    s3ChildrenMap.remove( getS3BucketName() );
+    super.handleCreate( newType );
+  }
+
+  @Override protected void handleDelete() throws Exception {
+    s3ChildrenMap.remove( getS3BucketName() );
+    super.handleDelete();
+  }
 }
