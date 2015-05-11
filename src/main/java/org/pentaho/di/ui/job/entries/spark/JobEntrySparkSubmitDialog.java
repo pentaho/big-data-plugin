@@ -58,6 +58,8 @@ import org.pentaho.di.job.entries.spark.JobEntrySparkSubmit;
 import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -154,8 +156,9 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     // Job entry icon
     Label stepIcon = new Label( shell, SWT.NONE );
     props.setLook( stepIcon );
-    stepIcon.setImage( new Image( display, getClass().getClassLoader().getResourceAsStream(
-        "org/pentaho/di/ui/job/entries/spark/img/SparkSubmit.png" ) ) );
+    stepIcon.setImage( GUIResource.getInstance().getImage( "org/pentaho/di/ui/job/entries/spark/img/spark.svg",
+        getClass().getClassLoader(), ConstUI.ICON_SIZE, ConstUI.ICON_SIZE ) );
+
     FormData fdIcon = new FormData();
     fdIcon.right = new FormAttachment( 100 );
     fdIcon.top = new FormAttachment( nameLabel, 0, SWT.TOP );

@@ -67,7 +67,7 @@ import org.w3c.dom.Node;
  *
  */
 
-@JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/SparkSubmit.png", id = "SparkSubmit",
+@JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/spark.svg", id = "SparkSubmit",
     name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
     i18nPackageName = "org.pentaho.di.job.entries.spark",
