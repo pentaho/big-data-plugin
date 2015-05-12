@@ -352,18 +352,12 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
         if ( nc.isMapr() ) {
           shim.configureConnectionInformation( "", "", "", "", conf, messages );
         } else {
-          shim.configureConnectionInformation( environmentSubstitute( nc.getHdfsHost() ), environmentSubstitute( nc.getHdfsPort() ),
-              environmentSubstitute( nc.getJobTrackerHost() ), environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+          shim.configureConnectionInformation(
+              environmentSubstitute( nc.getHdfsHost() ),
+              environmentSubstitute( nc.getHdfsPort() ),
+              environmentSubstitute( nc.getJobTrackerHost() ),
+              environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
         }
-/*
-=======
-        shim.configureConnectionInformation(
-            environmentSubstitute( nc.getHdfsHost() ),
-            environmentSubstitute( nc.getHdfsPort() ),
-            environmentSubstitute( nc.getJobTrackerHost() ),
-            environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
->>>>>>> [BAD-131] - Sqoop job fails when running from Advanced mode with "argument -connect is missing" error
-*/
       } else {
         shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),
              environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
