@@ -58,6 +58,7 @@ import org.pentaho.di.ui.job.entries.copyfiles.JobEntryCopyFilesDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
@@ -66,6 +67,8 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   private static Class<?> PKG = JobEntryHadoopCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
   private LogChannel log = new LogChannel( this );
   private JobEntryHadoopCopyFiles jobEntryHadoopCopyFiles;
+
+  public static final String S3_ENVIRONMENT = "S3";
 
   public JobEntryHadoopCopyFilesDialog( Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
     super( parent, jobEntryInt, rep, jobMeta );
@@ -113,9 +116,13 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
                 clusterName.startsWith( JobEntryHadoopCopyFiles.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
             clusterName =
                 clusterName.startsWith( JobEntryHadoopCopyFiles.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
+
             ti.setText( 1, clusterName );
             sourceUrl =
-                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ? sourceUrl
+                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ||
+                clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
                     : jobEntryHadoopCopyFiles.getUrlPath( sourceUrl );
           }
           ti.setText( 2, sourceUrl );
@@ -131,9 +138,12 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
                 clusterName.startsWith( JobEntryHadoopCopyFiles.LOCAL_DEST_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
             clusterName =
                 clusterName.startsWith( JobEntryHadoopCopyFiles.STATIC_DEST_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.S3_DEST_FILE ) ? S3_ENVIRONMENT : clusterName;
             ti.setText( 4, clusterName );
             destinationURL =
-                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ? destinationURL
+                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ||
+                clusterName.equals( S3_ENVIRONMENT ) ? destinationURL
                     : jobEntryHadoopCopyFiles.getUrlPath( destinationURL );
           }
           ti.setText( 5, destinationURL );
@@ -188,11 +198,13 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       String sourceNc = wFields.getNonEmpty( i ).getText( 1 );
       sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.LOCAL_SOURCE_FILE + i : sourceNc;
       sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.STATIC_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.S3_SOURCE_FILE + i : sourceNc;
       String source = wFields.getNonEmpty( i ).getText( 2 );
       String wild = wFields.getNonEmpty( i ).getText( 3 );
       String destNc = wFields.getNonEmpty( i ).getText( 4 );
       destNc = destNc.equals( LOCAL_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.LOCAL_DEST_FILE + i : destNc;
       destNc = destNc.equals( STATIC_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.STATIC_DEST_FILE + i : destNc;
+      destNc = destNc.equals( S3_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.S3_DEST_FILE + i : destNc;
       String dest = wFields.getNonEmpty( i ).getText( 5 );
 
       if ( source != null && source.length() != 0 && jobEntry.source_filefolder.length > 0 ) {
@@ -248,6 +260,11 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
         selectedFile =
             fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, new String[] { "*.*" },
                 FILETYPES, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+      } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
+        selectedFile =
+            fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true, 
+                path, new String[] { "*.*" }, FILETYPES, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, 
+                false, true );
       } else {
         NamedCluster namedCluster =
             NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
@@ -283,13 +300,14 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
 
       if ( selectedFile != null ) {
         String url = selectedFile.getURL().toString();
-        NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-
         if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
           wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
-        } else if ( nc != null ) {
+        } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+        } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
           url = jobEntryHadoopCopyFiles.getUrlPath( url );
-          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, nc.getName() );
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, 
+              namedClusterWidget.getSelectedNamedCluster().getName() );
         }
         wFields.getActiveTableItem().setText( wFields.getActiveTableColumn(), url );
       }
@@ -317,7 +335,11 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   protected void setComboValues( ColumnInfo colInfo ) {
     try {
       super.setComboValues( colInfo );
-      String[] comboValues = colInfo.getComboValues();
+      String[] superValues = colInfo.getComboValues();
+      
+      String[] s3value = { S3_ENVIRONMENT };
+      String[] comboValues = (String[]) ArrayUtils.addAll( superValues, s3value );
+      
       String[] namedClusters =
           NamedClusterManager.getInstance().listNames( getMetaStore() ).toArray( new String[0] );
       String[] values = (String[]) ArrayUtils.addAll( comboValues, namedClusters );
