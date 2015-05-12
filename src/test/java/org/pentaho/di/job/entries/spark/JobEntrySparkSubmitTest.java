@@ -43,7 +43,7 @@ public class JobEntrySparkSubmitTest {
     ss.setDriverMemory( "driverMemory" );
     ss.setExecutorMemory( "executorMemory" );
 
-    List<String> configParams = new ArrayList<>();
+    List<String> configParams = new ArrayList<String>();
     configParams.add( "name1=value1" );
     configParams.add( "name2=value 2" );
     ss.setConfigParams( configParams );
