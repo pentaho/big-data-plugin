@@ -60,6 +60,9 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
   public static final String STATIC_SOURCE_FILE = "STATIC-SOURCE-FILE-";
   public static final String STATIC_DEST_FILE = "STATIC-DEST-FILE-";
 
+  public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
+  public static final String S3_DEST_FILE = "S3-DEST-FILE-";
+  
   private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
   public JobEntryHadoopCopyFiles() {
