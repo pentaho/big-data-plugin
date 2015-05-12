@@ -35,6 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.apache.commons.vfs.FileType;
@@ -118,6 +119,8 @@ import org.pentaho.di.ui.trans.steps.textfileinput.TextFileCSVImportProgressDial
 import org.pentaho.di.ui.trans.steps.textfileinput.TextFileImportWizardPage1;
 import org.pentaho.di.ui.trans.steps.textfileinput.TextFileImportWizardPage2;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
@@ -126,14 +129,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private static Class<?> PKG = HadoopFileInputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
 
   private LogChannel log = new LogChannel( this );
-  private Map<String, String> transientMappings = null;
-  private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
   private static final String[] YES_NO_COMBO = new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.No" ),
     BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) };
 
   private static final String[] ALL_FILES_TYPE = new String[] { BaseMessages
       .getString( PKG, "System.FileType.AllFiles" ) }; //$NON-NLS-1$
+
+  public static final String LOCAL_ENVIRONMENT = "Local";
+  public static final String STATIC_ENVIRONMENT = "<Static>";
+  public static final String S3_ENVIRONMENT = "S3";
 
   private CTabFolder wTabFolder;
   private FormData fdTabFolder;
@@ -367,6 +372,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   private TextFileInputMeta input;
 
+  private HadoopFileInputMeta hadoopFileInputMeta;
+
   private ToolBar tb;
 
   // Wizard info...
@@ -386,8 +393,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   public HadoopFileInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
     input = (TextFileInputMeta) in;
+    hadoopFileInputMeta = (HadoopFileInputMeta) input;
+    hadoopFileInputMeta.setVariableSpace( variables );
     firstClickOnDateLocale = true;
-    transientMappings = ( (HadoopFileInputMeta) input ).getNamedClusterURLMapping();
   }
 
   public String open() {
@@ -756,7 +764,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     ColumnInfo[] colinfo =
         new ColumnInfo[] {
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileDirColumn.Column" ),
+          new ColumnInfo( BaseMessages.getString( PKG, "HadoopFileInputDialog.Environment" ),
+              ColumnInfo.COLUMN_TYPE_CCOMBO, false, true ),
+          new ColumnInfo( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileFolderColumn.Column" ),
               ColumnInfo.COLUMN_TYPE_TEXT_BUTTON, false ),
           new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.WildcardColumn.Column" ),
               ColumnInfo.COLUMN_TYPE_TEXT, false ),
@@ -765,11 +775,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Column" ),
               ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ) };
 
-    colinfo[0].setUsingVariables( true );
-    colinfo[0].setTextVarButtonSelectionListener( getFileDirectoryListener() );
-    colinfo[1].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RegExpColumn.Column" ) );
-    colinfo[2].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Tooltip" ) );
-    colinfo[3].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Tooltip" ) );
+    setComboValues( colinfo[0] );
+
+    colinfo[1].setUsingVariables( true );
+    colinfo[1].setTextVarButtonSelectionListener( getFileDirectoryListener() );
+    colinfo[2].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RegExpColumn.Column" ) );
+    colinfo[3].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Tooltip" ) );
+    colinfo[4].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Tooltip" ) );
 
     wFilenameList =
         new TableView( transMeta, wFileComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, colinfo, 4, lsMod, props );
@@ -1993,13 +2005,23 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
       for ( int i = 0; i < in.getFileName().length; i++ ) {
         String sourceUrl = in.getFileName()[i];
-        String clusterName = transientMappings.get( sourceUrl );
-        sourceUrl =
-            namedClusterManager.processURLsubstitution( clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME,
-                metaStore, variables );
+        String clusterName = hadoopFileInputMeta.getClusterNameBy( sourceUrl );
+
+        if ( clusterName != null ) {
+          clusterName =
+              clusterName.startsWith( HadoopFileInputMeta.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
+          clusterName =
+              clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+          clusterName =
+              clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
+          sourceUrl =
+              clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ? sourceUrl
+                  : hadoopFileInputMeta.getUrlPath( sourceUrl );
+        }
 
         wFilenameList
-            .add( new String[] { sourceUrl, in.getFileMask()[i], in.getRequiredFilesDesc( in.getFileRequired()[i] ),
+            .add( new String[] { clusterName, sourceUrl, in.getFileMask()[i],
+              in.getRequiredFilesDesc( in.getFileRequired()[i] ),
               in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
       }
       wFilenameList.removeEmptyRows();
@@ -2267,17 +2289,28 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     meta.allocate( nrfiles, nrfields, nrfilters );
 
     Map<String, String> namedClusterURLMappings = new HashMap<String, String>();
-    String[] items = wFilenameList.getItems( 0 );
-    for ( int i = 0; i < items.length; i++ ) {
-      String source = items[i];
-      processNamedClusterURLMapping( source, namedClusterURLMappings );
-    }
-    ( (HadoopFileInputMeta) input ).setNamedClusterURLMapping( namedClusterURLMappings );
+    String[] fileNames = new String[wFilenameList.getItems( 1 ).length];
+    String[] nameClusterList = wFilenameList.getItems( 0 );
 
-    meta.setFileName( wFilenameList.getItems( 0 ) );
-    meta.setFileMask( wFilenameList.getItems( 1 ) );
-    meta.setFileRequired( wFilenameList.getItems( 2 ) );
-    meta.setIncludeSubFolders( wFilenameList.getItems( 3 ) );
+    for ( int i = 0; i < nameClusterList.length; i++ ) {
+      String sourceNc = nameClusterList[i];
+      sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? HadoopFileInputMeta.LOCAL_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? HadoopFileInputMeta.STATIC_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? HadoopFileInputMeta.S3_SOURCE_FILE + i : sourceNc;
+      String source = wFilenameList.getItems( 1 )[i];
+      if ( !Const.isEmpty( source ) ) {
+        fileNames[i] = hadoopFileInputMeta.loadUrl( source, sourceNc, getMetaStore(), namedClusterURLMappings );
+      } else {
+        fileNames[i] = "";
+      }
+    }
+
+    meta.setFileName( fileNames );
+    meta.setFileMask( wFilenameList.getItems( 2 ) );
+    meta.setFileRequired( wFilenameList.getItems( 3 ) );
+    meta.setIncludeSubFolders( wFilenameList.getItems( 4 ) );
+
+    hadoopFileInputMeta.setNamedClusterURLMapping( namedClusterURLMappings );
 
     for ( int i = 0; i < nrfields; i++ ) {
       TextFileInputField field = new TextFileInputField();
@@ -2847,18 +2880,6 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return this.getClass().getName();
   }
 
-  private void processNamedClusterURLMapping( String locationURL, Map<String, String> namedClusterURLMappings ) {
-    // The locationURL has to correspond to a NamedCluster otherwise it was modified by the user
-    // thus breaking the URL/NamedCluster link.
-    String cluster = transientMappings.get( locationURL );
-    if ( cluster != null ) {
-      namedClusterURLMappings.put( locationURL, cluster );
-    } else {
-      // The locationURL was modified thus the link to the NamedCluster is lost.
-      namedClusterURLMappings.put( locationURL, "" );
-    }
-  }
-
   private SelectionAdapter getFileDirectoryListener() {
 
     return new SelectionAdapter() {
@@ -2914,26 +2935,48 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           fileChooserDialog.defaultInitialFile = defaultInitialFile;
 
           NamedClusterWidget namedClusterWidget = null;
-          List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
-          String ncName = null;
-          HadoopVfsFileChooserDialog hadoopDialog = null;
-          for ( CustomVfsUiPanel panel : customPanels ) {
-            if ( panel instanceof HadoopVfsFileChooserDialog ) {
-              hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
-              namedClusterWidget = hadoopDialog.getNamedClusterWidget();
-              namedClusterWidget.initiate();
-              ncName = null;
-              if ( initialFile != null ) {
-                ncName = transientMappings.get( initialFile.getURL().toString() );
+
+          FileObject selectedFile = null;
+          String clusterName = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() - 1 );
+          String path = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() );
+
+          if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
+            selectedFile =
+                fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, fileFilters,
+                    fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+          } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
+            selectedFile =
+                fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true, 
+                    path, fileFilters, fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, 
+                                false, true );
+          } else {
+            NamedCluster namedCluster =
+                NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
+            if ( namedCluster != null ) {
+              if ( namedCluster.isMapr() ) {
+                selectedFile =
+                    fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.MAPRFS_SCHEME },
+                        HadoopSpoonPlugin.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
+                        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+              } else {
+                List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+                for ( CustomVfsUiPanel panel : customPanels ) {
+                  if ( panel instanceof HadoopVfsFileChooserDialog ) {
+                    HadoopVfsFileChooserDialog hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
+                    namedClusterWidget = hadoopDialog.getNamedClusterWidget();
+                    namedClusterWidget.initiate();
+                    hadoopDialog.setNamedCluster( clusterName );
+                    hadoopDialog.initializeConnectionPanel( initialFile );
+                  }
+                }
+                selectedFile =
+                    fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
+                        HadoopSpoonPlugin.HDFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
+                        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
               }
-              hadoopDialog.setNamedCluster( ncName );
-              hadoopDialog.initializeConnectionPanel( initialFile );
+
             }
           }
-
-          FileObject selectedFile =
-              fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, fileFilters,
-                  fileFilterNames, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
 
           CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
           if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
@@ -2942,13 +2985,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
           if ( selectedFile != null ) {
             String url = selectedFile.getURL().toString();
-            NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-            if ( nc != null ) {
-              url = 
-                  namedClusterManager.processURLsubstitution(
-                      nc.getName(), url, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), variables );
-              transientMappings.put( url, nc.getName() );
+            if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
+              wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
+            } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
+              wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+            } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
+              url = hadoopFileInputMeta.getUrlPath( url );
+              wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, 
+                  namedClusterWidget.getSelectedNamedCluster().getName() );
             }
+
             wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn(), url );
           }
         } catch ( KettleFileException ex ) {
@@ -2958,6 +3004,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         }
       }
     };
+  }
 
+  protected void setComboValues( ColumnInfo colInfo ) {
+    try {
+      String[] comboValues = { LOCAL_ENVIRONMENT, STATIC_ENVIRONMENT, S3_ENVIRONMENT };
+      String[] namedClusters = NamedClusterManager.getInstance().listNames( getMetaStore() ).toArray( new String[0] );
+      String[] values = (String[]) ArrayUtils.addAll( comboValues, namedClusters );
+      colInfo.setComboValues( values );
+    } catch ( MetaStoreException e ) {
+      log.logError( e.getMessage() );
+    }
   }
 }

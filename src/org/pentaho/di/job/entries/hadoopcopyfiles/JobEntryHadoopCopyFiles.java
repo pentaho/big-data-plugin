@@ -76,27 +76,27 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   protected void saveSource( StringBuilder retval, String source ) {
     String namedCluster = namedClusterURLMapping.get( source );
-    retval.append( "          " ).append( XMLHandler.addTagValue( "source_filefolder", source ) );
+    retval.append( "          " ).append( XMLHandler.addTagValue( SOURCE_FILE_FOLDER, source ) );
     retval.append( "          " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, namedCluster ) );
   }
 
   protected void saveDestination( StringBuilder retval, String destination ) {
     String namedCluster = namedClusterURLMapping.get( destination );
-    retval.append( "          " ).append( XMLHandler.addTagValue( "destination_filefolder", destination ) );
+    retval.append( "          " ).append( XMLHandler.addTagValue( DESTINATION_FILE_FOLDER, destination ) );
     retval.append( "          " ).append( XMLHandler.addTagValue( DESTINATION_CONFIGURATION_NAME, namedCluster ) );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_job, ObjectId id_jobentry, int i, String sourceFileFolder )
     throws KettleException {
     String namedCluster = namedClusterURLMapping.get( sourceFileFolder );
-    rep.saveJobEntryAttribute( id_job, getObjectId(), i, "source_filefolder", sourceFileFolder );
+    rep.saveJobEntryAttribute( id_job, getObjectId(), i, SOURCE_FILE_FOLDER, sourceFileFolder );
     rep.saveJobEntryAttribute( id_job, id_jobentry, i, SOURCE_CONFIGURATION_NAME, namedCluster );
   }
 
   protected void saveDestinationRep( Repository rep, ObjectId id_job, ObjectId id_jobentry, int i,
       String destinationFileFolder ) throws KettleException {
     String namedCluster = namedClusterURLMapping.get( destinationFileFolder );
-    rep.saveJobEntryAttribute( id_job, getObjectId(), i, "destination_filefolder", destinationFileFolder );
+    rep.saveJobEntryAttribute( id_job, getObjectId(), i, DESTINATION_FILE_FOLDER, destinationFileFolder );
     rep.saveJobEntryAttribute( id_job, id_jobentry, i, DESTINATION_CONFIGURATION_NAME, namedCluster );
   }
 
