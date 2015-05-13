@@ -47,11 +47,12 @@
       <combiner_trans_repo_file/>
       <combiner_trans_repo_reference/>
       <combiner_trans/>
+      <combiner_single_threaded>N</combiner_single_threaded>
       <reduce_trans_repo_dir/>
       <reduce_trans_repo_file/>
       <reduce_trans_repo_reference/>
       <reduce_trans>${Internal.Job.Filename.Directory}&#47;weblogs-reducer.ktr</reduce_trans>
-      <reduce_single_threaded>Y</reduce_single_threaded>
+      <reduce_single_threaded>N</reduce_single_threaded>
       <map_input_step_name>Hadoop Input</map_input_step_name>
       <map_output_step_name>Hadoop Output</map_output_step_name>
       <combiner_input_step_name/>
