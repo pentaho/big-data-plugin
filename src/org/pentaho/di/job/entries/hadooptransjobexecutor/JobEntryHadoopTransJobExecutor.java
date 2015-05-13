@@ -95,7 +95,8 @@ import com.thoughtworks.xstream.XStream;
 @JobEntry( id = "HadoopTransJobExecutorPlugin", image = "HDT.svg", name = "HadoopTransJobExecutorPlugin.Name",
     description = "HadoopTransJobExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor" )
+    i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Pentaho+MapReduce" )
 public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
 
   private static Class<?> PKG = JobEntryHadoopTransJobExecutor.class; // for i18n purposes, needed by Translator2!!

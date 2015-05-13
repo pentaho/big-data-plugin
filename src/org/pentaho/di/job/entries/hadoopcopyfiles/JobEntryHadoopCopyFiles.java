@@ -43,7 +43,8 @@ import org.w3c.dom.Node;
 @JobEntry( id = "HadoopCopyFilesPlugin", image = "HDM.svg", name = "HadoopCopyFilesPlugin.Name",
     description = "HadoopCopyFilesPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    i18nPackageName = "org.pentaho.di.job.entries.hadoopcopyfiles" )
+    i18nPackageName = "org.pentaho.di.job.entries.hadoopcopyfiles",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Hadoop+Copy+Files" )
 public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   private Map<String, String> namedClusterURLMapping = null;

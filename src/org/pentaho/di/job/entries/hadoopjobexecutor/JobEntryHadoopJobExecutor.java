@@ -68,7 +68,8 @@ import org.w3c.dom.Node;
 @JobEntry( id = "HadoopJobExecutorPlugin", image = "HDE.svg", name = "HadoopJobExecutorPlugin.Name",
     description = "HadoopJobExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    i18nPackageName = "org.pentaho.di.job.entries.hadoopjobexecutor" )
+    i18nPackageName = "org.pentaho.di.job.entries.hadoopjobexecutor",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Hadoop+Job+Executor" )
 public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
 
   private static SecurityManagerStack smStack = new SecurityManagerStack();
