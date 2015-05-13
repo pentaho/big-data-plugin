@@ -28,7 +28,15 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.Counters.Counter;
-import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.TextOutputFormat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,22 +44,32 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LoggingRegistry;
-import org.pentaho.di.core.plugins.*;
+import org.pentaho.di.core.plugins.Plugin;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginMainClassType;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.trans.TransConfiguration;
 import org.pentaho.di.trans.TransExecutionConfiguration;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.steps.hadoopenter.HadoopEnterMeta;
 import org.pentaho.di.trans.steps.hadoopexit.HadoopExitMeta;
-import org.pentaho.hadoop.mapreduce.*;
-import org.pentaho.hadoop.shim.api.Configuration;
+import org.pentaho.hadoop.mapreduce.GenericTransCombiner;
+import org.pentaho.hadoop.mapreduce.GenericTransReduce;
+import org.pentaho.hadoop.mapreduce.PentahoMapRunnable;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
@@ -628,34 +646,6 @@ public class PentahoMapReduceIntegrationTest {
           + EXPECTED_CHANNELS_PER_RUN, LoggingRegistry.getInstance().getMap().size() );
     }
     assertEquals( logChannels + EXPECTED_CHANNELS_PER_RUN, LoggingRegistry.getInstance().getMap().size() );
-  }
-
-  @Test
-  public void testCombiner_single_threaded_wordcount() throws Exception {
-    final GenericTransCombiner combiner = new GenericTransCombiner();
-    final JobConf c = createJobConf( null, "./test-res/wordcount-reducer.ktr", null );
-    c.set( Configuration.STRING_COMBINE_SINGLE_THREADED, "true" );
-
-    combiner.configure( c );
-    assertTrue( combiner.isSingleThreaded() );
-
-    final MockOutputCollector outputCollector = new MockOutputCollector();
-    final MockReporter reporter = new MockReporter();
-
-    combiner.reduce( new Text( "pentaho" ), Arrays.asList( new IntWritable( 2 ), new IntWritable( 8 ) ).iterator(),
-        outputCollector, reporter );
-    outputCollector.close();
-
-    Exception ex = combiner.getException();
-    if ( ex != null ) {
-      ex.printStackTrace();
-    }
-    assertNull( "Exception thrown", ex );
-    assertEquals( "Expected 1 output row", 1, outputCollector.getCollection().size() );
-    assertEquals( "Expected 1 result for word 'pentaho'", 1, outputCollector.getCollection()
-        .get( new Text( "pentaho" ) ).size() );
-    assertEquals( "Expected 10 counts of 'pentaho'", new IntWritable( 10 ), outputCollector.getCollection().get(
-        new Text( "pentaho" ) ).get( 0 ) );
   }
 
   @Test
