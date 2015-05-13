@@ -33,7 +33,8 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
  */
 @JobEntry( id = "SqoopImport", name = "Sqoop.Import.PluginName", description = "Sqoop.Import.PluginDescription",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", image = "sqoop-import.svg",
-    i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1" )
+    i18nPackageName = "org.pentaho.di.job.entries.sqoop", version = "1",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Sqoop+Import" )
 public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig> {
 
   public SqoopImportJobEntry() {

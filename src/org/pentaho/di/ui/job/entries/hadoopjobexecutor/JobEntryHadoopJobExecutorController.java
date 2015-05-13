@@ -878,7 +878,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   }
 
   public void help() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement();
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getRootElement().getFirstChild();
     Shell shell = (Shell) xulDialog.getRootObject();
     PluginInterface plugin =
         PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
