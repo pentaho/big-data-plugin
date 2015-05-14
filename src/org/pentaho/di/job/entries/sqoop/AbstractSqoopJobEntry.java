@@ -315,24 +315,35 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * 
    */
   public void configure( HadoopShim shim, S sqoopConfig, Configuration conf ) throws KettleException {
-    try {
-      String dbName, dbUrl, dbUser, dbPassword;
-      if ( sqoopConfig.getModeAsEnum() == JobEntryMode.ADVANCED_LIST ) {
-        dbName = null;
-        dbUrl = sqoopConfig.getConnectFromAdvanced();
-        dbUser = sqoopConfig.getUsernameFromAdvanced();
-        dbPassword = sqoopConfig.getPasswordFromAdvanced();
-      } else {
-        DatabaseMeta databaseMeta = parentJob.getJobMeta().findDatabase( sqoopConfig.getDatabase() );
-        dbName = databaseMeta.getName();
-        dbUrl = databaseMeta.getURL();
-        dbUser = databaseMeta.getUsername();
-        dbPassword = databaseMeta.getPassword();
-      }
-      sqoopConfig.setConnectionInfo( environmentSubstitute( dbName ),
-        environmentSubstitute( dbUrl ), environmentSubstitute( dbUser ),
-        environmentSubstitute( dbPassword ) );
+    configureDatabase( sqoopConfig );
+    configureShim( shim, sqoopConfig, conf );
+  }
 
+  /**
+   * Configure database connection information
+   * @param sqoopConfig - Sqoop configuration
+   */
+  public void configureDatabase( S sqoopConfig ) throws KettleException {
+    DatabaseMeta databaseMeta = getParentJob().getJobMeta().findDatabase( sqoopConfig.getDatabase() );
+
+    // if databaseMeta == null we assume "USE_ADVANCED_MODE" is selected on QUICK_SETUP
+    if ( sqoopConfig.getModeAsEnum() == JobEntryMode.QUICK_SETUP && databaseMeta != null ) {
+      sqoopConfig.setConnectionInfo(
+          databaseMeta.getName(),
+          databaseMeta.getURL(),
+          databaseMeta.getUsername(),
+          databaseMeta.getPassword() );
+    }
+  }
+
+  /**
+   * Configure Hadoop related parameters
+   * @param shim - shim in use
+   * @param sqoopConfig - Sqoop configuration
+   * @param conf - Hadoop client configuration
+   */
+  public void configureShim( HadoopShim shim, S sqoopConfig, Configuration conf ) throws KettleException {
+    try {
       List<String> messages = new ArrayList<String>();
 
       String clusterName = sqoopConfig.getClusterName();
@@ -341,8 +352,11 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
         if ( nc.isMapr() ) {
           shim.configureConnectionInformation( "", "", "", "", conf, messages );
         } else {
-          shim.configureConnectionInformation( environmentSubstitute( nc.getHdfsHost() ), environmentSubstitute( nc.getHdfsPort() ),
-              environmentSubstitute( nc.getJobTrackerHost() ), environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+          shim.configureConnectionInformation(
+              environmentSubstitute( nc.getHdfsHost() ),
+              environmentSubstitute( nc.getHdfsPort() ),
+              environmentSubstitute( nc.getJobTrackerHost() ),
+              environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
         }
       } else {
         shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),

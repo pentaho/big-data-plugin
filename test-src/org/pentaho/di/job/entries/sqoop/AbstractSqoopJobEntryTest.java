@@ -25,7 +25,9 @@ package org.pentaho.di.job.entries.sqoop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +35,14 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.Result;
+import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.database.HiveDatabaseMeta;
 import org.pentaho.di.core.database.MySQLDatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.job.Job;
+import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.SqoopShim;
@@ -219,5 +225,73 @@ public class AbstractSqoopJobEntryTest {
     assertTrue( jobEntry.isDatabaseSupported( MySQLDatabaseMeta.class ) );
     // All database are "supported" for now
     assertTrue( jobEntry.isDatabaseSupported( HiveDatabaseMeta.class ) );
+  }
+
+  @Test
+  public void configureDatabaseTest() throws Exception {
+    final String DBNAME = "dbname";
+    final String URI = "jdbc:dbtype://host/port?param";
+    final String USER = "user";
+    final String PASSWORD = "password";
+    final String SUFFIX = "_FROM_META";
+
+    AbstractSqoopJobEntry<SqoopConfig> jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface ) {
+      @Override
+      public Job getParentJob() {
+        DatabaseMeta dbMeta = mock( DatabaseMeta.class );
+        when( dbMeta.getName() ).thenReturn( DBNAME + SUFFIX );
+        try {
+          when( dbMeta.getURL() ).thenReturn( URI + SUFFIX );
+        } catch ( KettleException e ) {
+          throw new RuntimeException( "Rethrow out", e );
+        }
+        when( dbMeta.getUsername() ).thenReturn( USER + SUFFIX );
+        when( dbMeta.getPassword() ).thenReturn( PASSWORD + SUFFIX );
+
+        Job job = mock( Job.class );
+        JobMeta jmeta = mock( JobMeta.class );
+
+        when( jmeta.findDatabase( DBNAME + SUFFIX ) ).thenReturn( dbMeta );
+        when( jmeta.findDatabase( DBNAME ) ).thenReturn( null );
+        when( job.getJobMeta() ).thenReturn( jmeta );
+        return job;
+      }
+    };
+
+    SqoopConfig conf = new SqoopConfig() { };
+    conf.setConnectionInfo( DBNAME, URI, USER, PASSWORD );
+
+    conf.setMode( JobEntryMode.ADVANCED_COMMAND_LINE );
+    jobEntry.configureDatabase( conf );
+
+    assertEquals( "database should not be changed in ADVANCED_COMMAND_LINE mode", DBNAME, conf.getDatabase() );
+    assertEquals( "uri should not be changed in ADVANCED_COMMAND_LINE mode",      URI, conf.getConnect() );
+    assertEquals( "user should not be changed in ADVANCED_COMMAND_LINE mode",     USER, conf.getUsername() );
+    assertEquals( "password should not be changed in ADVANCED_COMMAND_LINE mode", PASSWORD, conf.getPassword() );
+
+    conf.setMode( JobEntryMode.ADVANCED_LIST );
+    jobEntry.configureDatabase( conf );
+
+    assertEquals( "database should not be changed in ADVANCED_LIST mode", DBNAME, conf.getDatabase() );
+    assertEquals( "uri should not be changed in ADVANCED_LIST mode",      URI, conf.getConnect() );
+    assertEquals( "user should not be changed in ADVANCED_LIST mode",     USER, conf.getUsername() );
+    assertEquals( "password should not be changed in ADVANCED_LIST mode", PASSWORD, conf.getPassword() );
+
+    conf.setMode( JobEntryMode.QUICK_SETUP );
+    jobEntry.configureDatabase( conf );
+
+    assertEquals( "database should not be changed in ADVANCED_LIST mode", DBNAME, conf.getDatabase() );
+    assertEquals( "uri should not be changed in ADVANCED_LIST mode",      URI, conf.getConnect() );
+    assertEquals( "user should not be changed in ADVANCED_LIST mode",     USER, conf.getUsername() );
+    assertEquals( "password should not be changed in ADVANCED_LIST mode", PASSWORD, conf.getPassword() );
+
+    conf.setMode( JobEntryMode.QUICK_SETUP );
+    conf.setDatabase( DBNAME + SUFFIX );
+    jobEntry.configureDatabase( conf );
+
+    assertEquals( "database should be as DBMeta in QUICK_SETUP mode", DBNAME + SUFFIX, conf.getDatabase() );
+    assertEquals( "uri should be as DBMeta in QUICK_SETUP mode",      URI + SUFFIX, conf.getConnect() );
+    assertEquals( "user should be as DBMeta in QUICK_SETUP mode",     USER + SUFFIX, conf.getUsername() );
+    assertEquals( "password should be as DBMeta in QUICK_SETUP mode", PASSWORD + SUFFIX, conf.getPassword() );
   }
 }
