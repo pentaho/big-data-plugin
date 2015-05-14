@@ -28,7 +28,6 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -65,7 +64,9 @@ public class NamedClusterComposite extends Composite {
   
   private static final int TEXT_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private static final int PASSWORD_FLAGS = TEXT_FLAGS | SWT.PASSWORD;
-  
+
+  private Text nameValue;
+
   private interface Callback {
     public void invoke( NamedCluster nc, TextVar textVar, String value );
   }
@@ -110,6 +111,8 @@ public class NamedClusterComposite extends Composite {
     passwordGridData.widthHint = 185;
     
     processNamedCluster( this, namedCluster );
+
+    nameValue.forceFocus();
   }
 
   private void processNamedCluster( final Composite c, final NamedCluster cluster ) {
@@ -160,7 +163,7 @@ public class NamedClusterComposite extends Composite {
     
     createLabel( mainParent, BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.Name" ), labelGridData );
     
-    final Text nameValue = new Text( mainParent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    nameValue = new Text( mainParent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     nameValue.setText( String.valueOf( namedCluster.getName() ) );
     nameValue.setLayoutData( gridData );
     props.setLook( nameValue );
