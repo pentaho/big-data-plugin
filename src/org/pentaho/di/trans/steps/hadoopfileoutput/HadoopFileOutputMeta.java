@@ -26,11 +26,13 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 @Step( id = "HadoopFileOutputPlugin", image = "HDO.svg", name = "HadoopFileOutputPlugin.Name",
@@ -43,11 +45,11 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   private static Class<?> PKG = HadoopFileOutputMeta.class;
 
   private String sourceConfigurationName;
-  
+
   private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
-  
+
   private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
-  
+
   @Override
   public void setDefault() {
     // call the base classes method
@@ -69,21 +71,22 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     throw new RuntimeException( new RuntimeException( BaseMessages.getString( PKG,
         "HadoopFileOutput.MethodNotSupportedException.Message" ) ) );
   }
-  
+
   public String getSourceConfigurationName() {
     return sourceConfigurationName;
   }
-  
+
   public void setSourceConfigurationName( String ncName ) {
     this.sourceConfigurationName = ncName;
   }
-  
-  protected String loadSource( Node stepnode ) {
+
+  protected String loadSource( Node stepnode, IMetaStore metastore ) {
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
-    return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME, null, null );
+    return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
+        metastore, new Variables() );
   }
-    
+
   protected void saveSource( StringBuffer retVal, String fileName ) {
     retVal.append( "      " ).append( XMLHandler.addTagValue( "name", fileName ) );
     retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
@@ -92,12 +95,13 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   protected String loadSourceRep( Repository rep, ObjectId id_step ) throws KettleException {
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
-    return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME, rep.getMetaStore(), null );
+    return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME, rep
+        .getMetaStore(), new Variables() );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, String fileName )
-      throws KettleException {
+    throws KettleException {
     rep.saveStepAttribute( id_transformation, id_step, "file_name", fileName );
     rep.saveStepAttribute( id_transformation, id_step, SOURCE_CONFIGURATION_NAME, sourceConfigurationName );
-  }  
+  }
 }
