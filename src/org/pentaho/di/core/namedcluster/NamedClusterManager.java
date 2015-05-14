@@ -70,7 +70,7 @@ public class NamedClusterManager {
   public NamedCluster getClusterTemplate() {
     if ( clusterTemplate == null ) {
       clusterTemplate = new NamedCluster();
-      clusterTemplate.setName(  "Untitled-1" );
+      clusterTemplate.setName( "" );
       clusterTemplate.setHdfsHost( "localhost" );
       clusterTemplate.setHdfsPort( "8020" );
       clusterTemplate.setHdfsUsername( "user" );
