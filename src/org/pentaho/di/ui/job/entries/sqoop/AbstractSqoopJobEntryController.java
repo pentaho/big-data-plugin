@@ -142,10 +142,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
    * @param bindingFactory
    *          Binding factory to generate bindings
    */
+  @SuppressWarnings( "unchecked" )
   public AbstractSqoopJobEntryController( JobMeta jobMeta, XulDomContainer container, E jobEntry,
       BindingFactory bindingFactory ) {
     super( jobMeta, container, jobEntry, bindingFactory );
     this.config = (S) jobEntry.getJobConfig().clone();
+
     this.advancedArguments = new AbstractModelList<ArgumentWrapper>();
     this.databaseConnections = new AbstractModelList<DatabaseItem>();
     this.namedClusters = new AbstractModelList<NamedCluster>();
@@ -269,13 +271,13 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     if ( !suppressEventHandling ) {
       if ( namedCluster != null && !namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER )
           && !namedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) ) {
-        config.setClusterName( namedCluster.getName() );
+        setClusterToConfig( namedCluster, config );
         config.clearAdvancedNamedConfigurationInfo();
       } else if ( namedCluster != null && namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER ) ) {
-        config.setClusterName( null );
+        setClusterToConfig( null, config );
         config.clearAdvancedNamedConfigurationInfo();
       } else {
-        config.setClusterName( null );
+        setClusterToConfig( null, config );
       }
 
       suppressEventHandling = true;
@@ -285,6 +287,15 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         suppressEventHandling = false;
       }
     }
+  }
+
+  private void setClusterToConfig( NamedCluster namedCluster, SqoopConfig config ) {
+    String name = null;
+    if ( namedCluster != null ) {
+      name = namedCluster.getName();
+    }
+    config.setClusterName( name );
+    config.setNamedCluster( namedCluster );
   }
 
   public boolean isSelectedNamedCluster() {
@@ -377,6 +388,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     }
   }
 
+
   public void setAdvancedNamedConfiguration( String value ) {
     if ( !suppressEventHandling ) {
       if ( value != null ) {
@@ -437,7 +449,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
    */
   public void setSelectedDatabaseConnection( DatabaseItem selectedDatabaseConnection ) {
     if ( !suppressEventHandling ) {
-      DatabaseItem old = this.selectedDatabaseConnection;
       this.selectedDatabaseConnection = selectedDatabaseConnection;
       DatabaseMeta databaseMeta =
           this.selectedDatabaseConnection == null ? null : jobMeta.findDatabase( this.selectedDatabaseConnection
