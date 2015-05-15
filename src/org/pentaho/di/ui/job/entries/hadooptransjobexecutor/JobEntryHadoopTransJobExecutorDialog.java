@@ -200,7 +200,8 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
       }
 
       public Integer targetToSource( final NamedCluster value ) {
-        return null;
+        List<NamedCluster> clusters = controller.getNamedClusters();
+        return clusters.indexOf( value );
       }
     }).fireSourceChanged();
     

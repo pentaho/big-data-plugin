@@ -1501,37 +1501,50 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   
   public void editNamedCluster() {
     if ( isSelectedNamedCluster() ) {
-      Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      ncDelegate.editNamedCluster( null, this.selectedNamedCluster, shell );
-      firePropertyChange( "namedClusters", this.selectedNamedCluster, getNamedClusters() );
+      String ncName = this.selectedNamedCluster != null ? this.selectedNamedCluster.getName() : null;
+      String newNcName = ncDelegate.editNamedCluster( null, this.selectedNamedCluster, shell );
+      if ( newNcName != null ) {
+        ncName = newNcName;
+      }
+      firePropertyChange( "namedClusters", null, getNamedClusters() );
+      if ( ncName != null ) {
+        for ( NamedCluster nc : this.namedClusters ) {
+          if ( nc.getName().equals( ncName ) ) {
+            firePropertyChange( "selectedNamedCluster", null, nc );
+            return;
+          }
+        }
+      }
     }
   }
-  
+
   public void newNamedCluster() {
-    Spoon spoon = Spoon.getInstance();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    ncDelegate.newNamedCluster( jobMeta, null, shell );
+    String ncName = this.selectedNamedCluster != null ? this.selectedNamedCluster.getName() : null;
+    String newNcName = ncDelegate.newNamedCluster( jobMeta, null, shell );
+    if ( newNcName != null ) {
+      ncName = newNcName;
+    }
     firePropertyChange( "namedClusters", null, getNamedClusters() );
-    selectNamedCluster();
-  }
-  
-  private void selectNamedCluster() {
-    @SuppressWarnings("unchecked")
-    XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) getXulDomContainer().getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
-    for ( NamedCluster nc : getNamedClusters() ) {
-      String cn = this.jobEntry.getClusterName();
-      if ( cn != null && cn.equals( nc.getName() ) ) {
-        namedClusterMenu.setSelectedItem( nc );
-        setSelectedNamedCluster( nc );
+    if ( ncName != null ) {
+      for ( NamedCluster nc : this.namedClusters ) {
+        if ( nc.getName().equals( ncName ) ) {
+          firePropertyChange( "selectedNamedCluster", null, nc );
+          return;
+        }
       }
-    }    
-  }  
-  
+    }
+  }
+
   public void setSelectedNamedCluster( NamedCluster namedCluster ) {
     this.selectedNamedCluster = namedCluster;
+  }
+  
+  public NamedCluster getSelectedNamedCluster() {
+    return this.selectedNamedCluster;
   }
   
   public boolean isSelectedNamedCluster() {
