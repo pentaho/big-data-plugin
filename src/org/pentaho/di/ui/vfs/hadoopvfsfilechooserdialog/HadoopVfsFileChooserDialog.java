@@ -99,7 +99,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   // way hostname and port resolutions (for Connect Test and HDFS) are done.
   boolean isHighAvailabilityCluster = false;
 
-  boolean activate = false;
+  private long lastConnectAttempt = 0;
 
   String schemeName = "hdfs";
   
@@ -240,8 +240,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   }
   
   public void activate() {
-    activate = true;
-    
     ncHostname = "";
     ncPort = "";
     ncUsername = "";
@@ -250,7 +248,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     namedClusterWidget.setSelectedNamedCluster( namedCluster );
     
     super.activate();
-    activate = false;
   }
 
   public void connect() {
@@ -258,17 +255,19 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     vfsFileChooserDialog.setInitialFile( null );
     vfsFileChooserDialog.openFileCombo.setText( "hdfs://" );
     vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
-    
+
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc == null ) {
       return;
     }
-    
     loadNamedCluster();
 
     // Store the successful connection info to hand off to VFS
     connectedHostname = ncHostname;
     connectedPortString = ncPort;
+
+    boolean showErrors = System.currentTimeMillis() - lastConnectAttempt > 1000;
+    lastConnectAttempt = System.currentTimeMillis();
 
     try {
 
@@ -353,10 +352,11 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       }
 
     } catch ( Throwable t ) {
-      if ( !activate ) {
-        showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
+      if ( showErrors ) {
+        showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.Connection.Error.title" ), BaseMessages.getString(
             PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
       }
+      lastConnectAttempt = System.currentTimeMillis();
       return;
     }
 
@@ -369,9 +369,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     try {
       root = KettleVFS.getFileObject( buildHadoopFileSystemUrlString() );
     } catch ( KettleFileException e1 ) {
-      if ( activate ) {
-        return;
-      }
       // Search for "unsupported scheme" message. The actual string has parameters that we won't be able to match,
       // so build a string with
       // known (dummy) params, then split to get the beginning string, then compare against the current exception's
