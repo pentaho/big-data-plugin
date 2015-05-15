@@ -73,7 +73,7 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-@JobEntry( id = "HadoopPigScriptExecutorPlugin", image = "HDE.svg", name = "HadoopPigScriptExecutorPlugin.Name",
+@JobEntry( id = "HadoopPigScriptExecutorPlugin", image = "PIG.svg", name = "HadoopPigScriptExecutorPlugin.Name",
     description = "HadoopPigScriptExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
     i18nPackageName = "org.pentaho.di.job.entries.pig",
