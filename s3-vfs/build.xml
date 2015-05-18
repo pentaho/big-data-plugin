@@ -15,11 +15,63 @@
 	</description>
 
   <import file="build-res/subfloor.xml" />
-
+  <!-- Setup the classpath used for testing -->
+  <path id="test.classpath">
+    <pathelement path="${testclasses.dir}"/>
+    <pathelement path="${classes.dir}"/>
+    <fileset dir="${devlib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="${testlib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
   <!--
     AS STATED ABOVE, THE ONLY TASKS THAT SHOULD EXIST IN THIS BUILD FILE ARE
     THE TASKS THAT NEED TO DIFFER FROM THE DEFAULT IMPLEMENTATION OF THE TASKS
     FOUND IN common_build.xml.
   -->
+  <!--=======================================================================
+        test
+
+        Compiles and runs all the tests for the project
+        ====================================================================-->
+  <target name="test-integration" depends="test"
+          description="Compiles and runs unit tests">
+    <junit maxmemory="${junit.maxmemory}"
+           dir="${junit.base.dir}"
+           fork="yes"
+           forkmode="${junit.forkmode}"
+           failureProperty="test.failed"
+           haltonfailure="${junit.haltonfailure}"
+           haltonerror="${junit.haltonerror}"
+           printsummary="yes">
+      <sysproperty key="java.awt.headless" value="${headless.unittest}"/>
+
+      <syspropertyset>
+        <propertyref prefix="junit.sysprop."/>
+        <mapper type="glob" from="junit.sysprop.*" to="*"/>
+      </syspropertyset>
+
+      <classpath refid="test.classpath"/>
+      <formatter type="xml"/>
+      <test name="${testcase}" todir="${testreports.xml.dir}" if="testcase"/>
+      <batchtest fork="yes" todir="${testreports.xml.dir}" unless="testcase">
+        <fileset dir="${testsrc.dir}" casesensitive="yes">
+          <include name="**/*TestIntegration.java"/>
+        </fileset>
+      </batchtest>
+    </junit>
+
+    <junitreport todir="${testreports.html.dir}">
+      <fileset dir="${testreports.xml.dir}">
+        <include name="TEST-*.xml"/>
+      </fileset>
+      <report format="frames" todir="${testreports.html.dir}"/>
+    </junitreport>
+  </target>
 
 </project>

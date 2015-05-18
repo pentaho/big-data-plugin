@@ -43,7 +43,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class S3Test {
+public class S3TestIntegration {
 
   private static FileSystemManager fsManager;
   private static String HELLO_S3_STR = "Hello S3 VFS";
@@ -66,7 +66,7 @@ public class S3Test {
     fsManager = VFS.getManager();
 
     Properties settings = new Properties();
-    settings.load( S3Test.class.getResourceAsStream( "/test-settings.properties" ) );
+    settings.load( S3TestIntegration.class.getResourceAsStream( "/test-settings.properties" ) );
     awsAccessKey = settings.getProperty( "awsAccessKey" );
     awsSecretKey = settings.getProperty( "awsSecretKey" );
 

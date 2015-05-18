@@ -31,7 +31,7 @@ import static junit.framework.Assert.assertEquals;
 /**
  * created by: rfellows date:       5/25/12
  */
-public class S3FileNameParserTest {
+public class S3FileNameParserTestIntegration {
 
   public static String awsAccessKey;
   public static String awsSecretKey;
@@ -43,7 +43,7 @@ public class S3FileNameParserTest {
   @BeforeClass
   public static void init() throws Exception {
     Properties settings = new Properties();
-    settings.load( S3FileUtilTest.class.getResourceAsStream( "/test-settings.properties" ) );
+    settings.load( S3FileUtilTestIntegration.class.getResourceAsStream( "/test-settings.properties" ) );
     awsAccessKey = settings.getProperty( "awsAccessKey" );
     awsSecretKey = settings.getProperty( "awsSecretKey" );
   }
