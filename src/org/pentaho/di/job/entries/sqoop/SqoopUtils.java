@@ -38,17 +38,14 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
-import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 /**
  * Collection of utility methods used to support integration with Apache Sqoop.
@@ -82,32 +79,24 @@ public class SqoopUtils {
    *          Hadoop configuration to parse connection information from
    */
   public static void configureConnectionInformation( SqoopConfig config, HadoopShim shim, Configuration c ) {
-
-    try {
-      String clusterName = config.getClusterName();
-      NamedCluster nc = NamedClusterUIHelper.getNamedCluster( clusterName );
-
-      String[] namenodeInfo = shim.getNamenodeConnectionInfo( c );
-      if ( namenodeInfo != null ) {
-        if ( namenodeInfo[0] != null ) {
-          nc.setHdfsHost( namenodeInfo[0] );
-        }
-        if ( !"-1".equals( namenodeInfo[1] ) ) {
-          nc.setHdfsPort( namenodeInfo[1] );
-        }
+    String[] namenodeInfo = shim.getNamenodeConnectionInfo( c );
+    if ( namenodeInfo != null ) {
+      if ( namenodeInfo[0] != null ) {
+        config.setNamenodeHost( namenodeInfo[0] );
       }
-
-      String[] jobtrackerInfo = shim.getJobtrackerConnectionInfo( c );
-      if ( jobtrackerInfo != null ) {
-        if ( jobtrackerInfo[0] != null ) {
-          nc.setJobTrackerHost( jobtrackerInfo[0] );
-        }
-        if ( jobtrackerInfo[1] != null ) {
-          nc.setJobTrackerPort( jobtrackerInfo[1] );
-        }
+      if ( !"-1".equals( namenodeInfo[1] ) ) {
+        config.setNamenodePort( namenodeInfo[1] );
       }
-    } catch ( MetaStoreException e ) {
-      // ignore
+    }
+
+    String[] jobtrackerInfo = shim.getJobtrackerConnectionInfo( c );
+    if ( jobtrackerInfo != null ) {
+      if ( jobtrackerInfo[0] != null ) {
+        config.setJobtrackerHost( jobtrackerInfo[0] );
+      }
+      if ( jobtrackerInfo[1] != null ) {
+        config.setJobtrackerPort( jobtrackerInfo[1] );
+      }
     }
   }
 
