@@ -33,6 +33,7 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -49,7 +50,6 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
 
   private VariableSpace variableSpace;
   private Map<String, String> namedClusterURLMapping = null;
-  private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
   private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
   public static final String LOCAL_SOURCE_FILE = "LOCAL-SOURCE-FILE-";
@@ -88,10 +88,22 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     rep.saveStepAttribute( id_transformation, id_step, i, SOURCE_CONFIGURATION_NAME, namedCluster );
   }
 
-  public String loadUrl( String url, String ncName, IMetaStore metastore, Map mappings ) {
-    url =
-        namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
-            variableSpace );
+  public String loadUrl( String url, String ncName, IMetaStore metastore, Map<String,String> mappings ) {
+    NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
+
+    NamedCluster c = metastore == null ? null : namedClusterManager.getNamedClusterByName( ncName, metastore );
+    if ( c != null && c.isMapr() ) {
+      url =
+          namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore,
+              variableSpace );
+      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
+      }
+    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+      url =
+          namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
+              variableSpace );
+    }
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       mappings.put( url, ncName );
     }
