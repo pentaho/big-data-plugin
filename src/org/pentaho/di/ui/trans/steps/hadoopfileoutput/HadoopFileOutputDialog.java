@@ -72,6 +72,7 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -618,7 +619,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wbShowFiles.setLayoutData( fdbShowFiles );
     wbShowFiles.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
-        TextFileOutputMeta tfoi = new TextFileOutputMeta();
+        HadoopFileOutputMeta tfoi = new HadoopFileOutputMeta();
         getInfo( tfoi );
         String[] files = tfoi.getFiles( transMeta );
         if ( files != null && files.length > 0 ) {
@@ -1545,11 +1546,24 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   }
 
   private void getInfo( TextFileOutputMeta tfoi ) {
-
     String ncName = ( (HadoopFileOutputMeta) tfoi ).getSourceConfigurationName();
-    String fileName =
-        namedClusterManager.processURLsubstitution( ncName, wFilename.getText(), HadoopSpoonPlugin.HDFS_SCHEME,
-            getMetaStore(), variables );
+    String fileName = wFilename.getText();
+
+    NamedCluster c = getMetaStore() == null ? null :
+      namedClusterManager.getNamedClusterByName( ncName, getMetaStore() );
+    if ( c != null && c.isMapr() ) {
+      fileName =
+          namedClusterManager.processURLsubstitution(
+              ncName, fileName, HadoopSpoonPlugin.MAPRFS_SCHEME, getMetaStore(), new Variables() );
+      if ( fileName != null && !fileName.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+        fileName = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + fileName;
+      }
+    } else if ( !fileName.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+      fileName =
+          namedClusterManager.processURLsubstitution( ncName, wFilename.getText(), HadoopSpoonPlugin.HDFS_SCHEME,
+              getMetaStore(), variables );
+    }
+
     tfoi.setFileName( fileName );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
     tfoi.setCreateParentFolder( wCreateParentFolder.getSelection() );

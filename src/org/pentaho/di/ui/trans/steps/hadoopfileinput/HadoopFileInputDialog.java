@@ -2913,6 +2913,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           FileObject initialFile = null;
           FileObject defaultInitialFile = null;
 
+          boolean isCluster = false;
           if ( !clusterName.equals( LOCAL_ENVIRONMENT ) && !clusterName.equals( S3_ENVIRONMENT ) ) {
             NamedCluster namedCluster =
                 NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
@@ -2922,6 +2923,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             if ( namedCluster == null  ) {
               return;
             }
+            isCluster = true;
             if ( namedCluster.isMapr() ) {
               path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
             } else {
@@ -3016,10 +3018,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
             } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
               wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
-            } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
+            } else if ( isCluster ) {
               url = hadoopFileInputMeta.getUrlPath( url );
               wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
-                  namedClusterWidget.getSelectedNamedCluster().getName() );
+                  clusterName );
             }
 
             wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn(), url );
