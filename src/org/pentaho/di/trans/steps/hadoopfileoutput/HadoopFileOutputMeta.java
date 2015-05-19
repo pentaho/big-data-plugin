@@ -26,6 +26,7 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
+import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -83,8 +84,21 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   protected String loadSource( Node stepnode, IMetaStore metastore ) {
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
-    return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
-        metastore, new Variables() );
+
+    NamedCluster c = metastore == null ? null :
+      namedClusterManager.getNamedClusterByName( sourceConfigurationName, metastore );
+    if ( c != null && c.isMapr() ) {
+      url =
+          namedClusterManager.processURLsubstitution(
+              sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore, new Variables() );
+      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
+      }
+    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+      return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
+          metastore, new Variables() );
+    }
+    return url;
   }
 
   protected void saveSource( StringBuffer retVal, String fileName ) {
@@ -95,8 +109,21 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   protected String loadSourceRep( Repository rep, ObjectId id_step ) throws KettleException {
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
-    return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME, rep
-        .getMetaStore(), new Variables() );
+
+    NamedCluster c = rep.getMetaStore() == null ? null :
+      namedClusterManager.getNamedClusterByName( sourceConfigurationName, rep.getMetaStore() );
+    if ( c != null && c.isMapr() ) {
+      url =
+          namedClusterManager.processURLsubstitution(
+              sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, rep.getMetaStore(), new Variables() );
+      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
+      }
+    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+      return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
+          rep.getMetaStore(), new Variables() );
+    }
+    return url;
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, String fileName )

@@ -22,6 +22,7 @@
 
 package org.pentaho.di.ui.trans.steps.hadoopfileoutput;
 
+import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +72,7 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -311,8 +313,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     fd.left = new FormAttachment( 0, 235 );
     namedClusterWidget.setLayoutData( fd );
 
-    namedClusterWidget.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent evt ) {
+    namedClusterWidget.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent evt ) {
         String ncName = ( (Combo) evt.getSource() ).getText();
         NamedCluster nc = namedClusterManager.getNamedClusterByName( ncName, getMetaStore() );
         if ( nc != null ) {
@@ -617,7 +619,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wbShowFiles.setLayoutData( fdbShowFiles );
     wbShowFiles.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
-        TextFileOutputMeta tfoi = new TextFileOutputMeta();
+        HadoopFileOutputMeta tfoi = new HadoopFileOutputMeta();
         getInfo( tfoi );
         String[] files = tfoi.getFiles( transMeta );
         if ( files != null && files.length > 0 ) {
@@ -1168,49 +1170,67 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
                 BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
                 BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
 
+          NamedCluster namedCluster = namedClusterWidget.getSelectedNamedCluster();
+          if ( namedCluster == null ) {
+            return;
+          }
+
+          String clusterName = namedCluster.getName();
+          String path = wFilename.getText();
+
           // Get current file
           FileObject rootFile = null;
           FileObject initialFile = null;
           FileObject defaultInitialFile = null;
 
-          if ( wFilename.getText() != null ) {
-            String fileName = transMeta.environmentSubstitute( wFilename.getText() );
+          if ( Const.isEmpty( path ) ) {
+            path = "/";
+          }
+          if ( namedCluster.isMapr() ) {
+            path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
+          } else {
+            path =
+                NamedClusterManager.getInstance().processURLsubstitution( clusterName, path,
+                    HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), transMeta );
+          }
+
+          boolean resolvedInitialFile = false;
+
+          if ( path != null ) {
+
+            String fileName = transMeta.environmentSubstitute( path );
+
             if ( fileName != null && !fileName.equals( "" ) ) {
               try {
                 initialFile = KettleVFS.getFileObject( fileName );
-                rootFile = initialFile.getFileSystem().getRoot();
-                defaultInitialFile = initialFile;
-              } catch ( KettleFileException ex ) {
-                // Ignore, unable to obtain initial file, use default
+                resolvedInitialFile = true;
+              } catch ( Exception ex ) {
+                showMessageAndLog( BaseMessages.getString( PKG, "HadoopFileOutputDialog.Connection.Error.title" ),
+                    BaseMessages.getString( PKG, "HadoopFileOutputDialog.Connection.error" ), ex.getMessage() );
+                return;
               }
+              File startFile = new File( System.getProperty( "user.home" ) );
+              defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
+              rootFile = initialFile.getFileSystem().getRoot();
+            } else {
+              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
             }
           }
 
           if ( rootFile == null ) {
-            defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
             rootFile = defaultInitialFile.getFileSystem().getRoot();
             initialFile = defaultInitialFile;
           }
 
           VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
           fileChooserDialog.defaultInitialFile = defaultInitialFile;
-          String realPath = null;
           FileObject selectedFile = null;
-          NamedCluster namedCluster = namedClusterWidget.getSelectedNamedCluster();
-
-          try {
-            realPath =
-                namedClusterManager.processURLsubstitution( namedCluster.getName(), wFilename.getText(),
-                    HadoopSpoonPlugin.HDFS_SCHEME, Spoon.getInstance().getMetaStore(), variables );
-          } catch ( Exception ex ) {
-            realPath = wFilename.getText();
-          }
 
           if ( namedCluster != null ) {
             if ( namedCluster.isMapr() ) {
               selectedFile =
                   fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.MAPRFS_SCHEME },
-                      HadoopSpoonPlugin.MAPRFS_SCHEME, true, realPath, fileFilters, fileFilterNames, true,
+                      HadoopSpoonPlugin.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
                       VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
             } else {
               List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
@@ -1230,9 +1250,12 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
                   hadoopDialog.initializeConnectionPanel( initialFile );
                 }
               }
+              if ( resolvedInitialFile ) {
+                fileChooserDialog.initialFile = initialFile;
+              }
               selectedFile =
                   fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
-                      HadoopSpoonPlugin.HDFS_SCHEME, true, realPath, fileFilters, fileFilterNames, true,
+                      HadoopSpoonPlugin.HDFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
                       VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
             }
           }
@@ -1523,11 +1546,24 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   }
 
   private void getInfo( TextFileOutputMeta tfoi ) {
-
     String ncName = ( (HadoopFileOutputMeta) tfoi ).getSourceConfigurationName();
-    String fileName =
-        namedClusterManager.processURLsubstitution( ncName, wFilename.getText(), HadoopSpoonPlugin.HDFS_SCHEME,
-            getMetaStore(), variables );
+    String fileName = wFilename.getText();
+
+    NamedCluster c = getMetaStore() == null ? null :
+      namedClusterManager.getNamedClusterByName( ncName, getMetaStore() );
+    if ( c != null && c.isMapr() ) {
+      fileName =
+          namedClusterManager.processURLsubstitution(
+              ncName, fileName, HadoopSpoonPlugin.MAPRFS_SCHEME, getMetaStore(), new Variables() );
+      if ( fileName != null && !fileName.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+        fileName = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + fileName;
+      }
+    } else if ( !fileName.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+      fileName =
+          namedClusterManager.processURLsubstitution( ncName, wFilename.getText(), HadoopSpoonPlugin.HDFS_SCHEME,
+              getMetaStore(), variables );
+    }
+
     tfoi.setFileName( fileName );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
     tfoi.setCreateParentFolder( wCreateParentFolder.getSelection() );
@@ -1688,5 +1724,13 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       source = null;
     }
     return source;
+  }
+
+  private void showMessageAndLog( String title, String message, String messageToLog ) {
+    MessageBox box = new MessageBox( shell );
+    box.setText( title ); //$NON-NLS-1$
+    box.setMessage( message );
+    log.logError( messageToLog );
+    box.open();
   }
 }
