@@ -33,6 +33,8 @@ import org.apache.commons.vfs.FileSystemOptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -140,8 +142,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     connectionGroup.setLayout( connectionGroupLayout );
     
     namedClusterWidget = new NamedClusterWidget( connectionGroup, true );
-    namedClusterWidget.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent evt ) {
+    namedClusterWidget.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent evt ) {
         try {
           connect();
         } catch (Exception e) {
