@@ -27,6 +27,7 @@ import static org.pentaho.di.job.entries.sqoop.SqoopExportConfig.EXPORT_DIR;
 import java.util.Collection;
 
 import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
@@ -67,9 +68,6 @@ public class SqoopExportJobEntryController extends
   }
 
   public void browseForExportDirectory() {
-    FileObject path = null;
-    // TODO Build proper URL for path
-    // path = resolveFile(getConfig().getExportDir());
     try {
       String[] schemeRestrictions = new String[1];
       if ( selectedNamedCluster != null && !"false".equals( selectedNamedCluster.getVariable( "valid" ) ) ) {
@@ -82,9 +80,18 @@ public class SqoopExportJobEntryController extends
         // must select cluster
         return;
       }
-      
+
+      String path = getConfig().getExportDir();
+      FileObject initialFile = getInitialFile( path );
+
+      if ( initialFile == null ) {
+        showErrorDialog( BaseMessages.getString( PKG, "Sqoop.JobEntry.Connection.Error.title" ),
+            BaseMessages.getString( PKG, "Sqoop.JobEntry.Connection.error" ) );
+        return;
+      }
+
       FileObject exportDir =
-          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
+          browseVfs( null, initialFile, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
               false, schemeRestrictions[0], selectedNamedCluster, false, false );
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
@@ -93,6 +100,8 @@ public class SqoopExportJobEntryController extends
         extractNamedClusterFromVfsFileChooser();
       }
     } catch ( KettleFileException e ) {
+      getJobEntry().logError( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorBrowsingDirectory" ), e );
+    } catch ( FileSystemException e ) {
       getJobEntry().logError( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorBrowsingDirectory" ), e );
     }
   }
