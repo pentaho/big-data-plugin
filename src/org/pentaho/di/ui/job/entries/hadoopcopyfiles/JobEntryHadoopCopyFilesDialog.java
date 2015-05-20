@@ -22,6 +22,7 @@
 
 package org.pentaho.di.ui.job.entries.hadoopcopyfiles;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannel;
@@ -230,6 +230,25 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       FileObject initialFile = null;
       FileObject defaultInitialFile = null;
 
+      if ( !clusterName.equals( LOCAL_ENVIRONMENT ) && !clusterName.equals( S3_ENVIRONMENT ) ) {
+        NamedCluster namedCluster =
+            NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
+        if ( Const.isEmpty( path ) ) {
+          path = "/";
+        }
+        if ( namedCluster == null ) {
+          return null;
+        }
+        if ( namedCluster.isMapr() ) {
+          path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
+        } else {
+          path = NamedClusterManager.getInstance().processURLsubstitution(
+              clusterName, path, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobMeta );
+        }
+      }
+
+      boolean resolvedInitialFile = false;
+      
       if ( path != null ) {
 
         String fileName = jobMeta.environmentSubstitute( path );
@@ -237,10 +256,14 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
         if ( fileName != null && !fileName.equals( "" ) ) {
           try {
             initialFile = KettleVFS.getFileObject( fileName );
-          } catch ( KettleException e ) {
-            initialFile = KettleVFS.getFileObject( "" );
+            resolvedInitialFile = true;
+          } catch ( Exception e ) {
+            showMessageAndLog( BaseMessages.getString( PKG, "JobHadoopCopyFiles.Connection.Error.title" ), BaseMessages.getString(
+                PKG, "JobHadoopCopyFiles.Connection.error" ), e.getMessage() );
+            return null;
           }
-          defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+          File startFile = new File( System.getProperty( "user.home" ) );
+          defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
           rootFile = initialFile.getFileSystem().getRoot();
         } else {
           defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
@@ -253,7 +276,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       }
       VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
       fileChooserDialog.defaultInitialFile = defaultInitialFile;
-
+      
       NamedClusterWidget namedClusterWidget = null;
 
       if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
@@ -284,6 +307,9 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
                 hadoopDialog.setNamedCluster( clusterName );
                 hadoopDialog.initializeConnectionPanel( initialFile );
               }
+            }
+            if ( resolvedInitialFile ) {
+              fileChooserDialog.initialFile = initialFile;
             }
             selectedFile =
                 fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
@@ -323,6 +349,14 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     }
   }
 
+  private void showMessageAndLog( String title, String message, String messageToLog ) {
+    MessageBox box = new MessageBox( shell );
+    box.setText( title ); //$NON-NLS-1$
+    box.setMessage( message );
+    log.logError( messageToLog );
+    box.open();
+  }
+  
   protected Image getImage() {
     return GUIResource.getInstance().getImage( "HDM.svg", getClass().getClassLoader(), ConstUI.ICON_SIZE,
         ConstUI.ICON_SIZE );
