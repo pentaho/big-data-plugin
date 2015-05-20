@@ -29,12 +29,17 @@ import static org.pentaho.di.job.entries.sqoop.SqoopConfig.TABLE;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.Database;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.JobEntryMode;
@@ -75,6 +80,8 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E extends AbstractSqoopJobEntry<S>>
     extends AbstractJobEntryController<S, E> {
 
+  protected static Class<?> PKG = AbstractSqoopJobEntry.class;
+  
   public static final String SELECTED_DATABASE_CONNECTION = "selectedDatabaseConnection";
   public static final String MODE_TOGGLE_LABEL = "modeToggleLabel";
   private final String[] MODE_I18N_STRINGS = new String[] { "Sqoop.JobEntry.AdvancedOptions.Button.Text",
@@ -924,6 +931,47 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     }
   }
 
+  protected FileObject getInitialFile( String path ) throws FileSystemException {
+    if ( Const.isEmpty( path ) ) {
+      path = "/";
+    }
+
+    NamedCluster namedCluster =
+        NamedClusterManager.getInstance().getNamedClusterByName( selectedNamedCluster.getName(), Spoon.getInstance().getMetaStore() );
+    if ( namedCluster == null  ) {
+      return null;
+    }
+    if ( namedCluster.isMapr() ) {
+      path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
+    } else {
+      path =
+          NamedClusterManager.getInstance().processURLsubstitution( selectedNamedCluster.getName(), path,
+              HadoopSpoonPlugin.HDFS_SCHEME, Spoon.getInstance().getMetaStore(), jobEntry );
+    }
+
+    FileObject initialFile = null;
+
+    if ( path != null ) {
+      String fileName = jobEntry.environmentSubstitute( path );
+      if ( fileName != null && !fileName.equals( "" ) ) {
+        try {
+          initialFile = KettleVFS.getFileObject( fileName );
+          if ( namedCluster.isMapr() ) {
+            if ( !initialFile.getName().getScheme().startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+              return null;
+            }
+          } else if ( !initialFile.getName().getScheme().startsWith( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
+            return null;
+          }
+        } catch ( Exception ex ) {
+          return null;
+        }
+      }
+    }
+
+    return initialFile;
+  }
+  
   protected void extractNamedClusterFromVfsFileChooser() {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
     CustomVfsUiPanel currentPanel = dialog.getCurrentPanel();
