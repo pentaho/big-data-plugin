@@ -3017,7 +3017,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
               wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
             } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
-              wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+              wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, S3_ENVIRONMENT );
             } else if ( isCluster ) {
               url = hadoopFileInputMeta.getUrlPath( url );
               wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
