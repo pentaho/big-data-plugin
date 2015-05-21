@@ -282,11 +282,11 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
         selectedFile =
             fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, new String[] { "*.*" },
-                FILETYPES, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+                FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
       } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
         selectedFile =
             fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true, 
-                path, new String[] { "*.*" }, FILETYPES, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, 
+                path, new String[] { "*.*" }, FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
                 false, true );
       } else {
         NamedCluster namedCluster =
@@ -295,7 +295,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
           if ( namedCluster.isMapr() ) {
             selectedFile =
                 fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.MAPRFS_SCHEME },
-                    HadoopSpoonPlugin.MAPRFS_SCHEME, true, path, new String[] { "*.*" }, FILETYPES, true,
+                    HadoopSpoonPlugin.MAPRFS_SCHEME, false, path, new String[] { "*.*" }, FILETYPES, true,
                     VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
           } else {
             List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
@@ -313,7 +313,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
             }
             selectedFile =
                 fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
-                    HadoopSpoonPlugin.HDFS_SCHEME, true, path, new String[] { "*.*" }, FILETYPES, true,
+                    HadoopSpoonPlugin.HDFS_SCHEME, false, path, new String[] { "*.*" }, FILETYPES, true,
                     VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
           }
         }
