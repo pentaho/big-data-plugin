@@ -94,7 +94,7 @@ public class S3FileObjectTest {
 
   private void testGetS3ObjectWithFlag( boolean deleteIfExists ) throws Exception {
     S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
-    S3Object s3Object = s3FileObject.getS3Object( deleteIfExists );
+    S3Object s3Object = s3FileObject.getS3Object( deleteIfExists, false );
     assertNotNull( s3Object );
   }
 }

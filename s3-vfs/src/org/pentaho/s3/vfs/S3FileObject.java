@@ -80,7 +80,7 @@ public class S3FileObject extends AbstractFileObject {
     return bucket;
   }
 
-  protected S3Object getS3Object( boolean deleteIfAlreadyExists ) throws Exception {
+  S3Object getS3Object( boolean deleteIfAlreadyExists, boolean needContent ) throws Exception {
     try {
       if ( getName().getPath().indexOf( DELIMITER, 1 ) == -1 ) {
         return null;
@@ -95,7 +95,7 @@ public class S3FileObject extends AbstractFileObject {
 
       if ( !name.equals( "" ) ) {
         try {
-          S3Object object = fileSystem.getS3Service().getObject( getS3BucketName(), name );
+          S3Object object = getObjectFromS3( name, needContent );
           if ( deleteIfAlreadyExists ) {
             fileSystem.getS3Service().deleteObject( getS3BucketName(), name );
             object = new S3Object( name );
@@ -115,9 +115,16 @@ public class S3FileObject extends AbstractFileObject {
     return null;
   }
 
+  private S3Object getObjectFromS3( String name, Boolean needContent ) throws S3ServiceException, IOException {
+    S3Object s3Object = fileSystem.getS3Service().getObject( getS3BucketName(), name );
+    if ( !needContent && s3Object != null ) {
+      s3Object.closeDataInputStream();
+    }
+    return s3Object;
+  }
 
   protected long doGetContentSize() throws Exception {
-    return getS3Object( false ).getContentLength();
+    return getS3Object( false, false ).getContentLength();
   }
 
   protected OutputStream doGetOutputStream( final boolean append ) throws Exception {
@@ -141,7 +148,7 @@ public class S3FileObject extends AbstractFileObject {
         try {
           // wait for reader to finish
           t.join();
-          S3Object s3Object = getS3Object( true );
+          S3Object s3Object = getS3Object( true, false );
           byte[] bytes = output.toByteArray();
           s3Object.setContentLength( bytes.length );
           s3Object.setDataInputStream( new ByteArrayInputStream( bytes ) );
@@ -156,17 +163,8 @@ public class S3FileObject extends AbstractFileObject {
     return pos;
   }
 
-  public void close() throws FileSystemException {
-    try {
-      getS3Object( false ).closeDataInputStream();
-      super.close();
-    } catch ( Exception e ) {
-      //ignored
-    }
-  }
-
   protected InputStream doGetInputStream() throws Exception {
-    return getS3Object( false ).getDataInputStream();
+    return getS3Object( false, true ).getDataInputStream();
   }
 
   protected FileType doGetType() throws Exception {
@@ -189,7 +187,7 @@ public class S3FileObject extends AbstractFileObject {
     }
     S3Object objectEndsWithDelimiter = null;
     try {
-      objectEndsWithDelimiter = fileSystem.getS3Service().getObject( getS3BucketName(), s3Path );
+      objectEndsWithDelimiter = getObjectFromS3( s3Path, false );
     } catch ( Exception e ) {
       try {
         if ( fileSystem.getS3Service().listObjects( getS3BucketName(), s3Path, null ).length != 0 ) {
@@ -204,7 +202,7 @@ public class S3FileObject extends AbstractFileObject {
     }
     S3Object object = null;
     try {
-      object = getS3Object( false );
+      object = getS3Object( false, false );
     } catch ( Exception ex ) {
       // ignored
     }
@@ -220,7 +218,8 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   public void doCreateFolder() throws Exception {
-    if ( getS3Object( false ) == null ) {
+    S3Object s3Object = getS3Object( false, false );
+    if ( s3Object == null ) {
       bucket = fileSystem.getS3Service().getOrCreateBucket( getS3BucketName() );
     } else {
       // create fake folder
@@ -253,11 +252,11 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   public void doDelete() throws Exception {
-    S3Object s3obj = getS3Object( false );
+    S3Object s3obj = getS3Object( false, false );
     bucket = getS3Bucket();
     if ( s3obj == null ) {     // If the selected object is null, getName() will cause exception.
       if ( bucket != null ) {  // Therefore, take care of the delete bucket case, first.
-        fileSystem.getS3Service().deleteBucket( bucket );
+        fileSystem.getS3Service().deleteBucket( getS3BucketName() );
       }
       return;
     }
@@ -284,7 +283,10 @@ public class S3FileObject extends AbstractFileObject {
     if ( getType().equals( FileType.FOLDER ) ) {
       throw new FileSystemException( "vfs.provider/rename-not-supported.error" );
     }
-    S3Object s3Object = getS3Object( false );
+    S3Object s3Object = getS3Object( false, false );
+    if ( s3Object == null ) {
+      throw new FileSystemException( "vfs.provider/rename.error", new Object[] { this, newfile } );
+    }
     s3Object.setKey( newfile.getName().getBaseName() );
     fileSystem.getS3Service().renameObject( getS3BucketName(), getName().getBaseName(), s3Object );
     s3ChildrenMap.remove( getS3BucketName() );
@@ -294,7 +296,7 @@ public class S3FileObject extends AbstractFileObject {
     if ( getType() == FileType.FOLDER ) {
       return -1;
     }
-    return getS3Object( false ).getLastModifiedDate().getTime();
+    return getS3Object( false, false ).getLastModifiedDate().getTime();
   }
 
   protected boolean doSetLastModifiedTime( long modtime ) throws Exception {

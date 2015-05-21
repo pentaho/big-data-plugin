@@ -24,8 +24,10 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -34,6 +36,11 @@ import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.VFS;
+import org.apache.http.impl.conn.tsccm.BasicPoolEntry;
+import org.apache.http.impl.conn.tsccm.ConnPoolByRoute;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.jets3t.service.Constants;
+import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.model.S3Bucket;
@@ -47,9 +54,10 @@ public class S3TestIntegration {
 
   private static FileSystemManager fsManager;
   private static String HELLO_S3_STR = "Hello S3 VFS";
-
   public static String awsAccessKey;
   public static String awsSecretKey;
+  public static S3Service service;
+  public static boolean debug;
 
   private FileSelector deleteFileSelector = new FileSelector() {
     public boolean includeFile( FileSelectInfo arg0 ) throws Exception {
@@ -64,27 +72,33 @@ public class S3TestIntegration {
   @BeforeClass
   public static void beforeClass() throws Exception {
     fsManager = VFS.getManager();
-
+    debug = Boolean.parseBoolean( System.getProperty( "debug", "false" ) );
+    if ( debug ) {
+      System.out.println( "Debug mode is enabled" + System.getProperty( "debug" ) );
+    }
     Properties settings = new Properties();
     settings.load( S3TestIntegration.class.getResourceAsStream( "/test-settings.properties" ) );
     awsAccessKey = settings.getProperty( "awsAccessKey" );
     awsSecretKey = settings.getProperty( "awsSecretKey" );
 
     AWSCredentials awsCredentials = new AWSCredentials( awsAccessKey, awsSecretKey );
-
-    S3Service service = new RestS3Service( awsCredentials );
+    Jets3tProperties.getInstance( Constants.JETS3T_PROPERTIES_FILENAME )
+      .setProperty( "httpclient.max-connections", "10" );
+    service = new RestS3Service( awsCredentials );
 
     S3Bucket[] myBuckets = service.listAllBuckets();
 
     for ( S3Bucket bucket : myBuckets ) {
       try {
         System.out.println( bucket.getName() );
-        S3Object[] objs = service.listObjects( bucket );
-        for ( S3Object obj : objs ) {
-          System.out.println( "\t" + obj.getKey() );
+        if ( debug ) {
+          S3Object[] objs = service.listObjects( bucket.getName() );
+          for ( S3Object obj : objs ) {
+            System.out.println( "\t" + obj.getKey() );
+          }
         }
       } catch ( Throwable t ) {
-        //ignored
+        t.printStackTrace();
       }
     }
   }
@@ -118,6 +132,7 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
@@ -136,6 +151,7 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
@@ -176,6 +192,7 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );       // Delete a bucket
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
@@ -186,6 +203,7 @@ public class S3TestIntegration {
     assertEquals( true, bucket.exists() );
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
@@ -197,6 +215,7 @@ public class S3TestIntegration {
     assertEquals( true, bucket.exists() );
     bucket.delete();
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
@@ -221,6 +240,7 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
@@ -260,6 +280,7 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
 
@@ -295,10 +316,11 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
   }
 
   @Test
-  public void doGetType() throws Exception {
+  public void testDoGetType() throws Exception {
     assertNotNull( "FileSystemManager is null", fsManager );
 
     FileObject bucket = fsManager.resolveFile( buildS3URL( "/mdamour_get_type_test" ) );
@@ -325,18 +347,43 @@ public class S3TestIntegration {
 
     bucket.delete( deleteFileSelector );
     assertEquals( false, bucket.exists() );
+    testConnectionsLeak();
+  }
+
+  @Test
+  @SuppressWarnings( "unchecked" )
+  public void testConnectionsLeak() throws Exception {
+    Field fPool = ThreadSafeClientConnManager.class.getDeclaredField( "pool" );
+    Object ob = service.getHttpConnectionManager();
+    fPool.setAccessible( true );
+    ConnPoolByRoute pool = (ConnPoolByRoute) fPool.get( ob );
+    fPool.setAccessible( false );
+
+    Field fLeasedConnections = ConnPoolByRoute.class.getDeclaredField( "leasedConnections" );
+    fLeasedConnections.setAccessible( true );
+    Set<BasicPoolEntry> set = (Set<BasicPoolEntry>) fLeasedConnections.get( pool );
+    fLeasedConnections.setAccessible( false );
+
+    int connections = pool.getConnectionsInPool();
+
+    assertTrue(
+      "Http connections leak was found. Check either unclosed streams in test methods or incorrect using S3FileObject"
+        + ".getS3Object. Pool size is 10. Connections in pool=" + connections + "leasedConnections=" + set.size(),
+      set.size() == 0 );
   }
 
   private void printFileObject( FileObject fileObject, int depth ) throws Exception {
-    for ( int i = 0; i < depth; i++ ) {
-      System.out.print( "    " );
-    }
-    System.out.println( fileObject.getName().getBaseName() );
+    if ( debug ) {
+      for ( int i = 0; i < depth; i++ ) {
+        System.out.print( "    " );
+      }
+      System.out.println( fileObject.getName().getBaseName() );
 
-    if ( fileObject.getType() == FileType.FOLDER ) {
-      FileObject[] children = fileObject.getChildren();
-      for ( FileObject child : children ) {
-        printFileObject( child, depth + 1 );
+      if ( fileObject.getType() == FileType.FOLDER ) {
+        FileObject[] children = fileObject.getChildren();
+        for ( FileObject child : children ) {
+          printFileObject( child, depth + 1 );
+        }
       }
     }
   }
