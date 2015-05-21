@@ -25,7 +25,9 @@ package org.pentaho.di.job.entries.spark;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.anyString;
@@ -33,7 +35,7 @@ import static org.mockito.Mockito.*;
 
 public class JobEntrySparkSubmitTest {
   @Test
-  public void testGetCmds() {
+  public void testGetCmds() throws IOException {
     JobEntrySparkSubmit ss = new JobEntrySparkSubmit();
     ss.setScriptPath( "scriptPath" );
     ss.setMaster( "master_url" );
@@ -65,5 +67,15 @@ public class JobEntrySparkSubmitTest {
     Assert.assertFalse( "Jar path", ss.validate() );
     ss.setJar( "jar-path" );
     Assert.assertTrue( "Validation should pass", ss.validate() );
+  }
+
+  @Test
+  public void testArgsParsing() throws IOException {
+    JobEntrySparkSubmit ss = new JobEntrySparkSubmit();
+    ss.setArgs( "${VAR1} \"double quoted string\" 'single quoted string'" );
+    ss.setVariable( "VAR1", "VAR_VALUE" );
+    List<String> cmds = ss.getCmds();
+    Assert.assertTrue( cmds.containsAll( Arrays.asList( "VAR_VALUE", "double quoted string", "single quoted string" ) ) );
+    Assert.assertFalse( cmds.contains( "${VAR1}" ) );
   }
 }
