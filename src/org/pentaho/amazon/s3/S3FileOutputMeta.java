@@ -128,6 +128,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     }
   }
 
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+    readData( stepnode );
+  }
+
   @Override
   public void readData( Node stepnode ) throws KettleXMLException {
     try {
