@@ -67,6 +67,19 @@ public class NamedClusterComposite extends Composite {
 
   private Text nameValue;
 
+  private Label jtHostLabel;
+  private TextVar jtHostNameText;
+  private Label jtPortLabel;
+  private TextVar jtPortText;
+  private Label hdfsHostLabel;
+  private TextVar hdfsHostText;
+  private Label hdfsPortLabel;
+  private TextVar hdfsPortText;
+  private Label hdfsUsernameLabel;
+  private TextVar hdfsUsernameText;
+  private Label hdfsPasswordLabel;
+  private TextVar hdfsPasswordText;
+
   private interface Callback {
     public void invoke( NamedCluster nc, TextVar textVar, String value );
   }
@@ -77,7 +90,7 @@ public class NamedClusterComposite extends Composite {
     this.props = props;
 
     FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = 0;
+    formLayout.marginWidth = 10;
     formLayout.marginHeight = 0;
     setLayout( formLayout );
     
@@ -124,13 +137,33 @@ public class NamedClusterComposite extends Composite {
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( confUI, 5 );
+    fd.top = new FormAttachment( confUI, 10 );
     topSeparator.setLayoutData( fd );
+    
+    // Create MapR check box
+    final Button maprButton = new Button( c, SWT.CHECK );
+    maprButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR" ) );
+    maprButton.setToolTipText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR.Title" ) );
+    
+    fd = new FormData();
+    fd.left = new FormAttachment( 0, 0 );
+    fd.right = new FormAttachment( 100, 0 );
+    fd.top = new FormAttachment( topSeparator, 10 );
+    maprButton.setLayoutData( fd );
+    props.setLook( maprButton );
+    maprButton.setSelection( cluster.isMapr() );
+    maprButton.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        super.widgetSelected( e );
+        cluster.setMapr( maprButton.getSelection() );
+        setHdfsAndJobTrackerState( !maprButton.getSelection() );
+      }
+    } );
     
     // Create a child composite to hold the controls
     final Composite c1 = new Composite( c, SWT.NONE );
     fd = new FormData();
-    fd.top = new FormAttachment( topSeparator, 5 );
+    fd.top = new FormAttachment( maprButton, 10 );
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     c1.setLayoutData( fd );
@@ -149,6 +182,7 @@ public class NamedClusterComposite extends Composite {
     
     c1.setSize( c1.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
     
+    setHdfsAndJobTrackerState( !cluster.isMapr() );
   }
 
   private Composite createConfigurationUI( final Composite c, final NamedCluster namedCluster  ) {
@@ -176,20 +210,6 @@ public class NamedClusterComposite extends Composite {
       }
     } );
 
-    final Button maprButton = new Button( mainParent, SWT.CHECK );
-    maprButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR" ) );
-    maprButton.setToolTipText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR.Title" ) );
-    maprButton.setLayoutData( gridData );
-    props.setLook( maprButton );
-    maprButton.setSelection( namedCluster.isMapr() );
-    maprButton.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        super.widgetSelected( e );
-        namedCluster.setMapr( maprButton.getSelection() );
-      }
-    } );
-
-    
     return mainParent;
   }
   
@@ -234,7 +254,16 @@ public class NamedClusterComposite extends Composite {
     Composite pp = new Composite( group, SWT.NONE );
     props.setLook( pp );
     GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.verticalSpacing = -10; 
     gridLayout.marginWidth = 0;
+    
+    
+    gridLayout.marginLeft = 5;
+    gridLayout.marginRight = 5;
+    gridLayout.marginTop = -10;
+    gridLayout.marginBottom = -5;
+    
+    
     pp.setLayout( gridLayout );
     return pp;
   }
@@ -260,25 +289,23 @@ public class NamedClusterComposite extends Composite {
     props.setLook( portUIComposite );
     portUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
     
-    // hdfs host label
-    createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
+    hdfsHostLabel = createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
     // hdfs host input
     Callback hdfsHostCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsHost( value );
       }
     };
-    createTextVar( c, hostUIComposite, c.getHdfsHost(), gridData, TEXT_FLAGS, hdfsHostCB );
+    hdfsHostText = createTextVar( c, hostUIComposite, c.getHdfsHost(), gridData, TEXT_FLAGS, hdfsHostCB );
     
-    // hdfs port label
-    createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
+    hdfsPortLabel = createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
     Callback hdfsPortCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsPort( value );
       }
     };
-    createTextVar( c, portUIComposite, c.getHdfsPort(), numberGridData, TEXT_FLAGS, hdfsPortCB );
+    hdfsPortText = createTextVar( c, portUIComposite, c.getHdfsPort(), numberGridData, TEXT_FLAGS, hdfsPortCB );
     
     Composite hdfsCredentialsRowComposite = createTwoColumnsContainer( pp );
     
@@ -290,25 +317,23 @@ public class NamedClusterComposite extends Composite {
     props.setLook( passwordUIComposite );
     passwordUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
     
-    // hdfs user label
-    createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ), userNameLabelGridData );
+    hdfsUsernameLabel = createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ), userNameLabelGridData );
     // hdfs user input
     Callback hdfsUsernameCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsUsername( value );
       }
     };
-    createTextVar( c, usernameUIComposite, c.getHdfsUsername(), userNameGridData, TEXT_FLAGS, hdfsUsernameCB );
+    hdfsUsernameText = createTextVar( c, usernameUIComposite, c.getHdfsUsername(), userNameGridData, TEXT_FLAGS, hdfsUsernameCB );
     
-    // hdfs password label
-    createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ), passwordLabelGridData );
+    hdfsPasswordLabel = createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ), passwordLabelGridData );
     // hdfs password input
     Callback hdfsPasswordCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsPassword( value );
       }
     };
-    createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
+    hdfsPasswordText = createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
     
   }  
   
@@ -325,25 +350,23 @@ public class NamedClusterComposite extends Composite {
     props.setLook( portUIComposite );
     portUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
     
-    // hdfs host label
-    createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
+    jtHostLabel = createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
     // hdfs host input
     Callback hostCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setJobTrackerHost( value );
       }
     };
-    createTextVar( c, hostUIComposite, c.getJobTrackerHost(), gridData, TEXT_FLAGS, hostCB );
+    jtHostNameText = createTextVar( c, hostUIComposite, c.getJobTrackerHost(), gridData, TEXT_FLAGS, hostCB );
     
-    // hdfs port label
-    createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
+    jtPortLabel = createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
     Callback portCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setJobTrackerPort( value );
       }
     };
-    createTextVar( c, portUIComposite, c.getJobTrackerPort(), numberGridData, TEXT_FLAGS, portCB );
+    jtPortText = createTextVar( c, portUIComposite, c.getJobTrackerPort(), numberGridData, TEXT_FLAGS, portCB );
   }      
   
   private void createZooKeeperGroup( Composite parentComposite, final NamedCluster c ) {
@@ -386,6 +409,9 @@ public class NamedClusterComposite extends Composite {
     Composite container = new Composite( pp, SWT.NONE );
     props.setLook( container );
     GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.marginBottom = 5; 
+    gridLayout.marginTop = 5;
+    
     container.setLayout( gridLayout );
     
     // oozie label
@@ -397,6 +423,20 @@ public class NamedClusterComposite extends Composite {
       }
     };
     createTextVar( c, container, c.getOozieUrl(), gridData, TEXT_FLAGS, hostCB );
-  }     
+  }
   
+  private void setHdfsAndJobTrackerState( boolean state ) {
+    jtHostLabel.setEnabled( state );
+    jtHostNameText.setEnabled( state );
+    jtPortLabel.setEnabled( state );
+    jtPortText.setEnabled( state );
+    hdfsHostLabel.setEnabled( state );
+    hdfsHostText.setEnabled( state );
+    hdfsPortLabel.setEnabled( state );
+    hdfsPortText.setEnabled( state );
+    hdfsUsernameLabel.setEnabled( state );
+    hdfsUsernameText.setEnabled( state );
+    hdfsPasswordLabel.setEnabled( state );
+    hdfsPasswordText.setEnabled( state );
+  }
 }
