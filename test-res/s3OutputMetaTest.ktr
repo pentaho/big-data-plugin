@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<step>
+  <name>S3 File Output</name>
+  <type>S3FileOutputPlugin</type>
+  <description/>
+  <distribute>Y</distribute>
+  <custom_distribution/>
+  <copies>1</copies>
+  <partitioning>
+    <method>none</method>
+    <schema_name/>
+  </partitioning>
+  <separator>&#x3b;</separator>
+  <enclosure>&#x22;</enclosure>
+  <enclosure_forced>N</enclosure_forced>
+  <enclosure_fix_disabled>N</enclosure_fix_disabled>
+  <header>Y</header>
+  <footer>N</footer>
+  <format>DOS</format>
+  <compression>None</compression>
+  <encoding/>
+  <endedLine/>
+  <fileNameInField>N</fileNameInField>
+  <fileNameField/>
+  <create_parent_folder>Y</create_parent_folder>
+  <file>
+    <name>s3&#x3a;&#x2f;&#x2f;s3&#x2f;pdi-13700t&#x2f;test</name>
+    <is_command>N</is_command>
+    <servlet_output>N</servlet_output>
+    <do_not_open_new_file_init>N</do_not_open_new_file_init>
+    <extention/>
+    <append>N</append>
+    <split>N</split>
+    <haspartno>N</haspartno>
+    <add_date>N</add_date>
+    <add_time>N</add_time>
+    <SpecifyFormat>Y</SpecifyFormat>
+    <date_time_format>-yyyy-MM-dd</date_time_format>
+    <add_to_result_filenames>Y</add_to_result_filenames>
+    <pad>N</pad>
+    <fast_dump>N</fast_dump>
+    <splitevery>0</splitevery>
+  </file>
+  <fields>
+  </fields>
+  <access_key>Encrypted 2be98afc86aa7f2e4cb79ce10bef2cf8b</access_key>
+  <secret_key>Encrypted 2be98afc86aa7f2e4cb79ce10bef2cf88</secret_key>
+  <cluster_schema/>
+  <remotesteps>
+    <input></input>
+    <output></output>
+  </remotesteps>
+  <GUI>
+    <xloc>440</xloc>
+    <yloc>72</yloc>
+    <draw>Y</draw>
+  </GUI>
+</step>
