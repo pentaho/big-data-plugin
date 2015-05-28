@@ -163,8 +163,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   public static final String PENTAHO_MAPREDUCE_PROPERTY_ADDITIONAL_PLUGINS = "pmr.kettle.additional.plugins";
 
   public JobEntryHadoopTransJobExecutor() throws Throwable {
-    reducingSingleThreaded = true;
-    combiningSingleThreaded = true;
+    reducingSingleThreaded = false;
+    combiningSingleThreaded = false;
   }
 
   public String getHadoopJobName() {
@@ -1241,6 +1241,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     final String combinerSingleThreaded = XMLHandler.getTagValue( entrynode, "combiner_single_threaded" ); //$NON-NLS-1$
     if ( !Const.isEmpty( combinerSingleThreaded ) ) {
       setCombiningSingleThreaded( "Y".equalsIgnoreCase( combinerSingleThreaded ) ); //$NON-NLS-1$
+    } else {
+      setCombiningSingleThreaded( false );
     }
 
     reduceRepositoryDir = XMLHandler.getTagValue( entrynode, "reduce_trans_repo_dir" ); //$NON-NLS-1$
@@ -1250,9 +1252,9 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     reduceTrans = XMLHandler.getTagValue( entrynode, "reduce_trans" ); //$NON-NLS-1$
     String single = XMLHandler.getTagValue( entrynode, "reduce_single_threaded" ); //$NON-NLS-1$
     if ( Const.isEmpty( single ) ) {
-      reducingSingleThreaded = true;
+      setReducingSingleThreaded( false );
     } else {
-      reducingSingleThreaded = "Y".equalsIgnoreCase( single ); //$NON-NLS-1$
+      setReducingSingleThreaded( "Y".equalsIgnoreCase( single ) ); //$NON-NLS-1$
     }
 
     mapInputStepName = XMLHandler.getTagValue( entrynode, "map_input_step_name" ); //$NON-NLS-1$
@@ -1461,14 +1463,14 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       String reduceTransId = rep.getJobEntryAttributeString( id_jobentry, "reduce_trans_repo_reference" ); //$NON-NLS-1$
       setReduceRepositoryReference( Const.isEmpty( reduceTransId ) ? null : new StringObjectId( reduceTransId ) );
       setReduceTrans( rep.getJobEntryAttributeString( id_jobentry, "reduce_trans" ) ); //$NON-NLS-1$
-      setReducingSingleThreaded( rep.getJobEntryAttributeBoolean( id_jobentry, "reduce_single_threaded", true ) ); //$NON-NLS-1$
+      setReducingSingleThreaded( rep.getJobEntryAttributeBoolean( id_jobentry, "reduce_single_threaded", false ) ); //$NON-NLS-1$
 
       setCombinerRepositoryDir( rep.getJobEntryAttributeString( id_jobentry, "combiner_trans_repo_dir" ) ); //$NON-NLS-1$
       setCombinerRepositoryFile( rep.getJobEntryAttributeString( id_jobentry, "combiner_trans_repo_file" ) ); //$NON-NLS-1$
       String combinerTransId = rep.getJobEntryAttributeString( id_jobentry, "combiner_trans_repo_reference" ); //$NON-NLS-1$
       setCombinerRepositoryReference( Const.isEmpty( combinerTransId ) ? null : new StringObjectId( combinerTransId ) );
       setCombinerTrans( rep.getJobEntryAttributeString( id_jobentry, "combiner_trans" ) ); //$NON-NLS-1$
-      setCombiningSingleThreaded( rep.getJobEntryAttributeBoolean( id_jobentry, "combiner_single_threaded", true ) ); //$NON-NLS-1$
+      setCombiningSingleThreaded( rep.getJobEntryAttributeBoolean( id_jobentry, "combiner_single_threaded", false ) ); //$NON-NLS-1$
 
       setMapInputStepName( rep.getJobEntryAttributeString( id_jobentry, "map_input_step_name" ) ); //$NON-NLS-1$
       setMapOutputStepName( rep.getJobEntryAttributeString( id_jobentry, "map_output_step_name" ) ); //$NON-NLS-1$
