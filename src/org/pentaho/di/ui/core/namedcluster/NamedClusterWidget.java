@@ -25,7 +25,7 @@ package org.pentaho.di.ui.core.namedcluster;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
@@ -157,7 +157,7 @@ public class NamedClusterWidget extends Composite {
     }
   }
 
-  public void addModifyListener( ModifyListener selectionListener ) {
-    nameClusterCombo.addModifyListener( selectionListener );
+  public void addSelectionListener( SelectionListener selectionListener ) {
+    nameClusterCombo.addSelectionListener( selectionListener );
   }
 }

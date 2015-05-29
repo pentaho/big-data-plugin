@@ -70,7 +70,7 @@ public class HadoopClusterDelegate extends SpoonDelegate {
     spoon.setShellText();
   }
   
-  public void editNamedCluster( IMetaStore metaStore, NamedCluster namedCluster, Shell shell ) {
+  public String editNamedCluster( IMetaStore metaStore, NamedCluster namedCluster, Shell shell ) {
     if ( metaStore == null ) {
       metaStore = Spoon.getInstance().getMetaStore();
     }
@@ -81,10 +81,14 @@ public class HadoopClusterDelegate extends SpoonDelegate {
       deleteNamedCluster( metaStore, namedCluster );
       saveNamedCluster( metaStore, namedClusterDialog.getNamedCluster() );
       spoon.refreshTree();
+      if ( namedClusterDialog.getNamedCluster() != null ) {
+        return namedClusterDialog.getNamedCluster().getName();
+      }
     }    
+    return null;
   }
 
-  public void newNamedCluster( VariableSpace variableSpace, IMetaStore metaStore, Shell shell ) {
+  public String newNamedCluster( VariableSpace variableSpace, IMetaStore metaStore, Shell shell ) {
     if ( metaStore == null ) {
       metaStore = Spoon.getInstance().getMetaStore();
     }
@@ -104,7 +108,9 @@ public class HadoopClusterDelegate extends SpoonDelegate {
   
       saveNamedCluster( metaStore, nc );
       spoon.refreshTree();    
+      return nc.getName();
     }
+    return null;
   }
   
   private void deleteNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {

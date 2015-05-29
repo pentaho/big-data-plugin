@@ -22,38 +22,22 @@
 
 package org.pentaho.di.ui.job.entries.hadoopcopyfiles;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.Props;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannel;
@@ -64,800 +48,105 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
 import org.pentaho.di.job.entries.hadoopcopyfiles.JobEntryHadoopCopyFiles;
-import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.core.ConstUI;
+import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
-import org.pentaho.di.ui.core.widget.TableView;
-import org.pentaho.di.ui.core.widget.TextVar;
-import org.pentaho.di.ui.job.dialog.JobDialog;
-import org.pentaho.di.ui.job.entry.JobEntryDialog;
+import org.pentaho.di.ui.job.entries.copyfiles.JobEntryCopyFilesDialog;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
-public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements JobEntryDialogInterface {
+public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   private static Class<?> BASE_PKG = JobEntryCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
   private static Class<?> PKG = JobEntryHadoopCopyFiles.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
-
-  private static final String[] FILETYPES = new String[] { BaseMessages.getString( BASE_PKG,
-      "JobCopyFiles.Filetype.All" ) };
-
   private LogChannel log = new LogChannel( this );
+  private JobEntryHadoopCopyFiles jobEntryHadoopCopyFiles;
 
-  private Label wlName;
-  private Text wName;
-  private FormData fdlName, fdName;
-
-  private Label wlSourceFileFolder;
-  private Button wbSourceBrowse, wbDestinationBrowse;
-  private TextVar wSourceFileFolder;
-  private FormData fdlSourceFileFolder, fdSourceFileFolder, fdbSourceBrowse, fdbDestinationDirectory;
-
-  private Label wlCopyEmptyFolders;
-  private Button wCopyEmptyFolders;
-  private FormData fdlCopyEmptyFolders, fdCopyEmptyFolders;
-
-  private Label wlOverwriteFiles;
-  private Button wOverwriteFiles;
-  private FormData fdlOverwriteFiles, fdOverwriteFiles;
-
-  private Label wlIncludeSubfolders;
-  private Button wIncludeSubfolders;
-  private FormData fdlIncludeSubfolders, fdIncludeSubfolders;
-
-  private Label wlRemoveSourceFiles;
-  private Button wRemoveSourceFiles;
-  private FormData fdlRemoveSourceFiles, fdRemoveSourceFiles;
-
-  private Button wOK, wCancel;
-  private Listener lsOK, lsCancel;
-
-  private JobEntryCopyFiles jobEntry;
-  private Shell shell;
-
-  private SelectionAdapter lsDef;
-
-  private boolean changed;
-
-  private Label wlPrevious;
-
-  private Button wPrevious;
-
-  private FormData fdlPrevious, fdPrevious;
-
-  private Label wlFields;
-
-  private TableView wFields;
-
-  private FormData fdlFields, fdFields;
-
-  private Group wSettings;
-  private FormData fdSettings;
-
-  private Label wlDestinationFileFolder;
-  private TextVar wDestinationFileFolder;
-  private FormData fdlDestinationFileFolder, fdDestinationFileFolder;
-
-  private Label wlWildcard;
-  private TextVar wWildcard;
-  private FormData fdlWildcard, fdWildcard;
-
-  private Button wbdSourceFileFolder; // Delete
-  private Button wbeSourceFileFolder; // Edit
-  private Button wbaSourceFileFolder; // Add or change
-
-  private CTabFolder wTabFolder;
-  private Composite wGeneralComp, wResultfilesComp;
-  private CTabItem wGeneralTab, wResultfilesTab;
-  private FormData fdGeneralComp, fdResultfilesComp;
-  private FormData fdTabFolder;
-
-  // Add File to result
-
-  private Group wFileResult;
-  private FormData fdFileResult;
-
-  private Label wlAddFileToResult;
-  private Button wAddFileToResult;
-  private FormData fdlAddFileToResult, fdAddFileToResult;
-
-  private Label wlCreateDestinationFolder;
-  private Button wCreateDestinationFolder;
-  private FormData fdlCreateDestinationFolder, fdCreateDestinationFolder;
-
-  private Label wlDestinationIsAFile;
-  private Button wDestinationIsAFile;
-  private FormData fdlDestinationIsAFile, fdDestinationIsAFile;
-
-  private FormData fdbeSourceFileFolder, fdbaSourceFileFolder, fdbdSourceFileFolder;
-  
-  private Map<String, String> transientMappings = null;
-  private NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
+  public static final String S3_ENVIRONMENT = "S3";
 
   public JobEntryHadoopCopyFilesDialog( Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
     super( parent, jobEntryInt, rep, jobMeta );
     jobEntry = (JobEntryCopyFiles) jobEntryInt;
-    transientMappings = ( ( JobEntryHadoopCopyFiles ) jobEntry ).getNamedClusterURLMapping();
+    jobEntryHadoopCopyFiles = (JobEntryHadoopCopyFiles) jobEntry;
     if ( this.jobEntry.getName() == null ) {
       this.jobEntry.setName( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Name.Default" ) );
     }
   }
 
-  public JobEntryInterface open() {
-    Shell parent = getParent();
-    Display display = parent.getDisplay();
-
-    shell = new Shell( parent, props.getJobsDialogStyle() );
-    props.setLook( shell );
-    JobDialog.setShellImage( shell, jobEntry );
-
-    ModifyListener lsMod = new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        jobEntry.setChanged();
-      }
-    };
-    changed = jobEntry.hasChanged();
-
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = Const.FORM_MARGIN;
-    formLayout.marginHeight = Const.FORM_MARGIN;
-
-    shell.setLayout( formLayout );
-    shell.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Title" ) );
-
-    int middle = props.getMiddlePct();
-    int margin = Const.MARGIN;
-
-    // Filename line
-    wlName = new Label( shell, SWT.RIGHT );
-    wlName.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Name.Label" ) );
-    props.setLook( wlName );
-    fdlName = new FormData();
-    fdlName.left = new FormAttachment( 0, 0 );
-    fdlName.right = new FormAttachment( middle, -margin );
-    fdlName.top = new FormAttachment( 0, margin );
-    wlName.setLayoutData( fdlName );
-    wName = new Text( shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wName );
-    wName.addModifyListener( lsMod );
-    fdName = new FormData();
-    fdName.left = new FormAttachment( middle, 0 );
-    fdName.top = new FormAttachment( 0, margin );
-    fdName.right = new FormAttachment( 100, 0 );
-    wName.setLayoutData( fdName );
-
-    wTabFolder = new CTabFolder( shell, SWT.BORDER );
-    props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
-
-    // ////////////////////////
-    // START OF GENERAL TAB ///
-    // ////////////////////////
-
-    wGeneralTab = new CTabItem( wTabFolder, SWT.NONE );
-    wGeneralTab.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Tab.General.Label" ) );
-
-    wGeneralComp = new Composite( wTabFolder, SWT.NONE );
-    props.setLook( wGeneralComp );
-
-    FormLayout generalLayout = new FormLayout();
-    generalLayout.marginWidth = 3;
-    generalLayout.marginHeight = 3;
-    wGeneralComp.setLayout( generalLayout );
-
-    // SETTINGS grouping?
-    // ////////////////////////
-    // START OF SETTINGS GROUP
-    //
-
-    wSettings = new Group( wGeneralComp, SWT.SHADOW_NONE );
-    props.setLook( wSettings );
-    wSettings.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Settings.Label" ) );
-
-    FormLayout groupLayout = new FormLayout();
-    groupLayout.marginWidth = 10;
-    groupLayout.marginHeight = 10;
-    wSettings.setLayout( groupLayout );
-
-    wlIncludeSubfolders = new Label( wSettings, SWT.RIGHT );
-    wlIncludeSubfolders.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.IncludeSubfolders.Label" ) );
-    props.setLook( wlIncludeSubfolders );
-    fdlIncludeSubfolders = new FormData();
-    fdlIncludeSubfolders.left = new FormAttachment( 0, 0 );
-    fdlIncludeSubfolders.top = new FormAttachment( wName, margin );
-    fdlIncludeSubfolders.right = new FormAttachment( middle, -margin );
-    wlIncludeSubfolders.setLayoutData( fdlIncludeSubfolders );
-    wIncludeSubfolders = new Button( wSettings, SWT.CHECK );
-    props.setLook( wIncludeSubfolders );
-    wIncludeSubfolders.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.IncludeSubfolders.Tooltip" ) );
-    fdIncludeSubfolders = new FormData();
-    fdIncludeSubfolders.left = new FormAttachment( middle, 0 );
-    fdIncludeSubfolders.top = new FormAttachment( wName, margin );
-    fdIncludeSubfolders.right = new FormAttachment( 100, 0 );
-    wIncludeSubfolders.setLayoutData( fdIncludeSubfolders );
-    wIncludeSubfolders.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-        CheckIncludeSubFolders();
-      }
-    } );
-
-    // Destination is a file?
-    wlDestinationIsAFile = new Label( wSettings, SWT.RIGHT );
-    wlDestinationIsAFile.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.DestinationIsAFile.Label" ) );
-    props.setLook( wlDestinationIsAFile );
-    fdlDestinationIsAFile = new FormData();
-    fdlDestinationIsAFile.left = new FormAttachment( 0, 0 );
-    fdlDestinationIsAFile.top = new FormAttachment( wIncludeSubfolders, margin );
-    fdlDestinationIsAFile.right = new FormAttachment( middle, -margin );
-    wlDestinationIsAFile.setLayoutData( fdlDestinationIsAFile );
-    wDestinationIsAFile = new Button( wSettings, SWT.CHECK );
-    props.setLook( wDestinationIsAFile );
-    wDestinationIsAFile.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.DestinationIsAFile.Tooltip" ) );
-    fdDestinationIsAFile = new FormData();
-    fdDestinationIsAFile.left = new FormAttachment( middle, 0 );
-    fdDestinationIsAFile.top = new FormAttachment( wIncludeSubfolders, margin );
-    fdDestinationIsAFile.right = new FormAttachment( 100, 0 );
-    wDestinationIsAFile.setLayoutData( fdDestinationIsAFile );
-    wDestinationIsAFile.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-      }
-    } );
-
-    // Copy empty folders
-    wlCopyEmptyFolders = new Label( wSettings, SWT.RIGHT );
-    wlCopyEmptyFolders.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.CopyEmptyFolders.Label" ) );
-    props.setLook( wlCopyEmptyFolders );
-    fdlCopyEmptyFolders = new FormData();
-    fdlCopyEmptyFolders.left = new FormAttachment( 0, 0 );
-    fdlCopyEmptyFolders.top = new FormAttachment( wDestinationIsAFile, margin );
-    fdlCopyEmptyFolders.right = new FormAttachment( middle, -margin );
-    wlCopyEmptyFolders.setLayoutData( fdlCopyEmptyFolders );
-    wCopyEmptyFolders = new Button( wSettings, SWT.CHECK );
-    props.setLook( wCopyEmptyFolders );
-    wCopyEmptyFolders.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.CopyEmptyFolders.Tooltip" ) );
-    fdCopyEmptyFolders = new FormData();
-    fdCopyEmptyFolders.left = new FormAttachment( middle, 0 );
-    fdCopyEmptyFolders.top = new FormAttachment( wDestinationIsAFile, margin );
-    fdCopyEmptyFolders.right = new FormAttachment( 100, 0 );
-    wCopyEmptyFolders.setLayoutData( fdCopyEmptyFolders );
-    wCopyEmptyFolders.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-      }
-    } );
-
-    // Create destination folder/parent folder
-    wlCreateDestinationFolder = new Label( wSettings, SWT.RIGHT );
-    wlCreateDestinationFolder
-        .setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.CreateDestinationFolder.Label" ) );
-    props.setLook( wlCreateDestinationFolder );
-    fdlCreateDestinationFolder = new FormData();
-    fdlCreateDestinationFolder.left = new FormAttachment( 0, 0 );
-    fdlCreateDestinationFolder.top = new FormAttachment( wCopyEmptyFolders, margin );
-    fdlCreateDestinationFolder.right = new FormAttachment( middle, -margin );
-    wlCreateDestinationFolder.setLayoutData( fdlCreateDestinationFolder );
-    wCreateDestinationFolder = new Button( wSettings, SWT.CHECK );
-    props.setLook( wCreateDestinationFolder );
-    wCreateDestinationFolder.setToolTipText( BaseMessages.getString( BASE_PKG,
-        "JobCopyFiles.CreateDestinationFolder.Tooltip" ) );
-    fdCreateDestinationFolder = new FormData();
-    fdCreateDestinationFolder.left = new FormAttachment( middle, 0 );
-    fdCreateDestinationFolder.top = new FormAttachment( wCopyEmptyFolders, margin );
-    fdCreateDestinationFolder.right = new FormAttachment( 100, 0 );
-    wCreateDestinationFolder.setLayoutData( fdCreateDestinationFolder );
-    wCreateDestinationFolder.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-      }
-    } );
-
-    // OverwriteFiles Option
-    wlOverwriteFiles = new Label( wSettings, SWT.RIGHT );
-    wlOverwriteFiles.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.OverwriteFiles.Label" ) );
-    props.setLook( wlOverwriteFiles );
-    fdlOverwriteFiles = new FormData();
-    fdlOverwriteFiles.left = new FormAttachment( 0, 0 );
-    fdlOverwriteFiles.top = new FormAttachment( wCreateDestinationFolder, margin );
-    fdlOverwriteFiles.right = new FormAttachment( middle, -margin );
-    wlOverwriteFiles.setLayoutData( fdlOverwriteFiles );
-    wOverwriteFiles = new Button( wSettings, SWT.CHECK );
-    props.setLook( wOverwriteFiles );
-    wOverwriteFiles.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.OverwriteFiles.Tooltip" ) );
-    fdOverwriteFiles = new FormData();
-    fdOverwriteFiles.left = new FormAttachment( middle, 0 );
-    fdOverwriteFiles.top = new FormAttachment( wCreateDestinationFolder, margin );
-    fdOverwriteFiles.right = new FormAttachment( 100, 0 );
-    wOverwriteFiles.setLayoutData( fdOverwriteFiles );
-    wOverwriteFiles.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-      }
-    } );
-
-    // Remove source files option
-    wlRemoveSourceFiles = new Label( wSettings, SWT.RIGHT );
-    wlRemoveSourceFiles.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.RemoveSourceFiles.Label" ) );
-    props.setLook( wlRemoveSourceFiles );
-    fdlRemoveSourceFiles = new FormData();
-    fdlRemoveSourceFiles.left = new FormAttachment( 0, 0 );
-    fdlRemoveSourceFiles.top = new FormAttachment( wOverwriteFiles, margin );
-    fdlRemoveSourceFiles.right = new FormAttachment( middle, -margin );
-    wlRemoveSourceFiles.setLayoutData( fdlRemoveSourceFiles );
-    wRemoveSourceFiles = new Button( wSettings, SWT.CHECK );
-    props.setLook( wRemoveSourceFiles );
-    wRemoveSourceFiles.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.RemoveSourceFiles.Tooltip" ) );
-    fdRemoveSourceFiles = new FormData();
-    fdRemoveSourceFiles.left = new FormAttachment( middle, 0 );
-    fdRemoveSourceFiles.top = new FormAttachment( wOverwriteFiles, margin );
-    fdRemoveSourceFiles.right = new FormAttachment( 100, 0 );
-    wRemoveSourceFiles.setLayoutData( fdRemoveSourceFiles );
-    wRemoveSourceFiles.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-      }
-    } );
-
-    wlPrevious = new Label( wSettings, SWT.RIGHT );
-    wlPrevious.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Previous.Label" ) );
-    props.setLook( wlPrevious );
-    fdlPrevious = new FormData();
-    fdlPrevious.left = new FormAttachment( 0, 0 );
-    fdlPrevious.top = new FormAttachment( wRemoveSourceFiles, margin );
-    fdlPrevious.right = new FormAttachment( middle, -margin );
-    wlPrevious.setLayoutData( fdlPrevious );
-    wPrevious = new Button( wSettings, SWT.CHECK );
-    props.setLook( wPrevious );
-    wPrevious.setSelection( jobEntry.arg_from_previous );
-    wPrevious.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Previous.Tooltip" ) );
-    fdPrevious = new FormData();
-    fdPrevious.left = new FormAttachment( middle, 0 );
-    fdPrevious.top = new FormAttachment( wRemoveSourceFiles, margin );
-    fdPrevious.right = new FormAttachment( 100, 0 );
-    wPrevious.setLayoutData( fdPrevious );
-    wPrevious.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-
-        RefreshArgFromPrevious();
-
-      }
-    } );
-    fdSettings = new FormData();
-    fdSettings.left = new FormAttachment( 0, margin );
-    fdSettings.top = new FormAttachment( wName, margin );
-    fdSettings.right = new FormAttachment( 100, -margin );
-    wSettings.setLayoutData( fdSettings );
-
-    // ///////////////////////////////////////////////////////////
-    // / END OF SETTINGS GROUP
-    // ///////////////////////////////////////////////////////////
-
-    // SourceFileFolder line
-    wlSourceFileFolder = new Label( wGeneralComp, SWT.RIGHT );
-    wlSourceFileFolder.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.SourceFileFolder.Label" ) );
-    props.setLook( wlSourceFileFolder );
-    fdlSourceFileFolder = new FormData();
-    fdlSourceFileFolder.left = new FormAttachment( 0, 0 );
-    fdlSourceFileFolder.top = new FormAttachment( wSettings, 2 * margin );
-    fdlSourceFileFolder.right = new FormAttachment( middle, -margin );
-    wlSourceFileFolder.setLayoutData( fdlSourceFileFolder );
-
-    // Browse Source folders button ...
-    wbSourceBrowse = new Button( wGeneralComp, SWT.PUSH | SWT.CENTER );
-    props.setLook( wbSourceBrowse );
-    wbSourceBrowse.setText( BaseMessages.getString( PKG, "JobCopyFiles.Browse.Label" ) );
-    fdbSourceBrowse = new FormData();
-    fdbSourceBrowse.right = new FormAttachment( 100, 0 );
-    fdbSourceBrowse.top = new FormAttachment( wSettings, margin );
-    wbSourceBrowse.setLayoutData( fdbSourceBrowse );
-
-    wbSourceBrowse.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        setSelectedFile( wSourceFileFolder );
-      }
-    } );
-
-    // Browse Source file add button ...
-    wbaSourceFileFolder = new Button( wGeneralComp, SWT.PUSH | SWT.CENTER );
-    props.setLook( wbaSourceFileFolder );
-    wbaSourceFileFolder.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.FilenameAdd.Button" ) );
-    fdbaSourceFileFolder = new FormData();
-    fdbaSourceFileFolder.right = new FormAttachment( wbSourceBrowse, -margin );
-    fdbaSourceFileFolder.top = new FormAttachment( wSettings, margin );
-    wbaSourceFileFolder.setLayoutData( fdbaSourceFileFolder );
-
-    wSourceFileFolder = new TextVar( jobMeta, wGeneralComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wSourceFileFolder.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.SourceFileFolder.Tooltip" ) );
-
-    props.setLook( wSourceFileFolder );
-    wSourceFileFolder.addModifyListener( lsMod );
-    fdSourceFileFolder = new FormData();
-    fdSourceFileFolder.left = new FormAttachment( middle, 0 );
-    fdSourceFileFolder.top = new FormAttachment( wSettings, 2 * margin );
-    fdSourceFileFolder.right = new FormAttachment( wbSourceBrowse, -55 );
-    wSourceFileFolder.setLayoutData( fdSourceFileFolder );
-
-    // Whenever something changes, set the tooltip to the expanded version:
-    wSourceFileFolder.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        wSourceFileFolder.setToolTipText( jobMeta.environmentSubstitute( wSourceFileFolder.getText() ) );
-      }
-    } );
-
-    // Destination
-    wlDestinationFileFolder = new Label( wGeneralComp, SWT.RIGHT );
-    wlDestinationFileFolder.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.DestinationFileFolder.Label" ) );
-    props.setLook( wlDestinationFileFolder );
-    fdlDestinationFileFolder = new FormData();
-    fdlDestinationFileFolder.left = new FormAttachment( 0, 0 );
-    fdlDestinationFileFolder.top = new FormAttachment( wSourceFileFolder, margin );
-    fdlDestinationFileFolder.right = new FormAttachment( middle, -margin );
-    wlDestinationFileFolder.setLayoutData( fdlDestinationFileFolder );
-
-    // Browse Destination folders button ...
-    wbDestinationBrowse = new Button( wGeneralComp, SWT.PUSH | SWT.CENTER );
-    props.setLook( wbDestinationBrowse );
-    wbDestinationBrowse.setText( BaseMessages.getString( PKG, "JobCopyFiles.Browse.Label" ) );
-    fdbDestinationDirectory = new FormData();
-    fdbDestinationDirectory.right = new FormAttachment( 100, 0 );
-    fdbDestinationDirectory.top = new FormAttachment( wSourceFileFolder, margin );
-    wbDestinationBrowse.setLayoutData( fdbDestinationDirectory );
-
-    wbDestinationBrowse.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        setSelectedFile( wDestinationFileFolder );
-      }
-    } );
-
-    wDestinationFileFolder = new TextVar( jobMeta, wGeneralComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wDestinationFileFolder.setToolTipText( BaseMessages.getString( BASE_PKG,
-        "JobCopyFiles.DestinationFileFolder.Tooltip" ) );
-    props.setLook( wDestinationFileFolder );
-    wDestinationFileFolder.addModifyListener( lsMod );
-    fdDestinationFileFolder = new FormData();
-    fdDestinationFileFolder.left = new FormAttachment( middle, 0 );
-    fdDestinationFileFolder.top = new FormAttachment( wSourceFileFolder, margin );
-    fdDestinationFileFolder.right = new FormAttachment( wbDestinationBrowse, -55 );
-    wDestinationFileFolder.setLayoutData( fdDestinationFileFolder );
-
-    // Buttons to the right of the screen...
-    wbdSourceFileFolder = new Button( wGeneralComp, SWT.PUSH | SWT.CENTER );
-    props.setLook( wbdSourceFileFolder );
-    wbdSourceFileFolder.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.FilenameDelete.Button" ) );
-    wbdSourceFileFolder.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.FilenameDelete.Tooltip" ) );
-    fdbdSourceFileFolder = new FormData();
-    fdbdSourceFileFolder.right = new FormAttachment( 100, 0 );
-    fdbdSourceFileFolder.top = new FormAttachment( wDestinationFileFolder, 40 );
-    wbdSourceFileFolder.setLayoutData( fdbdSourceFileFolder );
-
-    wbeSourceFileFolder = new Button( wGeneralComp, SWT.PUSH | SWT.CENTER );
-    props.setLook( wbeSourceFileFolder );
-    wbeSourceFileFolder.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.FilenameEdit.Button" ) );
-    wbeSourceFileFolder.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.FilenameEdit.Tooltip" ) );
-    fdbeSourceFileFolder = new FormData();
-    fdbeSourceFileFolder.right = new FormAttachment( 100, 0 );
-    fdbeSourceFileFolder.left = new FormAttachment( wbdSourceFileFolder, 0, SWT.LEFT );
-    fdbeSourceFileFolder.top = new FormAttachment( wbdSourceFileFolder, margin );
-    wbeSourceFileFolder.setLayoutData( fdbeSourceFileFolder );
-
-    // Wildcard
-    wlWildcard = new Label( wGeneralComp, SWT.RIGHT );
-    wlWildcard.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Wildcard.Label" ) );
-    props.setLook( wlWildcard );
-    fdlWildcard = new FormData();
-    fdlWildcard.left = new FormAttachment( 0, 0 );
-    fdlWildcard.top = new FormAttachment( wDestinationFileFolder, margin );
-    fdlWildcard.right = new FormAttachment( middle, -margin );
-    wlWildcard.setLayoutData( fdlWildcard );
-
-    wWildcard = new TextVar( jobMeta, wGeneralComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wWildcard.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Wildcard.Tooltip" ) );
-    props.setLook( wWildcard );
-    wWildcard.addModifyListener( lsMod );
-    fdWildcard = new FormData();
-    fdWildcard.left = new FormAttachment( middle, 0 );
-    fdWildcard.top = new FormAttachment( wDestinationFileFolder, margin );
-    fdWildcard.right = new FormAttachment( wbSourceBrowse, -55 );
-    wWildcard.setLayoutData( fdWildcard );
-
-    wlFields = new Label( wGeneralComp, SWT.NONE );
-    wlFields.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.Label" ) );
-    props.setLook( wlFields );
-    fdlFields = new FormData();
-    fdlFields.left = new FormAttachment( 0, 0 );
-    fdlFields.right = new FormAttachment( middle, -margin );
-    fdlFields.top = new FormAttachment( wWildcard, margin );
-    wlFields.setLayoutData( fdlFields );
-
-    int rows =
-        jobEntry.source_filefolder == null ? 1 : ( jobEntry.source_filefolder.length == 0 ? 0
-            : jobEntry.source_filefolder.length );
-    final int FieldsRows = rows;
-
-    ColumnInfo[] colinf =
-        new ColumnInfo[] {
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.SourceFileFolder.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.DestinationFileFolder.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.Wildcard.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ), };
-
-    colinf[0].setUsingVariables( true );
-    colinf[0].setToolTip( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.SourceFileFolder.Tooltip" ) );
-    colinf[1].setUsingVariables( true );
-    colinf[1].setToolTip( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.DestinationFileFolder.Tooltip" ) );
-    colinf[2].setUsingVariables( true );
-    colinf[2].setToolTip( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Fields.Wildcard.Tooltip" ) );
-
-    wFields =
-        new TableView( jobMeta, wGeneralComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod,
-            props );
-
-    fdFields = new FormData();
-    fdFields.left = new FormAttachment( 0, 0 );
-    fdFields.top = new FormAttachment( wlFields, margin );
-    fdFields.right = new FormAttachment( 100, -75 );
-    fdFields.bottom = new FormAttachment( 100, -margin );
-    wFields.setLayoutData( fdFields );
-
-    RefreshArgFromPrevious();
-
-    // Add the file to the list of files...
-    SelectionAdapter selA = new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent arg0 ) {
-        wFields
-            .add( new String[] { wSourceFileFolder.getText(), wDestinationFileFolder.getText(), wWildcard.getText() } );
-        wSourceFileFolder.setText( "" );
-        wDestinationFileFolder.setText( "" );
-        wWildcard.setText( "" );
-        wFields.removeEmptyRows();
-        wFields.setRowNums();
-        wFields.optWidth( true );
-      }
-    };
-    wbaSourceFileFolder.addSelectionListener( selA );
-    wSourceFileFolder.addSelectionListener( selA );
-
-    // Delete files from the list of files...
-    wbdSourceFileFolder.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent arg0 ) {
-        int[] idx = wFields.getSelectionIndices();
-        wFields.remove( idx );
-        wFields.removeEmptyRows();
-        wFields.setRowNums();
-      }
-    } );
-
-    // Edit the selected file & remove from the list...
-    wbeSourceFileFolder.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent arg0 ) {
-        int idx = wFields.getSelectionIndex();
-        if ( idx >= 0 ) {
-          String[] string = wFields.getItem( idx );
-          wSourceFileFolder.setText( string[0] );
-          wDestinationFileFolder.setText( string[1] );
-          wWildcard.setText( string[2] );
-          wFields.remove( idx );
-        }
-        wFields.removeEmptyRows();
-        wFields.setRowNums();
-      }
-    } );
-
-    fdGeneralComp = new FormData();
-    fdGeneralComp.left = new FormAttachment( 0, 0 );
-    fdGeneralComp.top = new FormAttachment( 0, 0 );
-    fdGeneralComp.right = new FormAttachment( 100, 0 );
-    fdGeneralComp.bottom = new FormAttachment( 100, 0 );
-    wGeneralComp.setLayoutData( fdGeneralComp );
-
-    wGeneralComp.layout();
-    wGeneralTab.setControl( wGeneralComp );
-    props.setLook( wGeneralComp );
-
-    // ///////////////////////////////////////////////////////////
-    // / END OF GENERAL TAB
-    // ///////////////////////////////////////////////////////////
-
-    // ////////////////////////////////////
-    // START OF RESULT FILES TAB ///
-    // ///////////////////////////////////
-
-    wResultfilesTab = new CTabItem( wTabFolder, SWT.NONE );
-    wResultfilesTab.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.Tab.AddResultFilesName.Label" ) );
-
-    FormLayout contentLayout = new FormLayout();
-    contentLayout.marginWidth = 3;
-    contentLayout.marginHeight = 3;
-
-    wResultfilesComp = new Composite( wTabFolder, SWT.NONE );
-    props.setLook( wResultfilesComp );
-    wResultfilesComp.setLayout( contentLayout );
-
-    // fileresult grouping?
-    // ////////////////////////
-    // START OF LOGGING GROUP///
-    // /
-    wFileResult = new Group( wResultfilesComp, SWT.SHADOW_NONE );
-    props.setLook( wFileResult );
-    wFileResult.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.FileResult.Group.Label" ) );
-
-    FormLayout fileresultgroupLayout = new FormLayout();
-    fileresultgroupLayout.marginWidth = 10;
-    fileresultgroupLayout.marginHeight = 10;
-
-    wFileResult.setLayout( fileresultgroupLayout );
-
-    // Add file to result
-    wlAddFileToResult = new Label( wFileResult, SWT.RIGHT );
-    wlAddFileToResult.setText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.AddFileToResult.Label" ) );
-    props.setLook( wlAddFileToResult );
-    fdlAddFileToResult = new FormData();
-    fdlAddFileToResult.left = new FormAttachment( 0, 0 );
-    fdlAddFileToResult.top = new FormAttachment( 0, margin );
-    fdlAddFileToResult.right = new FormAttachment( middle, -margin );
-    wlAddFileToResult.setLayoutData( fdlAddFileToResult );
-    wAddFileToResult = new Button( wFileResult, SWT.CHECK );
-    props.setLook( wAddFileToResult );
-    wAddFileToResult.setToolTipText( BaseMessages.getString( BASE_PKG, "JobCopyFiles.AddFileToResult.Tooltip" ) );
-    fdAddFileToResult = new FormData();
-    fdAddFileToResult.left = new FormAttachment( middle, 0 );
-    fdAddFileToResult.top = new FormAttachment( 0, margin );
-    fdAddFileToResult.right = new FormAttachment( 100, 0 );
-    wAddFileToResult.setLayoutData( fdAddFileToResult );
-    wAddFileToResult.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        jobEntry.setChanged();
-      }
-    } );
-
-    fdFileResult = new FormData();
-    fdFileResult.left = new FormAttachment( 0, margin );
-    fdFileResult.top = new FormAttachment( 0, margin );
-    fdFileResult.right = new FormAttachment( 100, -margin );
-    wFileResult.setLayoutData( fdFileResult );
-    // ///////////////////////////////////////////////////////////
-    // / END OF FilesRsult GROUP
-    // ///////////////////////////////////////////////////////////
-
-    fdResultfilesComp = new FormData();
-    fdResultfilesComp.left = new FormAttachment( 0, 0 );
-    fdResultfilesComp.top = new FormAttachment( 0, 0 );
-    fdResultfilesComp.right = new FormAttachment( 100, 0 );
-    fdResultfilesComp.bottom = new FormAttachment( 100, 0 );
-    wResultfilesComp.setLayoutData( wResultfilesComp );
-
-    wResultfilesComp.layout();
-    wResultfilesTab.setControl( wResultfilesComp );
-
-    // ///////////////////////////////////////////////////////////
-    // / END OF RESULT FILES TAB
-    // ///////////////////////////////////////////////////////////
-
-    fdTabFolder = new FormData();
-    fdTabFolder.left = new FormAttachment( 0, 0 );
-    fdTabFolder.top = new FormAttachment( wName, margin );
-    fdTabFolder.right = new FormAttachment( 100, 0 );
-    fdTabFolder.bottom = new FormAttachment( 100, -50 );
-    wTabFolder.setLayoutData( fdTabFolder );
-
-    wOK = new Button( shell, SWT.PUSH );
-    wOK.setText( BaseMessages.getString( BASE_PKG, "System.Button.OK" ) );
-    wCancel = new Button( shell, SWT.PUSH );
-    wCancel.setText( BaseMessages.getString( BASE_PKG, "System.Button.Cancel" ) );
-
-    BaseStepDialog.positionBottomButtons( shell, new Button[] { wOK, wCancel }, margin, wTabFolder );
-
-    // Add listeners
-    lsCancel = new Listener() {
-      public void handleEvent( Event e ) {
-        cancel();
-      }
-    };
-    lsOK = new Listener() {
-      public void handleEvent( Event e ) {
-        ok();
-      }
-    };
-
-    wCancel.addListener( SWT.Selection, lsCancel );
-    wOK.addListener( SWT.Selection, lsOK );
-
-    lsDef = new SelectionAdapter() {
-      public void widgetDefaultSelected( SelectionEvent e ) {
-        ok();
-      }
-    };
-
-    wName.addSelectionListener( lsDef );
-    wSourceFileFolder.addSelectionListener( lsDef );
-
-    // Detect X or ALT-F4 or something that kills this window...
-    shell.addShellListener( new ShellAdapter() {
-      public void shellClosed( ShellEvent e ) {
-        cancel();
-      }
-    } );
-
-    getData();
-    CheckIncludeSubFolders();
-    wTabFolder.setSelection( 0 );
-    BaseStepDialog.setSize( shell );
-
-    shell.open();
-    while ( !shell.isDisposed() ) {
-      if ( !display.readAndDispatch() ) {
-        display.sleep();
-      }
-    }
-    return jobEntry;
+  protected void initUI() {
+    super.initUI();
+    shell.setText( BaseMessages.getString( PKG, "JobHadoopCopyFiles.Title" ) );
   }
 
-  private void RefreshArgFromPrevious() {
-
-    wlFields.setEnabled( !wPrevious.getSelection() );
-    wFields.setEnabled( !wPrevious.getSelection() );
-    wbdSourceFileFolder.setEnabled( !wPrevious.getSelection() );
-    wbeSourceFileFolder.setEnabled( !wPrevious.getSelection() );
-    // wbSourceFileFolder.setEnabled(!wPrevious.getSelection());
-    wbaSourceFileFolder.setEnabled( !wPrevious.getSelection() );
-    // wbDestinationFileFolder.setEnabled(!wPrevious.getSelection());
-    wlDestinationFileFolder.setEnabled( !wPrevious.getSelection() );
-    wDestinationFileFolder.setEnabled( !wPrevious.getSelection() );
-    wlSourceFileFolder.setEnabled( !wPrevious.getSelection() );
-    wSourceFileFolder.setEnabled( !wPrevious.getSelection() );
-
-    wlWildcard.setEnabled( !wPrevious.getSelection() );
-    wWildcard.setEnabled( !wPrevious.getSelection() );
-    wbSourceBrowse.setEnabled( !wPrevious.getSelection() );
-    wbDestinationBrowse.setEnabled( !wPrevious.getSelection() );
-
-  }
-
-  public void dispose() {
-    WindowProperty winprop = new WindowProperty( shell );
-    props.setScreen( winprop );
-    shell.dispose();
-  }
-
-  private void CheckIncludeSubFolders() {
-    wlCopyEmptyFolders.setEnabled( wIncludeSubfolders.getSelection() );
-    wCopyEmptyFolders.setEnabled( wIncludeSubfolders.getSelection() );
+  protected SelectionAdapter getFileSelectionAdapter() {
+    return new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        String path = wFields.getActiveTableItem().getText( wFields.getActiveTableColumn() );
+        String clusterName = wFields.getActiveTableItem().getText( wFields.getActiveTableColumn() - 1 );
+        setSelectedFile( path, clusterName );
+      }
+    };
   }
 
   /**
    * Copy information from the meta-data input to the dialog fields.
    */
   public void getData() {
+
     if ( jobEntry.getName() != null ) {
       wName.setText( jobEntry.getName() );
     }
     wName.selectAll();
     wCopyEmptyFolders.setSelection( jobEntry.copy_empty_folders );
-    
+
     if ( jobEntry.source_filefolder != null ) {
       for ( int i = 0; i < jobEntry.source_filefolder.length; i++ ) {
         TableItem ti = wFields.table.getItem( i );
         if ( jobEntry.source_filefolder[i] != null ) {
           String sourceUrl = jobEntry.source_filefolder[i];
-          String clusterName = transientMappings.get( sourceUrl );
-          sourceUrl = namedClusterManager.processURLsubstitution( clusterName, sourceUrl, HadoopSpoonPlugin.HDFS_SCHEME );
-          ti.setText( 1, sourceUrl );
-        }
-        if ( jobEntry.destination_filefolder[i] != null ) {
-          String destinationURL = jobEntry.destination_filefolder[i];
-          String clusterName = transientMappings.get( destinationURL );
-          destinationURL = namedClusterManager.processURLsubstitution( clusterName, destinationURL, HadoopSpoonPlugin.HDFS_SCHEME );
-          ti.setText( 2, destinationURL );
+          String clusterName = jobEntry.getConfigurationBy( sourceUrl );
+          if ( clusterName != null ) {
+            clusterName =
+                clusterName.startsWith( JobEntryCopyFiles.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryCopyFiles.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
+
+            ti.setText( 1, clusterName );
+            sourceUrl =
+                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ||
+                clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
+                    : jobEntry.getUrlPath( sourceUrl );
+          }
+          ti.setText( 2, sourceUrl );
         }
         if ( jobEntry.wildcard[i] != null ) {
           ti.setText( 3, jobEntry.wildcard[i] );
+        }
+        if ( jobEntry.destination_filefolder[i] != null && !Const.isEmpty( jobEntry.destination_filefolder[i] ) ) {
+          String destinationURL = jobEntry.destination_filefolder[i];
+          String clusterName = jobEntry.getConfigurationBy( destinationURL );
+          if ( clusterName != null ) {
+            clusterName =
+                clusterName.startsWith( JobEntryCopyFiles.LOCAL_DEST_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryCopyFiles.STATIC_DEST_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            clusterName =
+                clusterName.startsWith( JobEntryHadoopCopyFiles.S3_DEST_FILE ) ? S3_ENVIRONMENT : clusterName;
+            ti.setText( 4, clusterName );
+            destinationURL =
+                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ||
+                clusterName.equals( S3_ENVIRONMENT ) ? destinationURL
+                    : jobEntry.getUrlPath( destinationURL );
+          }
+          ti.setText( 5, destinationURL );
         }
       }
       wFields.setRowNums();
@@ -869,18 +158,10 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
     wRemoveSourceFiles.setSelection( jobEntry.remove_source_files );
     wDestinationIsAFile.setSelection( jobEntry.destination_is_a_file );
     wCreateDestinationFolder.setSelection( jobEntry.create_destination_folder );
-
     wAddFileToResult.setSelection( jobEntry.add_result_filesname );
-
   }
 
-  private void cancel() {
-    jobEntry.setChanged( changed );
-    jobEntry = null;
-    dispose();
-  }
-
-  private void ok() {
+  protected void ok() {
     if ( Const.isEmpty( wName.getText() ) ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( BASE_PKG, "System.StepJobEntryNameMissing.Title" ) );
@@ -913,35 +194,33 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
     jobEntry.wildcard = new String[nr];
     nr = 0;
     for ( int i = 0; i < nritems; i++ ) {
-      String source = wFields.getNonEmpty( i ).getText( 1 );
-      String dest = wFields.getNonEmpty( i ).getText( 2 );
+
+      String sourceNc = wFields.getNonEmpty( i ).getText( 1 );
+      sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? JobEntryCopyFiles.LOCAL_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? JobEntryCopyFiles.STATIC_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.S3_SOURCE_FILE + i : sourceNc;
+      String source = wFields.getNonEmpty( i ).getText( 2 );
       String wild = wFields.getNonEmpty( i ).getText( 3 );
-      if ( source != null && source.length() != 0 ) {
-        jobEntry.source_filefolder[nr] = source;
-        processNamedClusterURLMapping( source, namedClusterURLMappings );
-        jobEntry.destination_filefolder[nr] = dest;
-        processNamedClusterURLMapping( dest, namedClusterURLMappings );
+      String destNc = wFields.getNonEmpty( i ).getText( 4 );
+      destNc = destNc.equals( LOCAL_ENVIRONMENT ) ? JobEntryCopyFiles.LOCAL_DEST_FILE + i : destNc;
+      destNc = destNc.equals( STATIC_ENVIRONMENT ) ? JobEntryCopyFiles.STATIC_DEST_FILE + i : destNc;
+      destNc = destNc.equals( S3_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.S3_DEST_FILE + i : destNc;
+      String dest = wFields.getNonEmpty( i ).getText( 5 );
+
+      if ( !Const.isEmpty( source ) && jobEntry.source_filefolder.length > 0 ) {
+        jobEntry.source_filefolder[nr] =
+            jobEntryHadoopCopyFiles.loadURL( source, sourceNc, getMetaStore(), namedClusterURLMappings );
+        jobEntry.destination_filefolder[nr] =
+            jobEntryHadoopCopyFiles.loadURL( dest, destNc, getMetaStore(), namedClusterURLMappings );
         jobEntry.wildcard[nr] = wild;
         nr++;
       }
     }
-    ( (JobEntryHadoopCopyFiles) jobEntry ).setNamedClusterURLMapping( namedClusterURLMappings );
+    jobEntry.setConfigurationMappings( namedClusterURLMappings );
     dispose();
   }
 
-  private void processNamedClusterURLMapping( String locationURL, Map namedClusterURLMappings ) {
-    // The locationURL has to correspond to a NamedCluster otherwise it was modified by the user
-    // thus breaking the URL/NamedCluster link.
-    String cluster = transientMappings.get( locationURL );
-    if ( cluster != null ) {
-      namedClusterURLMappings.put( locationURL, cluster );
-    } else {
-      // The locationURL was modified thus the link to the NamedCluster is lost.
-      namedClusterURLMappings.put( locationURL, "" );
-    }
-  }
-
-  private FileObject setSelectedFile( TextVar textVar ) {
+  private FileObject setSelectedFile( String path, String clusterName ) {
 
     FileObject selectedFile = null;
 
@@ -951,17 +230,40 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
       FileObject initialFile = null;
       FileObject defaultInitialFile = null;
 
-      if ( textVar.getText() != null ) {
+      if ( !clusterName.equals( LOCAL_ENVIRONMENT ) && !clusterName.equals( S3_ENVIRONMENT ) ) {
+        NamedCluster namedCluster =
+            NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
+        if ( Const.isEmpty( path ) ) {
+          path = "/";
+        }
+        if ( namedCluster == null ) {
+          return null;
+        }
+        if ( namedCluster.isMapr() ) {
+          path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
+        } else {
+          path = NamedClusterManager.getInstance().processURLsubstitution(
+              clusterName, path, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobMeta );
+        }
+      }
 
-        String fileName = jobMeta.environmentSubstitute( textVar.getText() );
+      boolean resolvedInitialFile = false;
+      
+      if ( path != null ) {
+
+        String fileName = jobMeta.environmentSubstitute( path );
 
         if ( fileName != null && !fileName.equals( "" ) ) {
           try {
             initialFile = KettleVFS.getFileObject( fileName );
-          } catch ( KettleException e ) {
-            initialFile = KettleVFS.getFileObject( "" );
+            resolvedInitialFile = true;
+          } catch ( Exception e ) {
+            showMessageAndLog( BaseMessages.getString( PKG, "JobHadoopCopyFiles.Connection.Error.title" ), BaseMessages.getString(
+                PKG, "JobHadoopCopyFiles.Connection.error" ), e.getMessage() );
+            return null;
           }
-          defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+          File startFile = new File( System.getProperty( "user.home" ) );
+          defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
           rootFile = initialFile.getFileSystem().getRoot();
         } else {
           defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
@@ -976,42 +278,66 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
       fileChooserDialog.defaultInitialFile = defaultInitialFile;
       
       NamedClusterWidget namedClusterWidget = null;
-      List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
-      String ncName = null;
-      HadoopVfsFileChooserDialog hadoopDialog = null;
-      for( CustomVfsUiPanel panel : customPanels ) {
-        if( panel instanceof HadoopVfsFileChooserDialog ) {
-          hadoopDialog = ( ( HadoopVfsFileChooserDialog ) panel );
-          namedClusterWidget = hadoopDialog.getNamedClusterWidget();
-          namedClusterWidget.initiate();
-          ncName = null;
-          if ( initialFile != null ) {
-            ncName = transientMappings.get( initialFile.getURL().toString() );
-          } 
-          hadoopDialog.setNamedCluster( ncName );
-          hadoopDialog.initializeConnectionPanel( initialFile );
+
+      if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
+        selectedFile =
+            fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, new String[] { "*.*" },
+                FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+      } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
+        selectedFile =
+            fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true, 
+                path, new String[] { "*.*" }, FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
+                false, true );
+      } else {
+        NamedCluster namedCluster =
+            NamedClusterManager.getInstance().getNamedClusterByName( clusterName, getMetaStore() );
+        if ( namedCluster != null ) {
+          if ( namedCluster.isMapr() ) {
+            selectedFile =
+                fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.MAPRFS_SCHEME },
+                    HadoopSpoonPlugin.MAPRFS_SCHEME, false, path, new String[] { "*.*" }, FILETYPES, true,
+                    VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+          } else {
+            List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+            for ( CustomVfsUiPanel panel : customPanels ) {
+              if ( panel instanceof HadoopVfsFileChooserDialog ) {
+                HadoopVfsFileChooserDialog hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
+                namedClusterWidget = hadoopDialog.getNamedClusterWidget();
+                namedClusterWidget.initiate();
+                hadoopDialog.setNamedCluster( clusterName );
+                hadoopDialog.initializeConnectionPanel( initialFile );
+              }
+            }
+            if ( resolvedInitialFile ) {
+              fileChooserDialog.initialFile = initialFile;
+            }
+            selectedFile =
+                fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
+                    HadoopSpoonPlugin.HDFS_SCHEME, false, path, new String[] { "*.*" }, FILETYPES, true,
+                    VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+          }
         }
       }
-      
-      selectedFile =
-          fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, new String[] { "*.*" },
-              FILETYPES, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
-      
+
       CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
-      if( currentPanel instanceof HadoopVfsFileChooserDialog ) {
-        namedClusterWidget = ( ( HadoopVfsFileChooserDialog ) currentPanel ).getNamedClusterWidget();
+      if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
+        namedClusterWidget = ( (HadoopVfsFileChooserDialog) currentPanel ).getNamedClusterWidget();
       }
 
       if ( selectedFile != null ) {
         String url = selectedFile.getURL().toString();
-        textVar.setText( url );
-        
-        NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-        if ( nc != null ) {
-          transientMappings.put( url, nc.getName() );
+        if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
+        } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+        } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
+          url = jobEntry.getUrlPath( url );
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, 
+              namedClusterWidget.getSelectedNamedCluster().getName() );
         }
+        wFields.getActiveTableItem().setText( wFields.getActiveTableColumn(), url );
       }
-      
+
       return selectedFile;
 
     } catch ( KettleFileException ex ) {
@@ -1023,15 +349,37 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryDialog implements Job
     }
   }
 
-  public String toString() {
-    return this.getClass().getName();
+  private void showMessageAndLog( String title, String message, String messageToLog ) {
+    MessageBox box = new MessageBox( shell );
+    box.setText( title ); //$NON-NLS-1$
+    box.setMessage( message );
+    log.logError( messageToLog );
+    box.open();
+  }
+  
+  protected Image getImage() {
+    return GUIResource.getInstance().getImage( "HDM.svg", getClass().getClassLoader(), ConstUI.ICON_SIZE,
+        ConstUI.ICON_SIZE );
   }
 
-  public boolean evaluates() {
-    return true;
-  }
-
-  public boolean isUnconditional() {
+  public boolean showFileButtons() {
     return false;
+  }
+
+  protected void setComboValues( ColumnInfo colInfo ) {
+    try {
+      super.setComboValues( colInfo );
+      String[] superValues = colInfo.getComboValues();
+      
+      String[] s3value = { S3_ENVIRONMENT };
+      String[] comboValues = (String[]) ArrayUtils.addAll( superValues, s3value );
+      
+      String[] namedClusters =
+          NamedClusterManager.getInstance().listNames( getMetaStore() ).toArray( new String[0] );
+      String[] values = (String[]) ArrayUtils.addAll( comboValues, namedClusters );
+      colInfo.setComboValues( values );
+    } catch ( MetaStoreException e ) {
+      log.logError( e.getMessage() );
+    }
   }
 }

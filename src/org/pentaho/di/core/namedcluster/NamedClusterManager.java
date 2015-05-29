@@ -33,8 +33,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
@@ -72,7 +70,7 @@ public class NamedClusterManager {
   public NamedCluster getClusterTemplate() {
     if ( clusterTemplate == null ) {
       clusterTemplate = new NamedCluster();
-      clusterTemplate.setName(  "new cluster" );
+      clusterTemplate.setName( "" );
       clusterTemplate.setHdfsHost( "localhost" );
       clusterTemplate.setHdfsPort( "8020" );
       clusterTemplate.setHdfsUsername( "user" );
@@ -199,13 +197,13 @@ public class NamedClusterManager {
    *          the name of the NamedCluster to use to create the URL
    * @return the generated URL from the specific NamedCluster or null if an error occurs
    */
-  public String generateURL( String scheme, String clusterName ) {
+  private String generateURL( String scheme, String clusterName, IMetaStore metastore, VariableSpace variableSpace ) {
     String clusterURL = null;
     try {
-      if ( !Const.isEmpty( scheme ) && !Const.isEmpty( clusterName ) ) {
-        NamedCluster namedCluster = read( clusterName, Spoon.getInstance().getMetaStore() );
-        String ncHostname = null, ncPort = null, ncUsername = null, ncPassword = null;
+      if ( !Const.isEmpty( scheme ) && !Const.isEmpty( clusterName ) && metastore != null ) {
+        NamedCluster namedCluster = read( clusterName, metastore );
         if ( namedCluster != null ) {
+          String ncHostname = null, ncPort = null, ncUsername = null, ncPassword = null;
 
           if ( scheme.equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
             ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost() : "";
@@ -214,11 +212,13 @@ public class NamedClusterManager {
             ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
           }
 
-          ncHostname = getVariableSpace().environmentSubstitute( ncHostname );
-          ncPort = getVariableSpace().environmentSubstitute( ncPort );
-          ncUsername = getVariableSpace().environmentSubstitute( ncUsername );
-          ncPassword = getVariableSpace().environmentSubstitute( ncPassword );
-          
+          if ( variableSpace != null ) {
+            ncHostname = variableSpace.environmentSubstitute( ncHostname );
+            ncPort = variableSpace.environmentSubstitute( ncPort );
+            ncUsername = variableSpace.environmentSubstitute( ncUsername );
+            ncPassword = variableSpace.environmentSubstitute( ncPassword );
+          }
+
           ncHostname = ncHostname != null ? ncHostname.trim() : "";
           ncPort = ncPort != null ? ncPort.trim() : "";
           ncUsername = ncUsername != null ? ncUsername.trim() : "";
@@ -240,20 +240,6 @@ public class NamedClusterManager {
   }
 
   /**
-   * Utility method to be used by generateURL 
-   * @return VariableSpace 
-   */
-  private VariableSpace getVariableSpace() {
-    if ( Spoon.getInstance().getActiveTransformation() != null ) {
-      return Spoon.getInstance().getActiveTransformation();
-    } else if ( Spoon.getInstance().getActiveJob() != null ) {
-      return Spoon.getInstance().getActiveJob();
-    } else {
-      return new Variables();
-    }
-  }
-  
-  /**
    * This method performs the root URL substitution with the URL of the specified NamedCluster
    *
    * @param clusterName
@@ -264,11 +250,11 @@ public class NamedClusterManager {
    *          the scheme to be used to generate the URL of the specified NamedCluster
    * @return the generated URL or the incoming URL if an error occurs
    */
-  public String processURLsubstitution( String clusterName, String incomingURL, String scheme ) {
+  public String processURLsubstitution( String clusterName, String incomingURL,
+      String scheme, IMetaStore metastore, VariableSpace variableSpace ) {
     String outgoingURL = null;
     try {
-      String clusterURL = generateURL( scheme, clusterName );
-
+      String clusterURL = generateURL( scheme, clusterName, metastore, variableSpace );
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
       } else {
@@ -283,5 +269,19 @@ public class NamedClusterManager {
       outgoingURL = null;
     }
     return outgoingURL;
+  }
+  
+  public NamedCluster getNamedClusterByName( String namedCluster, IMetaStore metastore ) {
+    try {
+      List<NamedCluster> namedClusters = list( metastore );
+      for ( NamedCluster nc : namedClusters ) {
+        if ( nc.getName().equals( namedCluster ) ) {
+          return nc;
+        }
+      }
+    } catch ( MetaStoreException e ) {
+      return null;
+    }
+    return null;
   }
 }

@@ -63,6 +63,9 @@ public class NamedCluster implements Cloneable, VariableSpace {
   
   @MetaStoreAttribute
   private String oozieUrl;
+
+  @MetaStoreAttribute
+  private boolean mapr;
   
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
@@ -161,6 +164,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.setZooKeeperHost( nc.getZooKeeperHost() );
     this.setZooKeeperPort( nc.getZooKeeperPort() );
     this.setOozieUrl( nc.getOozieUrl() );
+    this.setMapr( nc.isMapr() );
     this.lastModifiedDate = System.currentTimeMillis();
   }  
   
@@ -274,5 +278,13 @@ public class NamedCluster implements Cloneable, VariableSpace {
   public void setLastModifiedDate( long lastModifiedDate ) {
     this.lastModifiedDate = lastModifiedDate;
   } 
+
+  public void setMapr( boolean mapr ) {
+    this.mapr = mapr;
+  }
+  
+  public boolean isMapr() {
+    return mapr;
+  }
   
 }

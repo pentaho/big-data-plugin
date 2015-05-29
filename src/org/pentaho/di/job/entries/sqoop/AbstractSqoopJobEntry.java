@@ -39,6 +39,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
@@ -49,12 +50,12 @@ import org.pentaho.di.job.LoggingProxy;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.SqoopShim;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.w3c.dom.Node;
 
 /**
@@ -113,9 +114,9 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   protected final S createJobConfig() {
     S config = buildSqoopConfig();
     try {
-      HadoopShim shim =
-          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+      HadoopShim shim = getActiveHadoopConfiguration().getHadoopShim();
       Configuration hadoopConfig = shim.createConfiguration();
+      loadNamedCluster( config );
       SqoopUtils.configureConnectionInformation( config, shim, hadoopConfig );
     } catch ( Exception ex ) {
       // Error loading connection information from Hadoop Configuration. Just log the error and leave the configuration
@@ -247,8 +248,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   @Override
   protected Runnable getExecutionRunnable( final Result jobResult ) throws KettleException {
     try {
-      HadoopConfiguration activeConfig =
-          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
+      HadoopConfiguration activeConfig = getActiveHadoopConfiguration();
       final HadoopShim hadoopShim = activeConfig.getHadoopShim();
       final SqoopShim sqoopShim = activeConfig.getSqoopShim();
 
@@ -315,31 +315,48 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * 
    */
   public void configure( HadoopShim shim, S sqoopConfig, Configuration conf ) throws KettleException {
-    try {
-      String dbName, dbUrl, dbUser, dbPassword;
-      if ( sqoopConfig.getModeAsEnum() == JobEntryMode.ADVANCED_LIST ) {
-        dbName = null;
-        dbUrl = sqoopConfig.getConnectFromAdvanced();
-        dbUser = sqoopConfig.getUsernameFromAdvanced();
-        dbPassword = sqoopConfig.getPasswordFromAdvanced();
-      } else {
-        DatabaseMeta databaseMeta = parentJob.getJobMeta().findDatabase( sqoopConfig.getDatabase() );
-        dbName = databaseMeta.getName();
-        dbUrl = databaseMeta.getURL();
-        dbUser = databaseMeta.getUsername();
-        dbPassword = databaseMeta.getPassword();
-      }
-      sqoopConfig.setConnectionInfo( environmentSubstitute( dbName ),
-        environmentSubstitute( dbUrl ), environmentSubstitute( dbUser ),
-        environmentSubstitute( dbPassword ) );
+    configureDatabase( sqoopConfig );
+    configureShim( shim, sqoopConfig, conf );
+  }
 
+  /**
+   * Configure database connection information
+   * @param sqoopConfig - Sqoop configuration
+   */
+  public void configureDatabase( S sqoopConfig ) throws KettleException {
+    DatabaseMeta databaseMeta = getParentJob().getJobMeta().findDatabase( sqoopConfig.getDatabase() );
+
+    // if databaseMeta == null we assume "USE_ADVANCED_MODE" is selected on QUICK_SETUP
+    if ( sqoopConfig.getModeAsEnum() == JobEntryMode.QUICK_SETUP && databaseMeta != null ) {
+      sqoopConfig.setConnectionInfo(
+          databaseMeta.getName(),
+          databaseMeta.getURL(),
+          databaseMeta.getUsername(),
+          databaseMeta.getPassword() );
+    }
+  }
+
+  /**
+   * Configure Hadoop related parameters
+   * @param shim - shim in use
+   * @param sqoopConfig - Sqoop configuration
+   * @param conf - Hadoop client configuration
+   */
+  public void configureShim( HadoopShim shim, S sqoopConfig, Configuration conf ) throws KettleException {
+    try {
       List<String> messages = new ArrayList<String>();
 
-      String clusterName = sqoopConfig.getClusterName();
-      if ( clusterName != null ) {
-        NamedCluster nc = NamedClusterUIHelper.getNamedCluster( clusterName );
-        shim.configureConnectionInformation( environmentSubstitute( nc.getHdfsHost() ), environmentSubstitute( nc.getHdfsPort() ),
-            environmentSubstitute( nc.getJobTrackerHost() ), environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+      NamedCluster nc = loadNamedCluster( sqoopConfig );
+      if ( nc != null ) {
+        if ( nc.isMapr() ) {
+          shim.configureConnectionInformation( "", "", "", "", conf, messages );
+        } else {
+          shim.configureConnectionInformation(
+              environmentSubstitute( nc.getHdfsHost() ),
+              environmentSubstitute( nc.getHdfsPort() ),
+              environmentSubstitute( nc.getJobTrackerHost() ),
+              environmentSubstitute( nc.getJobTrackerPort() ), conf, messages );
+        }
       } else {
         shim.configureConnectionInformation( environmentSubstitute( sqoopConfig.getNamenodeHost() ),
              environmentSubstitute( sqoopConfig.getNamenodePort() ), environmentSubstitute( sqoopConfig
@@ -365,5 +382,23 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public boolean isDatabaseSupported( Class<? extends DatabaseInterface> databaseType ) {
     // For now all database types are supported
     return true;
+  }
+
+  NamedCluster loadNamedCluster( S config ) {
+    if ( rep != null && !Const.isEmpty( config.getClusterName() ) ) {
+      try {
+        config.setNamedCluster( NamedClusterManager.getInstance().read( config.getClusterName(), rep.getMetaStore() ) );
+      } catch ( MetaStoreException e ) {
+        logError( BaseMessages.getString(
+            AbstractSqoopJobEntry.class, "ErrorLoadNamedCluster", config.getClusterName() ),
+            e );
+      }
+    }
+
+    return config.getNamedCluster();
+  }
+
+  protected HadoopConfiguration getActiveHadoopConfiguration() throws ConfigurationException {
+    return HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
   }
 }

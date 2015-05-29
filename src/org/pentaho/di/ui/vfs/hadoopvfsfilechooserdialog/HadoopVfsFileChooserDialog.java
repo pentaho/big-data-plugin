@@ -28,9 +28,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs.FileSystemOptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -97,7 +101,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   // way hostname and port resolutions (for Connect Test and HDFS) are done.
   boolean isHighAvailabilityCluster = false;
 
-  boolean activateConnection = false;
+  private long lastConnectAttempt = 0;
 
   String schemeName = "hdfs";
   
@@ -115,6 +119,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     this.rootFile = rootFile;
     this.initialFile = initialFile;
     this.vfsFileChooserDialog = vfsFileChooserDialog;
+
     // Create the Hadoop panel
     GridData gridData = new GridData( SWT.FILL, SWT.CENTER, true, false );
     setLayoutData( gridData );
@@ -137,12 +142,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     connectionGroup.setLayout( connectionGroupLayout );
     
     namedClusterWidget = new NamedClusterWidget( connectionGroup, true );
-    namedClusterWidget.addModifyListener( new ModifyListener() {
-      public void modifyText( ModifyEvent evt ) {
+    namedClusterWidget.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent evt ) {
         try {
-          if ( activateConnection ) {
-            connect();
-          }
+          connect();
         } catch (Exception e) {
           //To prevent errors from multiple event firings.
         }
@@ -244,28 +247,29 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     ncUsername = "";
     ncPassword = "";
 
-    activateConnection = false;
     namedClusterWidget.setSelectedNamedCluster( namedCluster );
-    activateConnection = true;
+    
+    super.activate();
   }
 
   public void connect() {
-      
     vfsFileChooserDialog.setRootFile( null );
     vfsFileChooserDialog.setInitialFile( null );
     vfsFileChooserDialog.openFileCombo.setText( "hdfs://" );
     vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
-    
+
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc == null ) {
       return;
     }
-    
     loadNamedCluster();
 
     // Store the successful connection info to hand off to VFS
     connectedHostname = ncHostname;
     connectedPortString = ncPort;
+
+    boolean showErrors = System.currentTimeMillis() - lastConnectAttempt > 1000;
+    lastConnectAttempt = System.currentTimeMillis();
 
     try {
 
@@ -350,8 +354,11 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       }
 
     } catch ( Throwable t ) {
-      showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString(
-          PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
+      if ( showErrors ) {
+        showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.Connection.Error.title" ), BaseMessages.getString(
+            PKG, "HadoopVfsFileChooserDialog.Connection.error" ), t.getMessage() );
+      }
+      lastConnectAttempt = System.currentTimeMillis();
       return;
     }
 
@@ -392,6 +399,27 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     vfsFileChooserDialog.setRootFile( root );
     vfsFileChooserDialog.setSelectedFile( root );
     rootFile = root;
+  }
+
+  public FileObject resolveFile( String fileUri ) throws FileSystemException {
+    try {
+      return KettleVFS.getFileObject( fileUri, getVariableSpace(), getFileSystemOptions() );
+    } catch ( KettleFileException e ) {
+      throw new FileSystemException( e );
+    }
+  }
+
+  public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
+    try {
+      return KettleVFS.getFileObject( fileUri, getVariableSpace(), opts );
+    } catch ( KettleFileException e ) {
+      throw new FileSystemException( e );
+    }
+  }
+
+  protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
+    FileSystemOptions opts = new FileSystemOptions();
+    return opts;
   }
 
 }

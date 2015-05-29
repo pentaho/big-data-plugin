@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -41,16 +41,16 @@ public class SqoopImportConfigTest {
     Method dummyGetter = getClass().getMethod( "toString" );
     Method dummySetter = SqoopImportConfig.class.getMethod( "setHbaseZookeeperQuorum", String.class );
     ArgumentWrapper hbaseZookeeperQuorum =
-        new ArgumentWrapper( SqoopImportConfig.HBASE_ZOOKEEPER_QUORUM, null, false, this, dummyGetter, dummySetter );
+        new ArgumentWrapper( SqoopImportConfig.HBASE_ZOOKEEPER_QUORUM, null, false, "--", 0, this, dummyGetter, dummySetter );
     ArgumentWrapper hbaseZookeeperClientPort =
-        new ArgumentWrapper( SqoopImportConfig.HBASE_ZOOKEEPER_CLIENT_PORT, null, false, this, dummyGetter, dummySetter );
+        new ArgumentWrapper( SqoopImportConfig.HBASE_ZOOKEEPER_CLIENT_PORT, null, false, "--", 0, this, dummyGetter, dummySetter );
 
     AbstractModelList<ArgumentWrapper> items = c.getAdvancedArgumentsList();
-    assertEquals( 70, items.size() );
+    assertEquals( 109, items.size() );
     int indexOf = items.indexOf( hbaseZookeeperQuorum );
-    assertEquals( "Expected to find HBase Zookeeper Quorum property grouped with others", 35, indexOf );
+    assertEquals( "Expected to find HBase Zookeeper Quorum property grouped with others", 46, indexOf );
     indexOf = items.indexOf( hbaseZookeeperClientPort );
-    assertEquals( "Expected to find HBase Zookeeper Client Port grouped with others", 36, indexOf );
+    assertEquals( "Expected to find HBase Zookeeper Client Port grouped with others", 47, indexOf );
 
   }
 

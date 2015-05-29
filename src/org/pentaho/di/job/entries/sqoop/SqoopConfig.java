@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,8 +29,6 @@ import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.Password;
-import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -85,6 +83,39 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   public static final String COMMAND_LINE = "commandLine";
   public static final String MODE = "mode";
 
+  public static final String HADOOP_MAPRED_HOME = "hadoopMapredHome";
+  public static final String PASSWORD_ALIAS = "passwordAlias";
+  public static final String PASSWORD_FILE = "passwordFile";
+
+  public static final String RELAXED_ISOLATION = "relaxedIsolation";
+  public static final String SKIP_DIST_CACHE = "skipDistCache";
+  public static final String MAPREDUCE_JOB_NAME = "mapreduceJobName";
+  public static final String VALIDATE = "validate";
+  public static final String VALIDATION_FAILUREHANDLER = "validationFailurehandler";
+  public static final String VALIDATION_THRESHOLD = "validationThreshold";
+  public static final String VALIDATOR = "validator";
+
+  public static final String HCATALOG_DATABASE = "hcatalogDatabase";
+  public static final String HCATALOG_HOME = "hcatalogHome";
+  public static final String HCATALOG_PARTITION_KEYS = "hcatalogPartitionKeys";
+  public static final String HCATALOG_PARTITION_VALUES = "hcatalogPartitionValues";
+  public static final String HCATALOG_TABLE = "hcatalogTable";
+
+  public static final String HIVE_HOME = "hiveHome";
+  public static final String HIVE_PARTITION_KEY = "hivePartitionKey";
+  public static final String HIVE_PARTITION_VALUE = "hivePartitionValue";
+  public static final String MAP_COLUMN_HIVE = "mapColumnHive";
+
+  public static final String INPUT_NULL_STRING = "inputNullString";
+  public static final String INPUT_NULL_NON_STRING = "inputNullNonString";
+
+  public static final String NULL_STRING = "nullString";
+  public static final String NULL_NON_STRING = "nullNonString";
+
+  public static final String FILES = "files";
+  public static final String LIBJARS = "libjars";
+  public static final String ARCHIVES = "archives";
+
   private String namenodeHost;
   private String namenodePort;
   private String jobtrackerHost;
@@ -98,7 +129,67 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   private transient String usernameFromAdvanced;
   private transient String passwordFromAdvanced;
 
-  // Represents the last visible state of the UI and the execution mode.
+  @CommandLineArgument( name = "hadoop-mapred-home" )
+  private String hadoopMapredHome;
+  @CommandLineArgument( name = "password-alias" )
+  private String passwordAlias;
+  @CommandLineArgument( name = "password-file" )
+  private String passwordFile;
+
+  @CommandLineArgument( name = "relaxed-isolation", flag = true )
+  private String relaxedIsolation;
+  @CommandLineArgument( name = "skip-dist-cache", flag = true )
+  private String skipDistCache;
+
+  @CommandLineArgument( name = "mapreduce-job-name" )
+  private String mapreduceJobName;
+
+  @CommandLineArgument( name = "validate", flag = true )
+  private String validate;
+  @CommandLineArgument( name = "validation-failurehandler" )
+  private String validationFailureHandler;
+  @CommandLineArgument( name = "validation-threshold" )
+  private String validationThreshold;
+  @CommandLineArgument( name = "validator" )
+  private String validator;
+
+  @CommandLineArgument( name = "hcatalog-database" )
+  private String hcatalogDatabase;
+  @CommandLineArgument( name = "hcatalog-home" )
+  private String hcatalogHome;
+  @CommandLineArgument( name = "hcatalog-partition-keys" )
+  private String hcatalogPartitionKeys;
+  @CommandLineArgument( name = "hcatalog-partition-values" )
+  private String hcatalogPartitionValues;
+  @CommandLineArgument( name = "hcatalog-table" )
+  private String hcatalogTable;
+
+  @CommandLineArgument( name = "hive-home" )
+  private String hiveHome;
+  @CommandLineArgument( name = "hive-partition-key" )
+  private String hivePartitionKey;
+  @CommandLineArgument( name = "hive-partition-value" )
+  private String hivePartitionValue;
+  @CommandLineArgument( name = "map-column-hive" )
+  private String mapColumnHive;
+
+  @CommandLineArgument( name = "input-null-string" )
+  private String inputNullString;
+  @CommandLineArgument( name = "input-null-non-string" )
+  private String inputNullNonString;
+  @CommandLineArgument( name = "null-string" )
+  private String nullString;
+  @CommandLineArgument( name = "null-non-string" )
+  private String nullNonString;
+
+  @CommandLineArgument( name = "files", order = 50, prefix = "-" )
+  private String files;
+  @CommandLineArgument( name = "libjars", order = 50, prefix = "-" )
+  private String libjars;
+  @CommandLineArgument( name = "archives", order = 50, prefix = "-" )
+  private String archives;
+
+// Represents the last visible state of the UI and the execution mode.
   private String mode;
 
   // Common arguments
@@ -170,6 +261,8 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   private String clusterName;
 
+  private NamedCluster namedCluster;
+
   /**
    * @return all known arguments for this config object. Some arguments may be synthetic and represent properties
    *         directly set on this config object for the purpose of showing them in the list view of the UI.
@@ -181,20 +274,24 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
     try {
       items.add( new ArgumentWrapper( NAMENODE_HOST, BaseMessages.getString( getClass(), "NamenodeHost.Label" ), false,
+          "", 0,
           this, getClass().getMethod( "getNamenodeHost" ), getClass().getMethod( "setNamenodeHost", String.class ) ) );
       items.add( new ArgumentWrapper( NAMENODE_PORT, BaseMessages.getString( getClass(), "NamenodePort.Label" ), false,
+          "", 0,
           this, getClass().getMethod( "getNamenodePort" ), getClass().getMethod( "setNamenodePort", String.class ) ) );
       items.add( new ArgumentWrapper( JOBTRACKER_HOST, BaseMessages.getString( getClass(), "JobtrackerHost.Label" ),
-          false, this, getClass().getMethod( "getJobtrackerHost" ), getClass().getMethod( "setJobtrackerHost",
-              String.class ) ) );
+          false, "", 0, this,
+          getClass().getMethod( "getJobtrackerHost" ), getClass().getMethod( "setJobtrackerHost", String.class ) ) );
       items.add( new ArgumentWrapper( JOBTRACKER_PORT, BaseMessages.getString( getClass(), "JobtrackerPort.Label" ),
-          false, this, getClass().getMethod( "getJobtrackerPort" ), getClass().getMethod( "setJobtrackerPort",
-              String.class ) ) );
+          false, "", 0, this,
+          getClass().getMethod( "getJobtrackerPort" ), getClass().getMethod( "setJobtrackerPort", String.class ) ) );
       items.add( new ArgumentWrapper( BLOCKING_EXECUTION, BaseMessages
-          .getString( getClass(), "BlockingExecution.Label" ), false, this, getClass().getMethod(
-          "getBlockingExecution" ), getClass().getMethod( "setBlockingExecution", String.class ) ) );
+          .getString( getClass(), "BlockingExecution.Label" ),
+          false, "", 0, this,
+          getClass().getMethod("getBlockingExecution" ),
+          getClass().getMethod( "setBlockingExecution", String.class ) ) );
       items.add( new ArgumentWrapper( BLOCKING_POLLING_INTERVAL, BaseMessages.getString( getClass(),
-          "BlockingPollingInterval.Label" ), false, this, getClass().getMethod( "getBlockingPollingInterval" ),
+          "BlockingPollingInterval.Label" ), false, "", 0, this, getClass().getMethod( "getBlockingPollingInterval" ),
           getClass().getMethod( "setBlockingPollingInterval", String.class ) ) );
     } catch ( NoSuchMethodException ex ) {
       throw new RuntimeException( ex );
@@ -203,15 +300,11 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public NamedCluster getNamedCluster() {
-    NamedCluster namedCluster = null;
-    try {
-      if ( clusterName != null ) {
-        namedCluster = NamedClusterUIHelper.getNamedCluster( clusterName );
-      }
-    } catch ( MetaStoreException ex ) {
-      throw new RuntimeException( ex );
-    }
     return namedCluster;
+  }
+
+  public void setNamedCluster( NamedCluster namedCluster ) {
+    this.namedCluster = namedCluster;
   }
 
   public void clearAdvancedNamedConfigurationInfo() {
@@ -682,4 +775,263 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     this.jobtrackerPort = jobtrackerPort;
     pcs.firePropertyChange( JOBTRACKER_PORT, old, this.jobtrackerPort );
   }
+
+  public String getHadoopMapredHome() {
+    return hadoopMapredHome;
+  }
+
+  public void setHadoopMapredHome( String hadoopMapredHome ) {
+    String old = this.hadoopMapredHome;
+    this.hadoopMapredHome = hadoopMapredHome;
+    pcs.firePropertyChange( HADOOP_MAPRED_HOME, old, this.hadoopMapredHome );
+  }
+
+  public String getPasswordAlias() {
+    return passwordAlias;
+  }
+
+  public void setPasswordAlias( String passwordAlias ) {
+    String old = this.passwordAlias;
+    this.passwordAlias = passwordAlias;
+    pcs.firePropertyChange( PASSWORD_ALIAS, old, this.passwordAlias );
+  }
+
+  public String getPasswordFile() {
+    return passwordFile;
+  }
+
+  public void setPasswordFile( String passwordFile ) {
+    String old = this.passwordFile;
+    this.passwordFile = passwordFile;
+    pcs.firePropertyChange( PASSWORD_FILE, old, this.passwordFile );
+  }
+
+  public String getRelaxedIsolation() {
+    return relaxedIsolation;
+  }
+
+  public void setRelaxedIsolation( String relaxedIsolation ) {
+    String old = this.relaxedIsolation;
+    this.relaxedIsolation = relaxedIsolation;
+    pcs.firePropertyChange( RELAXED_ISOLATION, old, this.relaxedIsolation );
+  }
+
+  public String getSkipDistCache() {
+    return skipDistCache;
+  }
+
+  public void setSkipDistCache( String skipDistCache ) {
+    String old = this.skipDistCache;
+    this.skipDistCache = skipDistCache;
+    pcs.firePropertyChange( SKIP_DIST_CACHE, old, this.skipDistCache );
+  }
+
+  public String getMapreduceJobName() {
+    return mapreduceJobName;
+  }
+
+  public void setMapreduceJobName( String mapreduceJobName ) {
+    String old = this.mapreduceJobName;
+    this.mapreduceJobName = mapreduceJobName;
+    pcs.firePropertyChange( MAPREDUCE_JOB_NAME, old, this.mapreduceJobName );
+  }
+
+  public String getValidate() {
+    return validate;
+  }
+
+  public void setValidate( String validate ) {
+    String old = this.validate;
+    this.validate = validate;
+    pcs.firePropertyChange( VALIDATE, old, this.validate );
+  }
+
+  public String getValidationFailureHandler() {
+    return validationFailureHandler;
+  }
+
+  public void setValidationFailureHandler( String validationFailureHandler ) {
+    String old = this.validationFailureHandler;
+    this.validationFailureHandler = validationFailureHandler;
+    pcs.firePropertyChange( VALIDATION_FAILUREHANDLER, old, this.validationFailureHandler );
+  }
+
+  public String getValidationThreshold() {
+    return validationThreshold;
+  }
+
+  public void setValidationThreshold( String validationThreshold ) {
+    String old = this.validationThreshold;
+    this.validationThreshold = validationThreshold;
+    pcs.firePropertyChange( VALIDATION_THRESHOLD, old, this.validationThreshold );
+  }
+
+  public String getValidator() {
+    return validator;
+  }
+
+  public void setValidator( String validator ) {
+    String old = this.validator;
+    this.validator = validator;
+    pcs.firePropertyChange( VALIDATOR, old, this.validator );
+  }
+
+  public String getHcatalogDatabase() {
+    return hcatalogDatabase;
+  }
+
+  public void setHcatalogDatabase( String hcatalogDatabase ) {
+    String old = this.hcatalogDatabase;
+    this.hcatalogDatabase = hcatalogDatabase;
+    pcs.firePropertyChange( HCATALOG_DATABASE, old, this.hcatalogDatabase );
+  }
+
+  public String getHcatalogHome() {
+    return hcatalogHome;
+  }
+
+  public void setHcatalogHome( String hcatalogHome ) {
+    String old = this.hcatalogHome;
+    this.hcatalogHome = hcatalogHome;
+    pcs.firePropertyChange( HCATALOG_HOME, old, this.hcatalogHome );
+  }
+
+  public String getHcatalogPartitionKeys() {
+    return hcatalogPartitionKeys;
+  }
+
+  public void setHcatalogPartitionKeys( String hcatalogPartitionKeys ) {
+    String old = this.hcatalogPartitionKeys;
+    this.hcatalogPartitionKeys = hcatalogPartitionKeys;
+    pcs.firePropertyChange( HCATALOG_PARTITION_KEYS, old, this.hcatalogPartitionKeys );
+  }
+
+  public String getHcatalogPartitionValues() {
+    return hcatalogPartitionValues;
+  }
+
+  public void setHcatalogPartitionValues( String hcatalogPartitionValues ) {
+    String old = this.hcatalogPartitionValues;
+    this.hcatalogPartitionValues = hcatalogPartitionValues;
+    pcs.firePropertyChange( HCATALOG_PARTITION_VALUES, old, this.hcatalogPartitionValues );
+  }
+
+  public String getHcatalogTable() {
+    return hcatalogTable;
+  }
+
+  public void setHcatalogTable( String hcatalogTable ) {
+    String old = this.hcatalogTable;
+    this.hcatalogTable = hcatalogTable;
+    pcs.firePropertyChange( HCATALOG_TABLE, old, this.hcatalogTable );
+  }
+
+  public String getHiveHome() {
+    return hiveHome;
+  }
+
+  public void setHiveHome( String hiveHome ) {
+    String old = this.hiveHome;
+    this.hiveHome = hiveHome;
+    pcs.firePropertyChange( HIVE_HOME, old, this.hiveHome );
+  }
+
+  public String getHivePartitionKey() {
+    return hivePartitionKey;
+  }
+
+  public void setHivePartitionKey( String hivePartitionKey ) {
+    String old = this.hivePartitionKey;
+    this.hivePartitionKey = hivePartitionKey;
+    pcs.firePropertyChange( HIVE_PARTITION_KEY, old, this.hivePartitionKey );
+  }
+
+  public String getHivePartitionValue() {
+    return hivePartitionValue;
+  }
+
+  public void setHivePartitionValue( String hivePartitionValue ) {
+    String old = this.hivePartitionValue;
+    this.hivePartitionValue = hivePartitionValue;
+    pcs.firePropertyChange( HIVE_PARTITION_VALUE, old, this.hivePartitionValue );
+  }
+
+  public String getMapColumnHive() {
+    return mapColumnHive;
+  }
+
+  public void setMapColumnHive( String mapColumnHive ) {
+    String old = this.mapColumnHive;
+    this.mapColumnHive = mapColumnHive;
+    pcs.firePropertyChange( MAP_COLUMN_HIVE, old, this.mapColumnHive );
+  }
+  public String getInputNullString() {
+    return inputNullString;
+  }
+
+  public void setInputNullString( String inputNullString ) {
+    String old = this.inputNullString;
+    this.inputNullString = inputNullString;
+    pcs.firePropertyChange( INPUT_NULL_STRING, old, this.inputNullString );
+  }
+
+  public String getInputNullNonString() {
+    return inputNullNonString;
+  }
+
+  public void setInputNullNonString( String inputNullNonString ) {
+    String old = this.inputNullNonString;
+    this.inputNullNonString = inputNullNonString;
+    pcs.firePropertyChange( INPUT_NULL_NON_STRING, old, this.inputNullNonString );
+  }
+  public String getNullString() {
+    return nullString;
+  }
+
+  public void setNullString( String nullString ) {
+    String old = this.nullString;
+    this.nullString = nullString;
+    pcs.firePropertyChange( NULL_STRING, old, this.nullString );
+  }
+
+  public String getNullNonString() {
+    return nullNonString;
+  }
+
+  public void setNullNonString( String nullNonString ) {
+    String old = this.nullNonString;
+    this.nullNonString = nullNonString;
+    pcs.firePropertyChange( NULL_NON_STRING, old, this.nullNonString );
+  }
+
+  public String getFiles() {
+    return files;
+  }
+
+  public void setFiles( String files ) {
+    String old = this.files;
+    this.files = files;
+    pcs.firePropertyChange( FILES, old, this.files );
+  }
+
+  public String getLibjars() {
+    return libjars;
+  }
+
+  public void setLibjars( String libjars ) {
+    String old = this.libjars;
+    this.libjars = libjars;
+    pcs.firePropertyChange( LIBJARS, old, this.libjars );
+  }
+
+  public String getArchives() {
+    return archives;
+  }
+
+  public void setArchives( String archives ) {
+    String old = this.archives;
+    this.archives = archives;
+    pcs.firePropertyChange( ARCHIVES, old, this.archives );
+  }
+
 }

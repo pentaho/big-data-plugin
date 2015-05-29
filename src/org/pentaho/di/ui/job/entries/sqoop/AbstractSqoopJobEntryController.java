@@ -29,12 +29,17 @@ import static org.pentaho.di.job.entries.sqoop.SqoopConfig.TABLE;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.Database;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.JobEntryMode;
@@ -75,6 +80,8 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E extends AbstractSqoopJobEntry<S>>
     extends AbstractJobEntryController<S, E> {
 
+  protected static Class<?> PKG = AbstractSqoopJobEntry.class;
+  
   public static final String SELECTED_DATABASE_CONNECTION = "selectedDatabaseConnection";
   public static final String MODE_TOGGLE_LABEL = "modeToggleLabel";
   private final String[] MODE_I18N_STRINGS = new String[] { "Sqoop.JobEntry.AdvancedOptions.Button.Text",
@@ -142,10 +149,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
    * @param bindingFactory
    *          Binding factory to generate bindings
    */
+  @SuppressWarnings( "unchecked" )
   public AbstractSqoopJobEntryController( JobMeta jobMeta, XulDomContainer container, E jobEntry,
       BindingFactory bindingFactory ) {
     super( jobMeta, container, jobEntry, bindingFactory );
     this.config = (S) jobEntry.getJobConfig().clone();
+
     this.advancedArguments = new AbstractModelList<ArgumentWrapper>();
     this.databaseConnections = new AbstractModelList<DatabaseItem>();
     this.namedClusters = new AbstractModelList<NamedCluster>();
@@ -153,12 +162,14 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     CHOOSE_AVAILABLE_CLUSTER = new NamedCluster();
     CHOOSE_AVAILABLE_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.ChooseAvailable" ) );
+    CHOOSE_AVAILABLE_CLUSTER.setVariable( "valid", "false" );
 
     USE_ADVANCED_OPTIONS_CLUSTER = new NamedCluster();
     USE_ADVANCED_OPTIONS_CLUSTER.setName( BaseMessages.getString( AbstractSqoopJobEntry.class,
         "DatabaseName.UseAdvancedOptions" ) );
+    USE_ADVANCED_OPTIONS_CLUSTER.setVariable( "valid", "false" );
     Spoon spoon = Spoon.getInstance();
-    if( spoon != null ) {
+    if ( spoon != null ) {
       ncDelegate = new HadoopClusterDelegate( spoon );
     }
   }
@@ -267,13 +278,13 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     if ( !suppressEventHandling ) {
       if ( namedCluster != null && !namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER )
           && !namedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) ) {
-        config.setClusterName( namedCluster.getName() );
+        setClusterToConfig( namedCluster, config );
         config.clearAdvancedNamedConfigurationInfo();
       } else if ( namedCluster != null && namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER ) ) {
-        config.setClusterName( null );
+        setClusterToConfig( null, config );
         config.clearAdvancedNamedConfigurationInfo();
       } else {
-        config.setClusterName( null );
+        setClusterToConfig( null, config );
       }
 
       suppressEventHandling = true;
@@ -283,6 +294,15 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         suppressEventHandling = false;
       }
     }
+  }
+
+  private void setClusterToConfig( NamedCluster namedCluster, SqoopConfig config ) {
+    String name = null;
+    if ( namedCluster != null ) {
+      name = namedCluster.getName();
+    }
+    config.setClusterName( name );
+    config.setNamedCluster( namedCluster );
   }
 
   public boolean isSelectedNamedCluster() {
@@ -375,6 +395,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     }
   }
 
+
   public void setAdvancedNamedConfiguration( String value ) {
     if ( !suppressEventHandling ) {
       if ( value != null ) {
@@ -435,7 +456,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
    */
   public void setSelectedDatabaseConnection( DatabaseItem selectedDatabaseConnection ) {
     if ( !suppressEventHandling ) {
-      DatabaseItem old = this.selectedDatabaseConnection;
       this.selectedDatabaseConnection = selectedDatabaseConnection;
       DatabaseMeta databaseMeta =
           this.selectedDatabaseConnection == null ? null : jobMeta.findDatabase( this.selectedDatabaseConnection
@@ -685,7 +705,9 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   protected void setUiMode( JobEntryMode mode ) {
     switch ( mode ) {
       case QUICK_SETUP:
-        if ( selectedNamedCluster != null && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) && !suppressEventHandling ) {
+        if ( selectedNamedCluster != null
+          && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER )
+          && !suppressEventHandling ) {
           config.clearAdvancedNamedConfigurationInfo();
         }
         toggleQuickMode( true );
@@ -730,7 +752,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       }
     } else if ( JobEntryMode.ADVANCED_COMMAND_LINE.equals( newMode ) ) {
       // Sync config properties -> command line
-      getConfig().setCommandLine( SqoopUtils.generateCommandLineString( getConfig(), getJobEntry() ) );
+      getConfig().setCommandLine( SqoopUtils.generateCommandLineString( getConfig(), null ) );
     }
 
     if ( JobEntryMode.ADVANCED_LIST.equals( newMode ) ) {
@@ -768,7 +790,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   protected boolean syncCommandLineToConfig() {
     try {
       // Sync command line -> config properties
-      SqoopUtils.configureFromCommandLine( getConfig(), getConfig().getCommandLine(), getJobEntry() );
+      SqoopUtils.configureFromCommandLine( getConfig(), getConfig().getCommandLine(), null );
       return true;
     } catch ( Exception ex ) {
       showErrorDialog( BaseMessages.getString( AbstractSqoopJobEntry.class, "Dialog.Error" ), BaseMessages.getString(
@@ -874,9 +896,9 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       if ( null != schemas && schemas.length > 0 ) {
         schemas = Const.sortStrings( schemas );
         EnterSelectionDialog dialog =
-            new EnterSelectionDialog( getShell(), schemas, BaseMessages.getString( AbstractSqoopJobEntry.class,
-                "AvailableSchemas.Title" ), BaseMessages.getString( AbstractSqoopJobEntry.class,
-                "AvailableSchemas.Message" ) );
+          new EnterSelectionDialog( getShell(), schemas,
+              BaseMessages.getString( AbstractSqoopJobEntry.class, "AvailableSchemas.Title" ),
+              BaseMessages.getString( AbstractSqoopJobEntry.class, "AvailableSchemas.Message" ) );
         String schema = dialog.open();
         if ( schema != null ) {
           getConfig().setSchema( schema );
@@ -909,6 +931,47 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     }
   }
 
+  protected FileObject getInitialFile( String path ) throws FileSystemException {
+    if ( Const.isEmpty( path ) ) {
+      path = "/";
+    }
+
+    NamedCluster namedCluster =
+        NamedClusterManager.getInstance().getNamedClusterByName( selectedNamedCluster.getName(), Spoon.getInstance().getMetaStore() );
+    if ( namedCluster == null  ) {
+      return null;
+    }
+    if ( namedCluster.isMapr() ) {
+      path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
+    } else {
+      path =
+          NamedClusterManager.getInstance().processURLsubstitution( selectedNamedCluster.getName(), path,
+              HadoopSpoonPlugin.HDFS_SCHEME, Spoon.getInstance().getMetaStore(), jobEntry );
+    }
+
+    FileObject initialFile = null;
+
+    if ( path != null ) {
+      String fileName = jobEntry.environmentSubstitute( path );
+      if ( fileName != null && !fileName.equals( "" ) ) {
+        try {
+          initialFile = KettleVFS.getFileObject( fileName );
+          if ( namedCluster.isMapr() ) {
+            if ( !initialFile.getName().getScheme().startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+              return null;
+            }
+          } else if ( !initialFile.getName().getScheme().startsWith( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
+            return null;
+          }
+        } catch ( Exception ex ) {
+          return null;
+        }
+      }
+    }
+
+    return initialFile;
+  }
+  
   protected void extractNamedClusterFromVfsFileChooser() {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
     CustomVfsUiPanel currentPanel = dialog.getCurrentPanel();
@@ -920,5 +983,5 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         setSelectedNamedCluster( selectedNamedCluster );
       }
     }
-  }  
+  }
 }
