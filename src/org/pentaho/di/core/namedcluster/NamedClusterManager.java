@@ -32,6 +32,7 @@ import org.apache.commons.vfs.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -213,20 +214,37 @@ public class NamedClusterManager {
           }
 
           if ( variableSpace != null ) {
-            ncHostname = variableSpace.environmentSubstitute( ncHostname );
-            ncPort = variableSpace.environmentSubstitute( ncPort );
-            ncUsername = variableSpace.environmentSubstitute( ncUsername );
-            ncPassword = variableSpace.environmentSubstitute( ncPassword );
+            variableSpace.initializeVariablesFrom( namedCluster.getParentVariableSpace() );
+            if ( StringUtil.isVariable( ncHostname ) ) {
+              ncHostname =
+                  variableSpace.getVariable( StringUtil.getVariableName( ncHostname ) ) != null ? variableSpace
+                      .environmentSubstitute( ncHostname ) : null;
+            }
+            if ( StringUtil.isVariable( ncPort ) ) {
+              ncPort =
+                  variableSpace.getVariable( StringUtil.getVariableName( ncPort ) ) != null ? variableSpace
+                      .environmentSubstitute( ncPort ) : null;
+            }
+            if ( StringUtil.isVariable( ncUsername ) ) {
+              ncUsername =
+                  variableSpace.getVariable( StringUtil.getVariableName( ncUsername ) ) != null ? variableSpace
+                      .environmentSubstitute( ncUsername ) : null;
+            }
+            if ( StringUtil.isVariable( ncPassword ) ) {
+              ncPassword =
+                  variableSpace.getVariable( StringUtil.getVariableName( ncPassword ) ) != null ? variableSpace
+                      .environmentSubstitute( ncPassword ) : null;
+            }
           }
 
           ncHostname = ncHostname != null ? ncHostname.trim() : "";
           ncPort = ncPort != null ? ncPort.trim() : "";
           ncUsername = ncUsername != null ? ncUsername.trim() : "";
           ncPassword = ncPassword != null ? ncPassword.trim() : "";
-          
+
           UrlFileName file =
-              new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername,
-                  ncPassword, null, null, null );
+              new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername, ncPassword, null, null,
+                  null );
           clusterURL = file.getURI();
           if ( clusterURL.endsWith( "/" ) ) {
             clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
@@ -258,11 +276,15 @@ public class NamedClusterManager {
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
       } else {
-        UrlFileNameParser parser = new UrlFileNameParser();
-        FileName fileName = parser.parseUri( null, null, incomingURL );
+        String path = StringUtil.extractVariableFromURL( incomingURL );
+        if ( path == null ) {
+          UrlFileNameParser parser = new UrlFileNameParser();
+          FileName fileName = parser.parseUri( null, null, incomingURL );
+          path = fileName.getPath();
+        }
         StringBuffer buffer = new StringBuffer();
         buffer.append( clusterURL );
-        buffer.append( fileName.getPath() );
+        buffer.append( path );
         outgoingURL = buffer.toString();
       }
     } catch ( Exception e ) {

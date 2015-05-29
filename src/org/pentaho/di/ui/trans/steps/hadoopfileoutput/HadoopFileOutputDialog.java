@@ -72,6 +72,7 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -1715,15 +1716,19 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wCreateParentFolder.setEnabled( true );
   }
 
-  public String getUrlPath( String source ) {
+  public String getUrlPath( String incomingURL ) {
+    String path = null;
     try {
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, source );
-      source = fileName.getPath();
+      path = StringUtil.extractVariableFromURL( incomingURL );
+      if ( path == null ) {
+        UrlFileNameParser parser = new UrlFileNameParser();
+        FileName fileName = parser.parseUri( null, null, incomingURL );
+        path = fileName.getPath();
+      }
     } catch ( FileSystemException e ) {
-      source = null;
+      path = null;
     }
-    return source;
+    return path;
   }
 
   private void showMessageAndLog( String title, String message, String messageToLog ) {

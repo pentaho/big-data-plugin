@@ -34,6 +34,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -122,15 +123,19 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     return this.namedClusterURLMapping.get( url );
   }
 
-  public String getUrlPath( String source ) {
+  public String getUrlPath( String incomingURL ) {
+    String path = null;
     try {
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, source );
-      source = fileName.getPath();
+      path = StringUtil.extractVariableFromURL( incomingURL );
+      if ( path == null ) {
+        UrlFileNameParser parser = new UrlFileNameParser();
+        FileName fileName = parser.parseUri( null, null, incomingURL );
+        path = fileName.getPath();
+      }
     } catch ( FileSystemException e ) {
-      source = null;
+      path = null;
     }
-    return source;
+    return path;
   }
 
   public void setVariableSpace( VariableSpace variableSpace ) {
