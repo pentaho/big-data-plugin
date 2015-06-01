@@ -276,12 +276,11 @@ public class NamedClusterManager {
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
       } else {
-        String path = StringUtil.extractVariableFromURL( incomingURL );
-        if ( path == null ) {
-          UrlFileNameParser parser = new UrlFileNameParser();
-          FileName fileName = parser.parseUri( null, null, incomingURL );
-          path = fileName.getPath();
-        }
+        String noVariablesURL = incomingURL.replaceAll("[${}]", "/");
+        UrlFileNameParser parser = new UrlFileNameParser();
+        FileName fileName = parser.parseUri( null, null, noVariablesURL );
+        String root = fileName.getRootURI();
+        String path = incomingURL.substring( root.length() - 1 );
         StringBuffer buffer = new StringBuffer();
         buffer.append( clusterURL );
         buffer.append( path );

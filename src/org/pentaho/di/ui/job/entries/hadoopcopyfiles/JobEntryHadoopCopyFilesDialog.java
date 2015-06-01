@@ -111,6 +111,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
         if ( jobEntry.source_filefolder[i] != null ) {
           String sourceUrl = jobEntry.source_filefolder[i];
           String clusterName = jobEntry.getConfigurationBy( sourceUrl );
+          ti.setText( 1, STATIC_ENVIRONMENT );
           if ( clusterName != null ) {
             clusterName =
                 clusterName.startsWith( JobEntryCopyFiles.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
@@ -133,6 +134,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
         if ( jobEntry.destination_filefolder[i] != null && !Const.isEmpty( jobEntry.destination_filefolder[i] ) ) {
           String destinationURL = jobEntry.destination_filefolder[i];
           String clusterName = jobEntry.getConfigurationBy( destinationURL );
+          ti.setText( 4, STATIC_ENVIRONMENT );
           if ( clusterName != null ) {
             clusterName =
                 clusterName.startsWith( JobEntryCopyFiles.LOCAL_DEST_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
