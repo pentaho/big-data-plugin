@@ -100,7 +100,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
       if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
         url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
       }
-    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+    } else if ( !Const.isEmpty( url ) && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
       url =
           namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
               variableSpace );
