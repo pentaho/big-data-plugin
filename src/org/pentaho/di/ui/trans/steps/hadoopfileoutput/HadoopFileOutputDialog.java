@@ -72,7 +72,6 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -1719,12 +1718,11 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   public String getUrlPath( String incomingURL ) {
     String path = null;
     try {
-      path = StringUtil.extractVariableFromURL( incomingURL );
-      if ( path == null ) {
-        UrlFileNameParser parser = new UrlFileNameParser();
-        FileName fileName = parser.parseUri( null, null, incomingURL );
-        path = fileName.getPath();
-      }
+      String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
+      UrlFileNameParser parser = new UrlFileNameParser();
+      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      String root = fileName.getRootURI();
+      path = incomingURL.substring( root.length() - 1 );
     } catch ( FileSystemException e ) {
       path = null;
     }
