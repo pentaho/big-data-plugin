@@ -294,6 +294,9 @@ public class NamedClusterManager {
   }
   
   public NamedCluster getNamedClusterByName( String namedCluster, IMetaStore metastore ) {
+    if ( metastore == null ) {
+      return null;
+    }
     try {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
