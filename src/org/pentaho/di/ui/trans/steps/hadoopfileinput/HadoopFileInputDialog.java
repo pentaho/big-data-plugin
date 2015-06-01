@@ -2007,7 +2007,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       for ( int i = 0; i < in.getFileName().length; i++ ) {
         String sourceUrl = in.getFileName()[i];
         String clusterName = hadoopFileInputMeta.getClusterNameBy( sourceUrl );
-
+        String environment = STATIC_ENVIRONMENT;
         if ( clusterName != null ) {
           clusterName =
               clusterName.startsWith( HadoopFileInputMeta.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
@@ -2019,10 +2019,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               clusterName.equals( STATIC_ENVIRONMENT ) ||
               clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
                   : hadoopFileInputMeta.getUrlPath( sourceUrl );
+          environment = clusterName;
         }
 
         wFilenameList
-            .add( new String[] { clusterName, sourceUrl, in.getFileMask()[i],
+            .add( new String[] { environment, sourceUrl, in.getFileMask()[i],
               in.getRequiredFilesDesc( in.getFileRequired()[i] ),
               in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
       }

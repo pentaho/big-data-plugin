@@ -34,7 +34,6 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -126,12 +125,11 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
   public String getUrlPath( String incomingURL ) {
     String path = null;
     try {
-      path = StringUtil.extractVariableFromURL( incomingURL );
-      if ( path == null ) {
-        UrlFileNameParser parser = new UrlFileNameParser();
-        FileName fileName = parser.parseUri( null, null, incomingURL );
-        path = fileName.getPath();
-      }
+      String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
+      UrlFileNameParser parser = new UrlFileNameParser();
+      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      String root = fileName.getRootURI();
+      path = incomingURL.substring( root.length() - 1 );
     } catch ( FileSystemException e ) {
       path = null;
     }
