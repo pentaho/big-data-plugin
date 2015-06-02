@@ -275,12 +275,21 @@ public class NamedClusterManager {
       String clusterURL = generateURL( scheme, clusterName, metastore, variableSpace );
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
-      } else {
-        String noVariablesURL = incomingURL.replaceAll("[${}]", "/");
+      } else if ( incomingURL.equals("/") ) {
+        outgoingURL = clusterURL;
+      } else if ( clusterURL != null ) {
+        String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
+        
+        String fullyQualifiedIncomingURL = incomingURL;
+        if ( !incomingURL.startsWith( scheme ) ) {
+          fullyQualifiedIncomingURL = clusterURL + incomingURL;
+          noVariablesURL = clusterURL + incomingURL.replaceAll( "[${}]", "/" );
+        }
+        
         UrlFileNameParser parser = new UrlFileNameParser();
         FileName fileName = parser.parseUri( null, null, noVariablesURL );
         String root = fileName.getRootURI();
-        String path = incomingURL.substring( root.length() - 1 );
+        String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
         StringBuffer buffer = new StringBuffer();
         buffer.append( clusterURL );
         buffer.append( path );
