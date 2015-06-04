@@ -415,7 +415,7 @@ public class OozieJobExecutorJobEntryController extends
     }
     try {
       FileObject exportDir =
-          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, null, "file", true );
+          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, null, true, "file" );
       if ( exportDir != null ) {
         getConfig().setOozieWorkflowConfig( exportDir.getName().getURI() );
       }
