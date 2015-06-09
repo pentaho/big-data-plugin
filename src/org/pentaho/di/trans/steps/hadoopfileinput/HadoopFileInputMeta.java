@@ -99,7 +99,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
       if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
         url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
       }
-    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+    } else if ( !Const.isEmpty( url ) && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
       url =
           namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
               variableSpace );
@@ -122,15 +122,18 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     return this.namedClusterURLMapping.get( url );
   }
 
-  public String getUrlPath( String source ) {
+  public String getUrlPath( String incomingURL ) {
+    String path = null;
     try {
+      String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
       UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, source );
-      source = fileName.getPath();
+      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      String root = fileName.getRootURI();
+      path = incomingURL.substring( root.length() - 1 );
     } catch ( FileSystemException e ) {
-      source = null;
+      path = null;
     }
-    return source;
+    return path;
   }
 
   public void setVariableSpace( VariableSpace variableSpace ) {

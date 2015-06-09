@@ -1441,7 +1441,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
         fileChooserDialog.defaultInitialFile = defaultInitialFile;
         FileObject selectedFile =
-            fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, true, null, new String[] { "*.*" },
+            fileChooserDialog.open( shell, null, HadoopSpoonPlugin.HDFS_SCHEME, false, null, new String[] { "*.*" },
                 ALL_FILES_TYPE, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
         if ( selectedFile != null ) {
           if ( !selectedFile.getType().equals( FileType.FOLDER ) ) {
@@ -2007,7 +2007,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       for ( int i = 0; i < in.getFileName().length; i++ ) {
         String sourceUrl = in.getFileName()[i];
         String clusterName = hadoopFileInputMeta.getClusterNameBy( sourceUrl );
-
+        String environment = STATIC_ENVIRONMENT;
         if ( clusterName != null ) {
           clusterName =
               clusterName.startsWith( HadoopFileInputMeta.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
@@ -2015,12 +2015,15 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
           clusterName = clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
           sourceUrl =
-              clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ? sourceUrl
+              clusterName.equals( LOCAL_ENVIRONMENT ) ||
+              clusterName.equals( STATIC_ENVIRONMENT ) ||
+              clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
                   : hadoopFileInputMeta.getUrlPath( sourceUrl );
+          environment = clusterName;
         }
 
         wFilenameList
-            .add( new String[] { clusterName, sourceUrl, in.getFileMask()[i],
+            .add( new String[] { environment, sourceUrl, in.getFileMask()[i],
               in.getRequiredFilesDesc( in.getFileRequired()[i] ),
               in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
       }
@@ -2969,11 +2972,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
             selectedFile =
                 fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, fileFilters,
-                    fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+                    fileFilterNames, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
           } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
             selectedFile =
                 fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true,
-                    path, fileFilters, fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
+                    path, fileFilters, fileFilterNames, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
                     false, true );
           } else {
             NamedCluster namedCluster =
@@ -2982,7 +2985,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               if ( namedCluster.isMapr() ) {
                 selectedFile =
                     fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.MAPRFS_SCHEME },
-                        HadoopSpoonPlugin.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
+                        HadoopSpoonPlugin.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, false,
                         VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
               } else {
                 List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
@@ -3000,7 +3003,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
                 }
                 selectedFile =
                     fileChooserDialog.open( shell, new String[] { HadoopSpoonPlugin.HDFS_SCHEME },
-                        HadoopSpoonPlugin.HDFS_SCHEME, true, path, fileFilters, fileFilterNames, true,
+                        HadoopSpoonPlugin.HDFS_SCHEME, false, path, fileFilters, fileFilterNames, true,
                         VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
               }
 

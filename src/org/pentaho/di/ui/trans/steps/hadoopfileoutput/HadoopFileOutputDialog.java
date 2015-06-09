@@ -1715,15 +1715,18 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wCreateParentFolder.setEnabled( true );
   }
 
-  public String getUrlPath( String source ) {
+  public String getUrlPath( String incomingURL ) {
+    String path = null;
     try {
+      String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
       UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, source );
-      source = fileName.getPath();
+      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      String root = fileName.getRootURI();
+      path = incomingURL.substring( root.length() - 1 );
     } catch ( FileSystemException e ) {
-      source = null;
+      path = null;
     }
-    return source;
+    return path;
   }
 
   private void showMessageAndLog( String title, String message, String messageToLog ) {
