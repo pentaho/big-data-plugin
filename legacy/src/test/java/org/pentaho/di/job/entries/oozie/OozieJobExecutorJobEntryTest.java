@@ -139,7 +139,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
 
     config.setOozieUrl( "bad url" );
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
 
     List<String> warnings = je.getValidationWarnings( config );
@@ -158,7 +158,7 @@ public class OozieJobExecutorJobEntryTest {
                                                                               // condition
 
     config.setOozieUrl( "http://localhost/oozie" );
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
 
     List<String> warnings = je.getValidationWarnings( config );
@@ -193,7 +193,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( client );
 
     config.setOozieUrl( "http://localhost:11000/oozie" );
-    config.setOozieWorkflowConfig( "test-src/badJob.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/badJob.properties" );
     config.setJobEntryName( "name" );
 
     List<String> warnings = je.getValidationWarnings( config );
@@ -210,7 +210,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
                                                           // connection to it anyway
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
 
     config.setBlockingPollingInterval( "-100" );
@@ -242,7 +242,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
                                                           // connection to it anyway
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
 
     List<String> warnings = je.getValidationWarnings( config );
@@ -257,7 +257,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
                                                           // connection to it anyway
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
     config.setBlockingPollingInterval( "" + waitTime );
 
@@ -283,7 +283,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
                                                           // connection to it anyway
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
     config.setBlockingPollingInterval( "" + waitTime );
 
@@ -305,7 +305,7 @@ public class OozieJobExecutorJobEntryTest {
   @Test
   public void testGetProperties() throws Exception {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     Properties props = OozieJobExecutorJobEntry.getProperties( config, new Variables() );
 
     assertEquals( 6, props.size() );
@@ -316,7 +316,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieWorkflowConfig( "${propertiesFile}" );
     OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
-    je.setVariable( "propertiesFile", "test-src/job.properties" );
+    je.setVariable( "propertiesFile", "src/test/resources/job.properties" );
 
     Properties props = je.getProperties( config );
     assertEquals( 6, props.size() );
@@ -331,7 +331,7 @@ public class OozieJobExecutorJobEntryTest {
     advancedProps.add( new PropertyEntry( "prop2", "value2" ) );
     advancedProps.add( new PropertyEntry( "prop3", "value3" ) );
 
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setWorkflowProperties( advancedProps );
     config.setMode( JobEntryMode.ADVANCED_LIST );
 

@@ -96,7 +96,7 @@ public class PentahoMapReduceIntegrationTest {
       MockOutputCollector outputCollector = new MockOutputCollector();
       MockReporter reporter = new MockReporter();
       MockRecordReader reader = new MockRecordReader( Arrays.asList( "test" ) );
-      mapper.configure( createJobConf( "./test-res/bad-injector-fields.ktr", "./test-res/wordcount-reducer.ktr" ) );
+      mapper.configure( createJobConf( "./src/test/resources/bad-injector-fields.ktr", "./src/test/resources/wordcount-reducer.ktr" ) );
 
       mapper.run( reader, outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -114,7 +114,7 @@ public class PentahoMapReduceIntegrationTest {
       MockReporter reporter = new MockReporter();
       MockRecordReader reader = new MockRecordReader( Arrays.asList( "test" ) );
 
-      mapper.configure( createJobConf( "./test-res/bad-output-fields.ktr", "./test-res/bad-output-fields.ktr" ) );
+      mapper.configure( createJobConf( "./src/test/resources/bad-output-fields.ktr", "./src/test/resources/bad-output-fields.ktr" ) );
 
       mapper.run( reader, outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -132,7 +132,7 @@ public class PentahoMapReduceIntegrationTest {
       MockReporter reporter = new MockReporter();
       MockRecordReader reader = new MockRecordReader( Arrays.asList( "test" ) );
 
-      mapper.configure( createJobConf( "./test-res/no-injector-step.ktr", "./test-res/no-injector-step.ktr" ) );
+      mapper.configure( createJobConf( "./src/test/resources/no-injector-step.ktr", "./src/test/resources/no-injector-step.ktr" ) );
 
       mapper.run( reader, outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -149,7 +149,7 @@ public class PentahoMapReduceIntegrationTest {
       MockOutputCollector outputCollector = new MockOutputCollector();
       MockReporter reporter = new MockReporter();
       MockRecordReader reader = new MockRecordReader( Arrays.asList( "test" ) );
-      mapper.configure( createJobConf( "./test-res/no-output-step.ktr", "./test-res/no-output-step.ktr" ) );
+      mapper.configure( createJobConf( "./src/test/resources/no-output-step.ktr", "./src/test/resources/no-output-step.ktr" ) );
 
       mapper.run( reader, outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -165,7 +165,7 @@ public class PentahoMapReduceIntegrationTest {
       MockOutputCollector outputCollector = new MockOutputCollector();
       MockReporter reporter = new MockReporter();
 
-      reducer.configure( createJobConf( "./test-res/bad-injector-fields.ktr", "./test-res/bad-injector-fields.ktr" ) );
+      reducer.configure( createJobConf( "./src/test/resources/bad-injector-fields.ktr", "./src/test/resources/bad-injector-fields.ktr" ) );
 
       reducer.reduce( new Text( "key" ), Arrays.asList( new Text( "value" ) ).iterator(), outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -182,7 +182,7 @@ public class PentahoMapReduceIntegrationTest {
       MockOutputCollector outputCollector = new MockOutputCollector();
       MockReporter reporter = new MockReporter();
 
-      reducer.configure( createJobConf( "./test-res/no-injector-step.ktr", "./test-res/no-injector-step.ktr" ) );
+      reducer.configure( createJobConf( "./src/test/resources/no-injector-step.ktr", "./src/test/resources/no-injector-step.ktr" ) );
 
       reducer.reduce( new Text( "key" ), Arrays.asList( new Text( "value" ) ).iterator(), outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -199,7 +199,7 @@ public class PentahoMapReduceIntegrationTest {
       MockOutputCollector outputCollector = new MockOutputCollector();
       MockReporter reporter = new MockReporter();
 
-      reducer.configure( createJobConf( "./test-res/no-output-step.ktr", "./test-res/no-output-step.ktr" ) );
+      reducer.configure( createJobConf( "./src/test/resources/no-output-step.ktr", "./src/test/resources/no-output-step.ktr" ) );
 
       reducer.reduce( new Text( "key" ), Arrays.asList( new Text( "value" ) ).iterator(), outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -443,7 +443,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector outputCollector = new MockOutputCollector();
     MockReporter reporter = new MockReporter();
 
-    mapRunnable.configure( createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr" ) );
+    mapRunnable.configure( createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr" ) );
 
     final int ROWS = 10000;
 
@@ -502,7 +502,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector inputCollector = outputCollector;
     outputCollector = new MockOutputCollector();
 
-    reducer.configure( createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr" ) );
+    reducer.configure( createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr" ) );
 
     start = System.currentTimeMillis();
     for ( Object key : inputCollector.getCollection().keySet() ) {
@@ -559,7 +559,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector outputCollector = new MockOutputCollector();
     MockReporter reporter = new MockReporter();
 
-    mapper.configure( createJobConf( "./test-res/null-test.ktr", "./test-res/null-test.ktr" ) );
+    mapper.configure( createJobConf( "./src/test/resources/null-test.ktr", "./src/test/resources/null-test.ktr" ) );
 
     MockRecordReader reader = new MockRecordReader( Arrays.asList( "test" ) );
 
@@ -581,7 +581,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector outputCollector = new MockOutputCollector();
     MockReporter reporter = new MockReporter();
 
-    combiner.configure( createJobConf( null, "./test-res/null-test.ktr", null ) );
+    combiner.configure( createJobConf( null, "./src/test/resources/null-test.ktr", null ) );
 
     combiner.reduce( new Text( "0" ), Arrays.asList( new Text( "test" ) ).iterator(), outputCollector, reporter );
     outputCollector.close();
@@ -601,7 +601,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector outputCollector = new MockOutputCollector();
     MockReporter reporter = new MockReporter();
 
-    reducer.configure( createJobConf( "./test-res/null-test.ktr", "./test-res/null-test.ktr" ) );
+    reducer.configure( createJobConf( "./src/test/resources/null-test.ktr", "./src/test/resources/null-test.ktr" ) );
 
     reducer.reduce( new Text( "0" ), Arrays.asList( new Text( "test" ) ).iterator(), outputCollector, reporter );
     outputCollector.close();
@@ -618,8 +618,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testLogChannelLeaking_mapper() throws Exception {
     JobConf jobConf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
     PentahoMapRunnable mapper = new PentahoMapRunnable();
     mapper.configure( jobConf );
     MockReporter reporter = new MockReporter();
@@ -651,8 +651,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testLogChannelLeaking_combiner() throws Exception {
     JobConf jobConf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
     List<IntWritable> input = Arrays.asList( new IntWritable( 1 ) );
     GenericTransCombiner combiner = new GenericTransCombiner();
     combiner.configure( jobConf );
@@ -685,8 +685,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testLogChannelLeaking_reducer() throws Exception {
     JobConf jobConf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
     List<IntWritable> input = Arrays.asList( new IntWritable( 1 ) );
     GenericTransReduce reducer = new GenericTransReduce();
     reducer.configure( jobConf );
@@ -721,8 +721,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testMapReduce_InputOutput() throws Exception {
     JobConf jobConf =
-        createJobConf( "./test-res/mr-input-output.ktr", "./test-res/mr-passthrough.ktr",
-            "./test-res/mr-passthrough.ktr" );
+        createJobConf( "./src/test/resources/mr-input-output.ktr", "./src/test/resources/mr-passthrough.ktr",
+            "./src/test/resources/mr-passthrough.ktr" );
 
     PentahoMapRunnable mapper = new PentahoMapRunnable();
     mapper.configure( jobConf );
@@ -754,8 +754,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testCombinerOutputClasses() throws IOException, KettleException {
     JobConf jobConf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
 
     jobConf.setMapOutputKeyClass( Text.class );
     jobConf.setMapOutputValueClass( IntWritable.class );
@@ -773,8 +773,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testReducerOutputClasses() throws IOException, KettleException {
     JobConf jobConf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
 
     jobConf.setMapOutputKeyClass( Text.class );
     jobConf.setMapOutputValueClass( IntWritable.class );
@@ -792,8 +792,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testTaskIdExtraction() throws Exception {
     JobConf conf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
     conf.set( "mapred.task.id", "job_201208090841_0133" );
     PentahoMapRunnable mapRunnable = new PentahoMapRunnable();
 
@@ -809,8 +809,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testTaskIdExtraction_over_10000() throws Exception {
     JobConf conf =
-        createJobConf( "./test-res/wordcount-mapper.ktr", "./test-res/wordcount-reducer.ktr",
-            "./test-res/wordcount-reducer.ktr" );
+        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
+            "./src/test/resources/wordcount-reducer.ktr" );
     conf.set( "mapred.task.id", "job_201208090841_013302" );
     PentahoMapRunnable mapRunnable = new PentahoMapRunnable();
 
