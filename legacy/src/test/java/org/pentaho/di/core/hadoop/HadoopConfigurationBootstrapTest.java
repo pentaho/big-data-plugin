@@ -46,6 +46,7 @@ import org.apache.commons.vfs.VFS;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.lifecycle.LifecycleException;
@@ -75,14 +76,15 @@ public class HadoopConfigurationBootstrapTest {
   @SuppressWarnings( "deprecation" )
   private static URL getPluginURL() {
     try {
-      return new File( "package-res" ).toURL();
+      return new File( "src/test/resources" ).toURL();
     } catch ( MalformedURLException e ) {
       return null;
     }
   }
 
   @BeforeClass
-  public static void before() throws KettlePluginException {
+  public static void before() throws KettleException {
+    KettleEnvironment.init();
     PluginRegistry.getInstance().registerPlugin( LifecyclePluginType.class, plugin );
   }
 

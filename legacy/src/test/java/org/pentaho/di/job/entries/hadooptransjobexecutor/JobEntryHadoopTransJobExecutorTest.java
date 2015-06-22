@@ -112,7 +112,7 @@ public class JobEntryHadoopTransJobExecutorTest {
     executor.setParentJob( job );
     executor.setHadoopJobName( "hadoop job name" );
 
-    executor.setMapTrans( "test-res/mr-passthrough.ktr" );
+    executor.setMapTrans( "src/test/resources/mr-passthrough.ktr" );
 
     Result result = new Result();
 
@@ -212,7 +212,7 @@ public class JobEntryHadoopTransJobExecutorTest {
   @Test
   public void verifyTransMetaBadOutputFields() throws IOException, KettleException {
     try {
-      TransMeta transMeta = new TransMeta( "./test-res/bad-output-fields.ktr" );
+      TransMeta transMeta = new TransMeta( "./src/test/resources/bad-output-fields.ktr" );
 
       JobEntryHadoopTransJobExecutor.verifyTransMeta( transMeta, "Injector", "Output" );
       fail( "Should have thrown an exception" );

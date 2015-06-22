@@ -49,7 +49,7 @@ public class S3FileOutputMetaTest {
 
   @Before
   public void setUp() throws Exception {
-    Document doc = XMLHandler.loadXMLFile( "./test-res/s3OutputMetaTest.ktr" );
+    Document doc = XMLHandler.loadXMLFile( "./src/test/resources/s3OutputMetaTest.ktr" );
     meta.loadXML( doc.getFirstChild(), Collections.<DatabaseMeta>emptyList(), (IMetaStore) null );
   }
 

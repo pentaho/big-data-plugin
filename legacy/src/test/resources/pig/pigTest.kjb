@@ -77,7 +77,7 @@
       </parameter>
       <parameter>
         <name>output_dir</name>
-        <value>${Internal.Job.Filename.Directory}&#47;..&#47;..&#47;bin&#47;test&#47;pig</value>
+        <value>${Internal.Job.Filename.Directory}&#47;bin&#47;test&#47;pig</value>
       </parameter>
       <parameter>
         <name>udf_jar</name>

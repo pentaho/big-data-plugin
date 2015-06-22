@@ -230,7 +230,7 @@ public class OozieJobExecutorControllerTest {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
                                                           // connection to it anyway
-    config.setOozieWorkflowConfig( "test-src/job.properties" );
+    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
     return config;
   }

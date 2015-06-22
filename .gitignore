@@ -12,3 +12,4 @@ override.properties
 /pdi-bin
 *.iml
 .idea/
+target/
