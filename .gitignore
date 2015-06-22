@@ -10,3 +10,5 @@ override.properties
 /dev-lib
 /pdi-null
 /pdi-bin
+*.iml
+.idea/
