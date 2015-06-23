@@ -302,4 +302,9 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
   public boolean supportsTimeStampToDateConversion() {
     return false;
   }
+
+  @Override
+  public boolean supportsLazyConversion() {
+    return false;
+  }
 }
