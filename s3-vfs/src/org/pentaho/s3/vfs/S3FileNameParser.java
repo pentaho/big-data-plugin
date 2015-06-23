@@ -17,13 +17,13 @@
 
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileType;
-import org.apache.commons.vfs.provider.FileNameParser;
-import org.apache.commons.vfs.provider.URLFileName;
-import org.apache.commons.vfs.provider.URLFileNameParser;
-import org.apache.commons.vfs.provider.VfsComponentContext;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.FileNameParser;
+import org.apache.commons.vfs2.provider.URLFileName;
+import org.apache.commons.vfs2.provider.URLFileNameParser;
+import org.apache.commons.vfs2.provider.VfsComponentContext;
 
 
 public class S3FileNameParser extends URLFileNameParser {

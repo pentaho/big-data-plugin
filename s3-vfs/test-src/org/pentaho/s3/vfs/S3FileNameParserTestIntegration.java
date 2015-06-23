@@ -17,8 +17,8 @@
 
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.provider.FileNameParser;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.provider.FileNameParser;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

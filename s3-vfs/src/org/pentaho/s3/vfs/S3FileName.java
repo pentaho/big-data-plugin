@@ -17,10 +17,10 @@
 
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.FileType;
-import org.apache.commons.vfs.provider.UriParser;
-import org.apache.commons.vfs.provider.url.UrlFileName;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.UriParser;
+import org.apache.commons.vfs2.provider.url.UrlFileName;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -57,7 +57,7 @@ public class S3FileName extends UrlFileName {
   /**
    * Builds the root URI for this file name.
    */
-  protected void appendRootUri( final StringBuffer buffer, boolean addPassword ) {
+  protected void appendRootUri( final StringBuilder buffer, boolean addPassword ) {
     buffer.append( getScheme() );
     buffer.append( "://" );
     if ( addPassword ) {
@@ -74,7 +74,7 @@ public class S3FileName extends UrlFileName {
    * append the user credentials
    */
   @Override
-  protected void appendCredentials( StringBuffer buffer, boolean addPassword ) {
+  protected void appendCredentials( StringBuilder buffer, boolean addPassword ) {
     String userName = getUserName();
     String password = getPassword();
 

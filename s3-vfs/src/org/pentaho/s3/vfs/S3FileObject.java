@@ -30,11 +30,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileType;
-import org.apache.commons.vfs.provider.AbstractFileObject;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.AbstractFileName;
+import org.apache.commons.vfs2.provider.AbstractFileObject;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;
@@ -47,7 +47,7 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
   private S3Bucket bucket = null;
   private S3FileSystem fileSystem = null;
 
-  protected S3FileObject( final FileName name, final S3FileSystem fileSystem ) throws FileSystemException {
+  protected S3FileObject( final AbstractFileName name, final S3FileSystem fileSystem ) throws FileSystemException {
     super( name, fileSystem );
     this.fileSystem = fileSystem;
     //    service = fileSystem.getS3Service();
@@ -297,7 +297,8 @@ public class S3FileObject extends AbstractFileObject implements FileObject {
     return getS3Object( false ).getLastModifiedDate().getTime();
   }
 
-  protected void doSetLastModifiedTime( long modtime ) throws Exception {
+  protected boolean doSetLastModifiedTime( long modtime ) throws Exception {
+    return true;
   }
 
   protected Set<String> folders = new HashSet<String>();

@@ -17,10 +17,10 @@
 
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.UserAuthenticator;
-import org.apache.commons.vfs.auth.StaticUserAuthenticator;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.UserAuthenticator;
+import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
 import org.jets3t.service.security.AWSCredentials;
 import org.junit.BeforeClass;
 import org.junit.Test;

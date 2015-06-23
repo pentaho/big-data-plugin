@@ -16,8 +16,8 @@
 */
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs.FileSystemOptions;
-import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.FileType;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;

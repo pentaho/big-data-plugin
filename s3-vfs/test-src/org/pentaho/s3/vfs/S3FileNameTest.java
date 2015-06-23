@@ -17,7 +17,7 @@
 
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs.FileType;
+import org.apache.commons.vfs2.FileType;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
