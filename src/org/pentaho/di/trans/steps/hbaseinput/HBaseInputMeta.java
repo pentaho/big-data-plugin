@@ -99,6 +99,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /** the name of the mapping for columns/types for the source table */
   protected String m_sourceMappingName;
 
+	/** use start key as prefix filter */
+  protected boolean m_keyStartIsPrefixFilter;
+  
   /** Start key value for range scans */
   protected String m_keyStart;
 
@@ -301,6 +304,14 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
    */
   public boolean getMatchAnyFilter() {
     return m_matchAnyFilter;
+  }
+
+  public boolean getKeyStartIsPrefixFilter() {
+      return m_keyStartIsPrefixFilter;
+  }
+
+  public void setKeyStartIsPrefixFilter(boolean a) {
+      this.m_keyStartIsPrefixFilter = a;
   }
 
   /**
@@ -550,6 +561,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     retval.append( "\n    " ).append( XMLHandler.addTagValue( "match_any_filter", m_matchAnyFilter ) );
 
+    retval.append("\n    ").append(
+        XMLHandler.addTagValue("key_start_is_prefix_filter", m_keyStartIsPrefixFilter));
+
     if ( m_mapping != null ) {
       retval.append( m_mapping.getXML() );
     }
@@ -572,6 +586,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     String m = XMLHandler.getTagValue( stepnode, "match_any_filter" );
     if ( !Const.isEmpty( m ) ) {
       m_matchAnyFilter = m.equalsIgnoreCase( "Y" );
+    }
+
+    String n = XMLHandler.getTagValue(stepnode, "key_start_is_prefix_filter");
+    if (!Const.isEmpty(n)) {
+      m_keyStartIsPrefixFilter = n.equalsIgnoreCase("Y");
     }
 
     Node fields = XMLHandler.getSubNode( stepnode, "output_fields" );
@@ -717,6 +736,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     rep.saveStepAttribute( id_transformation, id_step, 0, "match_any_filter", m_matchAnyFilter );
 
+    rep.saveStepAttribute(id_transformation, id_step, 0, "key_start_is_prefix_filter",
+        m_keyStartIsPrefixFilter);
+
     if ( m_mapping != null ) {
       m_mapping.saveRep( rep, id_transformation, id_step );
     }
@@ -734,6 +756,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_keyStart = rep.getStepAttributeString( id_step, 0, "key_start" );
     m_keyStop = rep.getStepAttributeString( id_step, 0, "key_stop" );
     m_matchAnyFilter = rep.getStepAttributeBoolean( id_step, 0, "match_any_filter" );
+    m_keyStartIsPrefixFilter = rep.getStepAttributeBoolean(id_step, 0,
+            "key_start_is_prefix_filter");
     m_scannerCacheSize = rep.getStepAttributeString( id_step, 0, "scanner_cache_size" );
 
     int nrfields = rep.countNrStepAttributes( id_step, "table_name" );

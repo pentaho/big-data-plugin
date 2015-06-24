@@ -178,7 +178,7 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
    */
   public static void initializeScan( HBaseConnection hbAdmin, HBaseBytesUtilShim bytesUtil, Mapping tableMapping,
       String dateOrNumberConversionMaskForKey, String keyStartS, String keyStopS, String scannerCacheSize,
-      LogChannelInterface log, VariableSpace vars ) throws KettleException {
+      boolean keyStartIsPrefixFilter, boolean matchAny, LogChannelInterface log, VariableSpace vars ) throws KettleException {
 
     byte[] keyLowerBound = null;
     byte[] keyUpperBound = null;
@@ -237,7 +237,7 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
         keyLowerBound = HBaseValueMeta.encodeKeyValue( keyStartS, tableMapping.getKeyType(), bytesUtil );
       }
 
-      if ( !Const.isEmpty( keyStopS ) ) {
+      if ( !Const.isEmpty( keyStopS ) && !keyStartIsPrefixFilter ) {
         keyStopS = vars.environmentSubstitute( keyStopS );
         convM = dateOrNumberConversionMaskForKey;
 
@@ -305,7 +305,11 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
       }
     }
     try {
-      hbAdmin.newSourceTableScan( keyLowerBound, keyUpperBound, cacheSize );
+    	if(keyStartIsPrefixFilter) {
+        hbAdmin.newSourceTablePrefixScan(keyLowerBound, cacheSize, matchAny);
+      } else {
+        hbAdmin.newSourceTableScan( keyLowerBound, keyUpperBound, cacheSize );
+			}
     } catch ( Exception ex ) {
       throw new KettleException( BaseMessages.getString( HBaseInputMeta.PKG,
           "HBaseInput.Error.UnableToConfigureSourceTableScan" ), ex );

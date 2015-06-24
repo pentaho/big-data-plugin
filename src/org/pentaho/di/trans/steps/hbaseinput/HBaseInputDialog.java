@@ -124,6 +124,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   /** Store the mapping information in the step's meta data */
   private Button m_storeMappingInStepMetaData;
 
+  // set start key as prefix filter
+  private Button m_keyStartIsPrefixFilter;
+
   // Key start line
   private TextVar m_keyStartText;
 
@@ -519,6 +522,45 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd.top = new FormAttachment( m_keyStartText, margin );
     m_keyStopText.setLayoutData( fd );
 
+		// disable if using start as prefix
+    if(m_currentMeta.getKeyStartIsPrefixFilter()) {
+        m_keyStopText.setEnabled(false);
+    }
+
+    // keystart is prefix
+    Label keyStartIsPrefixFilter = new Label(wConfigComp, SWT.RIGHT);
+    keyStartIsPrefixFilter.setText(BaseMessages.getString(HBaseInputMeta.PKG,
+              "HBaseInputDialog.KeyStartIsPrefixFilter.Label"));
+    keyStartIsPrefixFilter.setToolTipText(BaseMessages.getString(HBaseInputMeta.PKG,
+              "HBaseInputDialog.KeyStartIsPrefixFilter.TipText"));
+    props.setLook(keyStartIsPrefixFilter);
+    fd = new FormData();
+    fd.left = new FormAttachment(0, 0);
+    fd.top = new FormAttachment(m_keyStopText, margin);
+    fd.right = new FormAttachment(middle, -margin);
+    keyStartIsPrefixFilter.setLayoutData(fd);
+
+    m_keyStartIsPrefixFilter = new Button(wConfigComp, SWT.CHECK);
+    props.setLook(m_keyStartIsPrefixFilter);
+    fd = new FormData();
+    fd.right = new FormAttachment(100, 0);
+    fd.left = new FormAttachment(middle, 0);
+    fd.top = new FormAttachment(m_keyStopText, margin);
+    m_keyStartIsPrefixFilter.setLayoutData(fd);
+
+    m_keyStartIsPrefixFilter.addSelectionListener(new SelectionAdapter() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            m_currentMeta.setChanged();
+
+            if(m_keyStartIsPrefixFilter.getSelection()) {
+                m_keyStopText.setEnabled(false);
+            } else {
+                m_keyStopText.setEnabled(true);
+            }
+        }
+    });
+
     // Scanner caching
     Label scannerCacheLab = new Label( wConfigComp, SWT.RIGHT );
     scannerCacheLab.setText( Messages.getString( "HBaseInputDialog.ScannerCache.Label" ) );
@@ -526,7 +568,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     props.setLook( scannerCacheLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_keyStopText, margin );
+    fd.top = new FormAttachment( m_keyStartIsPrefixFilter, margin );
     fd.right = new FormAttachment( middle, -margin );
     scannerCacheLab.setLayoutData( fd );
 
@@ -536,7 +578,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_keyStopText, margin );
+    fd.top = new FormAttachment( m_keyStartIsPrefixFilter, margin );
     m_scanCacheText.setLayoutData( fd );
 
     m_getKeyInfoBut = new Button( wConfigComp, SWT.PUSH );
@@ -968,6 +1010,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     m_currentMeta.setKeyStopValue( m_keyStopText.getText() );
     m_currentMeta.setScannerCacheSize( m_scanCacheText.getText() );
     m_currentMeta.setMatchAnyFilter( m_matchAnyBut.getSelection() );
+		m_currentMeta.setKeyStartIsPrefixFilter(m_keyStartIsPrefixFilter.getSelection());
 
     int numNonEmpty = m_fieldsView.nrNonEmpty();
     if ( numNonEmpty > 0 ) {
@@ -1135,6 +1178,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       m_scanCacheText.setText( m_currentMeta.getScannerCacheSize() );
     }
 
+		m_keyStartIsPrefixFilter.setSelection(m_currentMeta.getKeyStartIsPrefixFilter());
     m_matchAnyBut.setSelection( m_currentMeta.getMatchAnyFilter() );
     m_matchAllBut.setSelection( !m_currentMeta.getMatchAnyFilter() );
 
