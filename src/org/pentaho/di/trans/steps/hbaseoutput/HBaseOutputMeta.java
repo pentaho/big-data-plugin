@@ -240,14 +240,14 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     }
   }
 
-  private void loadClusterConfig( ObjectId id_jobentry, Repository rep, Node entrynode ) {
+  private void loadClusterConfig( ObjectId id_step, Repository rep, Node entrynode ) {
     boolean configLoaded = false;
     try {
       // attempt to load from named cluster
       if ( entrynode != null ) {
         setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
-        setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        setClusterName( rep.getStepAttributeString( id_step, 0, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
       } 
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
@@ -274,8 +274,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       } else if ( rep != null ) {
         // load default values for cluster & legacy fallback
         try {
-          setZookeeperHosts( rep.getJobEntryAttributeString( id_jobentry, "zookeeper_hosts" ) );
-          setZookeeperPort( rep.getJobEntryAttributeString( id_jobentry, "zookeeper_port" ) ); //$NON-NLS-1$
+          setZookeeperHosts( rep.getStepAttributeString( id_step, 0, "zookeeper_hosts" ) );
+          setZookeeperPort( rep.getStepAttributeString( id_step, 0, "zookeeper_port" ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
           logError( ke.getMessage(), ke );
         } 
