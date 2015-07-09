@@ -1,0 +1,13 @@
+<assembly>
+    <id>package</id>
+    <baseDirectory/>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>../../legacy/samples</directory>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+    </fileSets>
+</assembly>
