@@ -122,7 +122,8 @@ public class AvroInput extends BaseStep implements StepInterface {
         }
       } else {
         // initialize for reading from a file
-        FileObject fileObject = KettleVFS.getFileObject( m_meta.getFilename(), getTransMeta() );
+        FileObject fileObject = KettleVFS.getFileObject(
+          environmentSubstitute( m_meta.getFilename() ), getTransMeta() );
         m_data.establishFileType( fileObject, readerSchema, m_meta.getAvroFields(), m_meta.getAvroIsJsonEncoded(),
             newFieldOffset, m_meta.getDontComplainAboutMissingFields(), log );
       }
