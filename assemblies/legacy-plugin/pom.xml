@@ -280,6 +280,7 @@
         <version>2.4</version>
         <configuration>
           <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
+          <appendAssemblyId>false</appendAssemblyId>
         </configuration>
         <executions>
           <execution>
