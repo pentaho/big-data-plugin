@@ -12,11 +12,24 @@
   <artifactId>pentaho-big-data-assemblies</artifactId>
   <packaging>pom</packaging>
 
+  <!-- Standalone is in separate profile to avoid a circular dependency on Kettle -->
   <modules>
     <module>samples</module>
-    <!--<module>features</module>-->
+    <module>features</module>
     <module>pmr-libraries</module>
     <module>legacy-plugin</module>
-    <!--<module>standalone</module>-->
   </modules>
+
+  <profiles>
+    <profile>
+      <id>standalone</id>
+      <modules>
+        <module>samples</module>
+        <module>features</module>
+        <module>pmr-libraries</module>
+        <module>legacy-plugin</module>
+        <module>standalone</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

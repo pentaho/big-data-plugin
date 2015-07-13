@@ -1,30 +1,22 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p/>
+ * ******************************************************************************
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
-package org.pentaho.di.ui.job.entries.pig;
+package org.pentaho.big.data.kettle.plugins.pig;
 
-import java.util.HashMap;
-
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -46,17 +38,17 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.plugins.common.ui.NamedClusterWidget;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
-import org.pentaho.di.job.entries.pig.JobEntryPigScriptExecutor;
 import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.gui.WindowProperty;
-import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -64,55 +56,45 @@ import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
+import java.util.HashMap;
+
 /**
  * Job entry dialog for the PigScriptExecutor - job entry that executes a Pig script either on a hadoop cluster or
  * locally.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
 public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements JobEntryDialogInterface {
 
-  private static final Class<?> PKG = JobEntryPigScriptExecutor.class;
-
   public static final String PIG_FILE_EXT = ".pig";
-
+  private static final Class<?> PKG = JobEntryPigScriptExecutor.class;
+  protected JobEntryPigScriptExecutor m_jobEntry;
+  NamedClusterWidget namedClusterWidget;
   private Display m_display;
   private boolean m_backupChanged;
-
   private Text m_wName;
-
   private TextVar m_pigScriptText;
   private Button m_pigScriptBrowseBut;
-
   private Button m_enableBlockingBut;
-
   private Button m_localExecutionBut;
-
   private TableView m_scriptParams;
-
-  NamedClusterWidget namedClusterWidget;
-  
-  protected JobEntryPigScriptExecutor m_jobEntry;
-
   private boolean m_isMapR = false;
+  private NamedClusterService namedClusterService;
 
   /**
    * Constructor.
-   * 
-   * @param parent
-   *          parent shell
-   * @param jobEntryInt
-   *          the job entry that this dialog edits
-   * @param rep
-   *          a repository
-   * @param jobMeta
-   *          job meta data
+   *
+   * @param parent      parent shell
+   * @param jobEntryInt the job entry that this dialog edits
+   * @param rep         a repository
+   * @param jobMeta     job meta data
    */
   public JobEntryPigScriptExecutorDialog(
-      Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
+    Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
     super( parent, jobEntryInt, rep, jobMeta );
     m_jobEntry = (JobEntryPigScriptExecutor) jobEntryInt;
+    namedClusterService = m_jobEntry.getNamedClusterService();
   }
 
   public JobEntryInterface open() {
@@ -169,15 +151,15 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     fd.left = new FormAttachment( 0, 0 );
     fd.top = new FormAttachment( m_wName, 10 );
     fd.right = new FormAttachment( middle, -margin );
-    namedClusterLabel.setLayoutData(fd);    
-    
-    namedClusterWidget = new NamedClusterWidget( shell, false );
+    namedClusterLabel.setLayoutData( fd );
+
+    namedClusterWidget = new NamedClusterWidget( shell, false, namedClusterService );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( m_wName, margin );
-    fd.left = new FormAttachment (middle, 0 );
+    fd.left = new FormAttachment( middle, 0 );
     namedClusterWidget.setLayoutData( fd );
 
     // script file line
@@ -267,7 +249,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
       m_localExecutionBut.setEnabled( false );
       m_localExecutionBut.setSelection( false );
       m_localExecutionBut.setToolTipText( BaseMessages.getString( PKG,
-          "JobEntryPigScriptExecutor.Warning.MapRLocalExecution" ) );
+        "JobEntryPigScriptExecutor.Warning.MapRLocalExecution" ) );
       localExecutionLab.setToolTipText( m_localExecutionBut.getToolTipText() );
     }
 
@@ -286,13 +268,13 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     paramsGroup.setLayoutData( fd );
 
     ColumnInfo[] colinf =
-        new ColumnInfo[] {
-          new ColumnInfo(
-              BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterName.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages
-              .getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterValue.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ) };
+      new ColumnInfo[] {
+        new ColumnInfo(
+          BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterName.Label" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages
+          .getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterValue.Label" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ) };
 
     m_scriptParams = new TableView( jobMeta, paramsGroup, SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, lsMod, props );
 
@@ -378,7 +360,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     }
 
     boolean local = m_localExecutionBut.getSelection();
-    
+
     namedClusterWidget.setEnabled( !local );
   }
 
@@ -392,7 +374,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     try {
       parentFolder =
-          KettleVFS.getFilename( KettleVFS.getFileObject( jobMeta.environmentSubstitute( jobMeta.getFilename() ) ) );
+        KettleVFS.getFilename( KettleVFS.getFileObject( jobMeta.environmentSubstitute( jobMeta.getFilename() ) ) );
 
       if ( !Const.isEmpty( parentFolder ) ) {
         openDialog.setFileName( parentFolder );
@@ -403,7 +385,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     if ( openDialog.open() != null ) {
       m_pigScriptText.setText( openDialog.getFilterPath() + System.getProperty( "file.separator" )
-          + openDialog.getFileName() );
+        + openDialog.getFileName() );
     }
   }
 
@@ -411,8 +393,13 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_wName.setText( Const.NVL( m_jobEntry.getName(), "" ) );
 
     // need setSelectItem
-    namedClusterWidget.setSelectedNamedCluster( m_jobEntry.getClusterName() );
-    
+    NamedCluster namedCluster = m_jobEntry.getNamedCluster();
+    String namedClusterName = null;
+    if ( namedCluster != null ) {
+      namedClusterName = namedCluster.getName();
+    }
+    namedClusterWidget.setSelectedNamedCluster( namedClusterName == null ? "" : namedClusterName );
+
     m_pigScriptText.setText( Const.NVL( m_jobEntry.getScriptFilename(), "" ) );
     m_enableBlockingBut.setSelection( m_jobEntry.getEnableBlocking() );
     m_localExecutionBut.setSelection( m_jobEntry.getLocalExecution() );
@@ -447,11 +434,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
     if ( nc != null ) {
-      m_jobEntry.setClusterName( nc.getName() );
-      m_jobEntry.setHDFSHostname( nc.getHdfsHost() );
-      m_jobEntry.setHDFSPort( nc.getHdfsPort() );
-      m_jobEntry.setJobTrackerHostname( nc.getJobTrackerHost() );
-      m_jobEntry.setJobTrackerPort( nc.getJobTrackerPort() );
+      m_jobEntry.setNamedCluster( nc );
     } else {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( PKG, "Dialog.Error" ) );
@@ -459,7 +442,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
       mb.open();
       return;
     }
-    
+
     m_jobEntry.setScriptFilename( m_pigScriptText.getText() );
     m_jobEntry.setEnableBlocking( m_enableBlockingBut.getSelection() );
     m_jobEntry.setLocalExecution( m_localExecutionBut.getSelection() );

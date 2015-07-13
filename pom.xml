@@ -29,11 +29,9 @@
 
     <modules>
         <module>legacy</module>
-        <!--
         <module>api</module>
-        <module>kettle-plugins</module>
         <module>impl</module>
-        -->
+        <module>kettle-plugins</module>
         <module>assemblies</module>
     </modules>
 

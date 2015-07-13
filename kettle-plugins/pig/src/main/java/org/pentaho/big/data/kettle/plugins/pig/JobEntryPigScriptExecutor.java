@@ -1,40 +1,29 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p/>
+ * ******************************************************************************
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
-package org.pentaho.di.job.entries.pig;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+package org.pentaho.big.data.kettle.plugins.pig;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.WriterAppender;
+import org.apache.commons.vfs.FileObject;
+import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.bigdata.api.pig.PigResult;
+import org.pentaho.bigdata.api.pig.PigService;
+import org.pentaho.bigdata.api.pig.PigServiceLocator;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -43,14 +32,6 @@ import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.logging.KettleLogChannelAppender;
-import org.pentaho.di.core.logging.Log4jFileAppender;
-import org.pentaho.di.core.logging.Log4jKettleLayout;
-import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.logging.LogWriter;
-import org.pentaho.di.core.namedcluster.NamedClusterManager;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
@@ -59,178 +40,149 @@ import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
-import org.pentaho.hadoop.shim.api.Configuration;
-import org.pentaho.hadoop.shim.spi.HadoopShim;
-import org.pentaho.hadoop.shim.spi.PigShim;
-import org.pentaho.hadoop.shim.spi.PigShim.ExecutionMode;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Job entry that executes a Pig script either on a hadoop cluster or locally.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
 @JobEntry( id = "HadoopPigScriptExecutorPlugin", image = "PIG.svg", name = "HadoopPigScriptExecutorPlugin.Name",
-    description = "HadoopPigScriptExecutorPlugin.Description",
-    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    i18nPackageName = "org.pentaho.di.job.entries.pig",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Pig+Script+Executor" )
+  description = "HadoopPigScriptExecutorPlugin.Description",
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  i18nPackageName = "org.pentaho.di.job.entries.pig",
+  documentationUrl = "http://wiki.pentaho.com/display/EAI/Pig+Script+Executor" )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
+  public static final String CLUSTER_NAME = "cluster_name";
+  public static final String HDFS_HOSTNAME = "hdfs_hostname";
+  public static final String HDFS_PORT = "hdfs_port";
+  public static final String JOBTRACKER_HOSTNAME = "jobtracker_hostname";
+  public static final String JOBTRACKER_PORT = "jobtracker_port";
+  public static final String SCRIPT_FILE = "script_file";
+  public static final String ENABLE_BLOCKING = "enable_blocking";
+  public static final String LOCAL_EXECUTION = "local_execution";
 
-  private static Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
-                                                                 // $NON-NLS-1$
+  private static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
+  // $NON-NLS-1$
 
-  /** Hostname of the job tracker */
-  protected String m_clusterName = "";
-  
-  /** Hostname of the job tracker */
-  protected String m_jobTrackerHostname = "";
+  /**
+   * Hostname of the job tracker
+   */
+  protected NamedCluster namedCluster;
 
-  /** Port that the job tracker is listening on */
-  protected String m_jobTrackerPort = "";
-
-  /** Name node hostname */
-  protected String m_hdfsHostname = "";
-
-  /** Port that the name node is listening on */
-  protected String m_hdfsPort = "";
-
-  /** URL to the pig script to execute */
+  /**
+   * URL to the pig script to execute
+   */
   protected String m_scriptFile = "";
 
-  /** True if the job entry should block until the script has executed */
+  /**
+   * True if the job entry should block until the script has executed
+   */
   protected boolean m_enableBlocking;
 
-  /** True if the script should execute locally, rather than on a hadoop cluster */
+  /**
+   * True if the script should execute locally, rather than on a hadoop cluster
+   */
   protected boolean m_localExecution;
 
-  /** Parameters for the script */
-  protected HashMap<String, String> m_params = new HashMap<String, String>();
-  
   /**
-   * An extended PrintWriter that sends output to Kettle's logging
-   * 
-   * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
+   * Parameters for the script
    */
-  class KettleLoggingPrintWriter extends PrintWriter {
-    public KettleLoggingPrintWriter() {
-      super( System.out );
-    }
+  protected HashMap<String, String> m_params = new HashMap<String, String>();
 
-    @Override
-    public void println( String string ) {
-      logBasic( string );
-    }
+  private NamedClusterService namedClusterService;
 
-    @Override
-    public void println( Object obj ) {
-      println( obj.toString() );
-    }
+  private PigServiceLocator pigServiceLocator;
 
-    @Override
-    public void write( String string ) {
-      println( string );
-    }
-
-    @Override
-    public void print( String string ) {
-      println( string );
-    }
-
-    @Override
-    public void print( Object obj ) {
-      print( obj.toString() );
-    }
-
-    @Override
-    public void close() {
-      flush();
-    }
+  public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
+                                    PigServiceLocator pigServiceLocator ) {
+    this.namedClusterService = namedClusterService;
+    this.pigServiceLocator = pigServiceLocator;
   }
 
-  private void loadClusterConfig( ObjectId id_jobentry, Repository rep, Node entrynode ) {
+  private void loadClusterConfig( ObjectId id_jobentry, Repository rep, Node entrynode, IMetaStore metaStore ) {
     boolean configLoaded = false;
     try {
       // attempt to load from named cluster
+      String clusterName = null;
       if ( entrynode != null ) {
-        setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
+        clusterName = XMLHandler.getTagValue( entrynode, CLUSTER_NAME ); //$NON-NLS-1$
       } else if ( rep != null ) {
-        setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
-      } 
+        clusterName = rep.getJobEntryAttributeString( id_jobentry, CLUSTER_NAME ); //$NON-NLS-1$ //$NON-NLS-2$
+      }
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
-      NamedCluster nc = null;
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( clusterName ) &&
+        namedClusterService.contains( clusterName, metaStore ) ) {
         // pull config from NamedCluster
-        nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
+        namedCluster = namedClusterService.read( clusterName, metaStore );
       }
-      if ( nc != null ) {
-        setJobTrackerHostname( nc.getJobTrackerHost() );
-        setJobTrackerPort( nc.getJobTrackerPort() );
-        setHDFSHostname( nc.getHdfsHost() );
-        setHDFSPort( nc.getHdfsPort() );
-        configLoaded = true;        
+      if ( namedCluster != null ) {
+        configLoaded = true;
       }
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
-    }    
+    }
 
     if ( !configLoaded ) {
+      namedCluster = namedClusterService.getClusterTemplate();
       if ( entrynode != null ) {
         // load default values for cluster & legacy fallback
-        setHDFSHostname( XMLHandler.getTagValue( entrynode, "hdfs_hostname" ) ); //$NON-NLS-1$
-        setHDFSPort( XMLHandler.getTagValue( entrynode, "hdfs_port" ) ); //$NON-NLS-1$
-        setJobTrackerHostname( XMLHandler.getTagValue( entrynode, "jobtracker_hostname" ) ); //$NON-NLS-1$
-        setJobTrackerPort( XMLHandler.getTagValue( entrynode, "jobtracker_port" ) ); //$NON-NLS-1$
+        namedCluster.setHdfsHost( XMLHandler.getTagValue( entrynode, HDFS_HOSTNAME ) ); //$NON-NLS-1$
+        namedCluster.setHdfsPort( XMLHandler.getTagValue( entrynode, HDFS_PORT ) ); //$NON-NLS-1$
+        namedCluster.setJobTrackerHost( XMLHandler.getTagValue( entrynode, JOBTRACKER_HOSTNAME ) ); //$NON-NLS-1$
+        namedCluster.setJobTrackerPort( XMLHandler.getTagValue( entrynode, JOBTRACKER_PORT ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
         // load default values for cluster & legacy fallback
         try {
-          setHDFSHostname( rep.getJobEntryAttributeString( id_jobentry, "hdfs_hostname" ) );
-          setHDFSPort( rep.getJobEntryAttributeString( id_jobentry, "hdfs_port" ) ); //$NON-NLS-1$
-          setJobTrackerHostname( rep.getJobEntryAttributeString( id_jobentry, "jobtracker_hostname" ) ); //$NON-NLS-1$
-          setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "jobtracker_port" ) ); //$NON-NLS-1$
+          namedCluster.setHdfsHost( rep.getJobEntryAttributeString( id_jobentry, HDFS_HOSTNAME ) );
+          namedCluster.setHdfsPort( rep.getJobEntryAttributeString( id_jobentry, HDFS_PORT ) ); //$NON-NLS-1$
+          namedCluster
+            .setJobTrackerHost( rep.getJobEntryAttributeString( id_jobentry, JOBTRACKER_HOSTNAME ) ); //$NON-NLS-1$
+          namedCluster
+            .setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, JOBTRACKER_PORT ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
           logError( ke.getMessage(), ke );
-        } 
+        }
       }
     }
-  }   
-  
+  }
+
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.pentaho.di.job.entry.JobEntryBase#getXML()
    */
   public String getXML() {
     StringBuffer retval = new StringBuffer();
     retval.append( super.getXML() );
 
-    retval.append( "      " ).append( XMLHandler.addTagValue( "cluster_name", m_clusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    try {
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
-        // pull config from NamedCluster
-        NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
-        setJobTrackerHostname( nc.getJobTrackerHost() );
-        setJobTrackerPort( nc.getJobTrackerPort() );
-        setHDFSHostname( nc.getHdfsHost() );
-        setHDFSPort( nc.getHdfsPort() );
+    if ( namedCluster != null ) {
+      String namedClusterName = namedCluster.getName();
+      if ( !StringUtils.isEmpty( namedClusterName ) ) {
+        retval.append( "      " )
+          .append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
       }
-    } catch ( MetaStoreException e ) {
-      logDebug( e.getMessage(), e );
-    }  
-    retval.append( "    " ).append( XMLHandler.addTagValue( "hdfs_hostname", m_hdfsHostname ) );
-    retval.append( "    " ).append( XMLHandler.addTagValue( "hdfs_port", m_hdfsPort ) );
-    retval.append( "    " ).append( XMLHandler.addTagValue( "jobtracker_hostname", m_jobTrackerHostname ) );
-    retval.append( "    " ).append( XMLHandler.addTagValue( "jobtracker_port", m_jobTrackerPort ) );
-    
-    retval.append( "    " ).append( XMLHandler.addTagValue( "script_file", m_scriptFile ) );
-    retval.append( "    " ).append( XMLHandler.addTagValue( "enable_blocking", m_enableBlocking ) );
-    retval.append( "    " ).append( XMLHandler.addTagValue( "local_execution", m_localExecution ) );
+      retval.append( "    " ).append( XMLHandler.addTagValue( HDFS_HOSTNAME, namedCluster.getHdfsHost() ) );
+      retval.append( "    " ).append( XMLHandler.addTagValue( HDFS_PORT, namedCluster.getHdfsPort() ) );
+      retval.append( "    " ).append(
+        XMLHandler.addTagValue( JOBTRACKER_HOSTNAME, namedCluster.getJobTrackerHost() ) );
+      retval.append( "    " ).append( XMLHandler.addTagValue( JOBTRACKER_PORT, namedCluster.getJobTrackerPort() ) );
+    }
+
+    retval.append( "    " ).append( XMLHandler.addTagValue( SCRIPT_FILE, m_scriptFile ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( ENABLE_BLOCKING, m_enableBlocking ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( LOCAL_EXECUTION, m_localExecution ) );
 
     retval.append( "    <script_parameters>" ).append( Const.CR );
     if ( m_params != null ) {
@@ -251,17 +203,18 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.pentaho.di.job.entry.JobEntryInterface#loadXML(org.w3c.dom.Node, java.util.List, java.util.List,
    * org.pentaho.di.repository.Repository)
    */
+  @Override
   public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers,
-      Repository repository ) throws KettleXMLException {
+                       Repository repository, IMetaStore metaStore ) throws KettleXMLException {
     super.loadXML( entrynode, databases, slaveServers );
 
-    loadClusterConfig( null, rep, entrynode );
-    setRepository( repository );    
-    
+    loadClusterConfig( null, rep, entrynode, metaStore );
+    setRepository( repository );
+
     m_scriptFile = XMLHandler.getTagValue( entrynode, "script_file" );
     m_enableBlocking = XMLHandler.getTagValue( entrynode, "enable_blocking" ).equalsIgnoreCase( "Y" );
     m_localExecution = XMLHandler.getTagValue( entrynode, "local_execution" ).equalsIgnoreCase( "Y" );
@@ -282,18 +235,19 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.pentaho.di.job.entry.JobEntryBase#loadRep(org.pentaho.di.repository.Repository,
    * org.pentaho.di.repository.ObjectId, java.util.List, java.util.List)
    */
-  public void loadRep( Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases,
-      List<SlaveServer> slaveServers ) throws KettleException {
+  @Override
+  public void loadRep( Repository rep, IMetaStore metaStore, ObjectId id_jobentry, List<DatabaseMeta> databases,
+                       List<SlaveServer> slaveServers ) throws KettleException {
     if ( rep != null ) {
-      super.loadRep( rep, id_jobentry, databases, slaveServers );
+      super.loadRep( rep, metaStore, id_jobentry, databases, slaveServers );
 
-      loadClusterConfig( id_jobentry, rep, null );
+      loadClusterConfig( id_jobentry, rep, null, metaStore );
       setRepository( rep );
-      
+
       setScriptFilename( rep.getJobEntryAttributeString( id_jobentry, "script_file" ) );
       setEnableBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "enable_blocking" ) );
       setLocalExecution( rep.getJobEntryAttributeBoolean( id_jobentry, "local_execution" ) );
@@ -315,32 +269,25 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.pentaho.di.job.entry.JobEntryBase#saveRep(org.pentaho.di.repository.Repository,
    * org.pentaho.di.repository.ObjectId)
    */
-  public void saveRep( Repository rep, ObjectId id_job ) throws KettleException {
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_job ) throws KettleException {
     if ( rep != null ) {
-      super.saveRep( rep, id_job );
+      super.saveRep( rep, metaStore, id_job );
 
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "cluster_name", m_clusterName ); //$NON-NLS-1$
-      try {
-        if ( !StringUtils.isEmpty( getClusterName() ) && 
-            NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
-          // pull config from NamedCluster
-          NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
-          setJobTrackerHostname( nc.getJobTrackerHost() );
-          setJobTrackerPort( nc.getJobTrackerPort() );
-          setHDFSHostname( nc.getHdfsHost() );
-          setHDFSPort( nc.getHdfsPort() );
+      if ( namedCluster != null ) {
+        String namedClusterName = namedCluster.getName();
+        if ( !StringUtils.isEmpty( namedClusterName ) ) {
+          rep.saveJobEntryAttribute( id_job, getObjectId(), "cluster_name", namedClusterName ); //$NON-NLS-1$
         }
-      } catch ( MetaStoreException e ) {
-        logDebug( e.getMessage(), e );
-      }   
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", m_hdfsHostname );
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", m_hdfsPort );
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "jobtracker_hostname", m_jobTrackerHostname );
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "jobtracker_port", m_jobTrackerPort );
+        rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", namedCluster.getHdfsHost() );
+        rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", namedCluster.getHdfsPort() );
+        rep.saveJobEntryAttribute( id_job, getObjectId(), "jobtracker_hostname", namedCluster.getJobTrackerHost() );
+        rep.saveJobEntryAttribute( id_job, getObjectId(), "jobtracker_port", namedCluster.getJobTrackerPort() );
+      }
       rep.saveJobEntryAttribute( id_job, getObjectId(), "script_file", m_scriptFile );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "enable_blocking", m_enableBlocking );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "local_execution", m_localExecution );
@@ -363,7 +310,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.pentaho.di.job.entry.JobEntryBase#evaluates()
    */
   public boolean evaluates() {
@@ -371,103 +318,8 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   }
 
   /**
-   * Get the clusterName
-   * 
-   * @return the clusterName
-   */
-  public String getClusterName() {
-    return m_clusterName;
-  }
-
-  /**
-   * Set the clusterName
-   * 
-   * @param clusterName
-   *          the clusterName
-   */
-  public void setClusterName( String clusterName ) {
-    this.m_clusterName = clusterName;
-  }  
-  
-  /**
-   * Get the job tracker host name
-   * 
-   * @return the job tracker host name
-   */
-  public String getJobTrackerHostname() {
-    return m_jobTrackerHostname;
-  }
-
-  /**
-   * Set the job tracker host name
-   * 
-   * @param jt
-   *          the job tracker host name
-   */
-  public void setJobTrackerHostname( String jt ) {
-    m_jobTrackerHostname = jt;
-  }
-
-  /**
-   * Get the job tracker port
-   * 
-   * @return the job tracker port
-   */
-  public String getJobTrackerPort() {
-    return m_jobTrackerPort;
-  }
-
-  /**
-   * Set the job tracker port
-   * 
-   * @param jp
-   *          the job tracker port
-   */
-  public void setJobTrackerPort( String jp ) {
-    m_jobTrackerPort = jp;
-  }
-
-  /**
-   * Get the HDFS host name
-   * 
-   * @return the HDFS host name
-   */
-  public String getHDFSHostname() {
-    return m_hdfsHostname;
-  }
-
-  /**
-   * Set the HDFS host name
-   * 
-   * @param nameN
-   *          the HDFS host name
-   */
-  public void setHDFSHostname( String nameN ) {
-    m_hdfsHostname = nameN;
-  }
-
-  /**
-   * Get the HDFS port
-   * 
-   * @return the HDFS port
-   */
-  public String getHDFSPort() {
-    return m_hdfsPort;
-  }
-
-  /**
-   * Set the HDFS port
-   * 
-   * @param p
-   *          the HDFS port
-   */
-  public void setHDFSPort( String p ) {
-    m_hdfsPort = p;
-  }
-
-  /**
    * Get whether the job entry will block until the script finishes
-   * 
+   *
    * @return true if the job entry will block until the script finishes
    */
   public boolean getEnableBlocking() {
@@ -476,27 +328,16 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   /**
    * Set whether the job will block until the script finishes
-   * 
-   * @param block
-   *          true if the job entry is to block until the script finishes
+   *
+   * @param block true if the job entry is to block until the script finishes
    */
   public void setEnableBlocking( boolean block ) {
     m_enableBlocking = block;
   }
 
   /**
-   * Set whether the script is to be run locally rather than on a hadoop cluster
-   * 
-   * @param l
-   *          true if the script is to run locally
-   */
-  public void setLocalExecution( boolean l ) {
-    m_localExecution = l;
-  }
-
-  /**
    * Get whether the script is to run locally rather than on a hadoop cluster
-   * 
+   *
    * @return true if the script is to run locally
    */
   public boolean getLocalExecution() {
@@ -504,18 +345,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   }
 
   /**
-   * Set the URL to the pig script to run
-   * 
-   * @param filename
-   *          the URL to the pig script
+   * Set whether the script is to be run locally rather than on a hadoop cluster
+   *
+   * @param l true if the script is to run locally
    */
-  public void setScriptFilename( String filename ) {
-    m_scriptFile = filename;
+  public void setLocalExecution( boolean l ) {
+    m_localExecution = l;
   }
 
   /**
    * Get the URL to the pig script to run
-   * 
+   *
    * @return the URL to the pig script to run
    */
   public String getScriptFilename() {
@@ -523,60 +363,57 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   }
 
   /**
-   * Set the values of parameters to replace in the script
-   * 
-   * @param params
-   *          a HashMap mapping parameter names to values
+   * Set the URL to the pig script to run
+   *
+   * @param filename the URL to the pig script
    */
-  public void setScriptParameters( HashMap<String, String> params ) {
-    m_params = params;
+  public void setScriptFilename( String filename ) {
+    m_scriptFile = filename;
   }
 
   /**
    * Get the values of parameters to replace in the script
-   * 
+   *
    * @return a HashMap mapping parameter names to values
    */
   public HashMap<String, String> getScriptParameters() {
     return m_params;
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.pentaho.di.job.entry.JobEntryInterface#execute(org.pentaho.di.core.Result, int)
+  /**
+   * Set the values of parameters to replace in the script
+   *
+   * @param params a HashMap mapping parameter names to values
    */
+  public void setScriptParameters( HashMap<String, String> params ) {
+    m_params = params;
+  }
+
+  public NamedCluster getNamedCluster() {
+    return namedCluster;
+  }
+
+  public void setNamedCluster( NamedCluster namedCluster ) {
+    this.namedCluster = namedCluster;
+  }
+
+  public NamedClusterService getNamedClusterService() {
+    return namedClusterService;
+  }
+
+  /*
+         * (non-Javadoc)
+         *
+         * @see org.pentaho.di.job.entry.JobEntryInterface#execute(org.pentaho.di.core.Result, int)
+         */
   public Result execute( final Result result, int arg1 ) throws KettleException {
 
     result.setNrErrors( 0 );
 
-    // Set up an appender that will send all pig log messages to Kettle's log
-    // via logBasic().
-    KettleLoggingPrintWriter klps = new KettleLoggingPrintWriter();
-    WriterAppender pigToKettleAppender = new WriterAppender( new Log4jKettleLayout( true ), klps );
-
-    Logger pigLogger = Logger.getLogger( "org.apache.pig" );
-    Level log4jLevel = getLog4jLevel(parentJob.getLogLevel());
-    pigLogger.setLevel( log4jLevel );
-    Log4jFileAppender appender = null;
-    String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
-    LogWriter logWriter = LogWriter.getInstance();
-    try {
-      appender = LogWriter.createFileAppender( logFileName, true, false );
-      logWriter.addAppender( appender );
-      log.setLogLevel( parentJob.getLogLevel() );
-      if ( pigLogger != null ) {
-        pigLogger.addAppender( pigToKettleAppender );
-      }
-    } catch ( Exception e ) {
-      logError( BaseMessages
-          .getString( PKG, "JobEntryPigScriptExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
-      logError( Const.getStackTracker( e ) );
-    }
 
     if ( Const.isEmpty( m_scriptFile ) ) {
       throw new KettleException(
-          BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Error.NoPigScriptSpecified" ) );
+        BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Error.NoPigScriptSpecified" ) );
     }
 
     try {
@@ -590,35 +427,16 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         scriptU = new URL( scriptFileS );
       }
 
-      HadoopConfiguration active =
-          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
-      HadoopShim hadoopShim = active.getHadoopShim();
-      final PigShim pigShim = active.getPigShim();
+      final PigService pigService = pigServiceLocator.getPigService( namedCluster );
       // Make sure we can execute locally if desired
-      if ( m_localExecution && !pigShim.isLocalExecutionSupported() ) {
+      if ( m_localExecution && !pigService.isLocalExecutionSupported() ) {
         throw new KettleException( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.LocalExecution" ) );
       }
 
-      // configure for connection to hadoop
-      Configuration conf = hadoopShim.createConfiguration();
-      if ( !m_localExecution ) {
-        String hdfsHost = environmentSubstitute( m_hdfsHostname );
-        String hdfsP = environmentSubstitute( m_hdfsPort );
-        String jobTrackerHost = environmentSubstitute( m_jobTrackerHostname );
-        String jobTP = environmentSubstitute( m_jobTrackerPort );
-
-        List<String> configMessages = new ArrayList<String>();
-        hadoopShim.configureConnectionInformation( hdfsHost, hdfsP, jobTrackerHost, jobTP, conf, configMessages );
-        for ( String m : configMessages ) {
-          logBasic( m );
-        }
-      }
-
       final Properties properties = new Properties();
-      pigShim.configure( properties, m_localExecution ? null : conf );
 
       // transform the map type to list type which can been accepted by ParameterSubstitutionPreprocessor
-      List<String> paramList = new ArrayList<String>();
+      final List<String> paramList = new ArrayList<String>();
       if ( m_params != null ) {
         for ( Map.Entry<String, String> entry : m_params.entrySet() ) {
           String name = entry.getKey();
@@ -629,47 +447,55 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         }
       }
 
-      final String pigScript = pigShim.substituteParameters( scriptU, paramList );
-      final ExecutionMode execMode = ( m_localExecution ? ExecutionMode.LOCAL : ExecutionMode.MAPREDUCE );
+      final PigService.ExecutionMode execMode = ( m_localExecution ? PigService.ExecutionMode.LOCAL : PigService
+        .ExecutionMode.MAPREDUCE );
 
       if ( m_enableBlocking ) {
-        int[] executionStatus = pigShim.executeScript( pigScript, execMode, properties );
-        logBasic( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobCompletionStatus",
-            "" + executionStatus[0], "" + executionStatus[1] ) );
+        PigResult pigResult = pigService
+          .executeScript( scriptFileS, execMode, paramList, getName(), getLogChannel(), this, parentJob.getLogLevel() );
+        int[] executionStatus = pigResult.getResult();
+        Exception pigResultException = pigResult.getException();
+        if ( executionStatus != null ) {
+          logBasic( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobCompletionStatus",
+            "" + executionStatus[ 0 ], "" + executionStatus[ 1 ] ) );
 
-        if ( executionStatus[1] > 0 ) {
-          result.setStopped( true );
-          result.setNrErrors( executionStatus[1] );
-          result.setResult( false );
+          if ( executionStatus[ 1 ] > 0 ) {
+            result.setStopped( true );
+            result.setNrErrors( executionStatus[ 1 ] );
+            result.setResult( false );
+          }
+        } else if ( pigResultException != null ) {
+          logError( pigResultException.getMessage(), pigResultException );
         }
-
-        removeAppender( appender, pigToKettleAppender );
-        if ( appender != null ) {
+        FileObject logFile = pigResult.getLogFile();
+        if ( logFile != null ) {
           ResultFile resultFile =
-              new ResultFile( ResultFile.FILE_TYPE_LOG, appender.getFile(), parentJob.getJobname(), getName() );
+            new ResultFile( ResultFile.FILE_TYPE_LOG, logFile, parentJob.getJobname(), getName() );
           result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
         }
       } else {
-        final Log4jFileAppender fa = appender;
-        final WriterAppender ptk = pigToKettleAppender;
+        final String finalScriptFileS = scriptFileS;
         final Thread runThread = new Thread() {
           public void run() {
-            try {
-              int[] executionStatus = pigShim.executeScript( pigScript, execMode, properties );
+            PigResult pigResult =
+              pigService.executeScript( finalScriptFileS, execMode, paramList, getName(), getLogChannel(),
+                JobEntryPigScriptExecutor.this, parentJob.getLogLevel() );
+            int[] executionStatus = pigResult.getResult();
+            Exception exception = pigResult.getException();
+            if ( executionStatus != null ) {
               logBasic( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobCompletionStatus", ""
-                  + executionStatus[0], "" + executionStatus[1] ) );
-            } catch ( Exception ex ) {
-              ex.printStackTrace();
+                + executionStatus[ 0 ], "" + executionStatus[ 1 ] ) );
+            } else if ( exception != null ) {
+              logError( exception.getMessage(), exception );
               result.setStopped( true );
               result.setNrErrors( 1 );
               result.setResult( false );
-            } finally {
-              removeAppender( fa, ptk );
-              if ( fa != null ) {
-                ResultFile resultFile =
-                    new ResultFile( ResultFile.FILE_TYPE_LOG, fa.getFile(), parentJob.getJobname(), getName() );
-                result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
-              }
+            }
+            FileObject logFile = pigResult.getLogFile();
+            if ( logFile != null ) {
+              ResultFile resultFile =
+                new ResultFile( ResultFile.FILE_TYPE_LOG, logFile, parentJob.getJobname(), getName() );
+              result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
             }
           }
         };
@@ -685,7 +511,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
           public void jobFinished( Job job ) throws KettleException {
             if ( runThread.isAlive() ) {
               logMinimal( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.AsynctaskStillRunning",
-                  getName(), job.getJobname() ) );
+                getName(), job.getJobname() ) );
             }
           }
         } );
@@ -699,26 +525,5 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     }
 
     return result;
-  }
-  
-  private Level getLog4jLevel( LogLevel level ) {
-    // KettleLogChannelAppender does not exists in Kette core, so we'll use it from kettle5-log4j-plugin.
-    Level log4jLevel = KettleLogChannelAppender.LOG_LEVEL_MAP.get( level );
-    return log4jLevel != null ? log4jLevel : Level.INFO;
-  }
-
-  protected void removeAppender( Log4jFileAppender appender, WriterAppender pigToKettleAppender ) {
-
-    // remove the file appender from kettle logging
-    if ( appender != null ) {
-      LogWriter.getInstance().removeAppender( appender );
-      appender.close();
-    }
-
-    Logger pigLogger = Logger.getLogger( "org.apache.pig" );
-    if ( pigLogger != null && pigToKettleAppender != null ) {
-      pigLogger.removeAppender( pigToKettleAppender );
-      pigToKettleAppender.close();
-    }
   }
 }
