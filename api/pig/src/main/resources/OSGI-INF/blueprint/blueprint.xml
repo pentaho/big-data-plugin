@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
+  <bean id="pigServiceLocatorImpl" class="org.pentaho.bigdata.api.pig.impl.PigServiceLocatorImpl"
+        scope="singleton">
+    <argument ref="pigServiceFactories"/>
+  </bean>
+  <reference-list id="pigServiceFactories" interface="org.pentaho.bigdata.api.pig.PigServiceFactory"
+                  availability="optional"/>
+  <service ref="pigServiceLocatorImpl" interface="org.pentaho.bigdata.api.pig.PigServiceLocator"/>
+</blueprint>
