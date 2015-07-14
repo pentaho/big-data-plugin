@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2014 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -97,12 +97,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   public static final String CLEAN_OUTPUT_PATH = "cleanOutputPath"; //$NON-NLS-1$
   public static final String BLOCKING = "blocking"; //$NON-NLS-1$
   public static final String LOGGING_INTERVAL = "loggingInterval"; //$NON-NLS-1$
-  
+
   public static final String HDFS_HOSTNAME = "hdfsHostname"; //$NON-NLS-1$
   public static final String HDFS_PORT = "hdfsPort"; //$NON-NLS-1$
   public static final String JOB_TRACKER_HOSTNAME = "jobTrackerHostname"; //$NON-NLS-1$
   public static final String JOB_TRACKER_PORT = "jobTrackerPort"; //$NON-NLS-1$
-  
+
   public static final String NUM_MAP_TASKS = "numMapTasks"; //$NON-NLS-1$
   public static final String NUM_REDUCE_TASKS = "numReduceTasks"; //$NON-NLS-1$
 
@@ -128,7 +128,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String hdfsPort;
   private String jobTrackerHostname;
   private String jobTrackerPort;
-  
+
   private String inputPath;
   private String outputPath;
 
@@ -178,7 +178,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   private AbstractModelList<UserDefinedItem> userDefined = new AbstractModelList<UserDefinedItem>();
 
-  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );;
+  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );
 
   public JobEntryHadoopTransJobExecutorController() throws Throwable {
   }
@@ -299,8 +299,13 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     // Save only one method of accessing the transformation
     if ( mapRepositoryReference != null ) {
       jobEntry.setMapRepositoryReference( mapRepositoryReference );
-      jobEntry.setMapRepositoryDir( null );
-      jobEntry.setMapRepositoryFile( null );
+      if ( !Const.isEmpty( mapRepositoryDir ) && !Const.isEmpty( mapRepositoryFile ) ) {
+        jobEntry.setMapRepositoryDir( mapRepositoryDir );
+        jobEntry.setMapRepositoryFile( mapRepositoryFile );
+      } else {
+        jobEntry.setMapRepositoryDir( null );
+        jobEntry.setMapRepositoryFile( null );
+      }
       jobEntry.setMapTrans( null );
     } else if ( !Const.isEmpty( mapRepositoryDir ) && !Const.isEmpty( mapRepositoryFile ) ) {
       jobEntry.setMapRepositoryDir( mapRepositoryDir );
@@ -320,8 +325,13 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     // Save only one method of accessing the transformation
     if ( combinerRepositoryReference != null ) {
       jobEntry.setCombinerRepositoryReference( combinerRepositoryReference );
-      jobEntry.setCombinerRepositoryDir( null );
-      jobEntry.setCombinerRepositoryFile( null );
+      if ( !Const.isEmpty( combinerRepositoryDir ) && !Const.isEmpty( combinerRepositoryFile ) ) {
+        jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
+        jobEntry.setCombinerRepositoryFile( combinerRepositoryFile );
+      } else {
+        jobEntry.setCombinerRepositoryDir( null );
+        jobEntry.setCombinerRepositoryFile( null );
+      }
       jobEntry.setCombinerTrans( null );
     } else if ( !Const.isEmpty( combinerRepositoryDir ) && !Const.isEmpty( combinerRepositoryFile ) ) {
       jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
@@ -342,8 +352,13 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     // Save only one method of accessing the transformation
     if ( reduceRepositoryReference != null ) {
       jobEntry.setReduceRepositoryReference( reduceRepositoryReference );
-      jobEntry.setReduceRepositoryDir( null );
-      jobEntry.setReduceRepositoryFile( null );
+      if ( !Const.isEmpty( reduceRepositoryDir ) && !Const.isEmpty( reduceRepositoryFile ) ) {
+        jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
+        jobEntry.setReduceRepositoryFile( reduceRepositoryFile );
+      } else {
+        jobEntry.setReduceRepositoryDir( null );
+        jobEntry.setReduceRepositoryFile( null );
+      }
       jobEntry.setReduceTrans( null );
     } else if ( !Const.isEmpty( reduceRepositoryDir ) && !Const.isEmpty( reduceRepositoryFile ) ) {
       jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
@@ -571,7 +586,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       // setOutputKeyClass(jobEntry.getOutputKeyClass());
       // setOutputValueClass(jobEntry.getOutputValueClass());
       setOutputFormatClass( jobEntry.getOutputFormatClass() );
-      
+
       setClusterName( jobEntry.getClusterName() );
       setHdfsHostname( jobEntry.getHdfsHostname() );
       setHdfsPort( jobEntry.getHdfsPort() );
@@ -674,6 +689,14 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( null );
           JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( null );
         }
+      }, new StringResultSetter() {
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( val );
+        }
+      }, new StringResultSetter() {
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( val );
+        }
       }, new ObjectIdResultSetter() {
         public void set( ObjectId val ) {
           JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( val );
@@ -715,6 +738,14 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( null );
           JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( null );
         }
+      }, new StringResultSetter() {
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( val );
+        }
+      }, new StringResultSetter() {
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( val );
+        }
       }, new ObjectIdResultSetter() {
         public void set( ObjectId val ) {
           JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( val );
@@ -755,6 +786,14 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
           JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( null );
           JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( null );
+        }
+      }, new StringResultSetter() {
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( val );
+        }
+      }, new StringResultSetter() {
+        public void set( String val ) {
+          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( val );
         }
       }, new ObjectIdResultSetter() {
         public void set( ObjectId val ) {
@@ -1107,7 +1146,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
   }
-  
+
   public String getHdfsHostname() {
     return hdfsHostname;
   }
@@ -1453,8 +1492,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     this.namedClusters = NamedClusterUIHelper.getNamedClusters();
     return this.namedClusters;
   }
-  
-  public void setNamedClusters( List <NamedCluster> namedClusters ) {
+
+  public void setNamedClusters( List<NamedCluster> namedClusters ) {
     this.namedClusters = namedClusters;
   }
 
@@ -1498,7 +1537,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
   }
-  
+
   public void editNamedCluster() {
     if ( isSelectedNamedCluster() ) {
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
@@ -1542,11 +1581,11 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   public void setSelectedNamedCluster( NamedCluster namedCluster ) {
     this.selectedNamedCluster = namedCluster;
   }
-  
+
   public NamedCluster getSelectedNamedCluster() {
     return this.selectedNamedCluster;
   }
-  
+
   public boolean isSelectedNamedCluster() {
     return this.selectedNamedCluster != null;
   }
