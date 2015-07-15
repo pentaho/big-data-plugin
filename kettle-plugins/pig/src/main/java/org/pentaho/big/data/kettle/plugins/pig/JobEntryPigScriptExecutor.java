@@ -127,8 +127,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       }
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
-      if ( rep != null && !StringUtils.isEmpty( clusterName ) &&
-        namedClusterService.contains( clusterName, metaStore ) ) {
+      if ( !StringUtils.isEmpty( clusterName ) && namedClusterService.contains( clusterName, metaStore ) ) {
         // pull config from NamedCluster
         namedCluster = namedClusterService.read( clusterName, metaStore );
       }

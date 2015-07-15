@@ -17,6 +17,10 @@
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
 
+  <properties>
+    <hadoop-shims-hadoop-20.version>TRUNK-SNAPSHOT</hadoop-shims-hadoop-20.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
@@ -68,6 +72,42 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-legacy</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-api</artifactId>
+      <version>${kettle.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-hadoop-20</artifactId>
+      <version>${hadoop-shims-hadoop-20.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-hadoop-20-mapred</artifactId>
+      <version>${hadoop-shims-hadoop-20.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-impl-shim-pig</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-impl-cluster</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
