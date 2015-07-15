@@ -36,6 +36,7 @@
     </modules>
 
     <properties>
+        <kettle.version>6.0-SNAPSHOT</kettle.version>
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
         <hamcrest.version>1.3</hamcrest.version>
@@ -48,6 +49,7 @@
         <bean-matchers.version>0.9</bean-matchers.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5</plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
     </properties>
 
     <scm>
@@ -57,7 +59,33 @@
         <tag>HEAD</tag>
     </scm>
     <build>
+        <testResources>
+            <testResource>
+                <directory>src/it/resources</directory>
+            </testResource>
+        </testResources>
         <plugins>
+            <!-- remove this once it's in the parent pom -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>add-test-source</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/it/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
