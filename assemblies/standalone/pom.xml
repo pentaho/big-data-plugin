@@ -17,18 +17,16 @@
   <properties>
     <package.features>true</package.features>
     <pentaho-karaf-ee-assembly.version>${project.version}</pentaho-karaf-ee-assembly.version>
-    <karaf.version>2.3.5</karaf.version>
-    <cxf.version>2.7.11</cxf.version>
+    <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <kettle.version>6.0-SNAPSHOT</kettle.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>pdi-ce</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
       <type>zip</type>
     </dependency>
     <dependency>
@@ -114,7 +112,7 @@
       <plugin>
         <groupId>org.apache.karaf.tooling</groupId>
         <artifactId>features-maven-plugin</artifactId>
-        <version>${karaf.version}</version>
+        <version>${dependency.karaf.revision}</version>
         <executions>
           <execution>
             <id>compile</id>
@@ -128,8 +126,8 @@
             <configuration>
               <descriptors>
                 <descriptor>mvn:io.hawt/hawtio-karaf/1.4.11/xml/features</descriptor>
-                <descriptor>mvn:org.apache.karaf.assemblies.features/standard/${karaf.version}/xml/features</descriptor>
-                <descriptor>mvn:org.apache.karaf.assemblies.features/enterprise/${karaf.version}/xml/features</descriptor>
+                <descriptor>mvn:org.apache.karaf.assemblies.features/standard/${dependency.karaf.revision}/xml/features</descriptor>
+                <descriptor>mvn:org.apache.karaf.assemblies.features/enterprise/${dependency.karaf.revision}/xml/features</descriptor>
                 <descriptor>mvn:org.apache.cxf.karaf/apache-cxf/2.7.11/xml/features</descriptor>
                 <descriptor>mvn:org.apache.camel.karaf/apache-camel/2.13.2/xml/features</descriptor>
                 <descriptor>mvn:pentaho/pentaho-karaf-features/${project.version}/xml/standard</descriptor>

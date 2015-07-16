@@ -17,21 +17,17 @@
     <description>a Pentaho open source project</description>
     <url>http://www.pentaho.com</url>
 
-    <properties>
-        <kettle.version>6.0-SNAPSHOT</kettle.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-core</artifactId>
-            <version>${kettle.version}</version>
+            <version>${dependency.kettle.revision}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-engine</artifactId>
-            <version>${kettle.version}</version>
+            <version>${dependency.kettle.revision}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -48,13 +44,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <version>${dependency.junit.revision}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
+            <version>${dependency.mockito.revision}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
