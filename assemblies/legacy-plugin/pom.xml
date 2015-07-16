@@ -21,35 +21,6 @@
     </license>
   </licenses>
 
-  <properties>
-    <kettle.version>6.0-SNAPSHOT</kettle.version>
-    <xstream.version>1.4.2</xstream.version>
-    <oozie.version>3.1.3-incubating</oozie.version>
-    <avro.version>1.6.2</avro.version>
-    <hadoop.version>0.20.2</hadoop.version>
-    <hadoop-shims-hadoop-20.version>TRUNK-SNAPSHOT</hadoop-shims-hadoop-20.version>
-    <pig.version>0.8.1</pig.version>
-    <easymock.versin>3.0</easymock.versin>
-    <hbase.version>0.90.3</hbase.version>
-    <h2.version>1.3.166</h2.version>
-    <jackson.version>1.5.2</jackson.version>
-    <xml-apis.version>2.0.2</xml-apis.version>
-    <xercesImpl.version>2.9.1</xercesImpl.version>
-    <guava.version>17.0</guava.version>
-    <commands.version>3.3.0-I20070605-0010</commands.version>
-    <common.version>3.3.0-v20070426</common.version>
-    <high-scale-lib.version>1.1.2</high-scale-lib.version>
-    <httpcomponents.version>4.4</httpcomponents.version>
-    <jets3t.version>0.9.3</jets3t.version>
-    <jline.version>0.9.94</jline.version>
-    <libthrift.version>0.6</libthrift.version>
-    <slf4j.version>1.7.3</slf4j.version>
-    <pentaho-hadoop-shims-cdh53-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-cdh53-package.version>
-    <pentaho-hadoop-shims-hdp22-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-hdp22-package.version>
-    <pentaho-hadoop-shims-mapr410-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-mapr410-package.version>
-    <pentaho-hadoop-shims-emr34-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-emr34-package.version>
-  </properties>
-
   <scm>
     <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
@@ -66,27 +37,27 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.pentaho-s3-vfs.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
       <artifactId>oozie-client</artifactId>
-      <version>${oozie.version}</version>
+      <version>${dependency.oozie.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
       <artifactId>oozie-core</artifactId>
-      <version>${oozie.version}</version>
+      <version>${dependency.oozie.revision}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk</artifactId>
-      <version>1.0.008</version>
+      <version>${dependency.aws-java-sdk.revision}</version>
       <exclusions>
         <exclusion>
           <groupId>org.codehaus.jackson</groupId>
@@ -97,105 +68,105 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>${avro.version}</version>
+      <version>${dependency.avro.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
-      <version>${jackson.version}</version>
+      <version>${dependency.jackson.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
-      <version>${jackson.version}</version>
+      <version>${dependency.jackson.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
       <artifactId>commands</artifactId>
-      <version>${commands.version}</version>
+      <version>${dependency.commands.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.equinox</groupId>
       <artifactId>common</artifactId>
-      <version>${common.version}</version>
+      <version>${dependency.common.revision}</version>
     </dependency>
     <dependency>
       <groupId>com.github.stephenc.high-scale-lib</groupId>
       <artifactId>high-scale-lib</artifactId>
-      <version>${high-scale-lib.version}</version>
+      <version>${dependency.high-scale-lib.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>${httpcomponents.version}</version>
+      <version>${dependency.httpcomponents.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>${httpcomponents.version}</version>
+      <version>${dependency.httpcomponents.revision}</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
-      <version>${jets3t.version}</version>
+      <version>${dependency.jets3t.revision}</version>
     </dependency>
     <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
-      <version>${jline.version}</version>
+      <version>${dependency.jline.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle5-log4j-plugin</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>${libthrift.version}</version>
+      <version>${dependency.libthrift.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
+      <version>${dependency.slf4j.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
+      <version>${dependency.slf4j.revision}</version>
     </dependency>
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
-      <version>${xstream.version}</version>
+      <version>${dependency.xstream.revision}</version>
     </dependency>
 
     <!-- Shims -->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-cdh53-package</artifactId>
-      <version>${pentaho-hadoop-shims-cdh53-package.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-cdh53-package.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp22-package</artifactId>
-      <version>${pentaho-hadoop-shims-hdp22-package.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-hdp22-package.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
-      <version>${pentaho-hadoop-shims-mapr410-package.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-mapr410-package.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-emr34-package</artifactId>
-      <version>${pentaho-hadoop-shims-emr34-package.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-emr34-package.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
@@ -277,7 +248,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
+        <version>${dependency.maven-assembly-plugin.revision}</version>
         <configuration>
           <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
           <appendAssemblyId>false</appendAssemblyId>

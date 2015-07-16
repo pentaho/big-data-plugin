@@ -36,7 +36,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.7</version>
+        <version>${dependency.maven-resources-plugin.revision}</version>
         <executions>
           <execution>
             <id>copy-resources</id>
@@ -63,7 +63,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>2.5</version>
+        <version>${dependency.maven-clean-plugin.revision}</version>
         <configuration>
           <filesets>
             <fileset>
@@ -76,7 +76,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.5</version>
+        <version>${dependency.build-helper-maven-plugin.revision}</version>
         <executions>
           <execution>
             <id>attach-artifacts</id>

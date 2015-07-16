@@ -17,10 +17,6 @@
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
 
-  <properties>
-    <hadoop-shims-hadoop-20.version>TRUNK-SNAPSHOT</hadoop-shims-hadoop-20.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
@@ -40,38 +36,38 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle5-log4j-plugin</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
+      <version>${dependency.junit.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${mockito.version}</version>
+      <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -83,19 +79,19 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-api.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hadoop-20</artifactId>
-      <version>${hadoop-shims-hadoop-20.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-hadoop-20.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hadoop-20-mapred</artifactId>
-      <version>${hadoop-shims-hadoop-20.version}</version>
+      <version>${dependency.pentaho-hadoop-shims-hadoop-20.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -116,7 +112,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.3.7</version>
+        <version>${dependency.maven-bundle-plugin.revision}</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>

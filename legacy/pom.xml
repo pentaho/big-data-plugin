@@ -33,7 +33,6 @@
     <jackson.version>1.5.2</jackson.version>
     <xml-apis.version>2.0.2</xml-apis.version>
     <xercesImpl.version>2.9.1</xercesImpl.version>
-    <guava.version>17.0</guava.version>
     <commands.version>3.3.0-I20070605-0010</commands.version>
     <common.version>3.3.0-v20070426</common.version>
     <high-scale-lib.version>1.1.2</high-scale-lib.version>
@@ -41,7 +40,6 @@
     <jets3t.version>0.9.3</jets3t.version>
     <jline.version>0.9.94</jline.version>
     <libthrift.version>0.6</libthrift.version>
-    <slf4j.version>1.7.3</slf4j.version>
     <pentaho-hadoop-shims-cdh53-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-cdh53-package.version>
   </properties>
 
@@ -57,12 +55,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
@@ -138,7 +136,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle5-log4j-plugin</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
@@ -148,12 +146,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
+      <version>${dependency.slf4j.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
+      <version>${dependency.slf4j.revision}</version>
     </dependency>
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
@@ -165,31 +163,31 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>${dependency.guava.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-hive-jdbc-shim</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -197,13 +195,13 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
+      <version>${dependency.junit.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${mockito.version}</version>
+      <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -233,7 +231,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api-test</artifactId>
-      <version>${kettle.version}</version>
+      <version>${dependency.kettle.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
