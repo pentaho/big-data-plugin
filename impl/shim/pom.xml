@@ -14,6 +14,7 @@
 
   <modules>
     <module>common</module>
+    <module>mapr-jaas-fix</module>
     <module>pig</module>
   </modules>
 </project>
