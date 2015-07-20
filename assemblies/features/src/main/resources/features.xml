@@ -6,6 +6,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-api-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-mapr-jaas-fix/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>

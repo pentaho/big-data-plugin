@@ -1,7 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
 
     <parent>
         <groupId>pentaho</groupId>
@@ -10,24 +9,27 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>pentaho-big-data-impl-shim-common</artifactId>
+    <artifactId>pentaho-big-data-impl-shim-mapr-jaas-fix</artifactId>
     <packaging>bundle</packaging>
 
     <name>Pentaho Community Edition Project: ${project.artifactId}</name>
-    <description>a Pentaho open source project</description>
-    <url>http://www.pentaho.com</url>
+    <description>Fix for broken mapr jaas configuration inside OSGi environment</description>
 
     <dependencies>
         <dependency>
-            <groupId>pentaho-kettle</groupId>
-            <artifactId>kettle-core</artifactId>
-            <version>${dependency.kettle.revision}</version>
-            <scope>provided</scope>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-big-data-impl-shim-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>pentaho-kettle</groupId>
-            <artifactId>kettle-engine</artifactId>
-            <version>${dependency.kettle.revision}</version>
+            <groupId>pentaho</groupId>
+            <artifactId>pentaho-big-data-legacy</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${dependency.slf4j.revision}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -37,9 +39,10 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>1.4</version>
+            <groupId>org.apache.karaf.jaas</groupId>
+            <artifactId>org.apache.karaf.jaas.config</artifactId>
+            <version>${dependency.karaf.revision}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -64,7 +67,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>com.pentaho.big.data.bundles.impl.shim.common</Export-Package>
+                        <Import-Package>org.apache.karaf.jaas.config,!org.apache.karaf.jaas.config.impl,!com.sun.security.auth.login,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,*</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
