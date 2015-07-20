@@ -144,8 +144,8 @@
     <!-- Shims -->
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh53-package</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-cdh53-package.revision}</version>
+      <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
+      <version>${dependency.pentaho-hadoop-shims-cdh54-package.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
