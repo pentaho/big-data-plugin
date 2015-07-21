@@ -215,7 +215,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh53-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations
                   </outputDirectory>
