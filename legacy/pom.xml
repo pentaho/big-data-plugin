@@ -40,7 +40,7 @@
     <jets3t.version>0.9.3</jets3t.version>
     <jline.version>0.9.94</jline.version>
     <libthrift.version>0.6</libthrift.version>
-    <pentaho-hadoop-shims-cdh53-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-cdh53-package.version>
+    <pentaho-hadoop-shims-cdh54-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-cdh54-package.version>
   </properties>
 
   <scm>
