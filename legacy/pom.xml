@@ -25,7 +25,7 @@
     <oozie.version>3.1.3-incubating</oozie.version>
     <avro.version>1.6.2</avro.version>
     <hadoop.version>0.20.2</hadoop.version>
-    <hadoop-shims-hadoop-20.version>TRUNK-SNAPSHOT</hadoop-shims-hadoop-20.version>
+    <hadoop-shims-hadoop-20.version>${project.version}</hadoop-shims-hadoop-20.version>
     <pig.version>0.8.1</pig.version>
     <easymock.versin>3.0</easymock.versin>
     <hbase.version>0.90.3</hbase.version>
@@ -40,7 +40,7 @@
     <jets3t.version>0.9.3</jets3t.version>
     <jline.version>0.9.94</jline.version>
     <libthrift.version>0.6</libthrift.version>
-    <pentaho-hadoop-shims-cdh54-package.version>6.0-SNAPSHOT</pentaho-hadoop-shims-cdh54-package.version>
+    <pentaho-hadoop-shims-cdh54-package.version>${project.version}</pentaho-hadoop-shims-cdh54-package.version>
   </properties>
 
   <scm>
