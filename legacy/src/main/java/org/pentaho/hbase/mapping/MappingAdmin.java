@@ -50,7 +50,7 @@ import org.pentaho.hbase.shim.spi.HBaseShim;
  * Class for managing a mapping table in HBase. Has routines for creating the mapping table, writing and reading
  * mappings to/from the table and creating a test table for debugging purposes. Also has a rough and ready command line
  * interface. For more information on the structure of a table mapping see org.pentaho.hbase.mapping.Mapping.
- * 
+ *
  * @author Mark Hall (mhall[{at]}pentaho{[dot]}com)
  */
 public class MappingAdmin {
@@ -94,7 +94,7 @@ public class MappingAdmin {
 
   /**
    * Constructor
-   * 
+   *
    * @param conf
    *          a configuration object containing connection information
    * @throws Exception
@@ -111,7 +111,7 @@ public class MappingAdmin {
 
   /**
    * Set the connection to use
-   * 
+   *
    * @param con
    *          a configuration object containing connection information.
    * @throws Exception
@@ -123,7 +123,7 @@ public class MappingAdmin {
 
   /**
    * Get the configuration being used for the connection
-   * 
+   *
    * @return the configuration encapsulating connection information
    */
   public HBaseConnection getConnection() {
@@ -132,7 +132,7 @@ public class MappingAdmin {
 
   /**
    * Set the name of the mapping table.
-   * 
+   *
    * @param tableName
    *          the name to use for the mapping table.
    */
@@ -142,7 +142,7 @@ public class MappingAdmin {
 
   /**
    * Get the name of the mapping table
-   * 
+   *
    * @return the name of the mapping table
    */
   public String getMappingTableName() {
@@ -151,7 +151,7 @@ public class MappingAdmin {
 
   /**
    * Creates a test mapping (in standard format) called "MarksTestMapping" for a test table called "MarksTestTable"
-   * 
+   *
    * @throws Exception
    *           if a problem occurs
    */
@@ -276,7 +276,7 @@ public class MappingAdmin {
   /**
    * Creates a test mapping (in tuple format) called "MarksTestTupleMapping" for a test table called
    * "MarksTestTupleTable"
-   * 
+   *
    * @throws Exception
    *           if a problem occurs
    */
@@ -309,7 +309,7 @@ public class MappingAdmin {
 
   /**
    * Creates a test table called "MarksTestTupleTable"
-   * 
+   *
    * @throws Exception
    *           if a problem occurs
    */
@@ -357,7 +357,7 @@ public class MappingAdmin {
 
   /**
    * Creates a test table called "MarksTestTable"
-   * 
+   *
    * @throws Exception
    *           if a problem occurs
    */
@@ -488,7 +488,7 @@ public class MappingAdmin {
 
   /**
    * Create the mapping table
-   * 
+   *
    * @throws Exception
    *           if there is no connection specified or the mapping table already exists.
    */
@@ -511,7 +511,7 @@ public class MappingAdmin {
 
   /**
    * Check to see if the specified mapping name exists for the specified table
-   * 
+   *
    * @param tableName
    *          the name of the table
    * @param mappingName
@@ -541,7 +541,7 @@ public class MappingAdmin {
 
   /**
    * Get a list of tables that have mappings. List will be empty if there are no mappings defined yet.
-   * 
+   *
    * @return a list of tables that have mappings.
    * @throws IOException
    *           if something goes wrong
@@ -578,7 +578,7 @@ public class MappingAdmin {
   /**
    * Get a list of mappings for the supplied table name. List will be empty if there are no mappings defined for the
    * table.
-   * 
+   *
    * @param tableName
    *          the table name
    * @return a list of mappings
@@ -618,7 +618,7 @@ public class MappingAdmin {
 
   /**
    * Delete a mapping from the mapping table
-   * 
+   *
    * @param tableName
    *          name of the table in question
    * @param mappingName
@@ -656,7 +656,7 @@ public class MappingAdmin {
 
   /**
    * Delete a mapping from the mapping table
-   * 
+   *
    * @param theMapping
    *          the mapping to delete
    * @return true if the mapping was deleted successfully; false if the mapping table does not exist or the suppied
@@ -674,7 +674,7 @@ public class MappingAdmin {
   /**
    * Add a mapping into the mapping table. Can either throw an IOException if the mapping already exists in the table,
    * or overwrite (delete and then add) it if the overwrite parameter is set to true.
-   * 
+   *
    * @param tableName
    * @param mappingName
    * @param mapping
@@ -789,7 +789,7 @@ public class MappingAdmin {
 
   /**
    * Returns a textual description of a mapping
-   * 
+   *
    * @param tableName
    *          the table name
    * @param mappingName
@@ -805,7 +805,7 @@ public class MappingAdmin {
 
   /**
    * Returns a textual description of a mapping
-   * 
+   *
    * @param aMapping
    *          the mapping
    * @return a textual description of the supplied mapping object
@@ -819,7 +819,7 @@ public class MappingAdmin {
 
   /**
    * Get a mapping for the specified table under the specified mapping name
-   * 
+   *
    * @param tableName
    *          the name of the table
    * @param mappingName
@@ -958,12 +958,15 @@ public class MappingAdmin {
       newMeta.setTableName( tableName );
       newMeta.setMappingName( mappingName );
       // check that this one doesn't have the same name as the key!
-      if ( resultMapping.getKeyName().equals( newMeta.getAlias() ) ) {
-        throw new IOException( "Error in mapping. Column \"" + newMeta.getAlias()
+      String alias = newMeta.getAlias();
+      if ( !Mapping.TupleMapping.KEY.toString().equals( alias ) ) {
+        if ( resultMapping.getKeyName().equals( alias ) ) {
+          throw new IOException( "Error in mapping. Column \"" + newMeta.getAlias()
             + "\" has the same name as the table key (" + resultMapping.getKeyName() + ")" );
+        } else {
+          resultCols.put(newMeta.getAlias(), newMeta);
+        }
       }
-
-      resultCols.put( newMeta.getAlias(), newMeta );
     }
 
     resultMapping.setMappedColumns( resultCols );
@@ -975,7 +978,7 @@ public class MappingAdmin {
 
   /**
    * Main method for testing this class. Provides a very simple command-line interface
-   * 
+   *
    * @param args
    *          command line arguments
    */

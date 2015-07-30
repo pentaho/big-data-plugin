@@ -23,6 +23,7 @@
 package org.pentaho.di.trans.steps.hbaseinput;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,7 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
@@ -79,6 +81,7 @@ import org.pentaho.hbase.mapping.MappingEditor;
 import org.pentaho.hbase.shim.api.ColumnFilter;
 import org.pentaho.hbase.shim.api.HBaseValueMeta;
 import org.pentaho.hbase.shim.api.Mapping;
+import org.pentaho.hbase.shim.api.Mapping.KeyType;
 import org.pentaho.hbase.shim.spi.HBaseConnection;
 
 /**
@@ -138,6 +141,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   // private Button m_includeKey;
 
   // Key information
+  private String m_keyName;
+  private KeyType m_keyType;
   private Label m_keyInfo;
   private Button m_getKeyInfoBut;
 
@@ -882,10 +887,19 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     String alias = tableItem.getText( 1 ).trim();
     if ( !Const.isEmpty( alias ) ) {
       // try using the mapping information first since it is complete
-      if ( m_mappedColumns != null ) {
+      if ( transMeta.environmentSubstitute( alias ).equals( m_keyName ) ) {
+        tableItem.setText( 2, m_keyType.toString() );
         HBaseValueMeta vm = m_mappedColumns.get( transMeta.environmentSubstitute( alias ) );
         if ( vm != null ) {
-          String type = ValueMeta.getTypeDesc( vm.getType() );
+          vm.setType( getKettleTypeByKeyType( m_keyType ) );
+          String type = ValueMetaBase.getTypeDesc( vm.getType() );
+          tableItem.setText( 2, type );
+          return vm;
+        }
+      } else if ( m_mappedColumns != null ) {
+        HBaseValueMeta vm = m_mappedColumns.get( transMeta.environmentSubstitute( alias ) );
+        if ( vm != null ) {
+          String type = ValueMetaBase.getTypeDesc( vm.getType() );
           if ( vm.getType() == ValueMetaInterface.TYPE_INTEGER ) {
             if ( vm.getIsLongOrDouble() ) {
               type = "Long";
@@ -910,7 +924,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         for ( HBaseValueMeta vm : m_currentMeta.getOutputFields() ) {
           String aliasF = vm.getAlias();
           if ( alias.equals( aliasF ) ) {
-            String type = ValueMeta.getTypeDesc( vm.getType() );
+            String type = ValueMetaBase.getTypeDesc( vm.getType() );
             tableItem.setText( 2, type );
             return vm;
           }
@@ -919,6 +933,45 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     }
 
     return null;
+  }
+
+  public static int getKettleTypeByKeyType( Mapping.KeyType keyType ) {
+    if ( keyType == null ) {
+      return ValueMetaInterface.TYPE_NONE;
+    }
+
+    if ( keyType == Mapping.KeyType.BINARY ) {
+      return ValueMetaInterface.TYPE_BINARY; // raw bytes for the key
+    }
+
+    if ( keyType == Mapping.KeyType.STRING ) {
+      return ValueMetaInterface.TYPE_STRING;
+    }
+
+    if ( keyType == Mapping.KeyType.UNSIGNED_LONG
+      || keyType == Mapping.KeyType.UNSIGNED_DATE ) {
+      if ( keyType == Mapping.KeyType.UNSIGNED_DATE ) {
+        return ValueMetaInterface.TYPE_DATE;
+      }
+      return ValueMetaInterface.TYPE_NUMBER;
+    }
+
+    if ( keyType == Mapping.KeyType.UNSIGNED_INTEGER ) {
+      return ValueMetaInterface.TYPE_NUMBER;
+    }
+
+    if ( keyType == Mapping.KeyType.INTEGER ) {
+      return ValueMetaInterface.TYPE_NUMBER; // Kettle uses longs
+    }
+
+    if ( keyType == Mapping.KeyType.LONG || keyType == Mapping.KeyType.DATE ) {
+      if ( keyType == Mapping.KeyType.DATE ) {
+        return ValueMetaInterface.TYPE_DATE;
+      }
+
+      return ValueMetaInterface.TYPE_NUMBER;
+    }
+    return ValueMetaInterface.TYPE_NONE;
   }
 
   protected void updateMetaConnectionDetails( HBaseInputMeta meta ) {
@@ -1241,8 +1294,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
         Mapping current = null;
         Map<String, HBaseValueMeta> mappedColumns = null;
-        String keyName = null;
-        String keyType = null;
+
         boolean filterAliasesDone = false;
         HBaseConnection connection = null;
 
@@ -1261,15 +1313,16 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
           if ( current != null ) {
             // Key information
-            keyName = current.getKeyName();
-            keyType = current.getKeyType().toString();
-            m_keyInfo.setText( "HBase Key: " + keyName + " (" + keyType + ")" );
+            m_keyName = current.getKeyName();
+            m_keyType = current.getKeyType();
+            m_keyInfo.setText( "HBase Key: " + m_keyName + " (" + m_keyType.toString() + ")" );
 
             mappedColumns = current.getMappedColumns();
             m_mappedColumns = mappedColumns; // cached copy
 
             // Set up the alias combo box in the filters tab
             List<String> filterAliasNames = new ArrayList<String>();
+            filterAliasNames.add( m_keyName );
             for ( String alias : mappedColumns.keySet() ) {
               HBaseValueMeta column = mappedColumns.get( alias );
               String aliasS = column.getAlias();
@@ -1307,7 +1360,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
         if ( current != null && readFieldsFromMapping ) {
           TableItem item = new TableItem( m_fieldsView.table, SWT.NONE );
-          item.setText( 1, keyName );
+          item.setText( 1, m_keyName );
           item.setText( 2, "Y" );
           item.setText( 7, "N" );
           if ( current.getKeyType() == Mapping.KeyType.DATE || current.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
@@ -1373,7 +1426,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
               if ( !Const.isEmpty( column.getConversionMask() ) ) {
                 item.setText( 6, column.getConversionMask() );
               }
-
+              if ( !filterAliasesDone ) {                //todo check for key type may be do not work in some cases
+                filterAliasNames.add( aliasS );
+              }
               continue; // skip the rest
             }
 

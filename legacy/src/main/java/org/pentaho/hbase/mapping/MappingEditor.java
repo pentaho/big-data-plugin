@@ -56,6 +56,7 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.steps.hbaseinput.HBaseInputData;
+import org.pentaho.di.trans.steps.hbaseinput.HBaseInputDialog;
 import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -709,11 +710,11 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     int tupleIdCount = 0;
     if ( nrNonEmpty == 5 ) {
       for ( int i = 0; i < nrNonEmpty; i++ ) {
-        if ( m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( "KEY" )
-            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( "Family" )
-            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( "Column" )
-            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( "Value" )
-            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( "Timestamp" ) ) {
+        if ( m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( Mapping.TupleMapping.KEY.toString() )
+            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( Mapping.TupleMapping.FAMILY.toString() )
+            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( Mapping.TupleMapping.COLUMN.toString() )
+            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( Mapping.TupleMapping.VALUE.toString() )
+            || m_fieldsView.getNonEmpty( i ).getText( 1 ).equals( Mapping.TupleMapping.TIMESTAMP.toString() ) ) {
           tupleIdCount++;
         }
       }
@@ -817,8 +818,13 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         } else {
           theMapping.setKeyName( alias );
         }
+        String combinedName = HBaseValueMeta.SEPARATOR + HBaseValueMeta.SEPARATOR + alias;
+        HBaseValueMeta vm = new HBaseValueMeta( combinedName, 0, -1, -1 );
+        vm.setKey( true );
         try {
           theMapping.setKeyTypeAsString( type );
+          vm.setType( HBaseInputDialog.getKettleTypeByKeyType( theMapping.getKeyType() ) );
+          theMapping.addMappedColumn( vm, isTupleMapping );
         } catch ( Exception ex ) {
           // Ignore
         }
