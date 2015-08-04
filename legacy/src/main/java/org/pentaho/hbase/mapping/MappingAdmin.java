@@ -80,17 +80,17 @@ public class MappingAdmin {
   /**
    * Constructor. No conneciton information configured.
    */
-  public MappingAdmin() {
-    try {
-      HadoopConfiguration active =
-          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
-      HBaseShim hbaseShim = active.getHBaseShim();
-      m_bytesUtil = hbaseShim.getHBaseConnection().getBytesUtil();
-    } catch ( Exception ex ) {
-      // catastrophic failure if we can't obtain a concrete implementation
-      throw new RuntimeException( ex );
-    }
-  }
+//  public MappingAdmin() {
+//    try {
+//      HadoopConfiguration active =
+//          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration();
+//      HBaseShim hbaseShim = active.getHBaseShim();
+//      m_bytesUtil = hbaseShim.getHBaseConnection().getBytesUtil();
+//    } catch ( Exception ex ) {
+//      // catastrophic failure if we can't obtain a concrete implementation
+//      throw new RuntimeException( ex );
+//    }
+//  }
 
   /**
    * Constructor
@@ -100,14 +100,13 @@ public class MappingAdmin {
    * @throws Exception
    *           if a problem occurs
    */
-  public MappingAdmin( HBaseConnection conn ) {
-    this();
-    setConnection( conn );
+  public MappingAdmin( HBaseConnection conn ) throws Exception {
+      this( conn, conn.getBytesUtil() );
   }
 
-  public MappingAdmin( HBaseConnection conn, HBaseBytesUtilShim bytesUtil ) {
-    m_bytesUtil = bytesUtil;
-    setConnection( conn );
+  public MappingAdmin( HBaseConnection conn, HBaseBytesUtilShim bytesUtil ) throws Exception {
+    this.m_admin = conn;
+    this.m_bytesUtil = bytesUtil;
   }
 
   /**
@@ -993,8 +992,7 @@ public class MappingAdmin {
       connProps.setProperty( HBaseConnection.ZOOKEEPER_QUORUM_KEY, "localhost" );
       conn.configureConnection( connProps, null );
 
-      MappingAdmin admin = new MappingAdmin();
-      admin.setConnection( conn );
+      MappingAdmin admin = new MappingAdmin( conn );
 
       if ( args.length == 0 || args[0].equalsIgnoreCase( "-h" ) || args[0].endsWith( "help" ) ) {
         System.err.println( "Commands:\n" );

@@ -242,6 +242,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
     if ( !hasNext ) {
       try {
         m_hbAdmin.closeSourceTable();
+        m_hbAdmin.close();
       } catch ( Exception e ) {
         throw new KettleException( BaseMessages.getString( HBaseInputMeta.PKG,
             "HBaseInput.Error.ProblemClosingConnection", e.getMessage() ), e );
@@ -252,7 +253,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
 
     if ( m_tableMapping.isTupleMapping() ) {
       List<Object[]> tupleRows =
-          m_data.getTupleOutputRows( m_hbAdmin, m_userOutputColumns, m_columnsMappedByAlias, m_tableMapping,
+          HBaseInputData.getTupleOutputRows( m_hbAdmin, m_userOutputColumns, m_columnsMappedByAlias, m_tableMapping,
               m_tupleHandler, m_data.getOutputRowMeta(), m_bytesUtil );
 
       for ( Object[] tuple : tupleRows ) {
@@ -261,7 +262,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
       return true;
     } else {
       Object[] outRowData =
-          m_data.getOutputRow( m_hbAdmin, m_userOutputColumns, m_columnsMappedByAlias, m_tableMapping, m_data
+          HBaseInputData.getOutputRow( m_hbAdmin, m_userOutputColumns, m_columnsMappedByAlias, m_tableMapping, m_data
               .getOutputRowMeta(), m_bytesUtil );
       putRow( m_data.getOutputRowMeta(), outRowData );
       return true;
@@ -284,9 +285,9 @@ public class HBaseInput extends BaseStep implements StepInterface {
       logBasic( BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInput.ClosingConnection" ) );
       try {
         m_hbAdmin.closeSourceTable();
+        m_hbAdmin.close();
       } catch ( Exception ex ) {
-        logError( BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInput.Error.ProblemClosingConnection1", ex
-            .getMessage() ) );
+        logError( BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInput.Error.ProblemClosingConnection1", ex ) );
       }
     }
   }
