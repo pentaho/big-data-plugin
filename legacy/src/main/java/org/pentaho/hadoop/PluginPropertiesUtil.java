@@ -17,7 +17,7 @@
 
 package org.pentaho.hadoop;
 
-import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.PluginInterface;

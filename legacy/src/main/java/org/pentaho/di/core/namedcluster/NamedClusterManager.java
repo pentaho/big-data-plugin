@@ -26,9 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.provider.url.UrlFileName;
-import org.apache.commons.vfs.provider.url.UrlFileNameParser;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.provider.url.UrlFileName;
+import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;

@@ -22,7 +22,7 @@
 
 package org.pentaho.bigdata.api.pig;
 
-import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs2.FileObject;
 
 /**
  * Created by bryan on 7/9/15.

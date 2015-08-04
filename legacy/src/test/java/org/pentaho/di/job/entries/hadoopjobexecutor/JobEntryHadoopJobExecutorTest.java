@@ -23,7 +23,7 @@
  */
 package org.pentaho.di.job.entries.hadoopjobexecutor;
 
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.VFS;
 import org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent;
 import org.junit.Before;
 import org.junit.Test;
