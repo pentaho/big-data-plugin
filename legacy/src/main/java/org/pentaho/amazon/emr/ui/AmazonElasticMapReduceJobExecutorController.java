@@ -22,9 +22,9 @@
 
 package org.pentaho.amazon.emr.ui;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.FileSystemOptions;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.AbstractAmazonJobEntry;
 import org.pentaho.amazon.AbstractAmazonJobExecutorController;

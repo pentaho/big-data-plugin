@@ -17,8 +17,8 @@
 
 package org.pentaho.di.core.hadoop;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.impl.DefaultFileSystemManager;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;

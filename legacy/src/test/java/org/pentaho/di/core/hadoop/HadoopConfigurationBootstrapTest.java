@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.VFS;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

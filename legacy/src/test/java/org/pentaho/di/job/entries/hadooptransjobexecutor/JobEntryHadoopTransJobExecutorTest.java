@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.VFS;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;

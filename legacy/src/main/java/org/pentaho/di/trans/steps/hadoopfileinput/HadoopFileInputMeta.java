@@ -25,9 +25,9 @@ package org.pentaho.di.trans.steps.hadoopfileinput;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.vfs.FileName;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.provider.url.UrlFileNameParser;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;

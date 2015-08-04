@@ -26,8 +26,8 @@ import static org.pentaho.di.job.entries.sqoop.SqoopImportConfig.TARGET_DIR;
 
 import java.util.Collection;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;

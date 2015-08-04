@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;

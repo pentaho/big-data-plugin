@@ -22,7 +22,7 @@
 
 package org.pentaho.bigdata.api.pig.impl;
 
-import org.apache.commons.vfs.FileObject;
+import org.apache.commons.vfs2.FileObject;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;

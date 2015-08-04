@@ -23,8 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.pig;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.vfs.FileSystemException;
-import org.apache.commons.vfs.VFS;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.VFS;
 import org.apache.pig.PigServer;
 import org.apache.pig.tools.grunt.GruntParser;
 import org.junit.Before;

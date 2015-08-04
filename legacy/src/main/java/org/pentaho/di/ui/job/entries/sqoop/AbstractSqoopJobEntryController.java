@@ -29,8 +29,8 @@ import static org.pentaho.di.job.entries.sqoop.SqoopConfig.TABLE;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.vfs.FileObject;
-import org.apache.commons.vfs.FileSystemException;
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.Database;
