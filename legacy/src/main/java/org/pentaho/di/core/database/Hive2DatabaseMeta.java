@@ -202,7 +202,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
 
     try {
       // Load the driver version number
-      Class<?> driverClass = Class.forName( DRIVER_CLASS_NAME ); //$NON-NLS-1$
+      Class<?> driverClass = Class.forName( getDriverClass() ); //$NON-NLS-1$
       if ( driverClass != null ) {
         Driver driver = (Driver) driverClass.getConstructor().newInstance();
         majorVersion = driver.getMajorVersion();
@@ -282,7 +282,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
    */
   @Override
   public String getTruncateTableStatement( String tableName ) {
-    if ( isDriverVersion(0, 11) ) {
+    if ( isDriverVersion( 0, 11 ) ) {
       return "TRUNCATE TABLE " + tableName;
     }
     return null;

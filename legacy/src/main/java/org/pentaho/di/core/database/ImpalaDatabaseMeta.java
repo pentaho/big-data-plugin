@@ -158,7 +158,7 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   public String getURL( String hostname, String port, String databaseName ) throws KettleDatabaseException {
 
     if ( Const.isEmpty( port ) ) {
-      Integer.toString( getDefaultDatabasePort() );
+      port = Integer.toString( getDefaultDatabasePort() );
     }
     String principal = getAttributes().getProperty( "principal" );
     String extraPrincipal =
