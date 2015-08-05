@@ -147,7 +147,11 @@
         <include>org.scannotation:scannotation</include>
         <include>org.snmp4j:snmp4j</include>
         <include>org.springframework.security:spring-security-core</include>
-        <include>org.springframework:spring</include>
+        <include>org.springframework:spring-core</include>
+        <include>org.springframework:spring-beans</include>
+        <include>org.springframework:spring-context</include>
+        <include>org.springframework:spring-aop</include>
+        <include>org.springframework:spring-expression</include>
         <include>org.syslog4j:syslog4j</include>
         <include>org.w3c.css:sac</include>
         <include>org.xerial.snappy:snappy-java</include>
