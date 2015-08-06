@@ -107,6 +107,7 @@ public class HBaseOutput extends BaseStep implements StepInterface {
 
         try {
           logBasic( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutput.ClosingConnectionToTable" ) );
+          m_hbAdmin.close();
           m_hbAdmin.closeTargetTable();
           m_targetTableActive = false;
         } catch ( Exception ex ) {
@@ -326,6 +327,7 @@ public class HBaseOutput extends BaseStep implements StepInterface {
 
         try {
           logBasic( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutput.ClosingConnectionToTable" ) );
+          m_hbAdmin.close();
           m_hbAdmin.closeTargetTable();
           m_targetTableActive = false;
         } catch ( Exception ex ) {

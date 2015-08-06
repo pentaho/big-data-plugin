@@ -33,6 +33,8 @@ import java.util.TreeSet;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
@@ -86,7 +88,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   protected boolean m_allowTableCreate;
 
   protected NamedClusterWidget namedClusterWidget;
-  
+
   // table name line
   protected CCombo m_existingTableNamesCombo;
   protected Button m_getTableNames;
@@ -172,6 +174,18 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
       m_currentConfiguration = m_configProducer.getCurrentConfiguration();
     }
+
+    parent.addDisposeListener(
+        new DisposeListener() {
+          @Override
+          public void widgetDisposed( DisposeEvent de ) {
+            try {
+              resetConnection();
+            } catch ( Exception e ) {
+              // we have to swallow it.
+            }
+          }
+        } );
 
     // table names
     Label tableNameLab = new Label( this, SWT.RIGHT );
@@ -566,11 +580,11 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       String existingName = m_existingTableNamesCombo.getText();
       m_existingTableNamesCombo.removeAll();
       try {
+        resetConnection();
         HBaseConnection hbAdmin = m_configProducer.getHBaseConnection();
         hbAdmin.checkHBaseAvailable();
 
-        m_admin = new MappingAdmin();
-        m_admin.setConnection( hbAdmin );
+        m_admin = new MappingAdmin( hbAdmin );
 
         List<String> tables = hbAdmin.listTableNames();
 
@@ -586,6 +600,14 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         showConnectionErrorDialog( e );
       }
     }
+  }
+
+  private void resetConnection() throws Exception {
+    if ( m_admin != null && m_admin.getConnection() != null ) {
+      m_admin.getConnection().close();
+    }
+
+    m_admin = null;
   }
 
   private void showConnectionErrorDialog( Exception ex ) {
@@ -1127,8 +1149,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     if ( nc != null ) {
       zookeeperHosts = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
       zookeeperPort =  m_transMeta.environmentSubstitute( nc.getZooKeeperPort() );
-    }      
-    
+    }
+
     conf = HBaseInputData.getHBaseConnection( zookeeperHosts, zookeeperPort, null, null, null );
 
     return conf;
@@ -1137,13 +1159,19 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   public String getCurrentConfiguration() {
     String host = "";
     String port = "";
-    
+
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-    
+
     if ( nc != null ) {
       host = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
       port =  m_transMeta.environmentSubstitute( nc.getZooKeeperPort() );
     }
     return host + ":" + port;
+  }
+
+  @Override
+  public void dispose() {
+    // TODO Auto-generated method stub
+    super.dispose();
   }
 }

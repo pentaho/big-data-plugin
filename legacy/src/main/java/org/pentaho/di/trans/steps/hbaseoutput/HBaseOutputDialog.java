@@ -204,14 +204,15 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
     Label namedClusterLab = new Label( wConfigComp, SWT.RIGHT );
     namedClusterLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedCluster.Label" ) );
-    namedClusterLab.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedCluster.TipText" ) );
+    namedClusterLab.setToolTipText(
+        BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedCluster.TipText" ) );
     props.setLook( namedClusterLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.top = new FormAttachment( 0, 10 );
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLab.setLayoutData( fd );
-    
+
     namedClusterWidget = new NamedClusterWidget( wConfigComp, false );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
@@ -219,7 +220,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    namedClusterWidget.setLayoutData( fd );    
+    namedClusterWidget.setLayoutData( fd );
 
     // core config line
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
@@ -612,18 +613,19 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
       mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedClusterNotSelected.Msg" ) );
       mb.open();
-      return;      
+      return;
     } else {
       NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
       if ( StringUtils.isEmpty( nc.getZooKeeperHost() ) ) {
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
-        mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedClusterMissingValues.Msg" ) );
+        mb.setMessage( BaseMessages.getString(
+            HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedClusterMissingValues.Msg" ) );
         mb.open();
-        return;      
+        return;
       }
-    }    
-    
+    }
+
     stepname = m_stepnameText.getText();
 
     updateMetaConnectionDetails( m_currentMeta );
@@ -657,10 +659,10 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
         }
         m_currentMeta.setMapping( toSet );
       } else {
-        MappingAdmin admin = new MappingAdmin();
+        HBaseConnection connection = null;
         try {
-          HBaseConnection connection = getHBaseConnection();
-          admin.setConnection( connection );
+          connection = getHBaseConnection();
+          MappingAdmin admin = new MappingAdmin( connection );
           Mapping current = null;
 
           current =
@@ -679,6 +681,16 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
               + " \""
               + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
                   + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
+        } finally {
+          try {
+            if ( connection != null ) {
+              connection.close();
+            }
+          } catch ( Exception e ) {
+            String msg = Messages.getString( "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
+            logError( msg, e );
+            new ErrorDialog( shell, msg, msg, e );
+          }
         }
       }
     } else {
@@ -706,7 +718,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       meta.setZookeeperHosts( nc.getZooKeeperHost() );
       meta.setZookeeperPort( nc.getZooKeeperPort() );
     }
-    
+
     meta.setCoreConfigURL( m_coreConfigText.getText() );
     meta.setDefaulConfigURL( m_defaultConfigText.getText() );
     meta.setTargetTableName( m_mappedTableNamesCombo.getText() );
@@ -773,8 +785,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     if ( nc != null ) {
       zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
       zookeeperPort =  transMeta.environmentSubstitute( nc.getZooKeeperPort() );
-    }   
-    
+    }
+
     if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
       throw new Exception( BaseMessages.getString( HBaseOutputMeta.PKG,
           "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
@@ -788,10 +800,11 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   private void setupMappedTableNames() {
     m_mappedTableNamesCombo.removeAll();
 
+    HBaseConnection connection = null;
     try {
-      MappingAdmin admin = new MappingAdmin();
+      connection = getHBaseConnection();
+      MappingAdmin admin = new MappingAdmin( connection );
 
-      HBaseConnection connection = getHBaseConnection();
       admin.setConnection( connection );
       Set<String> tableNames = admin.getMappedTables();
 
@@ -804,6 +817,17 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       new ErrorDialog( shell, BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ErrorMessage."
           + "UnableToConnect" ), BaseMessages.getString( HBaseOutputMeta.PKG,
             "HBaseOutputDialog.ErrorMessage.UnableToConnect" ), ex );
+    } finally {
+      try {
+        if ( connection != null ) {
+          connection.close();
+        }
+      } catch ( Exception e ) {
+        String msg = BaseMessages.getString(
+            HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
+        logError( msg, e );
+        new ErrorDialog( shell, msg, msg, e );
+      }
     }
   }
 
@@ -811,11 +835,10 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     m_mappingNamesCombo.removeAll();
 
     if ( !Const.isEmpty( m_mappedTableNamesCombo.getText() ) ) {
+      HBaseConnection connection = null;
       try {
-        MappingAdmin admin = new MappingAdmin();
-
-        HBaseConnection connection = getHBaseConnection();
-        admin.setConnection( connection );
+        connection = getHBaseConnection();
+        MappingAdmin admin = new MappingAdmin( connection );
 
         List<String> mappingNames = admin.getMappingNames( m_mappedTableNamesCombo.getText().trim() );
 
@@ -829,6 +852,19 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
           new ErrorDialog( shell, BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage."
               + "UnableToConnect" ), BaseMessages.getString( HBaseOutputMeta.PKG,
                 "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
+        }
+      } finally {
+        try {
+          if ( connection != null ) {
+            connection.close();
+          }
+        } catch ( Exception e ) {
+          if ( !quiet ) {
+            String msg = BaseMessages.getString(
+                HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
+            logError( msg, e );
+            new ErrorDialog( shell, msg, msg, e );
+          }
         }
       }
     }
