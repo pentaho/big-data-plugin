@@ -4,8 +4,10 @@
   <bean id="pigServiceLocatorImpl" class="org.pentaho.bigdata.api.pig.impl.PigServiceLocatorImpl"
         scope="singleton">
     <argument ref="pigServiceFactories"/>
+    <argument ref="clusterInitializer"/>
   </bean>
   <reference-list id="pigServiceFactories" interface="org.pentaho.bigdata.api.pig.PigServiceFactory"
                   availability="optional"/>
+  <reference id="clusterInitializer" interface="org.pentaho.big.data.api.initializer.ClusterInitializer"/>
   <service ref="pigServiceLocatorImpl" interface="org.pentaho.bigdata.api.pig.PigServiceLocator"/>
 </blueprint>

@@ -40,8 +40,10 @@
         <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
         <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
         <dependency.build-helper-maven-plugin.revision>1.5</dependency.build-helper-maven-plugin.revision>
+        <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
         <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
         <dependency.common.revision>3.3.0-v20070426</dependency.common.revision>
+        <dependency.commons-vfs-revision>2.0</dependency.commons-vfs-revision>
         <dependency.cxf.revision>2.6.15</dependency.cxf.revision>
         <dependency.guava.revision>17.0</dependency.guava.revision>
         <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>

@@ -26,6 +26,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.apache.pig.PigServer;
 import org.apache.pig.tools.grunt.GruntParser;
+import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.shim.pig.PigServiceFactoryImpl;
 import org.pentaho.bigdata.api.pig.PigServiceFactory;
@@ -43,6 +44,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import static org.mockito.Mockito.mock;
+
 /**
  * Created by bryan on 7/15/15.
  */
@@ -56,7 +59,7 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
 
   public NoArgJobEntryPigScriptExecutor() throws FileSystemException, ConfigurationException {
     super( new NamedClusterManager(), new PigServiceLocatorImpl( Arrays.<PigServiceFactory>asList(
-      new PigServiceFactoryImpl( true, provider.getConfiguration( null ) ) ) ) );
+      new PigServiceFactoryImpl( true, provider.getConfiguration( null ) ) ), mock( ClusterInitializer.class ) ) );
   }
 
   public static HadoopConfigurationProvider getProvider() {

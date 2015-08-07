@@ -1,18 +1,23 @@
 /*******************************************************************************
+ *
  * Pentaho Big Data
- * <p/>
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
- * <p/>
- * ******************************************************************************
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  ******************************************************************************/
 
 package org.pentaho.di.core.hadoop;
@@ -112,6 +117,10 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
 
         provider = p;
 
+        for ( HadoopConfigurationListener hadoopConfigurationListener : hadoopConfigurationListeners ) {
+          hadoopConfigurationListener.onConfigurationOpen( activeConfig, true );
+        }
+
         log.logDetailed( BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.Loaded" ),
           provider.getConfigurations().size(), hadoopConfigurationsDir );
       } catch ( Exception ex ) {
@@ -136,8 +145,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   protected HadoopConfigurationProvider initializeHadoopConfigurationProvider( FileObject hadoopConfigurationsDir )
     throws ConfigurationException {
     HadoopConfigurationLocator locator = new HadoopConfigurationLocator();
-    locator.init( hadoopConfigurationsDir, this,
-      (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager() );
+    locator.init( hadoopConfigurationsDir, this, new DefaultFileSystemManager() );
     return locator;
   }
 
@@ -218,7 +226,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
 
   @Override
   public String getActiveConfigurationId() throws ConfigurationException {
-    Properties p = null;
+    Properties p;
     try {
       p = getPluginProperties();
     } catch ( Exception ex ) {
@@ -232,14 +240,18 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
     return p.getProperty( PROPERTY_ACTIVE_HADOOP_CONFIGURATION );
   }
 
+  public void setActiveShim( String shimId ) {
+
+  }
+
   @Override
   public void onEnvironmentInit() throws LifecycleException {
-    try {
+    /*try {
       getInstance().getProvider();
     } catch ( ConfigurationException e ) {
       throw new LifecycleException( BaseMessages.getString( PKG,
         "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, true );
-    }
+    }*/
   }
 
   @Override
@@ -247,9 +259,9 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
     // noop
   }
 
-  public void registerHadoopConfigurationListener( HadoopConfigurationListener hadoopConfigurationListener )
+  public synchronized void registerHadoopConfigurationListener( HadoopConfigurationListener hadoopConfigurationListener )
     throws ConfigurationException {
-    if ( hadoopConfigurationListeners.add( hadoopConfigurationListener ) ) {
+    if ( hadoopConfigurationListeners.add( hadoopConfigurationListener ) && provider != null ) {
       hadoopConfigurationListener.onConfigurationOpen( getProvider().getActiveConfiguration(), true );
     }
   }
