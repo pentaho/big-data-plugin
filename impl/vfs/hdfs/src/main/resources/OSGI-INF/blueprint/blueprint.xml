@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
+  <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="namedClusterService"/>
+  </bean>
+  <reference id="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
+  <reference id="namedClusterService"
+             interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+</blueprint>

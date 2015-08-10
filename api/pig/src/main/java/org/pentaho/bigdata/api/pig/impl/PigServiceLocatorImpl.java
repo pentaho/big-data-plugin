@@ -23,6 +23,8 @@
 package org.pentaho.bigdata.api.pig.impl;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceFactory;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
@@ -34,12 +36,15 @@ import java.util.List;
  */
 public class PigServiceLocatorImpl implements PigServiceLocator {
   private final List<PigServiceFactory> pigServiceFactories;
+  private final ClusterInitializer clusterInitializer;
 
-  public PigServiceLocatorImpl( List<PigServiceFactory> pigServiceFactories ) {
+  public PigServiceLocatorImpl( List<PigServiceFactory> pigServiceFactories, ClusterInitializer clusterInitializer ) {
     this.pigServiceFactories = pigServiceFactories;
+    this.clusterInitializer = clusterInitializer;
   }
 
-  @Override public PigService getPigService( NamedCluster namedCluster ) {
+  @Override public PigService getPigService( NamedCluster namedCluster ) throws ClusterInitializationException {
+    clusterInitializer.initialize( namedCluster );
     for ( PigServiceFactory pigServiceFactory : pigServiceFactories ) {
       if ( pigServiceFactory.canHandle( namedCluster ) ) {
         return pigServiceFactory.create( namedCluster );

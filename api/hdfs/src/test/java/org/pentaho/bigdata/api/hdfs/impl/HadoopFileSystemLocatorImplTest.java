@@ -25,6 +25,8 @@ package org.pentaho.bigdata.api.hdfs.impl;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemFactory;
 
@@ -48,6 +50,7 @@ public class HadoopFileSystemLocatorImplTest {
   private HadoopFileSystemFactory hadoopFileSystemFactory;
   private HadoopFileSystem hadoopFileSystem;
   private NamedCluster namedCluster;
+  private ClusterInitializer clusterInitializer;
 
   @Before
   public void setup() {
@@ -56,25 +59,26 @@ public class HadoopFileSystemLocatorImplTest {
     hadoopFileSystemFactories = new ArrayList<>();
     hadoopFileSystemFactory = mock( HadoopFileSystemFactory.class );
     hadoopFileSystemFactories.add( hadoopFileSystemFactory );
-    hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl( hadoopFileSystemFactories );
+    clusterInitializer = mock( ClusterInitializer.class );
+    hadoopFileSystemLocator = new HadoopFileSystemLocatorImpl( hadoopFileSystemFactories, clusterInitializer );
   }
 
   @Test
-  public void testIOException() throws IOException {
+  public void testIOException() throws IOException, ClusterInitializationException {
     when( hadoopFileSystemFactory.canHandle( namedCluster ) ).thenReturn( true );
     when( hadoopFileSystemFactory.create( namedCluster ) ).thenThrow( new IOException() );
     assertNull( hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) );
   }
 
   @Test
-  public void testNormal() throws IOException {
+  public void testNormal() throws IOException, ClusterInitializationException {
     when( hadoopFileSystemFactory.canHandle( namedCluster ) ).thenReturn( true );
     when( hadoopFileSystemFactory.create( namedCluster ) ).thenReturn( hadoopFileSystem );
     assertEquals( hadoopFileSystem, hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) );
   }
 
   @Test
-  public void testNoEligibleFactories() throws IOException {
+  public void testNoEligibleFactories() throws IOException, ClusterInitializationException {
     when( hadoopFileSystemFactory.canHandle( namedCluster ) ).thenReturn( false );
     assertNull( hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) );
     verify( hadoopFileSystemFactory ).canHandle( namedCluster );

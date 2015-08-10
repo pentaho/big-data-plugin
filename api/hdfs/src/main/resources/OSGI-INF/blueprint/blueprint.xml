@@ -4,8 +4,10 @@
   <bean id="hadoopFileSystemService" class="org.pentaho.bigdata.api.hdfs.impl.HadoopFileSystemLocatorImpl"
         scope="singleton">
     <argument ref="hadoopFileSystemFactories"/>
+    <argument ref="clusterInitializer"/>
   </bean>
   <reference-list id="hadoopFileSystemFactories" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemFactory"
                   availability="optional"/>
+  <reference id="clusterInitializer" interface="org.pentaho.big.data.api.initializer.ClusterInitializer"/>
   <service ref="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
 </blueprint>

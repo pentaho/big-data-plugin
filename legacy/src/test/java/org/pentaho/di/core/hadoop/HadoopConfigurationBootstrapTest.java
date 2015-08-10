@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -347,12 +347,12 @@ public class HadoopConfigurationBootstrapTest {
   public void testLifecycleExceptionWithSevereTrueThrows_WhenConfigurationExceptionOccursOnEnvInit() throws Exception {
     HadoopConfigurationBootstrap hadoopConfigurationBootstrap = new HadoopConfigurationBootstrap();
     HadoopConfigurationBootstrap hadoopConfigurationBootstrapSpy = spy( hadoopConfigurationBootstrap );
-    doThrow( new ConfigurationException( TEST_MESSAGE ) ).when( hadoopConfigurationBootstrapSpy ).getProvider();
+    doThrow( new ConfigurationException( TEST_MESSAGE ) ).when( hadoopConfigurationBootstrapSpy ).resolveHadoopConfigurationsDirectory();
     try {
-      hadoopConfigurationBootstrapSpy.onEnvironmentInit();
+      hadoopConfigurationBootstrapSpy.getProvider();
       fail( "Expected LifecycleException exception but wasn't" );
-    } catch ( LifecycleException lcExc ) {
-      assertTrue( lcExc.isSevere() );
+    } catch ( ConfigurationException lcExc ) {
+      // Ignore
     }
   }
 

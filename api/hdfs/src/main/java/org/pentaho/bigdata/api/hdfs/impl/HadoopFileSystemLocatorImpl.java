@@ -23,6 +23,8 @@
 package org.pentaho.bigdata.api.hdfs.impl;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemFactory;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
@@ -38,12 +40,17 @@ import java.util.List;
 public class HadoopFileSystemLocatorImpl implements HadoopFileSystemLocator {
   private static final Logger LOGGER = LoggerFactory.getLogger( HadoopFileSystemLocatorImpl.class );
   private final List<HadoopFileSystemFactory> hadoopFileSystemFactories;
+  private final ClusterInitializer clusterInitializer;
 
-  public HadoopFileSystemLocatorImpl( List<HadoopFileSystemFactory> hadoopFileSystemFactories ) {
+  public HadoopFileSystemLocatorImpl( List<HadoopFileSystemFactory> hadoopFileSystemFactories,
+                                      ClusterInitializer clusterInitializer ) {
     this.hadoopFileSystemFactories = hadoopFileSystemFactories;
+    this.clusterInitializer = clusterInitializer;
   }
 
-  @Override public HadoopFileSystem getHadoopFilesystem( NamedCluster namedCluster ) {
+  @Override public HadoopFileSystem getHadoopFilesystem( NamedCluster namedCluster )
+    throws ClusterInitializationException {
+    clusterInitializer.initialize( namedCluster );
     for ( HadoopFileSystemFactory hadoopFileSystemFactory : hadoopFileSystemFactories ) {
       if ( hadoopFileSystemFactory.canHandle( namedCluster ) ) {
         try {

@@ -24,6 +24,8 @@ package org.pentaho.bigdata.api.pig.impl;
 
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceFactory;
 
@@ -35,7 +37,6 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.when;
  */
 public class PigServiceLocatorImplTest {
   @Test
-  public void testGetPigService() {
+  public void testGetPigService() throws ClusterInitializationException {
     NamedCluster namedCluster = mock( NamedCluster.class );
     NamedCluster namedCluster2 = mock( NamedCluster.class );
 
@@ -54,8 +55,10 @@ public class PigServiceLocatorImplTest {
     PigService pigService = mock( PigService.class );
     when( pigServiceFactory.create( namedCluster ) ).thenReturn( pigService );
 
+    ClusterInitializer clusterInitializer = mock( ClusterInitializer.class );
     PigServiceLocatorImpl pigServiceLocator =
-      new PigServiceLocatorImpl( new ArrayList<>( Arrays.asList( pigServiceFactory ) ) );
+      new PigServiceLocatorImpl( new ArrayList<>( Arrays.asList( pigServiceFactory ) ),
+        clusterInitializer );
     assertEquals( pigService, pigServiceLocator.getPigService( namedCluster ) );
     assertNull( pigServiceLocator.getPigService( namedCluster2 ) );
     verify( pigServiceFactory, never() ).create( namedCluster2 );

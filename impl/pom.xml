@@ -15,5 +15,6 @@
   <modules>
     <module>cluster</module>
     <module>shim</module>
+    <module>vfs</module>
   </modules>
 </project>
