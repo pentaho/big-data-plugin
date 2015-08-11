@@ -1,0 +1,217 @@
+/*******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+package org.pentaho.big.data.impl.cluster.tests.hdfs;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
+import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
+import org.pentaho.big.data.api.clusterTest.test.ClusterTestEntrySeverity;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
+import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.bigdata.api.hdfs.HadoopFileSystemPath;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
+import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.expectOneEntry;
+import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.verifyClusterTestResultEntry;
+
+/**
+ * Created by bryan on 8/21/15.
+ */
+public class WriteToAndDeleteFromUsersHomeFolderTestTest {
+  private TestMessageGetterFactory messageGetterFactory;
+  private MessageGetter messageGetter;
+  private HadoopFileSystemLocator hadoopFileSystemLocator;
+  private WriteToAndDeleteFromUsersHomeFolderTest
+    writeToAndDeleteFromUsersHomeFolderTest;
+  private NamedCluster namedCluster;
+  private String namedClusterName;
+  private HadoopFileSystem hadoopFileSystem;
+  private HadoopFileSystemPath hadoopFileSystemPath;
+  private HadoopFileSystemPath qualifiedPath;
+
+  @Before
+  public void setup() throws ClusterInitializationException {
+    messageGetterFactory = new TestMessageGetterFactory();
+    messageGetter = messageGetterFactory.create( WriteToAndDeleteFromUsersHomeFolderTest.class );
+    hadoopFileSystemLocator = mock( HadoopFileSystemLocator.class );
+    namedCluster = mock( NamedCluster.class );
+    namedClusterName = "namedClusterName";
+    when( namedCluster.getName() ).thenReturn( namedClusterName );
+    hadoopFileSystem = mock( HadoopFileSystem.class );
+    when( hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) ).thenReturn( hadoopFileSystem );
+    hadoopFileSystemPath = mock( HadoopFileSystemPath.class );
+    when( hadoopFileSystem.getPath( WriteToAndDeleteFromUsersHomeFolderTest.PENTAHO_SHIM_TEST_FILE_TEST ) )
+      .thenReturn( hadoopFileSystemPath );
+    qualifiedPath = mock( HadoopFileSystemPath.class );
+    when( hadoopFileSystem.makeQualified( hadoopFileSystemPath ) ).thenReturn( qualifiedPath );
+    init();
+  }
+
+  private void init() {
+    writeToAndDeleteFromUsersHomeFolderTest =
+      new WriteToAndDeleteFromUsersHomeFolderTest( messageGetterFactory, hadoopFileSystemLocator );
+  }
+
+  @Test
+  public void testNullFileSystem() {
+    hadoopFileSystemLocator = mock( HadoopFileSystemLocator.class );
+    init();
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.FATAL, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_COULDNT_GET_FILE_SYSTEM_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE,
+        namedClusterName ) );
+  }
+
+  @Test
+  public void testClusterInitializationException() throws ClusterInitializationException {
+    hadoopFileSystemLocator = mock( HadoopFileSystemLocator.class );
+    when( hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) )
+      .thenThrow( new ClusterInitializationException( null ) );
+    init();
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.FATAL, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_INITIALIZING_CLUSTER_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_INITIALIZING_CLUSTER_MESSAGE,
+        namedClusterName ), ClusterInitializationException.class );
+  }
+
+  @Test
+  public void testIOExceptionExists() throws ClusterInitializationException, IOException {
+    when( hadoopFileSystem.exists( hadoopFileSystemPath ) ).thenThrow( new IOException() );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.FATAL, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CHECKING_IF_FILE_EXISTS_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CHECKING_IF_FILE_EXISTS_MESSAGE,
+        qualifiedPath.toString() ), IOException.class );
+  }
+
+  @Test
+  public void testIOExceptionCreate() throws ClusterInitializationException, IOException {
+    when( hadoopFileSystem.create( hadoopFileSystemPath ) ).thenThrow( new IOException() );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.WARNING, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CREATING_FILE_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CREATING_FILE_MESSAGE,
+        qualifiedPath.toString() ), IOException.class );
+  }
+
+  @Test
+  public void testIOExceptionWrite() throws ClusterInitializationException, IOException {
+    OutputStream outputStream = mock( OutputStream.class );
+    when( hadoopFileSystem.create( hadoopFileSystemPath ) ).thenReturn( outputStream );
+    when( hadoopFileSystem.delete( hadoopFileSystemPath, false ) ).thenReturn( true );
+    doThrow( new IOException() ).when( outputStream ).write( isA( byte[].class ) );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.WARNING, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_TO_FILE_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_TO_FILE_MESSAGE,
+        qualifiedPath.toString() ), IOException.class );
+  }
+
+  @Test
+  public void testIOExceptionDelete() throws ClusterInitializationException, IOException {
+    OutputStream outputStream = mock( OutputStream.class );
+    when( hadoopFileSystem.create( hadoopFileSystemPath ) ).thenReturn( outputStream );
+    when( hadoopFileSystem.delete( hadoopFileSystemPath, false ) ).thenThrow( new IOException() );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.WARNING, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_DELETING_FILE_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_DELETING_FILE_MESSAGE,
+        qualifiedPath.toString() ), IOException.class );
+  }
+
+  @Test
+  public void testPathExists() throws IOException {
+    when( hadoopFileSystem.exists( hadoopFileSystemPath ) ).thenReturn( true );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.WARNING, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_FILE_EXISTS_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_FILE_EXISTS_MESSAGE,
+        qualifiedPath.toString() ) );
+  }
+
+  @Test
+  public void testUnableToDelete() throws IOException {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    when( hadoopFileSystem.create( hadoopFileSystemPath ) ).thenReturn( byteArrayOutputStream );
+    when( hadoopFileSystem.delete( hadoopFileSystemPath, false ) ).thenReturn( false );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.WARNING, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_UNABLE_TO_DELETE_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_UNABLE_TO_DELETE_MESSAGE,
+        qualifiedPath.toString() ) );
+    assertEquals( WriteToAndDeleteFromUsersHomeFolderTest.HELLO_CLUSTER,
+      byteArrayOutputStream.toString( WriteToAndDeleteFromUsersHomeFolderTest.UTF8.name() ) );
+  }
+
+  @Test
+  public void testSuccess() throws IOException {
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    when( hadoopFileSystem.create( hadoopFileSystemPath ) ).thenReturn( byteArrayOutputStream );
+    when( hadoopFileSystem.delete( hadoopFileSystemPath, false ) ).thenReturn( true );
+    verifyClusterTestResultEntry( expectOneEntry( writeToAndDeleteFromUsersHomeFolderTest.runTest( namedCluster ) ),
+      ClusterTestEntrySeverity.INFO, messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_SUCCESS_DESC ),
+      messageGetter.getMessage(
+        WriteToAndDeleteFromUsersHomeFolderTest
+          .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_SUCCESS_MESSAGE,
+        qualifiedPath.toString() ) );
+    assertEquals( WriteToAndDeleteFromUsersHomeFolderTest.HELLO_CLUSTER,
+      byteArrayOutputStream.toString( WriteToAndDeleteFromUsersHomeFolderTest.UTF8.name() ) );
+  }
+}

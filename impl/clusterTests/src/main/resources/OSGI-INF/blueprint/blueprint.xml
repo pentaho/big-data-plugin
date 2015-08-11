@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
+  <bean id="pingFileSystemEntryPointTest"
+        class="org.pentaho.big.data.impl.cluster.tests.hdfs.PingFileSystemEntryPointTest" scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="connectivityTestFactory"/>
+  </bean>
+  <bean id="pingJobTrackerTest" class="org.pentaho.big.data.impl.cluster.tests.mr.PingJobTrackerTest"
+        scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="connectivityTestFactory"/>
+  </bean>
+  <bean id="pingOozieHostTest" class="org.pentaho.big.data.impl.cluster.tests.oozie.PingOozieHostTest"
+        scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="connectivityTestFactory"/>
+  </bean>
+  <bean id="pingZookeeperEnsembleTest"
+        class="org.pentaho.big.data.impl.cluster.tests.zookeeper.PingZookeeperEnsembleTest" scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="connectivityTestFactory"/>
+  </bean>
+
+  <bean id="listRootDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.ListRootDirectoryTest"
+        scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="hadoopFileSystemLocator"/>
+  </bean>
+  <bean id="listHomeDirectoryTest" class="org.pentaho.big.data.impl.cluster.tests.hdfs.ListHomeDirectoryTest"
+        scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="hadoopFileSystemLocator"/>
+  </bean>
+  <bean id="writeToAndDeleteFromUsersHomeFolderTest"
+        class="org.pentaho.big.data.impl.cluster.tests.hdfs.WriteToAndDeleteFromUsersHomeFolderTest" scope="singleton">
+    <argument ref="messageGetterFactory"/>
+    <argument ref="hadoopFileSystemLocator"/>
+  </bean>
+
+  <reference id="hadoopFileSystemLocator" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
+  <reference id="connectivityTestFactory" interface="org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory"/>
+  <reference id="messageGetterFactory" interface="org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory"/>
+
+  <service ref="pingFileSystemEntryPointTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="pingJobTrackerTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="pingOozieHostTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="pingZookeeperEnsembleTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="listRootDirectoryTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="listHomeDirectoryTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="writeToAndDeleteFromUsersHomeFolderTest"
+           interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+</blueprint>

@@ -3,16 +3,20 @@
     <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${project.version}</bundle>
     <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-cluster/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-api-clusterTest/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-initializer/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-initializer/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-pig/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-shimTests/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>
   </feature>
 </features>

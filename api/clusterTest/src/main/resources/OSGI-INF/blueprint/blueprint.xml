@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+           http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/schemas/blueprint-cm/blueprint-cm-1.1.0.xsd">
+  <cm:property-placeholder persistent-id="org.pentaho.big.data.api.clusterTest"
+                           update-strategy="reload">
+    <cm:default-properties>
+      <cm:property name="orderedModules" value="Hadoop Configuration,Hadoop File System,Map Reduce,Oozie,Zookeeper"/>
+    </cm:default-properties>
+  </cm:property-placeholder>
+
+  <bean id="executorService" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"
+        scope="singleton"/>
+  <bean id="clusterTesterImpl" class="org.pentaho.big.data.api.clusterTest.impl.ClusterTesterImpl" scope="singleton">
+    <argument ref="clusterTests"/>
+    <argument ref="executorService"/>
+    <argument value="${orderedModules}"/>
+  </bean>
+  <bean id="connectivityTestFactoryImpl"
+        class="org.pentaho.big.data.api.clusterTest.network.impl.ConnectivityTestFactoryImpl" scope="singleton"/>
+  <bean id="baseMessagesMessageGetterFactoryImpl"
+        class="org.pentaho.big.data.api.clusterTest.i18n.impl.BaseMessagesMessageGetterFactoryImpl" scope="singleton"/>
+
+  <reference-list id="clusterTests" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"
+                  availability="optional"/>
+
+  <service ref="clusterTesterImpl" interface="org.pentaho.big.data.api.clusterTest.ClusterTester"/>
+  <service ref="connectivityTestFactoryImpl"
+           interface="org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory"/>
+  <service ref="baseMessagesMessageGetterFactoryImpl"
+           interface="org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory"/>
+</blueprint>

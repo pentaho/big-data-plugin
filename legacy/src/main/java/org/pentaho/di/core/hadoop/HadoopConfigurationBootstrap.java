@@ -114,6 +114,12 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
           throw new ConfigurationException( e.getMessage(), e );
         }
       }
+
+      if ( Const.isEmpty( getWillBeActiveConfigurationId() ) ) {
+        throw new NoShimSpecifiedException(
+          BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.NoShimSet" ) );
+      }
+
       // Initialize the HadoopConfigurationProvider
       try {
         FileObject hadoopConfigurationsDir = resolveHadoopConfigurationsDirectory();

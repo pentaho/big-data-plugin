@@ -14,5 +14,6 @@
 
   <modules>
     <module>ui</module>
+    <module>namedClusterBridge</module>
   </modules>
 </project>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:pen="http://www.pentaho.com/xml/schemas/pentaho-blueprint"
+           xsi:schemaLocation="
+            http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+            http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
+  <bean class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader" factory-method="create">
+    <argument ref="blueprintBundleContext"/>
+    <argument>
+      <value type="java.lang.String">org.pentaho.big.data.plugins.common.ui.named.cluster.bridge.NamedClusterUIFactoryBridgeImpl</value>
+    </argument>
+    <argument>
+      <list>
+        <ref component-id="namedClusterService"/>
+        <ref component-id="clusterTester"/>
+      </list>
+    </argument>
+  </bean>
+  <bean class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader" factory-method="create" scope="singleton">
+    <argument ref="blueprintBundleContext"/>
+    <argument>
+      <value type="java.lang.String">org.pentaho.big.data.plugins.common.ui.named.cluster.bridge.HadoopClusterTreeDelegateExtension</value>
+    </argument>
+    <argument>
+      <list>
+        <ref component-id="namedClusterService"/>
+      </list>
+    </argument>
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+  <reference id="clusterTester" interface="org.pentaho.big.data.api.clusterTest.ClusterTester"/>
+</blueprint>

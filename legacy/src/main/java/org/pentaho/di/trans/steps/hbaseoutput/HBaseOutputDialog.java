@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -64,6 +64,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
@@ -213,14 +214,14 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLab.setLayoutData( fd );
 
-    namedClusterWidget = new NamedClusterWidget( wConfigComp, false );
+    namedClusterWidget = NamedClusterUIHelper.getNamedClusterUIFactory().createNamedClusterWidget( wConfigComp, false );
     namedClusterWidget.initiate();
-    props.setLook( namedClusterWidget );
+    props.setLook( namedClusterWidget.getComposite() );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    namedClusterWidget.setLayoutData( fd );
+    namedClusterWidget.getComposite().setLayoutData( fd );
 
     // core config line
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
@@ -230,7 +231,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     props.setLook( coreConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( namedClusterWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget.getComposite(), margin );
     fd.right = new FormAttachment( middle, -margin );
     coreConfigLab.setLayoutData( fd );
 
@@ -239,7 +240,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     m_coreConfigBut.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( namedClusterWidget, 0 );
+    fd.top = new FormAttachment( namedClusterWidget.getComposite(), 0 );
     m_coreConfigBut.setLayoutData( fd );
 
     m_coreConfigBut.addSelectionListener( new SelectionAdapter() {
@@ -278,7 +279,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( namedClusterWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidget.getComposite(), margin );
     fd.right = new FormAttachment( m_coreConfigBut, -margin );
     m_coreConfigText.setLayoutData( fd );
 

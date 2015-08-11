@@ -1,4 +1,4 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
  * Pentaho Big Data
  *
@@ -10,7 +10,7 @@
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,17 +22,10 @@
 
 package org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.ArrayList;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -44,13 +37,13 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.ConfigurationException;
@@ -60,6 +53,11 @@ import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.ArrayList;
 
 public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
 
@@ -104,7 +102,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   private long lastConnectAttempt = 0;
 
   String schemeName = "hdfs";
-  
+
   private String ncHostname = "";
   private String ncPort = "";
   private String ncUsername = "";
@@ -140,17 +138,18 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     GridData gData = new GridData( SWT.FILL, SWT.FILL, true, false );
     connectionGroup.setLayoutData( gData );
     connectionGroup.setLayout( connectionGroupLayout );
-    
-    namedClusterWidget = new NamedClusterWidget( connectionGroup, true );
+
+    namedClusterWidget =
+      NamedClusterUIHelper.getNamedClusterUIFactory().createNamedClusterWidget( connectionGroup, true );
     namedClusterWidget.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent evt ) {
         try {
           connect();
-        } catch (Exception e) {
+        } catch ( Exception e ) {
           //To prevent errors from multiple event firings.
         }
       }
-    });
+    } );
 
     // The composite we need in the group
     Composite textFieldPanel = new Composite( connectionGroup, SWT.NONE );
@@ -168,8 +167,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   public String buildHadoopFileSystemUrlString() {
     StringBuffer urlString = new StringBuffer( schemeName );
     urlString.append( "://" );
-    if ( ncUsername != null && !ncUsername.trim().equals( "" )) {
-
+    if ( ncUsername != null && !ncUsername.trim().equals( "" ) ) {
       urlString.append( ncUsername );
       urlString.append( ":" );
       urlString.append( ncPassword );
@@ -183,12 +181,12 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     }
     return urlString.toString();
   }
-  
-  public void initializeConnectionPanel(FileObject file) {
+
+  public void initializeConnectionPanel( FileObject file ) {
     initialFile = file;
-    if ( initialFile != null && initialFile.getName().getScheme().equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
+    /*if ( initialFile != null && initialFile.getName().getScheme().equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
       //TODO activate HDFS
-    }
+    }*/
   }
 
   private void showMessageAndLog( String title, String message, String messageToLog ) {
@@ -207,7 +205,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     }
     return hadoopConfig;
   }
-  
+
   private void loadNamedCluster() {
     NamedCluster namedCluster = namedClusterWidget.getSelectedNamedCluster();
     if ( namedCluster != null ) {
@@ -215,14 +213,14 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       ncPort = namedCluster.getHdfsPort() != null ?  namedCluster.getHdfsPort() : "";
       ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
       ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
-      
+
       ncHostname = getVariableSpace().environmentSubstitute( ncHostname );
       ncPort = getVariableSpace().environmentSubstitute( ncPort );
       ncUsername = getVariableSpace().environmentSubstitute( ncUsername );
       ncPassword = getVariableSpace().environmentSubstitute( ncPassword );
     }
   }
-  
+
   public VariableSpace getVariableSpace() {
     if ( Spoon.getInstance().getActiveTransformation() != null ) {
       return Spoon.getInstance().getActiveTransformation();
@@ -232,7 +230,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
       return new Variables();
     }
   }
-  
+
   public NamedClusterWidget getNamedClusterWidget() {
     return namedClusterWidget;
   }
@@ -240,7 +238,7 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   public void setNamedCluster( String namedCluster ) {
     this.namedCluster = namedCluster;
   }
-  
+
   public void activate() {
     ncHostname = "";
     ncPort = "";
@@ -248,7 +246,6 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     ncPassword = "";
 
     namedClusterWidget.setSelectedNamedCluster( namedCluster );
-    
     super.activate();
   }
 

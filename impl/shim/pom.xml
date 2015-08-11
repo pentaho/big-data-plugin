@@ -17,5 +17,6 @@
     <module>initializer</module>
     <module>hdfs</module>
     <module>pig</module>
+    <module>shimTests</module>
   </modules>
 </project>

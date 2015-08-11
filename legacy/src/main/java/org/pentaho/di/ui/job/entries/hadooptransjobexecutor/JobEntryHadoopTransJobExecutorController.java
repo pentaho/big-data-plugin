@@ -22,9 +22,6 @@
 
 package org.pentaho.di.ui.job.entries.hadooptransjobexecutor;
 
-import java.io.File;
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
@@ -49,8 +46,8 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.core.namedcluster.HadoopClusterDelegate;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
-import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.job.entries.hadoopjobexecutor.UserDefinedItem;
 import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -62,6 +59,9 @@ import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.ui.xul.jface.tags.JfaceMenuList;
 import org.pentaho.ui.xul.util.AbstractModelList;
+
+import java.io.File;
+import java.util.List;
 
 public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHandler {
 
@@ -178,7 +178,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   private AbstractModelList<UserDefinedItem> userDefined = new AbstractModelList<UserDefinedItem>();
 
-  private HadoopClusterDelegate ncDelegate = new HadoopClusterDelegate( Spoon.getInstance() );
+  private HadoopClusterDelegate ncDelegate =
+    NamedClusterUIHelper.getNamedClusterUIFactory().createHadoopClusterDelegate( Spoon.getInstance() );
 
   public JobEntryHadoopTransJobExecutorController() throws Throwable {
   }
@@ -609,7 +610,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   /**
    * This method exists for consistency
-   * 
+   *
    * @param dir
    *          Null is unacceptable input, a blank string will be returned
    * @param file

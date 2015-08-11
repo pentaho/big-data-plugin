@@ -1,0 +1,42 @@
+/*******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+package org.pentaho.big.data.impl.cluster.tests.hdfs;
+
+import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
+import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+
+/**
+ * Created by bryan on 8/14/15.
+ */
+public class ListHomeDirectoryTest extends ListDirectoryTest {
+  public static final String HADOOP_FILE_SYSTEM_LIST_HOME_DIRECTORY_TEST =
+    "hadoopFileSystemListHomeDirectoryTest";
+  public static final String LIST_HOME_DIRECTORY_TEST_NAME = "ListHomeDirectoryTest.Name";
+  private static final Class<?> PKG = ListHomeDirectoryTest.class;
+
+  public ListHomeDirectoryTest( MessageGetterFactory messageGetterFactory,
+                                HadoopFileSystemLocator hadoopFileSystemLocator ) {
+    super( messageGetterFactory, hadoopFileSystemLocator, "", HADOOP_FILE_SYSTEM_LIST_HOME_DIRECTORY_TEST,
+      messageGetterFactory.create( PKG ).getMessage( LIST_HOME_DIRECTORY_TEST_NAME ) );
+  }
+}

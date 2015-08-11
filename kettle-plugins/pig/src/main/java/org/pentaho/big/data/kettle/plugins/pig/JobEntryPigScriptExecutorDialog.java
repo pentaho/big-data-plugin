@@ -45,7 +45,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.plugins.common.ui.NamedClusterWidget;
+import org.pentaho.big.data.api.clusterTest.ClusterTester;
+import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -74,8 +75,10 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
   public static final String PIG_FILE_EXT = ".pig";
   private static final Class<?> PKG = JobEntryPigScriptExecutor.class;
+  private final NamedClusterService namedClusterService;
+  private final ClusterTester clusterTester;
   protected JobEntryPigScriptExecutor m_jobEntry;
-  NamedClusterWidget namedClusterWidget;
+  NamedClusterWidgetImpl namedClusterWidgetImpl;
   private Display m_display;
   private boolean m_backupChanged;
   private Text m_wName;
@@ -85,7 +88,6 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
   private Button m_localExecutionBut;
   private TableView m_scriptParams;
   private boolean m_isMapR = false;
-  private NamedClusterService namedClusterService;
 
   /**
    * Constructor.
@@ -100,6 +102,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     super( parent, jobEntryInt, rep, jobMeta );
     m_jobEntry = (JobEntryPigScriptExecutor) jobEntryInt;
     namedClusterService = m_jobEntry.getNamedClusterService();
+    clusterTester = m_jobEntry.getClusterTester();
   }
 
   public JobEntryInterface open() {
@@ -158,14 +161,14 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLabel.setLayoutData( fd );
 
-    namedClusterWidget = new NamedClusterWidget( shell, false, namedClusterService );
-    namedClusterWidget.initiate();
-    props.setLook( namedClusterWidget );
+    namedClusterWidgetImpl = new NamedClusterWidgetImpl( shell, false, namedClusterService, clusterTester );
+    namedClusterWidgetImpl.initiate();
+    props.setLook( namedClusterWidgetImpl );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( m_wName, margin );
     fd.left = new FormAttachment( middle, 0 );
-    namedClusterWidget.setLayoutData( fd );
+    namedClusterWidgetImpl.setLayoutData( fd );
 
     // script file line
     Label scriptFileLab = new Label( shell, SWT.RIGHT );
@@ -173,7 +176,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     scriptFileLab.setText( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.PigScript.Label" ) );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( namedClusterWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidgetImpl, margin );
     fd.right = new FormAttachment( middle, -margin );
     scriptFileLab.setLayoutData( fd );
 
@@ -182,7 +185,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_pigScriptBrowseBut.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( namedClusterWidget, 0 );
+    fd.top = new FormAttachment( namedClusterWidgetImpl, 0 );
     m_pigScriptBrowseBut.setLayoutData( fd );
     m_pigScriptBrowseBut.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
@@ -200,7 +203,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     } );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( namedClusterWidget, margin );
+    fd.top = new FormAttachment( namedClusterWidgetImpl, margin );
     fd.right = new FormAttachment( m_pigScriptBrowseBut, -margin );
     m_pigScriptText.setLayoutData( fd );
 
@@ -366,7 +369,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     boolean local = m_localExecutionBut.getSelection();
 
-    namedClusterWidget.setEnabled( !local );
+    namedClusterWidgetImpl.setEnabled( !local );
   }
 
   protected void openDialog() {
@@ -403,7 +406,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     if ( namedCluster != null ) {
       namedClusterName = namedCluster.getName();
     }
-    namedClusterWidget.setSelectedNamedCluster( namedClusterName == null ? "" : namedClusterName );
+    namedClusterWidgetImpl.setSelectedNamedCluster( namedClusterName == null ? "" : namedClusterName );
 
     m_pigScriptText.setText( Const.NVL( m_jobEntry.getScriptFilename(), "" ) );
     m_enableBlockingBut.setSelection( m_jobEntry.getEnableBlocking() );
@@ -437,7 +440,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
 
     m_jobEntry.setName( m_wName.getText() );
 
-    NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
+    NamedCluster nc = namedClusterWidgetImpl.getSelectedNamedCluster();
     if ( nc != null ) {
       m_jobEntry.setNamedCluster( nc );
     } else {

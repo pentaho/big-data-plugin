@@ -140,6 +140,25 @@ public class ShimBridgingClassloader extends ClassLoader {
     throw new ClassNotFoundException();
   }
 
+  @Override public URL getResource( String name ) {
+    int lastIndexOf = name.lastIndexOf( '/' );
+
+    List<URL> entries;
+    if ( lastIndexOf > 0 ) {
+      entries = bundleWiring.findEntries( name.substring( 0, lastIndexOf ), name.substring( lastIndexOf + 1 ), 0 );
+    } else {
+      entries = bundleWiring.findEntries( "/", name, 0 );
+    }
+    if ( entries.size() == 1 ) {
+      return entries.get( 0 );
+    }
+    URL resource = bundleWiringClassloader.getResource( name );
+    if ( resource == null ) {
+      resource = super.getResource( name );
+    }
+    return resource;
+  }
+
   @Override
   public Class<?> loadClass( String name, boolean resolve ) throws ClassNotFoundException {
     Class<?> result = null;
@@ -150,14 +169,14 @@ public class ShimBridgingClassloader extends ClassLoader {
       try {
         result = findClass( name );
       } catch ( Exception e ) {
-
+        // Ignore
       }
     }
     if ( result == null ) {
       try {
         return bundleWiringClassloader.loadClass( name, resolve );
       } catch ( Exception e ) {
-
+        // Ignore
       }
     }
     if ( result == null ) {
