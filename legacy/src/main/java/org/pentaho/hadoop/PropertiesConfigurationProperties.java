@@ -24,6 +24,7 @@ package org.pentaho.hadoop;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
@@ -64,6 +65,9 @@ public class PropertiesConfigurationProperties extends Properties {
     throws FileSystemException, ConfigurationException {
     PropertiesConfiguration propertiesConfiguration = new PropertiesConfiguration( fileObject.getURL() );
     propertiesConfiguration.setAutoSave( true );
+    FileChangedReloadingStrategy fileChangedReloadingStrategy = new FileChangedReloadingStrategy();
+    fileChangedReloadingStrategy.setRefreshDelay( 1000L );
+    propertiesConfiguration.setReloadingStrategy( fileChangedReloadingStrategy );
     return propertiesConfiguration;
   }
 
