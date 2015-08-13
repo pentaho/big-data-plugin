@@ -22,8 +22,14 @@
       </columns>
       <rows>
         <row>
-          <label value="${Sqoop.JobEntry.Name.Label}"/>
-          <textbox id="jobEntryName" flex="1" multiline="false"/>
+          <vbox flex="1">
+            <label value="${Sqoop.JobEntry.Name.Label}"/>
+            <textbox id="jobEntryName" flex="1" multiline="false"/>
+          </vbox>
+          <hbox flex="1">
+            <spacer flex="1"/>
+            <image src="sqoop-import.png"/>
+          </hbox>
         </row>
       </rows>
     </grid>

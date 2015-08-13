@@ -44,6 +44,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.JobMeta;
+import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.di.job.entries.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.di.job.entries.sqoop.SqoopConfig;
 import org.pentaho.di.job.entries.sqoop.SqoopUtils;
@@ -57,6 +58,7 @@ import org.pentaho.di.ui.job.AbstractJobEntryController;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.ui.xul.XulComponent;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingConvertor;
@@ -214,6 +216,9 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     XulTree variablesTree = (XulTree) container.getDocumentRoot().getElementById( "advanced-table" );
     bindings.add( bindingFactory.createBinding( advancedArguments, "children", variablesTree, "elements" ) );
 
+    XulTree customVariablesTree = (XulTree) container.getDocumentRoot().getElementById( "custom-table" );
+    bindings.add( bindingFactory.createBinding( config.getCustomArguments(), "children", customVariablesTree, "elements" ) );
+
     // Create database/connection sync so that we're notified any time the connect argument is updated
     bindingFactory.createBinding( config, "connect", this, "connectChanged" );
     bindingFactory.createBinding( config, "username", this, "usernameChanged" );
@@ -305,6 +310,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     config.setNamedCluster( namedCluster );
   }
 
+  private void updateDeleteButton() {
+    boolean disabled = config.getCustomArguments().size() == 0;
+    XulComponent delete = getXulDomContainer().getDocumentRoot().getElementById( "delete-button" );
+    delete.setDisabled( disabled );
+  }
+
   public boolean isSelectedNamedCluster() {
     return this.selectedNamedCluster != null;
   }
@@ -342,6 +353,8 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     // handling while initializing bindings
     setSelectedDatabaseConnection( createDatabaseItem( getConfig().getDatabase() ) );
     initializeNamedClusterSelection();
+
+    updateDeleteButton();
   }
 
   /**
@@ -983,5 +996,23 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         setSelectedNamedCluster( selectedNamedCluster );
       }
     }
+  }
+
+  public void newCustomArgument() {
+    config.getCustomArguments().add( new PropertyEntry() );
+    updateDeleteButton();
+  }
+
+  public void deleteCustomArgument() {
+    XulTree customVariablesTree = (XulTree) container.getDocumentRoot().getElementById( "custom-table" );
+    Collection<PropertyEntry> selectedItems = customVariablesTree.getSelectedItems();
+    for ( PropertyEntry pe : selectedItems ) {
+      try {
+        getConfig().getCustomArguments().remove( pe );
+      } catch ( Exception e ) {
+        customVariablesTree.setElements( getConfig().getCustomArguments() );
+      }
+    }
+    updateDeleteButton();
   }
 }

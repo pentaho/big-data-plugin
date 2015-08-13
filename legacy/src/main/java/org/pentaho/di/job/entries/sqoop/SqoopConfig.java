@@ -29,6 +29,7 @@ import org.pentaho.di.job.BlockableJobConfig;
 import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.Password;
+import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -263,6 +264,8 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   private NamedCluster namedCluster;
 
+  private AbstractModelList<PropertyEntry> customArguments;
+
   /**
    * @return all known arguments for this config object. Some arguments may be synthetic and represent properties
    *         directly set on this config object for the purpose of showing them in the list view of the UI.
@@ -288,7 +291,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
       items.add( new ArgumentWrapper( BLOCKING_EXECUTION, BaseMessages
           .getString( getClass(), "BlockingExecution.Label" ),
           false, "", 0, this,
-          getClass().getMethod("getBlockingExecution" ),
+          getClass().getMethod( "getBlockingExecution" ),
           getClass().getMethod( "setBlockingExecution", String.class ) ) );
       items.add( new ArgumentWrapper( BLOCKING_POLLING_INTERVAL, BaseMessages.getString( getClass(),
           "BlockingPollingInterval.Label" ), false, "", 0, this, getClass().getMethod( "getBlockingPollingInterval" ),
@@ -1034,4 +1037,14 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     pcs.firePropertyChange( ARCHIVES, old, this.archives );
   }
 
+  public AbstractModelList<PropertyEntry> getCustomArguments() {
+    if ( customArguments == null ) {
+      customArguments = new AbstractModelList<>();
+    }
+    return customArguments;
+  }
+
+  public void setCustomArguments( AbstractModelList<PropertyEntry> customArguments ) {
+    this.customArguments = customArguments;
+  }
 }
