@@ -30,7 +30,6 @@
       <excludes>
         <exclude>plugins/</exclude>
         <exclude>system/karaf/etc/org.apache.karaf.features.cfg</exclude>
-        <exclude>system/karaf/etc/custom.properties</exclude>
       </excludes>
     </fileSet>
     <fileSet>
