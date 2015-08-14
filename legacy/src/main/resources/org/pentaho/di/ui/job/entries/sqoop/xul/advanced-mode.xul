@@ -10,13 +10,38 @@
   </hbox>
   <deck id="advancedModeDeck" flex="1">
     <vbox flex="1">
-      <tree id="advanced-table" hidecolumnpicker="true" autocreatenewrows="false" flex="1">
-        <treecols>
-          <treecol id="name-col" editable="false" flex="1" label="${Sqoop.JobEntry.AdvancedTable.Column.Name.Label}" pen:binding="displayName"/>
-          <treecol id="value-col" editable="true" flex="1" label="${Sqoop.JobEntry.AdvancedTable.Column.Value.Label}" pen:binding="value"/>
-        </treecols>
-        <treechildren />
-      </tree>
+      <tabbox flex="1">
+        <tabs>
+          <tab label="${Sqoop.JobEntry.DefaultTab.Label}"/>
+          <tab label="${Sqoop.JobEntry.CustomTab.Label}"/>
+        </tabs>
+
+        <tabpanels flex="1">
+          <tabpanel flex="1">
+            <tree id="advanced-table" hidecolumnpicker="true" autocreatenewrows="false" flex="1">
+              <treecols>
+                <treecol id="name-col" editable="false" flex="1" label="${Sqoop.JobEntry.AdvancedTable.Column.Name.Label}" pen:binding="displayName"/>
+                <treecol id="value-col" editable="true" flex="1" label="${Sqoop.JobEntry.AdvancedTable.Column.Value.Label}" pen:binding="value"/>
+              </treecols>
+              <treechildren />
+            </tree>
+          </tabpanel>
+          <tabpanel flex="1">
+            <hbox>
+              <label value="${Sqoop.JobEntry.CustomArguments.Label}"/>
+              <spacer flex="1"/>
+              <button id="delete-button" onclick="controller.deleteCustomArgument()" image="generic-delete.png" pen:disabledimage="disabled-generic-delete.png"/>
+            </hbox>
+            <tree id="custom-table" hidecolumnpicker="true" autocreatenewrows="true" editable="true" flex="1" newitembinding="controller.newCustomArgument()">
+              <treecols>
+                <treecol id="custom-name-col" editable="true" flex="1" label="${Sqoop.JobEntry.CustomAdvancedTable.Column.Name.Label}" pen:binding="key"/>
+                <treecol id="custom-value-col" editable="true" flex="1" label="${Sqoop.JobEntry.CustomAdvancedTable.Column.Value.Label}" pen:binding="value"/>
+              </treecols>
+              <treechildren />
+            </tree>
+          </tabpanel>
+        </tabpanels>
+      </tabbox>
     </vbox>
     <vbox flex="1">
       <label value="${Sqoop.JobEntry.CommandLine.Label}"/>

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.ArgumentWrapper;
 import org.pentaho.di.job.CommandLineArgument;
 import org.pentaho.di.job.JobEntryMode;
+import org.pentaho.di.job.PropertyEntry;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
@@ -56,9 +58,11 @@ public class SqoopUtils {
    */
   public static final String ARG_PREFIX = "--";
   public static final String ARG_PREFIX_1 = "-";
+  public static final String ARG_D = "-D";
 
   // Properties used to escape/unescape strings for command line string (de)serialization
   private static final String WHITESPACE = " ";
+  private static final String EQUALS = "=";
   private static final String QUOTE = "\"";
   private static final Pattern WHITESPACE_PATTERN = Pattern.compile( " " );
   private static final Pattern QUOTE_PATTERN = Pattern.compile( "\"" );
@@ -158,6 +162,10 @@ public class SqoopUtils {
             }
           }
           args.add( escapeEscapeSequences( s ) );
+          if ( ARG_D.equals(s) ) {
+            handleCustomOption( args, tokenizer, variableSpace );
+            continue;
+          }
         }
       }
     } finally {
@@ -186,7 +194,9 @@ public class SqoopUtils {
       SqoopConfig config, String commandLineString, VariableSpace variableSpace ) throws IOException, KettleException {
     List<String> args = parseCommandLine( commandLineString, variableSpace, true );
 
-    Map<String, String> argValues = new HashMap<String, String>();
+    Map<String, String> argValues = new HashMap<>();
+    // save the order
+    Map<String, String> customArgValues = new LinkedHashMap<>();
     int i = 0;
     int peekAhead = i;
     while ( i < args.size() ) {
@@ -200,6 +210,21 @@ public class SqoopUtils {
       peekAhead = i + 1;
       if ( peekAhead < args.size() ) {
         value = args.get( peekAhead );
+      }
+
+      if ( ARG_D.equals( arg ) ) {
+        int index = value.indexOf( EQUALS );
+        String customArg = value.substring(0, index);
+        String customValue = value.substring( index + 1 );
+
+        if ( variableSpace != null ) {
+          customArg = variableSpace.environmentSubstitute( value );
+          customValue = variableSpace.environmentSubstitute( value );
+        }
+
+        customArgValues.put( customArg, customValue );
+        i += 2;
+        continue;
       }
 
       if ( isArgName( value ) > 0 ) {
@@ -219,6 +244,7 @@ public class SqoopUtils {
     }
 
     setArgumentStringValues( config, argValues );
+    setCustomArgumentStringValues( config, customArgValues );
   }
 
   /**
@@ -232,6 +258,9 @@ public class SqoopUtils {
     if ( s != null ) {
       if ( s.startsWith( ARG_PREFIX ) && s.length() > ARG_PREFIX.length() ) {
         return ARG_PREFIX.length();
+      }
+      if ( ARG_D.equals( s ) ) {
+        return 0;
       }
       if ( s.startsWith( ARG_PREFIX_1 ) && s.length() > ARG_PREFIX_1.length() ) {
         return ARG_PREFIX_1.length();
@@ -288,6 +317,15 @@ public class SqoopUtils {
     }
   }
 
+  private static void setCustomArgumentStringValues( SqoopConfig config, Map<String, String> customArgValues ) {
+    config.getCustomArguments().clear();
+
+    for ( Iterator<Map.Entry<String, String>> iterator = customArgValues.entrySet().iterator(); iterator.hasNext(); ) {
+      Map.Entry<String, String> entry = iterator.next();
+      config.getCustomArguments().add( new PropertyEntry( entry.getKey(), entry.getValue() ) );
+    }
+  }
+
   private static String pickupArgumentValueFor( CommandLineArgument arg, Map<String, String> args )
     throws KettleException {
     String argumentName = arg.name();
@@ -330,6 +368,7 @@ public class SqoopUtils {
       return parseCommandLine( config.getCommandLine(), variableSpace, true );
     }
 
+    appendCustomArguments( args, config, variableSpace );
     appendArguments( args, SqoopUtils.findAllArguments( config ), variableSpace );
 
     return args;
@@ -349,6 +388,19 @@ public class SqoopUtils {
   public static String generateCommandLineString( SqoopConfig config, VariableSpace variableSpace ) {
     StringBuilder sb = new StringBuilder();
     List<List<String>> buffers = new ArrayList<List<String>>();
+    List<String> customBuffer = new ArrayList<String>();
+
+    // Add custom arguments as they must appear before tool specific arguments
+    for ( PropertyEntry entry : config.getCustomArguments() ) {
+      appendCustomArgument( customBuffer, entry, variableSpace );
+    }
+
+    for ( Iterator<String> iterator = customBuffer.iterator(); iterator.hasNext(); ) {
+      sb.append( iterator.next() );
+      if ( iterator.hasNext() ) {
+        sb.append( WHITESPACE );
+      }
+    }
 
     for ( ArgumentWrapper arg : SqoopUtils.findAllArguments( config ) ) {
       List<String> buffer = new ArrayList<String>( 4 );
@@ -356,6 +408,10 @@ public class SqoopUtils {
       if ( !buffer.isEmpty() ) {
         buffers.add( buffer );
       }
+    }
+
+    if ( !customBuffer.isEmpty() && !buffers.isEmpty() ) {
+      sb.append( WHITESPACE );
     }
 
     Iterator<List<String>> buffersIter = buffers.iterator();
@@ -442,6 +498,50 @@ public class SqoopUtils {
         args.add( value );
       }
     }
+  }
+
+  private static void appendCustomArguments( List<String> args , SqoopConfig config, VariableSpace variableSpace ) {
+    for ( PropertyEntry entry : config.getCustomArguments() ) {
+      appendCustomArgument( args, entry, variableSpace );
+    }
+  }
+
+  private static void appendCustomArgument( List<String> args, PropertyEntry arg, VariableSpace variableSpace ) {
+    String key = arg.getKey();
+    String value = arg.getValue();
+
+    if ( variableSpace != null ) {
+      key = variableSpace.environmentSubstitute( key );
+      value = variableSpace.environmentSubstitute( value );
+    }
+
+    args.add( ARG_D );
+    args.add( key + EQUALS + quote( value ) );
+  }
+
+  private static void handleCustomOption( List<String> args, StreamTokenizer tokenizer, VariableSpace variableSpace ) throws IOException {
+    tokenizer.nextToken();
+    String key = tokenizer.sval;
+    String value = null;
+    if ( key.contains( EQUALS ) ) {
+      if ( key.endsWith( EQUALS ) ) {
+        key = key.substring( 0, key.length() - 1 );
+        tokenizer.nextToken();
+        value = tokenizer.sval;
+      } else {
+        String[] split = key.split( EQUALS );
+        key = split[0];
+        value = split[1];
+      }
+    } else {
+      tokenizer.nextToken();
+      value = tokenizer.sval;
+    }
+    if ( variableSpace != null ) {
+      key = variableSpace.environmentSubstitute( key );
+      value = variableSpace.environmentSubstitute( value );
+    }
+    args.add( key + EQUALS + value );
   }
 
   /**
