@@ -42,9 +42,11 @@ import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.HadoopConfigurationLocator;
 import org.pentaho.hadoop.shim.api.ActiveHadoopConfigurationLocator;
+import org.pentaho.hadoop.shim.api.ShimProperties;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -162,7 +164,20 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   protected HadoopConfigurationProvider initializeHadoopConfigurationProvider( FileObject hadoopConfigurationsDir )
     throws ConfigurationException {
     final String activeConfigurationId = getWillBeActiveConfigurationId();
-    HadoopConfigurationLocator locator = new HadoopConfigurationLocator();
+    HadoopConfigurationLocator locator = new HadoopConfigurationLocator() {
+      @Override
+      protected ClassLoader createConfigurationLoader( FileObject root, ClassLoader parent, List<URL> classpathUrls,
+          ShimProperties configurationProperties, String... ignoredClasses ) throws ConfigurationException {
+        ClassLoader classLoader =
+            super.createConfigurationLoader( root, parent, classpathUrls, configurationProperties, ignoredClasses );
+
+        for ( HadoopConfigurationListener listener : hadoopConfigurationListeners ) {
+          listener.onClassLoaderAvailable( classLoader );
+        }
+
+        return classLoader;
+      }
+    };
     locator.init( hadoopConfigurationsDir, new ActiveHadoopConfigurationLocator() {
       @Override public String getActiveConfigurationId() throws ConfigurationException {
         return activeConfigurationId;

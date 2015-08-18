@@ -65,4 +65,8 @@ public class PigServiceFactoryLoader implements HadoopConfigurationListener {
   @Override public void onConfigurationClose( HadoopConfiguration hadoopConfiguration ) {
     shimBridgingServiceTracker.unregister( hadoopConfiguration );
   }
+
+  @Override public void onClassLoaderAvailable( ClassLoader classLoader ) {
+    // Noop
+  }
 }
