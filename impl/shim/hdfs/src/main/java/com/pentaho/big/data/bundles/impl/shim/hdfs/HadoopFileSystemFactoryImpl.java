@@ -63,7 +63,7 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
     String fsDefault;
     //TODO: AUTH
     if ( namedCluster.isMapr() ) {
-      fsDefault = "mapr:///";
+      fsDefault = "maprfs:///";
     } else {
       fsDefault = "hdfs://" + namedCluster.getHdfsHost();
       if ( !Const.isEmpty( namedCluster.getHdfsPort() ) ) {
