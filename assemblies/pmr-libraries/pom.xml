@@ -608,7 +608,7 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.json.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.mnode.mstor</groupId>
@@ -733,112 +733,112 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>flute</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libbase</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libdocbundle</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libfonts</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libformat</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libformula</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libloader</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libpixie</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>librepository</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libserializer</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libswing</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-library</groupId>
       <artifactId>libxml</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>metastore</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.metastore.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>mondrian</artifactId>
-      <version>3.11-SNAPSHOT</version>
+      <version>${dependency.mondrian.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-database-model</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-database-model.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-hive-jdbc-shim</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-hadoop-hive-jdbc-shim.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.hadoop-shims-api.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metadata</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-metadata.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-registry</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.pentaho-registry.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-reporting-engine</groupId>
       <artifactId>pentaho-reporting-engine-classic-core</artifactId>
-      <version>6.0-SNAPSHOT</version>
+      <version>${dependency.reporting-engine.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
