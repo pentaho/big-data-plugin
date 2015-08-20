@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -220,7 +220,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
       namedCluterTemplate.initializeVariablesFrom( null );
       getNamedClusterDialog().setNamedCluster( namedCluterTemplate );
       getNamedClusterDialog().setNewClusterCheck( true );
-      
+
       String namedClusterName = getNamedClusterDialog().open();
       if ( namedClusterName != null && !namedClusterName.equals( "" ) ) {
         // See if this named cluster exists...

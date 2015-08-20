@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -53,14 +53,14 @@ public class HadoopClusterDelegate extends SpoonDelegate {
       NamedClusterDialog namedClusterDialog = new NamedClusterDialog( shell , ncCopy );
       namedClusterDialog.setNewClusterCheck( true );
       String newname = namedClusterDialog.open();
-      
+
       if ( newname != null ) { // null: CANCEL
         saveNamedCluster( metaStore, ncCopy );
         spoon.refreshTree();
       }
     }
-  }  
-  
+  }
+
   public void delNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     if ( metaStore == null ) {
       metaStore = Spoon.getInstance().getMetaStore();
@@ -69,7 +69,7 @@ public class HadoopClusterDelegate extends SpoonDelegate {
     spoon.refreshTree();
     spoon.setShellText();
   }
-  
+
   public String editNamedCluster( IMetaStore metaStore, NamedCluster namedCluster, Shell shell ) {
     if ( metaStore == null ) {
       metaStore = Spoon.getInstance().getMetaStore();
@@ -84,7 +84,7 @@ public class HadoopClusterDelegate extends SpoonDelegate {
       if ( namedClusterDialog.getNamedCluster() != null ) {
         return namedClusterDialog.getNamedCluster().getName();
       }
-    }    
+    }
     return null;
   }
 
@@ -92,27 +92,27 @@ public class HadoopClusterDelegate extends SpoonDelegate {
     if ( metaStore == null ) {
       metaStore = Spoon.getInstance().getMetaStore();
     }
-    
+
     NamedCluster nc = NamedClusterManager.getInstance().getClusterTemplate();
-    
+
     NamedClusterDialog namedClusterDialog = new NamedClusterDialog( shell , nc );
     namedClusterDialog.setNewClusterCheck( true );
     String result = namedClusterDialog.open();
-    
+
     if ( result != null ) {
       if ( variableSpace != null ) {
         nc.shareVariablesWith( (VariableSpace) variableSpace );
       } else {
         nc.initializeVariablesFrom( null );
       }
-  
+
       saveNamedCluster( metaStore, nc );
-      spoon.refreshTree();    
+      spoon.refreshTree();
       return nc.getName();
     }
     return null;
   }
-  
+
   private void deleteNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     try {
       if ( NamedClusterManager.getInstance().read( namedCluster.getName(), metaStore ) != null ) {
@@ -124,7 +124,7 @@ public class HadoopClusterDelegate extends SpoonDelegate {
           BaseMessages.getString( PKG, "Spoon.Dialog.ErrorDeletingNamedCluster.Message", namedCluster.getName() ), e );
     }
   }
-  
+
   private void saveNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     try {
       NamedClusterManager.getInstance().create( namedCluster, metaStore );
@@ -133,6 +133,6 @@ public class HadoopClusterDelegate extends SpoonDelegate {
           BaseMessages.getString( PKG, "Spoon.Dialog.ErrorSavingNamedCluster.Title" ),
           BaseMessages.getString( PKG, "Spoon.Dialog.ErrorSavingNamedCluster.Message", namedCluster.getName() ), e );
     }
-  }  
-  
+  }
+
 }

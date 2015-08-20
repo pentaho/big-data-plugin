@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -55,5 +55,5 @@ public class UINamedClusterObjectRegistry {
     } catch ( Exception e ) {
       throw new UIObjectCreationException( "Unable to instantiate object for " + namedClusterClass );
     }
-  }  
+  }
 }

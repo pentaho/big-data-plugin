@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -43,12 +43,12 @@ import org.pentaho.metastore.stores.xml.XmlMetaStore;
 public class NamedClusterTest {
 
   private IMetaStore metaStore = null;
-  
+
   @Before
   public void before() throws IOException, MetaStoreException {
     File f = File.createTempFile( "NamedClusterTest", "before" );
     f.deleteOnExit();
-    
+
     metaStore = new XmlMetaStore( f.getParent() );
   }
 
@@ -65,11 +65,11 @@ public class NamedClusterTest {
     nc.setName( name );
     return nc;
   }
-  
+
   @Test
   public void testGetClusterTemplate() {
     NamedClusterManager manager = NamedClusterManager.getInstance();
-    
+
     // add config, test that we can look it up
     String name = "" + System.currentTimeMillis();
     NamedCluster nc = createNamedCluster( name );
@@ -82,7 +82,7 @@ public class NamedClusterTest {
   public void testEmptyStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
     assertEquals( 0, manager.list( metaStore ).size() );
-  }  
+  }
 
   @Test
   public void testLargeStore() throws MetaStoreException {
@@ -92,15 +92,15 @@ public class NamedClusterTest {
       manager.create( createNamedCluster( "config-" + i ), metaStore );
     }
     assertEquals( count, manager.list( metaStore ).size() );
-  }  
-  
+  }
+
   @Test
   public void testCreateUsingMetaStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
     manager.create( createNamedCluster( "config-1" ), metaStore );
     assertNotNull( manager.read( "config-1", metaStore ) );
   }
-  
+
   @Test
   public void testUpdateUsingMetaStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
@@ -113,7 +113,7 @@ public class NamedClusterTest {
     assertNotNull( nc );
     assertEquals( "test-hdfs-host", nc.getHdfsHost() );
   }
-  
+
   @Test
   public void testDeleteUsingMetaStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
@@ -121,12 +121,12 @@ public class NamedClusterTest {
     String name = "" + System.currentTimeMillis();
     NamedCluster nc = createNamedCluster( name );
     manager.create( nc, metaStore );
-    
+
     assertNotNull( manager.read( name, metaStore ) );
     manager.delete( name, metaStore );
     assertEquals( null, manager.read( name, metaStore ) );
   }
-  
+
   @Test
   public void testListUsingMetaStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
@@ -152,7 +152,7 @@ public class NamedClusterTest {
     assertTrue( list.contains( name ) );
     assertNotNull( list );
   }
-  
+
   @Test
   public void testContainsUsingMetaStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
@@ -163,7 +163,7 @@ public class NamedClusterTest {
 
     assertNotNull( manager.contains( name, metaStore ) );
   }
-  
+
   @Test
   public void testTemplateIsCloned() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
@@ -171,12 +171,12 @@ public class NamedClusterTest {
     String name = "" + System.currentTimeMillis();
     NamedCluster nc = createNamedCluster( name );
     manager.setClusterTemplate( nc );
-    
+
     NamedCluster clone = manager.getClusterTemplate();
     assertNotNull( clone );
     clone.setName( "test-changed" );
     assertNotSame( clone, nc.getName() );
     assertEquals( name, nc.getName() );
   }
-  
+
 }

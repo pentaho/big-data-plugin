@@ -3,7 +3,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -1406,7 +1406,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     /**
      * Create a new Directory Browser Adapter that reads/sets the text of {@code widget} to the directory chosen.
-     * 
+     *
      * @param widget
      *          Text widget linked to the VFS browser
      */
@@ -1986,7 +1986,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   /**
    * Read the data from the TextFileInputMeta object and show it in this dialog.
-   * 
+   *
    * @param meta
    *          The TextFileInputMeta object to obtain the data from.
    */

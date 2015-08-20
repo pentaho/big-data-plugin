@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -56,7 +56,7 @@ public class NamedClusterWidget extends Composite {
 
     PropsUI props = PropsUI.getInstance();
     props.setLook( this );
-    
+
     RowLayout layout = new RowLayout( SWT.HORIZONTAL );
     //layout.center = true; //TODO EC:FIX THIS
     setLayout( layout );
@@ -66,7 +66,7 @@ public class NamedClusterWidget extends Composite {
       nameLabel.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Title" ) + ":" );
       props.setLook( nameLabel );
     }
-    
+
     nameClusterCombo = new Combo( this, SWT.DROP_DOWN | SWT.READ_ONLY );
     nameClusterCombo.setLayoutData( new RowData( 150, SWT.DEFAULT ) );
 
@@ -107,7 +107,7 @@ public class NamedClusterWidget extends Composite {
         namedClusters = NamedClusterManager.getInstance().list( spoon.getMetaStore() );
       } catch ( MetaStoreException e ) {
       }
-      
+
       int index = nameClusterCombo.getSelectionIndex();
       if ( index > -1 && namedClusters != null && namedClusters.size() > 0 ) {
         ncDelegate.editNamedCluster( spoon.getMetaStore(), namedClusters
