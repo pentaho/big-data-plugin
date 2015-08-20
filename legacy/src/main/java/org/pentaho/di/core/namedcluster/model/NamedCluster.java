@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -38,10 +38,10 @@ import org.pentaho.metastore.persist.MetaStoreElementType;
 public class NamedCluster implements Cloneable, VariableSpace {
 
   private VariableSpace variables = new Variables();
-  
+
   @MetaStoreAttribute
   private String name;
-  
+
   @MetaStoreAttribute
   private String hdfsHost;
   @MetaStoreAttribute
@@ -50,7 +50,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private String hdfsUsername;
   @MetaStoreAttribute ( password=true )
   private String hdfsPassword;
-  
+
   @MetaStoreAttribute
   private String jobTrackerHost;
   @MetaStoreAttribute
@@ -60,16 +60,16 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private String zooKeeperHost;
   @MetaStoreAttribute
   private String zooKeeperPort;
-  
+
   @MetaStoreAttribute
   private String oozieUrl;
 
   @MetaStoreAttribute
   private boolean mapr;
-  
+
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
-  
+
   // Comparator for sorting clusters alphabetically by name
   public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
     @Override
@@ -77,15 +77,15 @@ public class NamedCluster implements Cloneable, VariableSpace {
       return c1.getName().compareToIgnoreCase( c2.getName() );
     }
   };
-  
+
   public NamedCluster() {
-    initializeVariablesFrom( null );    
+    initializeVariablesFrom( null );
   }
 
   public void setName( String name ) {
     this.name = name;
   }
-  
+
   public String getName() {
     return name;
   }
@@ -151,8 +151,8 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void injectVariables( Map<String, String> prop ) {
     variables.injectVariables( prop );
-  }  
-  
+  }
+
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
     this.setHdfsHost( nc.getHdfsHost() );
@@ -166,8 +166,8 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.setOozieUrl( nc.getOozieUrl() );
     this.setMapr( nc.isMapr() );
     this.lastModifiedDate = System.currentTimeMillis();
-  }  
-  
+  }
+
   public NamedCluster clone() {
     NamedCluster nc = new NamedCluster();
     nc.replaceMeta( this );
@@ -197,8 +197,8 @@ public class NamedCluster implements Cloneable, VariableSpace {
       return false;
     }
     return true;
-  }  
-  
+  }
+
   public String getHdfsHost() {
     return hdfsHost;
   }
@@ -230,7 +230,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   public void setHdfsPassword( String hdfsPassword ) {
     this.hdfsPassword = hdfsPassword;
   }
-  
+
   public String getJobTrackerHost() {
     return jobTrackerHost;
   }
@@ -253,16 +253,16 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void setZooKeeperHost( String zooKeeperHost ) {
     this.zooKeeperHost = zooKeeperHost;
-  }  
-  
+  }
+
   public String getZooKeeperPort() {
     return zooKeeperPort;
   }
 
   public void setZooKeeperPort( String zooKeeperPort ) {
     this.zooKeeperPort = zooKeeperPort;
-  } 
-  
+  }
+
   public String getOozieUrl() {
     return oozieUrl;
   }
@@ -274,17 +274,17 @@ public class NamedCluster implements Cloneable, VariableSpace {
   public long getLastModifiedDate() {
     return lastModifiedDate;
   }
-  
+
   public void setLastModifiedDate( long lastModifiedDate ) {
     this.lastModifiedDate = lastModifiedDate;
-  } 
+  }
 
   public void setMapr( boolean mapr ) {
     this.mapr = mapr;
   }
-  
+
   public boolean isMapr() {
     return mapr;
   }
-  
+
 }

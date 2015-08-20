@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -64,11 +64,11 @@ public class NamedClusterDialog extends Dialog {
   private static Class<?> PKG = NamedClusterDialog.class; // for i18n purposes, needed by Translator2!!
 
   private static final int RESULT_NO = 1;
-  
+
   private Shell shell;
   private PropsUI props;
   private Button wOK, wCancel;
-  
+
   private int margin;
 
   private NamedCluster originalNamedCluster;
@@ -84,7 +84,7 @@ public class NamedClusterDialog extends Dialog {
   public NamedClusterDialog( Shell parent, NamedCluster namedCluster ) {
     super( parent );
     props = PropsUI.getInstance();
-    
+
     this.namedCluster = namedCluster;
     this.originalNamedCluster = namedCluster.clone();
   }
@@ -96,8 +96,8 @@ public class NamedClusterDialog extends Dialog {
   public void setNamedCluster( NamedCluster namedCluster ) {
     this.namedCluster = namedCluster;
     this.originalNamedCluster = namedCluster.clone();
-  }  
-  
+  }
+
   public boolean isNewClusterCheck() {
     return newClusterCheck;
   }
@@ -105,12 +105,12 @@ public class NamedClusterDialog extends Dialog {
   public void setNewClusterCheck(boolean newClusterCheck) {
     this.newClusterCheck = newClusterCheck;
   }
-  
+
   public void dispose() {
     props.setScreen( new WindowProperty( shell ) );
     shell.dispose();
   }
-  
+
   public String open() {
     Shell parent = getParent();
     Display display = parent.getDisplay();
@@ -138,10 +138,10 @@ public class NamedClusterDialog extends Dialog {
     fd.left = new FormAttachment(0, 0);
     fd.right = new FormAttachment(100, 0);
     namedClusterComposite.setLayoutData( fd );
-    
+
     shell.setSize( 431, 630 );
     shell.setMinimumSize( 431, 630 );
-    
+
     // Buttons
     wOK = new Button( shell, SWT.PUSH );
     wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
@@ -151,10 +151,10 @@ public class NamedClusterDialog extends Dialog {
 
     Button[] buttons = new Button[] { wOK, wCancel };
     BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, null );
-    
+
     // Create a horizontal separator
     Label bottomSeparator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    
+
     int bottomSeparatorOffset = ( wOK.getBounds().height + Const.FORM_MARGIN );
     fd = new FormData();
     fd.bottom = new FormAttachment( 100, -bottomSeparatorOffset );
@@ -190,7 +190,7 @@ public class NamedClusterDialog extends Dialog {
     }
     return result;
   }
-  
+
   private void cancel() {
     result = null;
     dispose();
@@ -230,5 +230,5 @@ public class NamedClusterDialog extends Dialog {
     }
     dispose();
   }
-  
+
 }

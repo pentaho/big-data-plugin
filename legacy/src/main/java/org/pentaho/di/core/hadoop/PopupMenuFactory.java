@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -39,7 +39,7 @@ import org.pentaho.di.ui.spoon.Spoon;
 public class PopupMenuFactory {
 
   private static final int RESULT_YES = 0;
-  
+
   private Spoon spoon = null;
   private static Class<?> PKG = PopupMenuFactory.class;
   private HadoopClusterDelegate ncDelegate = null;

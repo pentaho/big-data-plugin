@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -42,11 +42,11 @@ import org.pentaho.metastore.util.PentahoDefaults;
 public class NamedClusterManager {
 
   private static NamedClusterManager instance = new NamedClusterManager();
-  
+
   private Map<IMetaStore, MetaStoreFactory<NamedCluster>> factoryMap = new HashMap<IMetaStore, MetaStoreFactory<NamedCluster>>();
-  
+
   private NamedCluster clusterTemplate;
-  
+
   private NamedClusterManager() {
   }
 
@@ -60,14 +60,14 @@ public class NamedClusterManager {
     }
     return factoryMap.get( metastore );
   }
-  
+
   /**
    * This method returns the named cluster template used to configure new NamedClusters.
-   * 
+   *
    * Note that this method returns a clone (deep) of the template.
-   * 
+   *
    * @return the NamedCluster template
-   */  
+   */
   public NamedCluster getClusterTemplate() {
     if ( clusterTemplate == null ) {
       clusterTemplate = new NamedCluster();
@@ -87,16 +87,16 @@ public class NamedClusterManager {
 
   /**
    * This method will set the cluster template used when creating new NamedClusters
-   * 
+   *
    * @param clusterTemplate the NamedCluster template to set
-   */  
+   */
   public void setClusterTemplate( NamedCluster clusterTemplate ) {
     this.clusterTemplate = clusterTemplate;
   }
-  
+
   /**
    * Saves a named cluster in the provided IMetaStore
-   * 
+   *
    * @param namedCluster the NamedCluster to save
    * @param metastore the IMetaStore to operate with
    * @throws MetaStoreException
@@ -105,10 +105,10 @@ public class NamedClusterManager {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     factory.saveElement( namedCluster );
   }
-  
+
   /**
    * Reads a NamedCluster from the provided IMetaStore
-   * 
+   *
    * @param clusterName the name of the NamedCluster to load
    * @param metastore the IMetaStore to operate with
    * @return the NamedCluster that was loaded
@@ -122,7 +122,7 @@ public class NamedClusterManager {
 
   /**
    * Updates a NamedCluster in the provided IMetaStore
-   * 
+   *
    * @param namedCluster the NamedCluster to update
    * @param metastore the IMetaStore to operate with
    * @throws MetaStoreException
@@ -131,11 +131,11 @@ public class NamedClusterManager {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     factory.deleteElement( namedCluster.getName() );
     factory.saveElement( namedCluster );
-  }  
+  }
 
   /**
    * Deletes a NamedCluster from the provided IMetaStore
-   * 
+   *
    * @param clusterName the NamedCluster to delete
    * @param metastore the IMetaStore to operate with
    * @throws MetaStoreException
@@ -143,11 +143,11 @@ public class NamedClusterManager {
   public void delete( String clusterName, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     factory.deleteElement( clusterName );
-  }  
-  
+  }
+
   /**
    * This method lists the NamedCluster in the given IMetaStore
-   * 
+   *
    * @param metastore the IMetaStore to operate with
    * @return the list of NamedClusters in the provided IMetaStore
    * @throws MetaStoreException
@@ -155,11 +155,11 @@ public class NamedClusterManager {
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     return factory.getElements();
-  }  
-  
+  }
+
   /**
    * This method returns the list of NamedCluster names in the IMetaStore
-   * 
+   *
    * @param metastore the IMetaStore to operate with
    * @return the list of NamedCluster names (Strings)
    * @throws MetaStoreException
@@ -167,11 +167,11 @@ public class NamedClusterManager {
   public List<String> listNames( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     return factory.getElementNames();
-  }   
-  
+  }
+
   /**
    * This method checks if the NamedCluster exists in the metastore
-   * 
+   *
    * @param clusterName the name of the NamedCluster to check
    * @param metastore the IMetaStore to operate with
    * @return true if the NamedCluster exists in the given metastore
@@ -188,7 +188,7 @@ public class NamedClusterManager {
     }
     return false;
   }
-  
+
   /**
    * This method generates the URL from the specific NamedCluster using the specified scheme.
    *
@@ -279,13 +279,13 @@ public class NamedClusterManager {
         outgoingURL = clusterURL;
       } else if ( clusterURL != null ) {
         String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-        
+
         String fullyQualifiedIncomingURL = incomingURL;
         if ( !incomingURL.startsWith( scheme ) ) {
           fullyQualifiedIncomingURL = clusterURL + incomingURL;
           noVariablesURL = clusterURL + incomingURL.replaceAll( "[${}]", "/" );
         }
-        
+
         UrlFileNameParser parser = new UrlFileNameParser();
         FileName fileName = parser.parseUri( null, null, noVariablesURL );
         String root = fileName.getRootURI();
@@ -300,7 +300,7 @@ public class NamedClusterManager {
     }
     return outgoingURL;
   }
-  
+
   public NamedCluster getNamedClusterByName( String namedCluster, IMetaStore metastore ) {
     if ( metastore == null ) {
       return null;

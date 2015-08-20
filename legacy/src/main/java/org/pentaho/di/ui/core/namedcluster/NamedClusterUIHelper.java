@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -38,10 +38,10 @@ public class NamedClusterUIHelper {
     } catch ( MetaStoreException e ) {
       return new ArrayList<NamedCluster>();
     }
-  }  
-  
+  }
+
   public static NamedCluster getNamedCluster( String namedCluster ) throws MetaStoreException {
     return NamedClusterManager.getInstance().read( namedCluster, Spoon.getInstance().getMetaStore() );
-  }    
-  
+  }
+
 }

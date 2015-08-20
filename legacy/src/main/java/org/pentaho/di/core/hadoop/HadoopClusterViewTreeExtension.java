@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -58,7 +58,7 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
   private Spoon spoon = null;
   private HadoopClusterDelegate ncDelegate = null;
   private Image hadoopClusterImage = null;
-  private static Class<?> PKG = Spoon.class; 
+  private static Class<?> PKG = Spoon.class;
   public static final String
       STRING_NAMED_CLUSTERS =
       BaseMessages.getString( NamedClusterDialog.class, "NamedClusterDialog.STRING_NAMED_CLUSTERS" );
@@ -143,7 +143,7 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
 
     return string.toUpperCase().contains( filter.toUpperCase() );
   }
-  
+
   private Image getHadoopClusterImage( Display display ) {
     final SwtUniversalImage swtImage =
         SwtSvgImageUtil.getUniversalImage( display, getClass().getClassLoader(), "hadoop_clusters.svg" );
@@ -155,5 +155,5 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
     } );
     return image;
   }
-  
+
 }

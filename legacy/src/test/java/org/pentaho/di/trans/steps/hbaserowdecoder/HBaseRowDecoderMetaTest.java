@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -33,7 +33,7 @@ import org.pentaho.hbase.shim.api.Mapping;
 
 /**
  * @author Tatsiana_Kasiankova
- * 
+ *
  */
 public class HBaseRowDecoderMetaTest {
 
