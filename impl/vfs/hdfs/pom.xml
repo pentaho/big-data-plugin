@@ -15,14 +15,14 @@
     <name>Pentaho Community Edition Project: ${project.artifactId}</name>
 
     <properties>
-        <kettle-core.version>6.0-SNAPSHOT</kettle-core.version>
+        <dependency.kettle.revision>6.0-SNAPSHOT</dependency.kettle.revision>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>pentaho-kettle</groupId>
             <artifactId>kettle-core</artifactId>
-            <version>${kettle-core.version}</version>
+            <version>${dependency.kettle.revision}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
