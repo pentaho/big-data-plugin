@@ -214,8 +214,8 @@ public class SqoopUtilsTest {
   @Test
   public void parseCommandLine_custom_arguments_variables() throws Exception {
     VariableSpace variableSpace = new Variables();
-    variableSpace.setVariable("paramName", "mapred.job.name");
-    variableSpace.setVariable("jobName", "testJob");
+    variableSpace.setVariable( "paramName", "mapred.job.name" );
+    variableSpace.setVariable( "jobName", "testJob" );
     String s = "sqoop import -D ${paramName}=${jobName} -D parameter=value";
 
     List<String> args = SqoopUtils.parseCommandLine( s, variableSpace, true );
@@ -224,6 +224,15 @@ public class SqoopUtilsTest {
     assertEquals( "mapred.job.name=testJob", args.get( 1 ) );
     assertEquals( "-D", args.get( 2 ) );
     assertEquals( "parameter=value", args.get( 3 ) );
+  }
+
+  @Test
+  public void parseCommandLine_custom_arguments_D_no_space() throws Exception {
+    String s = "sqoop import -Dkey=value";
+    List<String> args = SqoopUtils.parseCommandLine( s, null, true );
+    assertEquals( 2, args.size() );
+    assertEquals( "-D", args.get( 0 ) );
+    assertEquals( "key=value", args.get( 1 ));
   }
 
   @Test
@@ -293,13 +302,13 @@ public class SqoopUtilsTest {
     };
 
     AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
-    customArguments.add(new PropertyEntry("key1", "value1"));
-    customArguments.add(new PropertyEntry("key2", "value2"));
-    config.setCustomArguments(customArguments);
+    customArguments.add( new PropertyEntry( "key1", "value1") );
+    customArguments.add( new PropertyEntry( "key2", "value2" ) );
+    config.setCustomArguments( customArguments );
 
     assertEquals(
         "-D key1=value1 -D key2=value2",
-        SqoopUtils.generateCommandLineString(config, null));
+        SqoopUtils.generateCommandLineString( config, null ) );
   }
 
   @Test
@@ -307,12 +316,53 @@ public class SqoopUtilsTest {
     SqoopConfig config = new SqoopConfig() {
     };
     AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
-    customArguments.add(new PropertyEntry("mapred.child.java.opts", "-Doracle.net.tns_admin=. -Doracle.net.wallet_location=."));
-    config.setCustomArguments(customArguments);
+    customArguments.add(
+        new PropertyEntry( "mapred.child.java.opts", "-Doracle.net.tns_admin=. -Doracle.net.wallet_location=." ) );
+    config.setCustomArguments( customArguments );
 
     assertEquals(
         "-D mapred.child.java.opts=\"-Doracle.net.tns_admin=. -Doracle.net.wallet_location=.\"",
-        SqoopUtils.generateCommandLineString(config, null));
+        SqoopUtils.generateCommandLineString( config, null ) );
+  }
+
+  @Test
+  public void generateCommandLineString_custom_options_with_null_key() throws Exception {
+    SqoopConfig config = new SqoopConfig() {
+    };
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( new PropertyEntry( null, "value" ));
+    config.setCustomArguments( customArguments );
+    assertEquals( "-D null=value", SqoopUtils.generateCommandLineString( config, null ) );
+  }
+
+  @Test
+  public void generateCommandLineString_custom_options_with_null_value() throws Exception {
+    SqoopConfig config = new SqoopConfig() {
+    };
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( new PropertyEntry( "key", null ) );
+    config.setCustomArguments( customArguments );
+    assertEquals( "-D key=null", SqoopUtils.generateCommandLineString( config, null ) );
+  }
+
+  @Test
+  public void generateCommandLineString_custom_options_ignore_empty() throws Exception {
+    SqoopConfig config = new SqoopConfig() {
+    };
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( new PropertyEntry( "", null ) );
+    config.setCustomArguments( customArguments );
+    assertEquals( "", SqoopUtils.generateCommandLineString( config, null ) );
+  }
+
+  @Test
+  public void generateCommandLineString_custom_options_quote_equals_in_value() throws Exception {
+    SqoopConfig config = new SqoopConfig() {
+    };
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( new PropertyEntry( "prop", "new=value" ) );
+    config.setCustomArguments( customArguments );
+    assertEquals( "-D prop=\"new=value\"", SqoopUtils.generateCommandLineString( config, null ) );
   }
 
   @Test
@@ -404,11 +454,11 @@ public class SqoopUtilsTest {
   public void configureFromCommandLine_custom_arguments() throws IOException, KettleException {
     SqoopConfig config = new SqoopConfig() {
     };
-    config.setCommandLine("sqoop import -D mapred.job.name=jobName -D parameter=value");
-    SqoopUtils.configureFromCommandLine(config, config.getCommandLine(), null);
+    config.setCommandLine( "sqoop import -D mapred.job.name=jobName -D parameter=value" );
+    SqoopUtils.configureFromCommandLine( config, config.getCommandLine(), null );
 
     AbstractModelList<PropertyEntry> entries = ( AbstractModelList<PropertyEntry> ) config.getCustomArguments();
-    assertEquals(2, entries.size());
+    assertEquals( 2, entries.size() );
   }
 
   @SuppressWarnings("unchecked")
@@ -416,12 +466,14 @@ public class SqoopUtilsTest {
   public void configureFromCommandLine_custom_arguments_quoted() throws IOException, KettleException {
     SqoopConfig config = new SqoopConfig() {
     };
-    config.setCommandLine("-D mapred.child.java.opts=\"-Doracle.net.tns_admin=. -Doracle.net.wallet_location=.\"");
-    SqoopUtils.configureFromCommandLine(config, config.getCommandLine(), null);
+    config.setCommandLine( "-D mapred.child.java.opts=\"-Doracle.net.tns_admin=. -Doracle.net.wallet_location=.\"" );
+    SqoopUtils.configureFromCommandLine( config, config.getCommandLine(), null );
 
     AbstractModelList<PropertyEntry> entries = config.getCustomArguments();
-    assertEquals(1, entries.size());
-    assertTrue(entries.contains(new PropertyEntry("mapred.child.java.opts", "-Doracle.net.tns_admin=. -Doracle.net.wallet_location=.")));
+    assertEquals( 1, entries.size() );
+    assertTrue(
+        entries.contains(
+            new PropertyEntry("mapred.child.java.opts", "-Doracle.net.tns_admin=. -Doracle.net.wallet_location=.")));
   }
 
   @Test

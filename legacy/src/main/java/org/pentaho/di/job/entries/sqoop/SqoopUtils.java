@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -67,6 +68,7 @@ public class SqoopUtils {
   private static final Pattern WHITESPACE_PATTERN = Pattern.compile( " " );
   private static final Pattern QUOTE_PATTERN = Pattern.compile( "\"" );
   private static final Pattern BACKSLASH_PATTERN = Pattern.compile( "\\\\" );
+  private static final Pattern EQUALS_PATTERN = Pattern.compile( "=" );
   // Simple map of Patterns that match an escape sequence and a replacement string to replace them with to escape them
   private static final Object[][] ESCAPE_SEQUENCES = new Object[][] {
     new Object[] { Pattern.compile( "\t" ), "\\\\t" }, new Object[] { Pattern.compile( "\b" ), "\\\\b" },
@@ -161,11 +163,12 @@ public class SqoopUtils {
               continue;
             }
           }
-          args.add( escapeEscapeSequences( s ) );
-          if ( ARG_D.equals(s) ) {
-            handleCustomOption( args, tokenizer, variableSpace );
+
+          if ( s.startsWith( ARG_D ) ) {
+            handleCustomOption( args, s, tokenizer, variableSpace );
             continue;
           }
+          args.add( escapeEscapeSequences( s ) );
         }
       }
     } finally {
@@ -456,7 +459,7 @@ public class SqoopUtils {
     final String orig = s;
     s = QUOTE_PATTERN.matcher( s ).replaceAll( "\\\\\"" );
     // Make sure the string is quoted if it contains a quote character, whitespace or has a backslash
-    if ( !orig.equals( s ) || WHITESPACE_PATTERN.matcher( s ).find() || BACKSLASH_PATTERN.matcher( s ).find() ) {
+    if ( !orig.equals( s ) || WHITESPACE_PATTERN.matcher( s ).find() || BACKSLASH_PATTERN.matcher( s ).find() || EQUALS_PATTERN.matcher( s ).find() ) {
       s = QUOTE + s + QUOTE;
     }
     return s;
@@ -510,6 +513,14 @@ public class SqoopUtils {
     String key = arg.getKey();
     String value = arg.getValue();
 
+    // ignore if both key and value are blank
+    if ( StringUtils.isBlank( key ) && StringUtils.isBlank( value ) ) {
+      return;
+    }
+
+    key = StringUtils.defaultIfBlank( arg.getKey(), "null" );
+    value = StringUtils.defaultIfBlank( arg.getValue(), "null" );
+
     if ( variableSpace != null ) {
       key = variableSpace.environmentSubstitute( key );
       value = variableSpace.environmentSubstitute( value );
@@ -519,10 +530,18 @@ public class SqoopUtils {
     args.add( key + EQUALS + quote( value ) );
   }
 
-  private static void handleCustomOption( List<String> args, StreamTokenizer tokenizer, VariableSpace variableSpace ) throws IOException {
-    tokenizer.nextToken();
-    String key = tokenizer.sval;
+  private static void handleCustomOption( List<String> args, String option, StreamTokenizer tokenizer, VariableSpace variableSpace ) throws IOException {
+    String key = null;
     String value = null;
+
+    args.add( ARG_D );
+    if ( ARG_D.equals( option ) ) {
+      tokenizer.nextToken();
+      key = tokenizer.sval;
+    } else {
+      key = option.substring( ARG_D.length() );
+    }
+
     if ( key.contains( EQUALS ) ) {
       if ( key.endsWith( EQUALS ) ) {
         key = key.substring( 0, key.length() - 1 );
