@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,14 +21,6 @@
  ******************************************************************************/
 
 package org.pentaho.di.ui.trans.steps.hadoopfileoutput;
-
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -84,6 +76,7 @@ import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -95,6 +88,14 @@ import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> BASE_PKG = TextFileOutputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
@@ -304,14 +305,14 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     fileLayout.marginHeight = 3;
     wFileComp.setLayout( fileLayout );
 
-    namedClusterWidget = new NamedClusterWidget( wFileComp, true );
+    namedClusterWidget = NamedClusterUIHelper.getNamedClusterUIFactory().createNamedClusterWidget( wFileComp, true );
     namedClusterWidget.initiate();
-    props.setLook( namedClusterWidget );
+    props.setLook( namedClusterWidget.getComposite() );
     FormData fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.left = new FormAttachment( 0, 235 );
-    namedClusterWidget.setLayoutData( fd );
+    namedClusterWidget.getComposite().setLayoutData( fd );
 
     namedClusterWidget.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent evt ) {
@@ -330,7 +331,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     props.setLook( wlFilename );
     fdlFilename = new FormData();
     fdlFilename.left = new FormAttachment( 0, 0 );
-    fdlFilename.top = new FormAttachment( namedClusterWidget, margin );
+    fdlFilename.top = new FormAttachment( namedClusterWidget.getComposite(), margin );
     fdlFilename.right = new FormAttachment( middle, -margin );
     wlFilename.setLayoutData( fdlFilename );
 
@@ -339,7 +340,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wbFilename.setText( BaseMessages.getString( BASE_PKG, "System.Button.Browse" ) );
     fdbFilename = new FormData();
     fdbFilename.right = new FormAttachment( 100, 0 );
-    fdbFilename.top = new FormAttachment( namedClusterWidget, 0 );
+    fdbFilename.top = new FormAttachment( namedClusterWidget.getComposite(), 0 );
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
@@ -347,7 +348,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
     fdFilename.left = new FormAttachment( middle, 0 );
-    fdFilename.top = new FormAttachment( namedClusterWidget, margin );
+    fdFilename.top = new FormAttachment( namedClusterWidget.getComposite(), margin );
     fdFilename.right = new FormAttachment( wbFilename, -margin );
     wFilename.setLayoutData( fdFilename );
 
@@ -624,9 +625,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
         String[] files = tfoi.getFiles( transMeta );
         if ( files != null && files.length > 0 ) {
           EnterSelectionDialog esd =
-              new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
-                  "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                  "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
+            new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
+              "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ), BaseMessages.getString( BASE_PKG,
+                "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
           esd.setViewOnly();
           esd.open();
         } else {
@@ -1549,8 +1550,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     String ncName = ( (HadoopFileOutputMeta) tfoi ).getSourceConfigurationName();
     String fileName = wFilename.getText();
 
-    NamedCluster c = getMetaStore() == null ? null :
-      namedClusterManager.getNamedClusterByName( ncName, getMetaStore() );
+    NamedCluster c = getMetaStore() == null ? null
+      : namedClusterManager.getNamedClusterByName( ncName, getMetaStore() );
     if ( c != null && c.isMapr() ) {
       fileName =
           namedClusterManager.processURLsubstitution(

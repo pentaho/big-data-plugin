@@ -49,6 +49,8 @@ public interface HadoopFileSystem {
 
   HadoopFileSystemPath getPath( String path );
 
+  HadoopFileSystemPath getHomeDirectory();
+
   HadoopFileSystemPath makeQualified( HadoopFileSystemPath hadoopFileSystemPath );
 
   void chmod( HadoopFileSystemPath hadoopFileSystemPath, int permissions ) throws IOException;

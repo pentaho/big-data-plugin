@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,13 +21,6 @@
  ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.sqoop;
-
-import static org.pentaho.di.job.BlockableJobConfig.JOB_ENTRY_NAME;
-import static org.pentaho.di.job.entries.sqoop.SqoopConfig.COMMAND_LINE;
-import static org.pentaho.di.job.entries.sqoop.SqoopConfig.TABLE;
-
-import java.util.Collection;
-import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -51,9 +44,9 @@ import org.pentaho.di.job.entries.sqoop.SqoopUtils;
 import org.pentaho.di.ui.core.database.dialog.DatabaseDialog;
 import org.pentaho.di.ui.core.database.dialog.DatabaseExplorerDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
+import org.pentaho.di.ui.core.namedcluster.HadoopClusterDelegate;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
-import org.pentaho.di.ui.delegates.HadoopClusterDelegate;
 import org.pentaho.di.ui.job.AbstractJobEntryController;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
@@ -71,6 +64,13 @@ import org.pentaho.ui.xul.util.AbstractModelList;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
+import java.util.Collection;
+import java.util.List;
+
+import static org.pentaho.di.job.BlockableJobConfig.JOB_ENTRY_NAME;
+import static org.pentaho.di.job.entries.sqoop.SqoopConfig.COMMAND_LINE;
+import static org.pentaho.di.job.entries.sqoop.SqoopConfig.TABLE;
+
 /**
  * Base functionality to support a Sqoop job entry controller that provides most of the common functionality to back a
  * XUL-based dialog.
@@ -81,11 +81,9 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
  */
 public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E extends AbstractSqoopJobEntry<S>>
     extends AbstractJobEntryController<S, E> {
-
-  protected static Class<?> PKG = AbstractSqoopJobEntry.class;
-  
   public static final String SELECTED_DATABASE_CONNECTION = "selectedDatabaseConnection";
   public static final String MODE_TOGGLE_LABEL = "modeToggleLabel";
+  protected static Class<?> PKG = AbstractSqoopJobEntry.class;
   private final String[] MODE_I18N_STRINGS = new String[] { "Sqoop.JobEntry.AdvancedOptions.Button.Text",
     "Sqoop.JobEntry.QuickSetup.Button.Text" };
   public static final String VALUE = "value";
@@ -172,7 +170,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     USE_ADVANCED_OPTIONS_CLUSTER.setVariable( "valid", "false" );
     Spoon spoon = Spoon.getInstance();
     if ( spoon != null ) {
-      ncDelegate = new HadoopClusterDelegate( spoon );
+      ncDelegate = NamedClusterUIHelper.getNamedClusterUIFactory().createHadoopClusterDelegate( spoon );
     }
   }
 
@@ -984,7 +982,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
     return initialFile;
   }
-  
+
   protected void extractNamedClusterFromVfsFileChooser() {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
     CustomVfsUiPanel currentPanel = dialog.getCurrentPanel();

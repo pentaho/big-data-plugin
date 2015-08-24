@@ -39,6 +39,7 @@ import org.pentaho.ui.xul.XulException;
 
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by bryan on 8/10/15.
@@ -63,12 +64,28 @@ public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
       log.logError( e.getMessage() );
     }
     HadoopConfigurationBootstrap.getInstance().setPrompter( new HadoopConfigurationPrompter() {
-      @Override public String getConfigurationSelection( List<HadoopConfigurationInfo> hadoopConfigurationInfos ) {
-        return new HadoopConfigurationsXulDialog( Spoon.getInstance().getShell(), hadoopConfigurationInfos ).open();
+      @Override
+      public String getConfigurationSelection( final List<HadoopConfigurationInfo> hadoopConfigurationInfos ) {
+        final Spoon spoon = Spoon.getInstance();
+        final AtomicReference<String> atomicReference = new AtomicReference<>();
+        spoon.getDisplay().syncExec( new Runnable() {
+          @Override public void run() {
+            atomicReference
+              .set( new HadoopConfigurationsXulDialog( spoon.getShell(), hadoopConfigurationInfos ).open() );
+          }
+        } );
+        return atomicReference.get();
       }
 
       @Override public boolean promptForRestart() {
-        return new HadoopConfigurationRestartXulDialog( Spoon.getInstance().getShell() ).open();
+        final AtomicReference<Boolean> atomicReference = new AtomicReference<>();
+        final Spoon spoon = Spoon.getInstance();
+        spoon.getDisplay().syncExec( new Runnable() {
+          @Override public void run() {
+            atomicReference.set( new HadoopConfigurationRestartXulDialog( spoon.getShell() ).open() );
+          }
+        } );
+        return atomicReference.get();
       }
     } );
   }

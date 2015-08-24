@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
@@ -59,12 +60,14 @@ public class JobEntryPigScriptExecutorTest {
   private String namedClusterHdfsPort;
   private String namedClusterJobTrackerPort;
   private String namedClusterJobTrackerHost;
+  private ClusterTester clusterTester;
 
   @Before
   public void setup() throws ClusterInitializationException {
     namedClusterService = mock( NamedClusterService.class );
     pigServiceLocator = mock( PigServiceLocator.class );
-    jobEntryPigScriptExecutor = new JobEntryPigScriptExecutor( namedClusterService, pigServiceLocator );
+    clusterTester = mock( ClusterTester.class );
+    jobEntryPigScriptExecutor = new JobEntryPigScriptExecutor( namedClusterService, clusterTester, pigServiceLocator );
 
     jobEntryName = "jobEntryName";
     namedClusterName = "namedClusterName";

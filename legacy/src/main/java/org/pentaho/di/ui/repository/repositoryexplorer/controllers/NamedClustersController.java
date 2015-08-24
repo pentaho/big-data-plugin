@@ -34,7 +34,8 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
-import org.pentaho.di.ui.core.namedcluster.dialog.NamedClusterDialog;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterDialog;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.repository.repositoryexplorer.ContextChangeVetoer;
 import org.pentaho.di.ui.repository.repositoryexplorer.ContextChangeVetoer.TYPE;
 import org.pentaho.di.ui.repository.repositoryexplorer.ContextChangeVetoerCollection;
@@ -46,7 +47,6 @@ import org.pentaho.di.ui.repository.repositoryexplorer.model.UINamedClusters;
 import org.pentaho.di.ui.repository.repositoryexplorer.model.UIObjectCreationException;
 import org.pentaho.di.ui.repository.repositoryexplorer.model.UINamedClusterObjectRegistry;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
@@ -100,7 +100,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
 
   private NamedClusterDialog getNamedClusterDialog() {
     if ( namedClusterDialog == null ) {
-      namedClusterDialog = new NamedClusterDialog( shell );
+      namedClusterDialog = NamedClusterUIHelper.getNamedClusterUIFactory().createNamedClusterDialog( shell );
     }
     return namedClusterDialog;
   }
@@ -356,7 +356,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
       if ( namedClusters != null && !namedClusters.isEmpty() ) {
         for ( Object obj : namedClusters ) {
           if ( obj != null && obj instanceof UINamedCluster ) {
-            UINamedCluster uiNamedCluster= (UINamedCluster) obj;
+            UINamedCluster uiNamedCluster = (UINamedCluster) obj;
 
             NamedCluster namedCluster = uiNamedCluster.getNamedCluster();
 
@@ -391,9 +391,9 @@ public class NamedClustersController extends LazilyInitializedController impleme
     }
   }
 
-  public void setSelectedNamedClusters( List<UINamedCluster> namedClusters) {
+  public void setSelectedNamedClusters( List<UINamedCluster> namedClusters ) {
     // SELECTION LOGIC
-    if ( !compareNamedClusters( namedClusters, this.selectedNamedClusters) ) {
+    if ( !compareNamedClusters( namedClusters, this.selectedNamedClusters ) ) {
       List<TYPE> pollResults = pollContextChangeVetoResults();
       if ( !contains( TYPE.CANCEL, pollResults ) ) {
         this.selectedNamedClusters = namedClusters;

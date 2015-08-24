@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.bigdata.api.pig.PigResult;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
@@ -105,13 +106,16 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    */
   protected HashMap<String, String> m_params = new HashMap<String, String>();
 
-  private NamedClusterService namedClusterService;
+  private final NamedClusterService namedClusterService;
 
-  private PigServiceLocator pigServiceLocator;
+  private final ClusterTester clusterTester;
+
+  private final PigServiceLocator pigServiceLocator;
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
-                                    PigServiceLocator pigServiceLocator ) {
+                                    ClusterTester clusterTester, PigServiceLocator pigServiceLocator ) {
     this.namedClusterService = namedClusterService;
+    this.clusterTester = clusterTester;
     this.pigServiceLocator = pigServiceLocator;
   }
 
@@ -405,11 +409,15 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     return namedClusterService;
   }
 
+  public ClusterTester getClusterTester() {
+    return clusterTester;
+  }
+
   /*
-         * (non-Javadoc)
-         *
-         * @see org.pentaho.di.job.entry.JobEntryInterface#execute(org.pentaho.di.core.Result, int)
-         */
+           * (non-Javadoc)
+           *
+           * @see org.pentaho.di.job.entry.JobEntryInterface#execute(org.pentaho.di.core.Result, int)
+           */
   public Result execute( final Result result, int arg1 ) throws KettleException {
 
     result.setNrErrors( 0 );
