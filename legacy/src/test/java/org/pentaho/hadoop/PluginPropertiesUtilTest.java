@@ -33,8 +33,22 @@ public class PluginPropertiesUtilTest {
     // This test will only success if using classes produced by the ant build
     PluginPropertiesUtil util = new PluginPropertiesUtil();
     assertNotNull(
-        "Version was not swapped out during build process. This will ALWAYS fail unless classes were built with ant script.",
-        util.getVersion() );
+      "Should never be null",
+      util.getVersion() );
+  }
+
+  @Test
+  public void testGetVersionFromNonDefaultLocation() {
+    PluginPropertiesUtil ppu = new PluginPropertiesUtil( "test-version.properties" );
+    String version = ppu.getVersion();
+    assertEquals( "X.Y.Z-TEST", version );
+  }
+
+  @Test
+  public void testGetVersionFromNonExistingLocation() {
+    PluginPropertiesUtil ppu = new PluginPropertiesUtil( "non-existing-version.properties" );
+    String version = ppu.getVersion();
+    assertEquals( "@VERSION@", version );
   }
 
 }

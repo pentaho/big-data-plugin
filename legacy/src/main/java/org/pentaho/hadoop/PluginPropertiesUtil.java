@@ -39,16 +39,22 @@ import java.util.Properties;
  */
 public class PluginPropertiesUtil {
   public static final String PLUGIN_PROPERTIES_FILE = "plugin.properties";
+  public static final String VERSION_PROPERTIES_FILE = "META-INF/version.properties";
   private static final String VERSION_REPLACE_STR = "@VERSION@";
-  /**
-   * Placeholder for the version string that is replaced during the ant build process. This is mangled here so we have
-   * something to compare against to determine if the replacement has occured.
-   */
-  private static final String VERSION_PLACEHOLDER = getVersionPlaceholder();
 
-  private static String getVersionPlaceholder() {
+  private final String VERSION_PLACEHOLDER;
+
+  public PluginPropertiesUtil() {
+    this( VERSION_PROPERTIES_FILE );
+  }
+
+  public PluginPropertiesUtil( String versionPropertiesFile ) {
+    VERSION_PLACEHOLDER = getVersionPlaceholder( versionPropertiesFile );
+  }
+
+  private static String getVersionPlaceholder( String versionPropertiesFile ) {
     try ( InputStream propertiesStream = PluginPropertiesUtil.class.getClassLoader().getResourceAsStream(
-      "META-INF/version.properties" ) ) {
+        versionPropertiesFile ) ) {
       Properties properties = new Properties();
       properties.load( propertiesStream );
       return properties.getProperty( "version", VERSION_REPLACE_STR );
@@ -95,11 +101,10 @@ public class PluginPropertiesUtil {
   }
 
   /**
-   * @return the version of this plugin or {@code null} if not set during the ant build process
+   * @return the version of this plugin
    */
   public String getVersion() {
     // This value is replaced during the ant build process (task: compile.pre)
-    String version = VERSION_REPLACE_STR;
-    return VERSION_PLACEHOLDER.equals( version ) ? null : version;
+    return VERSION_PLACEHOLDER;
   }
 }
