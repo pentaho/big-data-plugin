@@ -60,14 +60,6 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   }
 
   @Override
-  public String getAddColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-                                       String pk, boolean semicolon ) {
-
-    return "ALTER TABLE " + tablename + " ADD " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
-
-  }
-
-  @Override
   public String getDriverClass() {
 
     //  !!!  We will probably have to change this if we are providing our own driver,
@@ -148,17 +140,10 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   }
 
   @Override
-  public String getModifyColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
-                                          String pk, boolean semicolon ) {
-
-    return "ALTER TABLE " + tablename + " MODIFY " + getFieldDefinition( v, tk, pk, useAutoinc, true, false );
-  }
-
-  @Override
   public String getURL( String hostname, String port, String databaseName ) throws KettleDatabaseException {
 
     if ( Const.isEmpty( port ) ) {
-      Integer.toString( getDefaultDatabasePort() );
+      port = Integer.toString( getDefaultDatabasePort() );
     }
     String principal = getAttributes().getProperty( "principal" );
     String extraPrincipal =
@@ -176,112 +161,8 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
     return new String[]{ JAR_FILE };
   }
 
-  /**
-   * Build the SQL to count the number of rows in the passed table.
-   *
-   * @param tableName
-   * @return
-   */
-  @Override
-  public String getSelectCountStatement( String tableName ) {
-    return "select count(1) from " + tableName;
-  }
-
-  @Override
-  public String generateColumnAlias( int columnIndex, String suggestedName ) {
-    if ( isDriverVersion( 0, 6 ) ) {
-      return suggestedName;
-    } else {
-      // For version 0.5 and prior:
-      // Column aliases are currently not supported in Hive.  The default column alias
-      // generated is in the format '_col##' where ## = column index.  Use this format
-      // so the result can be mapped back correctly.
-      return "_col" + String.valueOf( columnIndex ); //$NON-NLS-1$
-    }
-  }
-
-  protected synchronized void initDriverInfo() {
-    Integer majorVersion = 0;
-    Integer minorVersion = 0;
-
-    try {
-      // Load the driver version number
-      Class<?> driverClass = Class.forName( DRIVER_CLASS_NAME ); //$NON-NLS-1$
-      if ( driverClass != null ) {
-        Driver driver = (Driver) driverClass.getConstructor().newInstance();
-        majorVersion = driver.getMajorVersion();
-        minorVersion = driver.getMinorVersion();
-      }
-    } catch ( Exception e ) {
-      // Failed to load the driver version, leave at the defaults
-    }
-
-    driverMajorVersion = majorVersion;
-    driverMinorVersion = minorVersion;
-  }
-
-  /**
-   * Check that the version of the driver being used is at least the driver you want. If you do not care about the minor
-   * version, pass in a 0 (The assumption being that the minor version will ALWAYS be 0 or greater)
-   *
-   * @return true: the version being used is equal to or newer than the one you requested false: the version being used
-   * is older than the one you requested
-   */
-  protected boolean isDriverVersion( int majorVersion, int minorVersion ) {
-    if ( driverMajorVersion == null ) {
-      initDriverInfo();
-    }
-
-    if ( majorVersion < driverMajorVersion ) {
-      // Driver major version is newer than the requested version
-      return true;
-    } else if ( majorVersion == driverMajorVersion ) {
-      // Driver major version is the same as requested, check the minor version
-      if ( minorVersion <= driverMinorVersion ) {
-        // Driver minor version is the same, or newer than requested
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Quotes around table names are not valid Hive QL
-   * <p/>
-   * return an empty string for the start quote
-   */
-  public String getStartQuote() {
-    return "";
-  }
-
-  /**
-   * Quotes around table names are not valid Hive QL
-   * <p/>
-   * return an empty string for the end quote
-   */
-  public String getEndQuote() {
-    return "";
-  }
-
   @Override
   public int getDefaultDatabasePort() {
     return DEFAULT_PORT;
-  }
-
-  /**
-   * @return a list of table types to retrieve tables for the database
-   */
-  @Override
-  public String[] getTableTypes() {
-    return null;
-  }
-
-  /**
-   * @return a list of table types to retrieve views for the database
-   */
-  @Override
-  public String[] getViewTypes() {
-    return new String[]{ "VIEW", "VIRTUAL_VIEW" };
   }
 }
