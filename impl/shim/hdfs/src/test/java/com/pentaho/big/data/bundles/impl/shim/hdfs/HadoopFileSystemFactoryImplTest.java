@@ -81,7 +81,7 @@ public class HadoopFileSystemFactoryImplTest {
   public void testCreateMapr() throws IOException {
     when( namedCluster.isMapr() ).thenReturn( true );
     HadoopFileSystem hadoopFileSystem = hadoopFileSystemFactory.create( namedCluster );
-    verify( configuration ).set( HadoopFileSystem.FS_DEFAULT_NAME, "mapr:///" );
+    verify( configuration ).set( HadoopFileSystem.FS_DEFAULT_NAME, "maprfs:///" );
     assertNotNull( hadoopFileSystem );
   }
 
