@@ -67,6 +67,5 @@ public class SpoonExtensionPoint implements SpoonPluginInterface {
 
   public SpoonPerspective getPerspective() {
     return null;
-  }  
-  
+  }
 }

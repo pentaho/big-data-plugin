@@ -311,9 +311,6 @@
         <version>${plugin.org.apache.maven.plugins.maven-surefire-plugin.version}</version>
         <configuration>
           <testFailureIgnore>true</testFailureIgnore>
-          <forkCount>3</forkCount>
-          <reuseForks>false</reuseForks>
-          <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
         </configuration>
       </plugin>
     </plugins>

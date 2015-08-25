@@ -88,7 +88,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     rep.saveStepAttribute( id_transformation, id_step, i, SOURCE_CONFIGURATION_NAME, namedCluster );
   }
 
-  public String loadUrl( String url, String ncName, IMetaStore metastore, Map<String,String> mappings ) {
+  public String loadUrl( String url, String ncName, IMetaStore metastore, Map<String, String> mappings ) {
     NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
     NamedCluster c = metastore == null ? null : namedClusterManager.getNamedClusterByName( ncName, metastore );

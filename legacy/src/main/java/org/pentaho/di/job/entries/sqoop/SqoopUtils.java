@@ -217,7 +217,7 @@ public class SqoopUtils {
 
       if ( ARG_D.equals( arg ) ) {
         int index = value.indexOf( EQUALS );
-        String customArg = value.substring(0, index);
+        String customArg = value.substring( 0, index );
         String customValue = value.substring( index + 1 );
 
         if ( variableSpace != null ) {

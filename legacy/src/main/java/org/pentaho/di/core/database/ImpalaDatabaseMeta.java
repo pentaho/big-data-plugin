@@ -22,8 +22,6 @@
 
 package org.pentaho.di.core.database;
 
-import java.sql.Driver;
-
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
