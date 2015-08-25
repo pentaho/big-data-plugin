@@ -48,7 +48,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private String hdfsPort;
   @MetaStoreAttribute
   private String hdfsUsername;
-  @MetaStoreAttribute ( password=true )
+  @MetaStoreAttribute ( password = true )
   private String hdfsPassword;
 
   @MetaStoreAttribute

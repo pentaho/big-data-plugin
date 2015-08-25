@@ -56,7 +56,7 @@ public class NamedClusterManager {
 
   private MetaStoreFactory<NamedCluster> getMetaStoreFactory( IMetaStore metastore ) {
     if ( factoryMap.get( metastore ) == null ) {
-     factoryMap.put( metastore, new MetaStoreFactory<NamedCluster>( NamedCluster.class, metastore, PentahoDefaults.NAMESPACE ) );
+      factoryMap.put( metastore, new MetaStoreFactory<NamedCluster>( NamedCluster.class, metastore, PentahoDefaults.NAMESPACE ) );
     }
     return factoryMap.get( metastore );
   }
@@ -275,7 +275,7 @@ public class NamedClusterManager {
       String clusterURL = generateURL( scheme, clusterName, metastore, variableSpace );
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
-      } else if ( incomingURL.equals("/") ) {
+      } else if ( incomingURL.equals( "/" ) ) {
         outgoingURL = clusterURL;
       } else if ( clusterURL != null ) {
         String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );

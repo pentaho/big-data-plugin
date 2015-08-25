@@ -85,8 +85,9 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
 
-    NamedCluster c = metastore == null ? null :
-      namedClusterManager.getNamedClusterByName( sourceConfigurationName, metastore );
+    NamedCluster c = metastore == null ? null
+      : namedClusterManager.getNamedClusterByName( sourceConfigurationName, metastore );
+
     if ( c != null && c.isMapr() ) {
       url =
           namedClusterManager.processURLsubstitution(
@@ -110,8 +111,9 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
 
-    NamedCluster c = rep.getMetaStore() == null ? null :
-      namedClusterManager.getNamedClusterByName( sourceConfigurationName, rep.getMetaStore() );
+    NamedCluster c = rep.getMetaStore() == null ? null
+      : namedClusterManager.getNamedClusterByName( sourceConfigurationName, rep.getMetaStore() );
+
     if ( c != null && c.isMapr() ) {
       url =
           namedClusterManager.processURLsubstitution(

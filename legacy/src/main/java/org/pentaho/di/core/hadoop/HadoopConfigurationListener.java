@@ -28,7 +28,7 @@ import org.pentaho.hadoop.shim.HadoopConfiguration;
  * Created by bryan on 6/8/15.
  */
 public interface HadoopConfigurationListener {
-  void onClassLoaderAvailable ( ClassLoader classLoader );
+  void onClassLoaderAvailable( ClassLoader classLoader );
 
   void onConfigurationOpen( HadoopConfiguration hadoopConfiguration, boolean defaultConfiguration );
 

@@ -316,7 +316,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
       boolean showFileScheme, String defaultScheme ) throws KettleFileException {
     return browseVfs( root, initial, dialogMode, schemeRestrictions, showFileScheme, defaultScheme, null );
   }
-  
+
   protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String[] schemeRestrictions,
       boolean showFileScheme, String defaultScheme, NamedCluster namedCluster ) throws KettleFileException {
     return browseVfs( root, initial, dialogMode, schemeRestrictions,  showFileScheme, defaultScheme, namedCluster, true, true );
@@ -355,8 +355,8 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
       throw new KettleFileException( e );
     } catch ( FileSystemException e ) {
       throw new KettleFileException( e );
-    }    
-  }  
+    }
+  }
 
   protected String[] getFileFilters() {
     return DEFAULT_FILE_FILTERS;
