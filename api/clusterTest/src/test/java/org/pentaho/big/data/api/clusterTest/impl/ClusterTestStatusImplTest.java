@@ -38,36 +38,56 @@ import static org.mockito.Mockito.mock;
  */
 public class ClusterTestStatusImplTest {
   private List<ClusterTestModuleResults> clusterTestModuleResults;
-  private boolean done;
   private ClusterTestStatusImpl clusterTestStatus;
+  private int testsDone;
+  private int testsRunning;
+  private int testsOutstanding;
+  private boolean done;
 
   @Before
   public void setup() {
     clusterTestModuleResults = mock( List.class );
+    testsDone = 1011;
+    testsRunning = 11213;
+    testsOutstanding = 12213;
     done = true;
     initStatus();
   }
 
   private void initStatus() {
-    clusterTestStatus = new ClusterTestStatusImpl( clusterTestModuleResults, done );
+    clusterTestStatus =
+      new ClusterTestStatusImpl( clusterTestModuleResults, testsDone, testsRunning, testsOutstanding, done );
   }
 
   @Test
   public void testConstructor() {
     assertEquals( clusterTestModuleResults, clusterTestStatus.getModuleResults() );
     assertTrue( clusterTestStatus.isDone() );
+    assertEquals( testsDone, clusterTestStatus.getTestsDone() );
+    assertEquals( testsRunning, clusterTestStatus.getTestsRunning() );
+    assertEquals( testsOutstanding, clusterTestStatus.getTestsOutstanding() );
     done = false;
     initStatus();
     assertEquals( clusterTestModuleResults, clusterTestStatus.getModuleResults() );
     assertFalse( clusterTestStatus.isDone() );
+    assertEquals( testsDone, clusterTestStatus.getTestsDone() );
+    assertEquals( testsRunning, clusterTestStatus.getTestsRunning() );
+    assertEquals( testsOutstanding, clusterTestStatus.getTestsOutstanding() );
   }
 
   @Test
   public void testToString() {
     assertTrue( clusterTestStatus.toString().contains( clusterTestModuleResults.toString() ) );
-    assertTrue( clusterTestStatus.toString().contains( "done=true" ) );
+    assertTrue( clusterTestStatus.toString().contains( Integer.toString( testsDone ) ) );
+    assertTrue( clusterTestStatus.toString().contains( Integer.toString( testsRunning ) ) );
+    assertTrue( clusterTestStatus.toString().contains( Integer.toString( testsOutstanding ) ) );
+    assertTrue( clusterTestStatus.toString().contains( "done=" + done ) );
     done = false;
     initStatus();
-    assertTrue( clusterTestStatus.toString().contains( "done=false" ) );
+    assertTrue( clusterTestStatus.toString().contains( clusterTestModuleResults.toString() ) );
+    assertTrue( clusterTestStatus.toString().contains( Integer.toString( testsDone ) ) );
+    assertTrue( clusterTestStatus.toString().contains( Integer.toString( testsRunning ) ) );
+    assertTrue( clusterTestStatus.toString().contains( Integer.toString( testsOutstanding ) ) );
+    assertTrue( clusterTestStatus.toString().contains( "done=" + done ) );
   }
 }
