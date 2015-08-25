@@ -62,8 +62,10 @@ public class ClusterTestRunner {
   private final Map<String, ClusterTestResult> clusterTestResultMap;
   private final Set<String> outstandingTestIds;
   private final Set<String> runningTestIds;
+  private final int numberOfTests;
   public ClusterTestRunner( Collection<? extends ClusterTest> clusterTests, NamedCluster namedCluster,
                             ClusterTestProgressCallback clusterTestProgressCallback, ExecutorService executorService ) {
+    this.numberOfTests = clusterTests.size();
     clusterModuleList = new ArrayList<>();
     stringClusterTestModuleToTestIdMap = new HashMap<>();
     clusterTestResultMap = new HashMap<>();
@@ -146,8 +148,12 @@ public class ClusterTestRunner {
         moduleResults
           .add( new ClusterTestModuleResultsImpl( clusterModule, clusterTestResults, runningTests, outstandingTests ) );
       }
-      clusterTestProgressCallback
-        .onProgress( new ClusterTestStatusImpl( Collections.unmodifiableList( moduleResults ), done ) );
+      int testsRunning = runningTestIds.size();
+      int testsOutstanding = outstandingTestIds.size();
+      int testsDone = numberOfTests - testsOutstanding - testsRunning;
+      clusterTestProgressCallback.onProgress(
+        new ClusterTestStatusImpl( Collections.unmodifiableList( moduleResults ), testsDone, testsRunning,
+          testsOutstanding, done ) );
     }
   }
 

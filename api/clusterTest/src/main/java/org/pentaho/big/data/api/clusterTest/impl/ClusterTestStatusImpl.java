@@ -32,15 +32,34 @@ import java.util.List;
  */
 public class ClusterTestStatusImpl implements ClusterTestStatus {
   private final List<ClusterTestModuleResults> clusterTestModuleResults;
+  private final int testsDone;
+  private final int testsRunning;
+  private final int testsOutstanding;
   private final boolean done;
 
-  public ClusterTestStatusImpl( List<ClusterTestModuleResults> clusterTestModuleResults, boolean done ) {
+  public ClusterTestStatusImpl( List<ClusterTestModuleResults> clusterTestModuleResults, int testsDone,
+                                int testsRunning, int testsOutstanding, boolean done ) {
     this.clusterTestModuleResults = clusterTestModuleResults;
+    this.testsDone = testsDone;
+    this.testsRunning = testsRunning;
+    this.testsOutstanding = testsOutstanding;
     this.done = done;
   }
 
   @Override public List<ClusterTestModuleResults> getModuleResults() {
     return clusterTestModuleResults;
+  }
+
+  @Override public int getTestsDone() {
+    return testsDone;
+  }
+
+  @Override public int getTestsRunning() {
+    return testsRunning;
+  }
+
+  @Override public int getTestsOutstanding() {
+    return testsOutstanding;
   }
 
   @Override public boolean isDone() {
@@ -52,6 +71,9 @@ public class ClusterTestStatusImpl implements ClusterTestStatus {
   @Override public String toString() {
     return "ClusterTestStatusImpl{" +
       "clusterTestModuleResults=" + clusterTestModuleResults +
+      ", testsDone=" + testsDone +
+      ", testsRunning=" + testsRunning +
+      ", testsOutstanding=" + testsOutstanding +
       ", done=" + done +
       '}';
   }

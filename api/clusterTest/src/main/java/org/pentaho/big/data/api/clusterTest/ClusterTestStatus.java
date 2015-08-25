@@ -32,5 +32,11 @@ import java.util.List;
 public interface ClusterTestStatus {
   List<ClusterTestModuleResults> getModuleResults();
 
+  int getTestsDone();
+
+  int getTestsRunning();
+
+  int getTestsOutstanding();
+
   boolean isDone();
 }
