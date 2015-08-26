@@ -30,7 +30,6 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 
-import java.util.Comparator;
 import java.util.Map;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
@@ -69,13 +68,7 @@ public class NamedClusterImpl implements NamedCluster {
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
 
-  // Comparator for sorting clusters alphabetically by name
-  public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
-    @Override
-    public int compare( NamedCluster c1, NamedCluster c2 ) {
-      return c1.getName().compareToIgnoreCase( c2.getName() );
-    }
-  };
+
 
   public NamedClusterImpl() {
     initializeVariablesFrom( null );

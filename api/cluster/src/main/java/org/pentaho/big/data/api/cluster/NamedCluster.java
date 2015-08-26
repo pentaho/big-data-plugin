@@ -24,6 +24,8 @@ package org.pentaho.big.data.api.cluster;
 
 import org.pentaho.di.core.variables.VariableSpace;
 
+import java.util.Comparator;
+
 /**
  * Created by bryan on 6/24/15.
  */
@@ -79,4 +81,12 @@ public interface NamedCluster extends Cloneable, VariableSpace {
   void setMapr( boolean mapr );
 
   NamedCluster clone();
+
+  // Comparator for sorting clusters alphabetically by name
+  Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
+    @Override
+    public int compare( NamedCluster c1, NamedCluster c2 ) {
+      return c1.getName().compareToIgnoreCase( c2.getName() );
+    }
+  };
 }

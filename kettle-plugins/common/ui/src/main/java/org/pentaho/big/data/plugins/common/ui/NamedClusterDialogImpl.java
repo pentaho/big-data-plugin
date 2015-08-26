@@ -1,23 +1,21 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
+ * <p/>
+ * ******************************************************************************
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.big.data.plugins.common.ui;
@@ -40,15 +38,15 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTestProgressCallback;
-import org.pentaho.big.data.api.clusterTest.ClusterTestStatus;
 import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -68,7 +66,6 @@ public class NamedClusterDialogImpl extends Dialog {
   private final ClusterTester clusterTester;
   private Shell shell;
   private PropsUI props;
-  private int margin;
   private NamedCluster originalNamedCluster;
   private NamedCluster namedCluster;
   private boolean newClusterCheck = false;
@@ -118,7 +115,7 @@ public class NamedClusterDialogImpl extends Dialog {
     props.setLook( shell );
     shell.setImage( GUIResource.getInstance().getImageSpoon() );
 
-    margin = Const.FORM_MARGIN;
+    int margin = Const.FORM_MARGIN;
 
     PluginInterface plugin =
       PluginRegistry.getInstance().findPluginWithId( LifecyclePluginType.class, /* TODO */ "HadoopSpoonPlugin" );
@@ -127,8 +124,8 @@ public class NamedClusterDialogImpl extends Dialog {
       BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Title" ) );
 
     FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = Const.FORM_MARGIN;
-    formLayout.marginHeight = Const.FORM_MARGIN;
+    formLayout.marginWidth = margin;
+    formLayout.marginHeight = margin;
 
     shell.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Title" ) );
     shell.setLayout( formLayout );
@@ -152,7 +149,7 @@ public class NamedClusterDialogImpl extends Dialog {
     Button wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
 
-    Button[] buttons = new Button[] { wTest, wOK, wCancel };
+    Button[] buttons = new Button[]{ wTest, wOK, wCancel };
     BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, null );
 
     // Create a horizontal separator
@@ -167,14 +164,15 @@ public class NamedClusterDialogImpl extends Dialog {
 
     // Add listeners
     wTest.addListener( SWT.Selection, new Listener() {
-      @Override public void handleEvent( Event event ) {
-        clusterTester.testCluster( getNamedCluster(), new ClusterTestProgressCallback() {
-          @Override public void onProgress( ClusterTestStatus clusterTestStatus ) {
-            if ( clusterTestStatus.isDone() ) {
-              System.out.println( clusterTestStatus );
-            }
-          }
-        } );
+      @Override
+      public void handleEvent( Event event ) {
+        try {
+          ClusterTestDialog.create( shell, getNamedCluster(), clusterTester ).open();
+        } catch ( KettleException e ) {
+          // The exception already has the message localized
+          new ErrorDialog( shell, BaseMessages.getString( PKG, "NamedClusterDialog.DialogError" ),
+            e.getMessage(), e );
+        }
       }
     } );
     wOK.addListener( SWT.Selection, new Listener() {
@@ -230,7 +228,7 @@ public class NamedClusterDialogImpl extends Dialog {
           String doNotReplaceButton =
             BaseMessages.getString( PKG, "NamedClusterDialog.ClusterNameExists.DoNotReplace" );
           MessageDialog dialog =
-            new MessageDialog( shell, title, null, message, MessageDialog.WARNING, new String[] { replaceButton,
+            new MessageDialog( shell, title, null, message, MessageDialog.WARNING, new String[]{ replaceButton,
               doNotReplaceButton }, 0 );
 
           // there already exists a cluster with the new getName, ask the user

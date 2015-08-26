@@ -287,4 +287,8 @@ public class NamedCluster implements Cloneable, VariableSpace {
     return mapr;
   }
 
+  @Override
+  public String toString() {
+    return "Named cluster: " + getName();
+  }
 }
