@@ -179,4 +179,11 @@ public class NamedClusterTest {
     assertEquals( name, nc.getName() );
   }
 
+  @Test
+  public void testToString() {
+    NamedCluster other = new NamedCluster();
+    assertEquals( "Named cluster: null", other.toString() );
+    other.setName( "a" );
+    assertEquals( "Named cluster: a", other.toString() );
+  }
 }
