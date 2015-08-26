@@ -22,8 +22,8 @@
 
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 
 /**
  * Created by bryan on 8/14/15.

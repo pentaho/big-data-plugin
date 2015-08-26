@@ -25,13 +25,13 @@ package org.pentaho.big.data.impl.cluster.tests.oozie;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTest;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestEntrySeverity;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
+import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.network.ConnectivityTest;
+import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
 import java.net.MalformedURLException;
 import java.util.List;
@@ -39,8 +39,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.expectOneEntry;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.verifyClusterTestResultEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
  * Created by bryan on 8/24/15.
@@ -79,8 +79,8 @@ public class PingOozieHostTestTest {
     oozieUrl = "one-malformed-url";
     namedCluster = mock( NamedCluster.class );
     when( namedCluster.getOozieUrl() ).thenReturn( oozieUrl );
-    verifyClusterTestResultEntry( expectOneEntry( pingOozieHostTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( expectOneEntry( pingOozieHostTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( PingOozieHostTest.PING_OOZIE_HOST_TEST_MALFORMED_URL_DESC ),
       messageGetter.getMessage( PingOozieHostTest.PING_OOZIE_HOST_TEST_MALFORMED_URL_MESSAGE, oozieUrl ),
       MalformedURLException.class );
@@ -88,7 +88,7 @@ public class PingOozieHostTestTest {
 
   @Test
   public void testSuccess() {
-    List<ClusterTestResultEntry> results = mock( List.class );
+    List<RuntimeTestResultEntry> results = mock( List.class );
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory.create( messageGetterFactory, oozieHost, ooziePort, false ) )
       .thenReturn( connectivityTest );

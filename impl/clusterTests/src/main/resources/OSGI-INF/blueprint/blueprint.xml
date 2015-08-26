@@ -39,15 +39,14 @@
   </bean>
 
   <reference id="hadoopFileSystemLocator" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
-  <reference id="connectivityTestFactory" interface="org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory"/>
-  <reference id="messageGetterFactory" interface="org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory"/>
+  <reference id="connectivityTestFactory" interface="org.pentaho.runtime.test.network.ConnectivityTestFactory"/>
+  <reference id="messageGetterFactory" interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
 
-  <service ref="pingFileSystemEntryPointTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <service ref="pingJobTrackerTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <service ref="pingOozieHostTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <service ref="pingZookeeperEnsembleTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <service ref="listRootDirectoryTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <service ref="listHomeDirectoryTest" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <service ref="writeToAndDeleteFromUsersHomeFolderTest"
-           interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
+  <service ref="pingFileSystemEntryPointTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="pingJobTrackerTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="pingOozieHostTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="pingZookeeperEnsembleTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="listRootDirectoryTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="listHomeDirectoryTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="writeToAndDeleteFromUsersHomeFolderTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
 </blueprint>

@@ -13,8 +13,8 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>runtimeTest</module>
     <module>cluster</module>
-    <module>clusterTest</module>
     <module>initializer</module>
     <module>hdfs</module>
     <module>pig</module>

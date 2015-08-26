@@ -25,22 +25,22 @@ package org.pentaho.big.data.impl.cluster.tests.hdfs;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestEntrySeverity;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.hdfs.HadoopFileStatus;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemPath;
 import org.pentaho.bigdata.api.hdfs.exceptions.AccessControlException;
+import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 
 import java.io.IOException;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.expectOneEntry;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.verifyClusterTestResultEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
  * Created by bryan on 8/21/15.
@@ -87,8 +87,8 @@ public class ListDirectoryTestTest {
   public void testNullHadoopFileSystem() {
     hadoopFileSystemLocator = mock( HadoopFileSystemLocator.class );
     init();
-    verifyClusterTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_DESC ), messageGetter
         .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, namedClusterName ) );
   }
@@ -99,8 +99,8 @@ public class ListDirectoryTestTest {
     when( hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) )
       .thenThrow( new ClusterInitializationException( null ) );
     init();
-    verifyClusterTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_DESC ), messageGetter
         .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_MESSAGE, namedClusterName ),
       ClusterInitializationException.class );
@@ -109,8 +109,8 @@ public class ListDirectoryTestTest {
   @Test
   public void testAccessControlException() throws IOException {
     when( hadoopFileSystem.listStatus( directoryPath ) ).thenThrow( new AccessControlException( null, null ) );
-    verifyClusterTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.WARNING,
+    verifyRuntimeTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.WARNING,
       messageGetter.getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_DESC ), messageGetter
         .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_MESSAGE, directoryPath.toString() ),
       AccessControlException.class );
@@ -119,8 +119,8 @@ public class ListDirectoryTestTest {
   @Test
   public void testIOException() throws IOException {
     when( hadoopFileSystem.listStatus( directoryPath ) ).thenThrow( new IOException() );
-    verifyClusterTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_DESC ), messageGetter
         .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_MESSAGE, directoryPath.toString() ),
       IOException.class );
@@ -138,8 +138,8 @@ public class ListDirectoryTestTest {
     HadoopFileStatus[] hadoopFileStatuses = { hadoopFileStatus1, hadoopFileStatus2 };
     when( hadoopFileSystem.listStatus( homeDirectoryPath ) ).thenReturn( hadoopFileStatuses );
     init();
-    verifyClusterTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.INFO,
+    verifyRuntimeTestResultEntry( expectOneEntry( listDirectoryTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.INFO,
       messageGetter.getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_SUCCESS_DESC ), messageGetter
         .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_SUCCESS_MESSAGE,
           hadoopFileSystemPath1.toString() + ", " + hadoopFileSystemPath2.toString() ) );

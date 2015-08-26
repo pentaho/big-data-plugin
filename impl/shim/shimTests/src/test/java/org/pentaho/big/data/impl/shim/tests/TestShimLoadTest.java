@@ -25,19 +25,19 @@ package org.pentaho.big.data.impl.shim.tests;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestEntrySeverity;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
 import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.expectOneEntry;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.verifyClusterTestResultEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
  * Created by bryan on 8/24/15.
@@ -67,8 +67,8 @@ public class TestShimLoadTest {
   public void testConfigurationException() throws ConfigurationException {
     String testMessage = "testMessage";
     when( hadoopConfigurationBootstrap.getProvider() ).thenThrow( new ConfigurationException( testMessage ) );
-    verifyClusterTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ),
+    verifyRuntimeTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ),
       testMessage, ConfigurationException.class );
   }
 
@@ -76,8 +76,8 @@ public class TestShimLoadTest {
   public void testNoShimSpecified() throws ConfigurationException {
     String testMessage = "testMessage";
     when( hadoopConfigurationBootstrap.getProvider() ).thenThrow( new NoShimSpecifiedException( testMessage ) );
-    verifyClusterTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ),
+    verifyRuntimeTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ),
       testMessage, NoShimSpecifiedException.class );
   }
 
@@ -85,8 +85,8 @@ public class TestShimLoadTest {
   public void testSuccess() throws ConfigurationException {
     String testShim = "testShim";
     when( hadoopConfigurationBootstrap.getActiveConfigurationId() ).thenReturn( testShim );
-    verifyClusterTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.INFO, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_SHIM_LOADED_DESC, testShim ),
+    verifyRuntimeTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.INFO, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_SHIM_LOADED_DESC, testShim ),
       messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_SHIM_LOADED_MESSAGE, testShim ) );
   }
 }

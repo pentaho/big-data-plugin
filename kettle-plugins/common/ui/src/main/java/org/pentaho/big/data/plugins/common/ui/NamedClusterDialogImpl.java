@@ -1,21 +1,23 @@
 /*******************************************************************************
+ *
  * Pentaho Big Data
- * <p/>
+ *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- * <p/>
- * ******************************************************************************
- * <p/>
+ *
+ *******************************************************************************
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * <p/>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  ******************************************************************************/
 
 package org.pentaho.big.data.plugins.common.ui;
@@ -38,7 +40,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
@@ -53,6 +54,7 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.runtime.test.RuntimeTester;
 
 /**
  * Dialog that allows you to edit the settings of a named cluster.
@@ -63,7 +65,7 @@ public class NamedClusterDialogImpl extends Dialog {
   private static final int RESULT_NO = 1;
   private static Class<?> PKG = NamedClusterDialogImpl.class; // for i18n purposes, needed by Translator2!!
   private final NamedClusterService namedClusterService;
-  private final ClusterTester clusterTester;
+  private final RuntimeTester runtimeTester;
   private Shell shell;
   private PropsUI props;
   private NamedCluster originalNamedCluster;
@@ -71,15 +73,15 @@ public class NamedClusterDialogImpl extends Dialog {
   private boolean newClusterCheck = false;
   private String result;
 
-  public NamedClusterDialogImpl( Shell parent, NamedClusterService namedClusterService, ClusterTester clusterTester ) {
-    this( parent, namedClusterService, clusterTester, null );
+  public NamedClusterDialogImpl( Shell parent, NamedClusterService namedClusterService, RuntimeTester runtimeTester ) {
+    this( parent, namedClusterService, runtimeTester, null );
   }
 
-  public NamedClusterDialogImpl( Shell parent, NamedClusterService namedClusterService, ClusterTester clusterTester,
+  public NamedClusterDialogImpl( Shell parent, NamedClusterService namedClusterService, RuntimeTester runtimeTester,
                                  NamedCluster namedCluster ) {
     super( parent );
     this.namedClusterService = namedClusterService;
-    this.clusterTester = clusterTester;
+    this.runtimeTester = runtimeTester;
     props = PropsUI.getInstance();
 
     this.namedCluster = namedCluster;
@@ -167,7 +169,7 @@ public class NamedClusterDialogImpl extends Dialog {
       @Override
       public void handleEvent( Event event ) {
         try {
-          ClusterTestDialog.create( shell, getNamedCluster(), clusterTester ).open();
+          ClusterTestDialog.create( shell, getNamedCluster(), runtimeTester ).open();
         } catch ( KettleException e ) {
           // The exception already has the message localized
           new ErrorDialog( shell, BaseMessages.getString( PKG, "NamedClusterDialog.DialogError" ),

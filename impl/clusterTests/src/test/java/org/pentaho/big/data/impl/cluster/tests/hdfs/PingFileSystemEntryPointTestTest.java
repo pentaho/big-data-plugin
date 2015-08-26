@@ -25,12 +25,12 @@ package org.pentaho.big.data.impl.cluster.tests.hdfs;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTest;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
+import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.network.ConnectivityTest;
+import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
 import java.util.List;
 
@@ -71,7 +71,7 @@ public class PingFileSystemEntryPointTestTest {
 
   @Test
   public void testSuccess() {
-    List<ClusterTestResultEntry> results = mock( List.class );
+    List<RuntimeTestResultEntry> results = mock( List.class );
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory.create( messageGetterFactory, hdfsHost, hdfsPort, true ) )
       .thenReturn( connectivityTest );

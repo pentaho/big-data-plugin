@@ -23,11 +23,11 @@
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
-import org.pentaho.big.data.api.clusterTest.test.impl.BaseClusterTest;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by bryan on 8/14/15.
  */
-public class PingFileSystemEntryPointTest extends BaseClusterTest {
+public class PingFileSystemEntryPointTest extends BaseRuntimeTest {
   public static final String HADOOP_FILE_SYSTEM_PING_FILE_SYSTEM_ENTRY_POINT_TEST =
     "hadoopFileSystemPingFileSystemEntryPointTest";
   public static final String PING_FILE_SYSTEM_ENTRY_POINT_TEST_NAME = "PingFileSystemEntryPointTest.Name";
@@ -45,14 +45,16 @@ public class PingFileSystemEntryPointTest extends BaseClusterTest {
 
   public PingFileSystemEntryPointTest( MessageGetterFactory messageGetterFactory,
                                        ConnectivityTestFactory connectivityTestFactory ) {
-    super( Constants.HADOOP_FILE_SYSTEM, HADOOP_FILE_SYSTEM_PING_FILE_SYSTEM_ENTRY_POINT_TEST,
+    super( NamedCluster.class, Constants.HADOOP_FILE_SYSTEM, HADOOP_FILE_SYSTEM_PING_FILE_SYSTEM_ENTRY_POINT_TEST,
       messageGetterFactory.create( PKG ).getMessage( PING_FILE_SYSTEM_ENTRY_POINT_TEST_NAME ),
       new HashSet<String>() );
     this.messageGetterFactory = messageGetterFactory;
     this.connectivityTestFactory = connectivityTestFactory;
   }
 
-  @Override public List<ClusterTestResultEntry> runTest( NamedCluster namedCluster ) {
+  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+    // Safe to cast as our accepts method will only return true for named clusters
+    NamedCluster namedCluster = (NamedCluster) objectUnderTest;
     return connectivityTestFactory.create( messageGetterFactory, namedCluster.getHdfsHost(), namedCluster.getHdfsPort(),
       true ).runTest();
   }

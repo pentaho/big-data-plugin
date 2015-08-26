@@ -25,7 +25,6 @@ package org.pentaho.big.data.plugins.common.ui;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -33,17 +32,19 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.delegates.SpoonDelegate;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.runtime.test.RuntimeTester;
 
 public class HadoopClusterDelegateImpl extends SpoonDelegate {
   private static Class<?> PKG = HadoopClusterDelegateImpl.class; // for i18n purposes, needed by Translator2!!
 
   private final NamedClusterService namedClusterService;
-  private final ClusterTester clusterTester;
+  private final RuntimeTester runtimeTester;
 
-  public HadoopClusterDelegateImpl( Spoon spoon, NamedClusterService namedClusterService, ClusterTester clusterTester ) {
+  public HadoopClusterDelegateImpl( Spoon spoon, NamedClusterService namedClusterService,
+                                    RuntimeTester runtimeTester ) {
     super( spoon );
     this.namedClusterService = namedClusterService;
-    this.clusterTester = clusterTester;
+    this.runtimeTester = runtimeTester;
   }
 
   public void dupeNamedCluster( IMetaStore metaStore, NamedCluster nc, Shell shell ) {
@@ -56,7 +57,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       ncCopy.setName( dupename );
 
       NamedClusterDialogImpl
-        namedClusterDialogImpl = new NamedClusterDialogImpl( shell, namedClusterService, clusterTester, ncCopy );
+        namedClusterDialogImpl = new NamedClusterDialogImpl( shell, namedClusterService, runtimeTester, ncCopy );
       namedClusterDialogImpl.setNewClusterCheck( true );
       String newname = namedClusterDialogImpl.open();
 
@@ -81,7 +82,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       metaStore = Spoon.getInstance().getMetaStore();
     }
     NamedClusterDialogImpl
-      namedClusterDialogImpl = new NamedClusterDialogImpl( shell, namedClusterService, clusterTester,
+      namedClusterDialogImpl = new NamedClusterDialogImpl( shell, namedClusterService, runtimeTester,
         namedCluster.clone() );
     namedClusterDialogImpl.setNewClusterCheck( false );
     String result = namedClusterDialogImpl.open();
@@ -104,7 +105,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     NamedCluster nc = namedClusterService.getClusterTemplate();
 
     NamedClusterDialogImpl
-      namedClusterDialogImpl = new NamedClusterDialogImpl( shell, namedClusterService, clusterTester, nc );
+      namedClusterDialogImpl = new NamedClusterDialogImpl( shell, namedClusterService, runtimeTester, nc );
     namedClusterDialogImpl.setNewClusterCheck( true );
     String result = namedClusterDialogImpl.open();
 

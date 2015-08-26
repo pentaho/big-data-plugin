@@ -13,7 +13,7 @@
     <argument>
       <list>
         <ref component-id="namedClusterService"/>
-        <ref component-id="clusterTester"/>
+        <ref component-id="runtimeTester"/>
       </list>
     </argument>
   </bean>
@@ -31,5 +31,5 @@
   </bean>
 
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
-  <reference id="clusterTester" interface="org.pentaho.big.data.api.clusterTest.ClusterTester"/>
+  <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
 </blueprint>
