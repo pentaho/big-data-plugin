@@ -31,8 +31,7 @@ import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTest;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
-
-import java.util.List;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -71,11 +70,13 @@ public class PingJobTrackerTestTest {
 
   @Test
   public void testSuccess() {
-    List<RuntimeTestResultEntry> results = mock( List.class );
+    RuntimeTestResultEntry results = mock( RuntimeTestResultEntry.class );
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory.create( messageGetterFactory, jobTrackerHost, jobTrackerPort, true ) )
       .thenReturn( connectivityTest );
     when( connectivityTest.runTest() ).thenReturn( results );
-    assertEquals( results, pingJobTrackerTest.runTest( namedCluster ) );
+    RuntimeTestResultSummary runtimeTestResultSummary = pingJobTrackerTest.runTest( namedCluster );
+    assertEquals( results, runtimeTestResultSummary.getOverallStatusEntry() );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 }

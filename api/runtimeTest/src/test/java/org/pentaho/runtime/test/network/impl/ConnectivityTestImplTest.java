@@ -38,7 +38,6 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
 import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
@@ -85,7 +84,7 @@ public class ConnectivityTestImplTest {
   public void testBlankHostname() {
     hostname = "";
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), severityOfFailures,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_HOST_BLANK_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_HOST_BLANK_MESSAGE ) );
   }
@@ -94,7 +93,7 @@ public class ConnectivityTestImplTest {
   public void testBlankPortNoHa() {
     port = "";
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), severityOfFailures,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_PORT_BLANK_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_PORT_BLANK_MESSAGE ) );
   }
@@ -104,7 +103,7 @@ public class ConnectivityTestImplTest {
     port = "";
     haPossible = true;
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), RuntimeTestEntrySeverity.INFO,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), RuntimeTestEntrySeverity.INFO,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_HA_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_HA_MESSAGE ) );
   }
@@ -114,7 +113,7 @@ public class ConnectivityTestImplTest {
     port = "abc";
     haPossible = true;
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), RuntimeTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_PORT_NUMBER_FORMAT_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE ), NumberFormatException.class );
   }
@@ -126,7 +125,7 @@ public class ConnectivityTestImplTest {
     when( inetAddressFactory.create( hostname ) ).thenReturn( inetAddress );
     when( inetAddress.isReachable( anyInt() ) ).thenReturn( false );
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), severityOfFailures,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_UNREACHABLE_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) );
   }
@@ -138,7 +137,7 @@ public class ConnectivityTestImplTest {
     when( inetAddressFactory.create( hostname ) ).thenReturn( inetAddress );
     when( inetAddress.isReachable( anyInt() ) ).thenThrow( new UnknownHostException() );
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), severityOfFailures,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_UNKNOWN_HOSTNAME_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_UNKNOWN_HOSTNAME_MESSAGE, hostname ), UnknownHostException.class );
   }
@@ -150,7 +149,7 @@ public class ConnectivityTestImplTest {
     when( inetAddressFactory.create( hostname ) ).thenReturn( inetAddress );
     when( inetAddress.isReachable( anyInt() ) ).thenThrow( new IOException() );
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), severityOfFailures,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_NETWORK_ERROR_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_NETWORK_ERROR_MESSAGE, hostname, port ), IOException.class );
   }
@@ -159,14 +158,14 @@ public class ConnectivityTestImplTest {
   public void testSocketIOException() throws IOException {
     when( socketFactory.create( hostname, Integer.valueOf( port ) ) ).thenThrow( new IOException() );
     init();
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), severityOfFailures,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_CONNECT_FAIL_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_CONNECT_FAIL_MESSAGE, hostname, port ), IOException.class );
   }
 
   @Test
   public void testSuccess() throws IOException {
-    verifyRuntimeTestResultEntry( expectOneEntry( connectTest.runTest() ), RuntimeTestEntrySeverity.INFO,
+    verifyRuntimeTestResultEntry( connectTest.runTest(), RuntimeTestEntrySeverity.INFO,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_CONNECT_SUCCESS_DESC ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_CONNECT_SUCCESS_MESSAGE, hostname, port ) );
     verify( socket ).close();

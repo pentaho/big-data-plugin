@@ -34,15 +34,14 @@ import org.pentaho.di.core.Const;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
+import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * Created by bryan on 8/14/15.
@@ -80,14 +79,13 @@ public class ListDirectoryTest extends BaseRuntimeTest {
     this.messageGetter = messageGetterFactory.create( PKG );
   }
 
-  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+  @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-    List<RuntimeTestResultEntry> clusterTestResultEntries = new ArrayList<>();
     try {
       HadoopFileSystem hadoopFilesystem = hadoopFileSystemLocator.getHadoopFilesystem( namedCluster );
       if ( hadoopFilesystem == null ) {
-        clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+        return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
           messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_DESC ),
           messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, namedCluster.getName() ) ) );
       } else {
@@ -107,17 +105,17 @@ public class ListDirectoryTest extends BaseRuntimeTest {
           if ( paths.length() > 0 ) {
             paths.setLength( paths.length() - 2 );
           }
-          clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
+          return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
             messageGetter.getMessage( LIST_DIRECTORY_TEST_SUCCESS_DESC ),
             messageGetter.getMessage( LIST_DIRECTORY_TEST_SUCCESS_MESSAGE, paths.toString() ) ) );
         } catch ( AccessControlException e ) {
-          clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.WARNING,
+          return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.WARNING,
             messageGetter.getMessage( LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_DESC ),
             messageGetter.getMessage( LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_MESSAGE,
               hadoopFilesystemPath.toString() ),
             e ) );
         } catch ( IOException e ) {
-          clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+          return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
             messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_DESC ),
             messageGetter
               .getMessage( LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_MESSAGE, hadoopFilesystemPath.toString() ),
@@ -125,11 +123,10 @@ public class ListDirectoryTest extends BaseRuntimeTest {
         }
       }
     } catch ( ClusterInitializationException e ) {
-      clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
         messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_DESC ),
         messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_MESSAGE, namedCluster.getName() ),
         e ) );
     }
-    return clusterTestResultEntries;
   }
 }

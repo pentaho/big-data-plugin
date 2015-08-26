@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,8 +58,11 @@ public class RuntimeTestModuleResultsImplTest {
   public void setup() {
     name = "testName";
     runtimeTestResult = mock( RuntimeTestResult.class );
+    when( runtimeTestResult.isDone() ).thenReturn( true );
     maxSeverity = RuntimeTestEntrySeverity.INFO;
-    when( runtimeTestResult.getMaxSeverity() ).thenReturn( maxSeverity );
+    RuntimeTestResultEntry runtimeTestResultEntry = mock( RuntimeTestResultEntry.class );
+    when( runtimeTestResult.getOverallStatusEntry() ).thenReturn( runtimeTestResultEntry );
+    when( runtimeTestResultEntry.getSeverity() ).thenReturn( maxSeverity );
     runtimeTestResults = new ArrayList<>( Arrays.asList( runtimeTestResult ) );
     runningTest = mock( RuntimeTest.class );
     runningTests = new HashSet<>( Arrays.asList( runningTest ) );

@@ -23,11 +23,10 @@
 package org.pentaho.runtime.test.test.impl;
 
 import org.pentaho.runtime.test.RuntimeTest;
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -68,7 +67,7 @@ public class RuntimeTestDelegateWithMoreDependencies implements RuntimeTest {
     return Collections.unmodifiableSet( set );
   }
 
-  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+  @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     return delegate.runTest( objectUnderTest );
   }
 

@@ -93,21 +93,21 @@ public class ConnectivityTestImpl implements ConnectivityTest {
     this.inetAddressFactory = inetAddressFactory;
   }
 
-  @Override public List<RuntimeTestResultEntry> runTest() {
+  @Override public RuntimeTestResultEntry runTest() {
     List<RuntimeTestResultEntry> runtimeTestResultEntries = new ArrayList<>();
     if ( Const.isEmpty( hostname ) ) {
-      runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( severityOfFalures,
+      return new RuntimeTestResultEntryImpl( severityOfFalures,
         messageGetter.getMessage( CONNECT_TEST_HOST_BLANK_DESC ),
-        messageGetter.getMessage( CONNECT_TEST_HOST_BLANK_MESSAGE ) ) );
+        messageGetter.getMessage( CONNECT_TEST_HOST_BLANK_MESSAGE ) );
     } else if ( Const.isEmpty( port ) ) {
       if ( haPossible ) {
-        runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
+        return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
           messageGetter.getMessage( CONNECT_TEST_HA_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_HA_MESSAGE ) ) );
+          messageGetter.getMessage( CONNECT_TEST_HA_MESSAGE ) );
       } else {
-        runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( severityOfFalures,
+        return new RuntimeTestResultEntryImpl( severityOfFalures,
           messageGetter.getMessage( CONNECT_TEST_PORT_BLANK_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_PORT_BLANK_MESSAGE ) ) );
+          messageGetter.getMessage( CONNECT_TEST_PORT_BLANK_MESSAGE ) );
       }
     } else {
       Socket socket = null;
@@ -115,13 +115,13 @@ public class ConnectivityTestImpl implements ConnectivityTest {
         if ( inetAddressFactory.create( hostname ).isReachable( 10 * 1000 ) ) {
           try {
             socket = socketFactory.create( hostname, Integer.valueOf( port ) );
-            runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
+            return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
               messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_DESC ),
-              messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_MESSAGE, hostname, port ) ) );
+              messageGetter.getMessage( CONNECT_TEST_CONNECT_SUCCESS_MESSAGE, hostname, port ) );
           } catch ( IOException e ) {
-            runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( severityOfFalures,
+            return new RuntimeTestResultEntryImpl( severityOfFalures,
               messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_DESC ),
-              messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_MESSAGE, hostname, port ), e ) );
+              messageGetter.getMessage( CONNECT_TEST_CONNECT_FAIL_MESSAGE, hostname, port ), e );
           } finally {
             if ( socket != null ) {
               try {
@@ -132,25 +132,24 @@ public class ConnectivityTestImpl implements ConnectivityTest {
             }
           }
         } else {
-          runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( severityOfFalures,
+          return new RuntimeTestResultEntryImpl( severityOfFalures,
             messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_DESC ),
-            messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) ) );
+            messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) );
         }
       } catch ( UnknownHostException e ) {
-        runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( severityOfFalures,
+        return new RuntimeTestResultEntryImpl( severityOfFalures,
           messageGetter.getMessage( CONNECT_TEST_UNKNOWN_HOSTNAME_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_UNKNOWN_HOSTNAME_MESSAGE, hostname ), e ) );
+          messageGetter.getMessage( CONNECT_TEST_UNKNOWN_HOSTNAME_MESSAGE, hostname ), e );
       } catch ( IOException e ) {
-        runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( severityOfFalures,
+        return new RuntimeTestResultEntryImpl( severityOfFalures,
           messageGetter.getMessage( CONNECT_TEST_NETWORK_ERROR_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_NETWORK_ERROR_MESSAGE, hostname, port ), e ) );
+          messageGetter.getMessage( CONNECT_TEST_NETWORK_ERROR_MESSAGE, hostname, port ), e );
       } catch ( NumberFormatException e ) {
-        runtimeTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+        return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
           messageGetter.getMessage( CONNECT_TEST_PORT_NUMBER_FORMAT_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE ), e ) );
+          messageGetter.getMessage( CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE ), e );
       }
     }
-    return runtimeTestResultEntries;
   }
 
   /**

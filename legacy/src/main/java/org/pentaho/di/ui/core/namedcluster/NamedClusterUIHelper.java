@@ -22,24 +22,49 @@
 
 package org.pentaho.di.ui.core.namedcluster;
 
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
+import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.MapRFSFileChooserDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NamedClusterUIHelper {
-  private static NamedClusterUIFactory namedClusterUIFactory;
+  private static NamedClusterUIFactory namedClusterUIFactory = null;
+  private static final AtomicBoolean hasInitializedDialog = new AtomicBoolean( false );
 
   public static NamedClusterUIFactory getNamedClusterUIFactory() {
     return namedClusterUIFactory;
   }
 
+  /**
+   * Being used to inject the widgets from OSGi (where all the test functionality is located) this should be removed
+   * once we OSGiify the rest of the big data stuff
+   * @param namedClusterUIFactory
+   */
   public static void setNamedClusterUIFactory(
     NamedClusterUIFactory namedClusterUIFactory ) {
     NamedClusterUIHelper.namedClusterUIFactory = namedClusterUIFactory;
+    initializeFileChooserDialog();
+  }
+
+  public static void initializeFileChooserDialog() {
+    if ( namedClusterUIFactory != null && Spoon.getInstance() != null && !hasInitializedDialog.getAndSet( true ) ) {
+      VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
+      dialog.addVFSUIPanel(
+        new HadoopVfsFileChooserDialog( HadoopSpoonPlugin.HDFS_SCHEME, HadoopSpoonPlugin.HDFS_SCHEME_DISPLAY_NAME,
+          dialog,
+          null, null ) );
+      dialog.addVFSUIPanel(
+        new MapRFSFileChooserDialog( HadoopSpoonPlugin.MAPRFS_SCHEME, HadoopSpoonPlugin.MAPRFS_SCHEME_DISPLAY_NAME,
+          dialog ) );
+    }
   }
 
   public static List<NamedCluster> getNamedClusters() {

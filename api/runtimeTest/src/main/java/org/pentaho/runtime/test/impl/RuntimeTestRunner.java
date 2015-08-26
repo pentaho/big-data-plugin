@@ -29,13 +29,13 @@ import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.module.impl.RuntimeTestModuleResultsImpl;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
+import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.RuntimeTestDelegateWithMoreDependencies;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultImpl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -105,7 +105,7 @@ public class RuntimeTestRunner {
     for ( RuntimeTest remainingTest : remainingTests ) {
       String remainingTestId = remainingTest.getId();
       runtimeTestResultMap
-        .put( remainingTestId, new RuntimeTestResultImpl( remainingTest, Collections.EMPTY_LIST,
+        .put( remainingTestId, new RuntimeTestResultImpl( remainingTest, false, new RuntimeTestResultSummaryImpl(),
           0L ) );
       outstandingTestIds.add( remainingTestId );
     }
@@ -123,11 +123,10 @@ public class RuntimeTestRunner {
     failedDependencies.add( runtimeTestId );
     outstandingTestIds.remove( runtimeTestId );
     runningTestIds.remove( runtimeTestId );
-    runtimeTestResultMap.put( runtimeTestId, new RuntimeTestResultImpl( runtimeTest, Arrays
-      .<RuntimeTestResultEntry>asList(
-        new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.SKIPPED,
-          BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Desc", runtimeTest.getName() ),
-          BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Message", relevantFailed ), null ) ), 0L ) );
+    runtimeTestResultMap.put( runtimeTestId, new RuntimeTestResultImpl( runtimeTest, true,
+      new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.SKIPPED,
+        BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Desc", runtimeTest.getName() ),
+        BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Message", relevantFailed ), null ) ), 0L ) );
   }
 
   private void callbackState() {
@@ -164,22 +163,23 @@ public class RuntimeTestRunner {
 
   private void runTest( RuntimeTest runtimeTest ) {
     String eligibleTestId = runtimeTest.getId();
-    List<RuntimeTestResultEntry> runtimeTestResultEntries;
+    RuntimeTestResultSummary runtimeTestResultSummary;
     long before = System.currentTimeMillis();
+    RuntimeTestEntrySeverity overallSeverity;
     try {
-      runtimeTestResultEntries = runtimeTest.runTest( objectUnderTest );
+      runtimeTestResultSummary = runtimeTest.runTest( objectUnderTest );
+      overallSeverity = runtimeTestResultSummary.getOverallStatusEntry().getSeverity();
     } catch ( Throwable e ) {
-      runtimeTestResultEntries = new ArrayList<RuntimeTestResultEntry>(
-        Arrays.asList( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-          BaseMessages.getString( PKG, "RuntimeTestRunner.Error.Desc", runtimeTest.getName() ),
-          e.getMessage(), e ) ) );
+      overallSeverity = RuntimeTestEntrySeverity.FATAL;
+      runtimeTestResultSummary = new RuntimeTestResultSummaryImpl(
+        new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+          BaseMessages.getString( PKG, "RuntimeTestRunner.Error.Desc", runtimeTest.getName() ), e.getMessage(), e ) );
     }
     long after = System.currentTimeMillis();
     RuntimeTestResult runtimeTestResult =
-      new RuntimeTestResultImpl( runtimeTest, runtimeTestResultEntries, after - before );
-    RuntimeTestEntrySeverity maxSeverity = runtimeTestResult.getMaxSeverity();
+      new RuntimeTestResultImpl( runtimeTest, true, runtimeTestResultSummary, after - before );
     synchronized ( this ) {
-      if ( maxSeverity == RuntimeTestEntrySeverity.ERROR || maxSeverity == RuntimeTestEntrySeverity.FATAL ) {
+      if ( overallSeverity == RuntimeTestEntrySeverity.ERROR || overallSeverity == RuntimeTestEntrySeverity.FATAL ) {
         failedDependencies.add( eligibleTestId );
       } else {
         satisfiedDependencies.add( eligibleTestId );

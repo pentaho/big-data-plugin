@@ -20,26 +20,27 @@
  *
  ******************************************************************************/
 
-package org.pentaho.runtime.test.result;
+package org.pentaho.runtime.test.i18n.impl;
 
-import java.util.Collection;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
- * Created by bryan on 8/11/15.
+ * Created by bryan on 8/27/15.
  */
-public enum RuntimeTestEntrySeverity {
-  DEBUG, INFO, WARNING, SKIPPED, ERROR, FATAL;
+public class BaseMessagesMessageGetterFactoryImplTest {
+  private BaseMessagesMessageGetterFactoryImpl baseMessagesMessageGetterFactory;
 
-  public static RuntimeTestEntrySeverity maxSeverityResult( Collection<RuntimeTestResult> runtimeTestResults ) {
-    RuntimeTestEntrySeverity maxSeverity = null;
-    for ( RuntimeTestResult runtimeTestResult : runtimeTestResults ) {
-      if ( runtimeTestResult.isDone() ) {
-        RuntimeTestEntrySeverity severity = runtimeTestResult.getOverallStatusEntry().getSeverity();
-        if ( maxSeverity == null || ( severity != null && severity.ordinal() > maxSeverity.ordinal() ) ) {
-          maxSeverity = severity;
-        }
-      }
-    }
-    return maxSeverity;
+  @Before
+  public void setup() {
+    baseMessagesMessageGetterFactory = new BaseMessagesMessageGetterFactoryImpl();
+  }
+
+  @Test
+  public void testCreate() {
+    assertTrue( baseMessagesMessageGetterFactory
+      .create( BaseMessagesMessageGetterFactoryImplTest.class ) instanceof BaseMessagesMessageGetterImpl );
   }
 }

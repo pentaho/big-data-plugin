@@ -26,11 +26,11 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
+import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
 
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * Created by bryan on 8/14/15.
@@ -51,11 +51,11 @@ public class PingJobTrackerTest extends BaseRuntimeTest {
     this.connectivityTestFactory = connectivityTestFactory;
   }
 
-  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+  @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-    return connectivityTestFactory
+    return new RuntimeTestResultSummaryImpl( connectivityTestFactory
       .create( messageGetterFactory, namedCluster.getJobTrackerHost(), namedCluster.getJobTrackerPort(), true )
-      .runTest();
+      .runTest() );
   }
 }

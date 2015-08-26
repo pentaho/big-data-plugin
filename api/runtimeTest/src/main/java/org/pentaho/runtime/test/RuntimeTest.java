@@ -22,9 +22,8 @@
 
 package org.pentaho.runtime.test;
 
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,5 +42,5 @@ public interface RuntimeTest {
 
   Set<String> getDependencies();
 
-  List<RuntimeTestResultEntry> runTest( Object objectUnderTest );
+  RuntimeTestResultSummary runTest( Object objectUnderTest );
 }

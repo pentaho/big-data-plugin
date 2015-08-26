@@ -29,9 +29,13 @@ import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestProgressCallback;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
+import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
+import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,36 +78,45 @@ public class RuntimeTestRunnerTest {
   @Before
   public void setup() {
     executorService = Executors.newCachedThreadPool();
+    RuntimeTestResultEntryImpl overallEntry =
+      new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO, "testDesc", "testMessage" );
     unsatisfiableDependencyA = new TestRuntimeTest( "unsatisfiableDependency", "unsatisfiableDependencyTestA", "Test A",
       new HashSet<>( Arrays.asList(
         new TestRuntimeTest( "fake-module", "fake-test-id", "fake-getName", new HashSet<TestRuntimeTest>(), 5,
-          new ArrayList<RuntimeTestResultEntry>(), false ) ) ), 5, new ArrayList<RuntimeTestResultEntry>(),
+          overallEntry, new ArrayList<RuntimeTestResultEntry>(), false ) ) ), 5, overallEntry,
+      new ArrayList<RuntimeTestResultEntry>(),
       false );
     moduleATestA =
       new TestRuntimeTest( "moduleA", "moduleATestA", "Test A", new HashSet<>( Arrays.<TestRuntimeTest>asList() ), 5,
+        overallEntry,
         new ArrayList<RuntimeTestResultEntry>(), true );
     moduleATestB =
       new TestRuntimeTest( "moduleA", "moduleATestB", "Test B", new HashSet<>( Arrays.asList( moduleATestA ) ), 5,
+        overallEntry,
         new ArrayList<RuntimeTestResultEntry>(), true );
     moduleATestC =
       new TestRuntimeTest( "moduleA", "moduleATestC", "Test C", new HashSet<>( Arrays.asList( moduleATestB ) ), 5,
+        overallEntry,
         new ArrayList<RuntimeTestResultEntry>(), true );
     moduleATestD =
       new TestRuntimeTest( "moduleA", "moduleATestD", "Test D", new HashSet<>( Arrays.asList( moduleATestB ) ), 5,
+        overallEntry,
         new ArrayList<RuntimeTestResultEntry>(), true );
     moduleBTestA =
       new TestRuntimeTest( "moduleB", "moduleBTestA", "Test A", new HashSet<>( Arrays.asList( moduleATestA ) ), 5,
+        overallEntry,
         new ArrayList<RuntimeTestResultEntry>(), true );
     moduleBTestB =
       new TestRuntimeTest( "moduleB", "moduleBTestB", "Test B", new HashSet<>( Arrays.asList( moduleATestC ) ), 5,
+        overallEntry,
         new ArrayList<RuntimeTestResultEntry>(), true );
     moduleBTestC =
       new TestRuntimeTest( "moduleB", "moduleBTestC", "Test C",
         new HashSet<>( Arrays.asList( moduleBTestB, moduleATestC ) ),
-        5, new ArrayList<RuntimeTestResultEntry>(), true );
+        5, overallEntry, new ArrayList<RuntimeTestResultEntry>(), true );
     moduleCTestA = new TestRuntimeTest( "moduleC", "moduleCTestA", "Test A",
       new HashSet<>( Arrays.asList( moduleBTestC, moduleATestC ) ),
-      5, new ArrayList<RuntimeTestResultEntry>(), true );
+      5, overallEntry, new ArrayList<RuntimeTestResultEntry>(), true );
     objectUnderTest = new Object();
   }
 
@@ -227,14 +240,17 @@ public class RuntimeTestRunnerTest {
     private final long delay;
     private final Set<TestRuntimeTest> dependencies;
     private final AtomicBoolean hasRun;
+    private final RuntimeTestResultEntry overallEntry;
     private final List<RuntimeTestResultEntry> runtimeTestResultEntries;
     private final boolean shouldRun;
 
     public TestRuntimeTest( String module, String id, String name, Set<TestRuntimeTest> dependencies,
-                            long delay, List<RuntimeTestResultEntry> runtimeTestResultEntries, boolean shouldRun ) {
+                            long delay, RuntimeTestResultEntry overallEntry,
+                            List<RuntimeTestResultEntry> runtimeTestResultEntries, boolean shouldRun ) {
       super( Object.class, module, id, name, dependenciesToIds( dependencies ) );
       this.delay = delay;
       this.dependencies = dependencies;
+      this.overallEntry = overallEntry;
       this.runtimeTestResultEntries = runtimeTestResultEntries;
       this.shouldRun = shouldRun;
       hasRun = new AtomicBoolean( false );
@@ -244,7 +260,7 @@ public class RuntimeTestRunnerTest {
       return getModule() + ":" + getId();
     }
 
-    @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+    @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
       assertTrue( shouldRun );
       assertEquals( RuntimeTestRunnerTest.this.objectUnderTest, objectUnderTest );
       String logName = getLogName();
@@ -260,7 +276,7 @@ public class RuntimeTestRunnerTest {
       }
       hasRun.set( true );
       System.out.println( "Done running: " + logName );
-      return runtimeTestResultEntries;
+      return new RuntimeTestResultSummaryImpl( overallEntry, runtimeTestResultEntries );
     }
 
     public void validateRunState() {

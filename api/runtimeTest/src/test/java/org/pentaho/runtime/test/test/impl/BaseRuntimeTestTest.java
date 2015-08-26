@@ -24,11 +24,10 @@ package org.pentaho.runtime.test.test.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -53,7 +52,7 @@ public class BaseRuntimeTestTest {
     configInitTest = true;
     dependencies = new HashSet<>( Arrays.asList( "dependency" ) );
     baseRuntimeTest = new BaseRuntimeTest( Object.class, module, id, name, configInitTest, dependencies ) {
-      @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+      @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
         throw new UnsupportedOperationException( "This is a test object, don't run it... ever..." );
       }
     };
@@ -78,7 +77,7 @@ public class BaseRuntimeTestTest {
   public void testIsConfigInitTest() {
     assertTrue( baseRuntimeTest.isConfigInitTest() );
     assertFalse( new BaseRuntimeTest( Object.class, module, id, name, dependencies ) {
-      @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+      @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
         throw new UnsupportedOperationException( "This is a test object, don't run it... ever..." );
       }
     }.isConfigInitTest() );
