@@ -24,7 +24,7 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-clusterTest</artifactId>
+      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

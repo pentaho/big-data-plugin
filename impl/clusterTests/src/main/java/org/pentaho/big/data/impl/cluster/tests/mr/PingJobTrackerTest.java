@@ -23,11 +23,11 @@
 package org.pentaho.big.data.impl.cluster.tests.mr;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
-import org.pentaho.big.data.api.clusterTest.test.impl.BaseClusterTest;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
 
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by bryan on 8/14/15.
  */
-public class PingJobTrackerTest extends BaseClusterTest {
+public class PingJobTrackerTest extends BaseRuntimeTest {
   public static final String JOB_TRACKER_PING_JOB_TRACKER_TEST =
     "jobTrackerPingJobTrackerTest";
   public static final String PING_JOB_TRACKER_TEST_NAME = "PingJobTrackerTest.Name";
@@ -45,13 +45,15 @@ public class PingJobTrackerTest extends BaseClusterTest {
 
   public PingJobTrackerTest( MessageGetterFactory messageGetterFactory,
                              ConnectivityTestFactory connectivityTestFactory ) {
-    super( Constants.MAP_REDUCE, JOB_TRACKER_PING_JOB_TRACKER_TEST,
+    super( NamedCluster.class, Constants.MAP_REDUCE, JOB_TRACKER_PING_JOB_TRACKER_TEST,
       messageGetterFactory.create( PKG ).getMessage( PING_JOB_TRACKER_TEST_NAME ), new HashSet<String>() );
     this.messageGetterFactory = messageGetterFactory;
     this.connectivityTestFactory = connectivityTestFactory;
   }
 
-  @Override public List<ClusterTestResultEntry> runTest( NamedCluster namedCluster ) {
+  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+    // Safe to cast as our accepts method will only return true for named clusters
+    NamedCluster namedCluster = (NamedCluster) objectUnderTest;
     return connectivityTestFactory
       .create( messageGetterFactory, namedCluster.getJobTrackerHost(), namedCluster.getJobTrackerPort(), true )
       .runTest();

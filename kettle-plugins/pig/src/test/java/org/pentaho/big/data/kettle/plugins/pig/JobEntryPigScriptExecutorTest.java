@@ -26,11 +26,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.runtime.test.RuntimeTester;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -60,14 +60,14 @@ public class JobEntryPigScriptExecutorTest {
   private String namedClusterHdfsPort;
   private String namedClusterJobTrackerPort;
   private String namedClusterJobTrackerHost;
-  private ClusterTester clusterTester;
+  private RuntimeTester runtimeTester;
 
   @Before
   public void setup() throws ClusterInitializationException {
     namedClusterService = mock( NamedClusterService.class );
     pigServiceLocator = mock( PigServiceLocator.class );
-    clusterTester = mock( ClusterTester.class );
-    jobEntryPigScriptExecutor = new JobEntryPigScriptExecutor( namedClusterService, clusterTester, pigServiceLocator );
+    runtimeTester = mock( RuntimeTester.class );
+    jobEntryPigScriptExecutor = new JobEntryPigScriptExecutor( namedClusterService, runtimeTester, pigServiceLocator );
 
     jobEntryName = "jobEntryName";
     namedClusterName = "namedClusterName";

@@ -45,7 +45,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -61,6 +60,7 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.runtime.test.RuntimeTester;
 
 import java.util.HashMap;
 
@@ -76,7 +76,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
   public static final String PIG_FILE_EXT = ".pig";
   private static final Class<?> PKG = JobEntryPigScriptExecutor.class;
   private final NamedClusterService namedClusterService;
-  private final ClusterTester clusterTester;
+  private final RuntimeTester runtimeTester;
   protected JobEntryPigScriptExecutor m_jobEntry;
   NamedClusterWidgetImpl namedClusterWidgetImpl;
   private Display m_display;
@@ -102,7 +102,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     super( parent, jobEntryInt, rep, jobMeta );
     m_jobEntry = (JobEntryPigScriptExecutor) jobEntryInt;
     namedClusterService = m_jobEntry.getNamedClusterService();
-    clusterTester = m_jobEntry.getClusterTester();
+    runtimeTester = m_jobEntry.getRuntimeTester();
   }
 
   public JobEntryInterface open() {
@@ -161,7 +161,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLabel.setLayoutData( fd );
 
-    namedClusterWidgetImpl = new NamedClusterWidgetImpl( shell, false, namedClusterService, clusterTester );
+    namedClusterWidgetImpl = new NamedClusterWidgetImpl( shell, false, namedClusterService, runtimeTester );
     namedClusterWidgetImpl.initiate();
     props.setLook( namedClusterWidgetImpl );
     fd = new FormData();

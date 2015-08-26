@@ -34,12 +34,12 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.runtime.test.RuntimeTester;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class NamedClusterWidgetImpl extends Composite {
   private HadoopClusterDelegateImpl ncDelegate;
 
   public NamedClusterWidgetImpl( Composite parent, boolean showLabel, NamedClusterService namedClusterService,
-                                 ClusterTester clusterTester ) {
+                                 RuntimeTester clusterTester ) {
     super( parent, SWT.NONE );
     this.namedClusterService = namedClusterService;
     ncDelegate = new HadoopClusterDelegateImpl( Spoon.getInstance(), this.namedClusterService, clusterTester );

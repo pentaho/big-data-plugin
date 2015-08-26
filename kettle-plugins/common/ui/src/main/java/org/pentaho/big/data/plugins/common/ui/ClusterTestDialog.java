@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -38,12 +38,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.ClusterTestProgressCallback;
-import org.pentaho.big.data.api.clusterTest.ClusterTestStatus;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
-import org.pentaho.big.data.api.clusterTest.module.ClusterTestModuleResults;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResult;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
@@ -52,6 +46,12 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.runtime.test.RuntimeTestProgressCallback;
+import org.pentaho.runtime.test.RuntimeTestStatus;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
+import org.pentaho.runtime.test.result.RuntimeTestResult;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
 
 /**
@@ -67,23 +67,23 @@ public class ClusterTestDialog extends Dialog {
   private PropsUI props;
 
   private final NamedCluster namedCluster;
-  private final ClusterTester clusterTester;
+  private final RuntimeTester runtimeTester;
 
   /**
    * The log channel for this dialog.
    */
   protected LogChannel log;
 
-  public static ClusterTestDialog create( Shell parent, NamedCluster namedCluster, ClusterTester clusterTester )
+  public static ClusterTestDialog create( Shell parent, NamedCluster namedCluster, RuntimeTester clusterTester )
     throws KettleException {
     return new ClusterTestDialog( parent, namedCluster, clusterTester );
   }
 
-  public ClusterTestDialog( Shell parent, NamedCluster namedCluster, ClusterTester clusterTester )
+  public ClusterTestDialog( Shell parent, NamedCluster namedCluster, RuntimeTester runtimeTester )
     throws KettleException {
     super( parent );
     this.namedCluster = namedCluster;
-    this.clusterTester = clusterTester;
+    this.runtimeTester = runtimeTester;
     props = PropsUI.getInstance();
     this.log = new LogChannel( namedCluster );
   }
@@ -155,12 +155,12 @@ public class ClusterTestDialog extends Dialog {
     shell.open();
 
     // Start the cluster tests
-    clusterTester.testCluster( namedCluster, new ClusterTestProgressCallback() {
+    runtimeTester.runtimeTest( namedCluster, new RuntimeTestProgressCallback() {
 
       private int numTests = -1;
 
       @Override
-      public void onProgress( final ClusterTestStatus clusterTestStatus ) {
+      public void onProgress( final RuntimeTestStatus clusterTestStatus ) {
         display.asyncExec( new Runnable() {
           @Override
           public void run() {
@@ -181,11 +181,11 @@ public class ClusterTestDialog extends Dialog {
 
             if ( clusterTestStatus.isDone() ) {
               // Log all the executed tests at the end
-              for ( ClusterTestModuleResults results : clusterTestStatus.getModuleResults() ) {
+              for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
                 log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.ModuleTest", results.getName() ) );
-                for ( ClusterTestResult result : results.getClusterTestResults() ) {
-                  String clusterTestName = result.getClusterTest().getName();
-                  for ( ClusterTestResultEntry entry : result.getClusterTestResultEntries() ) {
+                for ( RuntimeTestResult result : results.getRuntimeTestResults() ) {
+                  String clusterTestName = result.getRuntimeTest().getName();
+                  for ( RuntimeTestResultEntry entry : result.getRuntimeTestResultEntries() ) {
                     log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
                       clusterTestName,
                       entry.getSeverity().toString(),

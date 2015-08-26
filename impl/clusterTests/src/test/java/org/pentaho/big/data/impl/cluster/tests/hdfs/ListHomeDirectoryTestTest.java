@@ -24,10 +24,10 @@ package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;

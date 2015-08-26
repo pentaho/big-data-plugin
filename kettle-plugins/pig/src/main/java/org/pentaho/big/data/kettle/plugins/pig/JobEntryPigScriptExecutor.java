@@ -26,7 +26,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.clusterTest.ClusterTester;
 import org.pentaho.bigdata.api.pig.PigResult;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
@@ -47,6 +46,7 @@ import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.runtime.test.RuntimeTester;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -80,42 +80,34 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   private static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
   // $NON-NLS-1$
-
+  private final NamedClusterService namedClusterService;
+  private final RuntimeTester runtimeTester;
+  private final PigServiceLocator pigServiceLocator;
   /**
    * Hostname of the job tracker
    */
   protected NamedCluster namedCluster;
-
   /**
    * URL to the pig script to execute
    */
   protected String m_scriptFile = "";
-
   /**
    * True if the job entry should block until the script has executed
    */
   protected boolean m_enableBlocking;
-
   /**
    * True if the script should execute locally, rather than on a hadoop cluster
    */
   protected boolean m_localExecution;
-
   /**
    * Parameters for the script
    */
   protected HashMap<String, String> m_params = new HashMap<String, String>();
 
-  private final NamedClusterService namedClusterService;
-
-  private final ClusterTester clusterTester;
-
-  private final PigServiceLocator pigServiceLocator;
-
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
-                                    ClusterTester clusterTester, PigServiceLocator pigServiceLocator ) {
+                                    RuntimeTester runtimeTester, PigServiceLocator pigServiceLocator ) {
     this.namedClusterService = namedClusterService;
-    this.clusterTester = clusterTester;
+    this.runtimeTester = runtimeTester;
     this.pigServiceLocator = pigServiceLocator;
   }
 
@@ -409,8 +401,8 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     return namedClusterService;
   }
 
-  public ClusterTester getClusterTester() {
-    return clusterTester;
+  public RuntimeTester getRuntimeTester() {
+    return runtimeTester;
   }
 
   /*

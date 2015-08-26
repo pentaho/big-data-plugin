@@ -23,14 +23,14 @@
 package org.pentaho.big.data.impl.cluster.tests.oozie;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestEntrySeverity;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
-import org.pentaho.big.data.api.clusterTest.test.impl.BaseClusterTest;
-import org.pentaho.big.data.api.clusterTest.test.impl.ClusterTestResultEntryImpl;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
+import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,7 +42,7 @@ import java.util.List;
 /**
  * Created by bryan on 8/14/15.
  */
-public class PingOozieHostTest extends BaseClusterTest {
+public class PingOozieHostTest extends BaseRuntimeTest {
   public static final String OOZIE_PING_OOZIE_HOST_TEST =
     "ooziePingOozieHostTest";
   private static final Class<?> PKG = PingOozieHostTest.class;
@@ -55,22 +55,24 @@ public class PingOozieHostTest extends BaseClusterTest {
 
   public PingOozieHostTest( MessageGetterFactory messageGetterFactory,
                             ConnectivityTestFactory connectivityTestFactory ) {
-    super( Constants.OOZIE, OOZIE_PING_OOZIE_HOST_TEST,
+    super( NamedCluster.class, Constants.OOZIE, OOZIE_PING_OOZIE_HOST_TEST,
       messageGetterFactory.create( PKG ).getMessage( PING_OOZIE_HOST_TEST_NAME ), new HashSet<String>() );
     this.messageGetterFactory = messageGetterFactory;
     this.messageGetter = messageGetterFactory.create( PKG );
     this.connectivityTestFactory = connectivityTestFactory;
   }
 
-  @Override public List<ClusterTestResultEntry> runTest( NamedCluster namedCluster ) {
+  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+    // Safe to cast as our accepts method will only return true for named clusters
+    NamedCluster namedCluster = (NamedCluster) objectUnderTest;
     String oozieUrl = namedCluster.getOozieUrl();
     try {
       URL url = new URL( oozieUrl );
       return connectivityTestFactory
         .create( messageGetterFactory, url.getHost(), String.valueOf( url.getPort() ), false ).runTest();
     } catch ( MalformedURLException e ) {
-      return new ArrayList<ClusterTestResultEntry>( Arrays.asList(
-        new ClusterTestResultEntryImpl( ClusterTestEntrySeverity.FATAL,
+      return new ArrayList<RuntimeTestResultEntry>( Arrays.asList(
+        new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
           messageGetter.getMessage( PING_OOZIE_HOST_TEST_MALFORMED_URL_DESC ),
           messageGetter.getMessage( PING_OOZIE_HOST_TEST_MALFORMED_URL_MESSAGE, oozieUrl ), e ) ) );
     }

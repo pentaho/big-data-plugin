@@ -25,13 +25,13 @@ package org.pentaho.big.data.impl.cluster.tests.zookeeper;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.clusterTest.TestMessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetter;
-import org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTest;
-import org.pentaho.big.data.api.clusterTest.network.ConnectivityTestFactory;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestEntrySeverity;
-import org.pentaho.big.data.api.clusterTest.test.ClusterTestResultEntry;
+import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.runtime.test.i18n.MessageGetter;
+import org.pentaho.runtime.test.i18n.MessageGetterFactory;
+import org.pentaho.runtime.test.network.ConnectivityTest;
+import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
+import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,8 +40,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.expectOneEntry;
-import static org.pentaho.big.data.api.clusterTest.ClusterTestEntryUtil.verifyClusterTestResultEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
+import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
  * Created by bryan on 8/24/15.
@@ -75,8 +75,8 @@ public class PingZookeeperEnsembleTestTest {
   @Test
   public void testBlankHost() {
     namedCluster = mock( NamedCluster.class );
-    verifyClusterTestResultEntry( expectOneEntry( pingZookeeperEnsembleTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( expectOneEntry( pingZookeeperEnsembleTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_HOST_DESC ),
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_HOST_MESSAGE ) );
   }
@@ -85,8 +85,8 @@ public class PingZookeeperEnsembleTestTest {
   public void testBlankPort() {
     namedCluster = mock( NamedCluster.class );
     when( namedCluster.getZooKeeperHost() ).thenReturn( zookeeperHosts );
-    verifyClusterTestResultEntry( expectOneEntry( pingZookeeperEnsembleTest.runTest( namedCluster ) ),
-      ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( expectOneEntry( pingZookeeperEnsembleTest.runTest( namedCluster ) ),
+      RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_DESC ),
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_MESSAGE ) );
   }
@@ -95,15 +95,15 @@ public class PingZookeeperEnsembleTestTest {
   public void testNoFailures() {
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory
-      .create( messageGetterFactory, host1, zookeeperPort, false, ClusterTestEntrySeverity.WARNING ) ).thenReturn(
+      .create( messageGetterFactory, host1, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
       connectivityTest );
     when( connectivityTestFactory
-      .create( messageGetterFactory, host2, zookeeperPort, false, ClusterTestEntrySeverity.WARNING ) ).thenReturn(
+      .create( messageGetterFactory, host2, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
       connectivityTest );
-    ClusterTestResultEntry clusterTestResultEntry = mock( ClusterTestResultEntry.class );
-    when( clusterTestResultEntry.getSeverity() ).thenReturn( ClusterTestEntrySeverity.INFO );
+    RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
+    when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.INFO );
     when( connectivityTest.runTest() ).thenReturn( new ArrayList<>( Arrays.asList( clusterTestResultEntry ) ) );
-    List<ClusterTestResultEntry> clusterTestResultEntries = pingZookeeperEnsembleTest.runTest( namedCluster );
+    List<RuntimeTestResultEntry> clusterTestResultEntries = pingZookeeperEnsembleTest.runTest( namedCluster );
     assertEquals( 2, clusterTestResultEntries.size() );
     assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 0 ) );
     assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 1 ) );
@@ -114,18 +114,18 @@ public class PingZookeeperEnsembleTestTest {
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     ConnectivityTest connectivityTest2 = mock( ConnectivityTest.class );
     when( connectivityTestFactory
-      .create( messageGetterFactory, host1, zookeeperPort, false, ClusterTestEntrySeverity.WARNING ) ).thenReturn(
+      .create( messageGetterFactory, host1, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
       connectivityTest );
     when( connectivityTestFactory
-      .create( messageGetterFactory, host2, zookeeperPort, false, ClusterTestEntrySeverity.WARNING ) ).thenReturn(
+      .create( messageGetterFactory, host2, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
       connectivityTest2 );
-    ClusterTestResultEntry clusterTestResultEntry = mock( ClusterTestResultEntry.class );
-    when( clusterTestResultEntry.getSeverity() ).thenReturn( ClusterTestEntrySeverity.INFO );
+    RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
+    when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.INFO );
     when( connectivityTest.runTest() ).thenReturn( new ArrayList<>( Arrays.asList( clusterTestResultEntry ) ) );
-    ClusterTestResultEntry clusterTestResultEntry2 = mock( ClusterTestResultEntry.class );
-    when( clusterTestResultEntry.getSeverity() ).thenReturn( ClusterTestEntrySeverity.WARNING );
+    RuntimeTestResultEntry clusterTestResultEntry2 = mock( RuntimeTestResultEntry.class );
+    when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.WARNING );
     when( connectivityTest2.runTest() ).thenReturn( new ArrayList<>( Arrays.asList( clusterTestResultEntry2 ) ) );
-    List<ClusterTestResultEntry> clusterTestResultEntries = pingZookeeperEnsembleTest.runTest( namedCluster );
+    List<RuntimeTestResultEntry> clusterTestResultEntries = pingZookeeperEnsembleTest.runTest( namedCluster );
     assertEquals( 2, clusterTestResultEntries.size() );
     assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 0 ) );
     assertEquals( clusterTestResultEntry2, clusterTestResultEntries.get( 1 ) );
@@ -136,20 +136,20 @@ public class PingZookeeperEnsembleTestTest {
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     ConnectivityTest connectivityTest2 = mock( ConnectivityTest.class );
     when( connectivityTestFactory
-      .create( messageGetterFactory, host1, zookeeperPort, false, ClusterTestEntrySeverity.WARNING ) ).thenReturn(
+      .create( messageGetterFactory, host1, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
       connectivityTest );
     when( connectivityTestFactory
-      .create( messageGetterFactory, host2, zookeeperPort, false, ClusterTestEntrySeverity.WARNING ) ).thenReturn(
+      .create( messageGetterFactory, host2, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
       connectivityTest2 );
-    ClusterTestResultEntry clusterTestResultEntry = mock( ClusterTestResultEntry.class );
-    when( clusterTestResultEntry.getSeverity() ).thenReturn( ClusterTestEntrySeverity.WARNING );
+    RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
+    when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.WARNING );
     when( connectivityTest.runTest() ).thenReturn( new ArrayList<>( Arrays.asList( clusterTestResultEntry ) ) );
-    ClusterTestResultEntry clusterTestResultEntry2 = mock( ClusterTestResultEntry.class );
-    when( clusterTestResultEntry2.getSeverity() ).thenReturn( ClusterTestEntrySeverity.WARNING );
+    RuntimeTestResultEntry clusterTestResultEntry2 = mock( RuntimeTestResultEntry.class );
+    when( clusterTestResultEntry2.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.WARNING );
     when( connectivityTest2.runTest() ).thenReturn( new ArrayList<>( Arrays.asList( clusterTestResultEntry2 ) ) );
-    List<ClusterTestResultEntry> clusterTestResultEntries = pingZookeeperEnsembleTest.runTest( namedCluster );
+    List<RuntimeTestResultEntry> clusterTestResultEntries = pingZookeeperEnsembleTest.runTest( namedCluster );
     assertEquals( 3, clusterTestResultEntries.size() );
-    verifyClusterTestResultEntry( clusterTestResultEntries.get( 0 ), ClusterTestEntrySeverity.FATAL,
+    verifyRuntimeTestResultEntry( clusterTestResultEntries.get( 0 ), RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_OOZIE_HOST_TEST_NO_NODES_SUCCEEDED_DESC ),
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_OOZIE_HOST_TEST_NO_NODES_SUCCEEDED_MESSAGE ) );
     assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 1 ) );

@@ -14,6 +14,6 @@
     </argument>
   </bean>
 
-  <service ref="testShimLoad" interface="org.pentaho.big.data.api.clusterTest.test.ClusterTest"/>
-  <reference id="messageGetterFactory" interface="org.pentaho.big.data.api.clusterTest.i18n.MessageGetterFactory"/>
+  <service ref="testShimLoad" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <reference id="messageGetterFactory" interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
 </blueprint>
