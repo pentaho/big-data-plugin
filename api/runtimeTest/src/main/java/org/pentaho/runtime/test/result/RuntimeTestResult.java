@@ -24,17 +24,13 @@ package org.pentaho.runtime.test.result;
 
 import org.pentaho.runtime.test.RuntimeTest;
 
-import java.util.List;
-
 /**
  * Created by bryan on 8/11/15.
  */
-public interface RuntimeTestResult {
+public interface RuntimeTestResult extends RuntimeTestResultSummary {
   RuntimeTest getRuntimeTest();
 
-  List<RuntimeTestResultEntry> getRuntimeTestResultEntries();
+  boolean isDone();
 
   long getTimeTaken();
-
-  RuntimeTestEntrySeverity getMaxSeverity();
 }

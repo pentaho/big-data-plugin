@@ -22,24 +22,13 @@
 
 package org.pentaho.runtime.test.result;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * Created by bryan on 8/11/15.
+ * Created by bryan on 8/26/15.
  */
-public enum RuntimeTestEntrySeverity {
-  DEBUG, INFO, WARNING, SKIPPED, ERROR, FATAL;
+public interface RuntimeTestResultSummary {
+  RuntimeTestResultEntry getOverallStatusEntry();
 
-  public static RuntimeTestEntrySeverity maxSeverityResult( Collection<RuntimeTestResult> runtimeTestResults ) {
-    RuntimeTestEntrySeverity maxSeverity = null;
-    for ( RuntimeTestResult runtimeTestResult : runtimeTestResults ) {
-      if ( runtimeTestResult.isDone() ) {
-        RuntimeTestEntrySeverity severity = runtimeTestResult.getOverallStatusEntry().getSeverity();
-        if ( maxSeverity == null || ( severity != null && severity.ordinal() > maxSeverity.ordinal() ) ) {
-          maxSeverity = severity;
-        }
-      }
-    }
-    return maxSeverity;
-  }
+  List<RuntimeTestResultEntry> getRuntimeTestResultEntries();
 }

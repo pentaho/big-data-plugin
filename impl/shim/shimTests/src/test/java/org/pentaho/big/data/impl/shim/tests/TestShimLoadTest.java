@@ -32,6 +32,7 @@ import org.pentaho.runtime.test.TestMessageGetterFactory;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -67,26 +68,32 @@ public class TestShimLoadTest {
   public void testConfigurationException() throws ConfigurationException {
     String testMessage = "testMessage";
     when( hadoopConfigurationBootstrap.getProvider() ).thenThrow( new ConfigurationException( testMessage ) );
-    verifyRuntimeTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
+    RuntimeTestResultSummary runtimeTestResultSummary = testShimLoad.runTest( namedCluster );
+    verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
       RuntimeTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ),
       testMessage, ConfigurationException.class );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
   @Test
   public void testNoShimSpecified() throws ConfigurationException {
     String testMessage = "testMessage";
     when( hadoopConfigurationBootstrap.getProvider() ).thenThrow( new NoShimSpecifiedException( testMessage ) );
-    verifyRuntimeTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
+    RuntimeTestResultSummary runtimeTestResultSummary = testShimLoad.runTest( namedCluster );
+    verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
       RuntimeTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ),
       testMessage, NoShimSpecifiedException.class );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
   @Test
   public void testSuccess() throws ConfigurationException {
     String testShim = "testShim";
     when( hadoopConfigurationBootstrap.getActiveConfigurationId() ).thenReturn( testShim );
-    verifyRuntimeTestResultEntry( expectOneEntry( testShimLoad.runTest( namedCluster ) ),
+    RuntimeTestResultSummary runtimeTestResultSummary = testShimLoad.runTest( namedCluster );
+    verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
       RuntimeTestEntrySeverity.INFO, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_SHIM_LOADED_DESC, testShim ),
       messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_SHIM_LOADED_MESSAGE, testShim ) );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 }

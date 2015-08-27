@@ -32,6 +32,7 @@ import org.pentaho.runtime.test.network.ConnectivityTest;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
 import java.net.MalformedURLException;
 import java.util.List;
@@ -79,20 +80,24 @@ public class PingOozieHostTestTest {
     oozieUrl = "one-malformed-url";
     namedCluster = mock( NamedCluster.class );
     when( namedCluster.getOozieUrl() ).thenReturn( oozieUrl );
-    verifyRuntimeTestResultEntry( expectOneEntry( pingOozieHostTest.runTest( namedCluster ) ),
+    RuntimeTestResultSummary runtimeTestResultSummary = pingOozieHostTest.runTest( namedCluster );
+    verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
       RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( PingOozieHostTest.PING_OOZIE_HOST_TEST_MALFORMED_URL_DESC ),
       messageGetter.getMessage( PingOozieHostTest.PING_OOZIE_HOST_TEST_MALFORMED_URL_MESSAGE, oozieUrl ),
       MalformedURLException.class );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
   @Test
   public void testSuccess() {
-    List<RuntimeTestResultEntry> results = mock( List.class );
+    RuntimeTestResultEntry results = mock( RuntimeTestResultEntry.class );
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory.create( messageGetterFactory, oozieHost, ooziePort, false ) )
       .thenReturn( connectivityTest );
     when( connectivityTest.runTest() ).thenReturn( results );
-    assertEquals( results, pingOozieHostTest.runTest( namedCluster ) );
+    RuntimeTestResultSummary runtimeTestResultSummary = pingOozieHostTest.runTest( namedCluster );
+    assertEquals( results, runtimeTestResultSummary.getOverallStatusEntry() );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 }

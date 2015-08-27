@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,10 +27,7 @@ import org.pentaho.di.core.gui.GUIOption;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
-import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.MapRFSFileChooserDialog;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
+import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 
 @LifecyclePlugin( id = "HadoopSpoonPlugin", name = "Hadoop Spoon Plugin" )
 public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
@@ -44,11 +41,7 @@ public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
   public static final String MAPRFS_SCHEME_DISPLAY_NAME = "MapRFS";
 
   public void onStart( LifeEventHandler arg0 ) throws LifecycleException {
-    VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
-    dialog.addVFSUIPanel( new HadoopVfsFileChooserDialog( HDFS_SCHEME, HDFS_SCHEME_DISPLAY_NAME, dialog, null, null ) );
-    dialog
-        .addVFSUIPanel( new MapRFSFileChooserDialog(
-            MAPRFS_SCHEME, MAPRFS_SCHEME_DISPLAY_NAME, dialog ) );
+    NamedClusterUIHelper.initializeFileChooserDialog();
   }
 
   public void onExit( LifeEventHandler arg0 ) throws LifecycleException {

@@ -30,11 +30,12 @@ import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
+import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -51,9 +52,18 @@ public class PingZookeeperEnsembleTest extends BaseRuntimeTest {
   public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_DESC = "PingZookeeperEnsembleTest.BlankPort.Desc";
   public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_MESSAGE =
     "PingZookeeperEnsembleTest.BlankPort.Message";
-  public static final String PING_OOZIE_HOST_TEST_NO_NODES_SUCCEEDED_DESC = "PingOozieHostTest.NoNodesSucceeded.Desc";
-  public static final String PING_OOZIE_HOST_TEST_NO_NODES_SUCCEEDED_MESSAGE =
-    "PingOozieHostTest.NoNodesSucceeded.Message";
+  public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_NO_NODES_SUCCEEDED_DESC =
+    "PingZookeeperEnsembleTest.NoNodesSucceeded.Desc";
+  public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_NO_NODES_SUCCEEDED_MESSAGE =
+    "PingZookeeperEnsembleTest.NoNodesSucceeded.Message";
+  public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_SOME_NODES_FAILED_DESC =
+    "PingZookeeperEnsembleTest.SomeNodesFailed.Desc";
+  public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_SOME_NODES_FAILED_MESSAGE =
+    "PingZookeeperEnsembleTest.SomeNodesFailed.Message";
+  public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_ALL_NODES_SUCCEEDED_DESC =
+    "PingZookeeperEnsembleTest.AllNodesSucceeded.Desc";
+  public static final String PING_ZOOKEEPER_ENSEMBLE_TEST_ALL_NODES_SUCCEEDED_MESSAGE =
+    "PingZookeeperEnsembleTest.AllNodesSucceeded.Message";
   private static final Class<?> PKG = PingZookeeperEnsembleTest.class;
   private final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
@@ -68,43 +78,51 @@ public class PingZookeeperEnsembleTest extends BaseRuntimeTest {
     messageGetter = messageGetterFactory.create( PKG );
   }
 
-  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
+  @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
     String zooKeeperHost = namedCluster.getZooKeeperHost();
     String zooKeeperPort = namedCluster.getZooKeeperPort();
     if ( Const.isEmpty( zooKeeperHost ) ) {
-      return new ArrayList<RuntimeTestResultEntry>( Arrays.asList(
-        new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_HOST_DESC ),
-          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_HOST_MESSAGE ) ) ) );
+      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+        messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_HOST_DESC ),
+        messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_HOST_MESSAGE ) ) );
     } else if ( Const.isEmpty( zooKeeperPort ) ) {
-      return new ArrayList<RuntimeTestResultEntry>( Arrays.asList(
-        new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_DESC ),
-          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_MESSAGE ) ) ) );
+      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+        messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_DESC ),
+        messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_MESSAGE ) ) );
     } else {
       String[] quorum = namedCluster.getZooKeeperHost().split( "," );
       List<RuntimeTestResultEntry> clusterTestResultEntries = new ArrayList<>();
-      boolean hadSuccess = false;
+      int failedNodes = 0;
+      StringBuilder failedNodeString = new StringBuilder();
       for ( String node : quorum ) {
-        List<RuntimeTestResultEntry> nodeResults = connectivityTestFactory
+        RuntimeTestResultEntry nodeResults = connectivityTestFactory
           .create( messageGetterFactory, node, zooKeeperPort, false, RuntimeTestEntrySeverity.WARNING ).runTest();
-        if ( RuntimeTestEntrySeverity.maxSeverityEntry( nodeResults ) != RuntimeTestEntrySeverity.WARNING ) {
-          hadSuccess = true;
+        if ( nodeResults.getSeverity() == RuntimeTestEntrySeverity.WARNING ) {
+          failedNodeString.append( node ).append( ", " );
+          failedNodes++;
         }
-        clusterTestResultEntries.addAll( nodeResults );
+        clusterTestResultEntries.add( nodeResults );
       }
-      if ( !hadSuccess ) {
-        List<RuntimeTestResultEntry> newClusterTestResultEntries =
-          new ArrayList<>( clusterTestResultEntries.size() + 1 );
-        newClusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-          messageGetter.getMessage( PING_OOZIE_HOST_TEST_NO_NODES_SUCCEEDED_DESC ),
-          messageGetter.getMessage( PING_OOZIE_HOST_TEST_NO_NODES_SUCCEEDED_MESSAGE ) ) );
-        newClusterTestResultEntries.addAll( clusterTestResultEntries );
-        clusterTestResultEntries = newClusterTestResultEntries;
+      if ( failedNodes > 0 ) {
+        failedNodeString.setLength( failedNodeString.length() - 2 );
       }
-      return clusterTestResultEntries;
+      RuntimeTestResultEntryImpl overallResult;
+      if ( failedNodes == quorum.length ) {
+        overallResult = new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
+          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_NO_NODES_SUCCEEDED_DESC ),
+          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_NO_NODES_SUCCEEDED_MESSAGE, failedNodeString.toString() ) );
+      } else if ( failedNodes > 0 ) {
+        overallResult = new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.WARNING,
+          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_SOME_NODES_FAILED_DESC ),
+          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_SOME_NODES_FAILED_MESSAGE, failedNodeString.toString() ) );
+      } else {
+        overallResult = new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
+          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_ALL_NODES_SUCCEEDED_DESC ),
+          messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_ALL_NODES_SUCCEEDED_MESSAGE ) );
+      }
+      return new RuntimeTestResultSummaryImpl( overallResult, clusterTestResultEntries );
     }
   }
 }

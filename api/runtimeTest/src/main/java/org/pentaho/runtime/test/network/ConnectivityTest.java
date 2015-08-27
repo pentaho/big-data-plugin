@@ -25,11 +25,9 @@ package org.pentaho.runtime.test.network;
 
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
-import java.util.List;
-
 /**
  * Created by bryan on 8/24/15.
  */
 public interface ConnectivityTest {
-  List<RuntimeTestResultEntry> runTest();
+  RuntimeTestResultEntry runTest();
 }

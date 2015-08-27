@@ -29,13 +29,12 @@ import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
-import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
+import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 /**
  * Created by bryan on 8/14/15.
@@ -63,23 +62,19 @@ public class TestShimLoad extends BaseRuntimeTest {
     this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;
   }
 
-  @Override public List<RuntimeTestResultEntry> runTest( Object objectUnderTest ) {
-    // Safe to cast as our accepts method will only return true for named clusters
-    NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-    List<RuntimeTestResultEntry> clusterTestResultEntries = new ArrayList<>();
+  @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     try {
       String activeConfigurationId = hadoopConfigurationBootstrap.getActiveConfigurationId();
       hadoopConfigurationBootstrap.getProvider();
-      clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
+      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
         messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_DESC, activeConfigurationId ),
         messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_MESSAGE, activeConfigurationId ) ) );
     } catch ( NoShimSpecifiedException e ) {
-      clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.ERROR,
+      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.ERROR,
         messageGetter.getMessage( TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ), e.getMessage(), e ) );
     } catch ( ConfigurationException e ) {
-      clusterTestResultEntries.add( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.ERROR,
+      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.ERROR,
         messageGetter.getMessage( TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ), e.getMessage(), e ) );
     }
-    return clusterTestResultEntries;
   }
 }
