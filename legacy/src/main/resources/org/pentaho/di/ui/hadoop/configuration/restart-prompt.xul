@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <window id="hadoopConfigurationSelectionWindow" title="${HadoopConfigurationSelectionDialog.Shell.Title}"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="425" height="200" proxyoutercontext="true" appicon="ui/images/hadoop.png">
+        width="300" height="100" proxyoutercontext="true" appicon="ui/images/hadoop.png">
 
-  <dialog width="425" height="200" id="hadoopConfigurationSelectionDialog"
+  <dialog width="300" height="100" id="hadoopConfigurationSelectionDialog"
           title="${HadoopConfigurationRestartXulDialog.Shell.Title}"
           buttons="">
     <vbox flex="1">
-      <label id="hadoopConfigurationSelectionDialogLabel" value="${HadoopConfigurationRestartXulDialog.Text}"
-             multiline="true" width="425"/>
+      <hbox flex="1">
+        <image src='ui/images/warning:64#64.svg' width='64' height='64'/>
+        <label id="hadoopConfigurationSelectionDialogLabel" value="${HadoopConfigurationRestartXulDialog.Text}"
+               multiline="true" width="300"/>
+      </hbox>
       <spacer flex="1"/>
       <hbox>
-        <button label="${Dialog.Help}" width="75" onclick="hadoopConfigurationRestartXulDialog.showHelp()"/>
         <spacer flex="1"/>
-        <button label="${Dialog.Ok}" width="75" onclick="hadoopConfigurationRestartXulDialog.accept()"/>
-        <button label="${Dialog.Cancel}" width="75" onclick="hadoopConfigurationRestartXulDialog.cancel()"/>
+        <button label="${Dialog.Close}" width="75" onclick="hadoopConfigurationRestartXulDialog.close()"/>
       </hbox>
     </vbox>
   </dialog>

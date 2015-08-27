@@ -48,14 +48,13 @@ public class HadoopConfigurationRestartXulDialog extends AbstractXulEventHandler
   private static final Log logger = LogFactory.getLog( HadoopConfigurationRestartXulDialog.class );
   private final Shell shell;
   private XulDialog promptDialog;
-  private boolean accept = false;
 
   public HadoopConfigurationRestartXulDialog( Shell aShell ) {
     this.shell = new Shell( aShell, SWT.SHELL_TRIM | SWT.APPLICATION_MODAL );
     setName( CONTROLLER_NAME );
   }
 
-  public boolean open() {
+  public void open() {
     try {
       KettleXulLoader e = new KettleXulLoader();
       e.setOuterContext( shell );
@@ -72,15 +71,9 @@ public class HadoopConfigurationRestartXulDialog extends AbstractXulEventHandler
     } catch ( Exception var4 ) {
       logger.info( var4 );
     }
-    return accept;
   }
 
-  public void cancel() {
-    promptDialog.hide();
-  }
-
-  public void accept() {
-    accept = true;
+  public void close() {
     promptDialog.hide();
   }
 

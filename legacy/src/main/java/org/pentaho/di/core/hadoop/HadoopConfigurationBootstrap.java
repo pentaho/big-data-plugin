@@ -292,10 +292,10 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   }
 
   public synchronized void setActiveShim( String shimId ) throws ConfigurationException {
-    if ( provider == null || shimId.equals( provider.getActiveConfiguration().getIdentifier() ) || (
-      prompter != null && prompter.promptForRestart() ) ) {
-      getPluginProperties().setProperty( PROPERTY_ACTIVE_HADOOP_CONFIGURATION, shimId );
+    if ( provider != null && !shimId.equals( provider.getActiveConfiguration().getIdentifier() ) && prompter != null ) {
+      prompter.promptForRestart();
     }
+    getPluginProperties().setProperty( PROPERTY_ACTIVE_HADOOP_CONFIGURATION, shimId );
   }
 
   public String getWillBeActiveConfigurationId() throws ConfigurationException {
