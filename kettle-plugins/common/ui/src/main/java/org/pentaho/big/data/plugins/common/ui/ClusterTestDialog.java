@@ -1,23 +1,21 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
+ * <p/>
+ * ******************************************************************************
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.big.data.plugins.common.ui;
@@ -46,12 +44,15 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestProgressCallback;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+
+import java.util.Iterator;
 
 
 /**
@@ -126,10 +127,11 @@ public class ClusterTestDialog extends Dialog {
     fd.top = new FormAttachment( 0, margin );
     testingClusterLabel.setLayoutData( fd );
 
-    Label testLabel = new Label( shell, SWT.NONE );
-    testLabel.setText( "Connecting to cluster" );
+    final Label testLabel = new Label( shell, SWT.NONE );
+    testLabel.setText( "Testing cluster..." );
     fd = new FormData();
     fd.top = new FormAttachment( testingClusterLabel, 10 );
+    fd.right = new FormAttachment( 100, -margin );
     fd.left = new FormAttachment( 0, margin );
     testLabel.setLayoutData( fd );
 
@@ -179,13 +181,23 @@ public class ClusterTestDialog extends Dialog {
 
             progressBar.setSelection( clusterTestStatus.getTestsDone() );
 
+            for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
+              Iterator<RuntimeTest> runningTests = results.getRunningTests().iterator();
+              if ( runningTests.hasNext() ) {
+                testLabel.setText( runningTests.next().getName() );
+              }
+            }
+
             if ( clusterTestStatus.isDone() ) {
+              testLabel.setText( BaseMessages.getString( PKG, "ClusterTestDialog.TestsFinished" ) );
               // Log all the executed tests at the end
               for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
                 log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.ModuleTest", results.getName() ) );
                 for ( RuntimeTestResult result : results.getRuntimeTestResults() ) {
                   String clusterTestName = result.getRuntimeTest().getName();
-                  for ( RuntimeTestResultEntry entry : result.getRuntimeTestResultEntries() ) {
+                  // If there are no entries, that means there was one test and it becomes the summary-level result
+                  if ( result.getRuntimeTestResultEntries().isEmpty() ) {
+                    RuntimeTestResultEntry entry = result.getOverallStatusEntry();
                     log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
                       clusterTestName,
                       entry.getSeverity().toString(),
@@ -195,10 +207,27 @@ public class ClusterTestDialog extends Dialog {
                     if ( log.isDetailed() && entry.getException() != null ) {
                       log.logDetailed( ExceptionUtils.getStackTrace( entry.getException() ) );
                     }
+                  } else {
+                    for ( RuntimeTestResultEntry entry : result.getRuntimeTestResultEntries() ) {
+                      log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
+                        clusterTestName,
+                        entry.getSeverity().toString(),
+                        entry.getDescription() ) );
+                      log.logBasic( "\t" + entry.getMessage() );
+
+                      if ( log.isDetailed() && entry.getException() != null ) {
+                        log.logDetailed( ExceptionUtils.getStackTrace( entry.getException() ) );
+                      }
+                    }
                   }
                 }
               }
-              // TODO open Results dialog
+
+              try {
+                new ClusterTestResultsDialog( shell, clusterTestStatus ).open();
+              } catch ( KettleException ke ) {
+                log.logError( BaseMessages.getString( PKG, "ClusterTestResultsDialog.FailedToOpen" ), ke );
+              }
               ClusterTestDialog.this.dispose();
             }
           }
