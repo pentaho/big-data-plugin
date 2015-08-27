@@ -59,7 +59,6 @@ public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
       container.loadOverlay( "org/pentaho/di/ui/hadoop/configuration/toolbar-overlay.xul", resourceBundle );
       HadoopConfigurationsController controller = new HadoopConfigurationsController();
       container.addEventHandler( controller );
-      controller.init();
     } catch ( XulException e ) {
       log.logError( e.getMessage() );
     }
@@ -77,15 +76,14 @@ public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
         return atomicReference.get();
       }
 
-      @Override public boolean promptForRestart() {
-        final AtomicReference<Boolean> atomicReference = new AtomicReference<>();
+      @Override
+      public void promptForRestart() {
         final Spoon spoon = Spoon.getInstance();
         spoon.getDisplay().syncExec( new Runnable() {
           @Override public void run() {
-            atomicReference.set( new HadoopConfigurationRestartXulDialog( spoon.getShell() ).open() );
+            new HadoopConfigurationRestartXulDialog( spoon.getShell() ).open();
           }
         } );
-        return atomicReference.get();
       }
     } );
   }

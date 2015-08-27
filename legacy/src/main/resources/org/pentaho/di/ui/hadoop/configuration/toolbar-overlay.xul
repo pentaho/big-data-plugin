@@ -2,9 +2,7 @@
 <overlay
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <menupopup id="tools-popup">
-    <menu id="hadoop-configuration" label="${HadoopConfigurationsController.Popup}" position="3">
-      <menupopup id="hadoop-configuration-popup">
-      </menupopup>
-    </menu>
+    <menuitem id="hadoop-configuration" label="${HadoopConfigurationsController.Toolbar}" position="3"
+              command="hadoopConfigurationsController.promptForShim()"/>
   </menupopup>
 </overlay>

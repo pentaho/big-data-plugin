@@ -24,16 +24,15 @@ package org.pentaho.di.ui.hadoop.configuration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.jface.action.IMenuListener;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.MenuManager;
+import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopConfigurationInfo;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.ConfigurationException;
-import org.pentaho.ui.xul.XulException;
-import org.pentaho.ui.xul.components.XulMenuitem;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
-import org.pentaho.ui.xul.jface.tags.JfaceMenupopup;
+
+import java.util.List;
 
 /**
  * Created by bryan on 8/10/15.
@@ -41,53 +40,35 @@ import org.pentaho.ui.xul.jface.tags.JfaceMenupopup;
 public class HadoopConfigurationsController extends AbstractXulEventHandler {
   public static final String HADOOP_CONFIGURATIONS_CONTROLLER = "hadoopConfigurationsController";
   private static final Log logger = LogFactory.getLog( HadoopConfigurationRestartXulDialog.class );
-  private JfaceMenupopup hadoopConfigurationPopup;
 
   public HadoopConfigurationsController() {
     setName( HADOOP_CONFIGURATIONS_CONTROLLER );
   }
 
-  public void init() throws XulException {
-    try {
-      hadoopConfigurationPopup = (JfaceMenupopup) document.getElementById( "hadoop-configuration-popup" );
-      Object object = hadoopConfigurationPopup.getManagedObject();
-      if ( object instanceof MenuManager ) {
-        MenuManager managedObject = (MenuManager) object;
-        managedObject.addMenuListener( new IMenuListener() {
-          @Override public void menuAboutToShow( IMenuManager iMenuManager ) {
-            refresh();
+  public void promptForShim() {
+    final Spoon spoon = Spoon.getInstance();
+    spoon.getDisplay().asyncExec( new Runnable() {
+      @Override public void run() {
+        try {
+          List<HadoopConfigurationInfo> hadoopConfigurationInfos =
+            HadoopConfigurationBootstrap.getInstance().getHadoopConfigurationInfos();
+          Shell shell = spoon.getShell();
+          if ( hadoopConfigurationInfos.size() == 0 ) {
+            new NoHadoopConfigurationsXulDialog( shell ).open();
+          } else {
+            String shimId = new HadoopConfigurationsXulDialog( shell, hadoopConfigurationInfos ).open();
+            if ( !Const.isEmpty( shimId ) ) {
+              try {
+                HadoopConfigurationBootstrap.getInstance().setActiveShim( shimId );
+              } catch ( ConfigurationException e ) {
+                logger.error( e.getMessage(), e );
+              }
+            }
           }
-        } );
-      }
-      refresh();
-    } catch ( ClassCastException e ) {
-      throw new XulException( e );
-    }
-  }
-
-  public void setActiveShim( String shim ) throws ConfigurationException {
-    HadoopConfigurationBootstrap.getInstance().setActiveShim( shim );
-    refresh();
-  }
-
-  public void refresh() {
-    try {
-      hadoopConfigurationPopup.removeChildren();
-      for ( HadoopConfigurationInfo hadoopConfigurationInfo : HadoopConfigurationBootstrap.getInstance()
-        .getHadoopConfigurationInfos() ) {
-        XulMenuitem menuitem = hadoopConfigurationPopup.createNewMenuitem();
-        menuitem.setId( "hadoop-configuration-" + hadoopConfigurationInfo.getId() );
-        menuitem.setLabel( hadoopConfigurationInfo.getName() );
-        if ( hadoopConfigurationInfo.isActive() ) {
-          menuitem.setImage( "ui/images/true.png" );
-        } else if ( hadoopConfigurationInfo.isWillBeActiveAfterRestart() ) {
-          menuitem.setImage( "ui/images/reset_option.png" );
+        } catch ( Exception e ) {
+          logger.error( e.getMessage(), e );
         }
-        menuitem.setCommand(
-          HADOOP_CONFIGURATIONS_CONTROLLER + ".setActiveShim('" + hadoopConfigurationInfo.getId() + "')" );
       }
-    } catch ( Exception e ) {
-      logger.warn( e );
-    }
+    } );
   }
 }

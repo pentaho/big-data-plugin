@@ -30,5 +30,5 @@ import java.util.List;
 public interface HadoopConfigurationPrompter {
   String getConfigurationSelection( List<HadoopConfigurationInfo> hadoopConfigurationInfos );
 
-  boolean promptForRestart();
+  void promptForRestart();
 }
