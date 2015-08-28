@@ -40,7 +40,7 @@ import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
-public class S3FileObject extends AbstractFileObject implements FileObject {
+public class S3FileObject extends AbstractFileObject {
 
   public static final String DELIMITER = "/";
   //  private S3Service service = null;

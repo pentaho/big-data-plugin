@@ -20,7 +20,7 @@
 
     <!--  external dependencies -->
     <dependency org="commons-io" name="commons-io" rev="1.4" conf="default->default"/>
-    <dependency org="org.apache.commons" name="commons-vfs2" rev="2.0" transitive="false" />
+    <dependency org="org.apache.commons" name="commons-vfs2" rev="2.1-20150824" transitive="false" />
     <dependency org="net.java.dev.jets3t" name="jets3t" rev="${dependency.jets3t.revision}" transitive="true" />
 
 	<!-- test -->
