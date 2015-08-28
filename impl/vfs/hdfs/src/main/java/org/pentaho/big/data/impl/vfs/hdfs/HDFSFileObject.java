@@ -35,7 +35,7 @@ import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-public class HDFSFileObject extends AbstractFileObject implements FileObject {
+public class HDFSFileObject extends AbstractFileObject  {
 
   private HadoopFileSystem hdfs;
 
