@@ -29,7 +29,7 @@ import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
-@DatabaseMetaPlugin( type = "IMPALASIMBA", typeDescription = "Impala with Simba driver" )
+@DatabaseMetaPlugin( type = "IMPALASIMBA", typeDescription = "Cloudera Impala" )
 public class ImpalaSimbaDatabaseMeta extends ImpalaDatabaseMeta implements DatabaseInterface {
 
   protected static final String JAR_FILE = "ImpalaJDBC41.jar";

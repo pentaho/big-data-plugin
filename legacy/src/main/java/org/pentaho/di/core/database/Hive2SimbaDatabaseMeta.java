@@ -29,7 +29,7 @@ import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
-@DatabaseMetaPlugin( type = "HIVE2SIMBA", typeDescription = "Hadoop Hive 2 with Simba Driver" )
+//@DatabaseMetaPlugin( type = "HIVE2SIMBA", typeDescription = "Hadoop Hive 2 with Simba Driver" )
 public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInterface {
 
   protected static final String JAR_FILE = "HiveJDBC41.jar";
