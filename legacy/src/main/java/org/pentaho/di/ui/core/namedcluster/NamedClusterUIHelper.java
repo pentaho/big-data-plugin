@@ -22,25 +22,19 @@
 
 package org.pentaho.di.ui.core.namedcluster;
 
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.MapRFSFileChooserDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NamedClusterUIHelper {
-  private static NamedClusterUIFactory namedClusterUIFactory = null;
-  private static final AtomicBoolean hasInitializedDialog = new AtomicBoolean( false );
+  private static final NamedClusterUIFactoryHolder NAMED_CLUSTER_UI_FACTORY_HOLDER = new NamedClusterUIFactoryHolder();
 
-  public static NamedClusterUIFactory getNamedClusterUIFactory() {
-    return namedClusterUIFactory;
+  public static synchronized NamedClusterUIFactory getNamedClusterUIFactory() {
+    return NAMED_CLUSTER_UI_FACTORY_HOLDER.getNamedClusterUIFactory();
   }
 
   /**
@@ -50,21 +44,7 @@ public class NamedClusterUIHelper {
    */
   public static void setNamedClusterUIFactory(
     NamedClusterUIFactory namedClusterUIFactory ) {
-    NamedClusterUIHelper.namedClusterUIFactory = namedClusterUIFactory;
-    initializeFileChooserDialog();
-  }
-
-  public static void initializeFileChooserDialog() {
-    if ( namedClusterUIFactory != null && Spoon.getInstance() != null && !hasInitializedDialog.getAndSet( true ) ) {
-      VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
-      dialog.addVFSUIPanel(
-        new HadoopVfsFileChooserDialog( HadoopSpoonPlugin.HDFS_SCHEME, HadoopSpoonPlugin.HDFS_SCHEME_DISPLAY_NAME,
-          dialog,
-          null, null ) );
-      dialog.addVFSUIPanel(
-        new MapRFSFileChooserDialog( HadoopSpoonPlugin.MAPRFS_SCHEME, HadoopSpoonPlugin.MAPRFS_SCHEME_DISPLAY_NAME,
-          dialog ) );
-    }
+    NAMED_CLUSTER_UI_FACTORY_HOLDER.setNamedClusterUIFactory( namedClusterUIFactory );
   }
 
   public static List<NamedCluster> getNamedClusters() {
@@ -79,4 +59,23 @@ public class NamedClusterUIHelper {
     return NamedClusterManager.getInstance().read( namedCluster, Spoon.getInstance().getMetaStore() );
   }
 
+  static class NamedClusterUIFactoryHolder {
+    private NamedClusterUIFactory namedClusterUIFactory;
+
+    public synchronized NamedClusterUIFactory getNamedClusterUIFactory() {
+      while ( namedClusterUIFactory == null ) {
+        try {
+          wait();
+        } catch ( InterruptedException e ) {
+          Thread.currentThread().interrupt();
+        }
+      }
+      return namedClusterUIFactory;
+    }
+
+    public synchronized void setNamedClusterUIFactory( NamedClusterUIFactory namedClusterUIFactory ) {
+      this.namedClusterUIFactory = namedClusterUIFactory;
+      notifyAll();
+    }
+  }
 }
