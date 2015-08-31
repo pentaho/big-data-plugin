@@ -70,6 +70,8 @@ public class ClusterTestDialog extends Dialog {
   private final NamedCluster namedCluster;
   private final RuntimeTester runtimeTester;
 
+  private RuntimeTestStatus runtimeTestStatus = null;
+
   /**
    * The log channel for this dialog.
    */
@@ -89,10 +91,10 @@ public class ClusterTestDialog extends Dialog {
     this.log = new LogChannel( namedCluster );
   }
 
-  public String open() {
+  public RuntimeTestStatus open() {
     Shell parent = getParent();
     final Display display = parent.getDisplay();
-    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.CLOSE | SWT.MAX | SWT.MIN | SWT.ICON );
+    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.CLOSE | SWT.MAX | SWT.MIN | SWT.ICON );
     props.setLook( shell );
     shell.setImage( GUIResource.getInstance().getImageSpoon() );
 
@@ -108,11 +110,10 @@ public class ClusterTestDialog extends Dialog {
     formLayout.marginWidth = margin;
     formLayout.marginHeight = margin;
 
-    final int shellWidth = 150;
-    final int shellHeight = 243; // Golden ratio * width
-    shell.setSize( shellHeight, shellWidth );
-    shell.setMinimumSize( shellHeight, shellWidth );
-
+    final int shellWidth = 285;
+    final int shellHeight = 160; // Golden ratio * width
+    shell.setSize( shellWidth, shellHeight );
+    shell.setMinimumSize( shellWidth, shellHeight );
     shell.setText( BaseMessages.getString( PKG, "ClusterTestDialog.Title" ) );
     shell.setLayout( formLayout );
 
@@ -137,6 +138,7 @@ public class ClusterTestDialog extends Dialog {
 
     final ProgressBar progressBar = new ProgressBar( shell, SWT.SMOOTH );
     progressBar.setMinimum( 0 ); // Max tests will be set upon first return
+
     fd = new FormData();
     fd.top = new FormAttachment( testLabel, 10 );
     fd.left = new FormAttachment( 0, margin );
@@ -153,7 +155,7 @@ public class ClusterTestDialog extends Dialog {
 
     Button[] buttons = new Button[]{ wCancel };
     BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, null );
-
+    shell.setBackgroundMode( SWT.INHERIT_FORCE );
     shell.open();
 
     // Start the cluster tests
@@ -189,6 +191,7 @@ public class ClusterTestDialog extends Dialog {
             }
 
             if ( clusterTestStatus.isDone() ) {
+              runtimeTestStatus = clusterTestStatus;
               testLabel.setText( BaseMessages.getString( PKG, "ClusterTestDialog.TestsFinished" ) );
               // Log all the executed tests at the end
               for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
@@ -222,12 +225,6 @@ public class ClusterTestDialog extends Dialog {
                   }
                 }
               }
-
-              try {
-                new ClusterTestResultsDialog( shell, clusterTestStatus ).open();
-              } catch ( KettleException ke ) {
-                log.logError( BaseMessages.getString( PKG, "ClusterTestResultsDialog.FailedToOpen" ), ke );
-              }
               ClusterTestDialog.this.dispose();
             }
           }
@@ -240,10 +237,11 @@ public class ClusterTestDialog extends Dialog {
         display.sleep();
       }
     }
-    return null;
+    return runtimeTestStatus;
   }
 
   private void cancel() {
+    runtimeTestStatus = null;
     dispose();
   }
 

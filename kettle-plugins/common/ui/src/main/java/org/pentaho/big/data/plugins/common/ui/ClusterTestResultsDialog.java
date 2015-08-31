@@ -24,6 +24,8 @@ package org.pentaho.big.data.plugins.common.ui;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FormAttachment;
@@ -37,6 +39,7 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.Const;
@@ -44,6 +47,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.core.dialog.ShowHelpDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
@@ -96,8 +100,8 @@ public class ClusterTestResultsDialog extends Dialog {
     formLayout.marginWidth = margin;
     formLayout.marginHeight = margin;
 
-    final int shellWidth = 400;
-    final int shellHeight = 600;
+    final int shellWidth = 585;
+    final int shellHeight = 490;
     shell.setSize( shellWidth, shellHeight );
     shell.setMinimumSize( shellWidth, shellHeight );
 
@@ -107,7 +111,7 @@ public class ClusterTestResultsDialog extends Dialog {
     Label clusterResultsLabel = new Label( shell, SWT.NONE );
     clusterResultsLabel.setText( BaseMessages.getString( PKG, "ClusterTestResultsDialog.ClusterTestResults.Label" ) );
     FontData[] fontData = clusterResultsLabel.getFont().getFontData();
-    fontData[0].setHeight( 18 );
+    fontData[0].setHeight( 16 );
     clusterResultsLabel.setForeground( GUIResource.getInstance().getColorCrystalTextPentaho() );
     clusterResultsLabel.setFont( new Font( display, fontData[0] ) );
     FormData fd = new FormData();
@@ -137,47 +141,90 @@ public class ClusterTestResultsDialog extends Dialog {
       for ( RuntimeTestResult testResult : moduleResults.getRuntimeTestResults() ) {
         RuntimeTestResultEntry summary = testResult.getOverallStatusEntry();
         Label image = new Label( mainComposite, SWT.NONE );
+        boolean hasAction = false;
         switch ( summary.getSeverity() ) {
 
           case DEBUG:
           case INFO:
             // The above are "Test(s) passed"
-            image.setImage( GUIResource.getInstance().getImageTrue() );
+            image.setImage( GUIResource.getInstance().getSwtImageTrue().getAsBitmapForSize( display, 24, 24 ) );
+            hasAction = false;
             break;
           case WARNING:
           case SKIPPED:
             // The above are "Test(s) finished with warnings"
-            image.setImage( GUIResource.getInstance().getImageWarning() );
+            image.setImage( GUIResource.getInstance().getSwtImageWarning().getAsBitmapForSize( display, 24, 24 ) );
+            hasAction = true;
             break;
           case ERROR:
           case FATAL:
             // The above are "Test(s) failed"
-            image.setImage( GUIResource.getInstance().getImageFalse() );
+            image.setImage( GUIResource.getInstance().getSwtImageFalse().getAsBitmapForSize( display, 24, 24 ) );
+            hasAction = true;
             break;
         }
-        GridData gridData = new GridData();
-        //gridData.verticalAlignment = SWT.TOP;
-        image.setLayoutData( gridData );
+        //GridData gridData = new GridData( GridData.FILL_HORIZONTAL );
+        //image.setLayoutData( gridData );
 
         // Need 2-row 1-col grid to display test name then description
         GridLayout testDescriptionLayout = new GridLayout();
         testDescriptionLayout.numColumns = 1;
+
         final Composite testDescriptionComposite = new Composite( mainComposite, SWT.NONE );
         testDescriptionComposite.setLayout( testDescriptionLayout );
         testDescriptionComposite.setBackground( GUIResource.getInstance().getColorBackground() );
 
         Label testName = new Label( testDescriptionComposite, SWT.NONE );
         testName.setText( testResult.getRuntimeTest().getName() );
+        GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
+        testName.setLayoutData( gridData );
         FontData testNameFont = testName.getFont().getFontData()[0];
-        testNameFont.setStyle( SWT.BOLD );
-        testName.setFont( new Font( display, fontData[0] ) );
+        testNameFont.setHeight( 13 );
+        testName.setFont( new Font( display, testNameFont ) );
 
-        Label description = new Label( testDescriptionComposite, SWT.NONE );
+        // The Test description will also contain an "action" link
+        GridLayout testResultsLayout = new GridLayout();
+        testResultsLayout.numColumns = 2;
+        final Composite testResultsComposite = new Composite( testDescriptionComposite, SWT.NONE );
+        testResultsComposite.setLayout( testResultsLayout );
+        testResultsComposite.setBackground( GUIResource.getInstance().getColorBackground() );
+
+        // Add test description
+        Label description = new Label( testResultsComposite, SWT.NONE );
         description.setForeground( GUIResource.getInstance().getColorDarkGray() );
         description.setText( summary.getDescription() );
+        description.setFont( new Font( display, testNameFont ) );
+        gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
+        description.setLayoutData( gridData );
+
+        // Add action link
+        Link link = new Link( testResultsComposite, SWT.NONE );
+        link.setBackground( GUIResource.getInstance().getColorBackground() );
+        if ( hasAction ) {
+          link.setText( "<A HREF=\"pentaho.com\">Troubleshooting Guide</A>" );
+          link.addSelectionListener( new SelectionAdapter() {
+            public void widgetSelected( SelectionEvent selectionEvent ) {
+              new ShowHelpDialog( shell,
+                BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Title" ),
+                BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ),
+                BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Header" ) ).open();
+            }
+
+            /*public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
+              invoke( onclick );
+            }*/
+          } );
+        }
+
+        testResultsComposite.setSize( testResultsComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+
+        // Separator
+        /*Label separator = new Label( testDescriptionComposite, SWT.HORIZONTAL | SWT.SEPARATOR );
+        gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        separator.setLayoutData( gridData );
+*/
         testDescriptionComposite.setSize( testDescriptionComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
       }
-
     }
     mainComposite.setSize( mainComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
