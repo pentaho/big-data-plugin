@@ -60,7 +60,7 @@ public class NamedClusterComposite extends Composite {
 
   private static final int ONE_COLUMN = 1;
   private static final int TWO_COLUMNS = 2;
-  
+
   private static final int TEXT_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private static final int PASSWORD_FLAGS = TEXT_FLAGS | SWT.PASSWORD;
 
@@ -82,7 +82,7 @@ public class NamedClusterComposite extends Composite {
   private interface Callback {
     public void invoke( NamedCluster nc, TextVar textVar, String value );
   }
-  
+
   public NamedClusterComposite( Composite parent, NamedCluster namedCluster, PropsUI props ) {
     super( parent, SWT.NONE );
     props.setLook( this );
@@ -92,58 +92,58 @@ public class NamedClusterComposite extends Composite {
     formLayout.marginWidth = 10;
     formLayout.marginHeight = 0;
     setLayout( formLayout );
-    
+
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     setLayoutData( fd );
-    
+
     gridData = new GridData();
     gridData.widthHint = 270;
 
     numberGridData = new GridData();
     numberGridData.widthHint = 80;
-    
+
     labelGridData = new GridData();
     labelGridData.widthHint = 270;
-    
+
     portLabelGridData = new GridData();
     portLabelGridData.widthHint = 80;
-    
+
     userNameLabelGridData = new GridData();
     userNameLabelGridData.widthHint = 165;
-    
+
     userNameGridData = new GridData();
     userNameGridData.widthHint = 165;
-    
+
     passwordLabelGridData = new GridData();
     passwordLabelGridData.widthHint = 185;
-    
+
     passwordGridData = new GridData();
     passwordGridData.widthHint = 185;
-    
+
     processNamedCluster( this, namedCluster );
 
     nameValue.forceFocus();
   }
 
   private void processNamedCluster( final Composite c, final NamedCluster cluster ) {
-    
+
     Composite confUI = createConfigurationUI( c, cluster );
 
     // Create a horizontal separator
-    Label topSeparator = new Label(c, SWT.HORIZONTAL | SWT.SEPARATOR );
+    Label topSeparator = new Label( c, SWT.HORIZONTAL | SWT.SEPARATOR );
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( confUI, 10 );
     topSeparator.setLayoutData( fd );
-    
+
     // Create MapR check box
     final Button maprButton = new Button( c, SWT.CHECK );
     maprButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR" ) );
     maprButton.setToolTipText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR.Title" ) );
-    
+
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
@@ -158,7 +158,7 @@ public class NamedClusterComposite extends Composite {
         setHdfsAndJobTrackerState( !maprButton.getSelection() );
       }
     } );
-    
+
     // Create a child composite to hold the controls
     final Composite c1 = new Composite( c, SWT.NONE );
     fd = new FormData();
@@ -166,36 +166,36 @@ public class NamedClusterComposite extends Composite {
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     c1.setLayoutData( fd );
-    props.setLook( c1 );   
+    props.setLook( c1 );
     GridLayout gl = new GridLayout( ONE_COLUMN, false );
-    
+
     gl.marginHeight = 0;
     gl.marginWidth = 0;
-    
-    c1.setLayout( gl ); 
-    
+
+    c1.setLayout( gl );
+
     createHdfsGroup( c1, cluster );
     createJobTrackerGroup( c1, cluster );
     createZooKeeperGroup( c1, cluster );
     createOozieGroup( c1, cluster );
-    
+
     c1.setSize( c1.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-    
+
     setHdfsAndJobTrackerState( !cluster.isMapr() );
   }
 
-  private Composite createConfigurationUI( final Composite c, final NamedCluster namedCluster  ) {
+  private Composite createConfigurationUI( final Composite c, final NamedCluster namedCluster ) {
     Composite mainParent = new Composite( c, SWT.NONE );
     props.setLook( mainParent );
     GridLayout gl = new GridLayout( ONE_COLUMN, false );
     gl.marginWidth = 0;
-    
+
     mainParent.setLayout( gl );
     FormData fd = new FormData();
     mainParent.setLayoutData( fd );
-    
+
     createLabel( mainParent, BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.Name" ), labelGridData );
-    
+
     nameValue = new Text( mainParent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     nameValue.setText( String.valueOf( namedCluster.getName() ) );
     nameValue.setLayoutData( gridData );
@@ -211,7 +211,7 @@ public class NamedClusterComposite extends Composite {
 
     return mainParent;
   }
-  
+
   private Label createLabel( Composite parent, String text, GridData gd ) {
     Label label = new Label( parent, SWT.NONE );
     label.setText( text );
@@ -219,14 +219,15 @@ public class NamedClusterComposite extends Composite {
     props.setLook( label );
     return label;
   }
-  
-  private TextVar createTextVar( final NamedCluster c, Composite parent, String val, GridData gd, int flags, final Callback cb ) {
+
+  private TextVar createTextVar( final NamedCluster c, Composite parent, String val, GridData gd, int flags,
+      final Callback cb ) {
     final TextVar textVar = new TextVar( c, parent, flags );
     // SWT will typically not allow a null text
     textVar.setText( StringUtils.isEmpty( val ) ? StringUtils.EMPTY : val );
     textVar.setLayoutData( gd );
     props.setLook( textVar );
-    
+
     textVar.addKeyListener( new KeyListener() {
       public void keyReleased( KeyEvent event ) {
         cb.invoke( c, textVar, textVar.getText() );
@@ -234,11 +235,11 @@ public class NamedClusterComposite extends Composite {
 
       public void keyPressed( KeyEvent event ) {
       }
-    } );    
-    
+    } );
+
     return textVar;
-  }  
-  
+  }
+
   private Composite createGroup( Composite parent, String groupLabel ) {
     Group group = new Group( parent, SWT.NONE );
     group.setText( groupLabel );
@@ -247,27 +248,25 @@ public class NamedClusterComposite extends Composite {
     GridData groupGridData = new GridData();
     groupGridData.grabExcessHorizontalSpace = true;
     groupGridData.horizontalAlignment = SWT.FILL;
-    
+
     group.setLayoutData( groupGridData );
     // property parent composite
     Composite pp = new Composite( group, SWT.NONE );
     props.setLook( pp );
     GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
-    gridLayout.verticalSpacing = -10; 
+    gridLayout.verticalSpacing = -10;
     gridLayout.marginWidth = 0;
-    
-    
+
     gridLayout.marginLeft = 5;
     gridLayout.marginRight = 5;
     gridLayout.marginTop = -10;
     gridLayout.marginBottom = -5;
-    
-    
+
     pp.setLayout( gridLayout );
     return pp;
   }
-  
-  private Composite createTwoColumnsContainer(Composite parentComposite) {
+
+  private Composite createTwoColumnsContainer( Composite parentComposite ) {
     Composite twoColumnsComposite = new Composite( parentComposite, SWT.NONE );
     props.setLook( twoColumnsComposite );
     GridLayout gridLayout = new GridLayout( TWO_COLUMNS, false );
@@ -275,20 +274,21 @@ public class NamedClusterComposite extends Composite {
     twoColumnsComposite.setLayout( gridLayout );
     return twoColumnsComposite;
   }
-  
+
   private void createHdfsGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.HDFS" ) );
-    
+
     Composite hdfsRowComposite = createTwoColumnsContainer( pp );
     Composite hostUIComposite = new Composite( hdfsRowComposite, SWT.NONE );
     props.setLook( hostUIComposite );
     hostUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
+
     Composite portUIComposite = new Composite( hdfsRowComposite, SWT.NONE );
     props.setLook( portUIComposite );
     portUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
-    hdfsHostLabel = createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
+
+    hdfsHostLabel =
+        createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
     // hdfs host input
     Callback hdfsHostCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -296,8 +296,9 @@ public class NamedClusterComposite extends Composite {
       }
     };
     hdfsHostText = createTextVar( c, hostUIComposite, c.getHdfsHost(), gridData, TEXT_FLAGS, hdfsHostCB );
-    
-    hdfsPortLabel = createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
+
+    hdfsPortLabel =
+        createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
     Callback hdfsPortCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -305,51 +306,58 @@ public class NamedClusterComposite extends Composite {
       }
     };
     hdfsPortText = createTextVar( c, portUIComposite, c.getHdfsPort(), numberGridData, TEXT_FLAGS, hdfsPortCB );
-    
+
     Composite hdfsCredentialsRowComposite = createTwoColumnsContainer( pp );
-    
+
     Composite usernameUIComposite = new Composite( hdfsCredentialsRowComposite, SWT.NONE );
     props.setLook( usernameUIComposite );
     usernameUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
+
     Composite passwordUIComposite = new Composite( hdfsCredentialsRowComposite, SWT.NONE );
     props.setLook( passwordUIComposite );
     passwordUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
-    hdfsUsernameLabel = createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ), userNameLabelGridData );
+
+    hdfsUsernameLabel =
+        createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ),
+            userNameLabelGridData );
     // hdfs user input
     Callback hdfsUsernameCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsUsername( value );
       }
     };
-    hdfsUsernameText = createTextVar( c, usernameUIComposite, c.getHdfsUsername(), userNameGridData, TEXT_FLAGS, hdfsUsernameCB );
-    
-    hdfsPasswordLabel = createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ), passwordLabelGridData );
+    hdfsUsernameText =
+        createTextVar( c, usernameUIComposite, c.getHdfsUsername(), userNameGridData, TEXT_FLAGS, hdfsUsernameCB );
+
+    hdfsPasswordLabel =
+        createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ),
+            passwordLabelGridData );
     // hdfs password input
     Callback hdfsPasswordCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsPassword( value );
       }
     };
-    hdfsPasswordText = createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
-    
-  }  
-  
+    hdfsPasswordText =
+        createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
+
+  }
+
   private void createJobTrackerGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.JobTracker" ) );
-    
+
     Composite jobTrackerRowComposite = createTwoColumnsContainer( pp );
-    
+
     Composite hostUIComposite = new Composite( jobTrackerRowComposite, SWT.NONE );
     props.setLook( hostUIComposite );
     hostUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
+
     Composite portUIComposite = new Composite( jobTrackerRowComposite, SWT.NONE );
     props.setLook( portUIComposite );
     portUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
-    jtHostLabel = createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
+
+    jtHostLabel =
+        createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
     // hdfs host input
     Callback hostCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -357,8 +365,9 @@ public class NamedClusterComposite extends Composite {
       }
     };
     jtHostNameText = createTextVar( c, hostUIComposite, c.getJobTrackerHost(), gridData, TEXT_FLAGS, hostCB );
-    
-    jtPortLabel = createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
+
+    jtPortLabel =
+        createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
     Callback portCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -366,21 +375,21 @@ public class NamedClusterComposite extends Composite {
       }
     };
     jtPortText = createTextVar( c, portUIComposite, c.getJobTrackerPort(), numberGridData, TEXT_FLAGS, portCB );
-  }      
-  
+  }
+
   private void createZooKeeperGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.ZooKeeper" ) );
-    
+
     Composite zooKeeperRowComposite = createTwoColumnsContainer( pp );
-    
+
     Composite hostUIComposite = new Composite( zooKeeperRowComposite, SWT.NONE );
     props.setLook( hostUIComposite );
     hostUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
+
     Composite portUIComposite = new Composite( zooKeeperRowComposite, SWT.NONE );
     props.setLook( portUIComposite );
     portUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
-    
+
     // hdfs host label
     createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
     // hdfs host input
@@ -390,7 +399,7 @@ public class NamedClusterComposite extends Composite {
       }
     };
     createTextVar( c, hostUIComposite, c.getZooKeeperHost(), gridData, TEXT_FLAGS, hostCB );
-    
+
     // hdfs port label
     createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
@@ -400,19 +409,19 @@ public class NamedClusterComposite extends Composite {
       }
     };
     createTextVar( c, portUIComposite, c.getZooKeeperPort(), numberGridData, TEXT_FLAGS, portCB );
-  }    
-  
+  }
+
   private void createOozieGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Oozie" ) );
 
     Composite container = new Composite( pp, SWT.NONE );
     props.setLook( container );
     GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
-    gridLayout.marginBottom = 5; 
+    gridLayout.marginBottom = 5;
     gridLayout.marginTop = 5;
-    
+
     container.setLayout( gridLayout );
-    
+
     // oozie label
     createLabel( container, BaseMessages.getString( PKG, "NamedClusterDialog.URL" ), labelGridData );
     // oozie url
@@ -423,7 +432,7 @@ public class NamedClusterComposite extends Composite {
     };
     createTextVar( c, container, c.getOozieUrl(), gridData, TEXT_FLAGS, hostCB );
   }
-  
+
   private void setHdfsAndJobTrackerState( boolean state ) {
     jtHostLabel.setEnabled( state );
     jtHostNameText.setEnabled( state );

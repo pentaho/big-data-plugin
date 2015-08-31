@@ -22,6 +22,9 @@
 
 package org.pentaho.di.ui.job.entries.oozie;
 
+import java.util.Enumeration;
+import java.util.ResourceBundle;
+
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
@@ -40,9 +43,6 @@ import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
 import org.pentaho.ui.xul.swt.SwtXulLoader;
 import org.pentaho.ui.xul.swt.SwtXulRunner;
-
-import java.util.Enumeration;
-import java.util.ResourceBundle;
 
 /**
  * User: RFellows Date: 6/4/12
@@ -78,10 +78,10 @@ public class OozieJobExecutorJobEntryDialog extends JobEntryDialog implements Jo
     BindingFactory bf = new DefaultBindingFactory();
     bf.setDocument( container.getDocumentRoot() );
     controller = createController( jobEntry, container, bf );
-    controller.setJobMeta( jobMeta );    
-    
+    controller.setJobMeta( jobMeta );
+
     String clusterName = controller.getConfig().getClusterName();
-    
+
     container.addEventHandler( controller );
 
     // Load up the SWT-XUL runtime and initialize it with our container

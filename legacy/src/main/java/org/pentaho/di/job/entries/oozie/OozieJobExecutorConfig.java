@@ -35,7 +35,7 @@ import org.pentaho.ui.xul.stereotype.Bindable;
 
 /**
  * Model for the Oozie Job Executor
- * 
+ *
  * User: RFellows Date: 6/4/12
  */
 public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEventSource, Cloneable {
@@ -49,7 +49,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   private transient List<NamedCluster> namedClusters;
   private transient NamedCluster namedCluster = null; // selected
   private String clusterName; // saved (String)
-  
+
   private String oozieUrl = null;
   private String oozieWorkflowConfig = null;
   private String oozieWorkflow = null;
@@ -60,7 +60,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
 
   public OozieJobExecutorConfig() {
   }
-  
+
   @Bindable
   public String getOozieUrl() {
     return oozieUrl;
@@ -79,10 +79,10 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   }
 
   @Bindable
-  public void setClusterName(String clusterName) {
+  public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
-  }  
-  
+  }
+
   @Bindable
   public NamedCluster getNamedCluster() {
     return namedCluster;
@@ -95,8 +95,8 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
       this.clusterName = namedCluster.getName();
       this.oozieUrl = namedCluster.getOozieUrl();
     }
-  }  
-  
+  }
+
   @Bindable
   public List<NamedCluster> getNamedClusters() {
     this.namedClusters = NamedClusterUIHelper.getNamedClusters();
@@ -104,10 +104,10 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   }
 
   @Bindable
-  public void setNamedClusters( List <NamedCluster> namedClusters ) {
+  public void setNamedClusters( List<NamedCluster> namedClusters ) {
     this.namedClusters = namedClusters;
   }
-  
+
   @Bindable
   public String getOozieWorkflowConfig() {
     return oozieWorkflowConfig;
@@ -134,7 +134,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
 
   /**
    * Workflow properties configured in the advanced mode of the Oozie Job Executor
-   * 
+   *
    * @return
    */
   public List<PropertyEntry> getWorkflowProperties() {
@@ -169,7 +169,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
 
   /**
    * Sets the mode based on the enum value
-   * 
+   *
    * @param mode
    */
   public void setMode( JobEntryMode mode ) {

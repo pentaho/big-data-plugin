@@ -22,6 +22,13 @@
 
 package org.pentaho.big.data.impl.shim.pig;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.WriterAppender;
@@ -42,13 +49,6 @@ import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 /**
  * Created by bryan on 7/6/15.
  */
@@ -64,14 +64,14 @@ public class PigServiceImpl implements PigService {
     this.hadoopShim = hadoopShim;
   }
 
-  @Override public boolean isLocalExecutionSupported() {
+  @Override
+  public boolean isLocalExecutionSupported() {
     return pigShim.isLocalExecutionSupported();
   }
 
   @Override
   public PigResult executeScript( String scriptPath, ExecutionMode executionMode, List<String> parameters, String name,
-                                  LogChannelInterface logChannelInterface, VariableSpace variableSpace,
-                                  LogLevel logLevel ) {
+      LogChannelInterface logChannelInterface, VariableSpace variableSpace, LogLevel logLevel ) {
     // Set up an appender that will send all pig log messages to Kettle's log
     // via logBasic().
     KettleLoggingPrintWriter klps = new KettleLoggingPrintWriter( logChannelInterface );
@@ -91,8 +91,8 @@ public class PigServiceImpl implements PigService {
         pigLogger.addAppender( pigToKettleAppender );
       }
     } catch ( Exception e ) {
-      logChannelInterface.logError( BaseMessages
-        .getString( PKG, "JobEntryPigScriptExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
+      logChannelInterface.logError( BaseMessages.getString( PKG,
+          "JobEntryPigScriptExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
       logChannelInterface.logError( Const.getStackTracker( e ) );
     }
 
@@ -101,10 +101,9 @@ public class PigServiceImpl implements PigService {
       if ( executionMode != ExecutionMode.LOCAL ) {
         List<String> configMessages = new ArrayList<String>();
         hadoopShim.configureConnectionInformation( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ),
-          variableSpace.environmentSubstitute( namedCluster.getHdfsPort() ),
-          variableSpace.environmentSubstitute( namedCluster.getJobTrackerHost() ),
-          variableSpace.environmentSubstitute( namedCluster.getJobTrackerPort() ), configuration,
-          configMessages );
+            variableSpace.environmentSubstitute( namedCluster.getHdfsPort() ), variableSpace
+                .environmentSubstitute( namedCluster.getJobTrackerHost() ), variableSpace
+                .environmentSubstitute( namedCluster.getJobTrackerPort() ), configuration, configMessages );
         if ( logChannelInterface != null ) {
           for ( String configMessage : configMessages ) {
             logChannelInterface.logBasic( configMessage );
@@ -123,9 +122,9 @@ public class PigServiceImpl implements PigService {
       String pigScript = pigShim.substituteParameters( scriptU, parameters );
       Properties properties = new Properties();
       pigShim.configure( properties, executionMode == ExecutionMode.LOCAL ? null : configuration );
-      return new PigResultImpl( appender == null ? null : appender.getFile(),
-        pigShim.executeScript( pigScript, executionMode == ExecutionMode.LOCAL ? PigShim.ExecutionMode.LOCAL :
-          PigShim.ExecutionMode.MAPREDUCE, properties ), null );
+      return new PigResultImpl( appender == null ? null : appender.getFile(), pigShim.executeScript( pigScript,
+          executionMode == ExecutionMode.LOCAL ? PigShim.ExecutionMode.LOCAL : PigShim.ExecutionMode.MAPREDUCE,
+          properties ), null );
     } catch ( Exception e ) {
       return new PigResultImpl( appender == null ? null : appender.getFile(), null, e );
     } finally {

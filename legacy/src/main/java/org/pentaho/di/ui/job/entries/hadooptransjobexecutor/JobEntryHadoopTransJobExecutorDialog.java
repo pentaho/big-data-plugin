@@ -73,8 +73,7 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     }
   };
 
-  public JobEntryHadoopTransJobExecutorDialog(
-      Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
+  public JobEntryHadoopTransJobExecutorDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
     throws XulException, DocumentException, Throwable {
     super( parent, jobEntry, rep, jobMeta );
 
@@ -149,11 +148,11 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
 
     /*
      * final BindingConvertor<String, Integer> bindingConverter = new BindingConvertor<String, Integer>() {
-     * 
+     *
      * public Integer sourceToTarget(String value) { return Integer.parseInt(value); }
-     * 
+     *
      * public String targetToSource(Integer value) { return value.toString(); }
-     * 
+     *
      * };
      */
 
@@ -188,39 +187,41 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     controller.setRepository( rep );
     controller.setJobMeta( jobMeta );
     controller.init();
-    
-    bf.createBinding( controller, "namedClusters", "named-clusters", "elements" ).fireSourceChanged();
-    bf.createBinding( "named-clusters", "selectedIndex", controller, "selectedNamedCluster", new BindingConvertor<Integer, NamedCluster>() {
-      public NamedCluster sourceToTarget( final Integer index ) {
-        List<NamedCluster> clusters = controller.getNamedClusters();
-        if ( index == -1 || clusters.isEmpty() ) {
-          return null;
-        }
-        return clusters.get( index );
-      }
 
-      public Integer targetToSource( final NamedCluster value ) {
-        List<NamedCluster> clusters = controller.getNamedClusters();
-        return clusters.indexOf( value );
-      }
-    }).fireSourceChanged();
-    
+    bf.createBinding( controller, "namedClusters", "named-clusters", "elements" ).fireSourceChanged();
+    bf.createBinding( "named-clusters", "selectedIndex", controller, "selectedNamedCluster",
+        new BindingConvertor<Integer, NamedCluster>() {
+          public NamedCluster sourceToTarget( final Integer index ) {
+            List<NamedCluster> clusters = controller.getNamedClusters();
+            if ( index == -1 || clusters.isEmpty() ) {
+              return null;
+            }
+            return clusters.get( index );
+          }
+
+          public Integer targetToSource( final NamedCluster value ) {
+            List<NamedCluster> clusters = controller.getNamedClusters();
+            return clusters.indexOf( value );
+          }
+        } ).fireSourceChanged();
+
     selectNamedCluster();
-    
+
   }
 
   private void selectNamedCluster() {
-    @SuppressWarnings("unchecked")
-    XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<NamedCluster> namedClusterMenu =
+        (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
     for ( NamedCluster nc : controller.getNamedClusters() ) {
       String cn = this.jobEntry.getClusterName();
       if ( cn != null && cn.equals( nc.getName() ) ) {
         namedClusterMenu.setSelectedItem( nc );
         controller.setSelectedNamedCluster( nc );
       }
-    }    
+    }
   }
-  
+
   public JobEntryInterface open() {
     XulDialog dialog = (XulDialog) container.getDocumentRoot().getElementById( "job-entry-dialog" ); //$NON-NLS-1$
     dialog.show();

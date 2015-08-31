@@ -85,18 +85,18 @@ public class SqoopExportJobEntryController extends
       FileObject initialFile = getInitialFile( path );
 
       if ( initialFile == null ) {
-        showErrorDialog( BaseMessages.getString( PKG, "Sqoop.JobEntry.Connection.Error.title" ),
-            BaseMessages.getString( PKG, "Sqoop.JobEntry.Connection.error" ) );
+        showErrorDialog( BaseMessages.getString( PKG, "Sqoop.JobEntry.Connection.Error.title" ), BaseMessages
+            .getString( PKG, "Sqoop.JobEntry.Connection.error" ) );
         return;
       }
 
       FileObject exportDir =
-          browseVfs( null, initialFile, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions,
-              false, schemeRestrictions[0], selectedNamedCluster, false, false );
+          browseVfs( null, initialFile, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, schemeRestrictions, false,
+              schemeRestrictions[0], selectedNamedCluster, false, false );
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
       if ( okPressed ) {
-        getConfig().setExportDir( exportDir != null ? exportDir.getName().getPath() : null);
+        getConfig().setExportDir( exportDir != null ? exportDir.getName().getPath() : null );
         extractNamedClusterFromVfsFileChooser();
       }
     } catch ( KettleFileException e ) {
@@ -112,7 +112,7 @@ public class SqoopExportJobEntryController extends
     jobEntry.setDatabaseMeta( jobMeta.findDatabase( config.getDatabase() ) );
     super.accept();
   }
-  
+
   public void editNamedCluster() {
     if ( isSelectedNamedCluster() ) {
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
@@ -127,5 +127,5 @@ public class SqoopExportJobEntryController extends
     Shell shell = (Shell) xulDialog.getRootObject();
     ncDelegate.newNamedCluster( jobMeta, null, shell );
     populateNamedClusters();
-  }  
+  }
 }

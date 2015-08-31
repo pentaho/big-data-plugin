@@ -57,9 +57,9 @@ import org.w3c.dom.Node;
 
 /**
  * Meta class for the HBase row decoder.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
- * 
+ *
  */
 @Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
@@ -78,7 +78,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Set the incoming field that holds the HBase row key
-   * 
+   *
    * @param inKey
    *          the name of the field that holds the key
    */
@@ -88,7 +88,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the incoming field that holds the HBase row key
-   * 
+   *
    * @return the name of the field that holds the key
    */
   public String getIncomingKeyField() {
@@ -97,7 +97,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Set the incoming field that holds the HBase row Result object
-   * 
+   *
    * @param inResult
    *          the name of the field that holds the HBase row Result object
    */
@@ -107,7 +107,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the incoming field that holds the HBase row Result object
-   * 
+   *
    * @return the name of the field that holds the HBase row Result object
    */
   public String getIncomingResultField() {
@@ -116,7 +116,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Set the mapping to use for decoding the row
-   * 
+   *
    * @param m
    *          the mapping to use
    */
@@ -126,7 +126,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the mapping to use for decoding the row
-   * 
+   *
    * @return the mapping to use
    */
   public Mapping getMapping() {
@@ -145,31 +145,30 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     rowMeta.clear(); // start afresh - eats the input
 
     if ( m_mapping != null ) {
-        int kettleType;
+      int kettleType;
 
-        if ( m_mapping.getKeyType() == Mapping.KeyType.DATE
-            || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
-          kettleType = ValueMetaInterface.TYPE_DATE;
-        } else if ( m_mapping.getKeyType() == Mapping.KeyType.STRING ) {
-          kettleType = ValueMetaInterface.TYPE_STRING;
-        } else if ( m_mapping.getKeyType() == Mapping.KeyType.BINARY ) {
-          kettleType = ValueMetaInterface.TYPE_BINARY;
-        } else {
-          kettleType = ValueMetaInterface.TYPE_INTEGER;
-        }
+      if ( m_mapping.getKeyType() == Mapping.KeyType.DATE || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
+        kettleType = ValueMetaInterface.TYPE_DATE;
+      } else if ( m_mapping.getKeyType() == Mapping.KeyType.STRING ) {
+        kettleType = ValueMetaInterface.TYPE_STRING;
+      } else if ( m_mapping.getKeyType() == Mapping.KeyType.BINARY ) {
+        kettleType = ValueMetaInterface.TYPE_BINARY;
+      } else {
+        kettleType = ValueMetaInterface.TYPE_INTEGER;
+      }
 
-        ValueMetaInterface keyMeta = new ValueMeta( m_mapping.getKeyName(), kettleType );
+      ValueMetaInterface keyMeta = new ValueMeta( m_mapping.getKeyName(), kettleType );
 
-        keyMeta.setOrigin( origin );
-        rowMeta.addValueMeta( keyMeta );
+      keyMeta.setOrigin( origin );
+      rowMeta.addValueMeta( keyMeta );
 
-        // Add the rest of the fields in the mapping
-        Map<String, HBaseValueMeta> mappedColumnsByAlias = m_mapping.getMappedColumns();
-        Set<String> aliasSet = mappedColumnsByAlias.keySet();
-        for ( String alias : aliasSet ) {
-          HBaseValueMeta columnMeta = mappedColumnsByAlias.get( alias );
-          columnMeta.setOrigin( origin );
-          rowMeta.addValueMeta( columnMeta );
+      // Add the rest of the fields in the mapping
+      Map<String, HBaseValueMeta> mappedColumnsByAlias = m_mapping.getMappedColumns();
+      Set<String> aliasSet = mappedColumnsByAlias.keySet();
+      for ( String alias : aliasSet ) {
+        HBaseValueMeta columnMeta = mappedColumnsByAlias.get( alias );
+        columnMeta.setOrigin( origin );
+        rowMeta.addValueMeta( columnMeta );
       }
     }
   }
@@ -180,8 +179,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     CheckResult cr;
 
     if ( ( prev == null ) || ( prev.size() == 0 ) ) {
-      cr = new CheckResult(
-          CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
+      cr = new CheckResult( CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
       remarks.add( cr );
     } else {
       cr =
@@ -265,7 +263,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the UI for this step.
-   * 
+   *
    * @param shell
    *          a <code>Shell</code> value
    * @param meta
