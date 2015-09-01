@@ -99,6 +99,7 @@ import com.thoughtworks.xstream.XStream;
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Pentaho+MapReduce" )
 public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
 
+  public static final String MAPREDUCE_APPLICATION_CLASSPATH = "mapreduce.application.classpath";
   private static Class<?> PKG = JobEntryHadoopTransJobExecutor.class; // for i18n purposes, needed by Translator2!!
                                                                       // $NON-NLS-1$
 
@@ -1072,7 +1073,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         additionalPlugins );
 
     logBasic( BaseMessages
-        .getString( PKG, "JobEntryHadoopTransJobExecutor.InstallationOfKettleSuccessful", destination ) );
+      .getString( PKG, "JobEntryHadoopTransJobExecutor.InstallationOfKettleSuccessful", destination ) );
   }
 
   /**
@@ -1099,6 +1100,13 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
     logBasic( BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ConfiguringJobWithKettleAt",
         kettleEnvInstallDir.toUri().getPath() ) );
+
+    String classpath = conf.get( MAPREDUCE_APPLICATION_CLASSPATH );
+    if ( Const.isEmpty( classpath ) ) {
+      conf.set( MAPREDUCE_APPLICATION_CLASSPATH, "classes/" );
+    } else {
+      conf.set( MAPREDUCE_APPLICATION_CLASSPATH, "classes/," + classpath );
+    }
     shim.getDistributedCacheUtil().configureWithKettleEnvironment( conf, fs, kettleEnvInstallDir );
   }
 

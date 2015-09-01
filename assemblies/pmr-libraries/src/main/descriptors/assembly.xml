@@ -1,12 +1,26 @@
 <assembly>
   <id>plugin</id>
-  <baseDirectory>lib</baseDirectory>
+  <baseDirectory></baseDirectory>
   <formats>
     <format>zip</format>
   </formats>
+  <fileSets>
+    <fileSet>
+      <directory>target/dependencies/pentaho-karaf-assembly</directory>
+      <outputDirectory>/system/karaf</outputDirectory>
+      <!--<excludes>
+        <exclude>plugins/</exclude>
+        <exclude>system/karaf/etc/org.apache.karaf.features.cfg</exclude>
+      </excludes>-->
+    </fileSet>
+    <fileSet>
+      <directory>target/classes</directory>
+      <outputDirectory>/</outputDirectory>
+    </fileSet>
+  </fileSets>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>/lib</outputDirectory>
       <unpack>false</unpack>
       <scope>runtime</scope>
       <useProjectArtifact>false</useProjectArtifact>
@@ -43,8 +57,10 @@
         <include>commons-digester:commons-digester</include>
         <include>commons-discovery:commons-discovery</include>
         <include>commons-fileupload:commons-fileupload</include>
+        <include>commons-httpclient:commons-httpclient</include>
         <include>commons-io:commons-io</include>
         <include>commons-lang:commons-lang</include>
+        <include>commons-logging:commons-logging</include>
         <include>commons-math:commons-math</include>
         <include>commons-pool:commons-pool</include>
         <include>commons-validator:commons-validator</include>
@@ -70,7 +86,7 @@
         <include>javax.activation:activation</include>
         <include>javax.mail:mail</include>
         <include>javax.servlet:jsp-api</include>
-        <include>javax.servlet:servlet-api</include>
+        <include>javax.servlet:javax.servlet-api</include>
         <include>javax.validation:validation-api</include>
         <include>javax.xml:jaxrpc-api</include>
         <include>jaxen:jaxen</include>
@@ -96,7 +112,10 @@
         <include>org.apache.axis:axis</include>
         <include>org.apache.axis:axis-saaj</include>
         <include>org.apache.commons:commons-compress</include>
+        <include>org.apache.felix:org.apache.felix.main</include>
+        <include>org.apache.felix:org.apache.felix.framework</include>
         <include>org.apache.karaf:org.apache.karaf.main</include>
+        <include>org.apache.karaf.jaas:org.apache.karaf.jaas.boot</include>
         <include>org.apache.poi:poi</include>
         <include>org.apache.poi:poi-ooxml</include>
         <include>org.apache.poi:poi-ooxml-schemas</include>
@@ -124,6 +143,14 @@
         <include>org.drools:drools-api</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
+        <include>org.eclipse.jetty:jetty-continuation</include>
+        <include>org.eclipse.jetty:jetty-http</include>
+        <include>org.eclipse.jetty:jetty-io</include>
+        <include>org.eclipse.jetty:jetty-plus</include>
+        <include>org.eclipse.jetty:jetty-security</include>
+        <include>org.eclipse.jetty:jetty-server</include>
+        <include>org.eclipse.jetty:jetty-servlet</include>
+        <include>org.eclipse.jetty:jetty-util</include>
         <include>org.eobjects.sassyreader:SassyReader</include>
         <include>org.fife.ui:rsyntaxtextarea</include>
         <include>org.hibernate:hibernate-c3p0</include>
@@ -132,10 +159,8 @@
         <include>org.hibernate:hibernate-ehcache</include>
         <include>org.ini4j:ini4j</include>
         <include>org.json:json</include>
+        <include>log4j:log4j</include>
         <include>org.mnode.mstor:mstor</include>
-        <include>org.mortbay.jetty:jetty</include>
-        <include>org.mortbay.jetty:jetty-plus</include>
-        <include>org.mortbay.jetty:jetty-util</include>
         <include>org.mvel:mvel2</include>
         <include>org.odftoolkit:odfdom-java</include>
         <include>org.olap4j:olap4j</include>
@@ -145,6 +170,8 @@
         <include>org.safehaus.jug:jug-lgpl</include>
         <include>org.samba.jcifs:jcifs</include>
         <include>org.scannotation:scannotation</include>
+        <include>org.slf4j:slf4j-api</include>
+        <include>org.slf4j:slf4j-log4j12</include>
         <include>org.snmp4j:snmp4j</include>
         <include>org.springframework.security:spring-security-core</include>
         <include>org.springframework:spring-core</include>
@@ -158,6 +185,7 @@
         <include>org.yaml:snakeyaml</include>
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
+        <include>pentaho-kettle:kettle-ui-swt</include>
         <include>pentaho-library:flute</include>
         <include>pentaho-library:libbase</include>
         <include>pentaho-library:libdocbundle</include>
@@ -170,15 +198,22 @@
         <include>pentaho-library:libserializer</include>
         <include>pentaho-library:libswing</include>
         <include>pentaho-library:libxml</include>
+        <include>pentaho:pdi-osgi-bridge-core</include>
+        <include>pentaho:pentaho-platform-api</include>
+        <include>pentaho:pentaho-platform-core</include>
+        <include>pentaho:pentaho-platform-extensions</include>
         <include>pentaho:metastore</include>
         <include>pentaho:mondrian</include>
+        <include>pentaho:pentaho-capability-manager</include>
         <include>pentaho:pentaho-database-model</include>
         <include>pentaho:pentaho-hadoop-hive-jdbc-shim</include>
         <include>pentaho:pentaho-hadoop-shims-api</include>
         <include>pentaho:pentaho-metadata</include>
+        <include>pentaho:pentaho-osgi-utils-api</include>
         <include>pentaho:pentaho-registry</include>
         <include>pentaho-reporting-engine:pentaho-reporting-engine-classic-core</include>
         <include>pentaho:salesforce-partner</include>
+        <include>pentaho:pentaho-service-coordinator</include>
         <include>rhino:js</include>
         <include>rome:rome</include>
         <include>secondstring:secondstring</include>
