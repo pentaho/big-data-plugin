@@ -37,6 +37,7 @@ import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.util.ExecutorUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -49,13 +50,16 @@ import org.pentaho.di.ui.util.SwtSvgImageUtil;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 @ExtensionPoint( id = "HadoopClusterViewTreeExtension", description = "Refreshes named cluster subtree",
     extensionPointId = "SpoonViewTreeExtension" )
 
 public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
   private Spoon spoon = null;
-  private HadoopClusterDelegate ncDelegate = null;
+  private Future<HadoopClusterDelegate> ncDelegate = null;
   private Image hadoopClusterImage = null;
   private static Class<?> PKG = Spoon.class;
   public static final String STRING_NAMED_CLUSTERS =
@@ -65,7 +69,11 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
 
   public HadoopClusterViewTreeExtension() {
     spoon = Spoon.getInstance();
-    ncDelegate = NamedClusterUIHelper.getNamedClusterUIFactory().createHadoopClusterDelegate( spoon );
+    ncDelegate = ExecutorUtil.getExecutor().submit( new Callable<HadoopClusterDelegate>() {
+      @Override public HadoopClusterDelegate call() throws Exception {
+        return NamedClusterUIHelper.getNamedClusterUIFactory().createHadoopClusterDelegate( spoon );
+      }
+    } );
     hadoopClusterImage = getHadoopClusterImage( spoon.getDisplay() );
   }
 
@@ -80,11 +88,18 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
     }
   }
 
-  private void editNamedCluster( SelectionTreeExtension selectionTreeExtension ) {
+  private void editNamedCluster( SelectionTreeExtension selectionTreeExtension ) throws KettleException {
     Object selection = selectionTreeExtension.getSelection();
     if ( selection instanceof NamedCluster ) {
       NamedCluster selectedNamedCluster = (NamedCluster) selection;
-      ncDelegate.editNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
+      try {
+        ncDelegate.get().editNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
+      } catch ( InterruptedException e ) {
+        throw new KettleException( "Interrupted while waiting on " + HadoopClusterDelegate.class.getCanonicalName(),
+          e );
+      } catch ( ExecutionException e ) {
+        throw new KettleException( "Execution exception getting " + HadoopClusterDelegate.class.getCanonicalName(), e );
+      }
     }
   }
 

@@ -40,6 +40,7 @@ public class NamedClusterUIHelper {
   /**
    * Being used to inject the widgets from OSGi (where all the test functionality is located) this should be removed
    * once we OSGiify the rest of the big data stuff
+   *
    * @param namedClusterUIFactory
    */
   public static void setNamedClusterUIFactory(
@@ -47,6 +48,12 @@ public class NamedClusterUIHelper {
     NAMED_CLUSTER_UI_FACTORY_HOLDER.setNamedClusterUIFactory( namedClusterUIFactory );
   }
 
+  /**
+   * Being used to inject the widgets from OSGi (where all the test functionality is located) this should be removed
+   * once we OSGiify the rest of the big data stuff
+   *
+   * WARNING: THIS WILL BLOCK UNTIL THE FACTORY IS AVAILABLE, DO NOT CALL FROM ANYTHING THAT COULD BLOCK STARTUP
+   */
   public static List<NamedCluster> getNamedClusters() {
     try {
       return NamedClusterManager.getInstance().list( Spoon.getInstance().getMetaStore() );
