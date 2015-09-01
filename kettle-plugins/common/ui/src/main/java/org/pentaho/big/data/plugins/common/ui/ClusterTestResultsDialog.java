@@ -26,8 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -51,13 +49,14 @@ import org.pentaho.di.ui.core.dialog.ShowHelpDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 
 /**
- * Created by mburgess on 8/27/15.
+ * Dialog to display the results of running a suite of tests on a Named Cluster (and its shim/config)
  */
 public class ClusterTestResultsDialog extends Dialog {
 
@@ -90,12 +89,10 @@ public class ClusterTestResultsDialog extends Dialog {
 
     int margin = Const.FORM_MARGIN;
 
-    /*PluginInterface plugin =
-      PluginRegistry.getInstance().findPluginWithId( LifecyclePluginType.class, "HadoopSpoonPlugin" ); // TODO
-    HelpUtils.createHelpButton( shell, HelpUtils.getHelpDialogTitle( plugin ),
-      BaseMessages.getString( PKG, "ClusterTestDialog.Shell.Doc" ),
-      BaseMessages.getString( PKG, "ClusterTestDialog.Shell.Title" ) );
-*/
+    HelpUtils.createHelpButton( shell, BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Title" ),
+      BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ),
+      BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Header" ) );
+
     FormLayout formLayout = new FormLayout();
     formLayout.marginWidth = margin;
     formLayout.marginHeight = margin;
@@ -107,13 +104,11 @@ public class ClusterTestResultsDialog extends Dialog {
 
     shell.setText( BaseMessages.getString( PKG, "ClusterTestResultsDialog.Title" ) );
     shell.setLayout( formLayout );
+    shell.setBackgroundMode( SWT.INHERIT_FORCE );
 
     Label clusterResultsLabel = new Label( shell, SWT.NONE );
     clusterResultsLabel.setText( BaseMessages.getString( PKG, "ClusterTestResultsDialog.ClusterTestResults.Label" ) );
-    FontData[] fontData = clusterResultsLabel.getFont().getFontData();
-    fontData[0].setHeight( 16 );
     clusterResultsLabel.setForeground( GUIResource.getInstance().getColorCrystalTextPentaho() );
-    clusterResultsLabel.setFont( new Font( display, fontData[0] ) );
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, margin );
     fd.top = new FormAttachment( 0, margin );
@@ -127,10 +122,8 @@ public class ClusterTestResultsDialog extends Dialog {
     fd.bottom = new FormAttachment( 100, -50 );
     fd.top = new FormAttachment( clusterResultsLabel, margin );
     scrolledComposite.setLayoutData( fd );
-    scrolledComposite.setBackground( GUIResource.getInstance().getColorBackground() );
 
     final Composite mainComposite = new Composite( scrolledComposite, SWT.NONE );
-    mainComposite.setBackground( GUIResource.getInstance().getColorBackground() );
     scrolledComposite.setContent( mainComposite );
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
@@ -147,61 +140,58 @@ public class ClusterTestResultsDialog extends Dialog {
           case DEBUG:
           case INFO:
             // The above are "Test(s) passed"
-            image.setImage( GUIResource.getInstance().getSwtImageTrue().getAsBitmapForSize( display, 24, 24 ) );
+            image.setImage( GUIResource.getInstance().getImageTrue() );
             hasAction = false;
             break;
           case WARNING:
           case SKIPPED:
             // The above are "Test(s) finished with warnings"
-            image.setImage( GUIResource.getInstance().getSwtImageWarning().getAsBitmapForSize( display, 24, 24 ) );
+            image.setImage( GUIResource.getInstance().getImageWarning() );
             hasAction = true;
             break;
           case ERROR:
           case FATAL:
             // The above are "Test(s) failed"
-            image.setImage( GUIResource.getInstance().getSwtImageFalse().getAsBitmapForSize( display, 24, 24 ) );
+            image.setImage( GUIResource.getInstance().getImageFalse() );
             hasAction = true;
             break;
         }
-        //GridData gridData = new GridData( GridData.FILL_HORIZONTAL );
-        //image.setLayoutData( gridData );
-
         // Need 2-row 1-col grid to display test name then description
         GridLayout testDescriptionLayout = new GridLayout();
         testDescriptionLayout.numColumns = 1;
+        testDescriptionLayout.verticalSpacing = 0;
+        testDescriptionLayout.horizontalSpacing = 0;
 
         final Composite testDescriptionComposite = new Composite( mainComposite, SWT.NONE );
         testDescriptionComposite.setLayout( testDescriptionLayout );
-        testDescriptionComposite.setBackground( GUIResource.getInstance().getColorBackground() );
 
         Label testName = new Label( testDescriptionComposite, SWT.NONE );
         testName.setText( testResult.getRuntimeTest().getName() );
-        GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
+        GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, true );
         testName.setLayoutData( gridData );
-        FontData testNameFont = testName.getFont().getFontData()[0];
-        testNameFont.setHeight( 13 );
-        testName.setFont( new Font( display, testNameFont ) );
 
         // The Test description will also contain an "action" link
         GridLayout testResultsLayout = new GridLayout();
         testResultsLayout.numColumns = 2;
+        testResultsLayout.marginHeight = 0;
+        testResultsLayout.marginWidth = 0;
         final Composite testResultsComposite = new Composite( testDescriptionComposite, SWT.NONE );
         testResultsComposite.setLayout( testResultsLayout );
-        testResultsComposite.setBackground( GUIResource.getInstance().getColorBackground() );
 
         // Add test description
         Label description = new Label( testResultsComposite, SWT.NONE );
         description.setForeground( GUIResource.getInstance().getColorDarkGray() );
         description.setText( summary.getDescription() );
-        description.setFont( new Font( display, testNameFont ) );
-        gridData = new GridData( SWT.FILL, SWT.FILL, true, false );
+        gridData = new GridData( SWT.LEFT, SWT.FILL, true, true );
         description.setLayoutData( gridData );
 
         // Add action link
         Link link = new Link( testResultsComposite, SWT.NONE );
-        link.setBackground( GUIResource.getInstance().getColorBackground() );
         if ( hasAction ) {
-          link.setText( "<A HREF=\"pentaho.com\">Troubleshooting Guide</A>" );
+          link.setText( "<a href=\""
+            + BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" )
+            + "\">Troubleshooting Guide</A>" );
+          link.setToolTipText( BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ) );
           link.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent selectionEvent ) {
               new ShowHelpDialog( shell,
@@ -218,11 +208,6 @@ public class ClusterTestResultsDialog extends Dialog {
 
         testResultsComposite.setSize( testResultsComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
-        // Separator
-        /*Label separator = new Label( testDescriptionComposite, SWT.HORIZONTAL | SWT.SEPARATOR );
-        gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        separator.setLayoutData( gridData );
-*/
         testDescriptionComposite.setSize( testDescriptionComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
       }
     }

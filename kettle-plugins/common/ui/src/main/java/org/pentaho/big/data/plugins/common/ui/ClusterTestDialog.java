@@ -100,12 +100,6 @@ public class ClusterTestDialog extends Dialog {
 
     int margin = Const.FORM_MARGIN;
 
-    /*PluginInterface plugin =
-      PluginRegistry.getInstance().findPluginWithId( LifecyclePluginType.class, "HadoopSpoonPlugin" ); // TODO
-    HelpUtils.createHelpButton( shell, HelpUtils.getHelpDialogTitle( plugin ),
-      BaseMessages.getString( PKG, "ClusterTestDialog.Shell.Doc" ),
-      BaseMessages.getString( PKG, "ClusterTestDialog.Shell.Title" ) );
-*/
     FormLayout formLayout = new FormLayout();
     formLayout.marginWidth = margin;
     formLayout.marginHeight = margin;
