@@ -37,7 +37,7 @@ import java.util.HashSet;
  */
 public class PingFileSystemEntryPointTest extends BaseRuntimeTest {
   public static final String HADOOP_FILE_SYSTEM_PING_FILE_SYSTEM_ENTRY_POINT_TEST =
-    "hadoopFileSystemPingFileSystemEntryPointTest";
+    "_hadoopFileSystemPingFileSystemEntryPointTest";
   public static final String PING_FILE_SYSTEM_ENTRY_POINT_TEST_NAME = "PingFileSystemEntryPointTest.Name";
   private static final Class<?> PKG = PingFileSystemEntryPointTest.class;
   private final MessageGetterFactory messageGetterFactory;
