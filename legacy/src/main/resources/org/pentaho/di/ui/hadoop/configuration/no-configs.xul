@@ -1,17 +1,16 @@
 <?xml version="1.0"?>
-<window id="noHadoopConfigurationSelectionWindow" title="${HadoopConfigurationSelectionDialog.Shell.Title}"
+<window id="noHadoopConfigurationSelectionWindow" title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="425" height="100" proxyoutercontext="true" appicon="ui/images/hadoop.png">
 
   <dialog width="425" height="100" id="noHadoopConfigurationSelectionDialog"
-          title="${HadoopConfigurationSelectionDialog.Shell.Title}"
+          title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
           buttons="">
-    <vbox flex="1" padding="8">
-      <spacer/>
+    <vbox padding="15">
       <label id="noHadoopConfigurationSelectionDialogLabel" value="${NoHadoopConfigurationsXulDialog.Text}"
              multiline="true" width="425"/>
-      <spacer height="1"/>
-      <hbox>
+      <spacer height="15"/>
+      <hbox padding="0" spacing="0">
         <button id="helpButton" label="${Dialog.Help}" width="75" onclick="noHadoopConfigurationsXulDialog.showHelp()"/>
         <spacer flex="1"/>
         <button label="${Dialog.Close}" width="75" onclick="noHadoopConfigurationsXulDialog.close()"/>

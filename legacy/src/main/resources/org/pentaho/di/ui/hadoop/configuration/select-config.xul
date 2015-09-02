@@ -6,18 +6,17 @@
   <dialog width="425" height="200" id="hadoopConfigurationSelectionDialog"
           title="${HadoopConfigurationSelectionDialog.Shell.Title}"
           buttons="">
-    <vbox flex="1" padding="8">
-      <spacer/>
+    <vbox flex="1" padding="15">
       <label id="hadoopConfigurationSelectionDialogLabel" value="${HadoopConfigurationSelectionDialog.Text}"
-             multiline="true" width="425"/>
-      <spacer height="1"/>
-      <listbox id="hadoopConfigurationSelectionDialogMenuListBox">
+             multiline="true" width="425" padding="0" spacing="0"/>
+      <listbox id="hadoopConfigurationSelectionDialogMenuListBox" padding="0" spacing="0">
       </listbox>
-      <spacer height="1"/>
-      <hbox>
+      <spacer height="15"/>
+      <hbox padding="0" spacing="0" align="right">
         <button id="helpButton" label="${Dialog.Help}" width="75" onclick="hadoopConfigurationsXulDialog.showHelp()"/>
         <spacer flex="1"/>
         <button label="${Dialog.Ok}" width="75" onclick="hadoopConfigurationsXulDialog.accept()"/>
+        <spacer/>
         <button label="${Dialog.Cancel}" width="75" onclick="hadoopConfigurationsXulDialog.cancel()"/>
       </hbox>
     </vbox>

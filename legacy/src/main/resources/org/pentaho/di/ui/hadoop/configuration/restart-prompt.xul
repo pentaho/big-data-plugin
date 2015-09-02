@@ -6,13 +6,14 @@
   <dialog width="300" height="100" id="hadoopConfigurationSelectionDialog"
           title="${HadoopConfigurationRestartXulDialog.Shell.Title}"
           buttons="">
-    <vbox flex="1">
-      <hbox flex="1">
-        <image src='ui/images/warning:64#64.svg' width='64' height='64'/>
+    <vbox flex="1" padding="15">
+      <hbox flex="1" padding="0" spacing="0">
+        <image src='ui/images/warning:32#32.svg' width='32' height='32'/>
+        <spacer/>
         <label id="hadoopConfigurationSelectionDialogLabel" value="${HadoopConfigurationRestartXulDialog.Text}"
                multiline="true" width="300"/>
       </hbox>
-      <spacer flex="1"/>
+      <spacer height="15"/>
       <hbox>
         <spacer flex="1"/>
         <button label="${Dialog.Close}" width="75" onclick="hadoopConfigurationRestartXulDialog.close()"/>
