@@ -13,14 +13,32 @@
   <packaging>pom</packaging>
 
   <!-- Standalone is in separate profile to avoid a circular dependency on Kettle -->
-  <modules>
-    <module>samples</module>
-    <module>features</module>
-    <module>pmr-libraries</module>
-    <module>legacy-plugin</module>
-  </modules>
 
   <profiles>
+    <profile>
+      <id>featuresOnly</id>
+      <activation>
+        <property>
+          <name>!assemblyOnly</name>
+        </property>
+      </activation>
+      <modules>
+        <module>features</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>assemblyOnly</id>
+      <activation>
+        <property>
+          <name>!featuresOnly</name>
+        </property>
+      </activation>
+      <modules>
+        <module>samples</module>
+        <module>pmr-libraries</module>
+        <module>legacy-plugin</module>
+      </modules>
+    </profile>
     <profile>
       <id>standalone</id>
       <modules>
