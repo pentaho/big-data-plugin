@@ -46,17 +46,17 @@ public class TestShimLoad extends BaseRuntimeTest {
   public static final String TEST_SHIM_LOAD_SHIM_LOADED_MESSAGE = "TestShimLoad.ShimLoaded.Message";
   public static final String TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC = "TestShimLoad.NoShimSpecified.Desc";
   public static final String TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC = "TestShimLoad.UnableToLoadShim.Desc";
+  public static final String HADOOP_CONFIGURATION_MODULE = "Hadoop Configuration";
   private static final Class<?> PKG = TestShimLoad.class;
   private final MessageGetter messageGetter;
   private final HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
-
   public TestShimLoad( MessageGetterFactory messageGetterFactory ) {
     this( messageGetterFactory, HadoopConfigurationBootstrap.getInstance() );
   }
 
   public TestShimLoad( MessageGetterFactory messageGetterFactory,
                        HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
-    super( NamedCluster.class, "Hadoop Configuration", HADOOP_CONFIGURATION_TEST_SHIM_LOAD,
+    super( NamedCluster.class, HADOOP_CONFIGURATION_MODULE, HADOOP_CONFIGURATION_TEST_SHIM_LOAD,
       messageGetterFactory.create( PKG ).getMessage( TEST_SHIM_LOAD_NAME ), true, new HashSet<String>() );
     messageGetter = messageGetterFactory.create( PKG );
     this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;

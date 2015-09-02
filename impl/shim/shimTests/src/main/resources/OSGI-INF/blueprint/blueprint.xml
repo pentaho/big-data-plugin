@@ -14,6 +14,20 @@
     </argument>
   </bean>
 
+  <bean id="testShimConfig" class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader"
+        factory-method="create" scope="singleton">
+    <argument ref="blueprintBundleContext"/>
+    <argument>
+      <value type="java.lang.String">org.pentaho.big.data.impl.shim.tests.TestShimConfig</value>
+    </argument>
+    <argument>
+      <list>
+        <ref component-id="messageGetterFactory"/>
+      </list>
+    </argument>
+  </bean>
+
   <service ref="testShimLoad" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="testShimConfig" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <reference id="messageGetterFactory" interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
 </blueprint>
