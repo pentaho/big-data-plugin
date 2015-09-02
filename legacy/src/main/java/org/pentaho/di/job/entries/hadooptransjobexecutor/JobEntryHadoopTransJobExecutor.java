@@ -1,24 +1,24 @@
 /*******************************************************************************
- *
- * Pentaho Big Data
- *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ******************************************************************************/
+*
+* Pentaho Big Data
+*
+* Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+*
+*******************************************************************************
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+******************************************************************************/
 
 package org.pentaho.di.job.entries.hadooptransjobexecutor;
 
@@ -35,6 +35,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.ResultFile;
 import org.pentaho.di.core.annotations.JobEntry;
@@ -60,6 +61,7 @@ import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.repository.RepositoryDirectory;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
 import org.pentaho.di.repository.StringObjectId;
 import org.pentaho.di.resource.ResourceDefinition;
@@ -754,13 +756,10 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       String numMapTasksS = environmentSubstitute( numMapTasks );
       try {
         if ( Integer.parseInt( numMapTasksS ) < 0 ) {
-          throw new KettleException(
-              BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NumMapTasks.Error" ) );
+          throw new KettleException( BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.NumMapTasks.Error" ) );
         }
-      } catch ( NumberFormatException e ) {
-        if ( log.isDebug() ) {
-          logError( Const.getStackTracker( e ) );
-        }
+      } catch ( NumberFormatException ignored ) {
+        // ignored
       }
 
       String numReduceTasksS = environmentSubstitute( numReduceTasks );
@@ -769,10 +768,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
           throw new KettleException( BaseMessages
               .getString( PKG, "JobEntryHadoopTransJobExecutor.NumReduceTasks.Error" ) );
         }
-      } catch ( NumberFormatException e ) {
-        if ( log.isDebug() ) {
-          logError( Const.getStackTracker( e ) );
-        }
+      } catch ( NumberFormatException ignored ) {
+        // ignored
       }
 
       conf.setNumMapTasks( Const.toInt( numMapTasksS, 1 ) );
@@ -928,7 +925,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
   /**
    * Get the {@link HadoopConfiguration} to use when executing. This is by default loaded from
-   * {@link HadoopConfigurationRegistry}.
+   * {@link HadoopConfigurationBootstrap}.
    * 
    * @return a valid Hadoop configuration
    * @throws ConfigurationException
@@ -1704,10 +1701,10 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   }
 
   /**
-   * Exports the mapper, combiner and reducer transformations to a flat-file system, adding content with filename keys
-   * to a set of definitions. The supplied resource naming interface allows the object to name appropriately without
-   * worrying about those parts of the implementation specific details.
-   *
+   * Exports the object to a flat-file system, adding content with filename keys to a set of definitions. The supplied
+   * resource naming interface allows the object to name appropriately without worrying about those parts of the
+   * implementation specific details.
+   * 
    * @param space
    *          The variable space to resolve (environment) variables with.
    * @param definitions
@@ -1718,40 +1715,112 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    *          The repository to load resources from
    * @param metaStore
    *          the metaStore to load external metadata from
-   *
    * @return The filename for this object. (also contained in the definitions map)
-   * @throws KettleException
+   * @throws org.pentaho.di.core.exception.KettleException
    *           in case something goes wrong during the export
    */
   @Override
-  public String exportResources(
-    final VariableSpace space, final Map<String, ResourceDefinition> definitions,
-    final ResourceNamingInterface namingInterface, final Repository repository, final IMetaStore metaStore )
-    throws KettleException {
-    mapTrans = loadAndExport(
-      space, definitions, namingInterface, repository, metaStore, mapTrans, mapRepositoryReference,
-      mapRepositoryDir, mapRepositoryFile );
-    combinerTrans = loadAndExport(
-      space, definitions, namingInterface, repository, metaStore, combinerTrans, combinerRepositoryReference,
-      combinerRepositoryDir, combinerRepositoryFile );
-    reduceTrans = loadAndExport(
-      space, definitions, namingInterface, repository, metaStore, reduceTrans, reduceRepositoryReference,
-      reduceRepositoryDir, reduceRepositoryFile );
+  public String exportResources( VariableSpace space, Map<String, ResourceDefinition> definitions,
+      ResourceNamingInterface namingInterface, Repository repository, IMetaStore metaStore ) throws KettleException {
 
-    return null;
+    // Try to load the transformation from repository or file.
+
+    // Modify this recursively too...
+    //
+    // AGAIN: there is no need to clone this job entry because the caller is responsible for this.
+
+    copyVariablesFrom( space );
+
+    boolean[] enabled = isReferencedObjectEnabled();
+    TransMeta transMeta;
+    for ( int i = 0; i < enabled.length; i++ ) {
+      if ( enabled[i] ) {
+        //
+        // First load the transformation metadata...
+        //
+        transMeta = (TransMeta) loadReferencedObject( i, repository, space );
+        // Also go down into the transformation and export the files there. (mapping recursively down)
+        //
+        String proposedNewFilename =
+            transMeta.exportResources( transMeta, definitions, namingInterface, repository, metaStore );
+        // To get a relative path to it, we inject ${Internal.Job.Filename.Directory}
+        //
+        String newFilename = "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + proposedNewFilename;
+
+        // Set the correct filename inside the XML.
+        //
+        transMeta.setFilename( newFilename );
+
+        // exports always reside in the root directory, in case we want to turn this into a file repository...
+        //
+        transMeta.setRepositoryDirectory( new RepositoryDirectory() );
+
+        // export to filename ALWAYS (this allows the exported XML to be executed remotely)
+        // change it in the job entry
+        setSpecificationMethodAndValue( i, ObjectLocationSpecificationMethod.FILENAME, newFilename, null, null );
+      }
+    }
+
+    return getHadoopJobName();
   }
 
-  private String loadAndExport( VariableSpace space, Map<String, ResourceDefinition> definitions,
-                                ResourceNamingInterface namingInterface, Repository repository, IMetaStore metaStore,
-                                String trans, ObjectId repositoryReference, String repositoryDir,
-                                String repositoryFile )
-    throws KettleException {
-    final TransMeta transMeta = loadTransMeta(
-      space, repository, trans, repositoryReference, repositoryDir, repositoryFile );
-    if ( transMeta != null ) {
-      return "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + transMeta.exportResources(
-        transMeta, definitions, namingInterface, repository, metaStore );
+  private void setSpecificationMethodAndValue( int i, ObjectLocationSpecificationMethod specification, String filename,
+      String repositoryDir, ObjectId referrence ) {
+    switch ( specification ) {
+      case FILENAME: {
+        switch ( i ) {
+          case 0: {
+            setMapTrans( filename );
+            break;
+          }
+          case 1: {
+            setCombinerTrans( filename );
+            break;
+          }
+          case 2: {
+            setReduceTrans( filename );
+            break;
+          }
+        }
+        break;
+      }
+      case REPOSITORY_BY_NAME: {
+        switch ( i ) {
+          case 0: {
+            setMapRepositoryDir( repositoryDir );
+            setMapRepositoryFile( filename );
+            break;
+          }
+          case 1: {
+            setCombinerRepositoryDir( repositoryDir );
+            setCombinerRepositoryFile( filename );
+            break;
+          }
+          case 2: {
+            setReduceRepositoryDir( repositoryDir );
+            setReduceRepositoryFile( filename );
+            break;
+          }
+        }
+        break;
+      }
+      case REPOSITORY_BY_REFERENCE: {
+        switch ( i ) {
+          case 0: {
+            setMapRepositoryReference( referrence );
+            break;
+          }
+          case 1: {
+            setCombinerRepositoryReference( referrence );
+            break;
+          }
+          case 2: {
+            setReduceRepositoryReference( referrence );
+            break;
+          }
+        }
+        break;
+      }
     }
-    return trans;
   }
 }
