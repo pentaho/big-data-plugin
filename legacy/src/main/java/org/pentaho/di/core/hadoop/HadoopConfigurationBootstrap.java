@@ -46,6 +46,7 @@ import org.pentaho.hadoop.shim.api.ShimProperties;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,6 +67,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   public static final String DEFAULT_FOLDER_HADOOP_CONFIGURATIONS = "hadoop-configurations";
   public static final String CONFIG_PROPERTIES = "config.properties";
   private static final Class<?> PKG = HadoopConfigurationBootstrap.class;
+  public static final String PMR_PROPERTIES = "pmr.properties";
   private static LogChannelInterface log = new LogChannel( BaseMessages.getString( PKG,
     "HadoopConfigurationBootstrap.LoggingPrefix" ) );
   private static HadoopConfigurationBootstrap instance = new HadoopConfigurationBootstrap();
@@ -315,12 +317,25 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
 
   @Override
   public void onEnvironmentInit() throws LifecycleException {
-    /*try {
-      getInstance().getProvider();
-    } catch ( ConfigurationException e ) {
-      throw new LifecycleException( BaseMessages.getString( PKG,
-        "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, true );
-    }*/
+    InputStream pmrProperties = HadoopConfigurationBootstrap.class.getClassLoader().getResourceAsStream(
+      PMR_PROPERTIES );
+    if ( pmrProperties != null ) {
+      Properties properties = new Properties();
+      try {
+        properties.load( pmrProperties );
+        String isPmr = properties.getProperty( "isPmr", "false" );
+        if ( "true".equals( isPmr ) ) {
+          log.logDebug(
+            BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InitializingShimPmr" ) );
+          getInstance().getProvider();
+          log.logBasic(
+            BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InitializedShimPmr" ) );
+        }
+      } catch ( Exception e ) {
+        throw new LifecycleException( BaseMessages.getString( PKG,
+          "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, true );
+      }
+    }
   }
 
   @Override
