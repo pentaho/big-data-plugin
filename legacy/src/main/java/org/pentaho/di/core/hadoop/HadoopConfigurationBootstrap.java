@@ -1,23 +1,21 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
+ * <p/>
+ * ******************************************************************************
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.di.core.hadoop;
@@ -175,9 +173,9 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
     HadoopConfigurationLocator locator = new HadoopConfigurationLocator() {
       @Override
       protected ClassLoader createConfigurationLoader( FileObject root, ClassLoader parent, List<URL> classpathUrls,
-          ShimProperties configurationProperties, String... ignoredClasses ) throws ConfigurationException {
+                                                       ShimProperties configurationProperties, String... ignoredClasses ) throws ConfigurationException {
         ClassLoader classLoader =
-            super.createConfigurationLoader( root, parent, classpathUrls, configurationProperties, ignoredClasses );
+          super.createConfigurationLoader( root, parent, classpathUrls, configurationProperties, ignoredClasses );
 
         for ( HadoopConfigurationListener listener : hadoopConfigurationListeners ) {
           listener.onClassLoaderAvailable( classLoader );
@@ -187,7 +185,8 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
       }
     };
     locator.init( hadoopConfigurationsDir, new ActiveHadoopConfigurationLocator() {
-      @Override public String getActiveConfigurationId() throws ConfigurationException {
+      @Override
+      public String getActiveConfigurationId() throws ConfigurationException {
         return activeConfigurationId;
       }
     }, new DefaultFileSystemManager() );
@@ -198,17 +197,20 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
     throws KettleException, ConfigurationException, IOException {
     List<HadoopConfigurationInfo> result = new ArrayList<>();
     FileObject hadoopConfigurationsDir = resolveHadoopConfigurationsDirectory();
-    String activeId = getActiveConfigurationId();
-    String willBeActiveId = getWillBeActiveConfigurationId();
-    for ( FileObject childFolder : hadoopConfigurationsDir.getChildren() ) {
-      if ( childFolder.getType() == FileType.FOLDER ) {
-        String id = childFolder.getName().getBaseName();
-        FileObject configPropertiesFile = childFolder.getChild( CONFIG_PROPERTIES );
-        if ( configPropertiesFile.exists() ) {
-          Properties properties = new Properties();
-          properties.load( configPropertiesFile.getContent().getInputStream() );
-          result.add( new HadoopConfigurationInfo( id, properties.getProperty( "name", id ),
-            id.equals( activeId ), willBeActiveId.equals( id ) ) );
+    // If the folder doesn't exist, return an empty list
+    if ( hadoopConfigurationsDir.exists() ) {
+      String activeId = getActiveConfigurationId();
+      String willBeActiveId = getWillBeActiveConfigurationId();
+      for ( FileObject childFolder : hadoopConfigurationsDir.getChildren() ) {
+        if ( childFolder.getType() == FileType.FOLDER ) {
+          String id = childFolder.getName().getBaseName();
+          FileObject configPropertiesFile = childFolder.getChild( CONFIG_PROPERTIES );
+          if ( configPropertiesFile.exists() ) {
+            Properties properties = new Properties();
+            properties.load( configPropertiesFile.getContent().getInputStream() );
+            result.add( new HadoopConfigurationInfo( id, properties.getProperty( "name", id ),
+              id.equals( activeId ), willBeActiveId.equals( id ) ) );
+          }
         }
       }
     }

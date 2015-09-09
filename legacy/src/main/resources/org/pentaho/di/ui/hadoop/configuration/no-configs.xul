@@ -5,13 +5,14 @@
 
   <dialog width="425" height="100" id="noHadoopConfigurationSelectionDialog"
           title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
+          appicon="ui/images/hadoop.png"
           buttons="">
     <vbox padding="15">
       <label id="noHadoopConfigurationSelectionDialogLabel" value="${NoHadoopConfigurationsXulDialog.Text}"
              multiline="true" width="425"/>
       <spacer height="15"/>
       <hbox padding="0" spacing="0">
-        <button id="helpButton" label="${Dialog.Help}" width="75" onclick="noHadoopConfigurationsXulDialog.showHelp()"/>
+        <button id="helpButton" label="${Dialog.Help}" onclick="noHadoopConfigurationsXulDialog.showHelp()"/>
         <spacer flex="1"/>
         <button label="${Dialog.Close}" width="75" onclick="noHadoopConfigurationsXulDialog.close()"/>
       </hbox>

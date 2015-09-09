@@ -65,7 +65,7 @@ public class HadoopConfigurationRestartXulDialog extends AbstractXulEventHandler
       XulRunner runner = new SwtXulRunner();
       runner.addContainer( container );
       runner.initialize();
-      promptDialog = (XulDialog) container.getDocumentRoot().getElementById( "hadoopConfigurationSelectionDialog" );
+      promptDialog = (XulDialog) container.getDocumentRoot().getElementById( "hadoopConfigurationRestartDialog" );
       promptDialog.show();
       ( (SwtDialog) promptDialog ).dispose();
     } catch ( Exception var4 ) {

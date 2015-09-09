@@ -1,27 +1,26 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
+ * <p/>
+ * ******************************************************************************
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.di.ui.hadoop.configuration;
 
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopConfigurationInfo;
 import org.pentaho.di.core.hadoop.HadoopConfigurationPrompter;
@@ -44,7 +43,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Created by bryan on 8/10/15.
  */
-@SpoonPluginCategories( { "spoon" } ) @SpoonPlugin( id = "HadoopConfigurationsSpoonPlugin", image = "" )
+@SpoonPluginCategories( { "spoon" } )
+@SpoonPlugin( id = "HadoopConfigurationsSpoonPlugin", image = "" )
 public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
 
   private static Class<?> PKG = HadoopConfigurationsSpoonPlugin.class;
@@ -68,9 +68,13 @@ public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
         final Spoon spoon = Spoon.getInstance();
         final AtomicReference<String> atomicReference = new AtomicReference<>();
         spoon.getDisplay().syncExec( new Runnable() {
-          @Override public void run() {
+          @Override
+          public void run() {
+            // If there are no shims, bring up the "no shims" dialog, otherwise bring up the shim select dialog
             atomicReference
-              .set( new HadoopConfigurationsXulDialog( spoon.getShell(), hadoopConfigurationInfos ).open() );
+              .set( Const.isEmpty( hadoopConfigurationInfos )
+                ? new NoHadoopConfigurationsXulDialog( spoon.getShell() ).open()
+                : new HadoopConfigurationsXulDialog( spoon.getShell(), hadoopConfigurationInfos ).open() );
           }
         } );
         return atomicReference.get();
@@ -80,7 +84,8 @@ public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
       public void promptForRestart() {
         final Spoon spoon = Spoon.getInstance();
         spoon.getDisplay().syncExec( new Runnable() {
-          @Override public void run() {
+          @Override
+          public void run() {
             new HadoopConfigurationRestartXulDialog( spoon.getShell() ).open();
           }
         } );

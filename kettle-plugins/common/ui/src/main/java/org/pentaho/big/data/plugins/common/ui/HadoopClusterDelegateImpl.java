@@ -53,7 +53,8 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     }
     if ( nc != null ) {
       NamedCluster ncCopy = nc.clone();
-      String dupename = BaseMessages.getString( PKG, "Spoon.Various.DupeName" ) + nc.getName();
+      // The "duplicate name" string comes from Spoon, so use its class to get the resource
+      String dupename = BaseMessages.getString( Spoon.class, "Spoon.Various.DupeName" ) + nc.getName();
       ncCopy.setName( dupename );
 
       NamedClusterDialogImpl
