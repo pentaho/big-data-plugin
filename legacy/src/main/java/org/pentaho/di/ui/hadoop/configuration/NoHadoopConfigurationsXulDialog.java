@@ -57,7 +57,7 @@ public class NoHadoopConfigurationsXulDialog extends AbstractXulEventHandler {
     setName( CONTROLLER_NAME );
   }
 
-  public void open() {
+  public String open() {
     try {
       KettleXulLoader e = new KettleXulLoader();
       e.setOuterContext( shell );
@@ -81,6 +81,7 @@ public class NoHadoopConfigurationsXulDialog extends AbstractXulEventHandler {
     } catch ( Exception var4 ) {
       logger.info( var4 );
     }
+    return "";
   }
 
   public void close() {

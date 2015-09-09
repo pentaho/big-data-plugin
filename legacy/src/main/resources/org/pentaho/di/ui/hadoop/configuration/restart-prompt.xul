@@ -3,13 +3,15 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="300" height="100" proxyoutercontext="true" appicon="ui/images/hadoop.png">
 
-  <dialog width="300" height="100" id="hadoopConfigurationSelectionDialog"
+  <dialog width="300" height="100" id="hadoopConfigurationRestartDialog"
           title="${HadoopConfigurationRestartXulDialog.Shell.Title}"
-          buttons="">
+          appicon="ui/images/hadoop.png"
+          buttons=""
+          resizable="false">
     <vbox flex="1" padding="15">
       <hbox flex="1" padding="0" spacing="0">
         <image src='ui/images/warning:32#32.svg' width='32' height='32'/>
-        <spacer/>
+        <spacer flex="1"/>
         <label id="hadoopConfigurationSelectionDialogLabel" value="${HadoopConfigurationRestartXulDialog.Text}"
                multiline="true" width="300"/>
       </hbox>
