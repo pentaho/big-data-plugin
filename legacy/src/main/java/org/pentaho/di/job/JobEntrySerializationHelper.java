@@ -226,6 +226,7 @@ public class JobEntrySerializationHelper implements Serializable {
             // + " on: " + object.getClass().getName());
             if ( field.getType().isPrimitive() && "".equals( value ) ) {
               // skip setting of primitives if we see null
+              continue;
             } else if ( "".equals( value ) ) {
               field.set( object, value );
             } else if ( field.getType().isPrimitive() ) {

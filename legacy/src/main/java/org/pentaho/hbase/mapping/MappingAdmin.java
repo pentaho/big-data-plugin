@@ -964,7 +964,7 @@ public class MappingAdmin {
           throw new IOException( "Error in mapping. Column \"" + newMeta.getAlias()
             + "\" has the same name as the table key (" + resultMapping.getKeyName() + ")" );
         } else {
-          resultCols.put(newMeta.getAlias(), newMeta);
+          resultCols.put( newMeta.getAlias(), newMeta );
         }
       }
     }

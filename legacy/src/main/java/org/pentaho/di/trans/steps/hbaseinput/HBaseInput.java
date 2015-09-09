@@ -158,7 +158,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
         }
       }
       String combinedName = HBaseValueMeta.SEPARATOR + HBaseValueMeta.SEPARATOR + m_tableMapping.getKeyName();
-      HBaseValueMeta vm2 = new HBaseValueMeta( combinedName, HBaseInputDialog.getKettleTypeByKeyType(m_tableMapping.getKeyType()), -1, -1 );
+      HBaseValueMeta vm2 = new HBaseValueMeta( combinedName, HBaseInputDialog.getKettleTypeByKeyType( m_tableMapping.getKeyType() ), -1, -1 );
       vm2.setKey( true );
       try {
         m_tableMapping.addMappedColumn( vm2, m_tableMapping.isTupleMapping());
@@ -214,8 +214,8 @@ public class HBaseInput extends BaseStep implements StepInterface {
 
       // set any filters
       if ( m_meta.getColumnFilters() != null && m_meta.getColumnFilters().size() > 0 ) {
-          HBaseInputData.setScanFilters( m_hbAdmin, m_meta.getColumnFilters(), m_meta.getMatchAnyFilter(),
-              m_columnsMappedByAlias, this );
+        HBaseInputData.setScanFilters( m_hbAdmin, m_meta.getColumnFilters(), m_meta.getMatchAnyFilter(),
+          m_columnsMappedByAlias, this );
       }
 
       if ( !isStopped() ) {

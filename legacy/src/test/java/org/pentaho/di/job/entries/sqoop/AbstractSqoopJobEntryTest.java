@@ -316,7 +316,7 @@ public class AbstractSqoopJobEntryTest {
     when( shim.getJobtrackerConnectionInfo( any( Configuration.class ) ) )
       .thenReturn( new String[] { JTH, JTP } );
 
-    final HadoopConfiguration hc = mock(HadoopConfiguration.class );
+    final HadoopConfiguration hc = mock( HadoopConfiguration.class );
     when( hc.getHadoopShim( ) ).thenReturn( shim );
 
     AbstractSqoopJobEntry<SqoopConfig> jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface ) {

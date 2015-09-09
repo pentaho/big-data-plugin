@@ -124,8 +124,8 @@ public class PigServiceImpl implements PigService {
       Properties properties = new Properties();
       pigShim.configure( properties, executionMode == ExecutionMode.LOCAL ? null : configuration );
       return new PigResultImpl( appender == null ? null : appender.getFile(),
-        pigShim.executeScript( pigScript, executionMode == ExecutionMode.LOCAL ? PigShim.ExecutionMode.LOCAL :
-          PigShim.ExecutionMode.MAPREDUCE, properties ), null );
+        pigShim.executeScript( pigScript, executionMode == ExecutionMode.LOCAL ? PigShim.ExecutionMode.LOCAL
+          : PigShim.ExecutionMode.MAPREDUCE, properties ), null );
     } catch ( Exception e ) {
       return new PigResultImpl( appender == null ? null : appender.getFile(), null, e );
     } finally {

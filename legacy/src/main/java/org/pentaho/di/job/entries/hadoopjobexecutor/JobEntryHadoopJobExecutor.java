@@ -221,7 +221,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
   public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
   }
-  
+
   public String getHdfsHostname() {
     return hdfsHostname;
   }
@@ -361,7 +361,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         final Class<?> mainClass = locateDriverClass( resolvedJarUrl, shim );
 
         if ( log.isDetailed() ) {
-          logDetailed(BaseMessages.getString(
+          logDetailed( BaseMessages.getString(
             PKG, "JobEntryHadoopJobExecutor.UsingDriverClass", mainClass == null ? "null" : mainClass.getName() ) );
           logDetailed( BaseMessages.getString( PKG, "JobEntryHadoopJobExecutor.SimpleMode" ) );
         }
@@ -416,7 +416,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
           if ( simpleBlocking ) {
             // wait until the thread is done
             do {
-              logDetailed( BaseMessages.getString(JobEntryHadoopJobExecutor.class,
+              logDetailed( BaseMessages.getString( JobEntryHadoopJobExecutor.class,
                 "JobEntryHadoopJobExecutor.Blocking", mainClass.getName() ) );
               t.join( simpleLogInt * 1000 );
             } while ( !parentJob.isStopped() && t.isAlive() );
@@ -799,12 +799,11 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
         setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
-      } 
-
+      }
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster
         nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
       }
@@ -813,11 +812,11 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         setJobTrackerPort( nc.getJobTrackerPort() );
         setHdfsHostname( nc.getHdfsHost() );
         setHdfsPort( nc.getHdfsPort() );
-        configLoaded = true;        
+        configLoaded = true;
       }
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
-    }    
+    }
 
     if ( !configLoaded ) {
       if ( entrynode != null ) {
@@ -835,11 +834,11 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
           setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
           logError( ke.getMessage(), ke );
-        } 
+        }
       }
     }
-  }    
-  
+  }
+
   public String getXML() {
     StringBuffer retval = new StringBuffer( 1024 );
     retval.append( super.getXML() );
@@ -867,8 +866,8 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
     retval.append( "      " ).append( XMLHandler.addTagValue( "cluster_name", clusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
     try {
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
         setJobTrackerHostname( nc.getJobTrackerHost() );
@@ -878,12 +877,11 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
-    }  
+    }
     retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_hostname", hdfsHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_port", hdfsPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_hostname", jobTrackerHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_port", jobTrackerPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_map_tasks", numMapTasks ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_reduce_tasks", numReduceTasks ) );
 
@@ -932,7 +930,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
 
       loadClusterConfig( id_jobentry, rep, null );
       setRepository( rep );
-      
+
       // setNumMapTasks(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "num_map_tasks")).intValue());
       setNumMapTasks( rep.getJobEntryAttributeString( id_jobentry, "num_map_tasks" ) );
       // setNumReduceTasks(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "num_reduce_tasks")).intValue());
@@ -981,11 +979,10 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_key_class", outputKeyClass ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_value_class", outputValueClass ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "output_format_class", outputFormatClass ); //$NON-NLS-1$
-      
       rep.saveJobEntryAttribute( id_job, getObjectId(), "cluster_name", clusterName ); //$NON-NLS-1$
       try {
-        if ( !StringUtils.isEmpty( getClusterName() ) && 
-            NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+        if ( !StringUtils.isEmpty( getClusterName() )
+          && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
           // pull config from NamedCluster
           NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
           setJobTrackerHostname( nc.getJobTrackerHost() );
@@ -995,12 +992,11 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         }
       } catch ( MetaStoreException e ) {
         logDebug( e.getMessage(), e );
-      } 
+      }
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", hdfsHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", hdfsPort ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "job_tracker_hostname", jobTrackerHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "job_tracker_port", jobTrackerPort ); //$NON-NLS-1$
-      
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_map_tasks", numMapTasks ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_reduce_tasks", numReduceTasks ); //$NON-NLS-1$
 

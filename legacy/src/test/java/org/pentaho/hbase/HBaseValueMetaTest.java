@@ -490,6 +490,7 @@ public class HBaseValueMetaTest {
       Object decoded = HBaseValueMeta.decodeColumnValue( encoded, mappingMeta, bu );
       fail( "Was expecting an exception because the supplied value is not in " + "the list of indexed values" );
     } catch ( Exception ex ) {
+      //ignored
     }
   }
 

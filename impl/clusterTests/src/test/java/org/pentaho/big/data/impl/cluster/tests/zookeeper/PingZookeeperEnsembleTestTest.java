@@ -97,10 +97,10 @@ public class PingZookeeperEnsembleTestTest {
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory
       .create( messageGetterFactory, host1, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
-      connectivityTest );
+        connectivityTest );
     when( connectivityTestFactory
       .create( messageGetterFactory, host2, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
-      connectivityTest );
+        connectivityTest );
     RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
     when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.INFO );
     when( connectivityTest.runTest() ).thenReturn( clusterTestResultEntry );
@@ -118,10 +118,10 @@ public class PingZookeeperEnsembleTestTest {
     ConnectivityTest connectivityTest2 = mock( ConnectivityTest.class );
     when( connectivityTestFactory
       .create( messageGetterFactory, host1, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
-      connectivityTest );
+        connectivityTest );
     when( connectivityTestFactory
       .create( messageGetterFactory, host2, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
-      connectivityTest2 );
+        connectivityTest2 );
     RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
     when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.INFO );
     when( connectivityTest.runTest() ).thenReturn( clusterTestResultEntry );
@@ -146,10 +146,10 @@ public class PingZookeeperEnsembleTestTest {
     ConnectivityTest connectivityTest2 = mock( ConnectivityTest.class );
     when( connectivityTestFactory
       .create( messageGetterFactory, host1, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
-      connectivityTest );
+        connectivityTest );
     when( connectivityTestFactory
       .create( messageGetterFactory, host2, zookeeperPort, false, RuntimeTestEntrySeverity.WARNING ) ).thenReturn(
-      connectivityTest2 );
+        connectivityTest2 );
     RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
     when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.WARNING );
     when( connectivityTest.runTest() ).thenReturn( clusterTestResultEntry );

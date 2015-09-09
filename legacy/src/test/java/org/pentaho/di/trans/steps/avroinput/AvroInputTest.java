@@ -72,8 +72,8 @@ public class AvroInputTest {
 
   protected static String[] s_jsonDataTopLevelRecordManyFields =
       new String[] { "{\"field1\":\"value1\",\"field2\":\"value2\",\"field3\":\"value3\",\"field4\":\"value4\","
-          + "\"field5\":\"value5\",\"field6\":\"value6\",\"field7\":\"value7\",\"field8\":\"value8\","
-          + "\"field9\":\"value9\",\"field10\":\"value10\",\"field11\":\"value11\",\"field12\":\"value12\"}" };
+            + "\"field5\":\"value5\",\"field6\":\"value6\",\"field7\":\"value7\",\"field8\":\"value8\","
+            + "\"field9\":\"value9\",\"field10\":\"value10\",\"field11\":\"value11\",\"field12\":\"value12\"}" };
 
   protected static String s_schemaTopLevelRecord = "{" + "\"type\": \"record\"," + "\"name\": \"Person\","
       + "\"fields\": [" + "{\"name\": \"name\", \"type\": \"string\"}," + "{\"name\": \"age\", \"type\": \"int\"},"
@@ -85,15 +85,15 @@ public class AvroInputTest {
       + "{\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}}" + "]" + "}";
 
   protected static String[] s_jsonDataTopLevelRecord = new String[] {
-    "{\"name\":\"bob\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
-    "{\"name\":\"fred\",\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
-    "{\"name\":\"zaphod\",\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
+      "{\"name\":\"bob\",\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
+      "{\"name\":\"fred\",\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
+      "{\"name\":\"zaphod\",\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
 
   protected static String[] s_jsonDataTopLevelRecord2 =
       new String[] {
-        "{\"name\":\"bob\",\"age\":20,\"nickname\":\"goofy\",\"emails\":[\"here is an email\",\"and another one\"]}",
-        "{\"name\":\"fred\",\"age\":25,\"nickname\":\"mickey\",\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
-        "{\"name\":\"zaphod\",\"age\":254,\"nickname\":\"donald\",\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
+          "{\"name\":\"bob\",\"age\":20,\"nickname\":\"goofy\",\"emails\":[\"here is an email\",\"and another one\"]}",
+          "{\"name\":\"fred\",\"age\":25,\"nickname\":\"mickey\",\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
+          "{\"name\":\"zaphod\",\"age\":254,\"nickname\":\"donald\",\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
 
   protected static String s_schemaTopLevelRecordWithUnion = "{" + "\"type\": \"record\"," + "\"name\": \"Person\","
       + "\"fields\": [" + "{\"name\": \"name\", \"type\": [\"string\", \"null\"]},"
@@ -101,9 +101,9 @@ public class AvroInputTest {
       + "{\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}}" + "]" + "}";
 
   protected static String[] s_jsonDataTopLevelRecordWithUnion = new String[] {
-    "{\"name\":{\"string\":\"bob\"},\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
-    "{\"name\":{\"string\":\"fred\"},\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
-    "{\"name\":null,\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
+      "{\"name\":{\"string\":\"bob\"},\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
+      "{\"name\":{\"string\":\"fred\"},\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
+      "{\"name\":null,\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
 
   protected static String s_schemaTopLevelRecordWithMultiTypeUnion = "{" + "\"type\": \"record\","
       + "\"name\": \"Person\"," + "\"fields\": [" + "{\"name\": \"name\", \"type\": [\"string\", \"int\", \"null\"]},"
@@ -111,9 +111,9 @@ public class AvroInputTest {
       + "{\"name\": \"emails\", \"type\": {\"type\": \"array\", \"items\": \"string\"}}" + "]" + "}";
 
   protected static String[] s_jsonDataTopLevelRecordWithMultiTypeUnion = new String[] {
-    "{\"name\":{\"string\":\"bob\"},\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
-    "{\"name\":{\"int\":42},\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
-    "{\"name\":null,\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
+      "{\"name\":{\"string\":\"bob\"},\"age\":20,\"emails\":[\"here is an email\",\"and another one\"]}",
+      "{\"name\":{\"int\":42},\"age\":25,\"emails\":[\"hi there bob\",\"good to see you!\",\"Yarghhh!\"]}",
+      "{\"name\":null,\"age\":254,\"emails\":[\"I'm from beetlejuice\",\"yeah yeah yeah\"]}" };
 
   protected static String s_schemaTopLevelMap = "{" + "\"type\": \"map\"," + "\"values\":{" + "\"type\": \"record\","
       + "\"name\":\"person\"," + "\"fields\": [" + "{\"name\": \"name\", \"type\": \"string\"},"
@@ -434,6 +434,7 @@ public class AvroInputTest {
       Object[][] result = data.avroObjectToKettle( incomingKettleRow, space );
       fail( "Was expecting an exception as the schema supplied is incompatible with the data" );
     } catch ( Exception ex ) {
+      //expected
     }
   }
 

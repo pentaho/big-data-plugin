@@ -132,7 +132,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private LogChannel log = new LogChannel( this );
 
   private static final String[] YES_NO_COMBO = new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.No" ),
-    BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) };
+      BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) };
 
   private static final String[] ALL_FILES_TYPE = new String[] { BaseMessages
       .getString( PKG, "System.FileType.AllFiles" ) }; //$NON-NLS-1$
@@ -1890,7 +1890,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc, true ),
           new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RepeatColumn.Column" ),
               ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ),
-                BaseMessages.getString( BASE_PKG, "System.Combo.No" ) }, true ) };
+                  BaseMessages.getString( BASE_PKG, "System.Combo.No" ) }, true ) };
 
     colinf[12].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RepeatColumn.Tooltip" ) );
 
@@ -2014,18 +2014,15 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           clusterName =
               clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
           clusterName = clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
-          sourceUrl =
-              clusterName.equals( LOCAL_ENVIRONMENT ) ||
-              clusterName.equals( STATIC_ENVIRONMENT ) ||
-              clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
-                  : hadoopFileInputMeta.getUrlPath( sourceUrl );
+          sourceUrl = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
+            || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl : hadoopFileInputMeta.getUrlPath( sourceUrl );
           environment = clusterName;
         }
 
         wFilenameList
             .add( new String[] { environment, sourceUrl, in.getFileMask()[i],
-              in.getRequiredFilesDesc( in.getFileRequired()[i] ),
-              in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
+                in.getRequiredFilesDesc( in.getFileRequired()[i] ),
+                in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
       }
       wFilenameList.removeEmptyRows();
       wFilenameList.setRowNums();
@@ -2493,7 +2490,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               EnterTextDialog etd =
                   new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
                       "TextFileInputDialog.ScanResults.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                      "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
+                        "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
               etd.setReadOnly();
               etd.open();
             }
@@ -2593,7 +2590,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     EnterNumberDialog numberDialog =
         new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( BASE_PKG,
             "TextFileInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-            "TextFileInputDialog.PreviewSize.DialogMessage" ) );
+              "TextFileInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
     if ( previewSize > 0 ) {
       TransPreviewProgressDialog progressDialog =
@@ -2645,7 +2642,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
                     "TextFileInputDialog.ContentOfFirstFile.DialogTitle" ),
                     ( nrLines == 0 ? BaseMessages.getString( BASE_PKG,
                         "TextFileInputDialog.ContentOfFirstFile.AllLines.DialogMessage" ) : BaseMessages.getString(
-                        BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
+                          BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
                     firstlines, true );
             etd.setReadOnly();
             etd.open();
@@ -2809,7 +2806,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     } catch ( Exception e ) {
       new ErrorDialog( shell, BaseMessages.getString( BASE_PKG,
           "TextFileInputDialog.ErrorShowingFixedWizard.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-          "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
+            "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
     }
   }
 
@@ -2895,17 +2892,17 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             fileFilters = new String[] { "*.zip;*.gz", "*.txt;*.csv", "*.csv", "*.txt", "*" };
             fileFilterNames =
                 new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.ZIPFiles" ),
-                  BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+                    BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
+                    BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                    BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
+                    BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
           } else {
             fileFilters = new String[] { "*", "*.txt;*.csv", "*.csv", "*.txt" };
             fileFilterNames =
                 new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ),
-                  BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ) };
+                    BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
+                    BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                    BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ) };
           }
 
           String clusterName = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() - 1 );

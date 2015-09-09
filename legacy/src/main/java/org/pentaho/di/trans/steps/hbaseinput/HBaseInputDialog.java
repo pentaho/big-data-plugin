@@ -23,7 +23,6 @@
 package org.pentaho.di.trans.steps.hbaseinput;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1097,13 +1096,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
           MessageDialog md =
               new MessageDialog( shell, BaseMessages.getString( HBaseInputMeta.PKG,
                   "HBaseInputDialog.Error.IssuesWithMapping.Title" ), null, BaseMessages.getString( HBaseInputMeta.PKG,
-                    "HBaseInputDialog.Error.IssuesWithMapping" )
-                  + ":\n\n" + p.toString(), MessageDialog.WARNING,
-                  new String[] {
-                    BaseMessages.getString(
-                        HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonOK" ),
-                    BaseMessages.getString(
-                        HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
+                    "HBaseInputDialog.Error.IssuesWithMapping" ) + ":\n\n" + p.toString(), MessageDialog.WARNING,
+                  new String[] { BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonOK" ),
+                      BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
           MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
           int idx = md.open() & 0xFF;
           if ( idx == 1 || idx == 255 /* 255 = escape pressed */ ) {

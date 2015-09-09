@@ -112,7 +112,7 @@ public class SqoopExportJobEntryController extends
     jobEntry.setDatabaseMeta( jobMeta.findDatabase( config.getDatabase() ) );
     super.accept();
   }
-  
+
   public void editNamedCluster() {
     if ( isSelectedNamedCluster() ) {
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
@@ -127,5 +127,5 @@ public class SqoopExportJobEntryController extends
     Shell shell = (Shell) xulDialog.getRootObject();
     ncDelegate.newNamedCluster( jobMeta, null, shell );
     populateNamedClusters();
-  }  
+  }
 }

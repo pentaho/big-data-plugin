@@ -23,29 +23,12 @@
 package org.pentaho.big.data.kettle.plugins.pig;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.VFS;
-import org.apache.pig.PigServer;
-import org.apache.pig.tools.grunt.GruntParser;
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.impl.cluster.NamedClusterManager;
-import org.pentaho.big.data.impl.shim.pig.PigServiceFactoryImpl;
-import org.pentaho.bigdata.api.pig.PigServiceFactory;
-import org.pentaho.bigdata.api.pig.PigServiceLocator;
-import org.pentaho.bigdata.api.pig.impl.PigServiceLocatorImpl;
 import org.pentaho.di.core.KettleEnvironment;
-import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.job.JobMeta;
-import org.pentaho.hadoop.shim.ConfigurationException;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
-import org.pentaho.hadoop.shim.common.CommonHadoopShim;
-import org.pentaho.hadoop.shim.common.CommonPigShim;
-import org.pentaho.hadoop.shim.common.CommonSqoopShim;
-import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -53,11 +36,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 

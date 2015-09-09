@@ -62,7 +62,7 @@ public class HadoopClusterTreeDelegateExtension implements ExtensionPointInterfa
     TreeSelection object = null;
     Spoon spoon = Spoon.getInstance();
 
-    switch( caseNumber ) {
+    switch ( caseNumber ) {
       case 3:
         if ( path[ 2 ].equals( STRING_NAMED_CLUSTERS ) ) {
           object = new TreeSelection( path[ 2 ], org.pentaho.di.core.namedcluster.model.NamedCluster.class, transMeta );

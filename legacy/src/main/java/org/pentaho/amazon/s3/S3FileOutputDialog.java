@@ -1158,8 +1158,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
           String[] fileFilters = new String[] { "*.txt", "*.csv", "*" };
           String[] fileFilterNames =
               new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
-                BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+                  BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                  BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
 
           FileObject selectedFile =
               getFileChooserHelper().browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),

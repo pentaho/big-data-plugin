@@ -445,7 +445,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
           new MessageDialog( m_shell, Messages.getString( "MappingDialog.GetFieldsChoice.Title" ), null, Messages
               .getString( "MappingDialog.GetFieldsChoice.Message", "" + existingRowAliases.size(), "" + 5 ),
               MessageDialog.WARNING, new String[] { Messages.getString( "MappingOutputDialog.ClearAndAdd" ),
-                Messages.getString( "MappingOutputDialog.Cancel" ), }, 0 );
+                  Messages.getString( "MappingOutputDialog.Cancel" ), }, 0 );
       MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
       int idx = md.open();
       choice = idx & 0xFF;
@@ -501,9 +501,9 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
               new MessageDialog( m_shell, Messages.getString( "MappingDialog.GetFieldsChoice.Title" ), null, Messages
                   .getString( "MappingDialog.GetFieldsChoice.Message", "" + existingRowAliases.size(), ""
                       + incomingRowMeta.size() ), MessageDialog.WARNING, new String[] {
-                        Messages.getString( "MappingDialog.AddNew" ), Messages.getString( "MappingOutputDialog.Add" ),
-                        Messages.getString( "MappingOutputDialog.ClearAndAdd" ),
-                        Messages.getString( "MappingOutputDialog.Cancel" ), }, 0 );
+                          Messages.getString( "MappingDialog.AddNew" ), Messages.getString( "MappingOutputDialog.Add" ),
+                          Messages.getString( "MappingOutputDialog.ClearAndAdd" ),
+                          Messages.getString( "MappingOutputDialog.Cancel" ), }, 0 );
           MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
           int idx = md.open();
           choice = idx & 0xFF;
