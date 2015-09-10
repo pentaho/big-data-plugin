@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -67,8 +67,9 @@ import org.pentaho.di.core.compress.CompressionProviderFactory;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -239,6 +240,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     inputFields = new HashMap<String, Integer>();
   }
 
+  @Override
   public String open() {
     Shell parent = getParent();
     Display display = parent.getDisplay();
@@ -248,6 +250,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     setShellImage( shell, input );
 
     ModifyListener lsMod = new ModifyListener() {
+      @Override
       public void modifyText( ModifyEvent e ) {
         input.setChanged();
       }
@@ -384,6 +387,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdDoNotOpenNewFileInit.right = new FormAttachment( 100, 0 );
     wDoNotOpenNewFileInit.setLayoutData( fdDoNotOpenNewFileInit );
     wDoNotOpenNewFileInit.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -407,6 +411,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdFileNameInField.right = new FormAttachment( 100, 0 );
     wFileNameInField.setLayoutData( fdFileNameInField );
     wFileNameInField.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
         activeFileNameField();
@@ -433,9 +438,11 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wFileNameField.setLayoutData( fdFileNameField );
     wFileNameField.setEnabled( false );
     wFileNameField.addFocusListener( new FocusListener() {
+      @Override
       public void focusLost( org.eclipse.swt.events.FocusEvent e ) {
       }
 
+      @Override
       public void focusGained( org.eclipse.swt.events.FocusEvent e ) {
         Cursor busy = new Cursor( shell.getDisplay(), SWT.CURSOR_WAIT );
         shell.setCursor( busy );
@@ -482,6 +489,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdAddStepnr.right = new FormAttachment( 100, 0 );
     wAddStepnr.setLayoutData( fdAddStepnr );
     wAddStepnr.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -504,6 +512,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdAddPartnr.right = new FormAttachment( 100, 0 );
     wAddPartnr.setLayoutData( fdAddPartnr );
     wAddPartnr.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -526,6 +535,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdAddDate.right = new FormAttachment( 100, 0 );
     wAddDate.setLayoutData( fdAddDate );
     wAddDate.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
         // System.out.println("wAddDate.getSelection()="+wAddDate.getSelection());
@@ -548,6 +558,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdAddTime.right = new FormAttachment( 100, 0 );
     wAddTime.setLayoutData( fdAddTime );
     wAddTime.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -571,6 +582,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdSpecifyFormat.right = new FormAttachment( 100, 0 );
     wSpecifyFormat.setLayoutData( fdSpecifyFormat );
     wSpecifyFormat.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
         setDateTimeFormat();
@@ -608,6 +620,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdbShowFiles.top = new FormAttachment( wDateTimeFormat, margin * 2 );
     wbShowFiles.setLayoutData( fdbShowFiles );
     wbShowFiles.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         S3FileOutputMeta tfoi = new S3FileOutputMeta();
         getInfo( tfoi );
@@ -646,6 +659,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdAddToResult.right = new FormAttachment( 100, 0 );
     wAddToResult.setLayoutData( fdAddToResult );
     SelectionAdapter lsSelR = new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent arg0 ) {
         input.setChanged();
       }
@@ -697,6 +711,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdAppend.right = new FormAttachment( 100, 0 );
     wAppend.setLayoutData( fdAppend );
     wAppend.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -719,6 +734,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdbSeparator.top = new FormAttachment( wAppend, 0 );
     wbSeparator.setLayoutData( fdbSeparator );
     wbSeparator.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent se ) {
         // wSeparator.insert("\t");
         wSeparator.getTextWidget().insert( "\t" );
@@ -768,6 +784,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdEnclForced.right = new FormAttachment( 100, 0 );
     wEnclForced.setLayoutData( fdEnclForced );
     wEnclForced.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -789,6 +806,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdHeader.right = new FormAttachment( 100, 0 );
     wHeader.setLayoutData( fdHeader );
     wHeader.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -810,6 +828,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdFooter.right = new FormAttachment( 100, 0 );
     wFooter.setLayoutData( fdFooter );
     wFooter.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -827,8 +846,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wFormat.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format.Label" ) );
     props.setLook( wFormat );
 
-    wFormat.add( "DOS" );
-    wFormat.add( "Unix" );
+    for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
+      wFormat.add( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format."
+        + TextFileOutputMeta.formatMapperLineTerminator[i] ) );
+    }
     wFormat.select( 0 );
     wFormat.addModifyListener( lsMod );
     fdFormat = new FormData();
@@ -875,9 +896,11 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdEncoding.right = new FormAttachment( 100, 0 );
     wEncoding.setLayoutData( fdEncoding );
     wEncoding.addFocusListener( new FocusListener() {
+      @Override
       public void focusLost( org.eclipse.swt.events.FocusEvent e ) {
       }
 
+      @Override
       public void focusGained( org.eclipse.swt.events.FocusEvent e ) {
         Cursor busy = new Cursor( shell.getDisplay(), SWT.CURSOR_WAIT );
         shell.setCursor( busy );
@@ -903,6 +926,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdPad.right = new FormAttachment( 100, 0 );
     wPad.setLayoutData( fdPad );
     wPad.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -924,6 +948,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdFastDump.right = new FormAttachment( 100, 0 );
     wFastDump.setLayoutData( fdFastDump );
     wFastDump.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         input.setChanged();
       }
@@ -1021,7 +1046,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
             ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
     colinf[1] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TypeColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes() );
+            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
     colinf[2] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FormatColumn.Column" ),
             ColumnInfo.COLUMN_TYPE_CCOMBO, formats );
@@ -1042,7 +1067,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
             ColumnInfo.COLUMN_TYPE_TEXT, false );
     colinf[8] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TrimTypeColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc, true );
+            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaString.trimTypeDesc, true );
     colinf[9] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NullColumn.Column" ),
             ColumnInfo.COLUMN_TYPE_TEXT, false );
@@ -1062,6 +1087,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     // Search the fields in the background
 
     final Runnable runnable = new Runnable() {
+      @Override
       public void run() {
         StepMeta stepMeta = transMeta.findStep( stepname );
         if ( stepMeta != null ) {
@@ -1108,21 +1134,25 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // Add listeners
     lsOK = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         ok();
       }
     };
     lsGet = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         get();
       }
     };
     lsMinWidth = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         setMinimalWidth();
       }
     };
     lsCancel = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         cancel();
       }
@@ -1134,6 +1164,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wCancel.addListener( SWT.Selection, lsCancel );
 
     lsDef = new SelectionAdapter() {
+      @Override
       public void widgetDefaultSelected( SelectionEvent e ) {
         ok();
       }
@@ -1145,6 +1176,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // Whenever something changes, set the tooltip to the expanded version:
     wFilename.addModifyListener( new ModifyListener() {
+      @Override
       public void modifyText( ModifyEvent e ) {
         wFilename.setToolTipText( transMeta.environmentSubstitute( wFilename.getText() ) );
       }
@@ -1152,6 +1184,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // Listen to the Browse... button
     wbFilename.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         try {
           // Setup file type filtering
@@ -1187,12 +1220,14 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
+      @Override
       public void shellClosed( ShellEvent e ) {
         cancel();
       }
     } );
 
     lsResize = new Listener() {
+      @Override
       public void handleEvent( Event event ) {
         Point size = shell.getSize();
         wFields.setSize( size.x - 10, size.y - 50 );
@@ -1274,7 +1309,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     Set<String> keySet = fields.keySet();
     List<String> entries = new ArrayList<String>( keySet );
 
-    String[] fieldNames = (String[]) entries.toArray( new String[entries.size()] );
+    String[] fieldNames = entries.toArray( new String[entries.size()] );
 
     Const.sortStrings( fieldNames );
     colinf[0].setComboValues( fieldNames );
@@ -1302,7 +1337,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       wEncoding.removeAll();
       List<Charset> values = new ArrayList<Charset>( Charset.availableCharsets().values() );
       for ( int i = 0; i < values.size(); i++ ) {
-        Charset charSet = (Charset) values.get( i );
+        Charset charSet = values.get( i );
         wEncoding.add( charSet.displayName() );
       }
 
@@ -1353,7 +1388,12 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       wEnclosure.setText( input.getEnclosure() );
     }
     if ( input.getFileFormat() != null ) {
-      wFormat.setText( input.getFileFormat() );
+      wFormat.select( 0 ); // default if not found: CR+LF
+      for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
+        if ( input.getFileFormat().equalsIgnoreCase( TextFileOutputMeta.formatMapperLineTerminator[i] ) ) {
+          wFormat.select( i );
+        }
+      }
     }
     if ( input.getFileCompression() != null ) {
       wCompression.setText( input.getFileCompression() );
@@ -1452,7 +1492,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     tfoi.setFileName( wFilename.getText() );
     tfoi.setFileAsCommand( false );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
-    tfoi.setFileFormat( wFormat.getText() );
+    tfoi.setFileFormat( TextFileOutputMeta.formatMapperLineTerminator[wFormat.getSelectionIndex()] );
     tfoi.setFileCompression( wCompression.getText() );
     tfoi.setEncoding( wEncoding.getText() );
     tfoi.setSeparator( wSeparator.getText() );
@@ -1497,7 +1537,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       field.setCurrencySymbol( item.getText( 6 ) );
       field.setDecimalSymbol( item.getText( 7 ) );
       field.setGroupingSymbol( item.getText( 8 ) );
-      field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 9 ) ) );
+      field.setTrimType( ValueMetaString.getTrimTypeByDesc( item.getText( 9 ) ) );
       field.setNullString( item.getText( 10 ) );
       ( tfoi.getOutputFields() )[i] = field;
     }
@@ -1520,6 +1560,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       RowMetaInterface r = transMeta.getPrevStepFields( stepname );
       if ( r != null ) {
         TableItemInsertListener listener = new TableItemInsertListener() {
+          @Override
           public boolean tableItemInserted( TableItem tableItem, ValueMetaInterface v ) {
             if ( v.isNumber() ) {
               if ( v.getLength() > 0 ) {
@@ -1565,9 +1606,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
       item.setText( 4, "" );
       item.setText( 5, "" );
-      item.setText( 9, ValueMeta.getTrimTypeDesc( ValueMetaInterface.TRIM_TYPE_BOTH ) );
+      item.setText( 9, ValueMetaString.getTrimTypeDesc( ValueMetaInterface.TRIM_TYPE_BOTH ) );
 
-      int type = ValueMeta.getType( item.getText( 2 ) );
+      int type = ValueMetaFactory.getIdForValueMeta( item.getText( 2 ) );
       switch ( type ) {
         case ValueMetaInterface.TYPE_STRING:
           item.setText( 3, "" );
@@ -1592,6 +1633,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wFields.optWidth( true );
   }
 
+  @Override
   public String toString() {
     return this.getClass().getName();
   }
