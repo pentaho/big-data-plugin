@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <window id="noHadoopConfigurationSelectionWindow" title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="425" height="100" proxyoutercontext="true" appicon="ui/images/hadoop.png">
+        width="425" height="100" proxyoutercontext="true" appicon="ui/images/spoon.ico">
 
   <dialog width="425" height="100" id="noHadoopConfigurationSelectionDialog"
           title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
-          appicon="ui/images/hadoop.png"
+          appicon="ui/images/spoon.ico"
           buttons="">
     <vbox padding="15">
       <label id="noHadoopConfigurationSelectionDialogLabel" value="${NoHadoopConfigurationsXulDialog.Text}"

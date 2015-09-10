@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <window id="hadoopConfigurationSelectionWindow" title="${HadoopConfigurationSelectionDialog.Shell.Title}"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="300" height="100" proxyoutercontext="true" appicon="ui/images/hadoop.png">
+        width="300" height="100" proxyoutercontext="true" appicon="ui/images/spoon.ico">
 
   <dialog width="300" height="100" id="hadoopConfigurationRestartDialog"
           title="${HadoopConfigurationRestartXulDialog.Shell.Title}"
-          appicon="ui/images/hadoop.png"
+          appicon="ui/images/spoon.ico"
           buttons=""
           resizable="false">
     <vbox flex="1" padding="15">
