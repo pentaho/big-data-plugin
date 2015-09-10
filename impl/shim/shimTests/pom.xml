@@ -42,6 +42,11 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
     </dependency>

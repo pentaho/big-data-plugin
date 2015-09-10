@@ -39,6 +39,7 @@ import org.pentaho.hadoop.shim.common.CommonPigShim;
 import org.pentaho.hadoop.shim.common.CommonSqoopShim;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 import java.io.StringReader;
 import java.util.Arrays;
@@ -59,7 +60,7 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
   private static final HadoopConfigurationProvider provider = initProvider();
 
   public NoArgJobEntryPigScriptExecutor() throws FileSystemException, ConfigurationException {
-    super( new NamedClusterManager(), mock( RuntimeTester.class ),
+    super( new NamedClusterManager(), mock( RuntimeTestActionService.class ), mock( RuntimeTester.class ),
       new PigServiceLocatorImpl( Arrays.<PigServiceFactory>asList(
         new PigServiceFactoryImpl( true, provider.getConfiguration( null ) ) ), mock( ClusterInitializer.class ) ) );
   }

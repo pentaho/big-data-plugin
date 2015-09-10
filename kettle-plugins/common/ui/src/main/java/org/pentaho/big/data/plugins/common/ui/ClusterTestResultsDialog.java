@@ -1,6 +1,6 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
@@ -45,12 +45,13 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
-import org.pentaho.di.ui.core.dialog.ShowHelpDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.runtime.test.RuntimeTestStatus;
+import org.pentaho.runtime.test.action.RuntimeTestAction;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
@@ -65,16 +66,19 @@ public class ClusterTestResultsDialog extends Dialog {
   private Shell shell;
   private PropsUI props;
 
-  protected RuntimeTestStatus clusterTestStatus;
+  private final RuntimeTestActionService runtimeTestActionService;
+  private final RuntimeTestStatus clusterTestStatus;
 
   /**
    * The log channel for this dialog.
    */
   protected LogChannel log;
 
-  public ClusterTestResultsDialog( Shell parent, RuntimeTestStatus clusterTestStatus )
+  public ClusterTestResultsDialog( Shell parent, RuntimeTestActionService runtimeTestActionService,
+                                   RuntimeTestStatus clusterTestStatus )
     throws KettleException {
     super( parent );
+    this.runtimeTestActionService = runtimeTestActionService;
     this.clusterTestStatus = clusterTestStatus;
     props = PropsUI.getInstance();
     this.log = new LogChannel( clusterTestStatus );
@@ -134,26 +138,22 @@ public class ClusterTestResultsDialog extends Dialog {
       for ( RuntimeTestResult testResult : moduleResults.getRuntimeTestResults() ) {
         RuntimeTestResultEntry summary = testResult.getOverallStatusEntry();
         Label image = new Label( mainComposite, SWT.NONE );
-        boolean hasAction = false;
         switch ( summary.getSeverity() ) {
 
           case DEBUG:
           case INFO:
             // The above are "Test(s) passed"
             image.setImage( GUIResource.getInstance().getImageTrue() );
-            hasAction = false;
             break;
           case WARNING:
           case SKIPPED:
             // The above are "Test(s) finished with warnings"
             image.setImage( GUIResource.getInstance().getImageWarning() );
-            hasAction = true;
             break;
           case ERROR:
           case FATAL:
             // The above are "Test(s) failed"
             image.setImage( GUIResource.getInstance().getImageFalse() );
-            hasAction = true;
             break;
         }
         // Need 2-row 1-col grid to display test name then description
@@ -187,17 +187,13 @@ public class ClusterTestResultsDialog extends Dialog {
 
         // Add action link
         Link link = new Link( testResultsComposite, SWT.NONE );
-        if ( hasAction ) {
-          link.setText( "<a href=\""
-            + BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" )
-            + "\">Troubleshooting Guide</A>" );
-          link.setToolTipText( BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ) );
+        final RuntimeTestAction runtimeTestAction = summary.getAction();
+        if ( runtimeTestAction != null ) {
+          link.setText( "<a>" + runtimeTestAction.getName() + "</a>" );
+          link.setToolTipText( runtimeTestAction.getDescription() );
           link.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent selectionEvent ) {
-              new ShowHelpDialog( shell,
-                BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Title" ),
-                BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ),
-                BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Header" ) ).open();
+              runtimeTestActionService.handle( runtimeTestAction );
             }
 
             /*public void widgetDefaultSelected( SelectionEvent selectionEvent ) {

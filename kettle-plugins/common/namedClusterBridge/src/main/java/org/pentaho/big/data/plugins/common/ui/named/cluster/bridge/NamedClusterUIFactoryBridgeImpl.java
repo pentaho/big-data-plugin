@@ -35,31 +35,37 @@ import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 /**
  * Created by bryan on 8/17/15.
  */
 public class NamedClusterUIFactoryBridgeImpl implements NamedClusterUIFactory {
   private final NamedClusterService namedClusterService;
+  private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
 
-  public NamedClusterUIFactoryBridgeImpl( NamedClusterService namedClusterService, RuntimeTester runtimeTester ) {
+  public NamedClusterUIFactoryBridgeImpl( NamedClusterService namedClusterService,
+                                          RuntimeTestActionService runtimeTestActionService,
+                                          RuntimeTester runtimeTester ) {
     this.namedClusterService = namedClusterService;
+    this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     NamedClusterUIHelper.setNamedClusterUIFactory( this );
   }
 
   @Override public NamedClusterWidget createNamedClusterWidget( Composite parent, boolean showLabel ) {
     return new NamedClusterWidgetBridgedImpl(
-      new NamedClusterWidgetImpl( parent, showLabel, namedClusterService, runtimeTester ) );
+      new NamedClusterWidgetImpl( parent, showLabel, namedClusterService, runtimeTestActionService, runtimeTester ) );
   }
 
   @Override public HadoopClusterDelegate createHadoopClusterDelegate( Spoon spoon ) {
     return new HadoopClusterDelegateBridgeImpl(
-      new HadoopClusterDelegateImpl( spoon, namedClusterService, runtimeTester ) );
+      new HadoopClusterDelegateImpl( spoon, namedClusterService, runtimeTestActionService, runtimeTester ) );
   }
 
   @Override public NamedClusterDialog createNamedClusterDialog( Shell shell ) {
-    return new NamedClusterDialogBridgeImpl( new NamedClusterDialogImpl( shell, namedClusterService, runtimeTester ) );
+    return new NamedClusterDialogBridgeImpl( new NamedClusterDialogImpl( shell, namedClusterService,
+      runtimeTestActionService, runtimeTester ) );
   }
 }

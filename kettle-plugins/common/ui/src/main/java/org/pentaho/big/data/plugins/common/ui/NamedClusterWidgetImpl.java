@@ -40,6 +40,7 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 import java.util.List;
 
@@ -50,10 +51,11 @@ public class NamedClusterWidgetImpl extends Composite {
   private HadoopClusterDelegateImpl ncDelegate;
 
   public NamedClusterWidgetImpl( Composite parent, boolean showLabel, NamedClusterService namedClusterService,
-                                 RuntimeTester clusterTester ) {
+                                 RuntimeTestActionService runtimeTestActionService, RuntimeTester clusterTester ) {
     super( parent, SWT.NONE );
     this.namedClusterService = namedClusterService;
-    ncDelegate = new HadoopClusterDelegateImpl( Spoon.getInstance(), this.namedClusterService, clusterTester );
+    ncDelegate = new HadoopClusterDelegateImpl( Spoon.getInstance(), this.namedClusterService,
+      runtimeTestActionService, clusterTester );
 
     PropsUI props = PropsUI.getInstance();
     props.setLook( this );

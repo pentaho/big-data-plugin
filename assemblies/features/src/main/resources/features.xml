@@ -17,6 +17,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>
   </feature>
 </features>

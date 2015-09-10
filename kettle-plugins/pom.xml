@@ -16,5 +16,6 @@
     <!--<module>hadoop-copy-files</module>-->
     <module>common</module>
     <module>pig</module>
+    <module>guiTestActionHandlers</module>
   </modules>
 </project>

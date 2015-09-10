@@ -22,6 +22,8 @@
 
 package org.pentaho.runtime.test.result;
 
+import org.pentaho.runtime.test.action.RuntimeTestAction;
+
 /**
  * Created by bryan on 8/11/15.
  */
@@ -33,4 +35,6 @@ public interface RuntimeTestResultEntry {
   String getMessage();
 
   Throwable getException();
+
+  RuntimeTestAction getAction();
 }
