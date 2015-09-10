@@ -47,6 +47,7 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -81,6 +82,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   private static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
   // $NON-NLS-1$
   private final NamedClusterService namedClusterService;
+  private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
   private final PigServiceLocator pigServiceLocator;
   /**
@@ -105,8 +107,10 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   protected HashMap<String, String> m_params = new HashMap<String, String>();
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
-                                    RuntimeTester runtimeTester, PigServiceLocator pigServiceLocator ) {
+                                    RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
+                                    PigServiceLocator pigServiceLocator ) {
     this.namedClusterService = namedClusterService;
+    this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     this.pigServiceLocator = pigServiceLocator;
   }
@@ -399,6 +403,10 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   public NamedClusterService getNamedClusterService() {
     return namedClusterService;
+  }
+
+  public RuntimeTestActionService getRuntimeTestActionService() {
+    return runtimeTestActionService;
   }
 
   public RuntimeTester getRuntimeTester() {

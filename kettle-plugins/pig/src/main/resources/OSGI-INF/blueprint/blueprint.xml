@@ -8,6 +8,7 @@
 
   <bean id="jobEntryPigScriptExecutor" class="org.pentaho.big.data.kettle.plugins.pig.JobEntryPigScriptExecutor">
     <argument ref="namedClusterService"/>
+    <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
     <argument ref="pigServiceLocator"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
@@ -16,4 +17,5 @@
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
   <reference id="pigServiceLocator" interface="org.pentaho.bigdata.api.pig.PigServiceLocator"/>
+  <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
 </blueprint>

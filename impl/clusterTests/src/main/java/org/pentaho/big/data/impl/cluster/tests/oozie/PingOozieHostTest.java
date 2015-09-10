@@ -23,6 +23,7 @@
 package org.pentaho.big.data.impl.cluster.tests.oozie;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
@@ -31,7 +32,6 @@ import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
-import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -66,12 +66,16 @@ public class PingOozieHostTest extends BaseRuntimeTest {
     String oozieUrl = namedCluster.getOozieUrl();
     try {
       URL url = new URL( oozieUrl );
-      return  new RuntimeTestResultSummaryImpl( connectivityTestFactory
-        .create( messageGetterFactory, url.getHost(), String.valueOf( url.getPort() ), false ).runTest() );
+      return new RuntimeTestResultSummaryImpl(
+        new ClusterRuntimeTestEntry( messageGetterFactory, connectivityTestFactory.create(
+          messageGetterFactory, url.getHost(), String.valueOf( url.getPort() ), false ).runTest(),
+          ClusterRuntimeTestEntry.DocAnchor.OOZIE ) );
     } catch ( MalformedURLException e ) {
-      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-        messageGetter.getMessage( PING_OOZIE_HOST_TEST_MALFORMED_URL_DESC ),
-        messageGetter.getMessage( PING_OOZIE_HOST_TEST_MALFORMED_URL_MESSAGE, oozieUrl ), e ) );
+      return new RuntimeTestResultSummaryImpl(
+        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.FATAL,
+          messageGetter.getMessage( PING_OOZIE_HOST_TEST_MALFORMED_URL_DESC ),
+          messageGetter.getMessage( PING_OOZIE_HOST_TEST_MALFORMED_URL_MESSAGE, oozieUrl ), e,
+          ClusterRuntimeTestEntry.DocAnchor.OOZIE ) );
     }
   }
 }

@@ -24,6 +24,7 @@ package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.bigdata.api.hdfs.HadoopFileStatus;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
@@ -37,7 +38,6 @@ import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
-import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -68,6 +68,7 @@ public class ListDirectoryTest extends BaseRuntimeTest {
   private static final Class<?> PKG = ListDirectoryTest.class;
   private final HadoopFileSystemLocator hadoopFileSystemLocator;
   private final String directory;
+  private final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
 
   public ListDirectoryTest( MessageGetterFactory messageGetterFactory, HadoopFileSystemLocator hadoopFileSystemLocator,
@@ -76,6 +77,7 @@ public class ListDirectoryTest extends BaseRuntimeTest {
       Arrays.asList( PingFileSystemEntryPointTest.HADOOP_FILE_SYSTEM_PING_FILE_SYSTEM_ENTRY_POINT_TEST ) ) );
     this.hadoopFileSystemLocator = hadoopFileSystemLocator;
     this.directory = directory;
+    this.messageGetterFactory = messageGetterFactory;
     this.messageGetter = messageGetterFactory.create( PKG );
   }
 
@@ -85,9 +87,11 @@ public class ListDirectoryTest extends BaseRuntimeTest {
     try {
       HadoopFileSystem hadoopFilesystem = hadoopFileSystemLocator.getHadoopFilesystem( namedCluster );
       if ( hadoopFilesystem == null ) {
-        return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-          messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_DESC ),
-          messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, namedCluster.getName() ) ) );
+        return new RuntimeTestResultSummaryImpl(
+          new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.FATAL,
+            messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_DESC ),
+            messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, namedCluster.getName() ),
+            ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
       } else {
         HadoopFileSystemPath hadoopFilesystemPath;
         if ( Const.isEmpty( directory ) ) {
@@ -105,28 +109,31 @@ public class ListDirectoryTest extends BaseRuntimeTest {
           if ( paths.length() > 0 ) {
             paths.setLength( paths.length() - 2 );
           }
-          return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
-            messageGetter.getMessage( LIST_DIRECTORY_TEST_SUCCESS_DESC ),
-            messageGetter.getMessage( LIST_DIRECTORY_TEST_SUCCESS_MESSAGE, paths.toString() ) ) );
+          return new RuntimeTestResultSummaryImpl(
+            new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.INFO,
+              messageGetter.getMessage( LIST_DIRECTORY_TEST_SUCCESS_DESC ),
+              messageGetter.getMessage( LIST_DIRECTORY_TEST_SUCCESS_MESSAGE, paths.toString() ),
+              ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
         } catch ( AccessControlException e ) {
-          return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.WARNING,
-            messageGetter.getMessage( LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_DESC ),
-            messageGetter.getMessage( LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_MESSAGE,
-              hadoopFilesystemPath.toString() ),
-            e ) );
+          return new RuntimeTestResultSummaryImpl(
+            new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.WARNING,
+              messageGetter.getMessage( LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_DESC ), messageGetter
+              .getMessage( LIST_DIRECTORY_TEST_ACCESS_CONTROL_EXCEPTION_MESSAGE, hadoopFilesystemPath.toString() ),
+              e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
         } catch ( IOException e ) {
-          return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-            messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_DESC ),
-            messageGetter
-              .getMessage( LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_MESSAGE, hadoopFilesystemPath.toString() ),
-            e ) );
+          return new RuntimeTestResultSummaryImpl(
+            new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.FATAL,
+              messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_DESC ), messageGetter.getMessage(
+                LIST_DIRECTORY_TEST_ERROR_LISTING_DIRECTORY_MESSAGE, hadoopFilesystemPath.toString() ), e,
+              ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
         }
       }
     } catch ( ClusterInitializationException e ) {
-      return new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
-        messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_DESC ),
-        messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_MESSAGE, namedCluster.getName() ),
-        e ) );
+      return new RuntimeTestResultSummaryImpl(
+        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.FATAL,
+          messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_DESC ),
+          messageGetter.getMessage( LIST_DIRECTORY_TEST_ERROR_INITIALIZING_CLUSTER_MESSAGE, namedCluster.getName() ),
+          e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
     }
   }
 }

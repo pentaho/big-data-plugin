@@ -61,6 +61,7 @@ import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 import java.util.HashMap;
 
@@ -76,6 +77,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
   public static final String PIG_FILE_EXT = ".pig";
   private static final Class<?> PKG = JobEntryPigScriptExecutor.class;
   private final NamedClusterService namedClusterService;
+  private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
   protected JobEntryPigScriptExecutor m_jobEntry;
   NamedClusterWidgetImpl namedClusterWidgetImpl;
@@ -102,6 +104,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     super( parent, jobEntryInt, rep, jobMeta );
     m_jobEntry = (JobEntryPigScriptExecutor) jobEntryInt;
     namedClusterService = m_jobEntry.getNamedClusterService();
+    runtimeTestActionService = m_jobEntry.getRuntimeTestActionService();
     runtimeTester = m_jobEntry.getRuntimeTester();
   }
 
@@ -161,7 +164,8 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLabel.setLayoutData( fd );
 
-    namedClusterWidgetImpl = new NamedClusterWidgetImpl( shell, false, namedClusterService, runtimeTester );
+    namedClusterWidgetImpl = new NamedClusterWidgetImpl( shell, false, namedClusterService, runtimeTestActionService,
+      runtimeTester );
     namedClusterWidgetImpl.initiate();
     props.setLook( namedClusterWidgetImpl );
     fd = new FormData();

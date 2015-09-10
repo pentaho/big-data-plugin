@@ -31,6 +31,7 @@ import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -49,9 +50,10 @@ import static org.mockito.Mockito.when;
  */
 public class JobEntryPigScriptExecutorTest {
   private NamedClusterService namedClusterService;
+  private RuntimeTestActionService runtimeTestActionService;
   private PigServiceLocator pigServiceLocator;
-  private PigService pigService;
 
+  private PigService pigService;
   private JobEntryPigScriptExecutor jobEntryPigScriptExecutor;
   private NamedCluster namedCluster;
   private String jobEntryName;
@@ -67,7 +69,9 @@ public class JobEntryPigScriptExecutorTest {
     namedClusterService = mock( NamedClusterService.class );
     pigServiceLocator = mock( PigServiceLocator.class );
     runtimeTester = mock( RuntimeTester.class );
-    jobEntryPigScriptExecutor = new JobEntryPigScriptExecutor( namedClusterService, runtimeTester, pigServiceLocator );
+    runtimeTestActionService = mock( RuntimeTestActionService.class );
+    jobEntryPigScriptExecutor =
+      new JobEntryPigScriptExecutor( namedClusterService, runtimeTestActionService, runtimeTester, pigServiceLocator );
 
     jobEntryName = "jobEntryName";
     namedClusterName = "namedClusterName";

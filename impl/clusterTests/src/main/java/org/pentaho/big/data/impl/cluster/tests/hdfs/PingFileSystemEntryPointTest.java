@@ -23,6 +23,7 @@
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
@@ -46,8 +47,7 @@ public class PingFileSystemEntryPointTest extends BaseRuntimeTest {
   public PingFileSystemEntryPointTest( MessageGetterFactory messageGetterFactory,
                                        ConnectivityTestFactory connectivityTestFactory ) {
     super( NamedCluster.class, Constants.HADOOP_FILE_SYSTEM, HADOOP_FILE_SYSTEM_PING_FILE_SYSTEM_ENTRY_POINT_TEST,
-      messageGetterFactory.create( PKG ).getMessage( PING_FILE_SYSTEM_ENTRY_POINT_TEST_NAME ),
-      new HashSet<String>() );
+      messageGetterFactory.create( PKG ).getMessage( PING_FILE_SYSTEM_ENTRY_POINT_TEST_NAME ), new HashSet<String>() );
     this.messageGetterFactory = messageGetterFactory;
     this.connectivityTestFactory = connectivityTestFactory;
   }
@@ -55,8 +55,8 @@ public class PingFileSystemEntryPointTest extends BaseRuntimeTest {
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-    return new RuntimeTestResultSummaryImpl(
+    return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry( messageGetterFactory,
       connectivityTestFactory.create( messageGetterFactory, namedCluster.getHdfsHost(), namedCluster.getHdfsPort(),
-        true ).runTest() );
+        true ).runTest(), ClusterRuntimeTestEntry.DocAnchor.CLUSTER_CONNECT ) );
   }
 }

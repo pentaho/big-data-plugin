@@ -126,7 +126,7 @@ public class RuntimeTestRunner {
     runtimeTestResultMap.put( runtimeTestId, new RuntimeTestResultImpl( runtimeTest, true,
       new RuntimeTestResultSummaryImpl( new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.SKIPPED,
         BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Desc", runtimeTest.getName() ),
-        BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Message", relevantFailed ), null ) ), 0L ) );
+        BaseMessages.getString( PKG, "RuntimeTestRunner.Skipped.Message", relevantFailed ), (Throwable) null ) ), 0L ) );
   }
 
   private void callbackState() {
