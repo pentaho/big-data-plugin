@@ -292,7 +292,7 @@ public class SqoopUtilsTest {
     config.setOptionallyEnclosedBy( "\\t" );
 
     assertEquals(
-        "--bindir \"dir with space\" --connect jdbc:oracle:thin://bogus/testing --optionally-enclosed-by \"\\t\" --table testing",
+        "--bindir \"dir with space\" --connect jdbc:oracle:thin://bogus/testing --optionally-enclosed-by \"\\\\t\" --table testing",
         SqoopUtils.generateCommandLineString( config, null ) );
   }
 
@@ -395,7 +395,7 @@ public class SqoopUtilsTest {
     config.setOptionallyEnclosedBy( "\\t" );
 
     assertEquals(
-        "--bindir \"dir with space\" --optionally-enclosed-by \"\\t\" --password password!!! --table testing",
+        "--bindir \"dir with space\" --optionally-enclosed-by \"\\\\t\" --password password!!! --table testing",
         SqoopUtils.generateCommandLineString( config, null ) );
 
     config.setPassword( "${password}" );
@@ -595,4 +595,45 @@ public class SqoopUtilsTest {
         SqoopUtils.generateCommandLineString( config, null ) );
   }
 
+  @Test
+  public void generateCommandLineString_escape_backslash() throws Exception {
+    MockConfig config = new MockConfig();
+    config.setEscapedBy( "\\" );
+    assertEquals( "--escaped-by \"\\\\\"", SqoopUtils.generateCommandLineString( config, null ) );
+  }
+
+  @Test
+  public void configureFromCommandLine_unescape_backslash() throws Exception {
+    MockConfig config = new MockConfig();
+    SqoopUtils.configureFromCommandLine( config, "--escaped-by \"\\\\\\\\\"", null );
+    assertEquals( "\\\\", config.getEscapedBy() );
+  }
+
+  @Test
+  public void generateCommandLineString_escape_backslash_custom_options() throws Exception {
+    MockConfig config = new MockConfig();
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( new PropertyEntry( "param", "value \\t" ) );
+    config.setCustomArguments( customArguments );
+
+    assertEquals( "-D param=\"value \\\\t\"", SqoopUtils.generateCommandLineString( config, null ) );
+  }
+
+  @Test
+  public void configureFromCommandLine_unescape_backslash_custom_options() throws Exception {
+    MockConfig config = new MockConfig();
+    SqoopUtils.configureFromCommandLine( config, "-D param=\"value \\\\t\"", null );
+    PropertyEntry entry = config.getCustomArguments().get( 0 );
+    assertEquals( "param", entry.getKey() );
+    assertEquals( "value \\t", entry.getValue() );
+  }
+
+  @Test
+  public void configureFromCommandLine_escape_sequences_custom_options() throws Exception {
+    MockConfig config = new MockConfig();
+    SqoopUtils.configureFromCommandLine( config, "-D param=\"value \\t\"", null );
+    PropertyEntry entry = config.getCustomArguments().get( 0 );
+    assertEquals( "param", entry.getKey() );
+    assertEquals( "value \\t", entry.getValue() );
+  }
 }

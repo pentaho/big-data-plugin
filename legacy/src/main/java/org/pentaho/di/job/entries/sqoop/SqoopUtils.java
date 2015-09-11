@@ -424,7 +424,7 @@ public class SqoopUtils {
       if ( buffer.size() == 2 ) {
         sb.append( WHITESPACE );
         // Escape value and add
-        sb.append( quote( buffer.get( 1 ) ) );
+        sb.append( quote( escapeBackslash( buffer.get(1) ) ) );
       }
       if ( buffersIter.hasNext() ) {
         sb.append( WHITESPACE );
@@ -527,7 +527,11 @@ public class SqoopUtils {
     }
 
     args.add( ARG_D );
-    args.add( key + EQUALS + quote( value ) );
+    args.add( key + EQUALS + quote( escapeBackslash( value ) ) );
+  }
+
+  private static String escapeBackslash( String s ) {
+    return BACKSLASH_PATTERN.matcher( s ).replaceAll( "\\\\\\\\" );
   }
 
   private static void handleCustomOption( List<String> args, String option, StreamTokenizer tokenizer, VariableSpace variableSpace ) throws IOException {
@@ -560,7 +564,7 @@ public class SqoopUtils {
       key = variableSpace.environmentSubstitute( key );
       value = variableSpace.environmentSubstitute( value );
     }
-    args.add( key + EQUALS + value );
+    args.add( key + EQUALS + escapeEscapeSequences( value ) );
   }
 
   /**
