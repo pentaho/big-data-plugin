@@ -21,9 +21,6 @@
     <argument ref="runtimeTestActionHandlers"/>
   </bean>
 
-  <bean id="executorService" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"
-        scope="singleton"/>
-
   <bean id="runtimeTesterImpl" class="org.pentaho.runtime.test.impl.RuntimeTesterImpl" scope="singleton">
     <argument ref="runtimeTests"/>
     <argument ref="executorService"/>
@@ -40,6 +37,7 @@
                   availability="optional"/>
   <reference-list id="runtimeTestActionHandlers" interface="org.pentaho.runtime.test.action.RuntimeTestActionHandler"
                   availability="optional"/>
+  <reference id="executorService" interface="java.util.concurrent.ExecutorService"/>
 
   <service ref="runtimeTesterImpl" interface="org.pentaho.runtime.test.RuntimeTester"/>
   <service ref="runtimeTestActionServiceImpl" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
