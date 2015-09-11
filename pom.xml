@@ -10,8 +10,7 @@
     <parent>
         <groupId>org.pentaho</groupId>
         <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-        <version>1.0.13</version>
-        <!-- https://github.com/pentaho/maven-parent-poms/blob/pentaho-ce-jar-parent-pom-1.0.10/pentaho-ce-jar-parent-pom/pom.xml -->
+        <version>1.0.14</version>
     </parent>
 
     <name>Pentaho Community Edition Project: ${project.artifactId}</name>
@@ -36,6 +35,8 @@
     </modules>
 
     <properties>
+        <publish-sonar-phase/>
+    
         <dependency.avro.revision>1.6.2</dependency.avro.revision>
         <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
         <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>

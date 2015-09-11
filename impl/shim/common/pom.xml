@@ -17,6 +17,10 @@
     <description>a Pentaho open source project</description>
     <url>http://www.pentaho.com</url>
 
+    <properties>
+      <publish-sonar-phase>site</publish-sonar-phase>
+    </properties>
+    
     <dependencies>
         <dependency>
             <groupId>pentaho-kettle</groupId>

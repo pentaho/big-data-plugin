@@ -27,6 +27,10 @@
     <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
+  
+  <properties>
+    <publish-sonar-phase>site</publish-sonar-phase>
+  </properties>
 
   <build>
     <plugins>
