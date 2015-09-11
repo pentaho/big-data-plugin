@@ -220,7 +220,7 @@ public class SqoopUtilsTest {
 
     List<String> args = SqoopUtils.parseCommandLine( s, variableSpace, true );
     assertEquals( 4, args.size() );
-    assertEquals( "-D", args.get(0) );
+    assertEquals( "-D", args.get( 0 ) );
     assertEquals( "mapred.job.name=testJob", args.get( 1 ) );
     assertEquals( "-D", args.get( 2 ) );
     assertEquals( "parameter=value", args.get( 3 ) );
@@ -232,7 +232,7 @@ public class SqoopUtilsTest {
     List<String> args = SqoopUtils.parseCommandLine( s, null, true );
     assertEquals( 2, args.size() );
     assertEquals( "-D", args.get( 0 ) );
-    assertEquals( "key=value", args.get( 1 ));
+    assertEquals( "key=value", args.get( 1 ) );
   }
 
   @Test
@@ -302,7 +302,7 @@ public class SqoopUtilsTest {
     };
 
     AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
-    customArguments.add( new PropertyEntry( "key1", "value1") );
+    customArguments.add( new PropertyEntry( "key1", "value1" ) );
     customArguments.add( new PropertyEntry( "key2", "value2" ) );
     config.setCustomArguments( customArguments );
 
@@ -330,7 +330,7 @@ public class SqoopUtilsTest {
     SqoopConfig config = new SqoopConfig() {
     };
     AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
-    customArguments.add( new PropertyEntry( null, "value" ));
+    customArguments.add( new PropertyEntry( null, "value" ) );
     config.setCustomArguments( customArguments );
     assertEquals( "-D null=value", SqoopUtils.generateCommandLineString( config, null ) );
   }
@@ -449,7 +449,7 @@ public class SqoopUtilsTest {
     assertEquals( "test", evt.getNewValue() );
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings( "unchecked" )
   @Test
   public void configureFromCommandLine_custom_arguments() throws IOException, KettleException {
     SqoopConfig config = new SqoopConfig() {
@@ -457,11 +457,11 @@ public class SqoopUtilsTest {
     config.setCommandLine( "sqoop import -D mapred.job.name=jobName -D parameter=value" );
     SqoopUtils.configureFromCommandLine( config, config.getCommandLine(), null );
 
-    AbstractModelList<PropertyEntry> entries = ( AbstractModelList<PropertyEntry> ) config.getCustomArguments();
+    AbstractModelList<PropertyEntry> entries = (AbstractModelList<PropertyEntry>) config.getCustomArguments();
     assertEquals( 2, entries.size() );
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings( "unchecked" )
   @Test
   public void configureFromCommandLine_custom_arguments_quoted() throws IOException, KettleException {
     SqoopConfig config = new SqoopConfig() {
@@ -473,7 +473,7 @@ public class SqoopUtilsTest {
     assertEquals( 1, entries.size() );
     assertTrue(
         entries.contains(
-            new PropertyEntry("mapred.child.java.opts", "-Doracle.net.tns_admin=. -Doracle.net.wallet_location=.")));
+            new PropertyEntry( "mapred.child.java.opts", "-Doracle.net.tns_admin=. -Doracle.net.wallet_location=." ) ) );
   }
 
   @Test

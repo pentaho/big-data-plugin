@@ -424,7 +424,7 @@ public class SqoopUtils {
       if ( buffer.size() == 2 ) {
         sb.append( WHITESPACE );
         // Escape value and add
-        sb.append( quote( escapeBackslash( buffer.get(1) ) ) );
+        sb.append( quote( escapeBackslash( buffer.get( 1 ) ) ) );
       }
       if ( buffersIter.hasNext() ) {
         sb.append( WHITESPACE );
