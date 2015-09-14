@@ -30,6 +30,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.UserAuthenticationData;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
+import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -68,19 +69,33 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
   private final HadoopFileSystemLocator hadoopFileSystemLocator;
   private final NamedClusterService namedClusterService;
 
+  @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
                            NamedClusterService namedClusterService ) throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService,
       (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager() );
   }
 
+  @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
                            DefaultFileSystemManager fileSystemManager ) throws FileSystemException {
+    this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(), new String[] { SCHEME, MAPRFS } );
+  }
+
+  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
+                           FileNameParser fileNameParser, String schema ) throws FileSystemException {
+    this( hadoopFileSystemLocator, namedClusterService, (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
+      fileNameParser, new String[] { schema } );
+  }
+
+  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
+                           DefaultFileSystemManager fileSystemManager, FileNameParser fileNameParser, String[] schemes )
+    throws FileSystemException {
     super();
     this.hadoopFileSystemLocator = hadoopFileSystemLocator;
     this.namedClusterService = namedClusterService;
-    setFileNameParser( HDFSFileNameParser.getInstance() );
-    fileSystemManager.addProvider( new String[] { SCHEME, MAPRFS }, this );
+    setFileNameParser( fileNameParser );
+    fileSystemManager.addProvider( schemes, this );
   }
 
   @Override protected FileSystem doCreateFileSystem( final FileName name, final FileSystemOptions fileSystemOptions )
