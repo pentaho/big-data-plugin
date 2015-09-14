@@ -1,23 +1,21 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
- *******************************************************************************
+ * ******************************************************************************
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.big.data.plugins.common.ui;
@@ -29,10 +27,9 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -129,9 +126,13 @@ public class ClusterTestResultsDialog extends Dialog {
 
     final Composite mainComposite = new Composite( scrolledComposite, SWT.NONE );
     scrolledComposite.setContent( mainComposite );
-    GridLayout layout = new GridLayout();
-    layout.numColumns = 2;
+    scrolledComposite.setExpandHorizontal( true );
+    FormLayout layout = new FormLayout();
     mainComposite.setLayout( layout );
+
+    ClassLoader myClassLoader = this.getClass().getClassLoader();
+
+    Label separator = null;
 
     // Add the test results
     for ( RuntimeTestModuleResults moduleResults : clusterTestStatus.getModuleResults() ) {
@@ -143,68 +144,81 @@ public class ClusterTestResultsDialog extends Dialog {
           case DEBUG:
           case INFO:
             // The above are "Test(s) passed"
-            image.setImage( GUIResource.getInstance().getImageTrue() );
+            image.setImage(
+              GUIResource.getInstance().getImage( "ui/images/success_green.svg", myClassLoader, 24, 24 ) );
             break;
           case WARNING:
           case SKIPPED:
             // The above are "Test(s) finished with warnings"
-            image.setImage( GUIResource.getInstance().getImageWarning() );
+            image.setImage(
+              GUIResource.getInstance().getImage( "ui/images/warning_yellow.svg", myClassLoader, 24, 24 ) );
             break;
           case ERROR:
           case FATAL:
             // The above are "Test(s) failed"
-            image.setImage( GUIResource.getInstance().getImageFalse() );
+            image.setImage(
+              GUIResource.getInstance().getImage( "ui/images/error_red.svg", myClassLoader, 24, 24 ) );
             break;
         }
-        // Need 2-row 1-col grid to display test name then description
-        GridLayout testDescriptionLayout = new GridLayout();
-        testDescriptionLayout.numColumns = 1;
-        testDescriptionLayout.verticalSpacing = 0;
-        testDescriptionLayout.horizontalSpacing = 0;
+        FormData imageLayoutData = new FormData();
+        imageLayoutData.left = new FormAttachment( 0, margin );
+        if ( separator != null ) {
+          imageLayoutData.top = new FormAttachment( separator, margin );
+        } else {
+          imageLayoutData.top = new FormAttachment( 0, margin );
+        }
+        image.setLayoutData( imageLayoutData );
 
-        final Composite testDescriptionComposite = new Composite( mainComposite, SWT.NONE );
-        testDescriptionComposite.setLayout( testDescriptionLayout );
-
-        Label testName = new Label( testDescriptionComposite, SWT.NONE );
+        Label testName = new Label( mainComposite, SWT.NONE );
         testName.setText( testResult.getRuntimeTest().getName() );
-        GridData gridData = new GridData( SWT.FILL, SWT.FILL, true, true );
-        testName.setLayoutData( gridData );
-
-        // The Test description will also contain an "action" link
-        GridLayout testResultsLayout = new GridLayout();
-        testResultsLayout.numColumns = 2;
-        testResultsLayout.marginHeight = 0;
-        testResultsLayout.marginWidth = 0;
-        final Composite testResultsComposite = new Composite( testDescriptionComposite, SWT.NONE );
-        testResultsComposite.setLayout( testResultsLayout );
+        FormData layoutData = new FormData();
+        layoutData.left = new FormAttachment( image, margin );
+        layoutData.right = new FormAttachment( 100, -margin );
+        if ( separator != null ) {
+          layoutData.top = new FormAttachment( separator, margin );
+        } else {
+          layoutData.top = new FormAttachment( 0, margin );
+        }
+        testName.setLayoutData( layoutData );
 
         // Add test description
-        Label description = new Label( testResultsComposite, SWT.NONE );
+        Label description = new Label( mainComposite, SWT.WRAP );
         description.setForeground( GUIResource.getInstance().getColorDarkGray() );
         description.setText( summary.getDescription() );
-        gridData = new GridData( SWT.LEFT, SWT.FILL, true, true );
-        description.setLayoutData( gridData );
+        layoutData = new FormData();
+        layoutData.left = new FormAttachment( image, margin );
+        layoutData.right = new FormAttachment( 100, -margin );
+        layoutData.top = new FormAttachment( testName, margin );
+        description.setLayoutData( layoutData );
 
-        // Add action link
-        Link link = new Link( testResultsComposite, SWT.NONE );
+        Control linkOrNot = description;
+        // Add action link(s)
         final RuntimeTestAction runtimeTestAction = summary.getAction();
         if ( runtimeTestAction != null ) {
+          Link link = new Link( mainComposite, SWT.NONE );
           link.setText( "<a>" + runtimeTestAction.getName() + "</a>" );
           link.setToolTipText( runtimeTestAction.getDescription() );
           link.addSelectionListener( new SelectionAdapter() {
             public void widgetSelected( SelectionEvent selectionEvent ) {
               runtimeTestActionService.handle( runtimeTestAction );
             }
-
-            /*public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
-              invoke( onclick );
-            }*/
           } );
+          layoutData = new FormData();
+          layoutData.left = new FormAttachment( image, margin );
+          layoutData.right = new FormAttachment( 100, -margin );
+          layoutData.top = new FormAttachment( description, margin );
+          link.setLayoutData( layoutData );
+          linkOrNot = link;
         }
 
-        testResultsComposite.setSize( testResultsComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-
-        testDescriptionComposite.setSize( testDescriptionComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+        // Add separator
+        separator = new Label( mainComposite, SWT.HORIZONTAL | SWT.SEPARATOR );
+        separator.setForeground( GUIResource.getInstance().getColorLightGray() );
+        layoutData = new FormData();
+        layoutData.left = new FormAttachment( 0, margin );
+        layoutData.right = new FormAttachment( 100, -margin );
+        layoutData.top = new FormAttachment( linkOrNot, margin );
+        separator.setLayoutData( layoutData );
       }
     }
     mainComposite.setSize( mainComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
