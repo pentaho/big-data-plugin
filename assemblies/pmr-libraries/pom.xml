@@ -13,6 +13,10 @@
 
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
   <packaging>pom</packaging>
+  
+  <properties>
+    <publish-sonar-phase>site</publish-sonar-phase>
+  </properties>
 
   <dependencies>
     <dependency>

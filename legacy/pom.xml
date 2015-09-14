@@ -21,6 +21,8 @@
   </licenses>
 
   <properties>
+    <publish-sonar-phase>site</publish-sonar-phase>
+    
     <xstream.version>1.4.2</xstream.version>
     <oozie.version>3.1.3-incubating</oozie.version>
     <avro.version>1.6.2</avro.version>

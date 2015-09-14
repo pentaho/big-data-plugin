@@ -15,6 +15,7 @@
     <name>Pentaho Community Edition Project: ${project.artifactId}</name>
 
     <properties>
+        <publish-sonar-phase>site</publish-sonar-phase>
         <dependency.kettle.revision>6.0-SNAPSHOT</dependency.kettle.revision>
     </properties>
 
