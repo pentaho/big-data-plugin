@@ -25,6 +25,7 @@ package org.pentaho.big.data.impl.cluster.tests.oozie;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
@@ -63,7 +64,14 @@ public class PingOozieHostTest extends BaseRuntimeTest {
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-    String oozieUrl = namedCluster.getOozieUrl();
+
+    // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
+    // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
+    // Here we try to resolve the parameters if we can:
+    Variables variables = new Variables();
+    variables.initializeVariablesFrom( null );
+
+    String oozieUrl = variables.environmentSubstitute( namedCluster.getOozieUrl() );
     try {
       URL url = new URL( oozieUrl );
       return new RuntimeTestResultSummaryImpl(

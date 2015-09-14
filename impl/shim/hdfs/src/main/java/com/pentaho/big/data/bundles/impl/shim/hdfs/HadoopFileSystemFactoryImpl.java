@@ -28,6 +28,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemFactory;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -65,9 +66,16 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
     if ( namedCluster.isMapr() ) {
       fsDefault = "maprfs:///";
     } else {
-      fsDefault = "hdfs://" + namedCluster.getHdfsHost();
-      if ( !Const.isEmpty( namedCluster.getHdfsPort() ) ) {
-        fsDefault = fsDefault + ":" + namedCluster.getHdfsPort();
+      // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
+      // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
+      // Here we try to resolve the parameters if we can:
+      Variables variables = new Variables();
+      variables.initializeVariablesFrom( null );
+
+      fsDefault = "hdfs://" + variables.environmentSubstitute( namedCluster.getHdfsHost() );
+      String port = variables.environmentSubstitute( namedCluster.getHdfsPort() );
+      if ( !Const.isEmpty( port ) ) {
+        fsDefault = fsDefault + ":" + port;
       }
     }
     configuration.set( HadoopFileSystem.FS_DEFAULT_NAME, fsDefault );
