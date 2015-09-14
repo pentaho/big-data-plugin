@@ -26,6 +26,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
@@ -82,8 +83,15 @@ public class PingZookeeperEnsembleTest extends BaseRuntimeTest {
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-    String zooKeeperHost = namedCluster.getZooKeeperHost();
-    String zooKeeperPort = namedCluster.getZooKeeperPort();
+
+    // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
+    // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
+    // Here we try to resolve the parameters if we can:
+    Variables variables = new Variables();
+    variables.initializeVariablesFrom( null );
+
+    String zooKeeperHost = variables.environmentSubstitute( namedCluster.getZooKeeperHost() );
+    String zooKeeperPort = variables.environmentSubstitute( namedCluster.getZooKeeperPort() );
     if ( Const.isEmpty( zooKeeperHost ) ) {
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.FATAL,
@@ -97,7 +105,7 @@ public class PingZookeeperEnsembleTest extends BaseRuntimeTest {
           messageGetter.getMessage( PING_ZOOKEEPER_ENSEMBLE_TEST_BLANK_PORT_MESSAGE ),
           ClusterRuntimeTestEntry.DocAnchor.ZOOKEEPER ) );
     } else {
-      String[] quorum = namedCluster.getZooKeeperHost().split( "," );
+      String[] quorum = zooKeeperHost.split( "," );
       List<RuntimeTestResultEntry> clusterTestResultEntries = new ArrayList<>();
       int failedNodes = 0;
       StringBuilder failedNodeString = new StringBuilder();

@@ -28,6 +28,7 @@ import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
@@ -86,12 +87,19 @@ public class TestShimConfig extends BaseRuntimeTest {
       // Get the named cluster
       NamedCluster namedCluster = (NamedCluster) objectUnderTest;
 
+      // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
+      // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
+      // Here we try to resolve the parameters if we can:
+      Variables variables = new Variables();
+      variables.initializeVariablesFrom( null );
+
       // Build up a "defaultFS" property to check against the config
       StringBuilder ncFS = new StringBuilder( namedCluster.isMapr() ? "maprfs://" : "hdfs://" );
-      ncFS.append( namedCluster.getHdfsHost() );
-      if ( !Const.isEmpty( namedCluster.getHdfsPort() ) ) {
+      ncFS.append( variables.environmentSubstitute( namedCluster.getHdfsHost() ) );
+      String port = variables.environmentSubstitute( namedCluster.getHdfsPort() );
+      if ( !Const.isEmpty( port ) ) {
         ncFS.append( ":" );
-        ncFS.append( namedCluster.getHdfsPort() );
+        ncFS.append( port );
       }
 
       if ( !ncFS.toString().equalsIgnoreCase( defaultFS ) ) {
