@@ -30,6 +30,7 @@ import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTest;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
+import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 
@@ -77,6 +78,15 @@ public class PingJobTrackerTestTest {
     when( connectivityTest.runTest() ).thenReturn( results );
     RuntimeTestResultSummary runtimeTestResultSummary = pingJobTrackerTest.runTest( namedCluster );
     assertEquals( results, runtimeTestResultSummary.getOverallStatusEntry() );
+    assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
+  }
+
+  @Test
+  public void testIsMapR() {
+    when( namedCluster.isMapr() ).thenReturn( true );
+    RuntimeTestResultSummary runtimeTestResultSummary = pingJobTrackerTest.runTest( namedCluster );
+    RuntimeTestResultEntry results = runtimeTestResultSummary.getOverallStatusEntry();
+    assertEquals( RuntimeTestEntrySeverity.INFO, results.getSeverity() );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 }
