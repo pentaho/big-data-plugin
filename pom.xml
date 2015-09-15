@@ -78,7 +78,7 @@
         <dependency.metastore.revision>6.0-SNAPSHOT</dependency.metastore.revision>
         <dependency.mondrian.revision>3.11-SNAPSHOT</dependency.mondrian.revision>
         <dependency.pentaho-database-model.revision>6.0-SNAPSHOT</dependency.pentaho-database-model.revision>
-        <dependency.hadoop-hive-jdbc-shim.revision>6.0-SNAPSHOT</dependency.hadoop-hive-jdbc-shim.revision>
+        <dependency.pentaho-hadoop-hive-jdbc-shim.revision>6.0-SNAPSHOT</dependency.pentaho-hadoop-hive-jdbc-shim.revision>
         <dependency.pentaho-metadata.revision>6.0-SNAPSHOT</dependency.pentaho-metadata.revision>
         <dependency.pentaho-registry.revision>6.0-SNAPSHOT</dependency.pentaho-registry.revision>
         <dependency.reporting-engine.revision>6.0-SNAPSHOT</dependency.reporting-engine.revision>
