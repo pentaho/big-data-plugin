@@ -78,7 +78,7 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
   };
 
   public JobEntryHadoopJobExecutorDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
-      throws XulException, DocumentException, Throwable {
+    throws XulException, DocumentException, Throwable {
     super( parent, jobEntry, rep, jobMeta );
 
     this.jobEntry = (JobEntryHadoopJobExecutor) jobEntry;
@@ -175,7 +175,7 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     controller.setJobMeta( jobMeta );
     controller.setJobEntry( (JobEntryHadoopJobExecutor) jobEntry );
     controller.init();
-    
+
     bf.createBinding( controller, "namedClusters", "named-clusters", "elements" ).fireSourceChanged();
     bf.createBinding( "named-clusters", "selectedIndex", controller.getAdvancedConfiguration(), "selectedNamedCluster", new BindingConvertor<Integer, NamedCluster>() {
       public NamedCluster sourceToTarget( final Integer index ) {
@@ -190,8 +190,8 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
         return null;
       }
     }).fireSourceChanged();
-    
-    selectNamedCluster();    
+
+    selectNamedCluster();
   }
 
   private void selectNamedCluster() {
@@ -203,9 +203,9 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
         namedClusterMenu.setSelectedItem( nc );
         controller.getAdvancedConfiguration().setSelectedNamedCluster( nc );
       }
-    }    
+    }
   }
-  
+
   public JobEntryInterface open() {
     XulDialog dialog = (XulDialog) container.getDocumentRoot().getElementById( "job-entry-dialog" ); //$NON-NLS-1$
     dialog.show();

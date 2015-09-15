@@ -105,7 +105,7 @@ public class SqoopImportJobEntryController extends
       getJobEntry().logError( BaseMessages.getString( AbstractSqoopJobEntry.class, "ErrorBrowsingDirectory" ), e );
     }
   }
-  
+
   public void editNamedCluster() {
     if ( isSelectedNamedCluster() ) {
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
@@ -120,5 +120,5 @@ public class SqoopImportJobEntryController extends
     Shell shell = (Shell) xulDialog.getRootObject();
     ncDelegate.newNamedCluster( jobMeta, null, shell );
     populateNamedClusters();
-  }  
+  }
 }

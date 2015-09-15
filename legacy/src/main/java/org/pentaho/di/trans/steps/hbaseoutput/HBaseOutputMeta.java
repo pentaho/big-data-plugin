@@ -67,7 +67,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /** NamedCluster name to pull zookeeper hosts/port from */
   protected String clusterName;
-  
+
   /** comma separated list of hosts that the zookeeper quorum is running on */
   protected String m_zookeeperHosts;
 
@@ -137,8 +137,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
    */
   public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
-  }    
-  
+  }
+
   public void setZookeeperHosts( String z ) {
     m_zookeeperHosts = z;
   }
@@ -248,23 +248,23 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
         setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
         setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
-      } 
+      }
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster 
         nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
       }
       if ( nc != null ) {
         setZookeeperHosts( nc.getZooKeeperHost() );
         setZookeeperPort( nc.getZooKeeperPort() );
-        configLoaded = true;        
+        configLoaded = true;
       }
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
-    }    
+    }
 
     if ( !configLoaded ) {
       if ( entrynode != null ) {
@@ -278,19 +278,19 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
           setZookeeperPort( rep.getJobEntryAttributeString( id_jobentry, "zookeeper_port" ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
           logError( ke.getMessage(), ke );
-        } 
+        }
       }
     }
-  }     
-  
+  }
+
   @Override
   public String getXML() {
     StringBuffer retval = new StringBuffer();
 
     retval.append( "\n    " ).append( XMLHandler.addTagValue( "cluster_name", clusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
     try {
-      if ( repository != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), repository.getMetaStore() ) ) {
+      if ( repository != null && !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), repository.getMetaStore() ) ) {
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), repository.getMetaStore() );
         setZookeeperHosts( nc.getZooKeeperHost() );
@@ -298,8 +298,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
-    }  
-    
+    }
+
     if ( !Const.isEmpty( m_zookeeperHosts ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "zookeeper_hosts", m_zookeeperHosts ) );
     }
@@ -383,8 +383,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
     rep.saveStepAttribute( id_transformation, getObjectId(), "cluster_name", clusterName ); //$NON-NLS-1$
     try {
-      if ( !StringUtils.isEmpty( getClusterName() ) && 
-        NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
         setZookeeperHosts( nc.getZooKeeperHost() );
@@ -392,8 +392,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
-    }  
-    
+    }
+
     if ( !Const.isEmpty( m_zookeeperHosts ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "zookeeper_hosts", m_zookeeperHosts );
     }

@@ -43,7 +43,7 @@ public class RuntimeTestDelegateWithMoreDependenciesTest {
   private RuntimeTest delegate;
   private HashSet<String> extraDependencies;
   private RuntimeTestDelegateWithMoreDependencies
-    runtimeTestDelegateWithMoreDependencies;
+  runtimeTestDelegateWithMoreDependencies;
   private String module;
   private String id;
   private String name;

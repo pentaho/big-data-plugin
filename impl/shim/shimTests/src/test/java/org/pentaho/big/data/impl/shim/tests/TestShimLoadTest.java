@@ -37,7 +37,6 @@ import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
 import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**

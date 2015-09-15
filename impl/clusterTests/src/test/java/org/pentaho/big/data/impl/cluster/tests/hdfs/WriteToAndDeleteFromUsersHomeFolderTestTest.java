@@ -41,7 +41,6 @@ import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.runtime.test.RuntimeTestEntryUtil.expectOneEntry;
 import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
@@ -51,8 +50,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
   private TestMessageGetterFactory messageGetterFactory;
   private MessageGetter messageGetter;
   private HadoopFileSystemLocator hadoopFileSystemLocator;
-  private WriteToAndDeleteFromUsersHomeFolderTest
-    writeToAndDeleteFromUsersHomeFolderTest;
+  private WriteToAndDeleteFromUsersHomeFolderTest writeToAndDeleteFromUsersHomeFolderTest;
   private NamedCluster namedCluster;
   private String namedClusterName;
   private HadoopFileSystem hadoopFileSystem;

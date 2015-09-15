@@ -26,7 +26,6 @@ package org.pentaho.di.core.database;
 
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleDatabaseException;
-import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
 //@DatabaseMetaPlugin( type = "HIVE2SIMBA", typeDescription = "Hadoop Hive 2 with Simba Driver" )

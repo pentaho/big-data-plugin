@@ -54,6 +54,7 @@ public class MapRFSFileChooserDialog extends CustomVfsUiPanel {
       FileObject newRoot = resolveFile( vfsFileChooserDialog.openFileCombo.getText() );
       vfsFileChooserDialog.vfsBrowser.resetVfsRoot( newRoot );
     } catch ( FileSystemException ignored ) {
+      //ignored
     }
   }
 

@@ -49,7 +49,6 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   private transient List<NamedCluster> namedClusters;
   private transient NamedCluster namedCluster = null; // selected
   private String clusterName; // saved (String)
-  
   private String oozieUrl = null;
   private String oozieWorkflowConfig = null;
   private String oozieWorkflow = null;
@@ -60,7 +59,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
 
   public OozieJobExecutorConfig() {
   }
-  
+
   @Bindable
   public String getOozieUrl() {
     return oozieUrl;
@@ -81,8 +80,8 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   @Bindable
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
-  }  
-  
+  }
+
   @Bindable
   public NamedCluster getNamedCluster() {
     return namedCluster;
@@ -95,8 +94,8 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
       this.clusterName = namedCluster.getName();
       this.oozieUrl = namedCluster.getOozieUrl();
     }
-  }  
-  
+  }
+
   @Bindable
   public List<NamedCluster> getNamedClusters() {
     this.namedClusters = NamedClusterUIHelper.getNamedClusters();
@@ -104,10 +103,10 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   }
 
   @Bindable
-  public void setNamedClusters( List <NamedCluster> namedClusters ) {
+  public void setNamedClusters( List<NamedCluster> namedClusters ) {
     this.namedClusters = namedClusters;
   }
-  
+
   @Bindable
   public String getOozieWorkflowConfig() {
     return oozieWorkflowConfig;

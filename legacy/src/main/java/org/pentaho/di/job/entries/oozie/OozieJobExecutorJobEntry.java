@@ -97,15 +97,15 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       try {
         // load from system first, then fall back to copy stored with job (AbstractMeta)
         NamedCluster nc = null;
-        if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() ) && 
-            NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
+        if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() )
+          && NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
           // pull config from NamedCluster
           nc = NamedClusterManager.getInstance().read( jobConfig.getClusterName(), rep.getMetaStore() );
         }
         if ( nc == null ) {
           nc = config.getNamedCluster();
         }
-        
+
         if ( !checkOozieConnection ) {
           if ( nc == null ) {
             messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
@@ -113,12 +113,11 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
             messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
           }
         }
-        
       } catch ( Throwable t ) {
         messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
       }
     }
-    
+
     if ( checkOozieConnection && !StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
       try {
         // oozie url is valid and client & ws versions are compatible
@@ -177,8 +176,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     }
 
     return messages;
-  }  
-  
+  }
+
   /**
    * Validates the current configuration of the step.
    * <p/>
@@ -315,8 +314,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     try {
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
-      if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( jobConfig.getClusterName() )
+        && NamedClusterManager.getInstance().contains( jobConfig.getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster
         nc = NamedClusterManager.getInstance().read( jobConfig.getClusterName(), rep.getMetaStore() );
       } else {
@@ -325,13 +324,13 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
 
       if ( nc != null && !StringUtils.isEmpty( nc.getOozieUrl() ) ) {
         oozieUrl = nc.getOozieUrl();
-      }    
+      }
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
     }
     return oozieUrl;
   }
-  
+
   public OozieClient getOozieClient() {
     return getOozieClient( jobConfig );
   }

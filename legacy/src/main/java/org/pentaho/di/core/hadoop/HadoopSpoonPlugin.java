@@ -28,7 +28,6 @@ import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.core.util.ExecutorUtil;
-import org.pentaho.di.ui.core.namedcluster.NamedClusterUIFactory;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;

@@ -160,10 +160,10 @@ public class HBaseRowToKettleTuple {
     if ( m_decodedTuples == null ) {
       m_decodedTuples = new ArrayList<Object[]>();
       m_keyIndex = outputRowMeta.indexOfValue( mapping.getKeyName() );
-      m_familyIndex = outputRowMeta.indexOfValue( "Family" );
-      m_colNameIndex = outputRowMeta.indexOfValue( "Column" );
-      m_valueIndex = outputRowMeta.indexOfValue( "Value" );
-      m_timestampIndex = outputRowMeta.indexOfValue( "Timestamp" );
+      m_familyIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.FAMILY.toString() );
+      m_colNameIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.COLUMN.toString() );
+      m_valueIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.VALUE.toString() );
+      m_timestampIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.TIMESTAMP.toString() );
 
       if ( !Const.isEmpty( mapping.getTupleFamilies() ) ) {
         String[] familiesS = mapping.getTupleFamilies().split( HBaseValueMeta.SEPARATOR );

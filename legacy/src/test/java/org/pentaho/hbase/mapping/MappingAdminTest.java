@@ -83,6 +83,7 @@ public class MappingAdminTest {
       ma.createMappingTable();
       fail( "Was expecting an exception as the mapping table already exists" );
     } catch ( Exception ex ) {
+      //ignored
     }
   }
 
@@ -110,6 +111,7 @@ public class MappingAdminTest {
       fail( "Was expecting an exception to be generated when adding a mapping that "
           + "already exists when overwrite is set to false" );
     } catch ( Exception ex ) {
+      //expected
     }
   }
 
@@ -194,6 +196,7 @@ public class MappingAdminTest {
       ma.getMapping( "BogusTable", "BogusMapping" );
       fail( "Was expecting an exception as this table/mapping combo doesn't exist!" );
     } catch ( IOException ex ) {
+      //expected
     }
   }
 

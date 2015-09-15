@@ -407,7 +407,7 @@ public class OozieJobExecutorJobEntryTest {
             Thread.sleep( 1000 );
             wj.setStatus( returnStatus );
           } catch ( InterruptedException e ) {
-
+            //expected
           }
         }
       } );

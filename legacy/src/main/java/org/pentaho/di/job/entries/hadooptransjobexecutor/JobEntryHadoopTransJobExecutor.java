@@ -143,7 +143,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   private String hdfsPort;
   private String jobTrackerHostname;
   private String jobTrackerPort;
-  
+
   private String inputPath;
   private String outputPath;
 
@@ -375,7 +375,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
   }
-  
+
   public String getHdfsHostname() {
     return hdfsHostname;
   }
@@ -1232,7 +1232,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers, Repository rep )
     throws KettleXMLException {
     super.loadXML( entrynode, databases, slaveServers );
-    
     hadoopJobName = XMLHandler.getTagValue( entrynode, "hadoop_job_name" ); //$NON-NLS-1$
 
     mapRepositoryDir = XMLHandler.getTagValue( entrynode, "map_trans_repo_dir" ); //$NON-NLS-1$
@@ -1301,7 +1300,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
     loadClusterConfig( null, rep, entrynode );
     setRepository( rep );
-    
     numMapTasks = XMLHandler.getTagValue( entrynode, "num_map_tasks" ); //$NON-NLS-1$
     numReduceTasks = XMLHandler.getTagValue( entrynode, "num_reduce_tasks" ); //$NON-NLS-1$
 
@@ -1328,12 +1326,12 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         setClusterName( XMLHandler.getTagValue( entrynode, "cluster_name" ) ); //$NON-NLS-1$
       } else if ( rep != null ) {
         setClusterName( rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ) ); //$NON-NLS-1$ //$NON-NLS-2$
-      } 
+      }
 
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster
         nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
       }
@@ -1342,11 +1340,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         setJobTrackerPort( nc.getJobTrackerPort() );
         setHdfsHostname( nc.getHdfsHost() );
         setHdfsPort( nc.getHdfsPort() );
-        configLoaded = true;        
+        configLoaded = true;
       }
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
-    }    
+    }
 
     if ( !configLoaded ) {
       if ( entrynode != null ) {
@@ -1364,11 +1362,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
           setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) ); //$NON-NLS-1$
         } catch ( KettleException ke ) {
           logError( ke.getMessage(), ke );
-        } 
+        }
       }
     }
-  }  
-  
+  }
+
   public String getXML() {
     StringBuffer retval = new StringBuffer( 1024 );
     retval.append( super.getXML() );
@@ -1419,8 +1417,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
     retval.append( "      " ).append( XMLHandler.addTagValue( "cluster_name", clusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
     try {
-      if ( rep != null && !StringUtils.isEmpty( getClusterName() ) && 
-          NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+      if ( rep != null && !StringUtils.isEmpty( getClusterName() )
+        && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
         // pull config from NamedCluster
         NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
         setJobTrackerHostname( nc.getJobTrackerHost() );
@@ -1430,12 +1428,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       }
     } catch ( MetaStoreException e ) {
       logDebug( e.getMessage(), e );
-    }  
+    }
     retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_hostname", hdfsHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "hdfs_port", hdfsPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_hostname", jobTrackerHostname ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "job_tracker_port", jobTrackerPort ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_map_tasks", numMapTasks ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append( XMLHandler.addTagValue( "num_reduce_tasks", numReduceTasks ) ); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -1504,7 +1501,6 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       loadClusterConfig( id_jobentry, rep, null );
       setRepository( rep );
-      
       setNumMapTasks( rep.getJobEntryAttributeString( id_jobentry, "num_map_tasks" ) );
       setNumReduceTasks( rep.getJobEntryAttributeString( id_jobentry, "num_reduce_tasks" ) );
 
@@ -1578,8 +1574,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "cluster_name", clusterName ); //$NON-NLS-1$
       try {
-        if ( !StringUtils.isEmpty( getClusterName() ) && 
-            NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
+        if ( !StringUtils.isEmpty( getClusterName() )
+          && NamedClusterManager.getInstance().contains( getClusterName(), rep.getMetaStore() ) ) {
           // pull config from NamedCluster
           NamedCluster nc = NamedClusterManager.getInstance().read( getClusterName(), rep.getMetaStore() );
           setJobTrackerHostname( nc.getJobTrackerHost() );
@@ -1589,12 +1585,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
         }
       } catch ( MetaStoreException e ) {
         logDebug( e.getMessage(), e );
-      }      
+      }
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_hostname", hdfsHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hdfs_port", hdfsPort ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "job_tracker_hostname", jobTrackerHostname ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "job_tracker_port", jobTrackerPort ); //$NON-NLS-1$
-      
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_map_tasks", numMapTasks ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "num_reduce_tasks", numReduceTasks ); //$NON-NLS-1$
 
@@ -1665,8 +1660,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    */
   public String[] getReferencedObjectDescriptions() {
     return new String[] { BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ReferencedObject.Mapper" ),
-      BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ReferencedObject.Combiner" ),
-      BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ReferencedObject.Reducer" ), };
+        BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ReferencedObject.Combiner" ),
+        BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ReferencedObject.Reducer" ), };
   }
 
   /**

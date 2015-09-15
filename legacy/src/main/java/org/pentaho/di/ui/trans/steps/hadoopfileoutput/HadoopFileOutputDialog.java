@@ -1168,8 +1168,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
           String[] fileFilters = new String[] { "*.txt", "*.csv", "*" };
           String[] fileFilterNames =
               new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
-                BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+                  BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                  BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
 
           NamedCluster namedCluster = namedClusterWidget.getSelectedNamedCluster();
           if ( namedCluster == null ) {

@@ -282,11 +282,11 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     ColumnInfo[] colinf =
       new ColumnInfo[] {
         new ColumnInfo(
-          BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterName.Label" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+            BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterName.Label" ),
+            ColumnInfo.COLUMN_TYPE_TEXT, false ),
         new ColumnInfo( BaseMessages
           .getString( PKG, "JobEntryPigScriptExecutor.ScriptParameters.ParamterValue.Label" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false ) };
+            ColumnInfo.COLUMN_TYPE_TEXT, false ) };
 
     m_scriptParams = new TableView( jobMeta, paramsGroup, SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, lsMod, props );
 

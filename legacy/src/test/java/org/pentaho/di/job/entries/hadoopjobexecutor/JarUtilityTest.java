@@ -68,7 +68,7 @@ public class JarUtilityTest {
    */
   private JavaArchive createTestJarWithMainClass( String name, Class<?> mainClass ) {
     JavaArchive archive = ShrinkWrap.create( JavaArchive.class, name );
-    StringAsset manifest = new StringAsset( "Main-Class: " + mainClass.getName().replaceAll("\\.","/") + "\n" );
+    StringAsset manifest = new StringAsset( "Main-Class: " + mainClass.getName().replaceAll( "\\.", "/" ) + "\n" );
     archive.addAsManifestResource( manifest, MANIFEST_FILE_NAME );
     archive.addClass( getClass() );
     return archive;

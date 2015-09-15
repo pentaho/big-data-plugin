@@ -34,7 +34,6 @@ import org.pentaho.bigdata.api.hdfs.HadoopFileStatus;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemPath;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -164,7 +163,7 @@ public class HDFSFileObjectTest {
     String childPathName = "fake-path-child";
     HadoopFileStatus hadoopFileStatus = mock( HadoopFileStatus.class );
     HadoopFileStatus[] hadoopFileStatuses = {
-      hadoopFileStatus
+        hadoopFileStatus
     };
     HadoopFileSystemPath childPath = mock( HadoopFileSystemPath.class );
     when( hadoopFileStatus.getPath() ).thenReturn( childPath );

@@ -71,6 +71,7 @@ public class MappingTest {
       aMapping.addMappedColumn( vm, false );
       fail( "Was expecting an exception because this family+column combo is already in the mapping" );
     } catch ( Exception ex ) {
+      //expected
     }
   }
 

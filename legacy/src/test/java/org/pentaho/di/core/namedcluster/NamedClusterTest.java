@@ -88,7 +88,7 @@ public class NamedClusterTest {
   public void testLargeStore() throws MetaStoreException {
     NamedClusterManager manager = NamedClusterManager.getInstance();
     int count = 100;
-    for ( int i=0; i < count; i++ ) {
+    for ( int i = 0; i < count; i++ ) {
       manager.create( createNamedCluster( "config-" + i ), metaStore );
     }
     assertEquals( count, manager.list( metaStore ).size() );

@@ -649,8 +649,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
                       + p.toString(),
                   MessageDialog.WARNING,
                   new String[] {
-                    BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping.ButtonOK" ),
-                    BaseMessages.getString( HBaseOutputMeta.PKG,
+                      BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping.ButtonOK" ),
+                      BaseMessages.getString( HBaseOutputMeta.PKG,
                         "HBaseOutputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
           MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
           int idx = md.open() & 0xFF;

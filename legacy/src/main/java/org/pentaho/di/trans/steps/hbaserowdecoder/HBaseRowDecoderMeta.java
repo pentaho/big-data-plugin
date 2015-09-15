@@ -145,31 +145,31 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     rowMeta.clear(); // start afresh - eats the input
 
     if ( m_mapping != null ) {
-        int kettleType;
+      int kettleType;
 
-        if ( m_mapping.getKeyType() == Mapping.KeyType.DATE
-            || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
-          kettleType = ValueMetaInterface.TYPE_DATE;
-        } else if ( m_mapping.getKeyType() == Mapping.KeyType.STRING ) {
-          kettleType = ValueMetaInterface.TYPE_STRING;
-        } else if ( m_mapping.getKeyType() == Mapping.KeyType.BINARY ) {
-          kettleType = ValueMetaInterface.TYPE_BINARY;
-        } else {
-          kettleType = ValueMetaInterface.TYPE_INTEGER;
-        }
+      if ( m_mapping.getKeyType() == Mapping.KeyType.DATE
+        || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
+        kettleType = ValueMetaInterface.TYPE_DATE;
+      } else if ( m_mapping.getKeyType() == Mapping.KeyType.STRING ) {
+        kettleType = ValueMetaInterface.TYPE_STRING;
+      } else if ( m_mapping.getKeyType() == Mapping.KeyType.BINARY ) {
+        kettleType = ValueMetaInterface.TYPE_BINARY;
+      } else {
+        kettleType = ValueMetaInterface.TYPE_INTEGER;
+      }
 
-        ValueMetaInterface keyMeta = new ValueMeta( m_mapping.getKeyName(), kettleType );
+      ValueMetaInterface keyMeta = new ValueMeta( m_mapping.getKeyName(), kettleType );
 
-        keyMeta.setOrigin( origin );
-        rowMeta.addValueMeta( keyMeta );
+      keyMeta.setOrigin( origin );
+      rowMeta.addValueMeta( keyMeta );
 
-        // Add the rest of the fields in the mapping
-        Map<String, HBaseValueMeta> mappedColumnsByAlias = m_mapping.getMappedColumns();
-        Set<String> aliasSet = mappedColumnsByAlias.keySet();
-        for ( String alias : aliasSet ) {
-          HBaseValueMeta columnMeta = mappedColumnsByAlias.get( alias );
-          columnMeta.setOrigin( origin );
-          rowMeta.addValueMeta( columnMeta );
+      // Add the rest of the fields in the mapping
+      Map<String, HBaseValueMeta> mappedColumnsByAlias = m_mapping.getMappedColumns();
+      Set<String> aliasSet = mappedColumnsByAlias.keySet();
+      for ( String alias : aliasSet ) {
+        HBaseValueMeta columnMeta = mappedColumnsByAlias.get( alias );
+        columnMeta.setOrigin( origin );
+        rowMeta.addValueMeta( columnMeta );
       }
     }
   }
