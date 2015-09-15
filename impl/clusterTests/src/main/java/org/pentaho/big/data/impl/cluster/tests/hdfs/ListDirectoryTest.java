@@ -90,7 +90,7 @@ public class ListDirectoryTest extends BaseRuntimeTest {
         return new RuntimeTestResultSummaryImpl(
           new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.FATAL,
             messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_DESC ),
-            messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, namedCluster.getName() ),
+            messageGetter.getMessage( LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, directory ),
             ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
       } else {
         HadoopFileSystemPath hadoopFilesystemPath;

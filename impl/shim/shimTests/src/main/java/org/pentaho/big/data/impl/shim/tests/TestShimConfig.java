@@ -76,11 +76,13 @@ public class TestShimConfig extends BaseRuntimeTest {
   }
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
+    String activeConfigurationId = "";
     try {
       // Get the active shim
       HadoopConfigurationProvider hadoopConfigurationProvider = hadoopConfigurationBootstrap.getProvider();
 
       HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+      activeConfigurationId = hadoopConfiguration.getIdentifier();
       Configuration config = hadoopConfiguration.getHadoopShim().createConfiguration();
       String defaultFS = config.get( HadoopFileSystem.FS_DEFAULT_NAME );
 
@@ -106,7 +108,7 @@ public class TestShimConfig extends BaseRuntimeTest {
         return new RuntimeTestResultSummaryImpl(
           new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.WARNING,
             messageGetter.getMessage( TEST_SHIM_CONFIG_FS_NOMATCH_DESC ),
-            messageGetter.getMessage( TEST_SHIM_CONFIG_FS_NOMATCH_MESSAGE ),
+            messageGetter.getMessage( TEST_SHIM_CONFIG_FS_NOMATCH_MESSAGE, ncFS.toString() ),
             ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
       }
 
@@ -123,8 +125,8 @@ public class TestShimConfig extends BaseRuntimeTest {
     } catch ( ConfigurationException e ) {
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
-          messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ), e.getMessage(), e,
-          ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
+          messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC, activeConfigurationId ),
+          e.getMessage(), e, ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
     }
   }
 }

@@ -1,23 +1,22 @@
 /*******************************************************************************
  *
- * Pentaho Big Data
+ *  Pentaho Big Data
  *
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
- *******************************************************************************
+ * ******************************************************************************
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
@@ -111,7 +110,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
     this.messageGetter = messageGetterFactory.create( PKG );
   }
 
-  @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
+  @Override
+  public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
     try {
@@ -135,14 +135,16 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
               .getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CHECKING_IF_FILE_EXISTS_DESC ),
               messageGetter
                 .getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CHECKING_IF_FILE_EXISTS_MESSAGE,
-                  qualifiedPath.toString() ), e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
+                  qualifiedPath.getName(), qualifiedPath.getPath() ),
+              e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
         }
         if ( exists ) {
           return new RuntimeTestResultSummaryImpl(
             new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.WARNING,
               messageGetter.getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_FILE_EXISTS_DESC ),
               messageGetter.getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_FILE_EXISTS_MESSAGE,
-                qualifiedPath.toString() ), ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
+                qualifiedPath.getName(),
+                qualifiedPath.getPath() ), ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
         } else {
           OutputStream outputStream;
           try {
@@ -152,7 +154,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
               new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.WARNING,
                 messageGetter.getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CREATING_FILE_DESC ),
                 messageGetter.getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CREATING_FILE_MESSAGE,
-                  qualifiedPath.toString() ), e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
+                  qualifiedPath.getName(), qualifiedPath.getPath() ),
+                e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
           }
           RuntimeTestResultEntry writeExceptionEntry = null;
           try {
@@ -163,7 +166,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
                 .getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_TO_FILE_DESC ),
               messageGetter.getMessage(
                 WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_TO_FILE_MESSAGE,
-                qualifiedPath.toString() ), e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY );
+                qualifiedPath.getName(), qualifiedPath.getPath() ),
+              e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY );
           } finally {
             try {
               outputStream.close();
@@ -189,7 +193,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
                   new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.WARNING,
                     messageGetter.getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_UNABLE_TO_DELETE_DESC ),
                     messageGetter.getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_UNABLE_TO_DELETE_MESSAGE,
-                      qualifiedPath.toString() ), ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
+                      qualifiedPath.getName(),
+                      qualifiedPath.getPath() ), ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ) );
               } else {
                 return new RuntimeTestResultSummaryImpl( writeExceptionEntry );
               }
@@ -201,7 +206,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
                   .getMessage( WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_DELETING_FILE_DESC ),
                 messageGetter.getMessage(
                   WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_DELETING_FILE_MESSAGE,
-                  qualifiedPath.toString() ), e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY );
+                  qualifiedPath.getName(), qualifiedPath.getPath() ),
+                e, ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY );
             if ( writeExceptionEntry == null ) {
               return new RuntimeTestResultSummaryImpl( deleteExceptionEntry );
             } else {
@@ -209,8 +215,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTest extends BaseRuntimeTest {
                 new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.WARNING,
                   messageGetter.getMessage(
                     WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_DELETING_FILE_DESC ), messageGetter
-                    .getMessage(
-                      WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_DELETING_FILE_MESSAGE ),
+                  .getMessage(
+                    WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_DELETING_FILE_MESSAGE ),
                   ClusterRuntimeTestEntry.DocAnchor.ACCESS_DIRECTORY ),
                 Arrays.asList( writeExceptionEntry, deleteExceptionEntry ) );
             }

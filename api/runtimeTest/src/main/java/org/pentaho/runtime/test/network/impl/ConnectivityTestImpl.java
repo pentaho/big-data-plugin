@@ -23,6 +23,7 @@
 package org.pentaho.runtime.test.network.impl;
 
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTest;
@@ -85,8 +86,15 @@ public class ConnectivityTestImpl implements ConnectivityTest {
                                RuntimeTestEntrySeverity severityOfFailures, SocketFactory socketFactory,
                                InetAddressFactory inetAddressFactory ) {
     this.messageGetter = messageGetterFactory.create( PKG );
-    this.hostname = hostname;
-    this.port = port;
+
+    // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
+    // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
+    // Here we try to resolve the parameters if we can:
+    Variables variables = new Variables();
+    variables.initializeVariablesFrom( null );
+
+    this.hostname = variables.environmentSubstitute( hostname );
+    this.port = variables.environmentSubstitute( port );
     this.haPossible = haPossible;
     this.severityOfFalures = severityOfFailures;
     this.socketFactory = socketFactory;
@@ -95,6 +103,7 @@ public class ConnectivityTestImpl implements ConnectivityTest {
 
   @Override public RuntimeTestResultEntry runTest() {
     List<RuntimeTestResultEntry> runtimeTestResultEntries = new ArrayList<>();
+
     if ( Const.isEmpty( hostname ) ) {
       return new RuntimeTestResultEntryImpl( severityOfFalures,
         messageGetter.getMessage( CONNECT_TEST_HOST_BLANK_DESC ),
@@ -103,7 +112,7 @@ public class ConnectivityTestImpl implements ConnectivityTest {
       if ( haPossible ) {
         return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.INFO,
           messageGetter.getMessage( CONNECT_TEST_HA_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_HA_MESSAGE ) );
+          messageGetter.getMessage( CONNECT_TEST_HA_MESSAGE, hostname ) );
       } else {
         return new RuntimeTestResultEntryImpl( severityOfFalures,
           messageGetter.getMessage( CONNECT_TEST_PORT_BLANK_DESC ),
@@ -133,7 +142,7 @@ public class ConnectivityTestImpl implements ConnectivityTest {
           }
         } else {
           return new RuntimeTestResultEntryImpl( severityOfFalures,
-            messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_DESC ),
+            messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_DESC, hostname ),
             messageGetter.getMessage( CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) );
         }
       } catch ( UnknownHostException e ) {
@@ -147,7 +156,7 @@ public class ConnectivityTestImpl implements ConnectivityTest {
       } catch ( NumberFormatException e ) {
         return new RuntimeTestResultEntryImpl( RuntimeTestEntrySeverity.FATAL,
           messageGetter.getMessage( CONNECT_TEST_PORT_NUMBER_FORMAT_DESC ),
-          messageGetter.getMessage( CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE ), e );
+          messageGetter.getMessage( CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE, port ), e );
       }
     }
   }
