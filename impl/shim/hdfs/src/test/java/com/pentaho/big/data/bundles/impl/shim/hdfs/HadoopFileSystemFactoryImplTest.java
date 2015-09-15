@@ -67,13 +67,13 @@ public class HadoopFileSystemFactoryImplTest {
     when( hadoopShim.getFileSystem( configuration ) ).thenReturn( fileSystem );
     identifier = "testId";
     when( hadoopConfiguration.getIdentifier() ).thenReturn( identifier );
-    hadoopFileSystemFactory = new HadoopFileSystemFactoryImpl( isActiveConfiguration, hadoopConfiguration );
+    hadoopFileSystemFactory = new HadoopFileSystemFactoryImpl( isActiveConfiguration, hadoopConfiguration, "hdfs" );
   }
 
   @Test
   public void testCanHandleActiveConfig() {
     assertFalse( hadoopFileSystemFactory.canHandle( namedCluster ) );
-    hadoopFileSystemFactory = new HadoopFileSystemFactoryImpl( true, hadoopConfiguration );
+    hadoopFileSystemFactory = new HadoopFileSystemFactoryImpl( true, hadoopConfiguration, "hdfs" );
     assertTrue( hadoopFileSystemFactory.canHandle( namedCluster ) );
   }
 
