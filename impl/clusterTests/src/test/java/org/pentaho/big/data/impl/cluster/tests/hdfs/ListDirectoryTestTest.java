@@ -93,7 +93,7 @@ public class ListDirectoryTestTest {
     verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
       RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_DESC ), messageGetter
-        .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, namedClusterName ) );
+        .getMessage( ListDirectoryTest.LIST_DIRECTORY_TEST_COULDNT_GET_FILE_SYSTEM_MESSAGE, directory ) );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 

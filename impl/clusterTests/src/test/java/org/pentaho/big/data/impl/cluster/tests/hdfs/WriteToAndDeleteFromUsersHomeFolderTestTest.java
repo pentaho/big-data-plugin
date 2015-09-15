@@ -1,23 +1,21 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
+ * <p/>
+ * ******************************************************************************
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  ******************************************************************************/
 
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
@@ -76,6 +74,8 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       .thenReturn( hadoopFileSystemPath );
     qualifiedPath = mock( HadoopFileSystemPath.class );
     when( hadoopFileSystem.makeQualified( hadoopFileSystemPath ) ).thenReturn( qualifiedPath );
+    when( qualifiedPath.getName() ).thenReturn( WriteToAndDeleteFromUsersHomeFolderTest.PENTAHO_SHIM_TEST_FILE_TEST );
+    when( qualifiedPath.getPath() ).thenReturn( "" );
     init();
   }
 
@@ -129,7 +129,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       messageGetter.getMessage(
         WriteToAndDeleteFromUsersHomeFolderTest
           .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CHECKING_IF_FILE_EXISTS_MESSAGE,
-        qualifiedPath.toString() ), IOException.class );
+        qualifiedPath.getName(), qualifiedPath.getPath() ), IOException.class );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
@@ -144,7 +144,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       messageGetter.getMessage(
         WriteToAndDeleteFromUsersHomeFolderTest
           .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_CREATING_FILE_MESSAGE,
-        qualifiedPath.toString() ), IOException.class );
+        qualifiedPath.getName(), qualifiedPath.getPath() ), IOException.class );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
@@ -162,7 +162,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       messageGetter.getMessage(
         WriteToAndDeleteFromUsersHomeFolderTest
           .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_WRITING_TO_FILE_MESSAGE,
-        qualifiedPath.toString() ), IOException.class );
+        qualifiedPath.getName(), qualifiedPath.getPath() ), IOException.class );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
@@ -179,7 +179,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       messageGetter.getMessage(
         WriteToAndDeleteFromUsersHomeFolderTest
           .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_ERROR_DELETING_FILE_MESSAGE,
-        qualifiedPath.toString() ), IOException.class );
+        qualifiedPath.getName(), qualifiedPath.getPath() ), IOException.class );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
@@ -194,7 +194,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       messageGetter.getMessage(
         WriteToAndDeleteFromUsersHomeFolderTest
           .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_FILE_EXISTS_MESSAGE,
-        qualifiedPath.toString() ) );
+        qualifiedPath.getName(), qualifiedPath.getPath() ) );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
@@ -211,7 +211,7 @@ public class WriteToAndDeleteFromUsersHomeFolderTestTest {
       messageGetter.getMessage(
         WriteToAndDeleteFromUsersHomeFolderTest
           .WRITE_TO_AND_DELETE_FROM_USERS_HOME_FOLDER_TEST_UNABLE_TO_DELETE_MESSAGE,
-        qualifiedPath.toString() ) );
+        qualifiedPath.getName(), qualifiedPath.getPath() ) );
     assertEquals( WriteToAndDeleteFromUsersHomeFolderTest.HELLO_CLUSTER,
       byteArrayOutputStream.toString( WriteToAndDeleteFromUsersHomeFolderTest.UTF8.name() ) );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );

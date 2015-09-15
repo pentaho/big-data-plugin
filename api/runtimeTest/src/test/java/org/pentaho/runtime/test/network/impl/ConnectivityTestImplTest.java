@@ -105,7 +105,7 @@ public class ConnectivityTestImplTest {
     init();
     verifyRuntimeTestResultEntry( connectTest.runTest(), RuntimeTestEntrySeverity.INFO,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_HA_DESC ), messageGetter.getMessage(
-        ConnectivityTestImpl.CONNECT_TEST_HA_MESSAGE ) );
+        ConnectivityTestImpl.CONNECT_TEST_HA_MESSAGE, hostname ) );
   }
 
   @Test
@@ -115,7 +115,7 @@ public class ConnectivityTestImplTest {
     init();
     verifyRuntimeTestResultEntry( connectTest.runTest(), RuntimeTestEntrySeverity.FATAL,
       messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_PORT_NUMBER_FORMAT_DESC ), messageGetter.getMessage(
-        ConnectivityTestImpl.CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE ), NumberFormatException.class );
+        ConnectivityTestImpl.CONNECT_TEST_PORT_NUMBER_FORMAT_MESSAGE, port ), NumberFormatException.class );
   }
 
   @Test
@@ -126,7 +126,7 @@ public class ConnectivityTestImplTest {
     when( inetAddress.isReachable( anyInt() ) ).thenReturn( false );
     init();
     verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
-      messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_UNREACHABLE_DESC ), messageGetter.getMessage(
+      messageGetter.getMessage( ConnectivityTestImpl.CONNECT_TEST_UNREACHABLE_DESC, hostname ), messageGetter.getMessage(
         ConnectivityTestImpl.CONNECT_TEST_UNREACHABLE_MESSAGE, hostname ) );
   }
 
