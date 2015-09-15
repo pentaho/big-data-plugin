@@ -32,6 +32,8 @@ import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Properties;
+
 /**
  * Created by bryan on 6/4/15.
  */
@@ -59,11 +61,16 @@ public class HadoopFileSystemFactoryLoader implements HadoopConfigurationListene
 
   @Override public void onConfigurationOpen( HadoopConfiguration hadoopConfiguration, boolean defaultConfiguration ) {
     try {
+      String scheme = "hdfs";
+      Properties configProperties = hadoopConfiguration.getConfigProperties();
+      if ( configProperties != null ) {
+        scheme = configProperties.getProperty( "scheme", "hdfs" );
+      }
       shimBridgingServiceTracker.registerWithClassloader( hadoopConfiguration, HadoopFileSystemFactory.class,
         HADOOP_FILESYSTEM_FACTORY_IMPL_CANONICAL_NAME,
         bundleContext, hadoopConfiguration.getHadoopShim().getClass().getClassLoader(),
-        new Class<?>[] { boolean.class, HadoopConfiguration.class },
-        new Object[] { defaultConfiguration, hadoopConfiguration } );
+        new Class<?>[] { boolean.class, HadoopConfiguration.class, String.class },
+        new Object[] { defaultConfiguration, hadoopConfiguration, scheme } );
     } catch ( Exception e ) {
       LOGGER.error( "Unable to register " + hadoopConfiguration.getIdentifier() + " shim", e );
     }

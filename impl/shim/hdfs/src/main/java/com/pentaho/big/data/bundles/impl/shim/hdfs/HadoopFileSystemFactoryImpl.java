@@ -46,10 +46,13 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger( HadoopFileSystemFactoryImpl.class );
   private final boolean isActiveConfiguration;
   private final HadoopConfiguration hadoopConfiguration;
+  private final String scheme;
 
-  public HadoopFileSystemFactoryImpl( boolean isActiveConfiguration, HadoopConfiguration hadoopConfiguration ) {
+  public HadoopFileSystemFactoryImpl( boolean isActiveConfiguration, HadoopConfiguration hadoopConfiguration,
+                                      String scheme ) {
     this.isActiveConfiguration = isActiveConfiguration;
     this.hadoopConfiguration = hadoopConfiguration;
+    this.scheme = scheme;
   }
 
   @Override public boolean canHandle( NamedCluster namedCluster ) {
@@ -72,10 +75,13 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
       Variables variables = new Variables();
       variables.initializeVariablesFrom( null );
 
-      fsDefault = "hdfs://" + variables.environmentSubstitute( namedCluster.getHdfsHost() );
+      fsDefault = scheme + "://" + variables.environmentSubstitute( namedCluster.getHdfsHost() );
       String port = variables.environmentSubstitute( namedCluster.getHdfsPort() );
       if ( !Const.isEmpty( port ) ) {
         fsDefault = fsDefault + ":" + port;
+      }
+      if ( fsDefault.endsWith( "//" ) ) {
+        fsDefault += "/";
       }
     }
     configuration.set( HadoopFileSystem.FS_DEFAULT_NAME, fsDefault );

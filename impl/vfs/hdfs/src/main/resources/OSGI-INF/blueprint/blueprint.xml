@@ -24,6 +24,28 @@
     <argument value="s3n" type="java.lang.String"/>
   </bean>
 
+
+  <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
+      <argument ref="hadoopFileSystemService"/>
+      <argument ref="namedClusterService"/>
+      <argument ref="maprfsFileNameParser" />
+      <argument value="escalefs" type="java.lang.String"/>
+  </bean>
+
+  <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="namedClusterService"/>
+    <argument ref="maprfsFileNameParser" />
+    <argument value="wasb" type="java.lang.String"/>
+  </bean>
+
+  <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="namedClusterService"/>
+    <argument ref="maprfsFileNameParser" />
+    <argument value="wasbs" type="java.lang.String"/>
+  </bean>
+
   <reference id="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
   <reference id="namedClusterService"
              interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
