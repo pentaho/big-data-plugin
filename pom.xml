@@ -36,7 +36,7 @@
 
     <properties>
         <publish-sonar-phase/>
-    
+
         <dependency.avro.revision>1.6.2</dependency.avro.revision>
         <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
         <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
@@ -64,12 +64,12 @@
         <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
         <dependency.oozie.revision>3.1.3-incubating</dependency.oozie.revision>
         <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
-        <dependency.pentaho-hadoop-shims-api.revision>${project.version}</dependency.pentaho-hadoop-shims-api.revision>
-        <dependency.pentaho-hadoop-shims-cdh54-package.revision>${project.version}</dependency.pentaho-hadoop-shims-cdh54-package.revision>
-        <dependency.pentaho-hadoop-shims-hadoop-20.revision>${project.version}</dependency.pentaho-hadoop-shims-hadoop-20.revision>
-        <dependency.pentaho-hadoop-shims-hdp22-package.revision>${project.version}</dependency.pentaho-hadoop-shims-hdp22-package.revision>
-        <dependency.pentaho-hadoop-shims-mapr410-package.revision>${project.version}</dependency.pentaho-hadoop-shims-mapr410-package.revision>
-        <dependency.pentaho-hadoop-shims-emr34-package.revision>${project.version}</dependency.pentaho-hadoop-shims-emr34-package.revision>
+        <dependency.hadoop-shims-api.revision>${project.version}</dependency.hadoop-shims-api.revision>
+        <dependency.hadoop-shims-cdh54.revision>${project.version}</dependency.hadoop-shims-cdh54.revision>
+        <dependency.hadoop-shims-hadoop-20.revision>${project.version}</dependency.hadoop-shims-hadoop-20.revision>
+        <dependency.hadoop-shims-hdp22.revision>${project.version}</dependency.hadoop-shims-hdp22.revision>
+        <dependency.hadoop-shims-mapr410.revision>${project.version}</dependency.hadoop-shims-mapr410.revision>
+        <dependency.hadoop-shims-emr34.revision>${project.version}</dependency.hadoop-shims-emr34.revision>
         <dependency.pentaho-s3-vfs.revision>${project.version}</dependency.pentaho-s3-vfs.revision>
         <dependency.slf4j.revision>1.7.3</dependency.slf4j.revision>
         <dependency.xstream.revision>1.4.2</dependency.xstream.revision>
@@ -78,10 +78,8 @@
         <dependency.metastore.revision>6.0-SNAPSHOT</dependency.metastore.revision>
         <dependency.mondrian.revision>3.11-SNAPSHOT</dependency.mondrian.revision>
         <dependency.pentaho-database-model.revision>6.0-SNAPSHOT</dependency.pentaho-database-model.revision>
-        <dependency.pentaho-hadoop-hive-jdbc-shim.revision>6.0-SNAPSHOT</dependency.pentaho-hadoop-hive-jdbc-shim.revision>
-        <dependency.hadoop-shims-api.revision>6.0-SNAPSHOT</dependency.hadoop-shims-api.revision>
+        <dependency.hadoop-hive-jdbc-shim.revision>6.0-SNAPSHOT</dependency.hadoop-hive-jdbc-shim.revision>
         <dependency.pentaho-metadata.revision>6.0-SNAPSHOT</dependency.pentaho-metadata.revision>
-
         <dependency.pentaho-registry.revision>6.0-SNAPSHOT</dependency.pentaho-registry.revision>
         <dependency.reporting-engine.revision>6.0-SNAPSHOT</dependency.reporting-engine.revision>
         <dependency.pentaho-reporting.revision>6.0-SNAPSHOT</dependency.pentaho-reporting.revision>

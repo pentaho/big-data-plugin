@@ -27,7 +27,7 @@
     <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-  
+
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
@@ -149,28 +149,28 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-cdh54-package.revision}</version>
+      <version>${dependency.hadoop-shims-cdh54.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp22-package</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-hdp22-package.revision}</version>
+      <version>${dependency.hadoop-shims-hdp22.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-mapr410-package.revision}</version>
+      <version>${dependency.hadoop-shims-mapr410.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-emr34-package</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-emr34-package.revision}</version>
+      <version>${dependency.hadoop-shims-emr34.revision}</version>
       <scope>provided</scope>
       <type>zip</type>
     </dependency>

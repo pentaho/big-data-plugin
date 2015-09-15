@@ -88,19 +88,19 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-api.revision}</version>
+      <version>${dependency.hadoop-shims-api.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hadoop-20</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-hadoop-20.revision}</version>
+      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hadoop-20-mapred</artifactId>
-      <version>${dependency.pentaho-hadoop-shims-hadoop-20.revision}</version>
+      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

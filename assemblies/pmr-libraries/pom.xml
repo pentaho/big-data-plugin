@@ -827,7 +827,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-hive-jdbc-shim</artifactId>
-      <version>${dependency.pentaho-hadoop-hive-jdbc-shim.revision}</version>
+      <version>${dependency.hadoop-hive-jdbc-shim.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
