@@ -79,17 +79,19 @@ public class HadoopFileSystemFactoryLoaderTest {
         eq( hadoopShim.getClass().getClassLoader() ), classCaptor.capture(), objectCaptor.capture() );
 
     Class[] classCaptorValue = classCaptor.getValue();
-    assertEquals( 2, classCaptorValue.length );
+    assertEquals( 3, classCaptorValue.length );
     assertEquals( boolean.class, classCaptorValue[0] );
     assertEquals( HadoopConfiguration.class, classCaptorValue[ 1 ] );
+    assertEquals( String.class, classCaptorValue[ 2 ] );
 
     // Important check to ensure that the constructor can actually be called
     assertNotNull( HadoopFileSystemFactoryImpl.class.getConstructor( classCaptorValue ) );
 
     Object[] objectCaptorValue = objectCaptor.getValue();
-    assertEquals( 2, objectCaptorValue.length );
+    assertEquals( 3, objectCaptorValue.length );
     assertEquals( true, objectCaptorValue[0] );
     assertEquals( hadoopConfiguration, objectCaptorValue[ 1 ] );
+    assertEquals( "hdfs", objectCaptorValue[ 2 ] );
   }
 
   @Test
