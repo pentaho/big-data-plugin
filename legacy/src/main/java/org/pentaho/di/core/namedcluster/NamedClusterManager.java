@@ -25,15 +25,18 @@ package org.pentaho.di.core.namedcluster;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
@@ -56,7 +59,8 @@ public class NamedClusterManager {
 
   private MetaStoreFactory<NamedCluster> getMetaStoreFactory( IMetaStore metastore ) {
     if ( factoryMap.get( metastore ) == null ) {
-      factoryMap.put( metastore, new MetaStoreFactory<NamedCluster>( NamedCluster.class, metastore, PentahoDefaults.NAMESPACE ) );
+      factoryMap.put( metastore,
+        new MetaStoreFactory<NamedCluster>( NamedCluster.class, metastore, PentahoDefaults.NAMESPACE ) );
     }
     return factoryMap.get( metastore );
   }
@@ -192,18 +196,17 @@ public class NamedClusterManager {
   /**
    * This method generates the URL from the specific NamedCluster using the specified scheme.
    *
-   * @param scheme
-   *          the name of the scheme to use to create the URL
    * @param clusterName
    *          the name of the NamedCluster to use to create the URL
    * @return the generated URL from the specific NamedCluster or null if an error occurs
    */
-  private String generateURL( String scheme, String clusterName, IMetaStore metastore, VariableSpace variableSpace ) {
+  private String generateURL( String clusterName, IMetaStore metastore, VariableSpace variableSpace ) {
     String clusterURL = null;
     try {
-      if ( !Const.isEmpty( scheme ) && !Const.isEmpty( clusterName ) && metastore != null ) {
+      if ( !Const.isEmpty( clusterName ) && metastore != null ) {
         NamedCluster namedCluster = read( clusterName, metastore );
         if ( namedCluster != null ) {
+          String scheme = getScheme( clusterName, metastore );
           String ncHostname = null, ncPort = null, ncUsername = null, ncPassword = null;
 
           if ( scheme.equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
@@ -238,16 +241,20 @@ public class NamedClusterManager {
           }
 
           ncHostname = ncHostname != null ? ncHostname.trim() : "";
-          ncPort = ncPort != null ? ncPort.trim() : "";
+          ncPort = !Const.isEmpty( ncPort ) ? ncPort.trim() : "-1";
           ncUsername = ncUsername != null ? ncUsername.trim() : "";
           ncPassword = ncPassword != null ? ncPassword.trim() : "";
 
-          UrlFileName file =
+          if ( Const.isEmpty( ncHostname ) ) {
+            clusterURL = scheme + "://";
+          } else {
+            UrlFileName file =
               new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername, ncPassword, null, null,
-                  null );
-          clusterURL = file.getURI();
-          if ( clusterURL.endsWith( "/" ) ) {
-            clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+                null );
+            clusterURL = file.getURI();
+            if ( clusterURL.endsWith( "/" ) ) {
+              clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+            }
           }
         }
       }
@@ -257,6 +264,25 @@ public class NamedClusterManager {
     return clusterURL;
   }
 
+  private String getScheme( String clusterName, IMetaStore metaStore ) throws ConfigurationException,
+    MetaStoreException {
+    NamedCluster namedCluster = read( clusterName, metaStore );
+    String scheme = HadoopSpoonPlugin.HDFS_SCHEME;
+    if ( namedCluster != null ) {
+      if ( namedCluster.isMapr() ) {
+        scheme = HadoopSpoonPlugin.MAPRFS_SCHEME;
+      } else {
+        Properties configProperties =
+          HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration()
+            .getConfigProperties();
+        if ( configProperties != null ) {
+          scheme = configProperties.getProperty( "scheme", HadoopSpoonPlugin.HDFS_SCHEME );
+        }
+      }
+    }
+    return scheme;
+  }
+
   /**
    * This method performs the root URL substitution with the URL of the specified NamedCluster
    *
@@ -264,36 +290,39 @@ public class NamedClusterManager {
    *          the NamedCluster to use to generate the URL for the substitution
    * @param incomingURL
    *          the URL whose root will be replaced
-   * @param scheme
-   *          the scheme to be used to generate the URL of the specified NamedCluster
    * @return the generated URL or the incoming URL if an error occurs
    */
-  public String processURLsubstitution( String clusterName, String incomingURL,
-      String scheme, IMetaStore metastore, VariableSpace variableSpace ) {
+  public String processURLsubstitution( String clusterName, String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
     String outgoingURL = null;
     try {
-      String clusterURL = generateURL( scheme, clusterName, metastore, variableSpace );
+      String clusterURL = generateURL( clusterName, metastore, variableSpace );
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
-      } else if ( incomingURL.equals( "/" ) ) {
-        outgoingURL = clusterURL;
-      } else if ( clusterURL != null ) {
-        String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
+      } else {
+        if ( incomingURL.equals( "/" ) ) {
+          outgoingURL = clusterURL;
+        } else if ( clusterURL != null ) {
+          String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
 
-        String fullyQualifiedIncomingURL = incomingURL;
-        if ( !incomingURL.startsWith( scheme ) ) {
-          fullyQualifiedIncomingURL = clusterURL + incomingURL;
-          noVariablesURL = clusterURL + incomingURL.replaceAll( "[${}]", "/" );
+          String fullyQualifiedIncomingURL = incomingURL;
+          if ( !incomingURL.startsWith( getScheme( clusterName, metastore ) ) ) {
+            fullyQualifiedIncomingURL = clusterURL + incomingURL;
+            noVariablesURL = clusterURL + incomingURL.replaceAll( "[${}]", "/" );
+          }
+
+          UrlFileNameParser parser = new UrlFileNameParser();
+          FileName fileName = parser.parseUri( null, null, noVariablesURL );
+          String root = fileName.getRootURI();
+          String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
+          StringBuffer buffer = new StringBuffer();
+          buffer.append( clusterURL );
+          buffer.append( path );
+          outgoingURL = buffer.toString();
         }
-
-        UrlFileNameParser parser = new UrlFileNameParser();
-        FileName fileName = parser.parseUri( null, null, noVariablesURL );
-        String root = fileName.getRootURI();
-        String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
-        StringBuffer buffer = new StringBuffer();
-        buffer.append( clusterURL );
-        buffer.append( path );
-        outgoingURL = buffer.toString();
+        NamedCluster c = read( clusterName, metastore );
+        if ( c != null && c.isMapr() && outgoingURL != null && !outgoingURL.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+          outgoingURL = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + outgoingURL;
+        }
       }
     } catch ( Exception e ) {
       outgoingURL = null;

@@ -26,7 +26,6 @@ import java.util.Map;
 
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.JobEntry;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
@@ -53,18 +52,7 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
   public String loadURL( String url, String ncName, IMetaStore metastore, Map mappings ) {
     NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
     NamedCluster c = namedClusterManager.getNamedClusterByName( ncName, metastore );
-    if ( c != null && c.isMapr() ) {
-      url =
-          namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore,
-              getVariables() );
-      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
-      }
-    } else {
-      url =
-          namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
-              getVariables() );
-    }
+    url = namedClusterManager.processURLsubstitution( ncName, url, metastore, getVariables() );
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       mappings.put( url, ncName );
     }

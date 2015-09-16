@@ -121,10 +121,8 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
                 clusterName.startsWith( JobEntryHadoopCopyFiles.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
 
             ti.setText( 1, clusterName );
-            sourceUrl =
-                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ||
-                clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
-                    : jobEntry.getUrlPath( sourceUrl );
+            sourceUrl = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
+              || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl : jobEntry.getUrlPath( sourceUrl );
           }
           ti.setText( 2, sourceUrl );
         }
@@ -143,10 +141,8 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
             clusterName =
                 clusterName.startsWith( JobEntryHadoopCopyFiles.S3_DEST_FILE ) ? S3_ENVIRONMENT : clusterName;
             ti.setText( 4, clusterName );
-            destinationURL =
-                clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT ) ||
-                clusterName.equals( S3_ENVIRONMENT ) ? destinationURL
-                    : jobEntry.getUrlPath( destinationURL );
+            destinationURL = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
+              || clusterName.equals( S3_ENVIRONMENT ) ? destinationURL : jobEntry.getUrlPath( destinationURL );
           }
           ti.setText( 5, destinationURL );
         }
@@ -241,18 +237,12 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
         if ( namedCluster == null ) {
           return null;
         }
-        if ( namedCluster.isMapr() ) {
-          path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
-        } else {
-          path = NamedClusterManager.getInstance().processURLsubstitution(
-              clusterName, path, HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), jobMeta );
-        }
+        path = NamedClusterManager.getInstance().processURLsubstitution( clusterName, path, getMetaStore(), jobMeta );
       }
 
       boolean resolvedInitialFile = false;
-      
-      if ( path != null ) {
 
+      if ( path != null ) {
         String fileName = jobMeta.environmentSubstitute( path );
 
         if ( fileName != null && !fileName.equals( "" ) ) {
@@ -278,16 +268,15 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       }
       VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
       fileChooserDialog.defaultInitialFile = defaultInitialFile;
-      
-      NamedClusterWidget namedClusterWidget = null;
 
+      NamedClusterWidget namedClusterWidget = null;
       if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
         selectedFile =
             fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, new String[] { "*.*" },
                 FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
       } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
         selectedFile =
-            fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true, 
+            fileChooserDialog.open( shell, new String[] { S3FileProvider.SCHEME }, S3FileProvider.SCHEME, true,
                 path, new String[] { "*.*" }, FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
                 false, true );
       } else {
@@ -334,7 +323,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
           wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
         } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
           url = jobEntry.getUrlPath( url );
-          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, 
+          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1,
               namedClusterWidget.getSelectedNamedCluster().getName() );
         }
         wFields.getActiveTableItem().setText( wFields.getActiveTableColumn(), url );
@@ -358,7 +347,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     log.logError( messageToLog );
     box.open();
   }
-  
+
   protected Image getImage() {
     return GUIResource.getInstance().getImage( "HDM.svg", getClass().getClassLoader(), ConstUI.ICON_SIZE,
         ConstUI.ICON_SIZE );
@@ -372,10 +361,10 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
     try {
       super.setComboValues( colInfo );
       String[] superValues = colInfo.getComboValues();
-      
+
       String[] s3value = { S3_ENVIRONMENT };
       String[] comboValues = (String[]) ArrayUtils.addAll( superValues, s3value );
-      
+
       String[] namedClusters =
           NamedClusterManager.getInstance().listNames( getMetaStore() ).toArray( new String[0] );
       String[] values = (String[]) ArrayUtils.addAll( comboValues, namedClusters );
