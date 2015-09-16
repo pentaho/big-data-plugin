@@ -2924,13 +2924,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               return;
             }
             isCluster = true;
-            if ( namedCluster.isMapr() ) {
-              path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
-            } else {
-              path =
-                  NamedClusterManager.getInstance().processURLsubstitution( clusterName, path,
-                      HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), transMeta );
-            }
+            path =
+              NamedClusterManager.getInstance().processURLsubstitution( clusterName, path, getMetaStore(), transMeta );
           }
 
           boolean resolvedInitialFile = false;

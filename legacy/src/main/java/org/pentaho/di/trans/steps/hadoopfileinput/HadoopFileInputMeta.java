@@ -31,7 +31,6 @@ import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -92,18 +91,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
 
     NamedCluster c = metastore == null ? null : namedClusterManager.getNamedClusterByName( ncName, metastore );
-    if ( c != null && c.isMapr() ) {
-      url =
-          namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore,
-              variableSpace );
-      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
-      }
-    } else if ( !Const.isEmpty( url ) && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-      url =
-          namedClusterManager.processURLsubstitution( ncName, url, HadoopSpoonPlugin.HDFS_SCHEME, metastore,
-              variableSpace );
-    }
+    url = namedClusterManager.processURLsubstitution( ncName, url, metastore, variableSpace );
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       mappings.put( url, ncName );
     }

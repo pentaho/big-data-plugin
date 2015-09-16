@@ -24,11 +24,17 @@ package org.pentaho.di.core.namedcluster;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.HadoopConfiguration;
+import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
+
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -44,29 +50,41 @@ public class NamedClusterManagerTest {
   private VariableSpace variableSpace;
   private NamedClusterManager.MetaStoreFactoryFactory metaStoreFactoryFactory;
   private MetaStoreFactory<NamedCluster> metaStoreFactory;
+  private HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
+  private HadoopConfigurationProvider hadoopConfigurationProvider;
+  private HadoopConfiguration hadoopConfiguration;
+  private Properties configProperties;
 
   @Before
   @SuppressWarnings( "unchecked" )
-  public void setup() {
+  public void setup() throws ConfigurationException {
     metaStore = mock( IMetaStore.class );
     variableSpace = mock( VariableSpace.class );
     metaStoreFactoryFactory = mock( NamedClusterManager.MetaStoreFactoryFactory.class );
     metaStoreFactory = mock( MetaStoreFactory.class );
     when( metaStoreFactoryFactory.createFactory( metaStore ) ).thenReturn( metaStoreFactory );
-    namedClusterManager = new NamedClusterManager( metaStoreFactoryFactory );
+    hadoopConfigurationBootstrap = mock( HadoopConfigurationBootstrap.class );
+    hadoopConfigurationProvider = mock( HadoopConfigurationProvider.class );
+    when( hadoopConfigurationBootstrap.getProvider() ).thenReturn( hadoopConfigurationProvider );
+    hadoopConfiguration = mock( HadoopConfiguration.class );
+    when( hadoopConfigurationProvider.getActiveConfiguration() ).thenReturn( hadoopConfiguration );
+    configProperties = new Properties();
+    when( hadoopConfiguration.getConfigProperties() ).thenReturn( configProperties );
+    namedClusterManager = new NamedClusterManager( metaStoreFactoryFactory, hadoopConfigurationBootstrap );
   }
 
   @Test
   public void testGenerateURLNullParameters() {
-    assertNull( namedClusterManager.generateURL( null, "testName", metaStore, null ) );
-    assertNull( namedClusterManager.generateURL( "testScheme", null, metaStore, null ) );
-    assertNull( namedClusterManager.generateURL( "testScheme", "testName", null, null ) );
-    assertNull( namedClusterManager.generateURL( "testScheme", "testName", metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( "testName", metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( null, metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( "testName", null, null ) );
+    assertNull( namedClusterManager.generateURL( "testName", metaStore, null ) );
   }
 
   @Test
   public void testGenerateURLHDFS() throws MetaStoreException {
     String scheme = "hdfs";
+    configProperties.put( NamedClusterManager.SCHEME, scheme );
     String testName = "testName";
     String testHost = "testHost";
     String testPort = "9333";
@@ -79,7 +97,7 @@ public class NamedClusterManagerTest {
     when( namedCluster.getHdfsPassword() ).thenReturn( " " + testPassword + " " );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
     assertEquals( scheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
-      namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
+      namedClusterManager.generateURL( testName, metaStore, null ) );
   }
 
   @Test
@@ -93,20 +111,22 @@ public class NamedClusterManagerTest {
     when( namedCluster.getHdfsPort() ).thenReturn( " " + testPort + " " );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
     assertEquals( scheme + "://" + testHost + ":" + testPort,
-      namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
+      namedClusterManager.generateURL( testName, metaStore, null ) );
   }
 
   @Test
   public void testGenerateURLMaprFSPort() throws MetaStoreException {
     String scheme = "maprfs";
+    configProperties.put( NamedClusterManager.SCHEME, scheme );
     String testName = "testName";
     String testHost = "testHost";
     String testPort = "9333";
     NamedCluster namedCluster = mock( NamedCluster.class );
+    when( namedCluster.isMapr() ).thenReturn( true );
     when( namedCluster.getHdfsHost() ).thenReturn( " " + testHost + " " );
     when( namedCluster.getHdfsPort() ).thenReturn( " " + testPort + " " );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
-    assertNull( namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( testName, metaStore, null ) );
   }
 
   @Test
@@ -114,8 +134,9 @@ public class NamedClusterManagerTest {
     String scheme = "maprfs";
     String testName = "testName";
     NamedCluster namedCluster = mock( NamedCluster.class );
+    when( namedCluster.isMapr() ).thenReturn( true );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
-    assertNull( namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( testName, metaStore, null ) );
   }
 
   @Test
@@ -126,7 +147,7 @@ public class NamedClusterManagerTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getHdfsHost() ).thenReturn( " " + testHost + " " );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
-    assertEquals( scheme + "://" + testHost, namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
+    assertEquals( scheme + "://" + testHost, namedClusterManager.generateURL( testName, metaStore, null ) );
   }
 
   @Test
@@ -156,6 +177,6 @@ public class NamedClusterManagerTest {
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsPassword() ) ).thenReturn( testPassword );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
     assertEquals( scheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
-      namedClusterManager.generateURL( scheme, testName, metaStore, variableSpace ) );
+      namedClusterManager.generateURL( testName, metaStore, variableSpace ) );
   }
 }
