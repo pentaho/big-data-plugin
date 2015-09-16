@@ -22,14 +22,8 @@
 
 package org.pentaho.di.job.entries.hadooptransjobexecutor;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.cluster.SlaveServer;
@@ -89,7 +83,13 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.w3c.dom.Node;
 
-import com.thoughtworks.xstream.XStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @SuppressWarnings( "deprecation" )
 @JobEntry( id = "HadoopTransJobExecutorPlugin", image = "HDT.svg", name = "HadoopTransJobExecutorPlugin.Name",
@@ -98,8 +98,9 @@ import com.thoughtworks.xstream.XStream;
     i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Pentaho+MapReduce" )
 public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
-
   public static final String MAPREDUCE_APPLICATION_CLASSPATH = "mapreduce.application.classpath";
+  public static final String DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH =
+    "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*";
   private static Class<?> PKG = JobEntryHadoopTransJobExecutor.class; // for i18n purposes, needed by Translator2!!
                                                                       // $NON-NLS-1$
 
@@ -1091,7 +1092,8 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
    * @throws IOException
    * @throws KettleException
    */
-  private void configureWithKettleEnvironment( HadoopShim shim, Configuration conf, FileSystem fs,
+  @VisibleForTesting
+  void configureWithKettleEnvironment( HadoopShim shim, Configuration conf, FileSystem fs,
       Path kettleEnvInstallDir ) throws Exception {
     if ( !shim.getDistributedCacheUtil().isKettleEnvironmentInstalledAt( fs, kettleEnvInstallDir ) ) {
       throw new KettleException( BaseMessages.getString( PKG,
@@ -1101,13 +1103,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     logBasic( BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.ConfiguringJobWithKettleAt",
         kettleEnvInstallDir.toUri().getPath() ) );
 
-    String classpath = conf.get( MAPREDUCE_APPLICATION_CLASSPATH );
-    if ( Const.isEmpty( classpath ) ) {
-      conf.set( MAPREDUCE_APPLICATION_CLASSPATH, "classes/" );
-    } else {
-      conf.set( MAPREDUCE_APPLICATION_CLASSPATH, "classes/," + classpath );
-    }
+    String mapreduceClasspath = conf.get( MAPREDUCE_APPLICATION_CLASSPATH, DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH );
+    conf.set( MAPREDUCE_APPLICATION_CLASSPATH, "classes/," + mapreduceClasspath );
+
     shim.getDistributedCacheUtil().configureWithKettleEnvironment( conf, fs, kettleEnvInstallDir );
+    logBasic( MAPREDUCE_APPLICATION_CLASSPATH + ": " + conf.get( MAPREDUCE_APPLICATION_CLASSPATH ) );
   }
 
   /**
