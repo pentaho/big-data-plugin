@@ -24,6 +24,8 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -43,6 +45,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestProgressCallback;
@@ -104,8 +107,8 @@ public class ClusterTestDialog extends Dialog {
     formLayout.marginWidth = margin;
     formLayout.marginHeight = margin;
 
-    final int shellWidth = 285;
-    final int shellHeight = 160; // Golden ratio * width
+    final int shellWidth = 385;
+    final int shellHeight = 160;
     shell.setSize( shellWidth, shellHeight );
     shell.setMinimumSize( shellWidth, shellHeight );
     shell.setText( BaseMessages.getString( PKG, "ClusterTestDialog.Title" ) );
@@ -113,10 +116,7 @@ public class ClusterTestDialog extends Dialog {
 
     Label testingClusterLabel = new Label( shell, SWT.NONE );
     testingClusterLabel.setText( BaseMessages.getString( PKG, "ClusterTestDialog.ClusterTest.Label" ) );
-    FontData[] fontData = testingClusterLabel.getFont().getFontData();
-    fontData[0].setHeight( 16 );
     testingClusterLabel.setForeground( GUIResource.getInstance().getColorCrystalTextPentaho() );
-    testingClusterLabel.setFont( new Font( display, fontData[0] ) );
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, margin );
     fd.top = new FormAttachment( 0, margin );
@@ -132,6 +132,7 @@ public class ClusterTestDialog extends Dialog {
 
     final ProgressBar progressBar = new ProgressBar( shell, SWT.SMOOTH );
     progressBar.setMinimum( 0 ); // Max tests will be set upon first return
+    progressBar.computeSize( SWT.DEFAULT, 22, true );
 
     fd = new FormData();
     fd.top = new FormAttachment( testLabel, 10 );
@@ -150,7 +151,15 @@ public class ClusterTestDialog extends Dialog {
     Button[] buttons = new Button[]{ wCancel };
     BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, null );
     shell.setBackgroundMode( SWT.INHERIT_FORCE );
+
+    Rectangle shellBounds = Spoon.getInstance().getShell().getBounds();
+
+    shell.pack();
     shell.open();
+
+    shell.setLocation(
+      shellBounds.x + ( shellBounds.width - shellWidth ) / 2,
+      shellBounds.y + ( shellBounds.height - shellHeight ) / 2 );
 
     // Start the cluster tests
     runtimeTester.runtimeTest( namedCluster, new RuntimeTestProgressCallback() {
