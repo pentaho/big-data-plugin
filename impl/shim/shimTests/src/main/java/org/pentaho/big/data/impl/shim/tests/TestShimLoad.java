@@ -67,8 +67,8 @@ public class TestShimLoad extends BaseRuntimeTest {
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     try {
-      String activeConfigurationId = hadoopConfigurationBootstrap.getActiveConfigurationId();
       hadoopConfigurationBootstrap.getProvider();
+      String activeConfigurationId = hadoopConfigurationBootstrap.getActiveConfigurationId();
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.INFO,
           messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_DESC, activeConfigurationId ),
