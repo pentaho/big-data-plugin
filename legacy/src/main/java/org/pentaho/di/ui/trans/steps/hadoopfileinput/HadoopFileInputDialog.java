@@ -2014,10 +2014,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           clusterName =
               clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
           clusterName = clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
-          sourceUrl =
-              clusterName.equals( LOCAL_ENVIRONMENT ) ||
-              clusterName.equals( STATIC_ENVIRONMENT ) ||
-              clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
+          sourceUrl = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
+            || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl
                   : hadoopFileInputMeta.getUrlPath( sourceUrl );
           environment = clusterName;
         }
@@ -2493,7 +2491,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               EnterTextDialog etd =
                   new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
                       "TextFileInputDialog.ScanResults.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                      "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
+                        "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
               etd.setReadOnly();
               etd.open();
             }
@@ -2593,7 +2591,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     EnterNumberDialog numberDialog =
         new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( BASE_PKG,
             "TextFileInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-            "TextFileInputDialog.PreviewSize.DialogMessage" ) );
+              "TextFileInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
     if ( previewSize > 0 ) {
       TransPreviewProgressDialog progressDialog =
@@ -2645,7 +2643,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
                     "TextFileInputDialog.ContentOfFirstFile.DialogTitle" ),
                     ( nrLines == 0 ? BaseMessages.getString( BASE_PKG,
                         "TextFileInputDialog.ContentOfFirstFile.AllLines.DialogMessage" ) : BaseMessages.getString(
-                        BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
+                          BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
                     firstlines, true );
             etd.setReadOnly();
             etd.open();
@@ -2809,7 +2807,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     } catch ( Exception e ) {
       new ErrorDialog( shell, BaseMessages.getString( BASE_PKG,
           "TextFileInputDialog.ErrorShowingFixedWizard.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-          "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
+            "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
     }
   }
 
@@ -2927,13 +2925,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               return;
             }
             isCluster = true;
-            if ( namedCluster.isMapr() ) {
-              path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
-            } else {
-              path =
-                  NamedClusterManager.getInstance().processURLsubstitution( clusterName, path,
-                      HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), transMeta );
-            }
+            path =
+              NamedClusterManager.getInstance().processURLsubstitution( clusterName, path, getMetaStore(), transMeta );
           }
 
           boolean resolvedInitialFile = false;

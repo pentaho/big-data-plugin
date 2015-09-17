@@ -1187,13 +1187,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
           if ( Const.isEmpty( path ) ) {
             path = "/";
           }
-          if ( namedCluster.isMapr() ) {
-            path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
-          } else {
-            path =
-                NamedClusterManager.getInstance().processURLsubstitution( clusterName, path,
-                    HadoopSpoonPlugin.HDFS_SCHEME, getMetaStore(), transMeta );
-          }
+          path =
+            NamedClusterManager.getInstance().processURLsubstitution( clusterName, path, getMetaStore(), transMeta );
 
           boolean resolvedInitialFile = false;
 
@@ -1552,18 +1547,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
     NamedCluster c = getMetaStore() == null ? null
       : namedClusterManager.getNamedClusterByName( ncName, getMetaStore() );
-    if ( c != null && c.isMapr() ) {
-      fileName =
-          namedClusterManager.processURLsubstitution(
-              ncName, fileName, HadoopSpoonPlugin.MAPRFS_SCHEME, getMetaStore(), new Variables() );
-      if ( fileName != null && !fileName.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-        fileName = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + fileName;
-      }
-    } else if ( !fileName.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-      fileName =
-          namedClusterManager.processURLsubstitution( ncName, wFilename.getText(), HadoopSpoonPlugin.HDFS_SCHEME,
-              getMetaStore(), variables );
-    }
+    fileName = namedClusterManager.processURLsubstitution( ncName, fileName, getMetaStore(), new Variables() );
 
     tfoi.setFileName( fileName );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );

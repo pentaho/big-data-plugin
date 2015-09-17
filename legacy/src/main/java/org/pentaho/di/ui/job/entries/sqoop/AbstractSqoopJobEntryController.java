@@ -952,13 +952,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     if ( namedCluster == null  ) {
       return null;
     }
-    if ( namedCluster.isMapr() ) {
-      path = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + path;
-    } else {
-      path =
-          NamedClusterManager.getInstance().processURLsubstitution( selectedNamedCluster.getName(), path,
-              HadoopSpoonPlugin.HDFS_SCHEME, Spoon.getInstance().getMetaStore(), jobEntry );
-    }
+    path = NamedClusterManager.getInstance().processURLsubstitution( selectedNamedCluster.getName(), path, Spoon.getInstance().getMetaStore(), jobEntry );
 
     FileObject initialFile = null;
 
