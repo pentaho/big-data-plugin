@@ -636,4 +636,17 @@ public class SqoopUtilsTest {
     assertEquals( "param", entry.getKey() );
     assertEquals( "value \\t", entry.getValue() );
   }
+
+  @Test
+  public void getCommandLineArguments_custom_backslash_in_value() throws Exception {
+    MockConfig config = new MockConfig();
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( new PropertyEntry( "mapreduce.job.name", "some/test\\Name" ) );
+    config.setCustomArguments( customArguments );
+
+    List<String> commandLineArgs = SqoopUtils.getCommandLineArgs( config, null );
+    assertEquals( 2, commandLineArgs.size() );
+    assertEquals( "-D", commandLineArgs.get( 0 ) );
+    assertEquals( "mapreduce.job.name=some/test\\Name", commandLineArgs.get( 1 ) );
+  }
 }
