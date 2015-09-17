@@ -24,6 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -44,6 +45,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.runtime.test.RuntimeTestStatus;
@@ -145,19 +147,19 @@ public class ClusterTestResultsDialog extends Dialog {
           case INFO:
             // The above are "Test(s) passed"
             image.setImage(
-              GUIResource.getInstance().getImage( "ui/images/success_green.svg", myClassLoader, 24, 24 ) );
+              GUIResource.getInstance().getImage( "ui/images/success_green.svg", myClassLoader, 22, 22 ) );
             break;
           case WARNING:
           case SKIPPED:
             // The above are "Test(s) finished with warnings"
             image.setImage(
-              GUIResource.getInstance().getImage( "ui/images/warning_yellow.svg", myClassLoader, 24, 24 ) );
+              GUIResource.getInstance().getImage( "ui/images/warning_yellow.svg", myClassLoader, 22, 22 ) );
             break;
           case ERROR:
           case FATAL:
             // The above are "Test(s) failed"
             image.setImage(
-              GUIResource.getInstance().getImage( "ui/images/error_red.svg", myClassLoader, 24, 24 ) );
+              GUIResource.getInstance().getImage( "ui/images/error_red.svg", myClassLoader, 22, 22 ) );
             break;
         }
         FormData imageLayoutData = new FormData();
@@ -224,7 +226,7 @@ public class ClusterTestResultsDialog extends Dialog {
     mainComposite.setSize( mainComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
     Button wOk = new Button( shell, SWT.PUSH );
-    wOk.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
+    wOk.setText( BaseMessages.getString( PKG, "System.Button.Close" ) );
 
     wOk.addListener( SWT.Selection, new Listener() {
       public void handleEvent( Event e ) {
@@ -235,7 +237,15 @@ public class ClusterTestResultsDialog extends Dialog {
     Button[] buttons = new Button[]{ wOk };
     BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, null );
 
+    Rectangle shellBounds = Spoon.getInstance().getShell().getBounds();
+
+    shell.pack();
     shell.open();
+
+    shell.setLocation(
+      shellBounds.x + ( shellBounds.width - shellWidth ) / 2,
+      shellBounds.y + ( shellBounds.height - shellHeight ) / 2 );
+
     while ( !shell.isDisposed() ) {
       if ( !display.readAndDispatch() ) {
         display.sleep();
