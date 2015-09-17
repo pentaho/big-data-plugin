@@ -22,21 +22,6 @@
 
 package org.pentaho.di.job.entries.hadooptransjobexecutor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import static org.easymock.EasyMock.*;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
@@ -54,8 +39,8 @@ import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.Job;
-import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.ObjectId;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.resource.ResourceDefinition;
 import org.pentaho.di.resource.ResourceNamingInterface;
 import org.pentaho.di.trans.TransMeta;
@@ -64,8 +49,33 @@ import org.pentaho.di.trans.steps.hadoopexit.HadoopExitMeta;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
+import org.pentaho.hadoop.shim.api.DistributedCacheUtil;
+import org.pentaho.hadoop.shim.api.fs.FileSystem;
+import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.common.CommonHadoopShim;
 import org.pentaho.hadoop.shim.common.ConfigurationProxy;
+import org.pentaho.hadoop.shim.spi.HadoopShim;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 // TODO Refactor JobEntryHadoopTransJobExecutor so it can be tested better than this pseudo-integration test
 public class JobEntryHadoopTransJobExecutorTest {
@@ -345,7 +355,7 @@ public class JobEntryHadoopTransJobExecutorTest {
   @Test
   public void testExportDefinitionHasMapperCombinerReducer() throws Throwable {
     final JobEntryHadoopTransJobExecutor exec = new JobEntryHadoopTransJobExecutor();
-    final ResourceNamingInterface naming = Mockito.mock( ResourceNamingInterface.class );
+    final ResourceNamingInterface naming = mock( ResourceNamingInterface.class );
 
     File mapTrans = setupTransFile( naming, "mapTrans" );
     exec.setMapTrans( mapTrans.getAbsolutePath() );
@@ -360,6 +370,27 @@ public class JobEntryHadoopTransJobExecutorTest {
     assertEquals( 2, definitions.size() );
     assertDefinition( mapTrans, definitions );
     assertDefinition( reduceTrans, definitions );
+  }
+
+  @Test
+  public void testConfigureMapreduceClasspath() throws Throwable {
+    JobEntryHadoopTransJobExecutor jobEntryHadoopTransJobExecutor = new JobEntryHadoopTransJobExecutor();
+    HadoopShim hadoopShim = mock( HadoopShim.class );
+    DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
+    when( hadoopShim.getDistributedCacheUtil() ).thenReturn( distributedCacheUtil );
+    FileSystem fileSystem = mock( FileSystem.class );
+    Path kettleEnvInstallDir = mock( Path.class );
+    when( kettleEnvInstallDir.toUri() ).thenReturn( URI.create( "hdfs:///" ) );
+    Configuration configuration = mock( Configuration.class );
+    String testClasspath = "TEST_CLASSPATH";
+    when( configuration.get( JobEntryHadoopTransJobExecutor.MAPREDUCE_APPLICATION_CLASSPATH,
+      JobEntryHadoopTransJobExecutor.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) )
+      .thenReturn( testClasspath );
+    when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( true );
+    jobEntryHadoopTransJobExecutor.configureWithKettleEnvironment( hadoopShim, configuration, fileSystem,
+      kettleEnvInstallDir );
+    verify( configuration ).set( JobEntryHadoopTransJobExecutor.MAPREDUCE_APPLICATION_CLASSPATH,
+      "classes/," + testClasspath );
   }
 
   private void assertDefinition( final File transFile, final HashMap<String, ResourceDefinition> definitions )
