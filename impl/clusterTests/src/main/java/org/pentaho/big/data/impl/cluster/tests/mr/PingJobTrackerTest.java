@@ -25,6 +25,7 @@ package org.pentaho.big.data.impl.cluster.tests.mr;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
@@ -61,6 +62,12 @@ public class PingJobTrackerTest extends BaseRuntimeTest {
     // Safe to cast as our accepts method will only return true for named clusters
     NamedCluster namedCluster = (NamedCluster) objectUnderTest;
 
+    // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
+    // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
+    // Here we try to resolve the parameters if we can:
+    Variables variables = new Variables();
+    variables.initializeVariablesFrom( null );
+
     // The connectivity test (ping the name node) is not applicable for MapR clusters due to their native client, so
     // just pass this test and move on
     if ( namedCluster.isMapr() ) {
@@ -72,7 +79,9 @@ public class PingJobTrackerTest extends BaseRuntimeTest {
       );
     } else {
       return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry( messageGetterFactory, connectivityTestFactory
-        .create( messageGetterFactory, namedCluster.getJobTrackerHost(), namedCluster.getJobTrackerPort(), true )
+        .create( messageGetterFactory,
+          variables.environmentSubstitute( namedCluster.getJobTrackerHost() ),
+          variables.environmentSubstitute( namedCluster.getJobTrackerPort() ), true )
         .runTest(), ClusterRuntimeTestEntry.DocAnchor.CLUSTER_CONNECT ) );
     }
   }
