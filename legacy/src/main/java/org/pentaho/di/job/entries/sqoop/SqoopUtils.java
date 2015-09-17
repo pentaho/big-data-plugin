@@ -395,7 +395,7 @@ public class SqoopUtils {
 
     // Add custom arguments as they must appear before tool specific arguments
     for ( PropertyEntry entry : config.getCustomArguments() ) {
-      appendCustomArgument( customBuffer, entry, variableSpace );
+      appendCustomArgument( customBuffer, entry, variableSpace, true );
     }
 
     for ( Iterator<String> iterator = customBuffer.iterator(); iterator.hasNext(); ) {
@@ -505,11 +505,11 @@ public class SqoopUtils {
 
   private static void appendCustomArguments( List<String> args , SqoopConfig config, VariableSpace variableSpace ) {
     for ( PropertyEntry entry : config.getCustomArguments() ) {
-      appendCustomArgument( args, entry, variableSpace );
+      appendCustomArgument( args, entry, variableSpace, false );
     }
   }
 
-  private static void appendCustomArgument( List<String> args, PropertyEntry arg, VariableSpace variableSpace ) {
+  private static void appendCustomArgument( List<String> args, PropertyEntry arg, VariableSpace variableSpace, boolean quote ) {
     String key = arg.getKey();
     String value = arg.getValue();
 
@@ -526,8 +526,12 @@ public class SqoopUtils {
       value = variableSpace.environmentSubstitute( value );
     }
 
+    if ( quote ) {
+      value = quote( escapeBackslash( value ) );
+    }
+
     args.add( ARG_D );
-    args.add( key + EQUALS + quote( escapeBackslash( value ) ) );
+    args.add( key + EQUALS + value );
   }
 
   private static String escapeBackslash( String s ) {
