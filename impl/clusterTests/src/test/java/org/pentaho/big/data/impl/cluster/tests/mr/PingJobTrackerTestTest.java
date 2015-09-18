@@ -72,12 +72,14 @@ public class PingJobTrackerTestTest {
   @Test
   public void testSuccess() {
     RuntimeTestResultEntry results = mock( RuntimeTestResultEntry.class );
+    String testDescription = "test-description";
+    when( results.getDescription() ).thenReturn( testDescription );
     ConnectivityTest connectivityTest = mock( ConnectivityTest.class );
     when( connectivityTestFactory.create( messageGetterFactory, jobTrackerHost, jobTrackerPort, true ) )
       .thenReturn( connectivityTest );
     when( connectivityTest.runTest() ).thenReturn( results );
     RuntimeTestResultSummary runtimeTestResultSummary = pingJobTrackerTest.runTest( namedCluster );
-    assertEquals( results, runtimeTestResultSummary.getOverallStatusEntry() );
+    assertEquals( testDescription, runtimeTestResultSummary.getOverallStatusEntry().getDescription() );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 
