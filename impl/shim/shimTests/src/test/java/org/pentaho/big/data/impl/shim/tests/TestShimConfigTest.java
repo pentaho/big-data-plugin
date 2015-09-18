@@ -70,10 +70,13 @@ public class TestShimConfigTest {
   @Test
   public void testConfigurationException() throws ConfigurationException {
     String testMessage = "testMessage";
+    String testId = "testId";
+    when( hadoopConfigurationBootstrap.getWillBeActiveConfigurationId() ).thenReturn( testId );
     when( hadoopConfigurationBootstrap.getProvider() ).thenThrow( new ConfigurationException( testMessage ) );
     RuntimeTestResultSummary runtimeTestResultSummary = testShimConfig.runTest( namedCluster );
     verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
-      RuntimeTestEntrySeverity.ERROR, messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ),
+      RuntimeTestEntrySeverity.ERROR,
+      messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC, testId ),
       testMessage, ConfigurationException.class );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
@@ -130,8 +133,9 @@ public class TestShimConfigTest {
 
     RuntimeTestResultSummary runtimeTestResultSummary = testShimConfig.runTest( namedCluster );
     verifyRuntimeTestResultEntry( runtimeTestResultSummary.getOverallStatusEntry(),
-      RuntimeTestEntrySeverity.WARNING, messageGetter.getMessage( TestShimConfig.TEST_SHIM_CONFIG_FS_NOMATCH_DESC ),
-      messageGetter.getMessage( TestShimConfig.TEST_SHIM_CONFIG_FS_NOMATCH_MESSAGE ) );
+      RuntimeTestEntrySeverity.WARNING,
+      messageGetter.getMessage( TestShimConfig.TEST_SHIM_CONFIG_FS_NOMATCH_DESC ),
+      messageGetter.getMessage( TestShimConfig.TEST_SHIM_CONFIG_FS_NOMATCH_MESSAGE, "maprfs://success:8020" ) );
     assertEquals( 0, runtimeTestResultSummary.getRuntimeTestResultEntries().size() );
   }
 

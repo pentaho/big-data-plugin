@@ -78,6 +78,7 @@ public class TestShimConfig extends BaseRuntimeTest {
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     String activeConfigurationId = "";
     try {
+      activeConfigurationId = hadoopConfigurationBootstrap.getWillBeActiveConfigurationId();
       // Get the active shim
       HadoopConfigurationProvider hadoopConfigurationProvider = hadoopConfigurationBootstrap.getProvider();
 
