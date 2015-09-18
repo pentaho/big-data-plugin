@@ -132,8 +132,7 @@ public class ClusterTestDialog extends Dialog {
 
     final ProgressBar progressBar = new ProgressBar( shell, SWT.SMOOTH );
     progressBar.setMinimum( 0 ); // Max tests will be set upon first return
-    progressBar.computeSize( SWT.DEFAULT, 22, true );
-
+    
     fd = new FormData();
     fd.top = new FormAttachment( testLabel, 10 );
     fd.left = new FormAttachment( 0, margin );
@@ -154,7 +153,6 @@ public class ClusterTestDialog extends Dialog {
 
     Rectangle shellBounds = Spoon.getInstance().getShell().getBounds();
 
-    shell.pack();
     shell.open();
 
     shell.setLocation(
