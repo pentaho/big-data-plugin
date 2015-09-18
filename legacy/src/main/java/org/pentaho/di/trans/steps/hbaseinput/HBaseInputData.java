@@ -519,6 +519,11 @@ public class HBaseInputData extends BaseStepData implements StepDataInterface {
         HBaseValueMeta currentCol = columnsMappedByAlias.get( name );
         String colFamilyName = currentCol.getColumnFamily();
         String qualifier = currentCol.getColumnName();
+        if ( currentCol.isKey() ) {
+          // skip key as it has already been processed 
+          // and is not in the scan's columns 
+          continue;
+        }
 
         boolean binaryColName = false;
         if ( qualifier.startsWith( "@@@binary@@@" ) ) {
