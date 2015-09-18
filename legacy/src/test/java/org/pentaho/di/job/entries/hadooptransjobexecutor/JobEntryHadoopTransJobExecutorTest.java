@@ -27,7 +27,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleException;
@@ -69,12 +68,12 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // TODO Refactor JobEntryHadoopTransJobExecutor so it can be tested better than this pseudo-integration test
@@ -389,7 +388,7 @@ public class JobEntryHadoopTransJobExecutorTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( true );
     jobEntryHadoopTransJobExecutor.configureWithKettleEnvironment( hadoopShim, configuration, fileSystem,
       kettleEnvInstallDir );
-    verify( configuration ).set( JobEntryHadoopTransJobExecutor.MAPREDUCE_APPLICATION_CLASSPATH,
+    org.mockito.Mockito.verify( configuration ).set( JobEntryHadoopTransJobExecutor.MAPREDUCE_APPLICATION_CLASSPATH,
       "classes/," + testClasspath );
   }
 
@@ -406,7 +405,7 @@ public class JobEntryHadoopTransJobExecutorTest {
     File transFile = File.createTempFile( transName, ".ktr" );
     transFile.deleteOnExit();
     IOUtils.write( "<transformation/>", new FileOutputStream( transFile ) );
-    Mockito.when(
+    when(
       naming.nameResource( transFile.getName(),
         KettleVFS.getFileObject( transFile.getAbsolutePath() ).getParent().getURL().toString(),
         "ktr", ResourceNamingInterface.FileNamingType.TRANSFORMATION ) ).thenReturn( transFile.getName() );
