@@ -33,7 +33,7 @@
             <useProjectArtifact>false</useProjectArtifact>
             <outputFileNameMapping>pentaho-mapreduce-libraries.zip</outputFileNameMapping>
             <includes>
-              <include>pentaho:pentaho-big-data-assemblies-pmr-libraries</include>
+              <include>com.pentaho.hds:pentaho-big-data-assemblies-pmr-libraries</include>
             </includes>
         </dependencySet>
         <dependencySet>

@@ -177,7 +177,7 @@
 
     <!-- PMR libs -->
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
       <version>${project.version}</version>
       <classifier>plugin</classifier>
