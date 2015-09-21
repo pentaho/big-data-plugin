@@ -32,6 +32,7 @@
         <module>impl</module>
         <module>kettle-plugins</module>
         <module>assemblies</module>
+        <module>mapr-osgi-jaas</module>
     </modules>
 
     <properties>
@@ -63,6 +64,7 @@
         <dependency.metastore.revision>${project.version}</dependency.metastore.revision>
         <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
         <dependency.oozie.revision>3.1.3-incubating</dependency.oozie.revision>
+        <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
         <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
         <dependency.hadoop-shims-api.revision>${project.version}</dependency.hadoop-shims-api.revision>
         <dependency.hadoop-shims-cdh54.revision>${project.version}</dependency.hadoop-shims-cdh54.revision>
@@ -96,6 +98,9 @@
         <testResources>
             <testResource>
                 <directory>src/it/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
             </testResource>
         </testResources>
         <plugins>
