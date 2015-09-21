@@ -9,6 +9,7 @@ override.properties
 .settings/
 /dev-lib
 /pdi-null
+/legacy/pdi-null
 /pdi-bin
 *.iml
 .idea/
