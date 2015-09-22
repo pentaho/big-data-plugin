@@ -890,7 +890,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         tableItem.setText( 2, m_keyType.toString() );
         HBaseValueMeta vm = m_mappedColumns.get( transMeta.environmentSubstitute( alias ) );
         if ( vm != null ) {
-          vm.setType( getKettleTypeByKeyType( m_keyType ) );
+          vm.setType( HBaseInput.getKettleTypeByKeyType( m_keyType ) );
           String type = ValueMetaBase.getTypeDesc( vm.getType() );
           tableItem.setText( 2, type );
           return vm;
@@ -932,45 +932,6 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     }
 
     return null;
-  }
-
-  public static int getKettleTypeByKeyType( Mapping.KeyType keyType ) {
-    if ( keyType == null ) {
-      return ValueMetaInterface.TYPE_NONE;
-    }
-
-    if ( keyType == Mapping.KeyType.BINARY ) {
-      return ValueMetaInterface.TYPE_BINARY; // raw bytes for the key
-    }
-
-    if ( keyType == Mapping.KeyType.STRING ) {
-      return ValueMetaInterface.TYPE_STRING;
-    }
-
-    if ( keyType == Mapping.KeyType.UNSIGNED_LONG
-      || keyType == Mapping.KeyType.UNSIGNED_DATE ) {
-      if ( keyType == Mapping.KeyType.UNSIGNED_DATE ) {
-        return ValueMetaInterface.TYPE_DATE;
-      }
-      return ValueMetaInterface.TYPE_NUMBER;
-    }
-
-    if ( keyType == Mapping.KeyType.UNSIGNED_INTEGER ) {
-      return ValueMetaInterface.TYPE_NUMBER;
-    }
-
-    if ( keyType == Mapping.KeyType.INTEGER ) {
-      return ValueMetaInterface.TYPE_NUMBER; // Kettle uses longs
-    }
-
-    if ( keyType == Mapping.KeyType.LONG || keyType == Mapping.KeyType.DATE ) {
-      if ( keyType == Mapping.KeyType.DATE ) {
-        return ValueMetaInterface.TYPE_DATE;
-      }
-
-      return ValueMetaInterface.TYPE_NUMBER;
-    }
-    return ValueMetaInterface.TYPE_NONE;
   }
 
   protected void updateMetaConnectionDetails( HBaseInputMeta meta ) {

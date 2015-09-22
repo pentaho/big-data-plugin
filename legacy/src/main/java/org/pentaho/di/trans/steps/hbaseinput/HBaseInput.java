@@ -29,6 +29,7 @@ import java.util.Map;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -158,10 +159,10 @@ public class HBaseInput extends BaseStep implements StepInterface {
         }
       }
       String combinedName = HBaseValueMeta.SEPARATOR + HBaseValueMeta.SEPARATOR + m_tableMapping.getKeyName();
-      HBaseValueMeta vm2 = new HBaseValueMeta( combinedName, HBaseInputDialog.getKettleTypeByKeyType( m_tableMapping.getKeyType() ), -1, -1 );
+      HBaseValueMeta vm2 = new HBaseValueMeta( combinedName, getKettleTypeByKeyType( m_tableMapping.getKeyType() ), -1, -1 );
       vm2.setKey( true );
       try {
-        m_tableMapping.addMappedColumn( vm2, m_tableMapping.isTupleMapping());
+        m_tableMapping.addMappedColumn( vm2, m_tableMapping.isTupleMapping() );
       } catch ( java.lang.Exception exception ) {
         exception.printStackTrace();
       }
@@ -268,6 +269,28 @@ public class HBaseInput extends BaseStep implements StepInterface {
               .getOutputRowMeta(), m_bytesUtil );
       putRow( m_data.getOutputRowMeta(), outRowData );
       return true;
+    }
+  }
+
+  public static int getKettleTypeByKeyType( Mapping.KeyType keyType ) {
+    if ( keyType == null ) {
+      return ValueMetaInterface.TYPE_NONE;
+    }
+    switch( keyType ) {
+      case BINARY:
+        return ValueMetaInterface.TYPE_BINARY;
+      case STRING:
+        return ValueMetaInterface.TYPE_STRING;
+      case UNSIGNED_LONG:
+      case UNSIGNED_INTEGER:
+      case LONG:
+      case INTEGER:
+        return ValueMetaInterface.TYPE_NUMBER;
+      case UNSIGNED_DATE:
+      case DATE:
+        return ValueMetaInterface.TYPE_DATE;
+      default:
+        return ValueMetaInterface.TYPE_NONE;
     }
   }
 
