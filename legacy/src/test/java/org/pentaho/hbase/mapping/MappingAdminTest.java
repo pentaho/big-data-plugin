@@ -42,6 +42,10 @@ import org.pentaho.hbase.shim.spi.HBaseConnection;
 
 public class MappingAdminTest {
 
+  public static final String MAPPING_TABLE_NAME = "TestTable";
+  public static final String MAPPING_MAPPING_NAME = "TestMapping";
+  public static final String MAPPING_KEY_NAME = "TestTableKey";
+
   protected MappingAdmin initMappingAdmin( HBaseConnection conn ) throws Exception {
     HBaseBytesUtilShim bytesUtil = conn.getBytesUtil();
     MappingAdmin ma = new MappingAdmin( conn, bytesUtil );
@@ -51,12 +55,28 @@ public class MappingAdminTest {
   }
 
   protected void createAMapping( MappingAdmin ma, boolean overwrite ) throws Exception {
-    Mapping aMapping = new Mapping( "TestTable", "TestMapping", "TestTableKey", Mapping.KeyType.STRING );
+    Mapping aMapping = new Mapping( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME, MAPPING_KEY_NAME, Mapping.KeyType.STRING );
 
     HBaseValueMeta vm =
         new HBaseValueMeta( "Family1" + HBaseValueMeta.SEPARATOR + "Col1" + HBaseValueMeta.SEPARATOR + "Col1",
             ValueMetaInterface.TYPE_STRING, -1, -1 );
     aMapping.addMappedColumn( vm, false );
+
+    ma.putMapping( aMapping, overwrite );
+  }
+
+  protected void createAMappingWithKeyColumn( MappingAdmin ma, boolean overwrite ) throws Exception {
+    Mapping aMapping =
+      new Mapping( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME, MAPPING_KEY_NAME, Mapping.KeyType.STRING );
+
+    HBaseValueMeta vm =
+      new HBaseValueMeta( "Family1" + HBaseValueMeta.SEPARATOR + "Col1" + HBaseValueMeta.SEPARATOR + "Col1",
+        ValueMetaInterface.TYPE_STRING, -1, -1 );
+    HBaseValueMeta vmKey =
+      new HBaseValueMeta( "" + HBaseValueMeta.SEPARATOR + "" + HBaseValueMeta.SEPARATOR + "Key",
+        ValueMetaInterface.TYPE_STRING, -1, -1 );
+    aMapping.addMappedColumn( vm, false );
+    aMapping.addMappedColumn( vmKey, false );
 
     ma.putMapping( aMapping, overwrite );
   }
@@ -94,7 +114,7 @@ public class MappingAdminTest {
     MappingAdmin ma = initMappingAdmin( conn );
     createAMapping( ma, false );
 
-    assertTrue( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertTrue( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
   }
 
   @Test
@@ -104,7 +124,7 @@ public class MappingAdminTest {
     MappingAdmin ma = initMappingAdmin( conn );
     createAMapping( ma, false );
 
-    assertTrue( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertTrue( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
 
     try {
       createAMapping( ma, false );
@@ -122,13 +142,13 @@ public class MappingAdminTest {
     MappingAdmin ma = initMappingAdmin( conn );
     createAMapping( ma, false );
 
-    assertTrue( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertTrue( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
 
     createAMapping( ma, true );
-    assertTrue( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertTrue( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
     assertEquals( ma.getMappedTables().size(), 1 );
-    assertEquals( ma.getMappingNames( "TestTable" ).size(), 1 );
-    assertEquals( ma.getMappingNames( "TestTable" ).get( 0 ), "TestMapping" );
+    assertEquals( ma.getMappingNames( MAPPING_TABLE_NAME ).size(), 1 );
+    assertEquals( ma.getMappingNames( MAPPING_TABLE_NAME ).get( 0 ), MAPPING_MAPPING_NAME );
   }
 
   @Test
@@ -155,10 +175,10 @@ public class MappingAdminTest {
 
     createAMapping( ma, false );
 
-    List<String> mappings = ma.getMappingNames( "TestTable" );
+    List<String> mappings = ma.getMappingNames( MAPPING_TABLE_NAME );
     assertTrue( mappings != null );
     assertEquals( mappings.size(), 1 );
-    assertEquals( mappings.get( 0 ), "TestMapping" );
+    assertEquals( mappings.get( 0 ), MAPPING_MAPPING_NAME );
   }
 
   @Test
@@ -168,13 +188,13 @@ public class MappingAdminTest {
     MappingAdmin ma = initMappingAdmin( conn );
     createAMapping( ma, false );
 
-    assertTrue( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertTrue( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
 
-    Mapping retrieved = ma.getMapping( "TestTable", "TestMapping" );
+    Mapping retrieved = ma.getMapping( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME );
 
     assertTrue( retrieved != null );
 
-    assertEquals( retrieved.getKeyName(), "TestTableKey" );
+    assertEquals( retrieved.getKeyName(), MAPPING_KEY_NAME );
     assertEquals( retrieved.getKeyType(), Mapping.KeyType.STRING );
     assertTrue( !retrieved.isTupleMapping() );
     assertTrue( retrieved.getMappedColumns() != null );
@@ -206,10 +226,26 @@ public class MappingAdminTest {
     MappingAdmin ma = initMappingAdmin( conn );
     createAMapping( ma, false );
 
-    assertTrue( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertTrue( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
 
-    ma.deleteMapping( "TestTable", "TestMapping" );
+    ma.deleteMapping( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME );
 
-    assertFalse( ma.mappingExists( "TestTable", "TestMapping" ) );
+    assertFalse( ma.mappingExists( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME ) );
+  }
+
+  @Test
+  public void testGetMapping() throws Exception {
+    FakeHBaseConnection conn = new FakeHBaseConnection();
+
+    MappingAdmin ma = initMappingAdmin( conn );
+    createAMappingWithKeyColumn( ma, true );
+    Mapping mapping = null;
+    try {
+      mapping = ma.getMapping( MAPPING_TABLE_NAME, MAPPING_MAPPING_NAME );
+    } catch ( Exception e ) {
+      fail( "GetMapping should not throw exception" );
+    }
+
+    assertTrue( mapping.getMappedColumns().size() == 1 );
   }
 }
