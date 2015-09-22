@@ -22,14 +22,6 @@
 
 package org.pentaho.di.trans.steps.hbaseinput;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.junit.Test;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMeta;
@@ -46,6 +38,15 @@ import org.pentaho.hbase.shim.common.CommonHBaseBytesUtil;
 import org.pentaho.hbase.shim.fake.FakeHBaseConnection;
 import org.pentaho.hbase.shim.spi.HBaseBytesUtilShim;
 import org.pentaho.hbase.shim.spi.HBaseConnection;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class HBaseInputTest {
 
@@ -381,5 +382,29 @@ public class HBaseInputTest {
     }
 
     assertEquals( 500, count );
+  }
+
+  @Test
+  public void testGetKettleTypeByKeyType() {
+    Map<Mapping.KeyType, Integer> expectedTypes = new HashMap<>();
+    expectedTypes.put( null, ValueMetaInterface.TYPE_NONE );
+    expectedTypes.put( Mapping.KeyType.BINARY, ValueMetaInterface.TYPE_BINARY );
+    expectedTypes.put( Mapping.KeyType.STRING, ValueMetaInterface.TYPE_STRING );
+    expectedTypes.put( Mapping.KeyType.UNSIGNED_LONG, ValueMetaInterface.TYPE_NUMBER );
+    expectedTypes.put( Mapping.KeyType.UNSIGNED_INTEGER, ValueMetaInterface.TYPE_NUMBER );
+    expectedTypes.put( Mapping.KeyType.INTEGER, ValueMetaInterface.TYPE_NUMBER );
+    expectedTypes.put( Mapping.KeyType.LONG, ValueMetaInterface.TYPE_NUMBER );
+    expectedTypes.put( Mapping.KeyType.UNSIGNED_DATE, ValueMetaInterface.TYPE_DATE );
+    expectedTypes.put( Mapping.KeyType.DATE, ValueMetaInterface.TYPE_DATE );
+    for ( Map.Entry<Mapping.KeyType, Integer> keyTypeIntegerEntry : expectedTypes.entrySet() ) {
+      assertEquals( "Expected KeyType " + keyTypeIntegerEntry.getKey() + " to map to " + keyTypeIntegerEntry.getValue(),
+        keyTypeIntegerEntry.getValue().intValue(), HBaseInput.getKettleTypeByKeyType( keyTypeIntegerEntry.getKey() ) );
+    }
+    for ( Mapping.KeyType keyType : Mapping.KeyType.values() ) {
+      if ( !expectedTypes.containsKey( keyType ) ) {
+        assertEquals( "Expected KeyType " + keyType + " to map to " + ValueMetaInterface.TYPE_NONE,
+          ValueMetaInterface.TYPE_NONE, HBaseInput.getKettleTypeByKeyType( keyType ) );
+      }
+    }
   }
 }
