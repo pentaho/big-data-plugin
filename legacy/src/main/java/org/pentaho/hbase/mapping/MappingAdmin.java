@@ -959,7 +959,7 @@ public class MappingAdmin {
       newMeta.setMappingName( mappingName );
       // check that this one doesn't have the same name as the key!
       String alias = newMeta.getAlias();
-      if ( !Mapping.TupleMapping.KEY.toString().equals( alias ) ) {
+      if ( !Mapping.TupleMapping.KEY.toString().equalsIgnoreCase( alias ) ) {
         if ( resultMapping.getKeyName().equals( alias ) ) {
           throw new IOException( "Error in mapping. Column \"" + newMeta.getAlias()
             + "\" has the same name as the table key (" + resultMapping.getKeyName() + ")" );
