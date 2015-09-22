@@ -55,8 +55,8 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.steps.hbaseinput.HBaseInput;
 import org.pentaho.di.trans.steps.hbaseinput.HBaseInputData;
-import org.pentaho.di.trans.steps.hbaseinput.HBaseInputDialog;
 import org.pentaho.di.trans.steps.hbaseinput.Messages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -823,7 +823,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         vm.setKey( true );
         try {
           theMapping.setKeyTypeAsString( type );
-          vm.setType( HBaseInputDialog.getKettleTypeByKeyType( theMapping.getKeyType() ) );
+          vm.setType( HBaseInput.getKettleTypeByKeyType( theMapping.getKeyType() ) );
           theMapping.addMappedColumn( vm, isTupleMapping );
         } catch ( Exception ex ) {
           // Ignore
