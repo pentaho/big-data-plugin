@@ -3,7 +3,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>pentaho-hadoop-shims-mapr-osgi-jaas</artifactId>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>Fix for broken mapr jaas configuration inside OSGi environment</description>
   <parent>
