@@ -174,7 +174,17 @@ public class ShimBridgingClassloader extends ClassLoader {
     }
     if ( result == null ) {
       try {
-        return bundleWiringClassloader.loadClass( name, resolve );
+        Class<?> osgiProvidedClass = bundleWiringClassloader.loadClass( name, resolve );
+        if ( osgiProvidedClass.getClassLoader() == PluginRegistry.class.getClassLoader() ) {
+          // Give parent a chance to supercede the system classloader (workaround for boot delegation of packages we
+          // should have loaded from the parent)
+          try {
+            return super.loadClass( name, resolve );
+          } catch ( Exception e ) {
+            // Ignore
+          }
+        }
+        return osgiProvidedClass;
       } catch ( Exception e ) {
         // Ignore
       }
