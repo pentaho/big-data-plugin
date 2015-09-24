@@ -20,6 +20,7 @@
 
 package org.pentaho.di.core.hadoop;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
@@ -52,6 +53,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class serves to initialize the Hadoop Configuration subsystem. This class provides an anchor point for all
@@ -66,11 +69,19 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   public static final String CONFIG_PROPERTIES = "config.properties";
   private static final Class<?> PKG = HadoopConfigurationBootstrap.class;
   public static final String PMR_PROPERTIES = "pmr.properties";
+  private static final String NOTIFICATIONS_BEFORE_LOADING_SHIM = "notificationsBeforeLoadingShim";
+  private static final String MAX_TIMEOUT_BEFORE_LOADING_SHIM = "maxTimeoutBeforeLoadingShim";
   private static LogChannelInterface log = new LogChannel( BaseMessages.getString( PKG,
     "HadoopConfigurationBootstrap.LoggingPrefix" ) );
   private static HadoopConfigurationBootstrap instance = new HadoopConfigurationBootstrap();
   private final Set<HadoopConfigurationListener> hadoopConfigurationListeners =
     Collections.newSetFromMap( new ConcurrentHashMap<HadoopConfigurationListener, Boolean>() );
+  /**
+   * Number of notifications to receive before shim may be loaded.
+   */
+  private final CountDownLatch remainingDependencies = new CountDownLatch(
+    NumberUtils.toInt( getMergedPmrAndPluginProperties().getProperty( NOTIFICATIONS_BEFORE_LOADING_SHIM ), 0 ) );
+
   private HadoopConfigurationPrompter prompter;
   private HadoopConfigurationProvider provider;
   /**
@@ -96,6 +107,25 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   }
 
   public HadoopConfigurationProvider getProvider() throws ConfigurationException {
+    try {
+      int timeout =
+          NumberUtils.toInt( getMergedPmrAndPluginProperties().getProperty( MAX_TIMEOUT_BEFORE_LOADING_SHIM ), 300 );
+      CountDownLatch remainingDependencies = getRemainingDependencies();
+      long nrNotifications = remainingDependencies.getCount();
+      if ( nrNotifications > 0 ) {
+        log.logDebug(
+            BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.WaitForShimLoad", nrNotifications, timeout ) );
+      }
+      remainingDependencies.await( timeout, TimeUnit.SECONDS );
+    } catch ( InterruptedException e ) {
+      // Make sure wait happens on first load only
+      while ( remainingDependencies.getCount() > 0 ) {
+        remainingDependencies.countDown();
+      }
+
+      Thread.currentThread().interrupt();
+    }
+
     initProvider();
     return provider;
   }
@@ -232,6 +262,8 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
     }
   }
 
+
+
   /**
    * @return the {@link PluginInterface} for the HadoopSpoonPlugin. Will be used to resolve plugin directory
    * @throws KettleException Unable to locate ourself in the Plugin Registry
@@ -319,20 +351,15 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
 
   @Override
   public void onEnvironmentInit() throws LifecycleException {
-    InputStream pmrProperties = HadoopConfigurationBootstrap.class.getClassLoader().getResourceAsStream(
-      PMR_PROPERTIES );
-    if ( pmrProperties != null ) {
-      Properties properties = new Properties();
+    Properties pmrProperties = getPmrProperties();
+    String isPmr = pmrProperties.getProperty( "isPmr", "false" );
+    if ( "true".equals( isPmr ) ) {
       try {
-        properties.load( pmrProperties );
-        String isPmr = properties.getProperty( "isPmr", "false" );
-        if ( "true".equals( isPmr ) ) {
-          log.logDebug(
-            BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InitializingShimPmr" ) );
-          getInstance().getProvider();
-          log.logBasic(
-            BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InitializedShimPmr" ) );
-        }
+        log.logDebug(
+          BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InitializingShimPmr" ) );
+        getInstance().getProvider();
+        log.logBasic(
+          BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.InitializedShimPmr" ) );
       } catch ( Exception e ) {
         throw new LifecycleException( BaseMessages.getString( PKG,
           "HadoopConfigurationBootstrap.HadoopConfiguration.StartupError" ), e, true );
@@ -355,5 +382,40 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
 
   public void unregisterHadoopConfigurationListener( HadoopConfigurationListener hadoopConfigurationListener ) {
     hadoopConfigurationListeners.remove( hadoopConfigurationListener );
+  }
+
+  public void notifyDependencyLoaded() {
+    getRemainingDependencies().countDown();
+  }
+
+  protected Properties getMergedPmrAndPluginProperties() {
+    Properties properties = new Properties();
+    try {
+      properties.putAll( getPluginProperties() );
+    } catch ( Exception ce ) {
+      // Ignore, will use defaults
+    }
+
+    properties.putAll( getPmrProperties() );
+
+    return properties;
+  }
+
+  protected CountDownLatch getRemainingDependencies () {
+    return remainingDependencies;
+  }
+
+  private Properties getPmrProperties() {
+    InputStream pmrProperties = HadoopConfigurationBootstrap.class.getClassLoader().getResourceAsStream(
+        PMR_PROPERTIES );
+    Properties properties = new Properties();
+    if ( pmrProperties != null ) {
+      try {
+        properties.load( pmrProperties );
+      } catch ( IOException ioe ) {
+        // pmr.properties not available
+      }
+    }
+    return properties;
   }
 }
