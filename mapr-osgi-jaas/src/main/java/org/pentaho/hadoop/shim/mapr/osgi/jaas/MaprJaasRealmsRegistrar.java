@@ -52,7 +52,9 @@ public class MaprJaasRealmsRegistrar implements HadoopConfigurationListener {
 
   public MaprJaasRealmsRegistrar( BundleContext bundleContext ) throws ConfigurationException {
     this.bundleContext = bundleContext;
-    HadoopConfigurationBootstrap.getInstance().registerHadoopConfigurationListener( this );
+    HadoopConfigurationBootstrap hcb = HadoopConfigurationBootstrap.getInstance();
+    hcb.registerHadoopConfigurationListener( this );
+    hcb.notifyDependencyLoaded();
   }
 
   @Override public void onClassLoaderAvailable( ClassLoader classLoader ) {
