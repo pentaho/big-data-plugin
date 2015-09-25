@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
@@ -40,14 +41,18 @@ import org.pentaho.metastore.persist.MetaStoreFactory;
 import org.pentaho.metastore.util.PentahoDefaults;
 
 public class NamedClusterManager {
+  private static final NamedClusterManager instance = new NamedClusterManager( new MetaStoreFactoryFactory() );
 
-  private static NamedClusterManager instance = new NamedClusterManager();
+  private final MetaStoreFactoryFactory metaStoreFactoryFactory;
 
-  private Map<IMetaStore, MetaStoreFactory<NamedCluster>> factoryMap = new HashMap<IMetaStore, MetaStoreFactory<NamedCluster>>();
+  private final Map<IMetaStore, MetaStoreFactory<NamedCluster>> factoryMap;
 
   private NamedCluster clusterTemplate;
 
-  private NamedClusterManager() {
+  @VisibleForTesting
+  NamedClusterManager( MetaStoreFactoryFactory metaStoreFactoryFactory ) {
+    this.metaStoreFactoryFactory = metaStoreFactoryFactory;
+    factoryMap = new HashMap<>();
   }
 
   public static NamedClusterManager getInstance() {
@@ -56,7 +61,7 @@ public class NamedClusterManager {
 
   private MetaStoreFactory<NamedCluster> getMetaStoreFactory( IMetaStore metastore ) {
     if ( factoryMap.get( metastore ) == null ) {
-      factoryMap.put( metastore, new MetaStoreFactory<NamedCluster>( NamedCluster.class, metastore, PentahoDefaults.NAMESPACE ) );
+      factoryMap.put( metastore, metaStoreFactoryFactory.createFactory( metastore ) );
     }
     return factoryMap.get( metastore );
   }
@@ -198,20 +203,21 @@ public class NamedClusterManager {
    *          the name of the NamedCluster to use to create the URL
    * @return the generated URL from the specific NamedCluster or null if an error occurs
    */
-  private String generateURL( String scheme, String clusterName, IMetaStore metastore, VariableSpace variableSpace ) {
+  @VisibleForTesting
+  String generateURL( String scheme, String clusterName, IMetaStore metastore, VariableSpace variableSpace ) {
     String clusterURL = null;
     try {
       if ( !Const.isEmpty( scheme ) && !Const.isEmpty( clusterName ) && metastore != null ) {
         NamedCluster namedCluster = read( clusterName, metastore );
         if ( namedCluster != null ) {
-          String ncHostname = null, ncPort = null, ncUsername = null, ncPassword = null;
-
-          if ( scheme.equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
-            ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost() : "";
-            ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort() : "";
-            ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
-            ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
+          if ( !scheme.equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
+            return null;
           }
+
+          String ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost() : "";
+          String ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort() : "";
+          String ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
+          String ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
 
           if ( variableSpace != null ) {
             variableSpace.initializeVariablesFrom( namedCluster.getParentVariableSpace() );
@@ -238,7 +244,14 @@ public class NamedClusterManager {
           }
 
           ncHostname = ncHostname != null ? ncHostname.trim() : "";
-          ncPort = ncPort != null ? ncPort.trim() : "";
+          if ( ncPort == null ) {
+            ncPort = "-1";
+          } else {
+            ncPort = ncPort.trim();
+            if ( Const.isEmpty( ncPort ) ) {
+              ncPort = "-1";
+            }
+          }
           ncUsername = ncUsername != null ? ncUsername.trim() : "";
           ncPassword = ncPassword != null ? ncPassword.trim() : "";
 
@@ -316,5 +329,11 @@ public class NamedClusterManager {
       return null;
     }
     return null;
+  }
+
+  static class MetaStoreFactoryFactory {
+    MetaStoreFactory<NamedCluster> createFactory( IMetaStore metaStore ) {
+      return new MetaStoreFactory<>( NamedCluster.class, metaStore, PentahoDefaults.NAMESPACE );
+    }
   }
 }
