@@ -634,7 +634,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     if ( m_storeMappingInStepMetaData.getSelection() ) {
       if ( Const.isEmpty( m_mappingNamesCombo.getText() ) ) {
         List<String> problems = new ArrayList<String>();
-        Mapping toSet = m_mappingEditor.getMapping( false, problems );
+        Mapping toSet = m_mappingEditor.getMapping( false, problems, false );
         if ( problems.size() > 0 ) {
           StringBuffer p = new StringBuffer();
           for ( String s : problems ) {
