@@ -666,6 +666,12 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   }
 
   public Mapping getMapping( boolean performChecksAndShowGUIErrorDialog, List<String> problems ) {
+    return getMapping( performChecksAndShowGUIErrorDialog, problems, false );
+  }
+  /**
+   *  Parameter includeKeyToColumns should be true if only we need key to be included in mapColumns and mapAliases
+   */
+  public Mapping getMapping( boolean performChecksAndShowGUIErrorDialog, List<String> problems, Boolean includeKeyToColumns ) {
     String tableName = "";
     if ( !Const.isEmpty( m_existingTableNamesCombo.getText().trim() ) ) {
       tableName = m_existingTableNamesCombo.getText().trim();
@@ -824,7 +830,9 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         try {
           theMapping.setKeyTypeAsString( type );
           vm.setType( HBaseInput.getKettleTypeByKeyType( theMapping.getKeyType() ) );
-          theMapping.addMappedColumn( vm, isTupleMapping );
+          if ( includeKeyToColumns ) {
+            theMapping.addMappedColumn( vm, isTupleMapping );
+          }
         } catch ( Exception ex ) {
           // Ignore
         }
@@ -918,7 +926,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
   private void saveMapping() {
 
-    Mapping theMapping = getMapping( true, null );
+    Mapping theMapping = getMapping( true, null, false );
     if ( theMapping == null ) {
       // some problem with the mapping (user will have been informed via dialog)
       return;

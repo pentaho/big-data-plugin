@@ -318,7 +318,7 @@ public class HBaseRowDecoderDialog extends BaseStepDialog implements StepDialogI
     m_currentMeta.setIncomingKeyField( m_incomingKeyCombo.getText() );
     m_currentMeta.setIncomingResultField( m_incomingResultCombo.getText() );
     List<String> problems = new ArrayList<String>();
-    Mapping mapping = m_mappingEditor.getMapping( false, problems );
+    Mapping mapping = m_mappingEditor.getMapping( false, problems, false );
     if ( problems.size() > 0 ) {
       StringBuffer p = new StringBuffer();
       for ( String s : problems ) {
