@@ -1048,7 +1048,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       if ( Const.isEmpty( m_mappingNamesCombo.getText() ) ) {
         List<String> problems = new ArrayList<String>();
 
-        Mapping toSet = m_mappingEditor.getMapping( false, problems );
+        Mapping toSet = m_mappingEditor.getMapping( false, problems, false );
         if ( problems.size() > 0 ) {
           StringBuffer p = new StringBuffer();
           for ( String s : problems ) {
@@ -1237,7 +1237,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     }
 
     boolean displayFieldsEmbeddedMapping =
-        ( ( m_mappingEditor.getMapping( false, null ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
+        ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
         ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) )
             && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
@@ -1264,7 +1264,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
                 admin.getMapping( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ), transMeta
                     .environmentSubstitute( m_mappingNamesCombo.getText() ) );
           } else {
-            current = m_mappingEditor.getMapping( false, null );
+            current = m_mappingEditor.getMapping( false, null, true );
           }
 
           if ( current != null ) {
