@@ -1,42 +1,39 @@
 /*******************************************************************************
- *
- * Pentaho Big Data
- *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- ******************************************************************************/
+*
+* Pentaho Big Data
+*
+* Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+*
+*******************************************************************************
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+*
+*    http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+******************************************************************************/
 
 package org.pentaho.di.job.entries.hadooptransjobexecutor;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.Plugin;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
-import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -54,9 +51,8 @@ import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.common.CommonHadoopShim;
 import org.pentaho.hadoop.shim.common.ConfigurationProxy;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.metastore.api.IMetaStore;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -69,6 +65,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.anyObject;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -116,7 +113,7 @@ public class JobEntryHadoopTransJobExecutorTest {
         } catch ( Exception ex ) {
           throw new ConfigurationException( "Error creating mock hadoop configuration", ex );
         }
-      };
+      }
     };
     executor.setParentJob( job );
     executor.setHadoopJobName( "hadoop job name" );
@@ -352,25 +349,34 @@ public class JobEntryHadoopTransJobExecutorTest {
   }
 
   @Test
-  public void testExportDefinitionHasMapperCombinerReducer() throws Throwable {
-    final JobEntryHadoopTransJobExecutor exec = new JobEntryHadoopTransJobExecutor();
-    final ResourceNamingInterface naming = mock( ResourceNamingInterface.class );
+  public void exportResources() throws Throwable {
 
-    File mapTrans = setupTransFile( naming, "mapTrans" );
-    exec.setMapTrans( mapTrans.getAbsolutePath() );
+    // Init mocks
+    Map<String, ResourceDefinition> definitions = new HashMap<String, ResourceDefinition>();
+    Repository rep = createNiceMock( Repository.class );
+    ObjectId oid = createMock( ObjectId.class );
+    TransMeta tm = createNiceMock( TransMeta.class );
+    ResourceNamingInterface rni = createNiceMock( ResourceNamingInterface.class );
+    IMetaStore metaStore = createNiceMock( IMetaStore.class );
 
-    exec.setCombinerTrans( "" );
+    // fill with sample data
+    JobEntryHadoopTransJobExecutor exec = new JobEntryHadoopTransJobExecutor();
+    exec.setReduceRepositoryReference( oid );
 
-    final File reduceTrans = setupTransFile( naming, "reduceTrans" );
-    exec.setReduceTrans( reduceTrans.getAbsolutePath() );
+    expect(
+      tm.exportResources( anyObject( VariableSpace.class ), (Map<String, ResourceDefinition>) anyObject(),
+        anyObject( ResourceNamingInterface.class ),
+        anyObject( Repository.class ), anyObject( IMetaStore.class ) ) ).andStubReturn( "newPath" );
+    replay( tm );
+    expect( rep.loadTransformation( oid, null ) ).andReturn( tm );
+    replay( rep );
 
-    final HashMap<String, ResourceDefinition> definitions = new HashMap<String, ResourceDefinition>();
-    exec.exportResources( exec, definitions, naming, null, null );
-    assertEquals( 2, definitions.size() );
-    assertDefinition( mapTrans, definitions );
-    assertDefinition( reduceTrans, definitions );
+    exec.exportResources( null, definitions, rni, rep, metaStore );
+    verify( rep );
+
+    assertEquals( "${Internal.Job.Filename.Directory}/newPath", exec.getReduceTrans() );
   }
-
+  
   @Test
   public void testConfigureMapreduceClasspath() throws Throwable {
     JobEntryHadoopTransJobExecutor jobEntryHadoopTransJobExecutor = new JobEntryHadoopTransJobExecutor();
@@ -390,25 +396,5 @@ public class JobEntryHadoopTransJobExecutorTest {
       kettleEnvInstallDir );
     org.mockito.Mockito.verify( configuration ).set( JobEntryHadoopTransJobExecutor.MAPREDUCE_APPLICATION_CLASSPATH,
       "classes/," + testClasspath );
-  }
-
-  private void assertDefinition( final File transFile, final HashMap<String, ResourceDefinition> definitions )
-    throws FileSystemException, KettleFileException {
-    ResourceDefinition definition =
-      definitions.get( KettleVFS.getFileObject( transFile.getAbsolutePath() ).getURL().toString() );
-    assertEquals( transFile.getName(), definition.getFilename() );
-    assertTrue( definition.getContent().startsWith( "<transformation" ) );
-  }
-
-  private File setupTransFile( final ResourceNamingInterface naming, final String transName )
-    throws IOException, KettleFileException {
-    File transFile = File.createTempFile( transName, ".ktr" );
-    transFile.deleteOnExit();
-    IOUtils.write( "<transformation/>", new FileOutputStream( transFile ) );
-    when(
-      naming.nameResource( transFile.getName(),
-        KettleVFS.getFileObject( transFile.getAbsolutePath() ).getParent().getURL().toString(),
-        "ktr", ResourceNamingInterface.FileNamingType.TRANSFORMATION ) ).thenReturn( transFile.getName() );
-    return transFile;
   }
 }
