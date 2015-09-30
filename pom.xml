@@ -67,11 +67,8 @@
         <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
         <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
         <dependency.hadoop-shims-api.revision>${project.version}</dependency.hadoop-shims-api.revision>
-        <dependency.hadoop-shims-cdh54.revision>${project.version}</dependency.hadoop-shims-cdh54.revision>
         <dependency.hadoop-shims-hadoop-20.revision>${project.version}</dependency.hadoop-shims-hadoop-20.revision>
-        <dependency.hadoop-shims-hdp22.revision>${project.version}</dependency.hadoop-shims-hdp22.revision>
-        <dependency.hadoop-shims-mapr410.revision>${project.version}</dependency.hadoop-shims-mapr410.revision>
-        <dependency.hadoop-shims-emr34.revision>${project.version}</dependency.hadoop-shims-emr34.revision>
+        <dependency.hadoop-shims-hsp101.revision>${project.version}</dependency.hadoop-shims-hsp101.revision>
         <dependency.pentaho-s3-vfs.revision>${project.version}</dependency.pentaho-s3-vfs.revision>
         <dependency.slf4j.revision>1.7.3</dependency.slf4j.revision>
         <dependency.xstream.revision>1.4.2</dependency.xstream.revision>
