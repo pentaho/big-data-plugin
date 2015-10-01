@@ -21,17 +21,17 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.kettle.revision}</version>
     </dependency>
   </dependencies>
 </project>
