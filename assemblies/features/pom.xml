@@ -33,6 +33,7 @@
   
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
   </properties>
 
   <build>
@@ -96,6 +97,52 @@
                   <classifier>features</classifier>
                 </artifact>
               </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.karaf.tooling</groupId>
+        <artifactId>features-maven-plugin</artifactId>
+        <version>${dependency.karaf.revision}</version>
+        <executions>
+          <execution>
+            <id>compile</id>
+          </execution>
+          <execution>
+            <id>add-features-to-standalone-repo</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>add-features-to-repo</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>mvn:pentaho-karaf-features/pentaho-big-data-plugin-osgi-hds/${project.version}/xml/features</descriptor>
+              </descriptors>
+              <features>
+                <feature>pentaho-big-data-plugin-osgi</feature>
+              </features>
+              <repository>${basedir}/target/hsp-system-repo</repository>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>hsprepo</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>${basedir}/src/main/descriptors/hsprepo.xml</descriptor>
+              </descriptors>
+              <finalName>hsprepo</finalName>
+              <appendAssemblyId>true</appendAssemblyId>
             </configuration>
           </execution>
         </executions>
