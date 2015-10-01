@@ -117,7 +117,7 @@
             </goals>
             <configuration>
               <descriptors>
-                <descriptor>mvn:pentaho-karaf-features/pentaho-big-data-plugin-osgi-hds/${project.version}/xml/features</descriptor>
+                <descriptor>file:${basedir}/target/processed/features.xml</descriptor>
               </descriptors>
               <features>
                 <feature>pentaho-big-data-plugin-osgi</feature>
