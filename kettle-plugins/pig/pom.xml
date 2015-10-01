@@ -23,22 +23,22 @@
 
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-pig</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -80,7 +80,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -104,13 +104,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-impl-shim-pig</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

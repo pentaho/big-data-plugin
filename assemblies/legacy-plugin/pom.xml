@@ -34,7 +34,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
     </dependency>

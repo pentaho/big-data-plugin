@@ -24,32 +24,32 @@
   <dependencies>
     <!-- OSGi dependencies -->
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-impl-shim-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -100,7 +100,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

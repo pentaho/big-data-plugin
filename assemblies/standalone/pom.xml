@@ -32,7 +32,7 @@
       <type>zip</type>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-plugin</artifactId>
       <version>${project.version}</version>
       <type>zip</type>
@@ -61,7 +61,7 @@
                   <outputDirectory>target/dependencies</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>pentaho</groupId>
+                  <groupId>com.pentaho.hds</groupId>
                   <artifactId>pentaho-big-data-plugin</artifactId>
                   <type>zip</type>
                   <outputDirectory>target/dependencies</outputDirectory>
