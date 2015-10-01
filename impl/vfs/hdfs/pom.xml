@@ -27,12 +27,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>pentaho</groupId>
+            <groupId>com.pentaho.hds</groupId>
             <artifactId>pentaho-big-data-api-hdfs</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>pentaho</groupId>
+            <groupId>com.pentaho.hds</groupId>
             <artifactId>pentaho-big-data-impl-cluster</artifactId>
             <version>${project.version}</version>
         </dependency>

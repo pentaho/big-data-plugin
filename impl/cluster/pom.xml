@@ -22,7 +22,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>com.pentaho.hds</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
       <version>${project.version}</version>
     </dependency>
