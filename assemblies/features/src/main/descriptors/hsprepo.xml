@@ -34,4 +34,10 @@
       </includes>
     </fileSet>
   </fileSets>
+  <files>
+    <file>
+      <source>target/processed/features.xml</source>
+      <destName>${groupId}/${artifactId}/${version}/${artifactId}-${version}-features.xml</destName>
+    </file>
+  </files>
 </assembly>

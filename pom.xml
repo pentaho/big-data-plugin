@@ -31,8 +31,8 @@
         <module>api</module>
         <module>impl</module>
         <module>kettle-plugins</module>
-        <module>assemblies</module>
         <module>mapr-osgi-jaas</module>
+        <module>assemblies</module>
     </modules>
 
     <properties>
