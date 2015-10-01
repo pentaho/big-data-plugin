@@ -111,7 +111,7 @@
           </execution>
           <execution>
             <id>add-features-to-standalone-repo</id>
-            <phase>prepare-package</phase>
+            <phase>package</phase>
             <goals>
               <goal>add-features-to-repo</goal>
             </goals>
