@@ -42,9 +42,15 @@ public class PigServiceFactoryLoader implements HadoopConfigurationListener {
 
   public PigServiceFactoryLoader( BundleContext bundleContext, ShimBridgingServiceTracker shimBridgingServiceTracker )
     throws ConfigurationException {
+    this( bundleContext, shimBridgingServiceTracker, HadoopConfigurationBootstrap.getInstance() );
+  }
+
+  public PigServiceFactoryLoader( BundleContext bundleContext, ShimBridgingServiceTracker shimBridgingServiceTracker,
+                                  HadoopConfigurationBootstrap hadoopConfigurationBootstrap )
+    throws ConfigurationException {
     this.bundleContext = bundleContext;
     this.shimBridgingServiceTracker = shimBridgingServiceTracker;
-    HadoopConfigurationBootstrap.getInstance().registerHadoopConfigurationListener( this );
+    hadoopConfigurationBootstrap.registerHadoopConfigurationListener( this );
   }
 
   @Override public void onConfigurationOpen( HadoopConfiguration hadoopConfiguration, boolean defaultConfiguration ) {
