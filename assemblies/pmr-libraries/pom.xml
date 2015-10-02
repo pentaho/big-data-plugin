@@ -802,12 +802,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-osgi-utils-api</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.pentaho-osgi-bundles.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-capability-manager</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.pentaho-osgi-bundles.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -992,7 +992,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-service-coordinator</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.pentaho-osgi-bundles.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -1012,7 +1012,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.bi-platform.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -1027,12 +1027,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.bi-platform.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-extensions</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.bi-platform.revision}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.xbean</groupId>
@@ -1048,7 +1048,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-karaf-assembly</artifactId>
-      <version>${project.version}</version>
+      <version>${dependency.pentaho-karaf-assembly.revision}</version>
       <type>zip</type>
       <classifier>pmr</classifier>
     </dependency>
