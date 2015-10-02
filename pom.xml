@@ -65,7 +65,8 @@
         <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
         <dependency.oozie.revision>3.1.3-incubating</dependency.oozie.revision>
         <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
-        <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
+        <dependency.pentaho-osgi-bundles.revision>${project.version}</dependency.pentaho-osgi-bundles.revision>
+        <dependency.pdi-osgi-bridge.revision>${project.version}</dependency.pdi-osgi-bridge.revision>
         <dependency.hadoop-shims-api.revision>${project.version}</dependency.hadoop-shims-api.revision>
         <dependency.hadoop-shims-hadoop-20.revision>${project.version}</dependency.hadoop-shims-hadoop-20.revision>
         <dependency.hadoop-shims-hsp101.revision>${project.version}</dependency.hadoop-shims-hsp101.revision>

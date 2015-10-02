@@ -13,7 +13,7 @@
 
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
   <packaging>pom</packaging>
-  
+
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
@@ -797,7 +797,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-osgi-bridge-core</artifactId>
-      <version>${dependency.pdi-osgi-bridge-core.revision}</version>
+      <version>${dependency.pdi-osgi-bridge.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>

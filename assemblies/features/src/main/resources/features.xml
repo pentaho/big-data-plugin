@@ -5,8 +5,8 @@
     <bundle>mvn:com.pentaho.hds/pentaho-big-data-impl-shim-shimTests/${project.version}</bundle>
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
-    <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${project.version}</bundle>
-    <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${dependency.pentaho-osgi-bundles.revision}</bundle>
+    <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${dependency.pdi-osgi-bridge.revision}</bundle>
     <bundle>mvn:com.pentaho.hds/pentaho-big-data-api-cluster/${project.version}</bundle>
     <bundle>mvn:com.pentaho.hds/pentaho-big-data-api-initializer/${project.version}</bundle>
     <bundle>mvn:com.pentaho.hds/pentaho-big-data-api-hdfs/${project.version}</bundle>
