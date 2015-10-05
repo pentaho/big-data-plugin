@@ -1,28 +1,22 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-impl-shim</artifactId>
-    <version>6.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>6.1-SNAPSHOT</version>
   </parent>
-
   <artifactId>pentaho-big-data-impl-shim-shimTests</artifactId>
+  <version>6.1-SNAPSHOT</version>
   <packaging>bundle</packaging>
-
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
-
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
-
   <dependencies>
-    <!-- OSGi dependencies -->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
@@ -53,8 +47,6 @@
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
     </dependency>
-
-    <!-- Non-OSGi dependencies -->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
@@ -85,8 +77,6 @@
       <version>${dependency.slf4j.revision}</version>
       <scope>provided</scope>
     </dependency>
-
-    <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -103,11 +93,10 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
       <classifier>tests</classifier>
+      <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>

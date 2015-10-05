@@ -1,16 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>6.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>6.1-SNAPSHOT</version>
   </parent>
-
   <artifactId>pentaho-big-data-legacy</artifactId>
-
+  <version>6.1-SNAPSHOT</version>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -19,41 +17,35 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
-
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-
-    <xstream.version>1.4.2</xstream.version>
-    <oozie.version>3.1.3-incubating</oozie.version>
-    <avro.version>1.6.2</avro.version>
-    <hadoop.version>0.20.2</hadoop.version>
-    <dependency.hadoop-shims-hadoop-20.revision>${project.version}</dependency.hadoop-shims-hadoop-20.revision>
-    <pig.version>0.8.1</pig.version>
-    <easymock.versin>3.0</easymock.versin>
-    <hbase.version>0.90.3</hbase.version>
-    <h2.version>1.3.166</h2.version>
-    <jackson.version>1.5.2</jackson.version>
-    <xml-apis.version>2.0.2</xml-apis.version>
-    <xercesImpl.version>2.9.1</xercesImpl.version>
-    <commands.version>3.3.0-I20070605-0010</commands.version>
-    <common.version>3.3.0-v20070426</common.version>
-    <high-scale-lib.version>1.1.2</high-scale-lib.version>
-    <httpcomponents.version>4.4</httpcomponents.version>
-    <jets3t.version>0.9.3</jets3t.version>
-    <jline.version>0.9.94</jline.version>
-    <libthrift.version>0.6</libthrift.version>
-    <pentaho-hadoop-shims-cdh54-package.version>${dependency.hadoop-shims-cdh54.revision}</pentaho-hadoop-shims-cdh54-package.version>
-  </properties>
-
   <scm>
     <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
-    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
     <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
-    <tag>HEAD</tag>
+    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
-
+  <properties>
+    <common.version>3.3.0-v20070426</common.version>
+    <httpcomponents.version>4.4</httpcomponents.version>
+    <xstream.version>1.4.2</xstream.version>
+    <pig.version>0.8.1</pig.version>
+    <pentaho-hadoop-shims-cdh54-package.version>${dependency.hadoop-shims-cdh54.revision}</pentaho-hadoop-shims-cdh54-package.version>
+    <h2.version>1.3.166</h2.version>
+    <jets3t.version>0.9.3</jets3t.version>
+    <hadoop.version>0.20.2</hadoop.version>
+    <hbase.version>0.90.3</hbase.version>
+    <xml-apis.version>2.0.2</xml-apis.version>
+    <commands.version>3.3.0-I20070605-0010</commands.version>
+    <avro.version>1.6.2</avro.version>
+    <xercesImpl.version>2.9.1</xercesImpl.version>
+    <dependency.hadoop-shims-hadoop-20.revision>6.1-SNAPSHOT</dependency.hadoop-shims-hadoop-20.revision>
+    <libthrift.version>0.6</libthrift.version>
+    <publish-sonar-phase>site</publish-sonar-phase>
+    <oozie.version>3.1.3-incubating</oozie.version>
+    <high-scale-lib.version>1.1.2</high-scale-lib.version>
+    <jline.version>0.9.94</jline.version>
+    <jackson.version>1.5.2</jackson.version>
+    <easymock.versin>3.0</easymock.versin>
+  </properties>
   <dependencies>
-    <!-- Compile dependencies -->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
@@ -80,8 +72,8 @@
       <version>1.0.008</version>
       <exclusions>
         <exclusion>
-          <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-core-asl</artifactId>
+          <groupId>org.codehaus.jackson</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -160,8 +152,6 @@
       <artifactId>xstream</artifactId>
       <version>${xstream.version}</version>
     </dependency>
-
-    <!-- Provided dependencies -->
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
@@ -197,8 +187,6 @@
       <artifactId>commons-configuration</artifactId>
       <version>${dependency.commons-configuration.revision}</version>
     </dependency>
-
-    <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -278,20 +266,18 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-
   <build>
     <resources>
       <resource>
-        <directory>src/main/resources</directory>
         <filtering>true</filtering>
+        <directory>src/main/resources</directory>
         <includes>
           <include>**/*.properties</include>
         </includes>
       </resource>
       <resource>
-        <directory>src/main/resources</directory>
         <filtering>false</filtering>
+        <directory>src/main/resources</directory>
         <excludes>
           <exclude>**/*.properties</exclude>
         </excludes>
@@ -299,8 +285,8 @@
     </resources>
     <testResources>
       <testResource>
-        <directory>src/test/resources</directory>
         <filtering>true</filtering>
+        <directory>src/test/resources</directory>
         <includes>
           <include>**/*.properties</include>
         </includes>
@@ -308,7 +294,6 @@
     </testResources>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${plugin.org.apache.maven.plugins.maven-surefire-plugin.version}</version>
         <configuration>
