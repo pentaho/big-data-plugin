@@ -32,13 +32,23 @@ import org.pentaho.hadoop.shim.ConfigurationException;
  * Created by bryan on 8/7/15.
  */
 public class ClusterInitializerProviderImpl implements ClusterInitializerProvider {
+  private final HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
+
+  public ClusterInitializerProviderImpl() {
+    this( HadoopConfigurationBootstrap.getInstance() );
+  }
+
+  public ClusterInitializerProviderImpl( HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
+    this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;
+  }
+
   @Override public boolean canHandle( NamedCluster namedCluster ) {
     return true;
   }
 
   @Override public void initialize( NamedCluster namedCluster ) throws ClusterInitializationException {
     try {
-      HadoopConfigurationBootstrap.getInstance().getProvider();
+      hadoopConfigurationBootstrap.getProvider();
     } catch ( ConfigurationException e ) {
       throw new ClusterInitializationException( e );
     }

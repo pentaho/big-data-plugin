@@ -45,9 +45,16 @@ public class HadoopClusterTreeDelegateExtension implements ExtensionPointInterfa
   public static final String STRING_NAMED_CLUSTERS =
     BaseMessages.getString( PKG, "NamedClusterDialog.STRING_NAMED_CLUSTERS" );
   private final NamedClusterService namedClusterService;
+  private final SpoonProvider spoonProvider;
 
   public HadoopClusterTreeDelegateExtension( NamedClusterService namedClusterService ) {
+    this( namedClusterService, new SpoonProvider() );
+  }
+
+  public HadoopClusterTreeDelegateExtension( NamedClusterService namedClusterService,
+                                             SpoonProvider spoonProvider ) {
     this.namedClusterService = namedClusterService;
+    this.spoonProvider = spoonProvider;
   }
 
   public void callExtensionPoint( LogChannelInterface log, Object extension ) throws KettleException {
@@ -60,7 +67,7 @@ public class HadoopClusterTreeDelegateExtension implements ExtensionPointInterfa
     List<TreeSelection> objects = treeDelExt.getObjects();
 
     TreeSelection object = null;
-    Spoon spoon = Spoon.getInstance();
+    Spoon spoon = spoonProvider.getSpoon();
 
     switch ( caseNumber ) {
       case 3:
@@ -82,6 +89,12 @@ public class HadoopClusterTreeDelegateExtension implements ExtensionPointInterfa
 
     if ( object != null ) {
       objects.add( object );
+    }
+  }
+
+  static class SpoonProvider {
+    public Spoon getSpoon() {
+      return Spoon.getInstance();
     }
   }
 }
