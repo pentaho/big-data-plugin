@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.pentaho</groupId>
@@ -37,7 +38,10 @@
   </scm>
   <properties>
     <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
-    <dependency.build-helper-maven-plugin.revision>1.5</dependency.build-helper-maven-plugin.revision>
+    <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5
+    </plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
+    <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17
+    </plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.json.revision>6.1-SNAPSHOT</dependency.json.revision>
     <dependency.maven-bundle-plugin.revision>2.3.7</dependency.maven-bundle-plugin.revision>
     <dependency.httpcomponents.revision>4.4</dependency.httpcomponents.revision>
@@ -86,23 +90,16 @@
     <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
   </properties>
   <build>
-    <testResources>
-      <testResource>
-        <directory>src/it/resources</directory>
-      </testResource>
-      <testResource>
-        <directory>src/test/resources</directory>
-      </testResource>
-    </testResources>
     <plugins>
+      <!-- remove this once it's in the parent pom -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${dependency.build-helper-maven-plugin.revision}</version>
+        <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
         <executions>
           <execution>
             <id>add-test-source</id>
-            <phase>process-resources</phase>
+            <phase>generate-test-sources</phase>
             <goals>
               <goal>add-test-source</goal>
             </goals>
@@ -112,8 +109,43 @@
               </sources>
             </configuration>
           </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>src/it/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
+      <!-- remove this once it's in the parent pom -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${plugin.org.apache.maven.plugins.maven-failsafe-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>

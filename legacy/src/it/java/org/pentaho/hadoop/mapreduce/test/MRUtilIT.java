@@ -31,13 +31,13 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.hadoop.mapreduce.MRUtil;
 
-public class MRUtilIntegrationTest {
+public class MRUtilIT {
 
   @Test
   public void createTrans_normalEngine() throws Exception {
     KettleEnvironment.init();
     final Configuration c = new Configuration();
-    final TransMeta transMeta = new TransMeta( "./src/test/resources/wordcount-reducer.ktr" );
+    final TransMeta transMeta = new TransMeta( "./src/it/resources/wordcount-reducer.ktr" );
     final Trans trans = MRUtil.getTrans( c, transMeta.getXML(), false );
     assertEquals( TransMeta.TransformationType.Normal, trans.getTransMeta().getTransformationType() );
   }
@@ -46,7 +46,7 @@ public class MRUtilIntegrationTest {
   public void createTrans_singleThreaded() throws Exception {
     KettleEnvironment.init();
     final Configuration c = new Configuration();
-    final TransMeta transMeta = new TransMeta( "./src/test/resources/wordcount-reducer.ktr" );
+    final TransMeta transMeta = new TransMeta( "./src/it/resources/wordcount-reducer.ktr" );
     final Trans trans = MRUtil.getTrans( c, transMeta.getXML(), true );
     assertEquals( TransMeta.TransformationType.SingleThreaded, trans.getTransMeta().getTransformationType() );
   }
