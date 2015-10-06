@@ -41,7 +41,10 @@
         <dependency.avro.revision>1.6.2</dependency.avro.revision>
         <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
         <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
-        <dependency.build-helper-maven-plugin.revision>1.5</dependency.build-helper-maven-plugin.revision>
+        <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5
+        </plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
+        <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17
+        </plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
         <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
         <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
         <dependency.common.revision>3.3.0-v20070426</dependency.common.revision>
@@ -94,48 +97,74 @@
         <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
-    <build>
-        <testResources>
-            <testResource>
-                <directory>src/it/resources</directory>
-            </testResource>
-            <testResource>
-                <directory>src/test/resources</directory>
-            </testResource>
-        </testResources>
-        <plugins>
-            <!-- remove this once it's in the parent pom -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${dependency.build-helper-maven-plugin.revision}</version>
-                <executions>
-                    <execution>
-                        <id>add-test-source</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/it/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+  <build>
+    <plugins>
+      <!-- remove this once it's in the parent pom -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/it/java</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>src/it/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- remove this once it's in the parent pom -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${plugin.org.apache.maven.plugins.maven-failsafe-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>${dependency.maven-bundle-plugin.revision}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${dependency.maven-bundle-plugin.revision}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+          </instructions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

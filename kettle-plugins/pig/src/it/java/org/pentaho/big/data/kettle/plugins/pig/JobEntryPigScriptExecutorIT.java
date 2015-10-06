@@ -40,7 +40,7 @@ import java.lang.reflect.Field;
 
 import static org.junit.Assert.assertEquals;
 
-public class JobEntryPigScriptExecutorIntegrationTest {
+public class JobEntryPigScriptExecutorIT {
 
   StringBuffer m_reference;
 
@@ -61,7 +61,7 @@ public class JobEntryPigScriptExecutorIntegrationTest {
   public void setup() throws IOException {
     BufferedReader br =
       new BufferedReader(
-        new InputStreamReader( JobEntryPigScriptExecutorIntegrationTest.class.getClassLoader().getResourceAsStream(
+        new InputStreamReader( JobEntryPigScriptExecutorIT.class.getClassLoader().getResourceAsStream(
           "org/pentaho/di/job/entries/pig/JobEntryPigScriptExecutorTest.ref" ) ) );
 
     m_reference = readResource( br );
