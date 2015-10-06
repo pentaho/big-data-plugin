@@ -1,36 +1,30 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>pentaho</groupId>
-  <artifactId>pdi-spark-plugin</artifactId>
-  <version>6.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
     <version>1.0.12</version>
-    <!--
-       https://github.com/pentaho/maven-parent-poms/blob/pentaho-ce-jar-parent-pom-1.0.12/pentaho-ce-jar-parent-pom/pom.xml
-    -->
   </parent>
+  <groupId>pentaho</groupId>
+  <artifactId>pdi-spark-plugin</artifactId>
+  <version>6.1-SNAPSHOT</version>
   <name>pdi-spark-plugin</name>
+  <scm>
+    <developerConnection>scm:git:git@github.com:pentaho/pdi-spark-plugin.git</developerConnection>
+  </scm>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <dependency.junit.junit.version>4.5</dependency.junit.junit.version>
-    <dependency.org.mockito.mockito-all.version>1.9.5</dependency.org.mockito.mockito-all.version>
+    <dependency.pentaho.metastore.version>${project.version}</dependency.pentaho.metastore.version>
     <dependency.pentaho-kettle.kettle-core.version>${project.version}</dependency.pentaho-kettle.kettle-core.version>
+    <dependency.org.mockito.mockito-all.version>1.9.5</dependency.org.mockito.mockito-all.version>
     <dependency.pentaho-kettle.kettle-engine.version>${project.version}</dependency.pentaho-kettle.kettle-engine.version>
+    <dependency.junit.junit.version>4.5</dependency.junit.junit.version>
     <dependency.pentaho-kettle.kettle-engine-test.version>${project.version}</dependency.pentaho-kettle.kettle-engine-test.version>
     <dependency.pentaho-kettle.kettle-ui-swt.version>${project.version}</dependency.pentaho-kettle.kettle-ui-swt.version>
-    <dependency.pentaho.metastore.version>${project.version}</dependency.pentaho.metastore.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-  <scm>
-    <developerConnection>
-      scm:git:git@github.com:pentaho/pdi-spark-plugin.git
-    </developerConnection>
-  </scm>
   <dependencies>
-    <!-- ##################### PROVIDED #########################-->
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
@@ -55,7 +49,6 @@
       <version>${dependency.pentaho.metastore.version}</version>
       <scope>provided</scope>
     </dependency>
-    <!-- ##################### TEST #############################-->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -78,11 +71,7 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptor>src/assembly/zip.xml</descriptor>
-        </configuration>
         <executions>
           <execution>
             <phase>package</phase>
@@ -91,6 +80,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <descriptor>src/assembly/zip.xml</descriptor>
+        </configuration>
       </plugin>
     </plugins>
   </build>
