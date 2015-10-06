@@ -75,7 +75,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.Assert.*;
 
 @SuppressWarnings( { "nls", "unchecked", "deprecation", "rawtypes" } )
-public class PentahoMapReduceIntegrationTest {
+public class PentahoMapReduceIT {
 
   private boolean debug = false;
 
@@ -96,7 +96,7 @@ public class PentahoMapReduceIntegrationTest {
       MockOutputCollector outputCollector = new MockOutputCollector();
       MockReporter reporter = new MockReporter();
       MockRecordReader reader = new MockRecordReader( Arrays.asList( "test" ) );
-      mapper.configure( createJobConf( "./src/test/resources/bad-injector-fields.ktr", "./src/test/resources/wordcount-reducer.ktr" ) );
+      mapper.configure( createJobConf( "./src/test/resources/bad-injector-fields.ktr", "./src/it/resources/wordcount-reducer.ktr" ) );
 
       mapper.run( reader, outputCollector, reporter );
       fail( "Should have thrown an exception" );
@@ -443,7 +443,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector outputCollector = new MockOutputCollector();
     MockReporter reporter = new MockReporter();
 
-    mapRunnable.configure( createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr" ) );
+    mapRunnable.configure( createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr" ) );
 
     final int ROWS = 10000;
 
@@ -502,7 +502,7 @@ public class PentahoMapReduceIntegrationTest {
     MockOutputCollector inputCollector = outputCollector;
     outputCollector = new MockOutputCollector();
 
-    reducer.configure( createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr" ) );
+    reducer.configure( createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr" ) );
 
     start = System.currentTimeMillis();
     for ( Object key : inputCollector.getCollection().keySet() ) {
@@ -618,8 +618,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testLogChannelLeaking_mapper() throws Exception {
     JobConf jobConf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
     PentahoMapRunnable mapper = new PentahoMapRunnable();
     mapper.configure( jobConf );
     MockReporter reporter = new MockReporter();
@@ -651,8 +651,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testLogChannelLeaking_combiner() throws Exception {
     JobConf jobConf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
     List<IntWritable> input = Arrays.asList( new IntWritable( 1 ) );
     GenericTransCombiner combiner = new GenericTransCombiner();
     combiner.configure( jobConf );
@@ -685,8 +685,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testLogChannelLeaking_reducer() throws Exception {
     JobConf jobConf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
     List<IntWritable> input = Arrays.asList( new IntWritable( 1 ) );
     GenericTransReduce reducer = new GenericTransReduce();
     reducer.configure( jobConf );
@@ -754,8 +754,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testCombinerOutputClasses() throws IOException, KettleException {
     JobConf jobConf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
 
     jobConf.setMapOutputKeyClass( Text.class );
     jobConf.setMapOutputValueClass( IntWritable.class );
@@ -773,8 +773,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testReducerOutputClasses() throws IOException, KettleException {
     JobConf jobConf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
 
     jobConf.setMapOutputKeyClass( Text.class );
     jobConf.setMapOutputValueClass( IntWritable.class );
@@ -792,8 +792,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testTaskIdExtraction() throws Exception {
     JobConf conf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
     conf.set( "mapred.task.id", "job_201208090841_0133" );
     PentahoMapRunnable mapRunnable = new PentahoMapRunnable();
 
@@ -809,8 +809,8 @@ public class PentahoMapReduceIntegrationTest {
   @Test
   public void testTaskIdExtraction_over_10000() throws Exception {
     JobConf conf =
-        createJobConf( "./src/test/resources/wordcount-mapper.ktr", "./src/test/resources/wordcount-reducer.ktr",
-            "./src/test/resources/wordcount-reducer.ktr" );
+        createJobConf( "./src/it/resources/wordcount-mapper.ktr", "./src/it/resources/wordcount-reducer.ktr",
+            "./src/it/resources/wordcount-reducer.ktr" );
     conf.set( "mapred.task.id", "job_201208090841_013302" );
     PentahoMapRunnable mapRunnable = new PentahoMapRunnable();
 
