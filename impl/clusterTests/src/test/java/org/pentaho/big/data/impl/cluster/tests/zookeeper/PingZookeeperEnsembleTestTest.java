@@ -104,12 +104,14 @@ public class PingZookeeperEnsembleTestTest {
     RuntimeTestResultEntry clusterTestResultEntry = mock( RuntimeTestResultEntry.class );
     when( clusterTestResultEntry.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.INFO );
     when( connectivityTest.runTest() ).thenReturn( clusterTestResultEntry );
+    String testDescription = "test-description";
+    when( clusterTestResultEntry.getDescription() ).thenReturn( testDescription );
     RuntimeTestResultSummary runtimeTestResultSummary = pingZookeeperEnsembleTest.runTest( namedCluster );
     List<RuntimeTestResultEntry> clusterTestResultEntries = runtimeTestResultSummary
       .getRuntimeTestResultEntries();
     assertEquals( 2, clusterTestResultEntries.size() );
-    assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 0 ) );
-    assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 1 ) );
+    assertEquals( testDescription, clusterTestResultEntries.get( 0 ).getDescription() );
+    assertEquals( testDescription, clusterTestResultEntries.get( 1 ).getDescription() );
   }
 
   @Test
@@ -128,6 +130,10 @@ public class PingZookeeperEnsembleTestTest {
     RuntimeTestResultEntry clusterTestResultEntry2 = mock( RuntimeTestResultEntry.class );
     when( clusterTestResultEntry2.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.WARNING );
     when( connectivityTest2.runTest() ).thenReturn( clusterTestResultEntry2 );
+    String testDescription = "test-description";
+    when( clusterTestResultEntry.getDescription() ).thenReturn( testDescription );
+    String testDescription2 = "test-description2";
+    when( clusterTestResultEntry2.getDescription() ).thenReturn( testDescription2 );
     RuntimeTestResultSummary runtimeTestResultSummary = pingZookeeperEnsembleTest.runTest( namedCluster );
     List<RuntimeTestResultEntry> clusterTestResultEntries = runtimeTestResultSummary
       .getRuntimeTestResultEntries();
@@ -136,8 +142,8 @@ public class PingZookeeperEnsembleTestTest {
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_SOME_NODES_FAILED_DESC ),
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_SOME_NODES_FAILED_MESSAGE,
         host2 ) );
-    assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 0 ) );
-    assertEquals( clusterTestResultEntry2, clusterTestResultEntries.get( 1 ) );
+    assertEquals( testDescription, clusterTestResultEntries.get( 0 ).getDescription() );
+    assertEquals( testDescription2, clusterTestResultEntries.get( 1 ).getDescription() );
   }
 
   @Test
@@ -156,6 +162,10 @@ public class PingZookeeperEnsembleTestTest {
     RuntimeTestResultEntry clusterTestResultEntry2 = mock( RuntimeTestResultEntry.class );
     when( clusterTestResultEntry2.getSeverity() ).thenReturn( RuntimeTestEntrySeverity.WARNING );
     when( connectivityTest2.runTest() ).thenReturn( clusterTestResultEntry2 );
+    String testDescription = "test-description";
+    when( clusterTestResultEntry.getDescription() ).thenReturn( testDescription );
+    String testDescription2 = "test-description2";
+    when( clusterTestResultEntry2.getDescription() ).thenReturn( testDescription2 );
     RuntimeTestResultSummary runtimeTestResultSummary = pingZookeeperEnsembleTest.runTest( namedCluster );
     List<RuntimeTestResultEntry> clusterTestResultEntries = runtimeTestResultSummary
       .getRuntimeTestResultEntries();
@@ -164,7 +174,7 @@ public class PingZookeeperEnsembleTestTest {
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_NO_NODES_SUCCEEDED_DESC ),
       messageGetter.getMessage( PingZookeeperEnsembleTest.PING_ZOOKEEPER_ENSEMBLE_TEST_NO_NODES_SUCCEEDED_MESSAGE,
         host1 + ", " + host2 ) );
-    assertEquals( clusterTestResultEntry, clusterTestResultEntries.get( 0 ) );
-    assertEquals( clusterTestResultEntry2, clusterTestResultEntries.get( 1 ) );
+    assertEquals( testDescription, clusterTestResultEntries.get( 0 ).getDescription() );
+    assertEquals( testDescription2, clusterTestResultEntries.get( 1 ).getDescription() );
   }
 }
