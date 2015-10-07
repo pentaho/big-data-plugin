@@ -1,26 +1,21 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-api</artifactId>
-    <version>6.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>6.0.0.0-353</version>
   </parent>
-
   <artifactId>pentaho-big-data-api-cluster</artifactId>
+  <version>6.0.0.0-353</version>
   <packaging>bundle</packaging>
-
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
-  
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
@@ -34,7 +29,6 @@
       <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
