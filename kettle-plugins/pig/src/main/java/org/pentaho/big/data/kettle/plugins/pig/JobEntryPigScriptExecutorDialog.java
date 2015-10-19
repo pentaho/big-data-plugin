@@ -64,6 +64,7 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Job entry dialog for the PigScriptExecutor - job entry that executes a Pig script either on a hadoop cluster or
@@ -416,7 +417,7 @@ public class JobEntryPigScriptExecutorDialog extends JobEntryDialog implements J
     m_enableBlockingBut.setSelection( m_jobEntry.getEnableBlocking() );
     m_localExecutionBut.setSelection( m_jobEntry.getLocalExecution() );
 
-    HashMap<String, String> params = m_jobEntry.getScriptParameters();
+    Map<String, String> params = m_jobEntry.getScriptParameters();
     if ( params.size() > 0 ) {
       for ( String name : params.keySet() ) {
         String value = params.get( name );

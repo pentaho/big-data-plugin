@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.pig;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
@@ -37,6 +38,7 @@ import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
@@ -70,6 +72,8 @@ import java.util.Properties;
   i18nPackageName = "org.pentaho.di.job.entries.pig",
   documentationUrl = "http://wiki.pentaho.com/display/EAI/Pig+Script+Executor" )
 public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
+  public static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
+
   public static final String CLUSTER_NAME = "cluster_name";
   public static final String HDFS_HOSTNAME = "hdfs_hostname";
   public static final String HDFS_PORT = "hdfs_port";
@@ -77,9 +81,12 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   public static final String JOBTRACKER_PORT = "jobtracker_port";
   public static final String SCRIPT_FILE = "script_file";
   public static final String ENABLE_BLOCKING = "enable_blocking";
-  public static final String LOCAL_EXECUTION = "local_execution";
 
-  private static final Class<?> PKG = JobEntryPigScriptExecutor.class; // for i18n purposes, needed by Translator2!!
+  public static final String LOCAL_EXECUTION = "local_execution";
+  public static final String JOB_ENTRY_PIG_SCRIPT_EXECUTOR_ERROR_NO_PIG_SCRIPT_SPECIFIED =
+    "JobEntryPigScriptExecutor.Error.NoPigScriptSpecified";
+  public static final String JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION =
+    "JobEntryPigScriptExecutor.Warning.LocalExecution";
   // $NON-NLS-1$
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -104,7 +111,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   /**
    * Parameters for the script
    */
-  protected HashMap<String, String> m_params = new HashMap<String, String>();
+  protected Map<String, String> m_params = new HashMap<String, String>();
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
                                     RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
@@ -380,7 +387,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    *
    * @return a HashMap mapping parameter names to values
    */
-  public HashMap<String, String> getScriptParameters() {
+  public Map<String, String> getScriptParameters() {
     return m_params;
   }
 
@@ -389,7 +396,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
    *
    * @param params a HashMap mapping parameter names to values
    */
-  public void setScriptParameters( HashMap<String, String> params ) {
+  public void setScriptParameters( Map<String, String> params ) {
     m_params = params;
   }
 
@@ -425,7 +432,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
     if ( Const.isEmpty( m_scriptFile ) ) {
       throw new KettleException(
-        BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Error.NoPigScriptSpecified" ) );
+        BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_ERROR_NO_PIG_SCRIPT_SPECIFIED ) );
     }
 
     try {
@@ -442,7 +449,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       final PigService pigService = pigServiceLocator.getPigService( namedCluster );
       // Make sure we can execute locally if desired
       if ( m_localExecution && !pigService.isLocalExecutionSupported() ) {
-        throw new KettleException( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.LocalExecution" ) );
+        throw new KettleException( BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ) );
       }
 
       final Properties properties = new Properties();
@@ -537,5 +544,10 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     }
 
     return result;
+  }
+
+  @VisibleForTesting
+  void setLog( LogChannelInterface log ) {
+    this.log = log;
   }
 }
