@@ -74,6 +74,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine-test</artifactId>
+      <version>${dependency.kettle.revision}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>

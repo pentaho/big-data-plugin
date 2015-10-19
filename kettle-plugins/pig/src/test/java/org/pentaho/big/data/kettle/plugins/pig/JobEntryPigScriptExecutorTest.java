@@ -24,25 +24,37 @@ package org.pentaho.big.data.kettle.plugins.pig;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.impl.cluster.NamedClusterImpl;
+import org.pentaho.bigdata.api.pig.PigResult;
 import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.bigdata.api.pig.PigServiceLocator;
-import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.core.Result;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.Job;
+import org.pentaho.di.job.entry.loadSave.LoadSaveTester;
+import org.pentaho.di.trans.steps.loadsave.validator.FieldLoadSaveValidator;
+import org.pentaho.di.trans.steps.loadsave.validator.MapLoadSaveValidator;
+import org.pentaho.di.trans.steps.loadsave.validator.StringLoadSaveValidator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -63,15 +75,28 @@ public class JobEntryPigScriptExecutorTest {
   private String namedClusterJobTrackerPort;
   private String namedClusterJobTrackerHost;
   private RuntimeTester runtimeTester;
+  private Result result;
+  private LogChannelInterface logChannelInterface;
+  private PigResult pigResult;
+  private Job job;
 
   @Before
   public void setup() throws ClusterInitializationException {
     namedClusterService = mock( NamedClusterService.class );
+    when( namedClusterService.getClusterTemplate() ).thenReturn( new NamedClusterImpl() );
     pigServiceLocator = mock( PigServiceLocator.class );
+    pigResult = mock( PigResult.class );
     runtimeTester = mock( RuntimeTester.class );
     runtimeTestActionService = mock( RuntimeTestActionService.class );
+    result = mock( Result.class );
+    job = mock( Job.class );
+    logChannelInterface = mock( LogChannelInterface.class );
     jobEntryPigScriptExecutor =
       new JobEntryPigScriptExecutor( namedClusterService, runtimeTestActionService, runtimeTester, pigServiceLocator );
+    jobEntryPigScriptExecutor.setScriptFilename(
+      getClass().getClassLoader().getResource( "org/pentaho/big/data/kettle/plugins/pig/pig.script" ).toString() );
+    jobEntryPigScriptExecutor.setParentJob( job );
+    jobEntryPigScriptExecutor.setLog( logChannelInterface );
 
     jobEntryName = "jobEntryName";
     namedClusterName = "namedClusterName";
@@ -88,44 +113,93 @@ public class JobEntryPigScriptExecutorTest {
     when( namedCluster.getHdfsPort() ).thenReturn( namedClusterHdfsPort );
     when( namedCluster.getJobTrackerHost() ).thenReturn( namedClusterJobTrackerHost );
     when( namedCluster.getJobTrackerPort() ).thenReturn( namedClusterJobTrackerPort );
+    jobEntryPigScriptExecutor.setNamedCluster( namedCluster );
   }
 
   @Test
-  public void testGetXmlFullyPopulated() throws IOException, SAXException, ParserConfigurationException {
-    String scriptFileName = "scriptFileName";
+  public void testLoadSave() throws KettleException {
+    List<String> commonAttributes = new ArrayList<>();
+    commonAttributes.add( "namedCluster" );
+    commonAttributes.add( "enableBlocking" );
+    commonAttributes.add( "localExecution" );
+    commonAttributes.add( "scriptFilename" );
+    commonAttributes.add( "scriptParameters" );
 
-    jobEntryPigScriptExecutor.setName( jobEntryName );
-    jobEntryPigScriptExecutor.setNamedCluster( namedCluster );
-    jobEntryPigScriptExecutor.setScriptFilename( scriptFileName );
-    jobEntryPigScriptExecutor.setEnableBlocking( true );
-    jobEntryPigScriptExecutor.setLocalExecution( true );
+    Map<String, FieldLoadSaveValidator<?>> fieldLoadSaveValidatorTypeMap = new HashMap<>();
+    fieldLoadSaveValidatorTypeMap.put( NamedCluster.class.getCanonicalName(), new PigNamedClusterValidator() );
 
-    NodeTagValueAsserter nodeTagValueAsserter = new NodeTagValueAsserter( jobEntryPigScriptExecutor.getXML() );
+    Map<String, FieldLoadSaveValidator<?>> fieldLoadSaveValidatorAttributeMap = new HashMap<>();
+    fieldLoadSaveValidatorAttributeMap.put( "scriptParameters",
+      new MapLoadSaveValidator<>( new StringLoadSaveValidator(), new StringLoadSaveValidator() ) );
 
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.CLUSTER_NAME, namedClusterName );
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.HDFS_HOSTNAME, namedClusterHdfsHost );
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.HDFS_PORT, namedClusterHdfsPort );
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.JOBTRACKER_HOSTNAME, namedClusterJobTrackerHost );
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.JOBTRACKER_PORT, namedClusterJobTrackerPort );
+    LoadSaveTester<JobEntryPigScriptExecutor> jobEntryPigScriptExecutorLoadSaveTester =
+      new LoadSaveTester<JobEntryPigScriptExecutor>( JobEntryPigScriptExecutor.class, commonAttributes,
+        new HashMap<String, String>(), new HashMap<String, String>(), fieldLoadSaveValidatorAttributeMap,
+        fieldLoadSaveValidatorTypeMap ) {
+        @Override public JobEntryPigScriptExecutor createMeta() {
+          return new JobEntryPigScriptExecutor( namedClusterService, runtimeTestActionService, runtimeTester,
+            pigServiceLocator );
+        }
+      };
 
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.SCRIPT_FILE, scriptFileName );
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.ENABLE_BLOCKING, "Y" );
-    nodeTagValueAsserter.assertEquals( JobEntryPigScriptExecutor.LOCAL_EXECUTION, "Y" );
+    jobEntryPigScriptExecutorLoadSaveTester.testXmlRoundTrip();
+    jobEntryPigScriptExecutorLoadSaveTester.testRepoRoundTrip();
   }
 
-  private static class NodeTagValueAsserter {
-    private final Node node;
+  @Test
+  public void testGetNamedClusterService() {
+    assertEquals( namedClusterService, jobEntryPigScriptExecutor.getNamedClusterService() );
+  }
 
-    private NodeTagValueAsserter( String xmlSnippet ) throws ParserConfigurationException,
-      IOException, SAXException {
-      DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      Document snippetDocument = builder.parse(
-        new ByteArrayInputStream( ( "<jobEntry>" + xmlSnippet + "</jobEntry>" ).getBytes( "UTF-8" ) ) );
-      node = snippetDocument.getFirstChild();
-    }
+  @Test
+  public void testGetRuntimeTestActionService() {
+    assertEquals( runtimeTestActionService, jobEntryPigScriptExecutor.getRuntimeTestActionService() );
+  }
 
-    public void assertEquals( String tag, Object value ) {
-      org.junit.Assert.assertEquals( XMLHandler.getTagValue( node, tag ), value );
+  @Test
+  public void testGetRuntimeTester() {
+    assertEquals( runtimeTester, jobEntryPigScriptExecutor.getRuntimeTester() );
+  }
+
+  @Test( expected = KettleException.class )
+  public void testExecuteNoScriptFile() throws KettleException {
+    jobEntryPigScriptExecutor.setScriptFilename( "" );
+    try {
+      jobEntryPigScriptExecutor.execute( result, 0 );
+    } catch ( KettleException e ) {
+      assertEquals( BaseMessages.getString( JobEntryPigScriptExecutor.PKG,
+        JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_ERROR_NO_PIG_SCRIPT_SPECIFIED ), e.getSuperMessage() );
+      throw e;
     }
+  }
+
+  @Test
+  public void testExecuteLocalNotSupported() throws KettleException {
+    when( pigService.isLocalExecutionSupported() ).thenReturn( false );
+    jobEntryPigScriptExecutor.setLocalExecution( true );
+    assertEquals( result, jobEntryPigScriptExecutor.execute( result, 0 ) );
+    ArgumentCaptor<KettleException> kettleExceptionArgumentCaptor = ArgumentCaptor.forClass( KettleException.class );
+    verify( logChannelInterface ).logError( anyString(), kettleExceptionArgumentCaptor.capture() );
+    assertEquals( BaseMessages.getString( JobEntryPigScriptExecutor.PKG,
+        JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ),
+      kettleExceptionArgumentCaptor.getValue().getSuperMessage() );
+    verify( result ).setStopped( true );
+    verify( result ).setNrErrors( 1 );
+    verify( result ).setResult( false );
+  }
+
+  @Test
+  public void testNonzeroBlocking() throws KettleException {
+    jobEntryPigScriptExecutor.setEnableBlocking( true );
+    when( pigResult.getResult() ).thenReturn( new int[] { 0, 10 } );
+    when( pigService
+      .executeScript( eq( jobEntryPigScriptExecutor.getScriptFilename() ), eq( PigService.ExecutionMode.MAPREDUCE ),
+        eq( new ArrayList<String>() ), eq( (String) null ), eq( logChannelInterface ), eq( jobEntryPigScriptExecutor ),
+        eq( (LogLevel) null ) ) )
+      .thenReturn( pigResult );
+    assertEquals( result, jobEntryPigScriptExecutor.execute( result, 0 ) );
+    verify( result ).setStopped( true );
+    verify( result ).setNrErrors( 10 );
+    verify( result ).setResult( false );
   }
 }
