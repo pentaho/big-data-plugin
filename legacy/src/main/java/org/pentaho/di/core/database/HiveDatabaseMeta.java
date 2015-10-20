@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,6 +35,11 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   protected static final String JAR_FILE = "hive-jdbc-cdh4.2.0-release-pentaho.jar";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hadoop.hive.jdbc.HiveDriver";
   protected static final int DEFAULT_PORT = 10000;
+  public static final String URL_PREFIX = "jdbc:hive://";
+  public static final String SELECT_COUNT_1_FROM = "select count(1) from ";
+  public static final String VIEW = "VIEW";
+  public static final String VIRTUAL_VIEW = "VIRTUAL_VIEW";
+  public static final String TRUNCATE_TABLE = "TRUNCATE TABLE ";
 
   protected Integer driverMajorVersion;
   protected Integer driverMinorVersion;
@@ -164,12 +169,11 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
 
   @Override
   public String getURL( String hostname, String port, String databaseName ) throws KettleDatabaseException {
-
     if ( Const.isEmpty( port ) ) {
-      Integer.toString( getDefaultDatabasePort() );
+      port = Integer.toString( getDefaultDatabasePort() );
     }
 
-    return "jdbc:hive://" + hostname + ":" + port + "/" + databaseName;
+    return URL_PREFIX + hostname + ":" + port + "/" + databaseName;
   }
 
   @Override
@@ -186,7 +190,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    */
   @Override
   public String getSelectCountStatement( String tableName ) {
-    return "select count(1) from " + tableName;
+    return SELECT_COUNT_1_FROM + tableName;
   }
 
   @Override
@@ -284,7 +288,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
    */
   @Override
   public String[] getViewTypes() {
-    return new String[]{ "VIEW", "VIRTUAL_VIEW" };
+    return new String[]{ VIEW, VIRTUAL_VIEW };
   }
 
   /**
@@ -294,7 +298,7 @@ public class HiveDatabaseMeta extends BaseDatabaseMeta implements DatabaseInterf
   @Override
   public String getTruncateTableStatement( String tableName ) {
     if ( isDriverVersion( 0, 11 ) ) {
-      return "TRUNCATE TABLE " + tableName;
+      return TRUNCATE_TABLE + tableName;
     }
     return null;
   }

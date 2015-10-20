@@ -43,42 +43,36 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.pentaho.di.core.database.HiveDatabaseMeta.URL_PREFIX;
+import static org.pentaho.di.core.database.Hive2DatabaseMeta.URL_PREFIX;
 
-public class HiveDatabaseMetaTest {
-  private HiveDatabaseMeta hiveDatabaseMeta;
+/**
+ * Created by bryan on 10/19/15.
+ */
+public class Hive2DatabaseMetaTest {
+  private Hive2DatabaseMeta hive2DatabaseMeta;
 
   @Before
   public void setup() throws Throwable {
-    hiveDatabaseMeta = new HiveDatabaseMeta();
+    hive2DatabaseMeta = new Hive2DatabaseMeta();
   }
 
   @Test
-  public void testColumnAlias_060_And_Later() throws Throwable {
-    HiveDatabaseMeta dbm = new HiveDatabaseMeta( 0, 6 );
-
-    String alias = dbm.generateColumnAlias( 0, "alias" );
-    assertEquals( "alias", alias );
-
-    alias = dbm.generateColumnAlias( 1, "alias1" );
-    assertEquals( "alias1", alias );
-
-    alias = dbm.generateColumnAlias( 2, "alias2" );
-    assertEquals( "alias2", alias );
+  public void testVersionConstructor() throws Throwable {
+    int majorVersion = 10;
+    int minorVersion = 11;
+    Hive2DatabaseMeta hive2DatabaseMeta = new Hive2DatabaseMeta( majorVersion, minorVersion );
+    assertEquals( Integer.valueOf( majorVersion ), hive2DatabaseMeta.driverMajorVersion );
+    assertEquals( Integer.valueOf( minorVersion ), hive2DatabaseMeta.driverMinorVersion );
   }
 
   @Test
-  public void testColumnAlias_050() throws Throwable {
-    HiveDatabaseMeta dbm = new HiveDatabaseMeta( 0, 5 );
+  public void testGetAccessTypeList() {
+    assertArrayEquals( new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE }, hive2DatabaseMeta.getAccessTypeList() );
+  }
 
-    String alias = dbm.generateColumnAlias( 0, "alias" );
-    assertEquals( "_col0", alias );
-
-    alias = dbm.generateColumnAlias( 1, "alias1" );
-    assertEquals( "_col1", alias );
-
-    alias = dbm.generateColumnAlias( 2, "alias2" );
-    assertEquals( "_col2", alias );
+  @Test
+  public void testGetDriverClass() {
+    assertEquals( Hive2DatabaseMeta.DRIVER_CLASS_NAME, hive2DatabaseMeta.getDriverClass() );
   }
 
   @Test
@@ -88,15 +82,10 @@ public class HiveDatabaseMetaTest {
     ValueMetaInterface valueMetaInterface = new ValueMetaBoolean();
     valueMetaInterface.setName( booleanCol );
     String addColumnStatement =
-      hiveDatabaseMeta.getAddColumnStatement( testTable, valueMetaInterface, null, false, null, false );
+      hive2DatabaseMeta.getAddColumnStatement( testTable, valueMetaInterface, null, false, null, false );
     assertTrue( addColumnStatement.contains( "BOOLEAN" ) );
     assertTrue( addColumnStatement.contains( testTable ) );
     assertTrue( addColumnStatement.contains( booleanCol ) );
-  }
-
-  @Test
-  public void testGetDriverClass() {
-    assertEquals( HiveDatabaseMeta.DRIVER_CLASS_NAME, hiveDatabaseMeta.getDriverClass() );
   }
 
   @Test
@@ -106,29 +95,29 @@ public class HiveDatabaseMetaTest {
 
   @Test
   public void testGetFieldDefinitionDate() {
-    hiveDatabaseMeta.driverMajorVersion = 0;
-    hiveDatabaseMeta.driverMinorVersion = 12;
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 12;
     assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
   }
 
   @Test( expected = IllegalArgumentException.class )
   public void testGetFieldDefinitionDateUnsupported() {
-    hiveDatabaseMeta.driverMajorVersion = 0;
-    hiveDatabaseMeta.driverMinorVersion = 11;
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 11;
     assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
   }
 
   @Test
   public void testGetFieldDefinitionTimestamp() {
-    hiveDatabaseMeta.driverMajorVersion = 0;
-    hiveDatabaseMeta.driverMinorVersion = 8;
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 8;
     assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
   }
 
   @Test( expected = IllegalArgumentException.class )
   public void testGetFieldDefinitionUnsupported() {
-    hiveDatabaseMeta.driverMajorVersion = 0;
-    hiveDatabaseMeta.driverMinorVersion = 7;
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 7;
     assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
   }
 
@@ -210,7 +199,7 @@ public class HiveDatabaseMetaTest {
     String booleanCol = "booleanCol";
     ValueMetaInterface valueMetaInterface = new ValueMetaBoolean();
     valueMetaInterface.setName( booleanCol );
-    String addColumnStatement = hiveDatabaseMeta.getModifyColumnStatement( testTable, valueMetaInterface, null, false,
+    String addColumnStatement = hive2DatabaseMeta.getModifyColumnStatement( testTable, valueMetaInterface, null, false,
       null, false );
     assertTrue( addColumnStatement.contains( "BOOLEAN" ) );
     assertTrue( addColumnStatement.contains( testTable ) );
@@ -222,7 +211,7 @@ public class HiveDatabaseMetaTest {
     String testHostname = "testHostname";
     int port = 9429;
     String testDbName = "testDbName";
-    String urlString = hiveDatabaseMeta.getURL( testHostname, "" + port, testDbName );
+    String urlString = hive2DatabaseMeta.getURL( testHostname, "" + port, testDbName );
     assertTrue( urlString.startsWith( URL_PREFIX ) );
     // Use known prefix
     urlString = "http://" + urlString.substring( URL_PREFIX.length() );
@@ -233,119 +222,119 @@ public class HiveDatabaseMetaTest {
   }
 
   @Test
-  public void testGetURLEmptyPort() throws KettleDatabaseException, MalformedURLException {
-    String testHostname = "testHostname";
-    String testDbName = "testDbName";
-    String urlString = hiveDatabaseMeta.getURL( testHostname, "", testDbName );
-    assertTrue( urlString.startsWith( URL_PREFIX ) );
-    // Use known prefix
-    urlString = "http://" + urlString.substring( URL_PREFIX.length() );
-    URL url = new URL( urlString );
-    assertEquals( testHostname, url.getHost() );
-    assertEquals( hiveDatabaseMeta.getDefaultDatabasePort(), url.getPort() );
-    assertEquals( "/" + testDbName, url.getPath() );
-  }
-
-  @Test
   public void testGetUsedLibraries() {
-    assertArrayEquals( new String[] { HiveDatabaseMeta.JAR_FILE }, hiveDatabaseMeta.getUsedLibraries() );
+    assertArrayEquals( new String[] { Hive2DatabaseMeta.JAR_FILE }, hive2DatabaseMeta.getUsedLibraries() );
   }
 
   @Test
   public void testGetSelectCountStatement() {
-    String tableName = "tableName";
-    assertEquals( HiveDatabaseMeta.SELECT_COUNT_1_FROM + tableName,
-      hiveDatabaseMeta.getSelectCountStatement( tableName ) );
+    String testTable = "testTable";
+    assertEquals( Hive2DatabaseMeta.SELECT_COUNT_1_FROM + testTable,
+      hive2DatabaseMeta.getSelectCountStatement( testTable ) );
+  }
+
+  @Test
+  public void testGenerateColumnAlias5AndPrior() {
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 5;
+    String suggestedName = "suggestedName";
+    int columnIndex = 12;
+    assertEquals( Hive2DatabaseMeta.ALIAS_SUFFIX + columnIndex,
+      hive2DatabaseMeta.generateColumnAlias( columnIndex, suggestedName ) );
+  }
+
+  @Test
+  public void testGenerateColumnAlias6AndLater() {
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 6;
+    String suggestedName = "suggestedName";
+    int columnIndex = 12;
+    assertEquals( suggestedName, hive2DatabaseMeta.generateColumnAlias( columnIndex, suggestedName ) );
   }
 
   @Test
   public void testIsDriverVersionNull() {
-    assertTrue( hiveDatabaseMeta.isDriverVersion( -1, -1 ) );
+    assertTrue( hive2DatabaseMeta.isDriverVersion( -1, -1 ) );
   }
 
   @Test
   public void testIsDriverVersionMajorGreater() {
-    hiveDatabaseMeta.driverMajorVersion = 6;
-    hiveDatabaseMeta.driverMinorVersion = 0;
-    assertTrue( hiveDatabaseMeta.isDriverVersion( 5, 5 ) );
+    hive2DatabaseMeta.driverMajorVersion = 6;
+    hive2DatabaseMeta.driverMinorVersion = 0;
+    assertTrue( hive2DatabaseMeta.isDriverVersion( 5, 5 ) );
   }
 
   @Test
   public void testIsDriverVersionMajorSameMinorEqual() {
-    hiveDatabaseMeta.driverMajorVersion = 5;
-    hiveDatabaseMeta.driverMinorVersion = 5;
-    assertTrue( hiveDatabaseMeta.isDriverVersion( 5, 5 ) );
+    hive2DatabaseMeta.driverMajorVersion = 5;
+    hive2DatabaseMeta.driverMinorVersion = 5;
+    assertTrue( hive2DatabaseMeta.isDriverVersion( 5, 5 ) );
   }
 
   @Test
   public void testIsDriverVersionMajorSameMinorLess() {
-    hiveDatabaseMeta.driverMajorVersion = 5;
-    hiveDatabaseMeta.driverMinorVersion = 4;
-    assertFalse( hiveDatabaseMeta.isDriverVersion( 5, 5 ) );
+    hive2DatabaseMeta.driverMajorVersion = 5;
+    hive2DatabaseMeta.driverMinorVersion = 4;
+    assertFalse( hive2DatabaseMeta.isDriverVersion( 5, 5 ) );
   }
 
   @Test
   public void testIsDriverVersionMajorLess() {
-    hiveDatabaseMeta.driverMajorVersion = 4;
-    hiveDatabaseMeta.driverMinorVersion = 6;
-    assertFalse( hiveDatabaseMeta.isDriverVersion( 5, 5 ) );
+    hive2DatabaseMeta.driverMajorVersion = 4;
+    hive2DatabaseMeta.driverMinorVersion = 6;
+    assertFalse( hive2DatabaseMeta.isDriverVersion( 5, 5 ) );
   }
 
   @Test
   public void testGetStartQuote() {
-    assertEquals( 0, hiveDatabaseMeta.getStartQuote().length() );
+    assertEquals( 0, hive2DatabaseMeta.getStartQuote().length() );
   }
 
   @Test
   public void testGetEndQuote() {
-    assertEquals( 0, hiveDatabaseMeta.getEndQuote().length() );
+    assertEquals( 0, hive2DatabaseMeta.getEndQuote().length() );
   }
 
   @Test
-  public void testGetDefaultDatabasePort() {
-    assertEquals( HiveDatabaseMeta.DEFAULT_PORT, hiveDatabaseMeta.getDefaultDatabasePort() );
-  }
-
-  @Test
-  public void testGetTableTypes() {
-    assertNull( hiveDatabaseMeta.getTableTypes() );
+  public void testGetTableTypesReturnsNull() {
+    assertNull( hive2DatabaseMeta.getTableTypes() );
   }
 
   @Test
   public void testGetViewTypes() {
-    assertArrayEquals( new String[] { HiveDatabaseMeta.VIEW, HiveDatabaseMeta.VIRTUAL_VIEW },
-      hiveDatabaseMeta.getViewTypes() );
+    assertArrayEquals( new String[] { Hive2DatabaseMeta.VIEW, Hive2DatabaseMeta.VIRTUAL_VIEW },
+      hive2DatabaseMeta.getViewTypes() );
   }
 
   @Test
   public void testGetTruncateTableStatement10OrPrior() {
-    hiveDatabaseMeta.driverMajorVersion = 0;
-    hiveDatabaseMeta.driverMinorVersion = 10;
-    assertNull( hiveDatabaseMeta.getTruncateTableStatement( "testTableName" ) );
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 10;
+    assertNull( hive2DatabaseMeta.getTruncateTableStatement( "testTableName" ) );
   }
 
   @Test
   public void testGetTruncateTableStatement11AndLater() {
-    hiveDatabaseMeta.driverMajorVersion = 0;
-    hiveDatabaseMeta.driverMinorVersion = 11;
+    hive2DatabaseMeta.driverMajorVersion = 0;
+    hive2DatabaseMeta.driverMinorVersion = 11;
     String testTableName = "testTableName";
-    assertEquals( HiveDatabaseMeta.TRUNCATE_TABLE + testTableName,
-      hiveDatabaseMeta.getTruncateTableStatement( testTableName ) );
+    assertEquals( Hive2DatabaseMeta.TRUNCATE_TABLE + testTableName,
+      hive2DatabaseMeta.getTruncateTableStatement( testTableName ) );
   }
 
   @Test
   public void testSupportsSetCharacterStream() {
-    assertFalse( hiveDatabaseMeta.supportsSetCharacterStream() );
+    assertFalse( hive2DatabaseMeta.supportsSetCharacterStream() );
   }
 
   @Test
   public void testSupportsBatchUpdates() {
-    assertFalse( hiveDatabaseMeta.supportsBatchUpdates() );
+    assertFalse( hive2DatabaseMeta.supportsBatchUpdates() );
   }
 
   @Test
   public void testSupportsTimeStampToDateConversion() {
-    assertFalse( hiveDatabaseMeta.supportsTimeStampToDateConversion() );
+    assertFalse( hive2DatabaseMeta.supportsTimeStampToDateConversion() );
   }
 
   private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String name, String expectedType ) {
@@ -355,9 +344,9 @@ public class HiveDatabaseMetaTest {
   }
 
   private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String expectedType ) {
-    assertEquals( expectedType, hiveDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, false,
+    assertEquals( expectedType, hive2DatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, false,
       false ) );
     assertEquals( valueMetaInterface.getName() + " " + expectedType,
-      hiveDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, true, false ) );
+      hive2DatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, true, false ) );
   }
 }

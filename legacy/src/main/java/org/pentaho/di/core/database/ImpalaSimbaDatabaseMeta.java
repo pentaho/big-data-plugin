@@ -1,26 +1,24 @@
-/*
- * ! ******************************************************************************
- *  *
- *  * Pentaho Data Integration
- *  *
- *  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *  *
- *  *******************************************************************************
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with
- *  * the License. You may obtain a copy of the License at
- *  *
- *  *    http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
- *  *****************************************************************************
- */
+/*******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.core.database;
 
@@ -34,8 +32,12 @@ public class ImpalaSimbaDatabaseMeta extends ImpalaDatabaseMeta implements Datab
 
   protected static final String JAR_FILE = "ImpalaJDBC41.jar";
   //protected static final String DRIVER_CLASS_NAME = "com.simba.impala.jdbc41.Driver";
+  protected static final String JDBC_URL_PREFIX = "jdbc:impala://";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.ImpalaSimbaDriver";
-  protected static final String JDBC_URL_TEMPLATE = "jdbc:impala://%s:%d/%s;AuthMech=%d%s";
+  protected static final String JDBC_URL_TEMPLATE = JDBC_URL_PREFIX + "%s:%d/%s;AuthMech=%d%s";
+  public static final String ODBC_DRIVER_CLASS_NAME = "sun.jdbc.odbc.JdbcOdbcDriver";
+  public static final String KRB_HOST_FQDN = "KrbHostFQDN";
+  public static final String KRB_SERVICE_NAME = "KrbServiceName";
 
   public ImpalaSimbaDatabaseMeta() throws Throwable {
   }
@@ -59,7 +61,7 @@ public class ImpalaSimbaDatabaseMeta extends ImpalaDatabaseMeta implements Datab
   @Override
   public String getDriverClass() {
     if ( getAccessType() == DatabaseMeta.TYPE_ACCESS_ODBC ) {
-      return "sun.jdbc.odbc.JdbcOdbcDriver";
+      return ODBC_DRIVER_CLASS_NAME;
     } else {
       return DRIVER_CLASS_NAME;
     }
@@ -70,7 +72,7 @@ public class ImpalaSimbaDatabaseMeta extends ImpalaDatabaseMeta implements Datab
     if ( Const.isEmpty( port ) ) {
       portNumber = getDefaultDatabasePort();
     } else {
-      portNumber = Integer.decode( port );
+      portNumber = Integer.valueOf( port );
     }
     if ( Const.isEmpty( databaseName ) ) {
       databaseName = "default";
@@ -88,10 +90,10 @@ public class ImpalaSimbaDatabaseMeta extends ImpalaDatabaseMeta implements Datab
         StringBuilder additional = new StringBuilder();
         String userName = getUsername();
         String password = getPassword();
-        String krbFQDN = getProperty( "KrbHostFQDN" );
-        String extraKrbFQDN = getExtraProperty( "KrbHostFQDN" );
-        String krbPrincipal = getProperty( "KrbServiceName" );
-        String extraKrbPrincipal = getExtraProperty( "KrbServiceName" );
+        String krbFQDN = getProperty( KRB_HOST_FQDN );
+        String extraKrbFQDN = getExtraProperty( KRB_HOST_FQDN );
+        String krbPrincipal = getProperty( KRB_SERVICE_NAME );
+        String extraKrbPrincipal = getExtraProperty( KRB_SERVICE_NAME );
         if ( ( !Const.isEmpty( krbPrincipal ) || !Const.isEmpty( extraKrbPrincipal ) ) && ( !Const.isEmpty( krbFQDN )
           || !Const.isEmpty( extraKrbFQDN ) ) ) {
           authMethod = 1;

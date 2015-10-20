@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,6 +33,12 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
 
   protected static final String JAR_FILE = "hive-jdbc-0.10.0-pentaho.jar";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
+  public static final String URL_PREFIX = "jdbc:hive2://";
+  public static final String SELECT_COUNT_1_FROM = "select count(1) from ";
+  public static final String ALIAS_SUFFIX = "_col";
+  public static final String VIEW = "VIEW";
+  public static final String VIRTUAL_VIEW = "VIRTUAL_VIEW";
+  public static final String TRUNCATE_TABLE = "TRUNCATE TABLE ";
 
   protected Integer driverMajorVersion;
   protected Integer driverMinorVersion;
@@ -163,7 +169,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
   @Override
   public String getURL( String hostname, String port, String databaseName ) throws KettleDatabaseException {
 
-    return "jdbc:hive2://" + hostname + ":" + port + "/" + databaseName;
+    return URL_PREFIX + hostname + ":" + port + "/" + databaseName;
   }
 
   @Override
@@ -180,7 +186,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
    */
   @Override
   public String getSelectCountStatement( String tableName ) {
-    return "select count(1) from " + tableName;
+    return SELECT_COUNT_1_FROM + tableName;
   }
 
   @Override
@@ -192,7 +198,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
       // Column aliases are currently not supported in Hive.  The default column alias
       // generated is in the format '_col##' where ## = column index.  Use this format
       // so the result can be mapped back correctly.
-      return "_col" + String.valueOf( columnIndex ); //$NON-NLS-1$
+      return ALIAS_SUFFIX + String.valueOf( columnIndex ); //$NON-NLS-1$
     }
   }
 
@@ -273,7 +279,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
    */
   @Override
   public String[] getViewTypes() {
-    return new String[]{ "VIEW", "VIRTUAL_VIEW" };
+    return new String[]{ VIEW, VIRTUAL_VIEW };
   }
 
   /**
@@ -283,7 +289,7 @@ public class Hive2DatabaseMeta extends BaseDatabaseMeta implements DatabaseInter
   @Override
   public String getTruncateTableStatement( String tableName ) {
     if ( isDriverVersion( 0, 11 ) ) {
-      return "TRUNCATE TABLE " + tableName;
+      return TRUNCATE_TABLE + tableName;
     }
     return null;
   }
