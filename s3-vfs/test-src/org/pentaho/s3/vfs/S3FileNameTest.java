@@ -63,6 +63,19 @@ public class S3FileNameTest {
     assertEquals( expected, fileName.getFriendlyURI() );
   }
 
+  @Test
+  public void testCreateName() throws Exception {
+    fileName.createName( "/path/to/my/file", FileType.FILE );
+  }
+
+  @Test
+  public void testAppendRootUriWithNonDefaultPort() throws Exception {
+    fileName = new S3FileName( SCHEME, HOST, PORT + 1, PORT, awsAccessKey, awsSecretKey, "/", FileType.FOLDER, null );
+    String expectedUri = SCHEME + "://" + URLEncoder.encode( awsAccessKey, "UTF-8" ) + ":"
+      + URLEncoder.encode( awsSecretKey, "UTF-8" ) + "@" + HOST + ":" + ( PORT + 1 ) + "/";
+    assertEquals( expectedUri, fileName.getURI() );
+  }
+
   public static String buildS3URL( String path, boolean withUserInfo ) throws UnsupportedEncodingException {
     if ( withUserInfo ) {
       return SCHEME + "://" + URLEncoder.encode( awsAccessKey, "UTF-8" ) + ":" + URLEncoder

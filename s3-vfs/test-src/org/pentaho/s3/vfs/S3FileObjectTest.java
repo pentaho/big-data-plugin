@@ -16,8 +16,14 @@
 */
 package org.pentaho.s3.vfs;
 
+import org.apache.commons.vfs2.CacheStrategy;
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.FilesCache;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.apache.commons.vfs2.provider.VfsComponentContext;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;
@@ -25,6 +31,9 @@ import org.jets3t.service.model.S3Object;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.OutputStream;
+import java.util.Calendar;
 
 import static org.junit.Assert.*;
 
@@ -48,13 +57,15 @@ public class S3FileObjectTest {
   private S3FileName filename;
   private S3FileSystem fileSystemSpy;
   private S3FileObject s3FileObjectSpy;
+  private S3Service s3ServiceMock;
 
   @Before
   public void setUp() throws Exception {
 
-    S3Service s3ServiceMock = mock( S3Service.class );
+    s3ServiceMock = mock( S3Service.class );
     S3Bucket testBucket = new S3Bucket( BUCKET_NAME );
     S3Object s3Object = new S3Object( OBJECT_NAME );
+
     filename =
       new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME + "/" + OBJECT_NAME,
         FileType.FILE, null );
@@ -62,6 +73,14 @@ public class S3FileObjectTest {
       new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME, FileType.FILE, null );
     S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions() );
     fileSystemSpy = spy( fileSystem );
+    VfsComponentContext context = mock( VfsComponentContext.class );
+    final DefaultFileSystemManager fsm = new DefaultFileSystemManager();
+    FilesCache cache = mock( FilesCache.class );
+    fsm.setFilesCache( cache );
+    fsm.setCacheStrategy( CacheStrategy.ON_RESOLVE );
+    when( context.getFileSystemManager() ).thenReturn( fsm );
+    fileSystemSpy.setContext( context );
+
     S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
     s3FileObjectSpy = spy( s3FileObject );
 
@@ -91,10 +110,159 @@ public class S3FileObjectTest {
     testGetS3ObjectWithFlag( true );
   }
 
+  @Test
+  public void testGetS3BucketName() {
+    filename =
+      new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME,
+        FileType.FOLDER, null );
+    when( s3FileObjectSpy.getName() ).thenReturn( filename );
+    s3FileObjectSpy.getS3BucketName();
+  }
 
-  private void testGetS3ObjectWithFlag( boolean deleteIfExists ) throws Exception {
+  @Test
+  public void testGetS3BucketNoService() throws Exception {
+
+    when( fileSystemSpy.getS3Service() ).thenReturn( null );
+    s3FileObjectSpy = spy( new S3FileObject( filename, fileSystemSpy ) );
+    s3FileObjectSpy.getS3Bucket();
+  }
+
+  @Test
+  public void testGetS3ObjectNoPath() throws Exception {
+    FileName mockFile = mock( FileName.class );
+    when( s3FileObjectSpy.getName() ).thenReturn( mockFile );
+    when( mockFile.getPath() ).thenReturn( "" );
+    assertNull( s3FileObjectSpy.getS3Object( false, false ) );
+  }
+
+  @Test
+  public void testGetS3ObjectWithException() throws Exception {
+
+    when( s3FileObjectSpy.getS3BucketName() ).thenThrow( new NullPointerException() );
+    assertNotNull( s3FileObjectSpy.getS3Object( true, false ) );
+    when( s3FileObjectSpy.getName() ).thenThrow( new NullPointerException() );
+    assertNull( s3FileObjectSpy.getS3Object( true, false ) );
+  }
+
+  @Test
+  public void testDoGetContentSize() throws Exception {
+    assertEquals( 0, s3FileObjectSpy.doGetContentSize() );
+  }
+
+  @Test
+  public void testDoGetOutputStream() throws Exception {
+    assertNotNull( s3FileObjectSpy.doGetOutputStream( false ) );
+    OutputStream out = s3FileObjectSpy.doGetOutputStream( true );
+    assertNotNull( out );
+    out.close();
+  }
+
+  @Test
+  public void testDoGetInputStream() throws Exception {
+    assertNull( s3FileObjectSpy.doGetInputStream() );
+  }
+
+  @Test
+  public void testDoGetTypeImaginary() throws Exception {
+    assertEquals( FileType.IMAGINARY, s3FileObjectSpy.doGetType() );
+    when( s3FileObjectSpy.getS3Bucket() ).thenThrow( new Exception() );
+    assertEquals( FileType.IMAGINARY, s3FileObjectSpy.doGetType() );
+  }
+
+  @Test
+  public void testDoGetTypeFolder() throws Exception {
+    FileName mockFile = mock( FileName.class );
+    when( s3FileObjectSpy.getName() ).thenReturn( mockFile );
+    when( mockFile.getPath() ).thenReturn( S3FileObject.DELIMITER );
+    assertEquals( FileType.FOLDER, s3FileObjectSpy.doGetType() );
+  }
+
+  @Test
+  public void testDoCreateFolder() throws Exception {
+    doReturn( s3FileObjectSpy ).when( fileSystemSpy ).resolveFile( filename );
+    s3FileObjectSpy.doCreateFolder();
+    when( s3FileObjectSpy.getS3Object( false, false ) ).thenReturn( null );
+    s3FileObjectSpy.doCreateFolder();
+  }
+
+  @Test
+  public void testCanRenameTo() throws Exception {
+    FileObject newFile = mock( FileObject.class );
+    assertFalse( s3FileObjectSpy.canRenameTo( newFile ) );
+    when( s3FileObjectSpy.getType() ).thenReturn( FileType.FOLDER );
+    assertFalse( s3FileObjectSpy.canRenameTo( newFile ) );
+  }
+
+  @Test( expected = NullPointerException.class )
+  public void testCanRenameToNullFile() throws Exception {
+    // This is a bug / weakness in VFS itself
+    s3FileObjectSpy.canRenameTo( null );
+  }
+
+  @Test
+  public void testDoDelete() throws Exception {
+    s3FileObjectSpy.doDelete();
+    when( s3FileObjectSpy.getS3Object( false, false ) ).thenReturn( null );
+    s3FileObjectSpy.doDelete();
+    when( s3FileObjectSpy.getS3Bucket() ).thenReturn( null );
+    s3FileObjectSpy.doDelete();
+  }
+
+  @Test
+  public void testDoRename() throws Exception {
+    FileObject newFile = mock( FileObject.class );
+    when( newFile.getName() ).thenReturn( filename );
+    s3FileObjectSpy.doRename( newFile );
+  }
+
+  @Test
+  public void testDoGetLastModifiedTime() throws Exception {
+    S3Object object = mock( S3Object.class );
+    when( s3FileObjectSpy.getS3Object( false, false ) ).thenReturn( object );
+    when( object.getLastModifiedDate() ).thenReturn( Calendar.getInstance().getTime() );
+    assertTrue( s3FileObjectSpy.doGetLastModifiedTime() > 0 );
+    when( s3FileObjectSpy.getType() ).thenReturn( FileType.FOLDER );
+    assertEquals( -1, s3FileObjectSpy.doGetLastModifiedTime() );
+    // This is a no-op method that returns true
+    assertTrue( s3FileObjectSpy.doSetLastModifiedTime( 1L ) );
+  }
+
+  @Test
+  public void testDoListChildren() throws Exception {
+    assertNull( s3FileObjectSpy.doListChildren() );
+    FileName mockFile = mock( FileName.class );
+    when( s3FileObjectSpy.getName() ).thenReturn( mockFile );
+    when( mockFile.getPath() ).thenReturn( S3FileObject.DELIMITER );
+    when( s3FileObjectSpy.getS3Bucket() ).thenReturn( null );
+    S3Bucket bucket = mock( S3Bucket.class );
+    S3Bucket[] buckets = new S3Bucket[]{ bucket };
+    when( s3ServiceMock.listAllBuckets() ).thenReturn( buckets );
+    String[] children = s3FileObjectSpy.doListChildren();
+    assertNotNull( children );
+
+    when( mockFile.getPath() ).thenReturn( "/path/to/myFile.txt" );
+    S3Object object = mock( S3Object.class );
+    when( object.getKey() ).thenReturn( "/path/to/myFile.txt@S3/" );
+    S3Object[] objects = new S3Object[]{ object };
+    when( s3ServiceMock.listObjects( anyString(), anyString(), anyString() ) ).thenReturn( objects );
+    children = s3FileObjectSpy.doListChildren();
+    assertNotNull( children );
+  }
+
+  @Test
+  public void testHandleCreate() throws Exception {
+    s3FileObjectSpy.handleCreate( FileType.FILE );
+  }
+
+  @Test
+  public void testHandleDelete() throws Exception {
+    s3FileObjectSpy.handleDelete();
+  }
+
+  protected void testGetS3ObjectWithFlag( boolean deleteIfExists ) throws Exception {
     S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
     S3Object s3Object = s3FileObject.getS3Object( deleteIfExists, false );
     assertNotNull( s3Object );
   }
+
 }

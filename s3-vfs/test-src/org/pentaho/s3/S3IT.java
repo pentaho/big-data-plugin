@@ -50,7 +50,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class S3TestIntegration {
+public class S3IT {
 
   private static FileSystemManager fsManager;
   private static String HELLO_S3_STR = "Hello S3 VFS";
@@ -77,7 +77,7 @@ public class S3TestIntegration {
       System.out.println( "Debug mode is enabled" + System.getProperty( "debug" ) );
     }
     Properties settings = new Properties();
-    settings.load( S3TestIntegration.class.getResourceAsStream( "/test-settings.properties" ) );
+    settings.load( S3IT.class.getResourceAsStream( "/test-settings.properties" ) );
     awsAccessKey = settings.getProperty( "awsAccessKey" );
     awsSecretKey = settings.getProperty( "awsSecretKey" );
 

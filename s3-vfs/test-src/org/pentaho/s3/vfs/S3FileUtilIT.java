@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * created by: rfellows date:       5/21/12
  */
-public class S3FileUtilTestIntegration {
+public class S3FileUtilIT {
 
   public static String awsAccessKey;
   public static String awsSecretKey;
@@ -41,7 +41,7 @@ public class S3FileUtilTestIntegration {
   @BeforeClass
   public static void init() throws Exception {
     Properties settings = new Properties();
-    settings.load( S3FileUtilTestIntegration.class.getResourceAsStream( "/test-settings.properties" ) );
+    settings.load( S3FileUtilIT.class.getResourceAsStream( "/test-settings.properties" ) );
     awsAccessKey = settings.getProperty( "awsAccessKey" );
     awsSecretKey = settings.getProperty( "awsSecretKey" );
   }
