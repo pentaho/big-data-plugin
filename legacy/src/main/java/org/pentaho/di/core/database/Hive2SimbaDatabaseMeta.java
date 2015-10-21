@@ -1,26 +1,24 @@
-/*
- * ! ******************************************************************************
- *  *
- *  * Pentaho Data Integration
- *  *
- *  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *  *
- *  *******************************************************************************
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with
- *  * the License. You may obtain a copy of the License at
- *  *
- *  *    http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *
- *  *****************************************************************************
- */
+/*******************************************************************************
+ *
+ * Pentaho Big Data
+ *
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.di.core.database;
 
@@ -34,7 +32,15 @@ public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements Databas
   protected static final String JAR_FILE = "HiveJDBC41.jar";
   //protected static final String DRIVER_CLASS_NAME = "com.simba.hive.jdbc41.HS2Driver";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveSimbaDriver";
-  protected static final String JDBC_URL_TEMPLATE = "jdbc:hive2://%s:%d/%s;AuthMech=%d%s";
+  protected static final String JDBC_URL_PREFIX = "jdbc:hive2://";
+  protected static final String AUTH_MECH = "AuthMech";
+  protected static final String JDBC_URL_TEMPLATE = JDBC_URL_PREFIX + "%s:%d/%s;" + AUTH_MECH + "=%d%s";
+  public static final String ODBC_DRIVER_CLASS_NAME = "sun.jdbc.odbc.JdbcOdbcDriver";
+
+  public static final String JDBC_ODBC_S = "jdbc:odbc:%s";
+  public static final String URL_IS_CONFIGURED_THROUGH_JNDI = "Url is configured through JNDI";
+  public static final String KRB_HOST_FQDN = "KrbHostFQDN";
+  public static final String KRB_SERVICE_NAME = "KrbServiceName";
 
 
   public Hive2SimbaDatabaseMeta() throws Throwable {
@@ -59,7 +65,7 @@ public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements Databas
   @Override
   public String getDriverClass() {
     if ( getAccessType() == DatabaseMeta.TYPE_ACCESS_ODBC ) {
-      return "sun.jdbc.odbc.JdbcOdbcDriver";
+      return ODBC_DRIVER_CLASS_NAME;
     } else {
       return DRIVER_CLASS_NAME;
     }
@@ -70,17 +76,17 @@ public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements Databas
     if ( Const.isEmpty( port ) ) {
       portNumber = getDefaultDatabasePort();
     } else {
-      portNumber = Integer.decode( port );
+      portNumber = Integer.valueOf( port );
     }
     if ( Const.isEmpty( databaseName ) ) {
       databaseName = "default";
     }
-    switch ( getAccessType() ) {
+    switch( getAccessType() ) {
       case DatabaseMeta.TYPE_ACCESS_ODBC: {
-        return String.format( "jdbc:odbc:%s", databaseName );
+        return String.format( JDBC_ODBC_S, databaseName );
       }
       case DatabaseMeta.TYPE_ACCESS_JNDI: {
-        return "Url is configured through JNDI";
+        return URL_IS_CONFIGURED_THROUGH_JNDI;
       }
       case DatabaseMeta.TYPE_ACCESS_NATIVE:
       default: {
@@ -88,10 +94,10 @@ public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements Databas
         StringBuilder additional = new StringBuilder();
         String userName = getUsername();
         String password = getPassword();
-        String krbFQDN = getProperty( "KrbHostFQDN" );
-        String extraKrbFQDN = getExtraProperty( "KrbHostFQDN" );
-        String krbPrincipal = getProperty( "KrbServiceName" );
-        String extraKrbPrincipal = getExtraProperty( "KrbServiceName" );
+        String krbFQDN = getProperty( KRB_HOST_FQDN );
+        String extraKrbFQDN = getExtraProperty( KRB_HOST_FQDN );
+        String krbPrincipal = getProperty( KRB_SERVICE_NAME );
+        String extraKrbPrincipal = getExtraProperty( KRB_SERVICE_NAME );
         if ( ( !Const.isEmpty( krbPrincipal ) || !Const.isEmpty( extraKrbPrincipal ) ) && ( !Const.isEmpty( krbFQDN )
           || !Const.isEmpty( extraKrbFQDN ) ) ) {
           authMethod = 1;
@@ -120,13 +126,6 @@ public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements Databas
   }
 
   /**
-   * @return a list of table types to retrieve tables for the database
-   */
-  @Override public String[] getTableTypes() {
-    return super.getTableTypes();
-  }
-
-  /**
    * This method assumes that Hive has no concept of primary and technical keys and auto increment columns. We are
    * ignoring the tk, pk and useAutoinc parameters.
    */
@@ -145,7 +144,7 @@ public class Hive2SimbaDatabaseMeta extends Hive2DatabaseMeta implements Databas
     }
 
     int type = v.getType();
-    switch ( type ) {
+    switch( type ) {
 
       case ValueMetaInterface.TYPE_BOOLEAN:
         retval.append( "BOOLEAN" );
