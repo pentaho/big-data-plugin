@@ -103,8 +103,8 @@
                         <label value="${Oozie.JobExecutor.Workflow.Properties.Label}" />
                         <spacer flex="1"/>
                         <hbox padding="2">
-                            <button image="../../../../../../../../../ui/images/Add.png" onclick="controller.addNewProperty()" />
-                            <button image="../../../../../../../../../ui/images/generic-delete.png" onclick="controller.removeProperty()" />
+                            <button image="ui/images/Add.png" onclick="controller.addNewProperty()" />
+                            <button image="ui/images/generic-delete.png" onclick="controller.removeProperty()" />
                         </hbox>
                     </hbox>
                     <vbox padding="0" spacing="0" flex="1">
