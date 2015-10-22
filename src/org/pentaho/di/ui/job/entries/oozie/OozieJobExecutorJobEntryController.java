@@ -1,23 +1,18 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
+ * <p/>
  * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p/>
+ * ******************************************************************************
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.di.ui.job.entries.oozie;
@@ -60,7 +55,7 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
  * User: RFellows Date: 6/4/12
  */
 public class OozieJobExecutorJobEntryController extends
-    AbstractJobEntryController<OozieJobExecutorConfig, OozieJobExecutorJobEntry> {
+  AbstractJobEntryController<OozieJobExecutorConfig, OozieJobExecutorJobEntry> {
 
   public static final String OOZIE_JOB_EXECUTOR = "oozie-job-executor";
   private static final String VALUE = "value";
@@ -83,7 +78,7 @@ public class OozieJobExecutorJobEntryController extends
   private String modeToggleLabel;
 
   public OozieJobExecutorJobEntryController( JobMeta jobMeta, XulDomContainer container,
-      OozieJobExecutorJobEntry jobEntry, BindingFactory bindingFactory ) {
+                                             OozieJobExecutorJobEntry jobEntry, BindingFactory bindingFactory ) {
     super( jobMeta, container, jobEntry, bindingFactory );
     advancedArguments = new AbstractModelList<PropertyEntry>();
 
@@ -139,7 +134,7 @@ public class OozieJobExecutorJobEntryController extends
 
   /**
    * Determines if the advanced properties should be used instead of the quick-setup defined workflow properties file
-   * 
+   *
    * @return
    */
   protected boolean shouldUseAdvancedProperties() {
@@ -148,7 +143,7 @@ public class OozieJobExecutorJobEntryController extends
 
   /**
    * make this available for unit testing
-   * 
+   *
    * @param mode
    */
   protected void setJobEntryMode( JobEntryMode mode ) {
@@ -157,46 +152,48 @@ public class OozieJobExecutorJobEntryController extends
 
   @Override
   protected void createBindings( final OozieJobExecutorConfig config, XulDomContainer container,
-      BindingFactory bindingFactory, Collection<Binding> bindings ) {
+                                 BindingFactory bindingFactory, Collection<Binding> bindings ) {
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
     bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.JOB_ENTRY_NAME,
-        BlockableJobConfig.JOB_ENTRY_NAME, VALUE ) );
-    
+      BlockableJobConfig.JOB_ENTRY_NAME, VALUE ) );
+
     //config.setRepository( rep );
     String clusterName = config.getClusterName();
-    
+
     namedClustersBinding = bindingFactory.createBinding( config, "namedClusters", "named-clusters", "elements" );
     try {
       namedClustersBinding.fireSourceChanged();
     } catch ( Throwable ignored ) {
     }
     bindings.add( namedClustersBinding );
-    Binding selectedNamedClusterBinding = bindingFactory.createBinding( "named-clusters", "selectedIndex", config, "namedCluster", new BindingConvertor<Integer, NamedCluster>() {
-      public NamedCluster sourceToTarget( final Integer index ) {
-        List<NamedCluster> clusters = config.getNamedClusters();
-        if ( index == -1 || clusters.isEmpty() ) {
-          return null;
-        }
-        return clusters.get( index );
-      }
+    Binding selectedNamedClusterBinding = bindingFactory
+      .createBinding( "named-clusters", "selectedIndex", config, "namedCluster",
+        new BindingConvertor<Integer, NamedCluster>() {
+          public NamedCluster sourceToTarget( final Integer index ) {
+            List<NamedCluster> clusters = config.getNamedClusters();
+            if ( index == -1 || clusters.isEmpty() ) {
+              return null;
+            }
+            return clusters.get( index );
+          }
 
-      public Integer targetToSource( final NamedCluster value ) {
-        return null;
-      }
-    } );
+          public Integer targetToSource( final NamedCluster value ) {
+            return null;
+          }
+        } );
     try {
       selectedNamedClusterBinding.fireSourceChanged();
     } catch ( Throwable ignored ) {
     }
     bindings.add( selectedNamedClusterBinding );
-    
-    selectNamedCluster( clusterName );    
-    
+
+    selectNamedCluster( clusterName );
+
     bindings.add( bindingFactory.createBinding( config, OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG,
-        OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE ) );
+      OozieJobExecutorConfig.OOZIE_WORKFLOW_CONFIG, VALUE ) );
 
     bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.BLOCKING_POLLING_INTERVAL,
-        BlockableJobConfig.BLOCKING_POLLING_INTERVAL, VALUE ) );
+      BlockableJobConfig.BLOCKING_POLLING_INTERVAL, VALUE ) );
 
     BindingConvertor<String, Boolean> string2BooleanConvertor = new BindingConvertor<String, Boolean>() {
       @Override
@@ -212,50 +209,51 @@ public class OozieJobExecutorJobEntryController extends
       }
     };
     bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.BLOCKING_EXECUTION,
-        BlockableJobConfig.BLOCKING_EXECUTION, "checked", string2BooleanConvertor ) );
+      BlockableJobConfig.BLOCKING_EXECUTION, "checked", string2BooleanConvertor ) );
 
     bindingFactory.setBindingType( Binding.Type.ONE_WAY );
     bindings.add( bindingFactory.createBinding( this, "modeToggleLabel", getModeToggleLabelElementId(), VALUE ) );
 
     // only enable the polling interval text box is blocking is checked
     bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.BLOCKING_EXECUTION,
-        BlockableJobConfig.BLOCKING_POLLING_INTERVAL, "!disabled", string2BooleanConvertor ) );
+      BlockableJobConfig.BLOCKING_POLLING_INTERVAL, "!disabled", string2BooleanConvertor ) );
 
     BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>> propsChangedBindingConvertor =
-        new BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>>() {
-          @Override
-          public Collection<PropertyEntry> sourceToTarget( AbstractModelList<PropertyEntry> propertyEntries ) {
-            // user has modified the properties in advanced mode, set the flag...
-            advancedArgumentsChanged = true;
-            return propertyEntries;
-          }
+      new BindingConvertor<AbstractModelList<PropertyEntry>, Collection<PropertyEntry>>() {
+        @Override
+        public Collection<PropertyEntry> sourceToTarget( AbstractModelList<PropertyEntry> propertyEntries ) {
+          // user has modified the properties in advanced mode, set the flag...
+          advancedArgumentsChanged = true;
+          return propertyEntries;
+        }
 
-          @Override
-          public AbstractModelList<PropertyEntry> targetToSource( Collection<PropertyEntry> propertyEntries ) {
-            // one-way convertor, don't need this
-            return null;
-          }
-        };
+        @Override
+        public AbstractModelList<PropertyEntry> targetToSource( Collection<PropertyEntry> propertyEntries ) {
+          // one-way convertor, don't need this
+          return null;
+        }
+      };
 
     bindings.add( bindingFactory.createBinding( advancedArguments, CHILDREN, variablesTree, ELEMENTS,
-        propsChangedBindingConvertor ) );
+      propsChangedBindingConvertor ) );
 
   }
 
   private List<NamedCluster> getNamedClusters() {
     return NamedClusterUIHelper.getNamedClusters();
   }
-  
+
   public void selectNamedCluster( String configName ) {
-    @SuppressWarnings("unchecked")
-    XulMenuList<NamedCluster> namedConfigMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<NamedCluster> namedConfigMenu =
+      (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
     for ( NamedCluster nc : getNamedClusters() ) {
       if ( configName != null && configName.equals( nc.getName() ) ) {
         namedConfigMenu.setSelectedItem( nc );
       }
-    }    
+    }
   }
-  
+
   public void editNamedCluster() {
     String cn = config.getClusterName();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
@@ -265,7 +263,7 @@ public class OozieJobExecutorJobEntryController extends
     firePropertyChange( "namedClusters", config.getClusterName(), config.getNamedClusters() );
     selectNamedCluster( cn );
   }
-  
+
   public void newNamedCluster() {
     String cn = config.getClusterName();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
@@ -280,7 +278,7 @@ public class OozieJobExecutorJobEntryController extends
     }
     selectNamedCluster( cn );
   }
-  
+
   @Bindable
   public void addNewProperty() {
     advancedArgumentsChanged = true;
@@ -310,7 +308,7 @@ public class OozieJobExecutorJobEntryController extends
   @Bindable
   public void accept() {
     syncModel();
-    
+
     List<String> warnings = jobEntry.getValidationWarnings( getConfig(), false );
     if ( !warnings.isEmpty() ) {
       StringBuilder sb = new StringBuilder();
@@ -318,10 +316,10 @@ public class OozieJobExecutorJobEntryController extends
         sb.append( warning ).append( "\n" );
       }
       showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
-          .toString() );
+        .toString() );
       return;
     }
-    
+
     super.accept();
   }
 
@@ -366,14 +364,14 @@ public class OozieJobExecutorJobEntryController extends
 
   @Override
   protected void setModeToggleLabel( JobEntryMode mode ) {
-    switch ( mode ) {
+    switch( mode ) {
       case ADVANCED_LIST:
         setModeToggleLabel( BaseMessages
-            .getString( OozieJobExecutorJobEntry.class, "Oozie.AdvancedOptions.Button.Text" ) );
+          .getString( OozieJobExecutorJobEntry.class, "Oozie.AdvancedOptions.Button.Text" ) );
         break;
       case QUICK_SETUP:
         setModeToggleLabel(
-            BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.BasicOptions.Button.Text" ) );
+          BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.BasicOptions.Button.Text" ) );
         break;
       default:
         throw new RuntimeException( "unsupported JobEntryMode" );
@@ -393,11 +391,11 @@ public class OozieJobExecutorJobEntryController extends
         sb.append( warning ).append( "\n" );
       }
       showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
-          .toString() );
+        .toString() );
       return;
     }
     showInfoDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Info.Dialog.Title" ), BaseMessages
-        .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
+      .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
   }
 
   /**
@@ -408,14 +406,14 @@ public class OozieJobExecutorJobEntryController extends
     FileObject path = null;
     try {
       path =
-          KettleVFS.getFileObject( jobEntry.getVariableSpace().environmentSubstitute(
-              getConfig().getOozieWorkflowConfig() ) );
+        KettleVFS.getFileObject( jobEntry.getVariableSpace().environmentSubstitute(
+          getConfig().getOozieWorkflowConfig() ) );
     } catch ( Exception e ) {
       // Ignore, use null (default VFS browse path)
     }
     try {
       FileObject exportDir =
-          browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, null, "file", true );
+        browseVfs( null, path, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY, null, true, "file" );
       if ( exportDir != null ) {
         getConfig().setOozieWorkflowConfig( exportDir.getName().getURI() );
       }
