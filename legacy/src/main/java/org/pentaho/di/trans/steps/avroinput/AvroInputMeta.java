@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,7 +33,6 @@ import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.util.Utf8;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.Counter;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -55,6 +54,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 /**
@@ -1105,7 +1105,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    * 
    * @see org.pentaho.di.trans.step.StepMetaInterface#loadXML(org.w3c.dom.Node, java.util.List, java.util.Map)
    */
-  public void loadXML( Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters )
+  @Override
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore )
     throws KettleXMLException {
     m_filename = XMLHandler.getTagValue( stepnode, "avro_filename" );
     m_schemaFilename = XMLHandler.getTagValue( stepnode, "schema_filename" );
@@ -1188,7 +1189,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    * @see org.pentaho.di.trans.step.StepMetaInterface#readRep(org.pentaho.di.repository .Repository,
    * org.pentaho.di.repository.ObjectId, java.util.List, java.util.Map)
    */
-  public void readRep( Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters )
+  @Override
+  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
 
     m_filename = rep.getStepAttributeString( id_step, 0, "avro_filename" );
@@ -1246,7 +1248,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    * @see org.pentaho.di.trans.step.StepMetaInterface#saveRep(org.pentaho.di.repository .Repository,
    * org.pentaho.di.repository.ObjectId, org.pentaho.di.repository.ObjectId)
    */
-  public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
 
     if ( !Const.isEmpty( m_filename ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "avro_filename", m_filename );
@@ -1306,7 +1309,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    */
   @Override
   public String getDialogClassName() {
-    return "org.pentaho.di.trans.steps.avroinput.AvroInputDialog";
+    return AvroInputDialog.class.getCanonicalName();
   }
 
   /*
