@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,9 +21,6 @@
  ******************************************************************************/
 
 package org.pentaho.di.trans.steps.couchdbinput;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
 
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
@@ -47,15 +44,40 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+
 public class CouchDbInput extends BaseStep implements StepInterface {
   private static Class<?> PKG = CouchDbInputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
+
+  private final HttpClientFactory httpClientFactory;
+  private final GetMethodFactory getMethodFactory;
 
   private CouchDbInputMeta meta;
   private CouchDbInputData data;
 
   public CouchDbInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans ) {
+                       Trans trans ) {
+    this( stepMeta, stepDataInterface, copyNr, transMeta, trans, new HttpClientFactory(), new GetMethodFactory() );
+  }
+
+  public CouchDbInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
+                       Trans trans, HttpClientFactory httpClientFactory,
+                       GetMethodFactory getMethodFactory ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
+    this.httpClientFactory = httpClientFactory;
+    this.getMethodFactory = getMethodFactory;
+  }
+
+  public static String buildUrl( String hostname, int port, String db, String design, String view ) {
+    String url = "http://" + hostname;
+    if ( port >= 0 ) {
+      url += ":" + port;
+    }
+    url += "/" + db;
+    url += "/_design/" + design;
+    url += "/_view/" + view;
+    return url;
   }
 
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
@@ -64,7 +86,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
         first = false;
 
         data.outputRowMeta = new RowMeta();
-        meta.getFields( data.outputRowMeta, getStepname(), null, null, this );
+        meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, metaStore );
 
         // Skip over first introduction row containing the number of results...
         //
@@ -77,7 +99,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
         while ( c >= 0 && cont && !isStopped() ) {
           data.buffer.append( (char) c );
 
-          switch ( (char) c ) {
+          switch( (char) c ) {
             case '{':
               data.open++;
 
@@ -123,7 +145,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
       while ( c >= 0 && cont && !isStopped() ) {
         data.buffer.append( (char) c );
 
-        switch ( (char) c ) {
+        switch( (char) c ) {
           case '{':
             data.open++;
 
@@ -184,7 +206,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
     }
     Object[] row = RowDataUtil.allocateRowData( data.outputRowMeta.size() );
     int index = 0;
-    row[index++] = json;
+    row[ index++ ] = json;
 
     // putRow will send the row on to the default output hop.
     //
@@ -228,21 +250,15 @@ public class CouchDbInput extends BaseStep implements StepInterface {
 
       String realUser = environmentSubstitute( meta.getAuthenticationUser() );
       String realPass =
-          Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( meta.getAuthenticationPassword() ) );
+        Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( meta.getAuthenticationPassword() ) );
 
-      String url = "http://" + hostname;
-      if ( port >= 0 ) {
-        url += ":" + port;
-      }
-      url += "/" + db;
-      url += "/_design/" + design;
-      url += "/_view/" + view;
+      String url = buildUrl( hostname, port, db, design, view );
 
       logBasic( "Querying CouchDB view on URL: " + url );
 
       try {
 
-        HttpClient client = SlaveConnectionManager.getInstance().createHttpClient();
+        HttpClient client = httpClientFactory.createHttpClient();
         // client.setTimeout(10000);
         // client.setConnectionTimeout(10000);
 
@@ -252,7 +268,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
           client.getParams().setAuthenticationPreemptive( true );
         }
 
-        HttpMethod method = new GetMethod( url );
+        HttpMethod method = getMethodFactory.create( url );
 
         // Execute request
         //
@@ -281,11 +297,11 @@ public class CouchDbInput extends BaseStep implements StepInterface {
         return true;
       } catch ( Exception e ) {
         logError( BaseMessages.getString( PKG, "CouchDbInput.ErrorConnectingToCouchDb.Exception", hostname, "" + port,
-            db, view ), e );
+          db, view ), e );
         return false;
       }
     }
-    return true;
+    return false;
   }
 
   @Override
@@ -303,4 +319,15 @@ public class CouchDbInput extends BaseStep implements StepInterface {
     super.dispose( smi, sdi );
   }
 
+  static class HttpClientFactory {
+    public HttpClient createHttpClient() {
+      return SlaveConnectionManager.getInstance().createHttpClient();
+    }
+  }
+
+  static class GetMethodFactory {
+    public HttpMethod create( String url ) {
+      return new GetMethod( url );
+    }
+  }
 }

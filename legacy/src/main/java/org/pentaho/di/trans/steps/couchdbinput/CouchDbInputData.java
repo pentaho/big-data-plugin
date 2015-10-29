@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -44,12 +44,4 @@ public class CouchDbInputData extends BaseStepData implements StepDataInterface 
   public StringBuilder buffer;
 
   public int open;
-
-  /**
-   * Default no-arg constructor
-   */
-  public CouchDbInputData() {
-    super();
-  }
-
 }
