@@ -291,7 +291,12 @@ public class OozieJobExecutorJobEntryController extends
   @Bindable
   public void addNewProperty() {
     advancedArgumentsChanged = true;
-    advancedArguments.add( new PropertyEntry( "key", "value" ) );
+    try {
+      advancedArguments.add( new PropertyEntry( "key", "value" ) );
+    } catch ( Exception e ) {
+      // set elements manually to workaround a failure with adding new item when there is a cell in edit mode
+      variablesTree.setElements( advancedArguments );
+    }
   }
 
   @Bindable
