@@ -37,6 +37,7 @@ import org.pentaho.di.job.entries.oozie.OozieJobExecutorJobEntry;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
 import org.pentaho.ui.xul.containers.XulDeck;
+import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.impl.XulFragmentContainer;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -45,6 +46,10 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * User: RFellows Date: 6/4/12
@@ -224,6 +229,19 @@ public class OozieJobExecutorControllerTest {
     OozieJobExecutorConfig config = getGoodConfig();
     controller.setConfig( config );
     assertFalse( controller.shouldUseAdvancedProperties() );
+  }
+
+  @Test
+  public void testAddProperty_exception() throws Exception {
+    AbstractModelList<PropertyEntry> argumentsMock = mock( AbstractModelList.class );
+    doThrow( Exception.class ).when( argumentsMock ).add( (PropertyEntry) any() );
+    controller.advancedArguments = argumentsMock;
+
+    XulTree treeMock = mock( XulTree.class );
+    controller.variablesTree = treeMock;
+
+    controller.addNewProperty();
+    verify( treeMock ).setElements( argumentsMock );
   }
 
   private OozieJobExecutorConfig getGoodConfig() {
