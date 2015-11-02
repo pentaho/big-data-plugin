@@ -70,6 +70,7 @@
     <dependency.maven-clean-plugin.revision>2.5</dependency.maven-clean-plugin.revision>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.hadoop-shims-emr34.revision>6.1-SNAPSHOT</dependency.hadoop-shims-emr34.revision>
+    <dependency.hadoop-shims-emr41.revision>6.1-SNAPSHOT</dependency.hadoop-shims-emr41.revision>
     <dependency.reporting-engine.revision>6.1-SNAPSHOT</dependency.reporting-engine.revision>
     <dependency.pentaho-database-model.revision>6.1-SNAPSHOT</dependency.pentaho-database-model.revision>
     <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
