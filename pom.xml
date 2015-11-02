@@ -75,6 +75,7 @@
         <dependency.hadoop-shims-hdp22.revision>${project.version}</dependency.hadoop-shims-hdp22.revision>
         <dependency.hadoop-shims-mapr410.revision>${project.version}</dependency.hadoop-shims-mapr410.revision>
         <dependency.hadoop-shims-emr34.revision>${project.version}</dependency.hadoop-shims-emr34.revision>
+        <dependency.hadoop-shims-emr41.revision>${project.version}</dependency.hadoop-shims-emr41.revision>
         <dependency.pentaho-s3-vfs.revision>${project.version}</dependency.pentaho-s3-vfs.revision>
         <dependency.slf4j.revision>1.7.3</dependency.slf4j.revision>
         <dependency.xstream.revision>1.4.2</dependency.xstream.revision>
