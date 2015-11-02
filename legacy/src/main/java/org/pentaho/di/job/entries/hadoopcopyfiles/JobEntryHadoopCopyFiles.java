@@ -1,4 +1,4 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
  * Pentaho Big Data
  *
@@ -10,7 +10,7 @@
  * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,11 +24,13 @@ package org.pentaho.di.job.entries.hadoopcopyfiles;
 
 import java.util.Map;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
 import org.pentaho.metastore.api.IMetaStore;
 
@@ -41,17 +43,22 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
   public static final String S3_DEST_FILE = "S3-DEST-FILE-";
+  private final NamedClusterManager namedClusterManager;
 
   public JobEntryHadoopCopyFiles() {
     this( "" ); //$NON-NLS-1$
   }
 
   public JobEntryHadoopCopyFiles( String name ) {
+    this( name, NamedClusterManager.getInstance() );
+  }
+
+  public JobEntryHadoopCopyFiles( String name, NamedClusterManager namedClusterManager ) {
     super( name );
+    this.namedClusterManager = namedClusterManager;
   }
 
   public String loadURL( String url, String ncName, IMetaStore metastore, Map mappings ) {
-    NamedClusterManager namedClusterManager = NamedClusterManager.getInstance();
     NamedCluster c = namedClusterManager.getNamedClusterByName( ncName, metastore );
     if ( c != null && c.isMapr() ) {
       url =
@@ -69,5 +76,10 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
       mappings.put( url, ncName );
     }
     return url;
+  }
+
+  @VisibleForTesting
+  @Override protected VariableSpace getVariables() {
+    return super.getVariables();
   }
 }
