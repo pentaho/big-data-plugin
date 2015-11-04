@@ -23,7 +23,7 @@
             <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
             </outputFileNameMapping>
             <includes>
-              <include>pentaho:pentaho-big-data-legacy</include>
+              <include>com.pentaho.hds:pentaho-big-data-legacy</include>
             </includes>
         </dependencySet>
         <dependencySet>
