@@ -1204,6 +1204,11 @@
                   <type>groovy</type>
                   <classifier>updateAssembly</classifier>
                 </artifact>
+                <artifact>
+                  <file>${basedir}/target/hsp-system-repo.zip</file>
+                  <type>zip</type>
+                  <classifier>hsp-system-repo</classifier>
+                </artifact>
               </artifacts>
             </configuration>
           </execution>
