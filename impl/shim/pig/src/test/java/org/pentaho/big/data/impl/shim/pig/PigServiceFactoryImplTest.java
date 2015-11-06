@@ -25,9 +25,11 @@ package org.pentaho.big.data.impl.shim.pig;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.bigdata.api.pig.PigService;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -54,6 +56,11 @@ public class PigServiceFactoryImplTest {
     hadoopConfiguration = mock( HadoopConfiguration.class );
     namedCluster = mock( NamedCluster.class );
     initialize();
+  }
+
+  @Test
+  public void testGetService() {
+    assertEquals( PigService.class, pigServiceFactory.getServiceClass() );
   }
 
   @Test

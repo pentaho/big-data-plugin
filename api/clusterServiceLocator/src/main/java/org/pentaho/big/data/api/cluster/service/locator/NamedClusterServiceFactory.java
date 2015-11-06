@@ -20,14 +20,15 @@
  *
  ******************************************************************************/
 
-package org.pentaho.bigdata.api.pig;
+package org.pentaho.big.data.api.cluster.service.locator;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 
 /**
- * Created by bryan on 6/18/15.
+ * Created by bryan on 11/5/15.
  */
-public interface PigServiceFactory {
+public interface NamedClusterServiceFactory<T> {
+  Class<T> getServiceClass();
   boolean canHandle( NamedCluster namedCluster );
-  PigService create( NamedCluster namedCluster );
+  T create( NamedCluster namedCluster );
 }

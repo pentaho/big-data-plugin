@@ -14,6 +14,7 @@
     <module>runtimeTest</module>
     <module>cluster</module>
     <module>initializer</module>
+    <module>clusterServiceLocator</module>
     <module>hdfs</module>
     <module>pig</module>
   </modules>

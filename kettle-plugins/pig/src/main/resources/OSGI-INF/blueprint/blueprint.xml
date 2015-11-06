@@ -10,12 +10,12 @@
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
-    <argument ref="pigServiceLocator"/>
+    <argument ref="namedClusterServiceLocator"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
   </bean>
 
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
-  <reference id="pigServiceLocator" interface="org.pentaho.bigdata.api.pig.PigServiceLocator"/>
+  <reference id="namedClusterServiceLocator" interface="org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
 </blueprint>

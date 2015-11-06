@@ -20,14 +20,14 @@
  *
  ******************************************************************************/
 
-package org.pentaho.bigdata.api.pig;
+package org.pentaho.big.data.api.cluster.service.locator;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 
 /**
- * Created by bryan on 7/6/15.
+ * Created by bryan on 11/5/15.
  */
-public interface PigServiceLocator {
-  PigService getPigService( NamedCluster namedCluster ) throws ClusterInitializationException;
+public interface NamedClusterServiceLocator {
+  <T> T getService( NamedCluster namedCluster, Class<T> serviceClass ) throws ClusterInitializationException;
 }
