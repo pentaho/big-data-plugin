@@ -1,23 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>6.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>6.0.0.1-364</version>
   </parent>
-
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
+  <version>6.0.0.1-364</version>
   <packaging>pom</packaging>
-  
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>antlr</groupId>
@@ -403,12 +398,7 @@
       <groupId>ognl</groupId>
       <artifactId>ognl</artifactId>
       <version>2.6.9</version>
-    </dependency><!--
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr</artifactId>
-      <version>3.4-complete</version>
-    </dependency>-->
+    </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
@@ -1035,8 +1025,8 @@
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.apache.xbean</groupId>
           <artifactId>xbean</artifactId>
+          <groupId>org.apache.xbean</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -1053,14 +1043,11 @@
       <classifier>pmr</classifier>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <version>${dependency.maven-resources-plugin.revision}</version>
-        <inherited>false</inherited>
         <executions>
           <execution>
             <id>filter</id>
@@ -1070,9 +1057,9 @@
             </goals>
           </execution>
         </executions>
+        <inherited>false</inherited>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
@@ -1096,7 +1083,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
