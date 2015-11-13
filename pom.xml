@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-spark-plugin</artifactId>
@@ -74,15 +74,17 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
+            <id>package-assembly</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
+            <configuration>
+              <descriptor>src/assembly/zip.xml</descriptor>
+              <appendAssemblyId>false</appendAssemblyId>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <descriptor>src/assembly/zip.xml</descriptor>
-        </configuration>
       </plugin>
     </plugins>
   </build>
