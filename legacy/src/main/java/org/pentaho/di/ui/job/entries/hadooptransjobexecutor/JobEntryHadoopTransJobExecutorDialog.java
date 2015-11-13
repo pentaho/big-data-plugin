@@ -149,11 +149,11 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
 
     /*
      * final BindingConvertor<String, Integer> bindingConverter = new BindingConvertor<String, Integer>() {
-     * 
+     *
      * public Integer sourceToTarget(String value) { return Integer.parseInt(value); }
-     * 
+     *
      * public String targetToSource(Integer value) { return value.toString(); }
-     * 
+     *
      * };
      */
 
@@ -203,14 +203,14 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
         List<NamedCluster> clusters = controller.getNamedClusters();
         return clusters.indexOf( value );
       }
-    }).fireSourceChanged();
+    } ).fireSourceChanged();
 
     selectNamedCluster();
 
   }
 
   private void selectNamedCluster() {
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
     for ( NamedCluster nc : controller.getNamedClusters() ) {
       String cn = this.jobEntry.getClusterName();

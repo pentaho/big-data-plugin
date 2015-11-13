@@ -96,7 +96,7 @@ public class SqoopExportJobEntryController extends
       VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
       boolean okPressed = dialog.okPressed;
       if ( okPressed ) {
-        getConfig().setExportDir( exportDir != null ? exportDir.getName().getPath() : null);
+        getConfig().setExportDir( exportDir != null ? exportDir.getName().getPath() : null );
         extractNamedClusterFromVfsFileChooser();
       }
     } catch ( KettleFileException e ) {
