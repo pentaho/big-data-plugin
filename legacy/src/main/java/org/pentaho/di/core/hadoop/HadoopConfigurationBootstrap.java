@@ -401,7 +401,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
     return properties;
   }
 
-  protected CountDownLatch getRemainingDependencies () {
+  protected CountDownLatch getRemainingDependencies() {
     return remainingDependencies;
   }
 

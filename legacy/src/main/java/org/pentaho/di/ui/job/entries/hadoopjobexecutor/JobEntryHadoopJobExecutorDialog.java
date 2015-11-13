@@ -189,13 +189,13 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
       public Integer targetToSource( final NamedCluster value ) {
         return null;
       }
-    }).fireSourceChanged();
+    } ).fireSourceChanged();
 
     selectNamedCluster();
   }
 
   private void selectNamedCluster() {
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
     for ( NamedCluster nc : controller.getNamedClusters() ) {
       String cn = this.jobEntry.getClusterName();
