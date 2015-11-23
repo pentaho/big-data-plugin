@@ -35,6 +35,8 @@ import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDial
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * User: RFellows Date: 6/8/12
  */
@@ -178,4 +180,20 @@ public class VfsFileChooserHelper {
       }
     }
   }
+
+  @VisibleForTesting
+    VfsFileChooserDialog getFileChooserDialog() {
+    return fileChooserDialog;
+  }
+
+  @VisibleForTesting
+    Shell getShell() {
+    return shell;
+  }
+
+  @VisibleForTesting
+    String[] getSchemeRestrictions() {
+    return schemeRestrictions;
+  }
+
 }
