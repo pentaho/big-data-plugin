@@ -1219,6 +1219,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
           }
 
           if ( rootFile == null ) {
+            if ( defaultInitialFile == null ) {
+              return;
+            }
             rootFile = defaultInitialFile.getFileSystem().getRoot();
             initialFile = defaultInitialFile;
           }
@@ -1672,7 +1675,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
   /**
    * Sets the output width to minimal width...
-   * 
+   *
    */
   public void setMinimalWidth() {
     int nrNonEmptyFields = wFields.nrNonEmpty();
