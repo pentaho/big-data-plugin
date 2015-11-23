@@ -271,6 +271,9 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       }
 
       if ( rootFile == null ) {
+        if ( defaultInitialFile == null ) {
+          return null;
+        }
         rootFile = defaultInitialFile.getFileSystem().getRoot();
         initialFile = defaultInitialFile;
       }

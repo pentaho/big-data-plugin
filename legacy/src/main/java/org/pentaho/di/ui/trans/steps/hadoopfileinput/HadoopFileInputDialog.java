@@ -2955,6 +2955,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           }
 
           if ( rootFile == null ) {
+            if ( defaultInitialFile == null ) {
+              return;
+            }
             rootFile = defaultInitialFile.getFileSystem().getRoot();
             initialFile = defaultInitialFile;
           }
