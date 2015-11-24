@@ -34,6 +34,11 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
@@ -66,7 +71,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>org.pentaho.di.osgi,org.pentaho.di.core.plugins,!org.pentaho.di.core.namedcluster.model.*,!org.pentaho.di.ui.core.namedcluster.*,*</Import-Package>
+            <Import-Package>org.pentaho.di.osgi,org.pentaho.di.core.plugins,!org.pentaho.di.core.namedcluster.*,!org.pentaho.di.ui.core.namedcluster.*,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

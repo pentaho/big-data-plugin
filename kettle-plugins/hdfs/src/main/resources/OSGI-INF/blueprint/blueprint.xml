@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:pen="http://www.pentaho.com/xml/schemas/pentaho-blueprint"
+           xsi:schemaLocation="
+            http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+            http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
+
+  <bean id="jobEntryHadoopCopyFiles" class="org.pentaho.big.data.kettle.plugins.hdfs.job.JobEntryHadoopCopyFiles">
+    <argument ref="namedClusterService"/>
+    <argument ref="runtimeTestActionService"/>
+    <argument ref="runtimeTester"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
+  </bean>
+  <bean id="hadoopFileInputMeta" class="org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputMeta">
+    <argument ref="namedClusterService"/>
+    <argument ref="runtimeTestActionService"/>
+    <argument ref="runtimeTester"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
+  <bean id="hadoopFileOutputMeta" class="org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta">
+    <argument ref="namedClusterService"/>
+    <argument ref="runtimeTestActionService"/>
+    <argument ref="runtimeTester"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
+  <bean id="hdfsLifecycleListener" class="org.pentaho.big.data.kettle.plugins.hdfs.HdfsLifecycleListener">
+    <argument ref="namedClusterService"/>
+    <argument ref="runtimeTestActionService"/>
+    <argument ref="runtimeTester"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType"/>
+  </bean>
+
+  <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+  <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
+  <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
+</blueprint>
