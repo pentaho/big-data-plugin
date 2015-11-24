@@ -118,6 +118,7 @@
             <configuration>
               <descriptors>
                 <descriptor>file:${basedir}/target/processed/features.xml</descriptor>
+                <descriptor>mvn:pentaho/pentaho-karaf-features/${project.version}/xml/standard</descriptor>
               </descriptors>
               <features>
                 <feature>pentaho-big-data-plugin-osgi</feature>
