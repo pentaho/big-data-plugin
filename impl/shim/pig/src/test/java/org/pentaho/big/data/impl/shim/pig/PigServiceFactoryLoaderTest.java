@@ -26,7 +26,7 @@ import com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingServiceTracker;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.pentaho.bigdata.api.pig.PigServiceFactory;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceFactory;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
@@ -85,7 +85,7 @@ public class PigServiceFactoryLoaderTest {
     when( hadoopConfiguration.getHadoopShim() ).thenReturn( hadoopShim );
     pigServiceFactoryLoader.onConfigurationOpen( hadoopConfiguration, true );
     verify( shimBridgingServiceTracker )
-      .registerWithClassloader( eq( hadoopConfiguration ), eq( PigServiceFactory.class ),
+      .registerWithClassloader( eq( hadoopConfiguration ), eq( NamedClusterServiceFactory.class ),
         eq( PigServiceFactoryImpl.class.getCanonicalName() ), eq( bundleContext ),
         eq( hadoopShim.getClass().getClassLoader() ),
         eq( new Class<?>[] { boolean.class, HadoopConfiguration.class } ),

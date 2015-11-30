@@ -26,11 +26,11 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.apache.pig.PigServer;
 import org.apache.pig.tools.grunt.GruntParser;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
 import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.shim.pig.PigServiceFactoryImpl;
-import org.pentaho.bigdata.api.pig.PigServiceFactory;
-import org.pentaho.bigdata.api.pig.impl.PigServiceLocatorImpl;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
@@ -43,6 +43,7 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -61,8 +62,15 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
 
   public NoArgJobEntryPigScriptExecutor() throws FileSystemException, ConfigurationException {
     super( new NamedClusterManager(), mock( RuntimeTestActionService.class ), mock( RuntimeTester.class ),
-      new PigServiceLocatorImpl( Arrays.<PigServiceFactory>asList(
-        new PigServiceFactoryImpl( true, provider.getConfiguration( null ) ) ), mock( ClusterInitializer.class ) ) );
+      initNamedClusterServiceLocator() );
+  }
+
+  private static NamedClusterServiceLocator initNamedClusterServiceLocator() throws ConfigurationException {
+    NamedClusterServiceLocatorImpl namedClusterServiceLocator =
+      new NamedClusterServiceLocatorImpl( mock( ClusterInitializer.class ) );
+    namedClusterServiceLocator.factoryAdded( new PigServiceFactoryImpl( true, provider.getConfiguration( null ) ),
+      Collections.emptyMap() );
+    return namedClusterServiceLocator;
   }
 
   public static HadoopConfigurationProvider getProvider() {

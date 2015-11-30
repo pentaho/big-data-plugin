@@ -23,8 +23,8 @@
 package org.pentaho.big.data.impl.shim.pig;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceFactory;
 import org.pentaho.bigdata.api.pig.PigService;
-import org.pentaho.bigdata.api.pig.PigServiceFactory;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by bryan on 7/6/15.
  */
-public class PigServiceFactoryImpl implements PigServiceFactory {
+public class PigServiceFactoryImpl implements NamedClusterServiceFactory<PigService> {
   private static final Logger LOGGER = LoggerFactory.getLogger( PigServiceFactoryImpl.class );
   private final boolean isActiveConfiguration;
   private final HadoopConfiguration hadoopConfiguration;
@@ -44,6 +44,10 @@ public class PigServiceFactoryImpl implements PigServiceFactory {
                                 HadoopConfiguration hadoopConfiguration ) {
     this.isActiveConfiguration = isActiveConfiguration;
     this.hadoopConfiguration = hadoopConfiguration;
+  }
+
+  @Override public Class<PigService> getServiceClass() {
+    return PigService.class;
   }
 
   @Override public boolean canHandle( NamedCluster namedCluster ) {

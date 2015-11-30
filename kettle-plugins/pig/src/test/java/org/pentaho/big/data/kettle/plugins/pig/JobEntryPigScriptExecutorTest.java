@@ -27,11 +27,11 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.impl.cluster.NamedClusterImpl;
 import org.pentaho.bigdata.api.pig.PigResult;
 import org.pentaho.bigdata.api.pig.PigService;
-import org.pentaho.bigdata.api.pig.PigServiceLocator;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -63,7 +63,7 @@ import static org.mockito.Mockito.when;
 public class JobEntryPigScriptExecutorTest {
   private NamedClusterService namedClusterService;
   private RuntimeTestActionService runtimeTestActionService;
-  private PigServiceLocator pigServiceLocator;
+  private NamedClusterServiceLocator namedClusterServiceLocator;
 
   private PigService pigService;
   private JobEntryPigScriptExecutor jobEntryPigScriptExecutor;
@@ -84,7 +84,7 @@ public class JobEntryPigScriptExecutorTest {
   public void setup() throws ClusterInitializationException {
     namedClusterService = mock( NamedClusterService.class );
     when( namedClusterService.getClusterTemplate() ).thenReturn( new NamedClusterImpl() );
-    pigServiceLocator = mock( PigServiceLocator.class );
+    namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
     pigResult = mock( PigResult.class );
     runtimeTester = mock( RuntimeTester.class );
     runtimeTestActionService = mock( RuntimeTestActionService.class );
@@ -92,7 +92,8 @@ public class JobEntryPigScriptExecutorTest {
     job = mock( Job.class );
     logChannelInterface = mock( LogChannelInterface.class );
     jobEntryPigScriptExecutor =
-      new JobEntryPigScriptExecutor( namedClusterService, runtimeTestActionService, runtimeTester, pigServiceLocator );
+      new JobEntryPigScriptExecutor( namedClusterService, runtimeTestActionService, runtimeTester,
+        namedClusterServiceLocator );
     jobEntryPigScriptExecutor.setScriptFilename(
       getClass().getClassLoader().getResource( "org/pentaho/big/data/kettle/plugins/pig/pig.script" ).toString() );
     jobEntryPigScriptExecutor.setParentJob( job );
@@ -107,7 +108,7 @@ public class JobEntryPigScriptExecutorTest {
 
     pigService = mock( PigService.class );
     namedCluster = mock( NamedCluster.class );
-    when( pigServiceLocator.getPigService( namedCluster ) ).thenReturn( pigService );
+    when( namedClusterServiceLocator.getService( namedCluster, PigService.class ) ).thenReturn( pigService );
     when( namedCluster.getName() ).thenReturn( namedClusterName );
     when( namedCluster.getHdfsHost() ).thenReturn( namedClusterHdfsHost );
     when( namedCluster.getHdfsPort() ).thenReturn( namedClusterHdfsPort );
@@ -138,7 +139,7 @@ public class JobEntryPigScriptExecutorTest {
         fieldLoadSaveValidatorTypeMap ) {
         @Override public JobEntryPigScriptExecutor createMeta() {
           return new JobEntryPigScriptExecutor( namedClusterService, runtimeTestActionService, runtimeTester,
-            pigServiceLocator );
+            namedClusterServiceLocator );
         }
       };
 
@@ -181,7 +182,7 @@ public class JobEntryPigScriptExecutorTest {
     ArgumentCaptor<KettleException> kettleExceptionArgumentCaptor = ArgumentCaptor.forClass( KettleException.class );
     verify( logChannelInterface ).logError( anyString(), kettleExceptionArgumentCaptor.capture() );
     assertEquals( BaseMessages.getString( JobEntryPigScriptExecutor.PKG,
-        JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ),
+      JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ),
       kettleExceptionArgumentCaptor.getValue().getSuperMessage() );
     verify( result ).setStopped( true );
     verify( result ).setNrErrors( 1 );

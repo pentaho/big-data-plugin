@@ -27,9 +27,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.pig.PigResult;
 import org.pentaho.bigdata.api.pig.PigService;
-import org.pentaho.bigdata.api.pig.PigServiceLocator;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -91,7 +91,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
-  private final PigServiceLocator pigServiceLocator;
+  private final NamedClusterServiceLocator namedClusterServiceLocator;
   /**
    * Hostname of the job tracker
    */
@@ -115,11 +115,11 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
 
   public JobEntryPigScriptExecutor( NamedClusterService namedClusterService,
                                     RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
-                                    PigServiceLocator pigServiceLocator ) {
+                                    NamedClusterServiceLocator namedClusterServiceLocator ) {
     this.namedClusterService = namedClusterService;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
-    this.pigServiceLocator = pigServiceLocator;
+    this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
   private void loadClusterConfig( ObjectId id_jobentry, Repository rep, Node entrynode, IMetaStore metaStore ) {
@@ -446,7 +446,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         scriptU = new URL( scriptFileS );
       }
 
-      final PigService pigService = pigServiceLocator.getPigService( namedCluster );
+      final PigService pigService = namedClusterServiceLocator.getService( namedCluster, PigService.class );
       // Make sure we can execute locally if desired
       if ( m_localExecution && !pigService.isLocalExecutionSupported() ) {
         throw new KettleException( BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ) );
