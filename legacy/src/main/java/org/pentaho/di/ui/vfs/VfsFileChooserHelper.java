@@ -31,16 +31,21 @@ import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * User: RFellows Date: 6/8/12
  */
 public class VfsFileChooserHelper {
+  private static final Logger logger = LoggerFactory.getLogger( VfsFileChooserHelper.class );
   private VfsFileChooserDialog fileChooserDialog = null;
   private Shell shell = null;
   private VariableSpace variableSpace = null;
@@ -172,10 +177,22 @@ public class VfsFileChooserHelper {
   public void setNamedCluster( NamedCluster namedCluster ) {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
     for ( CustomVfsUiPanel currentPanel : dialog.getCustomVfsUiPanels() ) {
-      if ( currentPanel != null && currentPanel instanceof HadoopVfsFileChooserDialog ) {
-        HadoopVfsFileChooserDialog hadoopVfsFileChooserDialog = (HadoopVfsFileChooserDialog) currentPanel;
-        if ( namedCluster != null ) {
-          hadoopVfsFileChooserDialog.setNamedCluster( namedCluster.getName() );
+      if ( currentPanel != null ) {
+        try {
+          Method setNamedCluster = currentPanel.getClass().getMethod( "setNamedCluster", new Class[] { String.class } );
+          setNamedCluster.invoke( currentPanel, namedCluster.getName() );
+        } catch ( NoSuchMethodException e ) {
+          if ( logger.isDebugEnabled() ) {
+            logger.debug( "Couldn't set named cluster " + namedCluster.getName() + " on " + currentPanel + " because it doesn't have setNamedCluster method.", e );
+          }
+        } catch ( InvocationTargetException e ) {
+          if ( logger.isDebugEnabled() ) {
+            logger.debug( "Couldn't set named cluster " + namedCluster.getName() + " on " + currentPanel + " because of exception.", e.getCause() );
+          }
+        } catch ( IllegalAccessException e ) {
+          if ( logger.isDebugEnabled() ) {
+            logger.debug( "Couldn't set named cluster " + namedCluster.getName() + " on " + currentPanel + " because setNamedCluster method isn't accessible.", e );
+          }
         }
       }
     }

@@ -28,6 +28,8 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
+import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 
@@ -57,6 +59,7 @@ public class NamedClusterBridgeImplTest {
   private String toString;
   private long lastModifiedDate;
   private VariableSpace variableSpace;
+  private NamedClusterManager namedClusterManager;
 
   @Before
   public void setup() {
@@ -75,8 +78,14 @@ public class NamedClusterBridgeImplTest {
     lastModifiedDate = 11L;
 
     legacyNamedCluster = mock( org.pentaho.di.core.namedcluster.model.NamedCluster.class );
-    namedClusterBridge = new NamedClusterBridgeImpl( legacyNamedCluster );
+    namedClusterManager = mock( NamedClusterManager.class );
+    namedClusterBridge = new NamedClusterBridgeImpl( legacyNamedCluster, namedClusterManager );
     variableSpace = mock( VariableSpace.class );
+  }
+
+  @Test
+  public void testOneArgConstructor() {
+    assertNotNull( new NamedClusterBridgeImpl( legacyNamedCluster ) );
   }
 
   @Test
@@ -374,5 +383,37 @@ public class NamedClusterBridgeImplTest {
     String namedClusterName = "namedClusterName";
     when( legacyNamedCluster.toString() ).thenReturn( "Named cluster: " + namedClusterName );
     assertEquals( "Named cluster: " + namedClusterName, namedClusterBridge.toString() );
+  }
+
+  @Test
+  public void testProcessURLsubstitutionNotMapR() {
+    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
+    String testUrl = "testUrl";
+    String testUrlTransformed = "testUrlTransformed";
+    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.HDFS_SCHEME, null, null ) ).thenReturn(
+      testUrlTransformed );
+    assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
+  }
+
+  @Test
+  public void testProcessURLsubstitutionMapRQualified() {
+    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
+    when( legacyNamedCluster.isMapr() ).thenReturn( true );
+    String testUrl = "testUrl";
+    String testUrlTransformed = "maprfs://testUrlTransformed";
+    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) ).thenReturn(
+      testUrlTransformed );
+    assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
+  }
+
+  @Test
+  public void testProcessURLsubstitutionMapRNotQualified() {
+    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
+    when( legacyNamedCluster.isMapr() ).thenReturn( true );
+    String testUrl = "testUrl";
+    String testUrlTransformed = "testUrlTransformed";
+    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) ).thenReturn(
+      testUrlTransformed );
+    assertEquals( "maprfs://" + testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
 }

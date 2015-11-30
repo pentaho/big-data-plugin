@@ -29,10 +29,6 @@ import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.core.util.ExecutorUtil;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
-import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.HadoopVfsFileChooserDialog;
-import org.pentaho.di.ui.vfs.hadoopvfsfilechooserdialog.MapRFSFileChooserDialog;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 @LifecyclePlugin( id = "HadoopSpoonPlugin", name = "Hadoop Spoon Plugin" )
 public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
@@ -50,22 +46,6 @@ public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
       @Override public void run() {
         // Block until factory is available before we get onto display thread
         NamedClusterUIHelper.getNamedClusterUIFactory();
-        final Spoon spoon = Spoon.getInstance();
-
-        // Add dialogs on display thread
-        spoon.getDisplay().asyncExec( new Runnable() {
-          @Override public void run() {
-            VfsFileChooserDialog dialog = spoon.getVfsFileChooserDialog( null, null );
-            dialog.addVFSUIPanel(
-              new HadoopVfsFileChooserDialog( HadoopSpoonPlugin.HDFS_SCHEME, HadoopSpoonPlugin.HDFS_SCHEME_DISPLAY_NAME,
-                dialog,
-                null, null ) );
-            dialog.addVFSUIPanel(
-              new MapRFSFileChooserDialog( HadoopSpoonPlugin.MAPRFS_SCHEME,
-                HadoopSpoonPlugin.MAPRFS_SCHEME_DISPLAY_NAME,
-                dialog ) );
-          }
-        } );
       }
     } );
   }

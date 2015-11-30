@@ -20,22 +20,15 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.ui.core.namedcluster;
-
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
-import org.pentaho.di.ui.spoon.Spoon;
+package org.pentaho.big.data.kettle.plugins.hdfs.vfs;
 
 /**
- * Created by bryan on 8/17/15.
+ * Created by bryan on 11/23/15.
  */
-public interface NamedClusterUIFactory {
-  NamedClusterWidget createNamedClusterWidget( Composite parent, boolean showLabel );
-
-  HadoopClusterDelegate createHadoopClusterDelegate( Spoon spoon );
-
-  NamedClusterDialog createNamedClusterDialog( Shell shell );
-
-  NamedCluster getNamedClusterFromVfsFileChooser( Spoon spoon );
+public class Schemes {
+  public static final String HDFS_SCHEME = "hdfs";
+  public static final String HDFS_SCHEME_DISPLAY_NAME = "HDFS";
+  public static final String MAPRFS_SCHEME = "maprfs";
+  public static final String MAPRFS_SCHEME_DISPLAY_NAME = "MapRFS";
+  public static final String S3_SCHEME = "s3";
 }

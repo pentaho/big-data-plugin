@@ -23,6 +23,7 @@
 package org.pentaho.big.data.api.cluster;
 
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.metastore.api.IMetaStore;
 
 import java.util.Comparator;
 
@@ -81,6 +82,16 @@ public interface NamedCluster extends Cloneable, VariableSpace {
   void setMapr( boolean mapr );
 
   NamedCluster clone();
+
+  /**
+   * This method performs the root URL substitution with the URL of the specified NamedCluster
+   *
+   * @param incomingURL   the URL whose root will be replaced
+   * @param metastore     the metastore
+   * @param variableSpace the variable space
+   * @return the generated URL or the incoming URL if an error occurs
+   */
+  String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace );
 
   // Comparator for sorting clusters alphabetically by name
   Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
