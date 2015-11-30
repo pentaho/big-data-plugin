@@ -6,9 +6,7 @@ A higher level api that exposes big data capabilities as services with locators 
 
 These should only rely on kettle-core, the metastore, and other api bundles.
 
-They will typically be made up of a [factory](https://github.com/pentaho/big-data-plugin/blob/master/api/pig/src/main/java/org/pentaho/bigdata/api/pig/PigServiceFactory.java) and a [a service interface](https://github.com/pentaho/big-data-plugin/blob/master/api/pig/src/main/java/org/pentaho/bigdata/api/pig/PigService.java).
-
-The Factory is responsible for implementing a canHandle() method that determines if it can handle a NamedCluster and a create() method that returns the service for a given NamedCluster.
+They will typically be made up of a [a service interface](https://github.com/pentaho/big-data-plugin/blob/master/api/pig/src/main/java/org/pentaho/bigdata/api/pig/PigService.java).
 
 The Service (and any supporting classes for arguments and/or return types) is responsible for performing operations against the cluster.
 
