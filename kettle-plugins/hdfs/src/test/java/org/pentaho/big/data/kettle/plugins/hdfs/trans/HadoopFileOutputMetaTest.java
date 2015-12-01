@@ -22,15 +22,23 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 11/23/15.
@@ -39,6 +47,17 @@ public class HadoopFileOutputMetaTest {
 
   // for message resolution
   private static Class<?> MessagePKG = HadoopFileOutputMeta.class;
+  private NamedClusterService namedClusterService;
+  private RuntimeTestActionService runtimeTestActionService;
+  private RuntimeTester runtimeTester;
+
+
+  @Before
+  public void setUp() throws Exception {
+    namedClusterService = mock( NamedClusterService.class );
+    runtimeTestActionService = mock( RuntimeTestActionService.class );
+    runtimeTester = mock( RuntimeTester.class );
+  }
 
   /**
    * Tests HadoopFileOutputMeta methods: 1. isFileAsCommand returns false 2. setFileAsCommand is not supported
@@ -46,8 +65,8 @@ public class HadoopFileOutputMetaTest {
   @Test
   public void testFileAsCommandOption() {
 
-    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( mock( NamedClusterService.class ), mock(
-      RuntimeTestActionService.class ), mock( RuntimeTester.class ) );
+    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
+      runtimeTester );
 
     // we expect isFileAsCommand to be false
     assertFalse( hadoopFileOutputMeta.isFileAsCommand() );
@@ -62,5 +81,23 @@ public class HadoopFileOutputMetaTest {
           + BaseMessages.getString( MessagePKG, "HadoopFileOutput.MethodNotSupportedException.Message" );
       assertTrue( e.getMessage().equals( expectedMessage ) );
     }
+  }
+
+  @Test
+  public void testProcessedUrl() throws Exception {
+    String sourceConfigurationName = "scName";
+    String desiredUrl = "desiredUrl";
+    String url = "url";
+    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
+      runtimeTester );
+    IMetaStore metaStore = mock( IMetaStore.class );
+    assertTrue( null == hadoopFileOutputMeta.getProcessedUrl( metaStore, null ));
+    hadoopFileOutputMeta.setSourceConfigurationName( sourceConfigurationName );
+    NamedCluster nc = mock( NamedCluster.class );
+    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) ).thenReturn( null );
+    assertEquals( url, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
+    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) ).thenReturn( nc );
+    when( nc.processURLsubstitution( eq( url ), (IMetaStore) anyObject(), (VariableSpace) anyObject() ) ).thenReturn( desiredUrl );
+    assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
   }
 }

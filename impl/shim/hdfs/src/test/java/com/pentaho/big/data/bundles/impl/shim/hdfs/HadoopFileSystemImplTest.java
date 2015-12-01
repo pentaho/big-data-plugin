@@ -226,4 +226,24 @@ public class HadoopFileSystemImplTest {
     when( configuration.get( "fs.defaultFS", fake ) ).thenReturn( value );
     assertEquals( value, hadoopFileSystem.getFsDefaultName() );
   }
+
+  @Test
+  public void testGetProperty() throws Exception {
+    String value = "value";
+    String defValue = "defValue";
+    String name = "name";
+    when( configuration.get( eq( name ) ) ).thenReturn( value );
+    when( configuration.get( eq( name ), eq( (String) null ) ) ).thenReturn( value );
+    when( configuration.get( eq( name ), eq( defValue ) ) ).thenReturn( defValue );
+    assertEquals( value, hadoopFileSystem.getProperty( name, null ) );
+    assertEquals( defValue, hadoopFileSystem.getProperty( name, defValue ) );
+  }
+
+  @Test
+  public void testSetProperty() throws Exception {
+    String value = "value";
+    String name = "name";
+    hadoopFileSystem.setProperty( name, value );
+    verify( configuration ).set( name, value );
+  }
 }

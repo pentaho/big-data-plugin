@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.impl.vfs.hdfs;
 
+import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.AbstractFileName;
@@ -29,12 +30,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 8/7/15.
@@ -56,6 +63,20 @@ public class HDFSFileSystemTest {
     Collection caps = mock( Collection.class );
     hdfsFileSystem.addCapabilities( caps );
     verify( caps ).addAll( HDFSFileProvider.capabilities );
+  }
+
+  @Test
+  public void testAddAppendCapabilities() {
+    Collection caps = new ArrayList(  );
+    when( hadoopFileSystem.getProperty( eq( "dfs.support.append" ), anyString() ) ).thenReturn( "false" );
+    hdfsFileSystem.addCapabilities( caps );
+    Collection res = new ArrayList( HDFSFileProvider.capabilities );
+    assertArrayEquals( caps.toArray(), Collections.unmodifiableCollection( res ).toArray() );
+    caps = new ArrayList(  );
+    when( hadoopFileSystem.getProperty( eq( "dfs.support.append" ), anyString() ) ).thenReturn( "true" );
+    hdfsFileSystem.addCapabilities( caps );
+    res.add( Capability.APPEND_CONTENT );
+    assertArrayEquals( caps.toArray(), Collections.unmodifiableCollection( res ).toArray() );
   }
 
   @Test
