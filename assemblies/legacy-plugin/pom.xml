@@ -9,7 +9,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>pentaho-big-data-plugin</artifactId>
+  <artifactId>hsp-big-data-plugin</artifactId>
   <packaging>pom</packaging>
 
   <licenses>
