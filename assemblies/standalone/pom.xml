@@ -16,7 +16,7 @@
   <packaging>pom</packaging>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-    
+
     <package.features>true</package.features>
     <pentaho-karaf-ee-assembly.version>${project.version}</pentaho-karaf-ee-assembly.version>
     <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
@@ -132,7 +132,7 @@
                 <descriptor>mvn:org.apache.karaf.assemblies.features/enterprise/${dependency.karaf.revision}/xml/features</descriptor>
                 <descriptor>mvn:org.apache.cxf.karaf/apache-cxf/2.7.11/xml/features</descriptor>
                 <descriptor>mvn:org.apache.camel.karaf/apache-camel/2.13.2/xml/features</descriptor>
-                <descriptor>mvn:pentaho/pentaho-karaf-features/${project.version}/xml/standard</descriptor>
+                <descriptor>mvn:pentaho/pentaho-karaf-features/${dependency.pentaho-karaf-assembly.revision}/xml/standard</descriptor>
                 <descriptor>mvn:pentaho-karaf-features/pentaho-big-data-plugin-osgi/${project.version}/xml/features</descriptor>
               </descriptors>
               <features>
