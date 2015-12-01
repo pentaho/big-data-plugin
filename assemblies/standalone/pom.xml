@@ -1,29 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>com.pentaho.hds</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>6.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>6.0.0.0-504</version>
   </parent>
-
   <artifactId>pentaho-big-data-assemblies-standalone</artifactId>
-
+  <version>6.0.0.0-504</version>
   <packaging>pom</packaging>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
     <package.features>true</package.features>
     <pentaho-karaf-ee-assembly.version>${project.version}</pentaho-karaf-ee-assembly.version>
-    <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -38,15 +32,12 @@
       <type>zip</type>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <!-- Uncompress the standard Karaf distribution -->
             <id>unpack</id>
             <phase>generate-resources</phase>
             <goals>
@@ -72,13 +63,11 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.7</version>
         <executions>
           <execution>
             <id>copy-resources</id>
-            <!-- here the phase you need -->
             <phase>process-sources</phase>
             <goals>
               <goal>copy-resources</goal>
@@ -97,9 +86,7 @@
           </execution>
         </executions>
       </plugin>
-
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
         <version>2.5</version>
         <configuration>
@@ -145,7 +132,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
