@@ -30,7 +30,7 @@
   <groupId>pentaho-karaf-features</groupId>
   <artifactId>pentaho-big-data-plugin-osgi-hds</artifactId>
   <version>6.0-SNAPSHOT</version>
-  
+
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
@@ -118,7 +118,7 @@
             <configuration>
               <descriptors>
                 <descriptor>file:${basedir}/target/processed/features.xml</descriptor>
-                <descriptor>mvn:pentaho/pentaho-karaf-features/${project.version}/xml/standard</descriptor>
+                <descriptor>mvn:pentaho/pentaho-karaf-features/${dependency.pentaho-karaf-assembly.revision}/xml/standard</descriptor>
               </descriptors>
               <features>
                 <feature>pentaho-big-data-plugin-osgi</feature>
