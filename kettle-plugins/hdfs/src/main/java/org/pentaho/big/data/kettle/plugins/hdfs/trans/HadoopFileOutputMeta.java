@@ -95,6 +95,13 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
 
+    return getProcessedUrl( metastore, url );
+  }
+
+  protected String getProcessedUrl( IMetaStore metastore, String url ) {
+    if ( url == null ) {
+      return null;
+    }
     NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metastore );
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, new Variables() );
@@ -111,11 +118,7 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
 
-    NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, rep.getMetaStore() );
-    if ( c != null ) {
-      url = c.processURLsubstitution( url, rep.getMetaStore(), new Variables() );
-    }
-    return url;
+    return getProcessedUrl( rep.getMetaStore(), url );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, String fileName )

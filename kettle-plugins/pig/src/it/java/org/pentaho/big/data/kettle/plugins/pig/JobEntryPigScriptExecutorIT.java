@@ -89,7 +89,8 @@ public class JobEntryPigScriptExecutorIT {
       new BufferedReader( new FileReader( "target/pigTest/bin/test/pig/script1-local-results.txt/part-r-00000" ) );
     StringBuffer pigOutput = readResource( br );
 
-    assertEquals( m_reference.toString(), pigOutput.toString() );
+    assertEquals( m_reference.toString().replace( '\n', ' ' ).replace( '\t', ' ' ).replace( '\r', ' ' ).replace( " ", "" ),
+      pigOutput.toString().replace( '\n', ' ' ).replace( '\t', ' ' ).replace( '\r', ' ' ).replace( " ", "" ) );
   }
 
 }

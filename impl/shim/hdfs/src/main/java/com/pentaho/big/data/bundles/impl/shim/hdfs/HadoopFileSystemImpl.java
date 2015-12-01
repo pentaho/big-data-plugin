@@ -195,6 +195,14 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
     return fileSystem.getConf().get( "fs.defaultFS", fileSystem.getConf().get( "fs.default.name" ) );
   }
 
+  @Override public void setProperty( String name, String value ) {
+    fileSystem.getConf().set( name, value );
+  }
+
+  @Override public String getProperty( String name, String defaultValue ) {
+    return fileSystem.getConf().get( name, defaultValue );
+  }
+
   private <T> T callAndWrapExceptions( IOExceptionCallable<T> ioExceptionCallable ) throws IOException {
     try {
       return ioExceptionCallable.call();

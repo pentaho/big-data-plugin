@@ -60,4 +60,8 @@ public interface HadoopFileSystem {
   public HadoopFileSystemPath resolvePath( HadoopFileSystemPath path ) throws IOException;
 
   String getFsDefaultName();
+
+  void setProperty( String name, String value );
+
+  String getProperty( String name, String defaultValue );
 }

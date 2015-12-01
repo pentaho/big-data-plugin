@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.impl.vfs.hdfs;
 
+import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystem;
@@ -46,6 +47,10 @@ public class HDFSFileSystem extends AbstractFileSystem implements FileSystem {
   @SuppressWarnings( { "unchecked", "rawtypes" } )
   protected void addCapabilities( Collection caps ) {
     caps.addAll( HDFSFileProvider.capabilities );
+    // Adding capabilities depending on configuration settings
+    if ( Boolean.parseBoolean( hdfs.getProperty( "dfs.support.append", "true" ) ) ) {
+      caps.add( Capability.APPEND_CONTENT );
+    }
   }
 
   @Override protected FileObject createFile( AbstractFileName name ) throws Exception {
