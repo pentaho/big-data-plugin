@@ -10,8 +10,6 @@ They will typically be made up of a [a service interface](https://github.com/pen
 
 The Service (and any supporting classes for arguments and/or return types) is responsible for performing operations against the cluster.
 
-[Example blueprint](https://github.com/pentaho/big-data-plugin/blob/master/api/pig/src/main/resources/OSGI-INF/blueprint/blueprint.xml)
-
 impl/shim 
 ---------
 An initial implementation of the api that delegates to the shim.
@@ -31,5 +29,7 @@ kettle-plugins
 The step and job entry logic and dialog code.
 
 These are able to depend on Kettle artifacts as well as api artifacts (above) but should NOT depend on the legacy plugin, the hadoop api, or any shim artifacts to do their job. They are OSGi bundles that provide Kettle plugins via blueprint.
+
+They can use the [NamedClusterServiceLocator](https://github.com/pentaho/big-data-plugin/blob/master/api/clusterServiceLocator/src/main/java/org/pentaho/big/data/api/cluster/service/locator/NamedClusterServiceLocator.java) interface to get services for a given NamedCluster.
 
 [Example blueprint](https://github.com/pentaho/big-data-plugin/blob/master/kettle-plugins/pig/src/main/resources/OSGI-INF/blueprint/blueprint.xml)
