@@ -1,17 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>6.0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>6.0.1.0-386</version>
   </parent>
-
   <artifactId>pentaho-big-data-plugin</artifactId>
+  <version>6.0.1.0-386</version>
   <packaging>pom</packaging>
-
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -20,18 +18,14 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
-
   <scm>
     <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
-    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
     <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
-    <tag>HEAD</tag>
+    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
-
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
-
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
@@ -64,8 +58,8 @@
       <version>${dependency.aws-java-sdk.revision}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-core-asl</artifactId>
+          <groupId>org.codehaus.jackson</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -144,60 +138,54 @@
       <artifactId>xstream</artifactId>
       <version>${dependency.xstream.revision}</version>
     </dependency>
-
-    <!-- Shims -->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
       <version>${dependency.hadoop-shims-cdh54.revision}</version>
-      <scope>provided</scope>
       <type>zip</type>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp22-package</artifactId>
       <version>${dependency.hadoop-shims-hdp22.revision}</version>
-      <scope>provided</scope>
       <type>zip</type>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
       <version>${dependency.hadoop-shims-mapr410.revision}</version>
-      <scope>provided</scope>
       <type>zip</type>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-emr34-package</artifactId>
       <version>${dependency.hadoop-shims-emr34.revision}</version>
-      <scope>provided</scope>
       <type>zip</type>
+      <scope>provided</scope>
     </dependency>
-
-    <!-- PMR libs -->
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
       <version>${project.version}</version>
-      <classifier>plugin</classifier>
       <type>zip</type>
+      <classifier>plugin</classifier>
     </dependency>
   </dependencies>
-
-
   <build>
     <resources>
       <resource>
-        <directory>src/main/resources</directory>
         <filtering>true</filtering>
+        <directory>src/main/resources</directory>
         <includes>
           <include>**/*.properties</include>
         </includes>
       </resource>
       <resource>
-        <directory>src/main/resources</directory>
         <filtering>false</filtering>
+        <directory>src/main/resources</directory>
         <excludes>
           <exclude>**/*.properties</exclude>
         </excludes>
@@ -205,11 +193,9 @@
     </resources>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
-            <!-- Uncompress the shims -->
             <id>unpack</id>
             <phase>generate-resources</phase>
             <goals>
@@ -221,29 +207,25 @@
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
                   <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations
-                  </outputDirectory>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-hdp22-package</artifactId>
                   <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations
-                  </outputDirectory>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
                   <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations
-                  </outputDirectory>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-emr34-package</artifactId>
                   <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations
-                  </outputDirectory>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
@@ -253,10 +235,6 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>${dependency.maven-assembly-plugin.revision}</version>
-        <configuration>
-          <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
-          <appendAssemblyId>false</appendAssemblyId>
-        </configuration>
         <executions>
           <execution>
             <id>pkg</id>
@@ -266,6 +244,10 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
       </plugin>
     </plugins>
   </build>
