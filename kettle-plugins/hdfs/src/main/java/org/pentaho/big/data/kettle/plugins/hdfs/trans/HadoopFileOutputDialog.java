@@ -1323,8 +1323,6 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   private void activeFileNameField() {
     wlFileNameField.setEnabled( wFileNameInField.getSelection() );
     wFileNameField.setEnabled( wFileNameInField.getSelection() );
-    wlExtension.setEnabled( !wFileNameInField.getSelection() );
-    wExtension.setEnabled( !wFileNameInField.getSelection() );
     wlFilename.setEnabled( !wFileNameInField.getSelection() );
     wFilename.setEnabled( !wFileNameInField.getSelection() );
 
