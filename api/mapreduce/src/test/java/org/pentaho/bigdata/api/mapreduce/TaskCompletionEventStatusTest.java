@@ -20,41 +20,20 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.bigdata;
+package org.pentaho.bigdata.api.mapreduce;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.junit.Test;
 
-@Documented
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
+import static org.junit.Assert.assertEquals;
+
 /**
- * @deprecated Use OSGi plugins instead to access shim functionality
+ * Created by bryan on 12/8/15.
  */
-@Deprecated()
-public @interface ShimDependentJobEntry {
-  String id();
-
-  String name() default "";
-
-  String description() default "";
-
-  String image();
-
-  String version() default "";
-
-  int category() default -1;
-
-  String categoryDescription() default "";
-
-  String i18nPackageName() default "";
-
-  String documentationUrl() default "";
-
-  String casesUrl() default "";
-
-  String forumUrl() default "";
+public class TaskCompletionEventStatusTest {
+  @Test
+  public void testEnum() {
+    for ( TaskCompletionEvent.Status status : TaskCompletionEvent.Status.values() ) {
+      assertEquals( status, TaskCompletionEvent.Status.valueOf( status.name() ) );
+    }
+  }
 }

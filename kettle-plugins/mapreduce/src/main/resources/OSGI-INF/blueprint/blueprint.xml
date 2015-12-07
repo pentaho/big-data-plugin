@@ -6,7 +6,7 @@
             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
             http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
 
-  <bean id="jobEntryPigScriptExecutor" class="org.pentaho.big.data.kettle.plugins.pig.JobEntryPigScriptExecutor" scope="prototype">
+  <bean id="jobEntryHadoopJobExecutor" class="org.pentaho.big.data.kettle.plugins.mapreduce.JobEntryHadoopJobExecutor" scope="prototype">
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>

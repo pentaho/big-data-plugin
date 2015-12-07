@@ -20,41 +20,24 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.bigdata;
+package org.pentaho.bigdata.api.mapreduce;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Documented
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
 /**
- * @deprecated Use OSGi plugins instead to access shim functionality
+ * MapReduce job from running jar file
  */
-@Deprecated()
-public @interface ShimDependentJobEntry {
-  String id();
+public interface MapReduceJobSimple extends MapReduceJob {
 
-  String name() default "";
+  /**
+   * Returns the main class
+   *
+   * @return the main class
+   */
+  String getMainClass();
 
-  String description() default "";
-
-  String image();
-
-  String version() default "";
-
-  int category() default -1;
-
-  String categoryDescription() default "";
-
-  String i18nPackageName() default "";
-
-  String documentationUrl() default "";
-
-  String casesUrl() default "";
-
-  String forumUrl() default "";
+  /**
+   * Returns the exit code
+   *
+   * @return the exit code
+   */
+  int getStatus();
 }

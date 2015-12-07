@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -20,24 +20,23 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.ui.job.entries.hadoopjobexecutor;
-
-import java.util.Enumeration;
-import java.util.List;
-import java.util.ResourceBundle;
+package org.pentaho.big.data.kettle.plugins.mapreduce;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.kettle.plugins.mapreduce.JobEntryHadoopJobExecutorController.AdvancedConfiguration;
+import org.pentaho.big.data.kettle.plugins.mapreduce.JobEntryHadoopJobExecutorController.SimpleConfiguration;
+import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
-import org.pentaho.di.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutor;
 import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.ui.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutorController.AdvancedConfiguration;
-import org.pentaho.di.ui.job.entries.hadoopjobexecutor.JobEntryHadoopJobExecutorController.SimpleConfiguration;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
+import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
@@ -53,14 +52,20 @@ import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.containers.XulVbox;
 import org.pentaho.ui.xul.swt.SwtXulLoader;
 import org.pentaho.ui.xul.swt.SwtXulRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.ResourceBundle;
 
 public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements JobEntryDialogInterface {
   private static final Class<?> CLZ = JobEntryHadoopJobExecutor.class;
-
+  private static final Logger logger = LoggerFactory.getLogger( JobEntryHadoopJobExecutorDialog.class );
+  private final NamedClusterService namedClusterService;
+  private final JobEntryHadoopJobExecutorController controller;
   private JobEntryHadoopJobExecutor jobEntry;
-
-  private JobEntryHadoopJobExecutorController controller = new JobEntryHadoopJobExecutorController();
-
   private XulDomContainer container;
 
   private BindingFactory bf;
@@ -80,8 +85,12 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
   public JobEntryHadoopJobExecutorDialog( Shell parent, JobEntryInterface jobEntry, Repository rep, JobMeta jobMeta )
     throws XulException, DocumentException, Throwable {
     super( parent, jobEntry, rep, jobMeta );
-
     this.jobEntry = (JobEntryHadoopJobExecutor) jobEntry;
+    this.namedClusterService = this.jobEntry.getNamedClusterService();
+    controller = new JobEntryHadoopJobExecutorController(
+      new HadoopClusterDelegateImpl( Spoon.getInstance(), namedClusterService,
+        this.jobEntry.getRuntimeTestActionService(), this.jobEntry.getRuntimeTester() ), namedClusterService,
+      this.jobEntry.getNamedClusterServiceLocator() );
 
     SwtXulLoader swtXulLoader = new SwtXulLoader();
     swtXulLoader.registerClassLoader( getClass().getClassLoader() );
@@ -90,8 +99,8 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     swtXulLoader.setOuterContext( shell );
 
     container =
-        swtXulLoader.loadXul( "org/pentaho/di/ui/job/entries/hadoopjobexecutor/JobEntryHadoopJobExecutorDialog.xul",
-            bundle ); //$NON-NLS-1$
+      swtXulLoader.loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/JobEntryHadoopJobExecutorDialog.xul",
+        bundle ); //$NON-NLS-1$
 
     final XulRunner runner = new SwtXulRunner();
     runner.addContainer( container );
@@ -102,60 +111,69 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     bf.setDocument( container.getDocumentRoot() );
     bf.setBindingType( Type.BI_DIRECTIONAL );
 
-    bf.createBinding( "jobentry-name", "value", controller, JobEntryHadoopJobExecutorController.JOB_ENTRY_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "jobentry-name", "value", controller,
+      JobEntryHadoopJobExecutorController.JOB_ENTRY_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
     bf.createBinding( "jobentry-hadoopjob-name", "value", controller,
-        JobEntryHadoopJobExecutorController.HADOOP_JOB_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    bf.createBinding( "jar-url", "value", controller, JobEntryHadoopJobExecutorController.JAR_URL ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    bf.createBinding( "driver-class", "value", controller, JobEntryHadoopJobExecutorController.DRIVER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    bf.createBinding( "driver-class", "selectedItem", controller, JobEntryHadoopJobExecutorController.DRIVER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    bf.createBinding( "driver-class", "elements", controller, JobEntryHadoopJobExecutorController.DRIVER_CLASSES ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      JobEntryHadoopJobExecutorController.HADOOP_JOB_NAME ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "jar-url", "value", controller,
+      JobEntryHadoopJobExecutorController.JAR_URL ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "driver-class", "value", controller,
+      JobEntryHadoopJobExecutorController.DRIVER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "driver-class", "selectedItem", controller,
+      JobEntryHadoopJobExecutorController.DRIVER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    bf.createBinding( "driver-class", "elements", controller,
+      JobEntryHadoopJobExecutorController.DRIVER_CLASSES ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     bf.createBinding( "command-line-arguments", "value", controller.getSimpleConfiguration(),
-        SimpleConfiguration.CMD_LINE_ARGS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      SimpleConfiguration.CMD_LINE_ARGS ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
     bf.createBinding( "classes-output-key-class", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.OUTPUT_KEY_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.OUTPUT_KEY_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-output-value-class", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.OUTPUT_VALUE_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.OUTPUT_VALUE_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-mapper-class", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.MAPPER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.MAPPER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-combiner-class", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.COMBINER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.COMBINER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-reducer-class", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.REDUCER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.REDUCER_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-input-format", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.INPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.INPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "classes-output-format", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.OUTPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.OUTPUT_FORMAT_CLASS ); //$NON-NLS-1$ //$NON-NLS-2$
 
     // bf.createBinding("num-map-tasks", "value", controller.getAdvancedConfiguration(),
     // AdvancedConfiguration.NUM_MAP_TASKS, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "num-map-tasks", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.NUM_MAP_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.NUM_MAP_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
     // bf.createBinding("num-reduce-tasks", "value", controller.getAdvancedConfiguration(),
     // AdvancedConfiguration.NUM_REDUCE_TASKS, bindingConverter); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "num-reduce-tasks", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.NUM_REDUCE_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.NUM_REDUCE_TASKS ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    bf.createBinding( "simple-blocking", "selected", controller.getSimpleConfiguration(), SimpleConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "blocking", "selected", controller.getAdvancedConfiguration(), AdvancedConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "simple-blocking", "selected", controller.getSimpleConfiguration(),
+      SimpleConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "blocking", "selected", controller.getAdvancedConfiguration(),
+      AdvancedConfiguration.BLOCKING ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "simple-logging-interval", "value", controller.getSimpleConfiguration(),
-        SimpleConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
+      SimpleConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "logging-interval", "value", controller.getAdvancedConfiguration(),
-        AdvancedConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "input-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.INPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "output-path", "value", controller.getAdvancedConfiguration(), AdvancedConfiguration.OUTPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
+      AdvancedConfiguration.LOGGING_INTERVAL ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "input-path", "value", controller.getAdvancedConfiguration(),
+      AdvancedConfiguration.INPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
+    bf.createBinding( "output-path", "value", controller.getAdvancedConfiguration(),
+      AdvancedConfiguration.OUTPUT_PATH ); //$NON-NLS-1$ //$NON-NLS-2$
 
     ( (XulRadio) container.getDocumentRoot().getElementById( "simpleRadioButton" ) ).setSelected( this.jobEntry
-        .isSimple() ); //$NON-NLS-1$
+      .isSimple() ); //$NON-NLS-1$
     ( (XulRadio) container.getDocumentRoot().getElementById( "advancedRadioButton" ) ).setSelected( !this.jobEntry
-        .isSimple() ); //$NON-NLS-1$
+      .isSimple() ); //$NON-NLS-1$
 
     ( (XulVbox) container.getDocumentRoot().getElementById( "advanced-configuration" ) ).setVisible( !this.jobEntry
-        .isSimple() ); //$NON-NLS-1$
+      .isSimple() ); //$NON-NLS-1$
 
     XulTextbox simpleLoggingInterval =
-        (XulTextbox) container.getDocumentRoot().getElementById( "simple-logging-interval" );
+      (XulTextbox) container.getDocumentRoot().getElementById( "simple-logging-interval" );
     simpleLoggingInterval.setValue( "" + controller.getSimpleConfiguration().getSimpleLoggingInterval() );
 
     XulTextbox loggingInterval = (XulTextbox) container.getDocumentRoot().getElementById( "logging-interval" );
@@ -176,34 +194,40 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     controller.setJobEntry( (JobEntryHadoopJobExecutor) jobEntry );
     controller.init();
 
+    bf.setBindingType( Type.ONE_WAY );
     bf.createBinding( controller, "namedClusters", "named-clusters", "elements" ).fireSourceChanged();
-    bf.createBinding( "named-clusters", "selectedIndex", controller.getAdvancedConfiguration(), "selectedNamedCluster", new BindingConvertor<Integer, NamedCluster>() {
-      public NamedCluster sourceToTarget( final Integer index ) {
-        List<NamedCluster> clusters = controller.getNamedClusters();
-        if ( index == -1 || clusters.isEmpty() ) {
+    bf.setBindingType( Type.BI_DIRECTIONAL );
+    bf.createBinding( "named-clusters", "selectedIndex", controller.getAdvancedConfiguration(), "selectedNamedCluster",
+      new BindingConvertor<Integer, NamedCluster>() {
+        public NamedCluster sourceToTarget( final Integer index ) {
+          List<NamedCluster> clusters = new ArrayList<>();
+          try {
+            clusters = controller.getNamedClusters();
+          } catch ( MetaStoreException e ) {
+            logger.error( e.getMessage(), e );
+          }
+          if ( index == -1 || clusters.isEmpty() ) {
+            return null;
+          }
+          return clusters.get( index );
+        }
+
+        public Integer targetToSource( final NamedCluster value ) {
           return null;
         }
-        return clusters.get( index );
-      }
-
-      public Integer targetToSource( final NamedCluster value ) {
-        return null;
-      }
-    } ).fireSourceChanged();
+      } ).fireSourceChanged();
 
     selectNamedCluster();
   }
 
   private void selectNamedCluster() {
     @SuppressWarnings( "unchecked" )
-    XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
-    for ( NamedCluster nc : controller.getNamedClusters() ) {
-      String cn = this.jobEntry.getClusterName();
-      if ( cn != null && cn.equals( nc.getName() ) ) {
-        namedClusterMenu.setSelectedItem( nc );
-        controller.getAdvancedConfiguration().setSelectedNamedCluster( nc );
-      }
-    }
+    XulMenuList<NamedCluster> namedClusterMenu =
+      (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+
+    NamedCluster namedCluster = jobEntry.getNamedCluster();
+    namedClusterMenu.setSelectedItem( namedCluster );
+    controller.getAdvancedConfiguration().setSelectedNamedCluster( namedCluster );
   }
 
   public JobEntryInterface open() {

@@ -20,41 +20,39 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.bigdata;
+package org.pentaho.big.data.kettle.plugins.mapreduce;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.pentaho.ui.xul.XulEventSource;
 
-@Documented
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
-/**
- * @deprecated Use OSGi plugins instead to access shim functionality
- */
-@Deprecated()
-public @interface ShimDependentJobEntry {
-  String id();
+import java.beans.PropertyChangeListener;
 
-  String name() default "";
+public class UserDefinedItem implements XulEventSource {
+  private String name;
+  private String value;
 
-  String description() default "";
+  public UserDefinedItem() {
+  }
 
-  String image();
+  public String getName() {
+    return name;
+  }
 
-  String version() default "";
+  public void setName( String name ) {
+    this.name = name;
+  }
 
-  int category() default -1;
+  public String getValue() {
+    return value;
+  }
 
-  String categoryDescription() default "";
+  public void setValue( String value ) {
+    this.value = value;
+  }
 
-  String i18nPackageName() default "";
+  public void addPropertyChangeListener( PropertyChangeListener listener ) {
+  }
 
-  String documentationUrl() default "";
+  public void removePropertyChangeListener( PropertyChangeListener listener ) {
+  }
 
-  String casesUrl() default "";
-
-  String forumUrl() default "";
 }

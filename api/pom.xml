@@ -16,6 +16,7 @@
     <module>initializer</module>
     <module>clusterServiceLocator</module>
     <module>hdfs</module>
+    <module>mapreduce</module>
     <module>pig</module>
   </modules>
 </project>

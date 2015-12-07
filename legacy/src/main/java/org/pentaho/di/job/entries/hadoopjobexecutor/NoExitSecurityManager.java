@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -68,6 +68,10 @@ public class NoExitSecurityManager extends SecurityManager {
    */
   public void addBlockedThread( Thread t ) {
     blockedThreads.add( t );
+  }
+
+  public void removeBlockedThread( Thread t ) {
+    blockedThreads.remove( t );
   }
 
   @Override

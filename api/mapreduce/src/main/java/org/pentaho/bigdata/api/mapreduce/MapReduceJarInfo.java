@@ -20,41 +20,25 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.bigdata;
+package org.pentaho.bigdata.api.mapreduce;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
 
-@Documented
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
 /**
- * @deprecated Use OSGi plugins instead to access shim functionality
+ * Created by bryan on 12/4/15.
  */
-@Deprecated()
-public @interface ShimDependentJobEntry {
-  String id();
+public interface MapReduceJarInfo {
+  /**
+   * Returns a list of classes in the jar that have a method with the signature: public static void main(String[] args)
+   *
+   * @return a list of classes in the jar that have a method with the signature: public static void main(String[] args)
+   */
+  List<String> getClassesWithMain();
 
-  String name() default "";
-
-  String description() default "";
-
-  String image();
-
-  String version() default "";
-
-  int category() default -1;
-
-  String categoryDescription() default "";
-
-  String i18nPackageName() default "";
-
-  String documentationUrl() default "";
-
-  String casesUrl() default "";
-
-  String forumUrl() default "";
+  /**
+   * Returns the main class as listed in the manifest of the jar
+   *
+   * @return the main class as listed in the manifest of the jar
+   */
+  String getMainClass();
 }
