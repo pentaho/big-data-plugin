@@ -15,10 +15,6 @@
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
   <url>http://www.pentaho.com</url>
-  
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -36,12 +32,6 @@
       <artifactId>kettle-ui-swt</artifactId>
       <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${dependency.junit.revision}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>

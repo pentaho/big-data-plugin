@@ -15,7 +15,6 @@
     <name>Pentaho Community Edition Project: ${project.artifactId}</name>
 
     <properties>
-        <publish-sonar-phase>site</publish-sonar-phase>
         <dependency.kettle.revision>6.0-SNAPSHOT</dependency.kettle.revision>
     </properties>
 
@@ -42,14 +41,10 @@
             <version>${dependency.commons-vfs-revision}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${dependency.junit.revision}</version>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
             <version>${dependency.mockito.revision}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

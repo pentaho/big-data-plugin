@@ -13,10 +13,6 @@
 
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
   <packaging>pom</packaging>
-  
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
 
   <dependencies>
     <dependency>
@@ -1059,7 +1055,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>${dependency.maven-resources-plugin.revision}</version>
         <inherited>false</inherited>
         <executions>
           <execution>

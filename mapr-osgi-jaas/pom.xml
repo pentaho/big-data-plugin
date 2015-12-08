@@ -12,9 +12,6 @@
     <version>6.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
   <build>
     <plugins>
       <plugin>
@@ -66,12 +63,6 @@
       <artifactId>org.apache.karaf.jaas.config</artifactId>
       <version>${dependency.karaf.revision}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${dependency.junit.revision}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
