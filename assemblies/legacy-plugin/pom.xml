@@ -21,17 +21,6 @@
     </license>
   </licenses>
 
-  <scm>
-    <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
-    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
-    <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
@@ -252,7 +241,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>${dependency.maven-assembly-plugin.revision}</version>
         <configuration>
           <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
           <appendAssemblyId>false</appendAssemblyId>

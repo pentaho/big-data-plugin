@@ -30,17 +30,12 @@
   <groupId>pentaho-karaf-features</groupId>
   <artifactId>pentaho-big-data-plugin-osgi</artifactId>
   <version>6.0-SNAPSHOT</version>
-  
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>${dependency.maven-resources-plugin.revision}</version>
         <executions>
           <execution>
             <id>copy-resources</id>
@@ -67,7 +62,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>${dependency.maven-clean-plugin.revision}</version>
         <configuration>
           <filesets>
             <fileset>
@@ -80,7 +74,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
         <executions>
           <execution>
             <id>attach-artifacts</id>

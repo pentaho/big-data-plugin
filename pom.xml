@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.pentaho</groupId>
         <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-        <version>1.0.14</version>
+        <version>1.1.6</version>
     </parent>
 
     <name>Pentaho Community Edition Project: ${project.artifactId}</name>
@@ -41,10 +41,6 @@
         <dependency.avro.revision>1.6.2</dependency.avro.revision>
         <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
         <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
-        <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5
-        </plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
-        <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17
-        </plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
         <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
         <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
         <dependency.common.revision>3.3.0-v20070426</dependency.common.revision>
@@ -62,8 +58,6 @@
         <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
         <dependency.maven-assembly-plugin.revision>2.4</dependency.maven-assembly-plugin.revision>
         <dependency.maven-bundle-plugin.revision>2.3.7</dependency.maven-bundle-plugin.revision>
-        <dependency.maven-clean-plugin.revision>2.5</dependency.maven-clean-plugin.revision>
-        <dependency.maven-resources-plugin.revision>2.7</dependency.maven-resources-plugin.revision>
         <dependency.metastore.revision>${project.version}</dependency.metastore.revision>
         <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
         <dependency.oozie.revision>3.1.3-incubating</dependency.oozie.revision>
@@ -78,8 +72,6 @@
         <dependency.pentaho-s3-vfs.revision>${project.version}</dependency.pentaho-s3-vfs.revision>
         <dependency.slf4j.revision>1.7.3</dependency.slf4j.revision>
         <dependency.xstream.revision>1.4.2</dependency.xstream.revision>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <dependency.metastore.revision>6.0-SNAPSHOT</dependency.metastore.revision>
         <dependency.mondrian.revision>3.11-SNAPSHOT</dependency.mondrian.revision>
         <dependency.pentaho-database-model.revision>6.0-SNAPSHOT</dependency.pentaho-database-model.revision>
@@ -92,68 +84,14 @@
     </properties>
 
     <scm>
-        <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
-        <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
-        <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
+        <connection>scm:git:git@github.com:pentaho/${project.artifactId}.git</connection>
+        <url>scm:git:git@github.com:pentaho/${project.artifactId}.git</url>
+        <developerConnection>scm:git:git@github.com:pentaho/${project.artifactId}.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
+    
   <build>
     <plugins>
-      <!-- remove this once it's in the parent pom -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>add-test-source</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>src/it/java</source>
-              </sources>
-            </configuration>
-          </execution>
-          <execution>
-            <id>add-test-resource</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>add-test-resource</goal>
-            </goals>
-            <configuration>
-              <resources>
-                <resource>
-                  <directory>src/it/resources</directory>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <!-- remove this once it's in the parent pom -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${plugin.org.apache.maven.plugins.maven-failsafe-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>integration-test</id>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>verify</id>
-            <goals>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -167,4 +105,5 @@
       </plugin>
     </plugins>
   </build>
+  
 </project>

@@ -21,22 +21,10 @@
     </license>
   </licenses>
 
-  <scm>
-    <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
-    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
-    <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-  
-  <properties>
-    <publish-sonar-phase>site</publish-sonar-phase>
-  </properties>
-
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
         <configuration>
           <appendAssemblyId>false</appendAssemblyId>
           <descriptor>${basedir}/src/main/assembly/descriptors/samples.xml</descriptor>
