@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -71,6 +72,11 @@ import java.util.concurrent.TimeUnit;
 public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
 
   private static final String DEFAULT_LOGGING_INTERVAL = "60";
+  public static final String CLUSTER_NAME = "cluster_name";
+  public static final String HDFS_HOSTNAME = "hdfs_hostname";
+  public static final String HDFS_PORT = "hdfs_port";
+  public static final String JOB_TRACKER_HOSTNAME = "job_tracker_hostname";
+  public static final String JOB_TRACKER_PORT = "job_tracker_port";
   private static Class<?> PKG = JobEntryHadoopJobExecutor.class; // for i18n purposes, needed by Translator2!!
   // $NON-NLS-1$
   private final NamedClusterService namedClusterService;
@@ -599,7 +605,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     outputValueClass = XMLHandler.getTagValue( entrynode, "output_value_class" );
     outputFormatClass = XMLHandler.getTagValue( entrynode, "output_format_class" );
 
-    loadClusterConfig( null, rep, entrynode );
+    loadClusterConfig( null, rep, metaStore, entrynode );
     setRepository( rep );
 
     // numMapTasks = Integer.parseInt(XMLHandler.getTagValue(entrynode, "num_map_tasks"));
@@ -622,51 +628,50 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     }
   }
 
-  private void loadClusterConfig( ObjectId id_jobentry, Repository rep, Node entrynode ) {
+  @VisibleForTesting
+  void loadClusterConfig( ObjectId id_jobentry, Repository rep, IMetaStore metaStore, Node entrynode ) {
     boolean configLoaded = false;
     try {
       String clusterName = null;
       // attempt to load from named cluster
       if ( entrynode != null ) {
-        clusterName = XMLHandler.getTagValue( entrynode, "cluster_name" ); //$NON-NLS-1$
+        clusterName = XMLHandler.getTagValue( entrynode, CLUSTER_NAME ); //$NON-NLS-1$
       } else if ( rep != null ) {
-        clusterName = rep.getJobEntryAttributeString( id_jobentry, "cluster_name" ); //$NON-NLS-1$ //$NON-NLS-2$
+        clusterName = rep.getJobEntryAttributeString( id_jobentry, CLUSTER_NAME ); //$NON-NLS-1$ //$NON-NLS-2$
       }
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
-      if ( rep != null && !StringUtils.isEmpty( clusterName )
-        && namedClusterService.contains( clusterName, rep.getMetaStore() ) ) {
+      if ( metaStore != null && !StringUtils.isEmpty( clusterName )
+        && namedClusterService.contains( clusterName, metaStore ) ) {
         // pull config from NamedCluster
-        nc = namedClusterService.read( clusterName, rep.getMetaStore() );
+        nc = namedClusterService.read( clusterName, metaStore );
       }
       if ( nc != null ) {
         this.namedCluster = nc;
-        configLoaded = true;
+        return;
       }
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
     }
 
-    if ( !configLoaded ) {
-      namedCluster = namedClusterService.getClusterTemplate();
-      if ( entrynode != null ) {
-        // load default values for cluster & legacy fallback
-        namedCluster.setHdfsHost( XMLHandler.getTagValue( entrynode, "hdfs_hostname" ) ); //$NON-NLS-1$
-        namedCluster.setHdfsPort( XMLHandler.getTagValue( entrynode, "hdfs_port" ) ); //$NON-NLS-1$
-        namedCluster.setJobTrackerHost( XMLHandler.getTagValue( entrynode, "job_tracker_hostname" ) ); //$NON-NLS-1$
-        namedCluster.setJobTrackerPort( XMLHandler.getTagValue( entrynode, "job_tracker_port" ) ); //$NON-NLS-1$
-      } else if ( rep != null ) {
-        // load default values for cluster & legacy fallback
-        try {
-          namedCluster.setHdfsHost( rep.getJobEntryAttributeString( id_jobentry, "hdfs_hostname" ) );
-          namedCluster.setHdfsPort( rep.getJobEntryAttributeString( id_jobentry, "hdfs_port" ) ); //$NON-NLS-1$
-          namedCluster
-            .setJobTrackerHost( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_hostname" ) ); //$NON-NLS-1$
-          namedCluster
-            .setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, "job_tracker_port" ) ); //$NON-NLS-1$
-        } catch ( KettleException ke ) {
-          logError( ke.getMessage(), ke );
-        }
+    namedCluster = namedClusterService.getClusterTemplate();
+    if ( entrynode != null ) {
+      // load default values for cluster & legacy fallback
+      namedCluster.setHdfsHost( XMLHandler.getTagValue( entrynode, HDFS_HOSTNAME ) ); //$NON-NLS-1$
+      namedCluster.setHdfsPort( XMLHandler.getTagValue( entrynode, HDFS_PORT ) ); //$NON-NLS-1$
+      namedCluster.setJobTrackerHost( XMLHandler.getTagValue( entrynode, JOB_TRACKER_HOSTNAME ) ); //$NON-NLS-1$
+      namedCluster.setJobTrackerPort( XMLHandler.getTagValue( entrynode, JOB_TRACKER_PORT ) ); //$NON-NLS-1$
+    } else if ( rep != null ) {
+      // load default values for cluster & legacy fallback
+      try {
+        namedCluster.setHdfsHost( rep.getJobEntryAttributeString( id_jobentry, HDFS_HOSTNAME ) );
+        namedCluster.setHdfsPort( rep.getJobEntryAttributeString( id_jobentry, HDFS_PORT ) ); //$NON-NLS-1$
+        namedCluster
+          .setJobTrackerHost( rep.getJobEntryAttributeString( id_jobentry, JOB_TRACKER_HOSTNAME ) ); //$NON-NLS-1$
+        namedCluster
+          .setJobTrackerPort( rep.getJobEntryAttributeString( id_jobentry, JOB_TRACKER_PORT ) ); //$NON-NLS-1$
+      } catch ( KettleException ke ) {
+        logError( ke.getMessage(), ke );
       }
     }
   }
@@ -765,7 +770,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
       setOutputValueClass( rep.getJobEntryAttributeString( id_jobentry, "output_value_class" ) );
       setOutputFormatClass( rep.getJobEntryAttributeString( id_jobentry, "output_format_class" ) );
 
-      loadClusterConfig( id_jobentry, rep, null );
+      loadClusterConfig( id_jobentry, rep, metaStore, null );
       setRepository( rep );
 
       // setNumMapTasks(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "num_map_tasks")).intValue());
