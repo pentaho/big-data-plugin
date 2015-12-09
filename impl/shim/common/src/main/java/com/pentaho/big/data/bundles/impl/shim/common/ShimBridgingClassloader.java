@@ -95,12 +95,24 @@ public class ShimBridgingClassloader extends ClassLoader {
   @Override
   protected Class<?> findClass( String name ) throws ClassNotFoundException {
     int lastIndexOfDot = name.lastIndexOf( '.' );
-    String packageName = name.substring( 0, lastIndexOfDot );
+    final String packageName;
+    final String translatedPath;
+    final String translatedName;
+    if ( lastIndexOfDot >= 0 ) {
+      packageName = name.substring( 0, lastIndexOfDot );
+      if ( getPackage( packageName ) == null ) {
+        definePackage( packageName, null, null, null, null, null, null, null );
+      }
+      translatedPath = "/" + packageName.replace( '.', '/' );
+      translatedName = name.substring( lastIndexOfDot + 1 ) + ".class";
+    } else {
+      packageName = "";
+      translatedPath = "/";
+      translatedName = name;
+    }
     if ( getPackage( packageName ) == null ) {
       definePackage( packageName, null, null, null, null, null, null, null );
     }
-    String translatedPath = "/" + packageName.replace( '.', '/' );
-    String translatedName = name.substring( lastIndexOfDot + 1 ) + ".class";
     List<URL> entries = bundleWiring.findEntries( translatedPath, translatedName, 0 );
     if ( entries.size() == 1 ) {
       byte[] bytes;

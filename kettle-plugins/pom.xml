@@ -13,6 +13,7 @@
   <modules>
     <module>common</module>
     <module>hdfs</module>
+    <module>mapreduce</module>
     <module>pig</module>
     <module>guiTestActionHandlers</module>
   </modules>

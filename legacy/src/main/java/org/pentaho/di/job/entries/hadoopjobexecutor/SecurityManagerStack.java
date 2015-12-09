@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,8 @@
 
 package org.pentaho.di.job.entries.hadoopjobexecutor;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.Deque;
 import java.util.LinkedList;
 
@@ -37,6 +39,7 @@ import java.util.LinkedList;
  * 
  */
 public class SecurityManagerStack {
+  private static final SecurityManagerStack instance = new SecurityManagerStack();
   private Deque<StackElement> stack;
 
   /**
@@ -54,7 +57,12 @@ public class SecurityManagerStack {
     }
   }
 
-  public SecurityManagerStack() {
+  public static SecurityManagerStack getInstance() {
+    return instance;
+  }
+
+  @VisibleForTesting
+  SecurityManagerStack() {
     stack = new LinkedList<StackElement>();
   }
 

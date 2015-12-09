@@ -20,41 +20,41 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.bigdata;
+package org.pentaho.bigdata.api.mapreduce;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Documented
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
 /**
- * @deprecated Use OSGi plugins instead to access shim functionality
+ * Created by bryan on 12/3/15.
  */
-@Deprecated()
-public @interface ShimDependentJobEntry {
-  String id();
+public interface TaskCompletionEvent {
+  /**
+   * Returns the status of the event
+   *
+   * @return the status of the event
+   */
+  TaskCompletionEvent.Status getTaskStatus();
 
-  String name() default "";
+  /**
+   * Returns the task attempt id
+   *
+   * @return the task attempt id
+   */
+  Object getTaskAttemptId();
 
-  String description() default "";
+  /**
+   * Returns the event id
+   *
+   * @return the event id
+   */
+  int getEventId();
 
-  String image();
-
-  String version() default "";
-
-  int category() default -1;
-
-  String categoryDescription() default "";
-
-  String i18nPackageName() default "";
-
-  String documentationUrl() default "";
-
-  String casesUrl() default "";
-
-  String forumUrl() default "";
+  /**
+   * Enumeration of possible status codes
+   */
+  enum Status {
+    FAILED,
+    KILLED,
+    SUCCEEDED,
+    OBSOLETE,
+    TIPFAILED;
+  }
 }

@@ -20,41 +20,29 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.bigdata;
+package org.pentaho.big.data.impl.shim.mapreduce;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.pentaho.bigdata.api.mapreduce.TaskCompletionEvent;
 
-@Documented
-@Retention( RetentionPolicy.RUNTIME )
-@Target( ElementType.TYPE )
 /**
- * @deprecated Use OSGi plugins instead to access shim functionality
+ * Created by bryan on 12/3/15.
  */
-@Deprecated()
-public @interface ShimDependentJobEntry {
-  String id();
+public class TaskCompletionEventImpl implements TaskCompletionEvent {
+  private final org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent delegate;
 
-  String name() default "";
+  public TaskCompletionEventImpl( org.pentaho.hadoop.shim.api.mapred.TaskCompletionEvent delegate ) {
+    this.delegate = delegate;
+  }
 
-  String description() default "";
+  @Override public Status getTaskStatus() {
+    return Status.valueOf( delegate.getTaskStatus().toString() );
+  }
 
-  String image();
+  @Override public Object getTaskAttemptId() {
+    return delegate.getTaskAttemptId();
+  }
 
-  String version() default "";
-
-  int category() default -1;
-
-  String categoryDescription() default "";
-
-  String i18nPackageName() default "";
-
-  String documentationUrl() default "";
-
-  String casesUrl() default "";
-
-  String forumUrl() default "";
+  @Override public int getEventId() {
+    return delegate.getEventId();
+  }
 }
