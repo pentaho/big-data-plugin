@@ -59,8 +59,6 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, getVariables() );
-    } else {
-      return null;
     }
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       mappings.put( url, ncName );
