@@ -35,6 +35,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -57,8 +58,9 @@ public class JobEntryHadoopCopyFilesTest {
   public void setup() {
     testName = "testName";
     namedClusterManager = mock( NamedClusterService.class );
-    jobEntryHadoopCopyFiles = new JobEntryHadoopCopyFiles( namedClusterManager, mock(
-      RuntimeTestActionService.class ), mock( RuntimeTester.class ) );
+    jobEntryHadoopCopyFiles =
+        new JobEntryHadoopCopyFiles( namedClusterManager, mock( RuntimeTestActionService.class ), mock(
+            RuntimeTester.class ) );
     jobEntryHadoopCopyFiles.setName( testName );
     testUrl = "testUrl";
     testNcName = "testNcName";
@@ -70,15 +72,27 @@ public class JobEntryHadoopCopyFilesTest {
   @Test
   public void testLoadUrlNullNcName() {
     when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( null );
-    assertNull( jobEntryHadoopCopyFiles.loadURL( testUrl, null, metaStore, mappings ) );
+    String loadURL = jobEntryHadoopCopyFiles.loadURL( testUrl, null, metaStore, mappings );
+    assertNotNull( loadURL );
     verifyNoMoreInteractions( mappings );
   }
 
   @Test
   public void testLoadUrlNull() {
     when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( null );
-    assertNull( jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
+    String loadURL = jobEntryHadoopCopyFiles.loadURL( null, null, metaStore, mappings );
+    assertNull( loadURL );
     verifyNoMoreInteractions( mappings );
+  }
+
+  @Test
+  public void testLoadUrlNotNullForNotCluster() {
+    testNcName = "LOCAL-SOURCE-FILE-1";
+    when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( null );
+    String loadURL = jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings );
+    assertNotNull( loadURL );
+    assertEquals( testUrl, loadURL );
+    verify( mappings ).put( testUrl, testNcName );
   }
 
   @Test
@@ -94,8 +108,8 @@ public class JobEntryHadoopCopyFilesTest {
     when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( namedCluster );
     when( namedCluster.isMapr() ).thenReturn( true );
     String testNewUrl = "testNewUrl";
-    when( namedCluster.processURLsubstitution( testUrl, metaStore,
-      jobEntryHadoopCopyFiles.getVariables() ) ).thenReturn( testNewUrl );
+    when( namedCluster.processURLsubstitution( testUrl, metaStore, jobEntryHadoopCopyFiles.getVariables() ) )
+        .thenReturn( testNewUrl );
     assertEquals( testNewUrl, jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
     verify( mappings ).put( testNewUrl, testNcName );
   }
@@ -105,8 +119,8 @@ public class JobEntryHadoopCopyFilesTest {
     when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( namedCluster );
     when( namedCluster.isMapr() ).thenReturn( true );
     String testNewUrl = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + "testNewUrl";
-    when( namedCluster.processURLsubstitution( testUrl, metaStore,
-      jobEntryHadoopCopyFiles.getVariables() ) ).thenReturn( testNewUrl );
+    when( namedCluster.processURLsubstitution( testUrl, metaStore, jobEntryHadoopCopyFiles.getVariables() ) )
+        .thenReturn( testNewUrl );
     assertEquals( testNewUrl, jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
     verify( mappings ).put( testNewUrl, testNcName );
   }
@@ -116,8 +130,8 @@ public class JobEntryHadoopCopyFilesTest {
     when( namedClusterManager.getNamedClusterByName( testNcName, metaStore ) ).thenReturn( namedCluster );
     when( namedCluster.isMapr() ).thenReturn( false );
     String testNewUrl = HadoopSpoonPlugin.HDFS_SCHEME + "://" + "testNewUrl";
-    when( namedCluster.processURLsubstitution( testUrl, metaStore,
-      jobEntryHadoopCopyFiles.getVariables() ) ).thenReturn( testNewUrl );
+    when( namedCluster.processURLsubstitution( testUrl, metaStore, jobEntryHadoopCopyFiles.getVariables() ) )
+        .thenReturn( testNewUrl );
     assertEquals( testNewUrl, jobEntryHadoopCopyFiles.loadURL( testUrl, testNcName, metaStore, mappings ) );
     verify( mappings ).put( testNewUrl, testNcName );
   }
