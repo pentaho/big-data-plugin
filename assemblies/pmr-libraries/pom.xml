@@ -1084,6 +1084,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-5</version>
         <executions>
           <execution>
             <id>assembly</id>
