@@ -9,9 +9,8 @@
           buttons=""
           resizable="false">
     <vbox flex="1" padding="15">
-      <hbox flex="1" padding="0" spacing="0">
+      <hbox flex="1" padding="0" spacing="10">
         <image src='ui/images/warning:32#32.svg' width='32' height='32'/>
-        <spacer flex="1"/>
         <label id="hadoopConfigurationSelectionDialogLabel" value="${HadoopConfigurationRestartXulDialog.Text}"
                multiline="true" width="300"/>
       </hbox>
