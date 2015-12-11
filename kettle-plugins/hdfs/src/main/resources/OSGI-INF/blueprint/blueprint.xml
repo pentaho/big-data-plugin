@@ -6,7 +6,7 @@
             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
             http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
 
-  <bean id="jobEntryHadoopCopyFiles" class="org.pentaho.big.data.kettle.plugins.hdfs.job.JobEntryHadoopCopyFiles">
+  <bean id="jobEntryHadoopCopyFiles" class="org.pentaho.big.data.kettle.plugins.hdfs.job.JobEntryHadoopCopyFiles" scope="prototype">
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
