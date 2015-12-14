@@ -156,7 +156,10 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       (JfaceMenuList<?>) getXulDomContainer().getDocumentRoot().getElementById( "named-clusters" );
 
     if ( !isSimple() && aConf.selectedNamedCluster != null ) {
-      aConf.selectedNamedCluster = namedClusterService.getNamedClusterByName( aConf.selectedNamedCluster.getName(), jobMeta.getMetaStore() );
+      NamedCluster reload = namedClusterService.getNamedClusterByName( aConf.selectedNamedCluster.getName(), jobMeta.getMetaStore() );
+      if ( reload != null ) {
+        aConf.selectedNamedCluster = reload;
+      }
     }
 
     String validationErrors = "";
