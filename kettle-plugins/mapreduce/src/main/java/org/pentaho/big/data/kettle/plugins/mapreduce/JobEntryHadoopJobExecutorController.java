@@ -525,7 +525,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     try {
       MapReduceJarInfo mapReduceJarInfo =
         namedClusterServiceLocator.getService( aConf.selectedNamedCluster, MapReduceService.class )
-          .getJarInfo( jobEntry.resolveJarUrl( jarUrl ) );
+          .getJarInfo( JobEntryHadoopJobExecutor.resolveJarUrl( jarUrl, getVariableSpace() ) );
       List<String> driverClasses = new ArrayList<String>( mapReduceJarInfo.getClassesWithMain() );
       if ( Const.isEmpty( driverClass ) ) {
         setDriverClasses( driverClasses );

@@ -42,6 +42,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.Log4jFileAppender;
 import org.pentaho.di.core.logging.LogWriter;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryBase;
@@ -481,8 +482,13 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
     return result;
   }
 
-  public URL resolveJarUrl( final String jarUrl ) throws MalformedURLException {
-    String jarUrlS = environmentSubstitute( jarUrl );
+  @VisibleForTesting
+  URL resolveJarUrl( final String jarUrl ) throws MalformedURLException {
+    return resolveJarUrl( jarUrl, this );
+  }
+
+  public static URL resolveJarUrl( final String jarUrl, VariableSpace variableSpace ) throws MalformedURLException {
+    String jarUrlS = variableSpace.environmentSubstitute( jarUrl );
     if ( jarUrlS.indexOf( "://" ) == -1 ) {
       // default to file://
       File jarFile = new File( jarUrlS );

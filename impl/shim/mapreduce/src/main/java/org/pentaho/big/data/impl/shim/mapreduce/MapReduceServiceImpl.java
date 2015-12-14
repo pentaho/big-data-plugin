@@ -89,7 +89,14 @@ public class MapReduceServiceImpl implements MapReduceService {
 
     final List<String> finalClassNamesInJarWithMain = classNamesInJarWithMain;
 
-    final Class<?> mainClassFromManifest = jarUtility.getMainClassFromManifest( resolvedJarUrl, classLoader );
+    Class<?> mainClassFromManifest = null;
+    try {
+      mainClassFromManifest = jarUtility.getMainClassFromManifest( resolvedJarUrl, classLoader );
+    } catch ( Exception e ) {
+      // Ignore
+    }
+
+    final String mainClassName = mainClassFromManifest != null ? mainClassFromManifest.getCanonicalName() : null;
 
     return new MapReduceJarInfo() {
       @Override public List<String> getClassesWithMain() {
@@ -97,7 +104,7 @@ public class MapReduceServiceImpl implements MapReduceService {
       }
 
       @Override public String getMainClass() {
-        return mainClassFromManifest != null ? mainClassFromManifest.getCanonicalName() : null;
+        return mainClassName;
       }
     };
   }

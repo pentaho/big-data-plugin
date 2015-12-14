@@ -35,6 +35,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JarUtility;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -178,5 +179,15 @@ public class MapReduceServiceImplTest {
     MapReduceJarInfo jarInfo = mapReduceService.getJarInfo( resolvedJarUrl );
     assertEquals( new ArrayList<>(), jarInfo.getClassesWithMain() );
     assertEquals( String.class.getCanonicalName(), jarInfo.getMainClass() );
+  }
+
+  @Test
+  public void testGetJarInfoMainException() throws IOException, ClassNotFoundException {
+    when(
+      jarUtility.getMainClassFromManifest( resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) )
+      .thenThrow( new FileNotFoundException(  ) );
+    MapReduceJarInfo jarInfo = mapReduceService.getJarInfo( resolvedJarUrl );
+    assertEquals( new ArrayList<>(), jarInfo.getClassesWithMain() );
+    assertNull( jarInfo.getMainClass() );
   }
 }
