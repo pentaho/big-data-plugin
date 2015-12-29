@@ -51,6 +51,7 @@ import static org.mockito.Mockito.when;
  */
 public class HadoopFileSystemImplTest {
   private FileSystem fileSystem;
+  private HadoopFileSystemCallable hadoopFileSystemCallable;
   private HadoopFileSystemImpl hadoopFileSystem;
   private HadoopFileSystemPath hadoopFileSystemPath;
   private FSDataOutputStream outputStream;
@@ -65,7 +66,8 @@ public class HadoopFileSystemImplTest {
     fileSystem = mock( FileSystem.class );
     configuration = mock( Configuration.class );
     when( fileSystem.getConf() ).thenReturn( configuration );
-    hadoopFileSystem = new HadoopFileSystemImpl( fileSystem );
+    hadoopFileSystemCallable = mock( HadoopFileSystemCallable.class );
+    hadoopFileSystem = new HadoopFileSystemImpl( hadoopFileSystemCallable );
     outputStream = mock( FSDataOutputStream.class );
     inputStream = mock( FSDataInputStream.class );
     hadoopFileSystemPath = mock( HadoopFileSystemPath.class );
@@ -74,6 +76,7 @@ public class HadoopFileSystemImplTest {
     pathString2 = "test/path2";
     when( hadoopFileSystemPath.getPath() ).thenReturn( pathString );
     when( hadoopFileSystemPath2.getPath() ).thenReturn( pathString2 );
+    when( hadoopFileSystemCallable.getFileSystem() ).thenReturn( fileSystem );
   }
 
   @Test
