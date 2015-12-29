@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-    <version>1.1.6</version>
+    <version>1.1.7</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-spark-plugin</artifactId>
@@ -14,11 +14,17 @@
   <scm>
     <developerConnection>scm:git:git@github.com:pentaho/pdi-spark-plugin.git</developerConnection>
   </scm>
+  <distributionManagement>
+    <site>
+      <id>pentaho.public.snapshot.repo</id>
+      <name>${project.artifactId}-${project.version}</name>
+      <url>dav:${site.publish.url}/${project.groupId}/pdi-spark-plugin-${project.version}</url>
+    </site>
+  </distributionManagement>
   <properties>
     <dependency.metastore.revision>${project.version}</dependency.metastore.revision>
     <dependency.kettle.revision>${project.version}</dependency.kettle.revision>
     <dependency.org.mockito.mockito-all.version>1.9.5</dependency.org.mockito.mockito-all.version>
-    <dependency.junit.junit.version>4.5</dependency.junit.junit.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <dependencies>
@@ -45,12 +51,6 @@
       <artifactId>metastore</artifactId>
       <version>${dependency.metastore.revision}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${dependency.junit.junit.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
