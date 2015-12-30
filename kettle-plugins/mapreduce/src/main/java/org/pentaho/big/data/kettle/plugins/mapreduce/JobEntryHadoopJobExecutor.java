@@ -366,6 +366,7 @@ public class JobEntryHadoopJobExecutor extends JobEntryBase implements Cloneable
         MapReduceJobBuilder jobBuilder = mapReduceService.createJobBuilder( log, variables );
 
         jobBuilder.setResolvedJarUrl( resolvedJarUrl );
+        jobBuilder.setJarUrl( environmentSubstitute( jarUrl ) );
         jobBuilder.setHadoopJobName( environmentSubstitute( hadoopJobName ) );
 
         jobBuilder.setOutputKeyClass( environmentSubstitute( outputKeyClass ) );
