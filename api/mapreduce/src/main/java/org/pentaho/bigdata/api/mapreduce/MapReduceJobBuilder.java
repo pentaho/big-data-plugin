@@ -36,6 +36,13 @@ public interface MapReduceJobBuilder {
   void setResolvedJarUrl( URL resolvedJarUrl );
 
   /**
+   * Sets the jar to run
+   *
+   * @param jarUrl the jar to run
+   */
+  void setJarUrl( String jarUrl );
+
+  /**
    * Sets the job name
    *
    * @param hadoopJobName the job name

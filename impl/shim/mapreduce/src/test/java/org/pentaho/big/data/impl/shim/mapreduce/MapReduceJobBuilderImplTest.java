@@ -66,6 +66,7 @@ public class MapReduceJobBuilderImplTest {
   private String testJobName;
   private String inputPath;
   private URL resolvedJarUrl;
+  private String jarUrl;
   private int numMapTasks;
   private int numReduceTasks;
   private String userPath;
@@ -122,6 +123,7 @@ public class MapReduceJobBuilderImplTest {
     userPath2Path = mock( Path.class );
     when( fileSystem.asPath( fsUrl, userPath2 ) ).thenReturn( userPath2Path );
     inputPath = userPath + "," + userPath2;
+    jarUrl = "http://jar.com/myjar";
     resolvedJarUrl = new URL( "http://jar.com/myjar" );
     numMapTasks = 3;
     numReduceTasks = 1;
@@ -134,6 +136,7 @@ public class MapReduceJobBuilderImplTest {
     mapReduceJobBuilder.setOutputKeyClass( String.class.getCanonicalName() );
     mapReduceJobBuilder.setOutputValueClass( String.class.getCanonicalName() );
     mapReduceJobBuilder.setInputPath( inputPath );
+    mapReduceJobBuilder.setJarUrl( jarUrl );
     mapReduceJobBuilder.setResolvedJarUrl( resolvedJarUrl );
     mapReduceJobBuilder.setNumMapTasks( numMapTasks );
     mapReduceJobBuilder.setNumReduceTasks( numReduceTasks );
@@ -144,7 +147,7 @@ public class MapReduceJobBuilderImplTest {
     verify( configuration ).setOutputKeyClass( String.class );
     verify( configuration ).setOutputValueClass( String.class );
     verify( configuration ).setInputPaths( userPath1Path, userPath2Path );
-    verify( configuration ).setJar( resolvedJarUrl.toString() );
+    verify( configuration ).setJar( jarUrl );
     verify( configuration ).setNumMapTasks( numMapTasks );
     verify( configuration ).setNumReduceTasks( numReduceTasks );
   }
@@ -161,6 +164,7 @@ public class MapReduceJobBuilderImplTest {
     mapReduceJobBuilder.setOutputFormatClass( Float.class.getCanonicalName() );
     mapReduceJobBuilder.setInputPath( inputPath );
     mapReduceJobBuilder.setOutputPath( userPath2 );
+    mapReduceJobBuilder.setJarUrl( jarUrl );
     mapReduceJobBuilder.setResolvedJarUrl( resolvedJarUrl );
     mapReduceJobBuilder.setNumMapTasks( numMapTasks );
     mapReduceJobBuilder.setNumReduceTasks( numReduceTasks );
@@ -192,7 +196,7 @@ public class MapReduceJobBuilderImplTest {
     verify( configuration ).setOutputFormat( Float.class );
     verify( configuration ).setInputPaths( userPath1Path, userPath2Path );
     verify( configuration ).setOutputPath( userPath2Path );
-    verify( configuration ).setJar( resolvedJarUrl.toString() );
+    verify( configuration ).setJar( jarUrl );
     verify( configuration ).setNumMapTasks( numMapTasks );
     verify( configuration ).setNumReduceTasks( numReduceTasks );
     verify( logChannelInterface ).logBasic( logMeBasic );

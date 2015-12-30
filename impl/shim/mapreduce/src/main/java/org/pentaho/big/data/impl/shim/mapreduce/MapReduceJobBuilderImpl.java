@@ -49,6 +49,7 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
   private final VariableSpace variableSpace;
   private final Map<String, String> userDefined;
   private URL resolvedJarUrl;
+  private String jarUrl;
   private String hadoopJobName;
   private String outputKeyClass;
   private String outputValueClass;
@@ -73,6 +74,11 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
 
   @Override public void setResolvedJarUrl( URL resolvedJarUrl ) {
     this.resolvedJarUrl = resolvedJarUrl;
+  }
+
+  @Override
+  public void setJarUrl( String jarUrl ) {
+    this.jarUrl = jarUrl;
   }
 
   @Override public void setHadoopJobName( String hadoopJobName ) {
@@ -190,7 +196,7 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
       }
     }
 
-    conf.setJar( resolvedJarUrl.toString() );
+    conf.setJar( jarUrl );
 
     conf.setNumMapTasks( numMapTasks );
     conf.setNumReduceTasks( numReduceTasks );
