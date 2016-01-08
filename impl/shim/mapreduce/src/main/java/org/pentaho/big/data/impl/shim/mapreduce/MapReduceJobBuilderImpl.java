@@ -32,6 +32,7 @@ import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -58,10 +59,13 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
   private String reducerClass;
   private String inputFormatClass;
   private String outputFormatClass;
-  private String inputPath;
+  private String[] inputPaths;
   private int numMapTasks;
   private int numReduceTasks;
   private String outputPath;
+  private String mapOutputKeyClass;
+  private String mapOutputValueClass;
+  private String mapRunnerClass;
 
   public MapReduceJobBuilderImpl( NamedCluster namedCluster, HadoopShim hadoopShim, LogChannelInterface log,
                                   VariableSpace variableSpace ) {
@@ -89,6 +93,18 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     this.outputKeyClass = outputKeyClass;
   }
 
+  @Override public void setMapOutputKeyClass( String mapOutputKeyClass ) {
+    this.mapOutputKeyClass = mapOutputKeyClass;
+  }
+
+  @Override public void setMapOutputValueClass( String mapOutputValueClass ) {
+    this.mapOutputValueClass = mapOutputValueClass;
+  }
+
+  @Override public void setMapRunnerClass( String mapRunnerClass ) {
+    this.mapRunnerClass = mapRunnerClass;
+  }
+
   @Override public void setOutputValueClass( String outputValueClass ) {
     this.outputValueClass = outputValueClass;
   }
@@ -113,8 +129,8 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     this.outputFormatClass = outputFormatClass;
   }
 
-  @Override public void setInputPath( String inputPath ) {
-    this.inputPath = inputPath;
+  @Override public void setInputPaths( String[] inputPaths ) {
+    this.inputPaths = inputPaths;
   }
 
   @Override public void setNumMapTasks( int numMapTasks ) {
@@ -129,19 +145,36 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     this.outputPath = outputPath;
   }
 
-  @Override public void putUserDefined( String key, String value ) {
+  @Override public void set( String key, String value ) {
     userDefined.put( key, value );
   }
 
-  @Override public MapReduceJobAdvanced submit() throws Exception {
-    Configuration conf = hadoopShim.createConfiguration();
+  protected void configure( Configuration conf ) throws Exception {
     FileSystem fs = hadoopShim.getFileSystem( conf );
     URL[] urls = new URL[] { resolvedJarUrl };
     URLClassLoader loader = new URLClassLoader( urls, hadoopShim.getClass().getClassLoader() );
     conf.setJobName( hadoopJobName );
 
-    conf.setOutputKeyClass( loader.loadClass( outputKeyClass ) );
-    conf.setOutputValueClass( loader.loadClass( outputValueClass ) );
+    if ( outputKeyClass != null ) {
+      Class<?> keyClass = loader.loadClass( outputKeyClass );
+      conf.setOutputKeyClass( keyClass );
+    }
+    if ( outputValueClass != null ) {
+      Class<?> valueClass = loader.loadClass( outputValueClass );
+      conf.setOutputValueClass( valueClass );
+    }
+    if ( mapOutputKeyClass != null ) {
+      Class<?> keyClass = loader.loadClass( mapOutputKeyClass );
+      conf.setMapOutputKeyClass( keyClass );
+    }
+    if ( mapOutputValueClass != null ) {
+      Class<?> valueClass = loader.loadClass( mapOutputValueClass );
+      conf.setMapOutputValueClass( valueClass );
+    }
+    if ( mapRunnerClass != null ) {
+      Class<?> runnerClass = loader.loadClass( mapRunnerClass );
+      conf.setMapRunnerClass( runnerClass );
+    }
 
     if ( mapperClass != null ) {
       Class<?> mapper = loader.loadClass( mapperClass );
@@ -155,6 +188,7 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
       Class<?> reducer = loader.loadClass( reducerClass );
       conf.setReducerClass( reducer );
     }
+
 
     if ( inputFormatClass != null ) {
       Class<?> inputFormat = loader.loadClass( inputFormatClass );
@@ -177,15 +211,14 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
       log.logBasic( m );
     }
 
-    String[] inputPathParts = inputPath.split( "," );
     List<Path> paths = new ArrayList<Path>();
-    for ( String path : inputPathParts ) {
-      paths.add( fs.asPath( conf.getDefaultFileSystemURL(), path ) );
+    for ( String path : inputPaths ) {
+      paths.add( getPath( conf, fs, path ) );
     }
     Path[] finalPaths = paths.toArray( new Path[ paths.size() ] );
 
     conf.setInputPaths( finalPaths );
-    conf.setOutputPath( fs.asPath( conf.getDefaultFileSystemURL(), outputPath ) );
+    conf.setOutputPath( getOutputPath( conf, fs ) );
 
     // process user defined values
     for ( Map.Entry<String, String> stringStringEntry : userDefined.entrySet() ) {
@@ -196,11 +229,29 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
       }
     }
 
-    conf.setJar( jarUrl );
+    if ( jarUrl != null ) {
+      conf.setJar( jarUrl );
+    }
 
     conf.setNumMapTasks( numMapTasks );
     conf.setNumReduceTasks( numReduceTasks );
+  }
 
+  protected Path getOutputPath( Configuration conf, FileSystem fs ) {
+    return getPath( conf, fs, outputPath );
+  }
+
+  private Path getPath( Configuration conf, FileSystem fs, String outputPath ) {
+    return fs.asPath( conf.getDefaultFileSystemURL(), outputPath );
+  }
+
+  protected MapReduceJobAdvanced submit( Configuration conf ) throws IOException {
     return new RunningJobMapReduceJobAdvancedImpl( hadoopShim.submitJob( conf ) );
+  }
+
+  @Override public final MapReduceJobAdvanced submit() throws Exception {
+    Configuration conf = hadoopShim.createConfiguration();
+    configure( conf );
+    return submit( conf );
   }
 }

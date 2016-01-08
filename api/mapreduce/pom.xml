@@ -40,6 +40,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+      <version>${dependency.kettle.revision}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${dependency.junit.revision}</version>

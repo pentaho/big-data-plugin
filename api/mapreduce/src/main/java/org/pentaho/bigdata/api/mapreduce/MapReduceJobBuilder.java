@@ -28,6 +28,9 @@ import java.net.URL;
  * Builder interface for configuring MapReduce jobs
  */
 public interface MapReduceJobBuilder {
+  String STRING_COMBINE_SINGLE_THREADED = "transformation-combine-single-threaded";
+  String STRING_REDUCE_SINGLE_THREADED = "transformation-reduce-single-threaded";
+
   /**
    * Sets the url of the jar to run
    *
@@ -55,6 +58,27 @@ public interface MapReduceJobBuilder {
    * @param outputKeyClass the output key class
    */
   void setOutputKeyClass( String outputKeyClass );
+
+  /**
+   * Sets the map output key class
+   *
+   * @param mapOutputKeyClass the map output key class
+   */
+  void setMapOutputKeyClass( String mapOutputKeyClass );
+
+  /**
+   * Sets the map output value class
+   *
+   * @param mapOutputValueClass the map output value class
+   */
+  void setMapOutputValueClass( String mapOutputValueClass );
+
+  /**
+   * Sets the map runner class
+   *
+   * @param mapRunnerClass the map runner class
+   */
+  void setMapRunnerClass( String mapRunnerClass );
 
   /**
    * Sets the output value class
@@ -99,11 +123,11 @@ public interface MapReduceJobBuilder {
   void setOutputFormatClass( String outputFormatClass );
 
   /**
-   * Sets the input path (comma separated list)
+   * Sets the input paths
    *
-   * @param inputPath the input path (comma separated list)
+   * @param inputPaths
    */
-  void setInputPath( String inputPath );
+  void setInputPaths( String[] inputPaths );
 
   /**
    * Sets the number of map tasks
@@ -132,7 +156,7 @@ public interface MapReduceJobBuilder {
    * @param key   the key
    * @param value the value
    */
-  void putUserDefined( String key, String value );
+  void set( String key, String value );
 
   /**
    * Submits the job to the cluster

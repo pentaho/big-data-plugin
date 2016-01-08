@@ -224,7 +224,6 @@
         <include>woodstox:wstx-asl</include>
         <include>wsdl4j:wsdl4j</include>
         <include>wsdl4j:wsdl4j-qname</include>
-        <include>xalan:xalan</include>
         <include>xerces:xercesImpl</include>
         <include>xml-apis:xml-apis</include>
         <include>xml-apis:xml-apis-ext</include>
