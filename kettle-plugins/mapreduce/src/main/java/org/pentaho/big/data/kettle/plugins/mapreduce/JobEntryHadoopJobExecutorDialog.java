@@ -241,18 +241,20 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
 
   private boolean isKnownNamedCluster( NamedCluster jobNameCluster, JobEntryHadoopJobExecutorController controller ) {
     boolean result = false;
-    String jncName = jobNameCluster.getName();
-    List<NamedCluster> nClusters = null;
-    try {
-      nClusters = controller.getNamedClusters();
-    } catch ( MetaStoreException e ) {
-      logger.error( e.getMessage(), e );
-    }
-    if ( jncName != null && nClusters != null ) {
-      for ( NamedCluster nc : nClusters ) {
-        if ( jncName != null && jncName.equals( nc.getName() ) ) {
-          result = true;
-          break;
+    if ( jobNameCluster != null ) {
+      String jncName = jobNameCluster.getName();
+      List<NamedCluster> nClusters = null;
+      try {
+        nClusters = controller.getNamedClusters();
+      } catch ( MetaStoreException e ) {
+        logger.error( e.getMessage(), e );
+      }
+      if ( jncName != null && nClusters != null ) {
+        for ( NamedCluster nc : nClusters ) {
+          if ( jncName != null && jncName.equals( nc.getName() ) ) {
+            result = true;
+            break;
+          }
         }
       }
     }
