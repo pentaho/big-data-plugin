@@ -6,12 +6,28 @@
             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
             http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
 
-  <bean id="jobEntryHadoopJobExecutor" class="org.pentaho.big.data.kettle.plugins.mapreduce.JobEntryHadoopJobExecutor" scope="prototype">
+  <bean id="jobEntryHadoopJobExecutor" class="org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop.JobEntryHadoopJobExecutor" scope="prototype">
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
     <argument ref="namedClusterServiceLocator"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
+  </bean>
+
+  <bean id="jobEntryHadoopTransJobExecutor" class="org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor" scope="prototype">
+    <argument ref="namedClusterService"/>
+    <argument ref="runtimeTestActionService"/>
+    <argument ref="runtimeTester"/>
+    <argument ref="namedClusterServiceLocator"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
+  </bean>
+
+  <bean id="hadoopEnterMeta" class="org.pentaho.big.data.kettle.plugins.mapreduce.step.enter.HadoopEnterMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
+
+  <bean id="hadoopExitMeta" class="org.pentaho.big.data.kettle.plugins.mapreduce.step.exit.HadoopExitMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
 
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>

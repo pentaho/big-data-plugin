@@ -15,6 +15,8 @@
   <url>http://www.pentaho.com</url>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <xstream.version>1.4.2</xstream.version>
+    <easymock.versin>3.0</easymock.versin>
   </properties>
   <dependencies>
     <dependency>
@@ -135,6 +137,12 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>${easymock.versin}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

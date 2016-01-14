@@ -64,7 +64,7 @@ public class MapReduceJobBuilderImplTest {
   private Configuration configuration;
   private FileSystem fileSystem;
   private String testJobName;
-  private String inputPath;
+  private String[] inputPaths;
   private URL resolvedJarUrl;
   private String jarUrl;
   private int numMapTasks;
@@ -122,7 +122,7 @@ public class MapReduceJobBuilderImplTest {
     userPath2 = "/user/path2";
     userPath2Path = mock( Path.class );
     when( fileSystem.asPath( fsUrl, userPath2 ) ).thenReturn( userPath2Path );
-    inputPath = userPath + "," + userPath2;
+    inputPaths = new String[] { userPath, userPath2 };
     jarUrl = "http://jar.com/myjar";
     resolvedJarUrl = new URL( "http://jar.com/myjar" );
     numMapTasks = 3;
@@ -133,10 +133,7 @@ public class MapReduceJobBuilderImplTest {
   @Test
   public void testMinimal() throws Exception {
     mapReduceJobBuilder.setHadoopJobName( testJobName );
-    mapReduceJobBuilder.setOutputKeyClass( String.class.getCanonicalName() );
-    mapReduceJobBuilder.setOutputValueClass( String.class.getCanonicalName() );
-    mapReduceJobBuilder.setInputPath( inputPath );
-    mapReduceJobBuilder.setJarUrl( jarUrl );
+    mapReduceJobBuilder.setInputPaths( inputPaths );
     mapReduceJobBuilder.setResolvedJarUrl( resolvedJarUrl );
     mapReduceJobBuilder.setNumMapTasks( numMapTasks );
     mapReduceJobBuilder.setNumReduceTasks( numReduceTasks );
@@ -144,10 +141,7 @@ public class MapReduceJobBuilderImplTest {
     assertEquals( magicSetupNumber, mapReduceJobBuilder.submit().getSetupProgress(), 0 );
 
     verify( configuration ).setJobName( testJobName );
-    verify( configuration ).setOutputKeyClass( String.class );
-    verify( configuration ).setOutputValueClass( String.class );
     verify( configuration ).setInputPaths( userPath1Path, userPath2Path );
-    verify( configuration ).setJar( jarUrl );
     verify( configuration ).setNumMapTasks( numMapTasks );
     verify( configuration ).setNumReduceTasks( numReduceTasks );
   }
@@ -162,19 +156,22 @@ public class MapReduceJobBuilderImplTest {
     mapReduceJobBuilder.setReducerClass( Set.class.getCanonicalName() );
     mapReduceJobBuilder.setInputFormatClass( Integer.class.getCanonicalName() );
     mapReduceJobBuilder.setOutputFormatClass( Float.class.getCanonicalName() );
-    mapReduceJobBuilder.setInputPath( inputPath );
+    mapReduceJobBuilder.setInputPaths( inputPaths );
     mapReduceJobBuilder.setOutputPath( userPath2 );
     mapReduceJobBuilder.setJarUrl( jarUrl );
     mapReduceJobBuilder.setResolvedJarUrl( resolvedJarUrl );
     mapReduceJobBuilder.setNumMapTasks( numMapTasks );
     mapReduceJobBuilder.setNumReduceTasks( numReduceTasks );
+    mapReduceJobBuilder.setMapOutputKeyClass( String.class.getCanonicalName() );
+    mapReduceJobBuilder.setMapOutputValueClass( Integer.class.getCanonicalName() );
+    mapReduceJobBuilder.setMapRunnerClass( Void.class.getCanonicalName() );
     String defA = "defA";
     String valA = "valA";
-    mapReduceJobBuilder.putUserDefined( defA, valA );
-    mapReduceJobBuilder.putUserDefined( null, "valB" );
-    mapReduceJobBuilder.putUserDefined( "", "valB" );
-    mapReduceJobBuilder.putUserDefined( "valC", null );
-    mapReduceJobBuilder.putUserDefined( "valB", "" );
+    mapReduceJobBuilder.set( defA, valA );
+    mapReduceJobBuilder.set( null, "valB" );
+    mapReduceJobBuilder.set( "", "valB" );
+    mapReduceJobBuilder.set( "valC", null );
+    mapReduceJobBuilder.set( "valB", "" );
 
     doAnswer( new Answer<Void>() {
       @Override public Void answer( InvocationOnMock invocation ) throws Throwable {
@@ -199,6 +196,9 @@ public class MapReduceJobBuilderImplTest {
     verify( configuration ).setJar( jarUrl );
     verify( configuration ).setNumMapTasks( numMapTasks );
     verify( configuration ).setNumReduceTasks( numReduceTasks );
+    verify( configuration ).setMapOutputKeyClass( String.class );
+    verify( configuration ).setMapOutputValueClass( Integer.class );
+    verify( configuration ).setMapRunnerClass( Void.class );
     verify( logChannelInterface ).logBasic( logMeBasic );
     verify( configuration ).set( defA, valA );
     verify( configuration, never() ).set( isNull( String.class ), anyString() );

@@ -54,6 +54,6 @@ public class MapReduceServiceFactoryImpl implements NamedClusterServiceFactory<M
   }
 
   @Override public MapReduceService create( NamedCluster namedCluster ) {
-    return new MapReduceServiceImpl( namedCluster, hadoopConfiguration.getHadoopShim(), executorService );
+    return new MapReduceServiceImpl( namedCluster, hadoopConfiguration, executorService );
   }
 }
