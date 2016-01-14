@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.impl.shim.mapreduce;
 
+import org.apache.commons.vfs2.FileObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -30,7 +31,9 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceOutputStepMetaInterface;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.plugins.PluginInterface;
@@ -43,8 +46,10 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
+import org.pentaho.hadoop.shim.api.DistributedCacheUtil;
 import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -55,22 +60,13 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by bryan on 1/12/16.
@@ -87,6 +83,8 @@ public class PentahoMapReduceJobBuilderImplTest {
   private Properties pmrProperties;
   private TransMeta transMeta;
   private PentahoMapReduceJobBuilderImpl.TransFactory transFactory;
+  private PentahoMapReduceJobBuilderImpl.PMRArchiveGetter pmrArchiveGetter;
+  private FileObject vfsPluginDirectory;
 
   @Before
   public void setup() {
@@ -100,9 +98,11 @@ public class PentahoMapReduceJobBuilderImplTest {
     pmrProperties = mock( Properties.class );
     transMeta = mock( TransMeta.class );
     transFactory = mock( PentahoMapReduceJobBuilderImpl.TransFactory.class );
+    pmrArchiveGetter = mock( PentahoMapReduceJobBuilderImpl.PMRArchiveGetter.class );
+    vfsPluginDirectory = mock( FileObject.class );
     pentahoMapReduceJobBuilder =
       new PentahoMapReduceJobBuilderImpl( namedCluster, hadoopConfiguration, logChannelInterface, variableSpace,
-        pluginInterface, pmrProperties, transFactory );
+        pluginInterface, vfsPluginDirectory, pmrProperties, transFactory, pmrArchiveGetter );
   }
 
   @Test
@@ -385,7 +385,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     TransMeta transMeta = mock( TransMeta.class );
     when( transMeta.listVariables() ).thenReturn( new String[ 0 ] );
     when( transMeta.listParameters() ).thenReturn( new String[ 0 ] );
-    assertNotNull( new PentahoMapReduceJobBuilderImpl.TransFactoryImpl().create( transMeta ) );
+    assertNotNull( new PentahoMapReduceJobBuilderImpl.TransFactory().create( transMeta ) );
   }
 
   @Test
@@ -630,14 +630,177 @@ public class PentahoMapReduceJobBuilderImplTest {
   }
 
   @Test
-  public void testSubmitEmptyInstallId() {
+  public void testSubmitEmptyInstallId() throws IOException {
     Configuration conf = mock( Configuration.class );
+    FileSystem fileSystem = mock( FileSystem.class );
+    when( hadoopShim.getFileSystem( conf ) ).thenReturn( fileSystem );
     when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
       .thenReturn( "true" );
+    String installPath = "/path" + Const.FILE_SEPARATOR;
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR ) )
+      .thenReturn( installPath );
     try {
       pentahoMapReduceJobBuilder.submit( conf );
     } catch ( IOException e ) {
       // Ignore
     }
+    verify( fileSystem ).asPath( installPath, pentahoMapReduceJobBuilder.getInstallId() );
+  }
+
+  @Test
+  public void testSubmitAlreadyInstalled() throws Exception {
+    Configuration conf = mock( Configuration.class );
+    FileSystem fileSystem = mock( FileSystem.class );
+    DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
+    Path kettleEnvInstallDir = mock( Path.class );
+    URI kettleEnvInstallDirUri = new URI( "http://testUri/path" );
+    when( kettleEnvInstallDir.toUri() ).thenReturn( kettleEnvInstallDirUri );
+
+    when( hadoopShim.getFileSystem( conf ) ).thenReturn( fileSystem );
+    when( hadoopShim.getDistributedCacheUtil() ).thenReturn( distributedCacheUtil );
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
+      .thenReturn( "true" );
+    String installPath = "/path" + Const.FILE_SEPARATOR;
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR ) )
+      .thenReturn( installPath );
+    String installId = "install_id";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID ) )
+      .thenReturn( installId );
+    when( fileSystem.asPath( installPath, installId ) ).thenReturn( kettleEnvInstallDir );
+    when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( true );
+    String mapreduceClasspath = "mapreduceClasspath";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
+
+    pentahoMapReduceJobBuilder.submit( conf );
+    verify( logChannelInterface ).logBasic( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
+      PentahoMapReduceJobBuilderImpl.JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_CONFIGURING_JOB_WITH_KETTLE_AT,
+      kettleEnvInstallDirUri.getPath() ) );
+    verify( conf ).set( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
+      PentahoMapReduceJobBuilderImpl.CLASSES + mapreduceClasspath );
+    verify( distributedCacheUtil ).configureWithKettleEnvironment( conf, fileSystem, kettleEnvInstallDir );
+  }
+
+  @Test( expected = IOException.class )
+  public void testSubmitNoPmrArchive() throws IOException, ConfigurationException, URISyntaxException {
+    Configuration conf = mock( Configuration.class );
+    FileSystem fileSystem = mock( FileSystem.class );
+    DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
+    Path kettleEnvInstallDir = mock( Path.class );
+    URI kettleEnvInstallDirUri = new URI( "http://testUri/path" );
+    when( kettleEnvInstallDir.toUri() ).thenReturn( kettleEnvInstallDirUri );
+
+    when( hadoopShim.getFileSystem( conf ) ).thenReturn( fileSystem );
+    when( hadoopShim.getDistributedCacheUtil() ).thenReturn( distributedCacheUtil );
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
+      .thenReturn( "true" );
+    String installPath = "/path" + Const.FILE_SEPARATOR;
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR ) )
+      .thenReturn( installPath );
+    String installId = "install_id";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID ) )
+      .thenReturn( installId );
+    when( fileSystem.asPath( installPath, installId ) ).thenReturn( kettleEnvInstallDir );
+    when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false );
+    String mapreduceClasspath = "mapreduceClasspath";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
+    String archiveName = "archiveName";
+    when( pmrArchiveGetter.getVfsFilename( conf ) ).thenReturn( archiveName );
+
+    try {
+      pentahoMapReduceJobBuilder.submit( conf );
+    } catch ( IOException e ) {
+      assertEquals( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
+        PentahoMapReduceJobBuilderImpl.JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_INSTALLATION_OF_KETTLE_FAILED ),
+        e.getMessage() );
+      assertEquals( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
+        PentahoMapReduceJobBuilderImpl.JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_UNABLE_TO_LOCATE_ARCHIVE, archiveName )
+        .trim(), e.getCause().getMessage().trim() );
+      throw e;
+    }
+  }
+
+  @Test( expected = IOException.class )
+  public void testSubmitInstallFail()
+    throws URISyntaxException, IOException, ConfigurationException, KettleFileException {
+    Configuration conf = mock( Configuration.class );
+    FileSystem fileSystem = mock( FileSystem.class );
+    DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
+    Path kettleEnvInstallDir = mock( Path.class );
+    URI kettleEnvInstallDirUri = new URI( "http://testUri/path" );
+    when( kettleEnvInstallDir.toUri() ).thenReturn( kettleEnvInstallDirUri );
+
+    when( hadoopShim.getFileSystem( conf ) ).thenReturn( fileSystem );
+    when( hadoopShim.getDistributedCacheUtil() ).thenReturn( distributedCacheUtil );
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
+      .thenReturn( "true" );
+    String installPath = "/path";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR ) )
+      .thenReturn( installPath );
+    installPath += Const.FILE_SEPARATOR;
+    String installId = "install_id";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID ) )
+      .thenReturn( installId );
+    when( fileSystem.asPath( installPath, installId ) ).thenReturn( kettleEnvInstallDir );
+    when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false );
+    String mapreduceClasspath = "mapreduceClasspath";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
+    when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
+
+    try {
+      pentahoMapReduceJobBuilder.submit( conf );
+    } catch ( IOException e ) {
+      assertEquals( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
+        PentahoMapReduceJobBuilderImpl.JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_INSTALLATION_OF_KETTLE_FAILED ),
+        e.getMessage() );
+      assertEquals( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
+        PentahoMapReduceJobBuilderImpl.JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_KETTLE_INSTALLATION_MISSING_FROM,
+        kettleEnvInstallDirUri.getPath() ).trim(), e.getCause().getMessage().trim() );
+      throw e;
+    }
+  }
+
+  @Test
+  public void testSubmitInstallSucceed()
+    throws Exception {
+    Configuration conf = mock( Configuration.class );
+    FileSystem fileSystem = mock( FileSystem.class );
+    DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
+    Path kettleEnvInstallDir = mock( Path.class );
+    URI kettleEnvInstallDirUri = new URI( "http://testUri/path" );
+    when( kettleEnvInstallDir.toUri() ).thenReturn( kettleEnvInstallDirUri );
+
+    when( hadoopShim.getFileSystem( conf ) ).thenReturn( fileSystem );
+    when( hadoopShim.getDistributedCacheUtil() ).thenReturn( distributedCacheUtil );
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
+      .thenReturn( "true" );
+    String installPath = "/path" + Const.FILE_SEPARATOR;
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR ) )
+      .thenReturn( installPath );
+    String installId = "install_id";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID ) )
+      .thenReturn( installId );
+    when( fileSystem.asPath( installPath, installId ) ).thenReturn( kettleEnvInstallDir );
+    when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false )
+      .thenReturn( true );
+    String mapreduceClasspath = "mapreduceClasspath";
+    when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
+    when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
+
+    pentahoMapReduceJobBuilder.submit( conf );
+
+    verify( logChannelInterface ).logBasic( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
+      PentahoMapReduceJobBuilderImpl.JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_CONFIGURING_JOB_WITH_KETTLE_AT,
+      kettleEnvInstallDirUri.getPath() ) );
+    verify( conf ).set( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
+      PentahoMapReduceJobBuilderImpl.CLASSES + mapreduceClasspath );
+    verify( distributedCacheUtil ).configureWithKettleEnvironment( conf, fileSystem, kettleEnvInstallDir );
   }
 }

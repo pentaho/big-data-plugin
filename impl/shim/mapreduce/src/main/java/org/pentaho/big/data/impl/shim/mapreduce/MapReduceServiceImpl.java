@@ -65,18 +65,24 @@ public class MapReduceServiceImpl implements MapReduceService {
   private final ExecutorService executorService;
   private final JarUtility jarUtility;
   private final PluginPropertiesUtil pluginPropertiesUtil;
+  private final PluginRegistry pluginRegistry;
 
-  public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration, ExecutorService executorService ) {
-    this( namedCluster, hadoopConfiguration, executorService, new JarUtility(), new PluginPropertiesUtil() );
+  public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration,
+                               ExecutorService executorService ) {
+    this( namedCluster, hadoopConfiguration, executorService, new JarUtility(), new PluginPropertiesUtil(),
+      PluginRegistry.getInstance() );
   }
 
-  public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration, ExecutorService executorService, JarUtility jarUtility, PluginPropertiesUtil pluginPropertiesUtil ) {
+  public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration,
+                               ExecutorService executorService, JarUtility jarUtility,
+                               PluginPropertiesUtil pluginPropertiesUtil, PluginRegistry pluginRegistry ) {
     this.namedCluster = namedCluster;
     this.hadoopConfiguration = hadoopConfiguration;
     this.hadoopShim = hadoopConfiguration.getHadoopShim();
     this.executorService = executorService;
     this.jarUtility = jarUtility;
     this.pluginPropertiesUtil = pluginPropertiesUtil;
+    this.pluginRegistry = pluginRegistry;
   }
 
   @Override
@@ -93,14 +99,16 @@ public class MapReduceServiceImpl implements MapReduceService {
   @Override public PentahoMapReduceJobBuilder createPentahoMapReduceJobBuilder( LogChannelInterface log,
                                                                                 VariableSpace variableSpace )
     throws IOException {
-    PluginInterface pluginInterface = PluginRegistry.getInstance().findPluginWithId( LifecyclePluginType.class, HadoopSpoonPlugin.PLUGIN_ID );
+    PluginInterface pluginInterface =
+      pluginRegistry.findPluginWithId( LifecyclePluginType.class, HadoopSpoonPlugin.PLUGIN_ID );
     Properties pmrProperties;
     try {
       pmrProperties = pluginPropertiesUtil.loadPluginProperties( pluginInterface );
+      return new PentahoMapReduceJobBuilderImpl( namedCluster, hadoopConfiguration, log, variableSpace, pluginInterface,
+        pmrProperties );
     } catch ( KettleFileException e ) {
       throw new IOException( e );
     }
-    return new PentahoMapReduceJobBuilderImpl( namedCluster, hadoopConfiguration, log, variableSpace, pluginInterface, pmrProperties );
   }
 
   @Override public MapReduceJarInfo getJarInfo( URL resolvedJarUrl ) throws IOException, ClassNotFoundException {
@@ -135,8 +143,7 @@ public class MapReduceServiceImpl implements MapReduceService {
     };
   }
 
-  @VisibleForTesting
-  Class<?> locateDriverClass( String driverClass, final URL resolvedJarUrl, final HadoopShim shim )
+  @VisibleForTesting Class<?> locateDriverClass( String driverClass, final URL resolvedJarUrl, final HadoopShim shim )
     throws MapReduceExecutionException {
     try {
       if ( Const.isEmpty( driverClass ) ) {
