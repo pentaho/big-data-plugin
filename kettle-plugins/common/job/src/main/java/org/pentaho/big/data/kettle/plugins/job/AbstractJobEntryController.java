@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.ui.job;
+package org.pentaho.big.data.kettle.plugins.job;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -29,17 +29,15 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.plugins.common.ui.VfsFileChooserHelper;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.AbstractJobEntry;
-import org.pentaho.di.job.BlockableJobConfig;
-import org.pentaho.di.job.JobEntryMode;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.ui.core.PropsUI;
@@ -47,7 +45,6 @@ import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
-import org.pentaho.di.ui.vfs.VfsFileChooserHelper;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
@@ -85,7 +82,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   @SuppressWarnings( "unchecked" )
   public AbstractJobEntryController( JobMeta jobMeta, XulDomContainer container, E jobEntry,
-      BindingFactory bindingFactory ) {
+                                     BindingFactory bindingFactory ) {
     super();
     this.jobMeta = jobMeta;
     this.jobEntry = jobEntry;
@@ -117,12 +114,12 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Initialize the dialog by loading model data, creating bindings and firing initial sync (
-   * {@link org.pentaho.ui.xul.binding.Binding#fireSourceChanged()}.
-   * 
-   * @throws org.pentaho.ui.xul.XulException
-   * 
-   * @throws java.lang.reflect.InvocationTargetException
-   * 
+   * {@link Binding#fireSourceChanged()}.
+   *
+   * @throws XulException
+   *
+   * @throws InvocationTargetException
+   *
    */
   public void init() throws XulException, InvocationTargetException {
     bindings = new ArrayList<Binding>();
@@ -203,7 +200,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Look up the dialog reference from the document.
-   * 
+   *
    * @return The dialog element referred to by {@link #getDialogElementId()}
    */
   protected SwtDialog getDialog() {
@@ -237,7 +234,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Show an information dialog with the title and message provided.
-   * 
+   *
    * @param title
    *          Dialog window title
    * @param message
@@ -252,7 +249,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Show an error dialog with the title and message provided.
-   * 
+   *
    * @param title
    *          Dialog window title
    * @param message
@@ -267,7 +264,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Show an error dialog with the title, message, and toggle button to see the entire stacktrace produced by {@code t}.
-   * 
+   *
    * @param title
    *          Dialog window title
    * @param message
@@ -288,7 +285,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
 
   /**
    * Browse for a file or directory with the VFS Browser.
-   * 
+   *
    * @param root
    *          Root object
    * @param initial
@@ -301,7 +298,7 @@ public abstract class AbstractJobEntryController<C extends BlockableJobConfig, E
    * @param defaultScheme
    *          Scheme to select by default in the selection dropdown
    * @return The selected file object, {@code null} if no object is selected
-   * @throws org.pentaho.di.core.exception.KettleFileException
+   * @throws KettleFileException
    *           Error accessing the root file using the initial file, when {@code root} is not provided
    */
   protected FileObject browseVfs( FileObject root, FileObject initial, int dialogMode, String schemeRestriction,
