@@ -16,6 +16,7 @@
     <module>hdfs</module>
     <module>mapreduce</module>
     <module>pig</module>
+    <module>oozie</module>
     <module>shimTests</module>
   </modules>
 </project>

@@ -16,5 +16,6 @@
     <module>mapreduce</module>
     <module>pig</module>
     <module>guiTestActionHandlers</module>
+    <module>oozie</module>
   </modules>
 </project>
