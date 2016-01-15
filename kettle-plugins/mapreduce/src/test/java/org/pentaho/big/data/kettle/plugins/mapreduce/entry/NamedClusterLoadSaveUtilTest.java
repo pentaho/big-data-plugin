@@ -45,10 +45,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.never;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.any;
 /**
  * Created by bryan on 1/13/16.
  */
@@ -144,8 +147,8 @@ public class NamedClusterLoadSaveUtilTest {
   }
 
   @Test
-  public void testLoadClusterConfigNotFoundRepo()
-    throws ParserConfigurationException, IOException, SAXException, MetaStoreException, KettleException {
+  public void testLoadClusterConfigNotFoundRepo() throws ParserConfigurationException, IOException, SAXException,
+    MetaStoreException, KettleException {
     String testName = "testName";
     String testHost = "testHost";
     String hdfsPort = "8080";
@@ -153,21 +156,46 @@ public class NamedClusterLoadSaveUtilTest {
     String jobTrackerPort = "8081";
     when( namedClusterService.contains( testName, metaStore ) ).thenReturn( false );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
-    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.CLUSTER_NAME ) )
-      .thenReturn( testName );
-    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.HDFS_HOSTNAME ) )
-      .thenReturn( testHost );
-    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.HDFS_PORT ) )
-      .thenReturn( hdfsPort );
+    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.CLUSTER_NAME ) ).thenReturn(
+        testName );
+    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.HDFS_HOSTNAME ) ).thenReturn(
+        testHost );
+    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.HDFS_PORT ) ).thenReturn(
+        hdfsPort );
     when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.JOB_TRACKER_HOSTNAME ) )
-      .thenReturn( jobTrackerHost );
-    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.JOB_TRACKER_PORT ) )
-      .thenReturn( jobTrackerPort );
-    assertEquals( namedCluster, namedClusterLoadSaveUtil
-      .loadClusterConfig( namedClusterService, objectId, repository, metaStore, null, logChannelInterface ) );
+        .thenReturn( jobTrackerHost );
+    when( repository.getJobEntryAttributeString( objectId, JobEntryHadoopJobExecutor.JOB_TRACKER_PORT ) ).thenReturn(
+        jobTrackerPort );
+    assertEquals( namedCluster, namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, objectId, repository,
+        metaStore, null, logChannelInterface ) );
     verify( namedCluster ).setHdfsHost( testHost );
     verify( namedCluster ).setHdfsPort( hdfsPort );
     verify( namedCluster ).setJobTrackerHost( jobTrackerHost );
     verify( namedCluster ).setJobTrackerPort( jobTrackerPort );
   }
+
+  @Test
+  public void testGetXmlNamedCluster_NoNPEWhenNCIsNull() {
+    StringBuilder ncString = new StringBuilder();
+    try {
+      namedClusterLoadSaveUtil.getXmlNamedCluster( null, namedClusterService, null, logChannelInterface, ncString );
+      assertEquals( "It should not be added any NamedCluster info but it was:" + ncString.toString(), 0, ncString
+          .length() );
+    } catch ( NullPointerException ex ) {
+      fail( "NPE occured but should not: " + ex );
+    }
+  }
+
+  @Test
+  public void testSaveNamedClusterRep_NoNPEWhenNCIsNull() throws KettleException {
+    try {
+      namedClusterLoadSaveUtil.saveNamedClusterRep( null, namedClusterService, repository, metaStore, objectId,
+          objectId, logChannelInterface );
+      verify( repository, never() ).saveJobEntryAttribute( any( ObjectId.class ), any( ObjectId.class ), anyString(),
+          anyString() );
+    } catch ( NullPointerException ex ) {
+      fail( "NPE occured but should not: " + ex );
+    }
+  }
+
 }
