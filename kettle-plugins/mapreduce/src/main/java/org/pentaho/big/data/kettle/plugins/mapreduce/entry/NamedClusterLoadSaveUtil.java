@@ -46,52 +46,54 @@ public class NamedClusterLoadSaveUtil {
   public static final String JOB_TRACKER_PORT = "job_tracker_port";
 
   public void saveNamedClusterRep( NamedCluster namedCluster, NamedClusterService namedClusterService, Repository rep,
-                                   IMetaStore metaStore, ObjectId id_job, ObjectId objectId,
-                                   LogChannelInterface logChannelInterface )
-    throws KettleException {
-    String namedClusterName = namedCluster.getName();
-    if ( !Const.isEmpty( namedClusterName ) ) {
-      rep.saveJobEntryAttribute( id_job, objectId, CLUSTER_NAME, namedClusterName ); //$NON-NLS-1$
-    }
-    try {
-      if ( !StringUtils.isEmpty( namedClusterName )
-        && namedClusterService.contains( namedClusterName, metaStore ) ) {
-        // pull config from NamedCluster
-        namedCluster = namedClusterService.read( namedClusterName, metaStore );
+      IMetaStore metaStore, ObjectId id_job, ObjectId objectId, LogChannelInterface logChannelInterface )
+        throws KettleException {
+    if ( namedCluster != null ) {
+      String namedClusterName = namedCluster.getName();
+      if ( !Const.isEmpty( namedClusterName ) ) {
+        rep.saveJobEntryAttribute( id_job, objectId, CLUSTER_NAME, namedClusterName ); // $NON-NLS-1$
       }
-    } catch ( MetaStoreException e ) {
-      logChannelInterface.logDebug( e.getMessage(), e );
+      try {
+        if ( !StringUtils.isEmpty( namedClusterName ) && namedClusterService.contains( namedClusterName, metaStore ) ) {
+          // pull config from NamedCluster
+          namedCluster = namedClusterService.read( namedClusterName, metaStore );
+        }
+      } catch ( MetaStoreException e ) {
+        logChannelInterface.logDebug( e.getMessage(), e );
+      }
+      rep.saveJobEntryAttribute( id_job, objectId, HDFS_HOSTNAME, namedCluster.getHdfsHost() ); // $NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, objectId, HDFS_PORT, namedCluster.getHdfsPort() ); // $NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, objectId, JOB_TRACKER_HOSTNAME, namedCluster.getJobTrackerHost() ); // $NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, objectId, JOB_TRACKER_PORT, namedCluster.getJobTrackerPort() ); // $NON-NLS-1$
     }
-    rep.saveJobEntryAttribute( id_job, objectId, HDFS_HOSTNAME, namedCluster.getHdfsHost() ); //$NON-NLS-1$
-    rep.saveJobEntryAttribute( id_job, objectId, HDFS_PORT, namedCluster.getHdfsPort() ); //$NON-NLS-1$
-    rep.saveJobEntryAttribute( id_job, objectId, JOB_TRACKER_HOSTNAME, namedCluster.getJobTrackerHost() ); //$NON-NLS-1$
-    rep.saveJobEntryAttribute( id_job, objectId, JOB_TRACKER_PORT, namedCluster.getJobTrackerPort() ); //$NON-NLS-1$
   }
 
   public void getXmlNamedCluster( NamedCluster namedCluster, NamedClusterService namedClusterService, Repository rep,
-                                  LogChannelInterface logChannelInterface, StringBuilder retval ) {
-    String namedClusterName = namedCluster.getName();
-    if ( !Const.isEmpty( namedClusterName ) ) {
-      retval.append( "      " )
-        .append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-    try {
-      if ( rep != null && !StringUtils.isEmpty( namedClusterName )
-        && namedClusterService.contains( namedClusterName, rep.getMetaStore() ) ) {
-        // pull config from NamedCluster
-        namedCluster = namedClusterService.read( namedClusterName, rep.getMetaStore() );
+      LogChannelInterface logChannelInterface, StringBuilder retval ) {
+    if ( namedCluster != null ) {
+      String namedClusterName = namedCluster.getName();
+      if ( !Const.isEmpty( namedClusterName ) ) {
+        retval.append( "      " ).append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); // $NON-NLS-1$
+                                                                                                      // //$NON-NLS-2$
       }
-    } catch ( MetaStoreException e ) {
-      logChannelInterface.logDebug( e.getMessage(), e );
+      try {
+        if ( rep != null && !StringUtils.isEmpty( namedClusterName ) && namedClusterService.contains( namedClusterName,
+            rep.getMetaStore() ) ) {
+          // pull config from NamedCluster
+          namedCluster = namedClusterService.read( namedClusterName, rep.getMetaStore() );
+        }
+      } catch ( MetaStoreException e ) {
+        logChannelInterface.logDebug( e.getMessage(), e );
+      }
+      retval.append( "      " ).append( XMLHandler.addTagValue( HDFS_HOSTNAME, namedCluster.getHdfsHost() ) ); // $NON-NLS-1$
+                                                                                                               // //$NON-NLS-2$
+      retval.append( "      " ).append( XMLHandler.addTagValue( HDFS_PORT, namedCluster.getHdfsPort() ) ); // $NON-NLS-1$
+                                                                                                           // //$NON-NLS-2$
+      retval.append( "      " ).append( XMLHandler.addTagValue( JOB_TRACKER_HOSTNAME, namedCluster
+          .getJobTrackerHost() ) ); // $NON-NLS-1$ //$NON-NLS-2$
+      retval.append( "      " ).append( XMLHandler.addTagValue( JOB_TRACKER_PORT, namedCluster.getJobTrackerPort() ) ); // $NON-NLS-1$
+                                                                                                                        // //$NON-NLS-2$
     }
-    retval.append( "      " )
-      .append( XMLHandler.addTagValue( HDFS_HOSTNAME, namedCluster.getHdfsHost() ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    retval.append( "      " )
-      .append( XMLHandler.addTagValue( HDFS_PORT, namedCluster.getHdfsPort() ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    retval.append( "      " ).append(
-      XMLHandler.addTagValue( JOB_TRACKER_HOSTNAME, namedCluster.getJobTrackerHost() ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    retval.append( "      " ).append(
-      XMLHandler.addTagValue( JOB_TRACKER_PORT, namedCluster.getJobTrackerPort() ) ); //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   public NamedCluster loadClusterConfig( NamedClusterService namedClusterService, ObjectId id_jobentry, Repository rep,
