@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>pentaho</groupId>
-        <artifactId>pentaho-big-data-api</artifactId>
+        <artifactId>pentaho-big-data-impl-shim</artifactId>
         <version>6.1-SNAPSHOT</version>
     </parent>
     <artifactId>pentaho-big-data-impl-shim-oozie</artifactId>
