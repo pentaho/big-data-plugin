@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -1006,7 +1006,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "output_format_class", outputFormatClass ) ); //$NON-NLS-1$ //$NON-NLS-2$
 
-    namedClusterLoadSaveUtil.getXmlNamedCluster( namedCluster, namedClusterService, rep, log, retval );
+    namedClusterLoadSaveUtil.getXmlNamedCluster( namedCluster, namedClusterService, metaStore, log, retval );
 
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "num_map_tasks", numMapTasks ) ); //$NON-NLS-1$ //$NON-NLS-2$

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -40,9 +40,8 @@ public class HadoopExit extends BaseStep implements StepInterface {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
-  public boolean runtimeInit() throws KettleException {
+  public void runtimeInit() throws KettleException {
     data.init( getInputRowMeta(), meta, this );
-    return true;
   }
 
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
@@ -57,9 +56,7 @@ public class HadoopExit extends BaseStep implements StepInterface {
     }
 
     if ( first ) {
-      if ( !runtimeInit() ) {
-        return false;
-      }
+      runtimeInit();
       first = false;
     }
 

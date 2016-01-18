@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,8 +34,8 @@ public class HadoopExitData extends BaseStepData implements StepDataInterface {
   private int inKeyOrdinal = -1;
   private int inValueOrdinal = -1;
 
-  private static final int outKeyOrdinal = 0;
-  private static final int outValueOrdinal = 1;
+  public static final int outKeyOrdinal = 0;
+  public static final int outValueOrdinal = 1;
 
   public HadoopExitData() {
     super();

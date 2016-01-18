@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -39,19 +39,14 @@ public class HadoopEnterMeta extends InjectorMeta {
   public static final String VALUE_FIELDNAME = "value";
 
   public HadoopEnterMeta() throws Throwable {
-    super();
-
-    allocate( 2 );
-
-    ( getFieldname() )[0] = HadoopEnterMeta.KEY_FIELDNAME;
-    ( getFieldname() )[1] = HadoopEnterMeta.VALUE_FIELDNAME;
+    setDefault();
   }
 
-  public void setDefault() {
+  @Override public void setDefault() {
     allocate( 2 );
 
-    ( getFieldname() )[0] = HadoopEnterMeta.KEY_FIELDNAME;
-    ( getFieldname() )[1] = HadoopEnterMeta.VALUE_FIELDNAME;
+    getFieldname()[ 0 ] = HadoopEnterMeta.KEY_FIELDNAME;
+    getFieldname()[ 1 ] = HadoopEnterMeta.VALUE_FIELDNAME;
   }
 
   @Override public String getDialogClassName() {
