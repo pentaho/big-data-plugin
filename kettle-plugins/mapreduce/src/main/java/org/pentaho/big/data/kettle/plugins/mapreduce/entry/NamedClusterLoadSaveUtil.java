@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -68,7 +68,7 @@ public class NamedClusterLoadSaveUtil {
     }
   }
 
-  public void getXmlNamedCluster( NamedCluster namedCluster, NamedClusterService namedClusterService, Repository rep,
+  public void getXmlNamedCluster( NamedCluster namedCluster, NamedClusterService namedClusterService, IMetaStore metaStore,
       LogChannelInterface logChannelInterface, StringBuilder retval ) {
     if ( namedCluster != null ) {
       String namedClusterName = namedCluster.getName();
@@ -77,10 +77,10 @@ public class NamedClusterLoadSaveUtil {
                                                                                                       // //$NON-NLS-2$
       }
       try {
-        if ( rep != null && !StringUtils.isEmpty( namedClusterName ) && namedClusterService.contains( namedClusterName,
-            rep.getMetaStore() ) ) {
+        if ( metaStore != null && !StringUtils.isEmpty( namedClusterName ) && namedClusterService
+          .contains( namedClusterName, metaStore ) ) {
           // pull config from NamedCluster
-          namedCluster = namedClusterService.read( namedClusterName, rep.getMetaStore() );
+          namedCluster = namedClusterService.read( namedClusterName, metaStore );
         }
       } catch ( MetaStoreException e ) {
         logChannelInterface.logDebug( e.getMessage(), e );

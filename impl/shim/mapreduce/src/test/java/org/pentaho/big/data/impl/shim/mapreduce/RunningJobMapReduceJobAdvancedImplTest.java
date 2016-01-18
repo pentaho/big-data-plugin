@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -60,24 +60,24 @@ public class RunningJobMapReduceJobAdvancedImplTest {
     verify( runningJob ).killJob();
   }
 
-  @Test( timeout = 100 )
+  @Test( timeout = 500 )
   public void testWaitOnConCompletionStopped() throws IOException, InterruptedException {
     when( stoppable.isStopped() ).thenReturn( true );
     assertFalse( runningJobMapReduceJobAdvanced.waitOnCompletion( 10, TimeUnit.MINUTES, stoppable ) );
   }
 
-  @Test( timeout = 100 )
+  @Test( timeout = 500 )
   public void testWaitOnCompletionFalse() throws IOException, InterruptedException {
     assertFalse( runningJobMapReduceJobAdvanced.waitOnCompletion( 10, TimeUnit.MILLISECONDS, stoppable ) );
   }
 
-  @Test( timeout = 100 )
+  @Test( timeout = 500 )
   public void testWaitOnCompletionCompleteBeforeSleep() throws IOException, InterruptedException {
     when( runningJob.isComplete() ).thenReturn( true );
     assertTrue( runningJobMapReduceJobAdvanced.waitOnCompletion( 10, TimeUnit.MILLISECONDS, stoppable ) );
   }
 
-  @Test( timeout = 100 )
+  @Test( timeout = 500 )
   public void testWaitOnCompletionCompleteAfterSleep() throws IOException, InterruptedException {
     when( runningJob.isComplete() ).thenReturn( false, true );
     assertTrue( runningJobMapReduceJobAdvanced.waitOnCompletion( 10, TimeUnit.MILLISECONDS, stoppable ) );
