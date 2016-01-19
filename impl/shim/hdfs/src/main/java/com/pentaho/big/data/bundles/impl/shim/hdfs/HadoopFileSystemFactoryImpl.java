@@ -59,8 +59,8 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
   }
 
   @Override public HadoopFileSystem create( NamedCluster namedCluster ) throws IOException {
-    HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
-    Configuration configuration = hadoopShim.createConfiguration();
+    final HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
+    final Configuration configuration = hadoopShim.createConfiguration();
     String fsDefault;
     //TODO: AUTH
     if ( namedCluster.isMapr() ) {
@@ -83,6 +83,16 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
     if ( fileSystem instanceof LocalFileSystem ) {
       throw new IOException( "Got a local filesystem, was expecting an hdfs connection" );
     }
-    return new HadoopFileSystemImpl( fileSystem );
+
+    return new HadoopFileSystemImpl( new HadoopFileSystemCallable() {
+      @Override
+      public FileSystem getFileSystem() {
+        try {
+          return (FileSystem) hadoopShim.getFileSystem( configuration ).getDelegate();
+        } catch ( IOException e ) {
+          return null;
+        }
+      }
+    } );
   }
 }

@@ -40,17 +40,17 @@ import java.io.OutputStream;
  * Created by bryan on 5/28/15.
  */
 public class HadoopFileSystemImpl implements HadoopFileSystem {
-  private final FileSystem fileSystem;
+  private HadoopFileSystemCallable hadoopFileSystemCallable;
 
-  public HadoopFileSystemImpl( FileSystem fileSystem ) {
-    this.fileSystem = fileSystem;
+  public HadoopFileSystemImpl( HadoopFileSystemCallable hadoopFileSystemCallable ) {
+    this.hadoopFileSystemCallable = hadoopFileSystemCallable;
   }
 
   @Override
   public OutputStream append( final HadoopFileSystemPath path ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<OutputStream>() {
       @Override public OutputStream call() throws IOException {
-        return fileSystem.append( new Path( path.getPath() ) );
+        return getFileSystem().append( new Path( path.getPath() ) );
       }
     } );
   }
@@ -59,7 +59,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public OutputStream create( final HadoopFileSystemPath path ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<OutputStream>() {
       @Override public OutputStream call() throws IOException {
-        return fileSystem.create( new Path( path.getPath() ) );
+        return getFileSystem().create( new Path( path.getPath() ) );
       }
     } );
   }
@@ -68,7 +68,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public boolean delete( final HadoopFileSystemPath path, final boolean arg1 ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<Boolean>() {
       @Override public Boolean call() throws IOException {
-        return fileSystem.delete( new Path( path.getPath() ), arg1 );
+        return getFileSystem().delete( new Path( path.getPath() ), arg1 );
       }
     } );
   }
@@ -77,7 +77,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public HadoopFileStatus getFileStatus( final HadoopFileSystemPath path ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<HadoopFileStatus>() {
       @Override public HadoopFileStatus call() throws IOException {
-        return new HadoopFileStatusImpl( fileSystem.getFileStatus( new Path( path.getPath() ) ) );
+        return new HadoopFileStatusImpl( getFileSystem().getFileStatus( new Path( path.getPath() ) ) );
       }
     } );
   }
@@ -86,7 +86,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public boolean mkdirs( final HadoopFileSystemPath path ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<Boolean>() {
       @Override public Boolean call() throws IOException {
-        return fileSystem.mkdirs( new Path( path.getPath() ) );
+        return getFileSystem().mkdirs( new Path( path.getPath() ) );
       }
     } );
   }
@@ -95,7 +95,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public InputStream open( final HadoopFileSystemPath path ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<InputStream>() {
       @Override public InputStream call() throws IOException {
-        return fileSystem.open( new Path( path.getPath() ) );
+        return getFileSystem().open( new Path( path.getPath() ) );
       }
     } );
   }
@@ -104,7 +104,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public boolean rename( final HadoopFileSystemPath path, final HadoopFileSystemPath path2 ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<Boolean>() {
       @Override public Boolean call() throws IOException {
-        return fileSystem.rename( new Path( path.getPath() ), new Path( path2.getPath() ) );
+        return getFileSystem().rename( new Path( path.getPath() ), new Path( path2.getPath() ) );
       }
     } );
   }
@@ -113,7 +113,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public void setTimes( final HadoopFileSystemPath path, final long mtime, final long atime ) throws IOException {
     callAndWrapExceptions( new IOExceptionCallable<Void>() {
       @Override public Void call() throws IOException {
-        fileSystem.setTimes( new Path( path.getPath() ), mtime, atime );
+        getFileSystem().setTimes( new Path( path.getPath() ), mtime, atime );
         return null;
       }
     } );
@@ -123,7 +123,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   public HadoopFileStatus[] listStatus( final HadoopFileSystemPath path ) throws IOException {
     FileStatus[] fileStatuses = callAndWrapExceptions( new IOExceptionCallable<FileStatus[]>() {
       @Override public FileStatus[] call() throws IOException {
-        return fileSystem.listStatus( new Path( path.getPath() ) );
+        return getFileSystem().listStatus( new Path( path.getPath() ) );
       }
     } );
     if ( fileStatuses == null ) {
@@ -142,11 +142,11 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   }
 
   @Override public HadoopFileSystemPath getHomeDirectory() {
-    return new HadoopFileSystemPathImpl( fileSystem.getHomeDirectory() );
+    return new HadoopFileSystemPathImpl( getFileSystem().getHomeDirectory() );
   }
 
   @Override public HadoopFileSystemPath makeQualified( HadoopFileSystemPath hadoopFileSystemPath ) {
-    return new HadoopFileSystemPathImpl( fileSystem
+    return new HadoopFileSystemPathImpl( getFileSystem()
       .makeQualified( HadoopFileSystemPathImpl.toHadoopFileSystemPathImpl( hadoopFileSystemPath ).getRawPath() ) );
   }
 
@@ -165,7 +165,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
     }
     callAndWrapExceptions( new IOExceptionCallable<Void>() {
       @Override public Void call() throws IOException {
-        fileSystem.setPermission(
+        getFileSystem().setPermission(
           HadoopFileSystemPathImpl.toHadoopFileSystemPathImpl( hadoopFileSystemPath ).getRawPath(),
           new FsPermission( FsAction.values()[ owner ], FsAction.values()[ group ], FsAction.values()[ other ] ) );
         return null;
@@ -176,7 +176,7 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
   @Override public boolean exists( final HadoopFileSystemPath path ) throws IOException {
     return callAndWrapExceptions( new IOExceptionCallable<Boolean>() {
       @Override public Boolean call() throws IOException {
-        return fileSystem.exists( HadoopFileSystemPathImpl.toHadoopFileSystemPathImpl( path ).getRawPath() );
+        return getFileSystem().exists( HadoopFileSystemPathImpl.toHadoopFileSystemPathImpl( path ).getRawPath() );
       }
     } );
   }
@@ -185,22 +185,22 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
     return callAndWrapExceptions( new IOExceptionCallable<HadoopFileSystemPath>() {
       @Override public HadoopFileSystemPath call() throws IOException {
         return new HadoopFileSystemPathImpl(
-          fileSystem.getFileStatus( HadoopFileSystemPathImpl.toHadoopFileSystemPathImpl( path ).getRawPath() )
+          getFileSystem().getFileStatus( HadoopFileSystemPathImpl.toHadoopFileSystemPathImpl( path ).getRawPath() )
             .getPath() );
       }
     } );
   }
 
   @Override public String getFsDefaultName() {
-    return fileSystem.getConf().get( "fs.defaultFS", fileSystem.getConf().get( "fs.default.name" ) );
+    return getFileSystem().getConf().get( "fs.defaultFS", getFileSystem().getConf().get( "fs.default.name" ) );
   }
 
   @Override public void setProperty( String name, String value ) {
-    fileSystem.getConf().set( name, value );
+    getFileSystem().getConf().set( name, value );
   }
 
   @Override public String getProperty( String name, String defaultValue ) {
-    return fileSystem.getConf().get( name, defaultValue );
+    return getFileSystem().getConf().get( name, defaultValue );
   }
 
   private <T> T callAndWrapExceptions( IOExceptionCallable<T> ioExceptionCallable ) throws IOException {
@@ -213,5 +213,9 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
 
   private interface IOExceptionCallable<T> {
     T call() throws IOException;
+  }
+
+  private FileSystem getFileSystem() {
+    return hadoopFileSystemCallable.getFileSystem();
   }
 }
