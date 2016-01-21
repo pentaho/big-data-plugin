@@ -841,6 +841,11 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
+      <artifactId>pentaho-xul-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
       <artifactId>salesforce-partner</artifactId>
       <version>24.0</version>
     </dependency>
