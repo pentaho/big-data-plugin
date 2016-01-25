@@ -23,12 +23,17 @@
 package org.pentaho.di.job.entries.sqoop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +73,7 @@ public class AbstractSqoopJobEntryTest {
 
     /**
      * Create a {@link SqoopImportJobEntry} that will simply wait for {@code waitTime} instead of executing Sqoop.
-     * 
+     *
      * @param waitTime
      *          Time in milliseconds to block during
      *          {@link AbstractSqoopJobEntry#executeSqoop(SqoopConfig, org.apache.hadoop.conf.Configuration, org.pentaho.di.core.Result)}
@@ -372,4 +377,70 @@ public class AbstractSqoopJobEntryTest {
 
     assertEquals( "if rep is set the NC from the rep should be returned", NAME, res.getName() );
   }
+
+  @Test
+  public void testGetUsedDatabaseConnections() throws Exception {
+    AbstractSqoopJobEntry<SqoopConfig> jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface );
+    DatabaseMeta expectedDbMeta = mock( DatabaseMeta.class );
+    jobEntry.setUsedDbConnection( expectedDbMeta );
+
+    DatabaseMeta[] usedDatabaseConnections = jobEntry.getUsedDatabaseConnections();
+    assertNotNull( usedDatabaseConnections );
+    assertEquals( 1, usedDatabaseConnections.length );
+    assertSame( expectedDbMeta, usedDatabaseConnections[0] );
+  }
+
+  @Test
+  public void testGetUsedDatabaseConnection() throws Exception {
+    AbstractSqoopJobEntry<SqoopConfig> jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface );
+    DatabaseMeta expectedDbMeta = mock( DatabaseMeta.class );
+    jobEntry.setUsedDbConnection( expectedDbMeta );
+    DatabaseMeta usedDatabaseConnection = jobEntry.getUsedDbConnection();
+    assertNotNull( usedDatabaseConnection );
+    assertSame( expectedDbMeta, usedDatabaseConnection );
+  }
+
+  @Test
+  public void testLoadUsedDataBaseConnection() throws Exception {
+    int expectedIndx = 1;
+    String[] dbNames = new String[] { "TestDb1", "TestDb2", "TestDb3" };
+    List<DatabaseMeta> dbMetas = getDbMetas( dbNames );
+    AbstractSqoopJobEntry<SqoopConfig> jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface );
+    SqoopConfig cfgMock = mock( SqoopConfig.class );
+    when( cfgMock.getDatabase() ).thenReturn( dbNames[expectedIndx] );
+
+    assertNull( jobEntry.getUsedDbConnection() );
+    jobEntry.loadUsedDataBaseConnection( dbMetas, cfgMock );
+    assertNotNull( jobEntry.getUsedDbConnection() );
+    assertSame( dbMetas.get( expectedIndx ), jobEntry.getUsedDbConnection() );
+    assertEquals( dbMetas.get( expectedIndx ).getName(), jobEntry.getUsedDbConnection().getName() );
+    verify( cfgMock, never() ).copyConnectionInfoToAdvanced();
+  }
+
+  @Test
+  public void testLoadUsedDataBaseConnection_NoDatabaseIsSet() throws Exception {
+    String dbMeta = null;
+    String[] dbNames = new String[] { "TestDb1", "TestDb2", "TestDb3" };
+    List<DatabaseMeta> dbMetas = getDbMetas( dbNames );
+    AbstractSqoopJobEntry<SqoopConfig> jobEntry = new TestSqoopJobEntry( 10, mockLogChannelInterface );
+    SqoopConfig cfgMock = mock( SqoopConfig.class );
+    when( cfgMock.getDatabase() ).thenReturn( dbMeta );
+
+    assertNull( jobEntry.getUsedDbConnection() );
+    jobEntry.loadUsedDataBaseConnection( dbMetas, cfgMock );
+    assertNull( jobEntry.getUsedDbConnection() );
+    verify( cfgMock ).copyConnectionInfoToAdvanced();
+  }
+
+  private List<DatabaseMeta> getDbMetas( String[] dbNames ) {
+    List<DatabaseMeta> databases = new ArrayList<DatabaseMeta>( dbNames.length );
+    for ( int i = 0; i < dbNames.length; i++ ) {
+      databases.add( mock( DatabaseMeta.class ) );
+      when( databases.get( i ).getName() ).thenReturn( dbNames[i] );
+    }
+    return databases;
+  }
+
+
+
 }
