@@ -119,7 +119,7 @@ public class NamedClusterDialogImpl extends Dialog {
   public String open() {
     Shell parent = getParent();
     Display display = parent.getDisplay();
-    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.CLOSE | SWT.MAX | SWT.MIN | SWT.ICON );
+    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.CLOSE | SWT.ICON );
     props.setLook( shell );
     shell.setImage( GUIResource.getInstance().getImageSpoon() );
 
@@ -144,8 +144,7 @@ public class NamedClusterDialogImpl extends Dialog {
     fd.right = new FormAttachment( 100, 0 );
     namedClusterComposite.setLayoutData( fd );
 
-    shell.setSize( 431, 630 );
-    shell.setMinimumSize( 431, 630 );
+    shell.setSize( 450, 660 );
 
     // Buttons
     Button wTest = new Button( shell, SWT.PUSH );
