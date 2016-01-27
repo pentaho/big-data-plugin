@@ -58,11 +58,15 @@ import org.pentaho.hadoop.shim.spi.SqoopShim;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.w3c.dom.Node;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Base class for all Sqoop job entries.
  */
 public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends AbstractJobEntry<S> implements Cloneable,
     JobEntryInterface {
+
+  private DatabaseMeta usedDbConnection;
 
   /**
    * Log4j appender that redirects all Log4j logging to a Kettle {@link org.pentaho.di.core.logging.LogChannel}
@@ -87,14 +91,14 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Build a configuration object that contains all configuration settings for this job entry. This will be configured
    * by {@link #createJobConfig} and is not intended to be used directly.
-   * 
+   *
    * @return a {@link SqoopConfig} object that contains all configuration settings for this job entry
    */
   protected abstract S buildSqoopConfig();
 
   /**
    * Declare the {@link Sqoop} tool used in this job entry.
-   * 
+   *
    * @return the name of the sqoop tool to use, e.g. "import"
    */
   protected abstract String getToolName();
@@ -130,19 +134,24 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public void loadXML( Node node, List<DatabaseMeta> databaseMetas, List<SlaveServer> slaveServers,
       Repository repository ) throws KettleXMLException {
     super.loadXML( node, databaseMetas, slaveServers, repository );
-    // sync up the advanced configuration if no database type is set
-    if ( getJobConfig().getDatabase() == null ) {
-      getJobConfig().copyConnectionInfoToAdvanced();
-    }
+    loadUsedDataBaseConnection( databaseMetas, getJobConfig() );
   }
 
   @Override
   public void loadRep( Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases,
       List<SlaveServer> slaveServers ) throws KettleException {
     super.loadRep( rep, id_jobentry, databases, slaveServers );
-    // sync up the advanced configuration if no database type is set
-    if ( getJobConfig().getDatabase() == null ) {
-      getJobConfig().copyConnectionInfoToAdvanced();
+    loadUsedDataBaseConnection( databases, getJobConfig() );
+  }
+
+  @VisibleForTesting
+  void loadUsedDataBaseConnection( List<DatabaseMeta> databases, S config ) {
+    String database = config.getDatabase();
+    DatabaseMeta databaseMeta = DatabaseMeta.findDatabase( databases, database );
+    setUsedDbConnection( databaseMeta );
+    if ( database == null ) {
+      // sync up the advanced configuration if no database type is set
+      config.copyConnectionInfoToAdvanced();
     }
   }
 
@@ -195,7 +204,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
   /**
    * Validate any configuration option we use directly that could be invalid at runtime.
-   * 
+   *
    * @param config
    *          Configuration to validate
    * @return List of warning messages for any invalid configuration options we use directly in this job entry.
@@ -221,7 +230,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
   /**
    * Handle any clean up required when our execution thread encounters an unexpected {@link Exception}.
-   * 
+   *
    * @param t
    *          Thread that encountered the uncaught exception
    * @param e
@@ -267,7 +276,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Executes Sqoop using the provided configuration objects. The {@code jobResult} will accurately reflect the
    * completed execution state when finished.
-   * 
+   *
    * @param hadoopShim
    *          Hadoop Shim to use
    * @param sqoopShim
@@ -304,7 +313,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
   /**
    * Configure the Hadoop environment
-   * 
+   *
    * @param shim
    *          Hadoop Shim
    * @param sqoopConfig
@@ -312,7 +321,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
    * @param conf
    *          Hadoop configuration
    * @throws org.pentaho.di.core.exception.KettleException
-   * 
+   *
    */
   public void configure( HadoopShim shim, S sqoopConfig, Configuration conf ) throws KettleException {
     configureDatabase( sqoopConfig );
@@ -374,7 +383,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
   /**
    * Determine if a database type is supported.
-   * 
+   *
    * @param databaseType
    *          Database type to check for compatibility
    * @return {@code true} if this database is supported for this tool
@@ -382,6 +391,19 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   public boolean isDatabaseSupported( Class<? extends DatabaseInterface> databaseType ) {
     // For now all database types are supported
     return true;
+  }
+
+  @Override
+  public DatabaseMeta[] getUsedDatabaseConnections() {
+    return new DatabaseMeta[] { usedDbConnection, };
+  }
+
+  public DatabaseMeta getUsedDbConnection() {
+    return usedDbConnection;
+  }
+
+  public void setUsedDbConnection( DatabaseMeta usedDbConnection ) {
+    this.usedDbConnection = usedDbConnection;
   }
 
   NamedCluster loadNamedCluster( S config ) {

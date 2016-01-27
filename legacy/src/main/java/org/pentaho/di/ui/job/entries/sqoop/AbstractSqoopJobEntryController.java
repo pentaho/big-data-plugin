@@ -70,7 +70,7 @@ import static org.pentaho.di.job.entries.sqoop.SqoopConfig.TABLE;
 /**
  * Base functionality to support a Sqoop job entry controller that provides most of the common functionality to back a
  * XUL-based dialog.
- * 
+ *
  * @param <S>
  *          Type of Sqoop configuration object this controller depends upon. Must match the configuration object the job
  *          entry expects.
@@ -135,7 +135,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Creates a new Sqoop job entry controller.
-   * 
+   *
    * @param jobMeta
    *          Meta data for the job
    * @param container
@@ -177,7 +177,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Create the necessary XUL {@link Binding}s to support the dialog's desired functionality.
-   * 
+   *
    * @param config
    *          Configuration object to bind to
    * @param container
@@ -442,7 +442,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   /**
    * Creates a {@link DatabaseItem} based on the name of a database and the existence of a connection string in the
    * configuration.
-   * 
+   *
    * @param database
    *          Name of database
    * @return A database item whose name is {@code database}. If {@code database} is null, {@link #NO_DATABASE} is
@@ -457,7 +457,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   /**
    * Sets the selected database connection. This database will be verified to exist and the appropriate settings within
    * the model will be set.
-   * 
+   *
    * @param selectedDatabaseConnection
    *          Database item to select
    */
@@ -467,6 +467,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       DatabaseMeta databaseMeta =
           this.selectedDatabaseConnection == null ? null : jobMeta.findDatabase( this.selectedDatabaseConnection
               .getName() );
+      jobEntry.setUsedDbConnection( databaseMeta );
       boolean validDatabaseSelected = databaseMeta != null;
       setDatabaseInteractionButtonsDisabled( !validDatabaseSelected );
       suppressEventHandling = true;
@@ -526,7 +527,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Set the enabled state for all buttons that require a valid database to be selected.
-   * 
+   *
    * @param b
    *          {@code true} if the buttons should be disabled
    */
@@ -545,7 +546,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Set the label text for the mode toggle label element
-   * 
+   *
    * @param modeToggleLabel
    */
   public void setModeToggleLabel( String modeToggleLabel ) {
@@ -580,7 +581,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Open the Database Connection Dialog to edit
-   * 
+   *
    * @param database
    *          Database meta to edit
    * @param isNew
@@ -601,6 +602,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         suppressEventHandling = false;
       }
       setSelectedDatabaseConnection( createDatabaseItem( getDatabaseDialog().getDatabaseMeta().getName() ) );
+      jobEntry.setUsedDbConnection( database );
     }
   }
 
@@ -689,7 +691,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   /**
    * Toggles between Quick Setup and Advanced Options mode. This assumes there exists a deck by id
    * {@link #getModeDeckElementId()} and it contains two panels.
-   * 
+   *
    * @param quickMode
    *          Should quick mode be visible/selected?
    */
@@ -734,7 +736,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Update the UI Mode and configure the underlying {@link SqoopConfig} object.
-   * 
+   *
    * @param oldMode
    *          Old mode
    * @param newMode
@@ -791,7 +793,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   /**
    * Configure the current config object from the command line string. This will invoke
    * {@link #showErrorDialog(String, String, Throwable)} if an exception occurs.
-   * 
+   *
    * @return {@code true} if the command line could be parsed and the config object updated successfully.
    */
   protected boolean syncCommandLineToConfig() {
@@ -828,7 +830,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Toggle the selected deck for advanced mode.
-   * 
+   *
    * @param button
    *          Button that was selected
    */
@@ -866,7 +868,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
 
   /**
    * Gets a {@link XulButton} from the current {@link XulDomContainer}
-   * 
+   *
    * @param elementId
    *          Element Id of the button to look up
    * @return The button with element id {@code elementId} or {@code null} if not found
