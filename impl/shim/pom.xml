@@ -17,6 +17,7 @@
     <module>mapreduce</module>
     <module>pig</module>
     <module>oozie</module>
+    <module>hbase</module>
     <module>shimTests</module>
   </modules>
 </project>

@@ -17,5 +17,6 @@
     <module>pig</module>
     <module>guiTestActionHandlers</module>
     <module>oozie</module>
+    <module>hbase</module>
   </modules>
 </project>

@@ -72,7 +72,7 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Import-Package>
-              org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,!org.pentaho.di.core.namedcluster.*,!org.pentaho.di.ui.core.namedcluster.*,*
+              org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,!org.pentaho.di.core.hadoop,!org.pentaho.di.core.namedcluster.*,!org.pentaho.di.ui.core.namedcluster.*,*
             </Import-Package>
           </instructions>
         </configuration>

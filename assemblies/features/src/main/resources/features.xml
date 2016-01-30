@@ -12,6 +12,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-api-cluster-service-locator/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-initializer/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-hdfs/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-api-hbase/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-mapreduce/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-oozie/${project.version}</bundle>
@@ -20,6 +21,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-initializer/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hdfs/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hbase/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-mapreduce/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-oozie/${project.version}</bundle>
@@ -29,6 +31,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hdfs/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-mapreduce/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-oozie/${project.version}</bundle>

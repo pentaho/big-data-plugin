@@ -560,7 +560,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
         String combinerInputStepNameS = environmentSubstitute( combinerInputStepName );
         String combinerOutputStepNameS = environmentSubstitute( combinerOutputStepName );
-
+        transConfig = new TransConfiguration( transMeta, transExecConfig );
         jobBuilder.setCombinerInfo( transConfig.getXML(), combinerInputStepNameS, combinerOutputStepNameS );
         try {
           jobBuilder.verifyTransMeta( transMeta, combinerInputStepNameS, combinerOutputStepNameS );
@@ -584,6 +584,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
         String reduceInputStepNameS = environmentSubstitute( reduceInputStepName );
         String reduceOutputStepNameS = environmentSubstitute( reduceOutputStepName );
+        transConfig = new TransConfiguration( transMeta, transExecConfig );
         jobBuilder.setReducerInfo( transConfig.getXML(), reduceInputStepNameS, reduceOutputStepNameS );
 
         try {
