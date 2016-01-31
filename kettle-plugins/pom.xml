@@ -18,5 +18,6 @@
     <module>guiTestActionHandlers</module>
     <module>oozie</module>
     <module>hbase</module>
+    <module>sqoop</module>
   </modules>
 </project>

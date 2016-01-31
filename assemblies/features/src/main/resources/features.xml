@@ -37,6 +37,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-mapreduce/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-oozie/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-sqoop/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-hadoop-shims-mapr-osgi-jaas/${project.version}</bundle>
   </feature>
 </features>
