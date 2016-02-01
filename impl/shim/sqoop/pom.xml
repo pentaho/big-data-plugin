@@ -99,7 +99,7 @@
         <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-hadoop-shims-api</artifactId>
-            <version>${project.version}</version>
+            <version>${dependency.hadoop-shims-api.revision}</version>
         </dependency>
         <dependency>
             <groupId>pentaho</groupId>
