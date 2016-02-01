@@ -18,6 +18,7 @@
     <module>pig</module>
     <module>oozie</module>
     <module>hbase</module>
+    <module>sqoop</module>
     <module>shimTests</module>
   </modules>
 </project>
