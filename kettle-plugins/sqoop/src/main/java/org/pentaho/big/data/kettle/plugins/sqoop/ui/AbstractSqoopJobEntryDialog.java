@@ -112,7 +112,6 @@ public abstract class AbstractSqoopJobEntryDialog<S extends SqoopConfig, E exten
     swtXulLoader.registerClassLoader( getClass().getClassLoader() );
     // Register Kettle's variable text box so we can reference it from XUL
     swtXulLoader.register( "VARIABLETEXTBOX", ExtTextbox.class.getName() );
-    swtXulLoader.register( "LABEL", SwtLabelOrLink.class.getName() );
     swtXulLoader.setOuterContext( shell );
 
     // Load the XUL document with the dialog defined in it
