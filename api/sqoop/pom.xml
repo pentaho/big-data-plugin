@@ -11,10 +11,15 @@
     </parent>
 
     <artifactId>pentaho-big-data-api-sqoop</artifactId>
-    <name>Pentaho Community Edition Project: ${project.artifactId}</name>
 
-    <description>A Pentaho open source project</description>
+    <packaging>bundle</packaging>
+    <name>Pentaho Community Edition Project: ${project.artifactId}</name>
+    <description>a Pentaho open source project</description>
     <url>http://www.pentaho.com</url>
+
+    <properties>
+        <publish-sonar-phase>site</publish-sonar-phase>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -23,5 +28,4 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-
 </project>
