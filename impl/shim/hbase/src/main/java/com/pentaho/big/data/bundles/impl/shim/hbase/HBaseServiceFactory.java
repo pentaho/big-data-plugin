@@ -45,9 +45,7 @@ public class HBaseServiceFactory implements NamedClusterServiceFactory<HBaseServ
   }
 
   @Override public boolean canHandle( NamedCluster namedCluster ) {
-    String shimIdentifier = null; // TODO: Specify shim
-    return ( shimIdentifier == null && isActiveConfiguration ) || hadoopConfiguration.getIdentifier()
-      .equals( shimIdentifier );
+    return isActiveConfiguration;
   }
 
   @Override public HBaseService create( NamedCluster namedCluster ) {

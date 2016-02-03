@@ -77,46 +77,36 @@ public interface ColumnFilter {
     }
 
     public static String[] getAllOperators() {
-      String[] ops =
+      return
         new String[] { ColumnFilter.ComparisonType.EQUAL.toString(), ColumnFilter.ComparisonType.NOT_EQUAL.toString(),
           ColumnFilter.ComparisonType.GREATER_THAN.toString(),
           ColumnFilter.ComparisonType.GREATER_THAN_OR_EQUAL.toString(),
           ColumnFilter.ComparisonType.LESS_THAN.toString(), ColumnFilter.ComparisonType.LESS_THAN_OR_EQUAL.toString(),
           ColumnFilter.ComparisonType.SUBSTRING.toString(), ColumnFilter.ComparisonType.PREFIX.toString(),
           ColumnFilter.ComparisonType.REGEX.toString() };
-      return ops;
     }
 
     public static String[] getStringOperators() {
-      String[] ops =
+      return
         new String[] { ColumnFilter.ComparisonType.SUBSTRING.toString(), ColumnFilter.ComparisonType.PREFIX.toString(),
           ColumnFilter.ComparisonType.REGEX.toString() };
-      return ops;
     }
 
     public static String[] getNumericOperators() {
-      String[] ops =
+      return
         new String[] { ColumnFilter.ComparisonType.EQUAL.toString(), ColumnFilter.ComparisonType.NOT_EQUAL.toString(),
           ColumnFilter.ComparisonType.GREATER_THAN.toString(),
           ColumnFilter.ComparisonType.GREATER_THAN_OR_EQUAL.toString(),
           ColumnFilter.ComparisonType.LESS_THAN.toString(), ColumnFilter.ComparisonType.LESS_THAN_OR_EQUAL.toString() };
-      return ops;
     }
 
     public static ColumnFilter.ComparisonType stringToOpp( String opp ) {
-      ColumnFilter.ComparisonType c = null;
-      ColumnFilter.ComparisonType[] arr$ = ColumnFilter.ComparisonType.values();
-      int len$ = arr$.length;
-
-      for ( int i$ = 0; i$ < len$; ++i$ ) {
-        ColumnFilter.ComparisonType t = arr$[ i$ ];
-        if ( t.toString().equals( opp ) ) {
-          c = t;
-          break;
+      for ( ComparisonType comparisonType : ComparisonType.values() ) {
+        if ( comparisonType.toString().equals( opp ) ) {
+          return comparisonType;
         }
       }
-
-      return c;
+      return null;
     }
 
     public String toString() {

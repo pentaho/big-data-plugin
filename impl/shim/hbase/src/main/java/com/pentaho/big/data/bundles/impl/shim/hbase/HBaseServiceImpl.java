@@ -27,11 +27,8 @@ import com.pentaho.big.data.bundles.impl.shim.hbase.mapping.MappingFactoryImpl;
 import com.pentaho.big.data.bundles.impl.shim.hbase.meta.HBaseValueMetaInterfaceFactoryImpl;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.ResultFactory;
-import org.pentaho.bigdata.api.hbase.mapping.ColumnFilterFactory;
-import org.pentaho.bigdata.api.hbase.mapping.MappingFactory;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -63,7 +60,7 @@ public class HBaseServiceImpl implements HBaseService {
   }
 
   @Override
-  public HBaseConnection getHBaseConnection( VariableSpace variableSpace, String siteConfig, String defaultConfig,
+  public HBaseConnectionImpl getHBaseConnection( VariableSpace variableSpace, String siteConfig, String defaultConfig,
                                              LogChannelInterface logChannelInterface ) throws IOException {
     Properties connProps = new Properties();
     String zooKeeperHost = variableSpace.environmentSubstitute( namedCluster.getZooKeeperHost() );
@@ -83,11 +80,11 @@ public class HBaseServiceImpl implements HBaseService {
     return new HBaseConnectionImpl( this, hBaseShim, bytesUtil, connProps, logChannelInterface );
   }
 
-  @Override public ColumnFilterFactory getColumnFilterFactory() {
+  @Override public ColumnFilterFactoryImpl getColumnFilterFactory() {
     return new ColumnFilterFactoryImpl();
   }
 
-  @Override public MappingFactory getMappingFactory() {
+  @Override public MappingFactoryImpl getMappingFactory() {
     return new MappingFactoryImpl( bytesUtil, getHBaseValueMetaInterfaceFactory() );
   }
 
