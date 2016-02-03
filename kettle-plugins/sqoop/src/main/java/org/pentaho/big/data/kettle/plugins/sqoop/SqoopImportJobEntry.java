@@ -48,7 +48,7 @@ public class SqoopImportJobEntry extends AbstractSqoopJobEntry<SqoopImportConfig
   }
 
   @Override protected SqoopImportConfig createJobConfig() {
-    return new SqoopImportConfig();
+    return new SqoopImportConfig( this );
   }
 
   /**

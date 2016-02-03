@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
@@ -69,7 +70,7 @@ public class SqoopImportConfig extends SqoopConfig {
   public static final String HBASE_ZOOKEEPER_CLIENT_PORT = "hbaseZookeeperClientPort";
 
   public static final String AS_PARQUETFILE = "asParquetfile";
-  public static final String DELETE_TARGET_DIR = "deletTargetDir";
+  public static final String DELETE_TARGET_DIR = "deleteTargetDir";
 
   public static final String FETCH_SIZE = "fetchSize";
   public static final String MERGE_KEY = "mergeKey";
@@ -91,6 +92,7 @@ public class SqoopImportConfig extends SqoopConfig {
   public static final String ACCUMULO_USER = "accumuloUser";
   public static final String ACCUMULO_VISIBILITY = "accumuloVisibility";
   public static final String ACCUMULO_ZOOKEPERS = "accumuloZookeepers";
+  private final SqoopImportJobEntry jobEntry;
 
   // Import control arguments
   @CommandLineArgument( name = "target-dir" )
@@ -211,14 +213,20 @@ public class SqoopImportConfig extends SqoopConfig {
   private String hbaseZookeeperQuorum;
   private String hbaseZookeeperClientPort;
 
+  public SqoopImportConfig( SqoopImportJobEntry jobEntry ) {
+    this.jobEntry = jobEntry;
+  }
+
+  @Override protected NamedCluster createClusterTemplate() {
+    return jobEntry.getNamedClusterService().getClusterTemplate();
+  }
+
   public String getTargetDir() {
     return targetDir;
   }
 
   public void setTargetDir( String targetDir ) {
-    String old = this.targetDir;
-    this.targetDir = targetDir;
-    pcs.firePropertyChange( TARGET_DIR, old, this.targetDir );
+    this.targetDir = propertyChange( TARGET_DIR, this.targetDir, targetDir );
   }
 
   public String getWarehouseDir() {
@@ -226,9 +234,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setWarehouseDir( String warehouseDir ) {
-    String old = this.warehouseDir;
-    this.warehouseDir = warehouseDir;
-    pcs.firePropertyChange( WAREHOUSE_DIR, old, this.warehouseDir );
+    this.warehouseDir = propertyChange( WAREHOUSE_DIR, this.warehouseDir, warehouseDir );
   }
 
   public String getAppend() {
@@ -236,9 +242,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAppend( String append ) {
-    String old = this.append;
-    this.append = append;
-    pcs.firePropertyChange( APPEND, old, this.append );
+    this.append = propertyChange( APPEND, this.append, append );
   }
 
   public String getAsAvrodatafile() {
@@ -246,9 +250,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAsAvrodatafile( String asAvrodatafile ) {
-    String old = this.asAvrodatafile;
-    this.asAvrodatafile = asAvrodatafile;
-    pcs.firePropertyChange( AS_AVRODATAFILE, old, this.asAvrodatafile );
+    this.asAvrodatafile = propertyChange( AS_AVRODATAFILE, this.asAvrodatafile, asAvrodatafile );
   }
 
   public String getAsSequencefile() {
@@ -256,9 +258,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAsSequencefile( String asSequencefile ) {
-    String old = this.asSequencefile;
-    this.asSequencefile = asSequencefile;
-    pcs.firePropertyChange( AS_SEQUENCEFILE, old, this.asSequencefile );
+    this.asSequencefile = propertyChange( AS_SEQUENCEFILE, this.asSequencefile, asSequencefile );
   }
 
   public String getAsTextfile() {
@@ -266,9 +266,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAsTextfile( String asTextfile ) {
-    String old = this.asTextfile;
-    this.asTextfile = asTextfile;
-    pcs.firePropertyChange( AS_TEXTFILE, old, this.asTextfile );
+    this.asTextfile = propertyChange( AS_TEXTFILE, this.asTextfile, asTextfile );
   }
 
   public String getBoundaryQuery() {
@@ -276,9 +274,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setBoundaryQuery( String boundaryQuery ) {
-    String old = this.boundaryQuery;
-    this.boundaryQuery = boundaryQuery;
-    pcs.firePropertyChange( BOUNDARY_QUERY, old, this.boundaryQuery );
+    this.boundaryQuery = propertyChange( BOUNDARY_QUERY, this.boundaryQuery, boundaryQuery );
   }
 
   public String getColumns() {
@@ -286,9 +282,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setColumns( String columns ) {
-    String old = this.columns;
-    this.columns = columns;
-    pcs.firePropertyChange( COLUMNS, old, this.columns );
+    this.columns = propertyChange( COLUMNS, this.columns, columns );
   }
 
   public String getDirect() {
@@ -296,9 +290,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setDirect( String direct ) {
-    String old = this.direct;
-    this.direct = direct;
-    pcs.firePropertyChange( DIRECT, old, this.direct );
+    this.direct = propertyChange( DIRECT, this.direct, direct );
   }
 
   public String getDirectSplitSize() {
@@ -306,9 +298,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setDirectSplitSize( String directSplitSize ) {
-    String old = this.directSplitSize;
-    this.directSplitSize = directSplitSize;
-    pcs.firePropertyChange( DIRECT_SPLIT_SIZE, old, this.directSplitSize );
+    this.directSplitSize = propertyChange( DIRECT_SPLIT_SIZE, this.directSplitSize, directSplitSize );
   }
 
   public String getInlineLobLimit() {
@@ -316,9 +306,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setInlineLobLimit( String inlineLobLimit ) {
-    String old = this.inlineLobLimit;
-    this.inlineLobLimit = inlineLobLimit;
-    pcs.firePropertyChange( INLINE_LOB_LIMIT, old, this.inlineLobLimit );
+    this.inlineLobLimit = propertyChange( INLINE_LOB_LIMIT, this.inlineLobLimit, inlineLobLimit );
   }
 
   public String getSplitBy() {
@@ -326,9 +314,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setSplitBy( String splitBy ) {
-    String old = this.splitBy;
-    this.splitBy = splitBy;
-    pcs.firePropertyChange( SPLIT_BY, old, this.splitBy );
+    this.splitBy = propertyChange( SPLIT_BY, this.splitBy, splitBy );
   }
 
   public String getQuery() {
@@ -336,9 +322,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setQuery( String query ) {
-    String old = this.query;
-    this.query = query;
-    pcs.firePropertyChange( QUERY, old, this.query );
+    this.query = propertyChange( QUERY, this.query, query );
   }
 
   public String getWhere() {
@@ -346,9 +330,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setWhere( String where ) {
-    String old = this.where;
-    this.where = where;
-    pcs.firePropertyChange( WHERE, old, this.where );
+    this.where = propertyChange( WHERE, this.where, where );
   }
 
   public String getCompress() {
@@ -356,9 +338,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setCompress( String compress ) {
-    String old = this.compress;
-    this.compress = compress;
-    pcs.firePropertyChange( COMPRESS, old, this.compress );
+    this.compress = propertyChange( COMPRESS, this.compress, compress );
   }
 
   public String getCompressionCodec() {
@@ -366,9 +346,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setCompressionCodec( String compressionCodec ) {
-    String old = this.compressionCodec;
-    this.compressionCodec = compressionCodec;
-    pcs.firePropertyChange( COMPRESSION_CODEC, old, this.compressionCodec );
+    this.compressionCodec = propertyChange( COMPRESSION_CODEC, this.compressionCodec, compressionCodec );
   }
 
   public String getCheckColumn() {
@@ -376,9 +354,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setCheckColumn( String checkColumn ) {
-    String old = this.checkColumn;
-    this.checkColumn = checkColumn;
-    pcs.firePropertyChange( CHECK_COLUMN, old, this.checkColumn );
+    this.checkColumn = propertyChange( CHECK_COLUMN, this.checkColumn, checkColumn );
   }
 
   public String getIncremental() {
@@ -386,9 +362,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setIncremental( String incremental ) {
-    String old = this.incremental;
-    this.incremental = incremental;
-    pcs.firePropertyChange( INCREMENTAL, old, this.incremental );
+    this.incremental = propertyChange( INCREMENTAL, this.incremental, incremental );
   }
 
   public String getLastValue() {
@@ -396,9 +370,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setLastValue( String lastValue ) {
-    String old = this.lastValue;
-    this.lastValue = lastValue;
-    pcs.firePropertyChange( LAST_VALUE, old, this.lastValue );
+    this.lastValue = propertyChange( LAST_VALUE, this.lastValue, lastValue );
   }
 
   public String getHiveImport() {
@@ -406,9 +378,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHiveImport( String hiveImport ) {
-    String old = this.hiveImport;
-    this.hiveImport = hiveImport;
-    pcs.firePropertyChange( HIVE_IMPORT, old, this.hiveImport );
+    this.hiveImport = propertyChange( HIVE_IMPORT, this.hiveImport, hiveImport );
   }
 
   public String getHiveOverwrite() {
@@ -416,9 +386,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHiveOverwrite( String hiveOverwrite ) {
-    String old = this.hiveOverwrite;
-    this.hiveOverwrite = hiveOverwrite;
-    pcs.firePropertyChange( HIVE_OVERWRITE, old, this.hiveOverwrite );
+    this.hiveOverwrite = propertyChange( HIVE_OVERWRITE, this.hiveOverwrite, hiveOverwrite );
   }
 
   public String getCreateHiveTable() {
@@ -426,9 +394,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setCreateHiveTable( String createHiveTable ) {
-    String old = this.createHiveTable;
-    this.createHiveTable = createHiveTable;
-    pcs.firePropertyChange( CREATE_HIVE_TABLE, old, this.createHiveTable );
+    this.createHiveTable = propertyChange( CREATE_HIVE_TABLE, this.createHiveTable, createHiveTable );
   }
 
   public String getHiveTable() {
@@ -436,9 +402,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHiveTable( String hiveTable ) {
-    String old = this.hiveTable;
-    this.hiveTable = hiveTable;
-    pcs.firePropertyChange( HIVE_TABLE, old, this.hiveTable );
+    this.hiveTable = propertyChange( HIVE_TABLE, this.hiveTable, hiveTable );
   }
 
   public String getHiveDropImportDelims() {
@@ -446,9 +410,8 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHiveDropImportDelims( String hiveDropImportDelims ) {
-    String old = this.hiveDropImportDelims;
-    this.hiveDropImportDelims = hiveDropImportDelims;
-    pcs.firePropertyChange( HIVE_DROP_IMPORT_DELIMS, old, this.hiveDropImportDelims );
+    this.hiveDropImportDelims =
+      propertyChange( HIVE_DROP_IMPORT_DELIMS, this.hiveDropImportDelims, hiveDropImportDelims );
   }
 
   public String getHiveDelimsReplacement() {
@@ -456,9 +419,8 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHiveDelimsReplacement( String hiveDelimsReplacement ) {
-    String old = this.hiveDelimsReplacement;
-    this.hiveDelimsReplacement = hiveDelimsReplacement;
-    pcs.firePropertyChange( HIVE_DELIMS_REPLACEMENT, old, this.hiveDelimsReplacement );
+    this.hiveDelimsReplacement =
+      propertyChange( HIVE_DELIMS_REPLACEMENT, this.hiveDelimsReplacement, hiveDelimsReplacement );
   }
 
   public String getColumnFamily() {
@@ -466,9 +428,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setColumnFamily( String columnFamily ) {
-    String old = this.columnFamily;
-    this.columnFamily = columnFamily;
-    pcs.firePropertyChange( COLUMN_FAMILY, old, this.columnFamily );
+    this.columnFamily = propertyChange( COLUMN_FAMILY, this.columnFamily, columnFamily );
   }
 
   public String getHbaseCreateTable() {
@@ -476,9 +436,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHbaseCreateTable( String hbaseCreateTable ) {
-    String old = this.hbaseCreateTable;
-    this.hbaseCreateTable = hbaseCreateTable;
-    pcs.firePropertyChange( HBASE_CREATE_TABLE, old, this.hbaseCreateTable );
+    this.hbaseCreateTable = propertyChange( HBASE_CREATE_TABLE, this.hbaseCreateTable, hbaseCreateTable );
   }
 
   public String getHbaseRowKey() {
@@ -486,9 +444,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHbaseRowKey( String hbaseRowKey ) {
-    String old = this.hbaseRowKey;
-    this.hbaseRowKey = hbaseRowKey;
-    pcs.firePropertyChange( HBASE_ROW_KEY, old, this.hbaseRowKey );
+    this.hbaseRowKey = propertyChange( HBASE_ROW_KEY, this.hbaseRowKey, hbaseRowKey );
   }
 
   public String getHbaseTable() {
@@ -496,9 +452,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHbaseTable( String hbaseTable ) {
-    String old = this.hbaseTable;
-    this.hbaseTable = hbaseTable;
-    pcs.firePropertyChange( HBASE_TABLE, old, this.hbaseTable );
+    this.hbaseTable = propertyChange( HBASE_TABLE, this.hbaseTable, hbaseTable );
   }
 
   public String getHbaseZookeeperQuorum() {
@@ -506,9 +460,8 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHbaseZookeeperQuorum( String hbaseZookeeperQuorum ) {
-    String old = this.hbaseZookeeperQuorum;
-    this.hbaseZookeeperQuorum = hbaseZookeeperQuorum;
-    pcs.firePropertyChange( HBASE_ZOOKEEPER_QUORUM, old, this.hbaseZookeeperQuorum );
+    this.hbaseZookeeperQuorum =
+      propertyChange( HBASE_ZOOKEEPER_QUORUM, this.hbaseZookeeperQuorum, hbaseZookeeperQuorum );
   }
 
   public String getHbaseZookeeperClientPort() {
@@ -516,9 +469,8 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHbaseZookeeperClientPort( String hbaseZookeeperClientPort ) {
-    String old = this.hbaseZookeeperClientPort;
-    this.hbaseZookeeperClientPort = hbaseZookeeperClientPort;
-    pcs.firePropertyChange( HBASE_ZOOKEEPER_CLIENT_PORT, old, this.hbaseZookeeperClientPort );
+    this.hbaseZookeeperClientPort =
+      propertyChange( HBASE_ZOOKEEPER_CLIENT_PORT, this.hbaseZookeeperClientPort, hbaseZookeeperClientPort );
   }
 
   @Override
@@ -556,9 +508,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAsParquetfile( String asParquetfile ) {
-    String old = this.asParquetfile;
-    this.asParquetfile = asParquetfile;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.asParquetfile = propertyChange( AS_PARQUETFILE, this.asParquetfile, asParquetfile );
   }
 
   public String getDeleteTargetDir() {
@@ -566,9 +516,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setDeleteTargetDir( String deleteTargetDir ) {
-    String old = this.asParquetfile;
-    this.deleteTargetDir = deleteTargetDir;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.deleteTargetDir = propertyChange( DELETE_TARGET_DIR, this.deleteTargetDir, deleteTargetDir );
   }
 
   public String getFetchSize() {
@@ -576,9 +524,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setFetchSize( String fetchSize ) {
-    String old = this.asParquetfile;
-    this.fetchSize = fetchSize;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.fetchSize = propertyChange( FETCH_SIZE, this.fetchSize, fetchSize );
   }
 
   public String getMergeKey() {
@@ -586,9 +532,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setMergeKey( String mergeKey ) {
-    String old = this.asParquetfile;
-    this.mergeKey = mergeKey;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.mergeKey = propertyChange( MERGE_KEY, this.mergeKey, mergeKey );
   }
 
   public String getHiveDatabase() {
@@ -596,9 +540,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHiveDatabase( String hiveDatabase ) {
-    String old = this.asParquetfile;
-    this.hiveDatabase = hiveDatabase;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.hiveDatabase = propertyChange( HIVE_DATABASE, this.hiveDatabase, hiveDatabase );
   }
 
   public String getHbaseBulkload() {
@@ -606,9 +548,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHbaseBulkload( String hbaseBulkload ) {
-    String old = this.asParquetfile;
-    this.hbaseBulkload = hbaseBulkload;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.hbaseBulkload = propertyChange( HBASE_BULKLOADER, this.hbaseBulkload, hbaseBulkload );
   }
 
   public String getCreateHcatalogTable() {
@@ -616,9 +556,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setCreateHcatalogTable( String createHcatalogTable ) {
-    String old = this.asParquetfile;
-    this.createHcatalogTable = createHcatalogTable;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.createHcatalogTable = propertyChange( CREATE_HCATALOG_TABLE, this.createHcatalogTable, createHcatalogTable );
   }
 
   public String getHcatalogStorageStanza() {
@@ -626,9 +564,8 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setHcatalogStorageStanza( String hcatalogStorageStanza ) {
-    String old = this.asParquetfile;
-    this.hcatalogStorageStanza = hcatalogStorageStanza;
-    pcs.firePropertyChange( AS_PARQUETFILE, old, this.asParquetfile );
+    this.hcatalogStorageStanza =
+      propertyChange( HCATALOG_STORAGE_STANZA, this.hcatalogStorageStanza, hcatalogStorageStanza );
   }
 
   public String getAccumuloBatchSize() {
@@ -636,9 +573,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloBatchSize( String accumuloBatchSize ) {
-    String old = this.accumuloBatchSize;
-    this.accumuloBatchSize = accumuloBatchSize;
-    pcs.firePropertyChange( ACCUMULO_BATCH_SIZE, old, this.accumuloBatchSize );
+    this.accumuloBatchSize = propertyChange( ACCUMULO_BATCH_SIZE, this.accumuloBatchSize, accumuloBatchSize );
   }
 
   public String getAccumuloColumnFamily() {
@@ -646,9 +581,8 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloColumnFamily( String accumuloColumnFamily ) {
-    String old = this.accumuloColumnFamily;
-    this.accumuloColumnFamily = accumuloColumnFamily;
-    pcs.firePropertyChange( ACCUMULO_COLUMN_FAMILY, old, this.accumuloColumnFamily );
+    this.accumuloColumnFamily =
+      propertyChange( ACCUMULO_COLUMN_FAMILY, this.accumuloColumnFamily, accumuloColumnFamily );
   }
 
   public String getAccumuloCreateTable() {
@@ -656,9 +590,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloCreateTable( String accumuloCreateTable ) {
-    String old = this.accumuloCreateTable;
-    this.accumuloCreateTable = accumuloCreateTable;
-    pcs.firePropertyChange( ACCUMULO_CREATE_TABLE, old, this.accumuloCreateTable );
+    this.accumuloCreateTable = propertyChange( ACCUMULO_CREATE_TABLE, this.accumuloCreateTable, accumuloCreateTable );
   }
 
   public String getAccumuloInstance() {
@@ -666,9 +598,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloInstance( String accumuloInstance ) {
-    String old = this.accumuloInstance;
-    this.accumuloInstance = accumuloInstance;
-    pcs.firePropertyChange( ACCUMULO_INSTANCE, old, this.accumuloInstance );
+    this.accumuloInstance = propertyChange( ACCUMULO_INSTANCE, this.accumuloInstance, accumuloInstance );
   }
 
   public String getAccumuloMaxLatency() {
@@ -676,9 +606,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloMaxLatency( String accumuloMaxLatency ) {
-    String old = this.accumuloMaxLatency;
-    this.accumuloMaxLatency = accumuloMaxLatency;
-    pcs.firePropertyChange( ACCUMULO_MAX_LATENCY, old, this.accumuloMaxLatency );
+    this.accumuloMaxLatency = propertyChange( ACCUMULO_MAX_LATENCY, this.accumuloMaxLatency, accumuloMaxLatency );
   }
 
   public String getAccumuloPassword() {
@@ -686,9 +614,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloPassword( String accumuloPassword ) {
-    String old = this.accumuloPassword;
-    this.accumuloPassword = accumuloPassword;
-    pcs.firePropertyChange( ACCUMULO_PASSWORD, old, this.accumuloPassword );
+    this.accumuloPassword = propertyChange( ACCUMULO_PASSWORD, this.accumuloPassword, accumuloPassword );
   }
 
   public String getAccumuloRowKey() {
@@ -696,9 +622,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloRowKey( String accumuloRowKey ) {
-    String old = this.accumuloRowKey;
-    this.accumuloRowKey = accumuloRowKey;
-    pcs.firePropertyChange( ACCUMULO_ROW_KEY, old, this.accumuloRowKey );
+    this.accumuloRowKey = propertyChange( ACCUMULO_ROW_KEY, this.accumuloRowKey, accumuloRowKey );
   }
 
   public String getAccumuloTable() {
@@ -706,9 +630,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloTable( String accumuloTable ) {
-    String old = this.accumuloTable;
-    this.accumuloTable = accumuloTable;
-    pcs.firePropertyChange( ACCUMULO_TABLE, old, this.accumuloTable );
+    this.accumuloTable = propertyChange( ACCUMULO_TABLE, this.accumuloTable, accumuloTable );
   }
 
   public String getAccumuloUser() {
@@ -716,9 +638,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloUser( String accumuloUser ) {
-    String old = this.accumuloUser;
-    this.accumuloUser = accumuloUser;
-    pcs.firePropertyChange( ACCUMULO_USER, old, this.accumuloUser );
+    this.accumuloUser = propertyChange( ACCUMULO_USER, this.accumuloUser, accumuloUser );
   }
 
   public String getAccumuloVisibility() {
@@ -726,9 +646,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloVisibility( String accumuloVisibility ) {
-    String old = this.accumuloVisibility;
-    this.accumuloVisibility = accumuloVisibility;
-    pcs.firePropertyChange( ACCUMULO_VISIBILITY, old, this.accumuloVisibility );
+    this.accumuloVisibility = propertyChange( ACCUMULO_VISIBILITY, this.accumuloVisibility, accumuloVisibility );
   }
 
   public String getAccumuloZookeepers() {
@@ -736,9 +654,7 @@ public class SqoopImportConfig extends SqoopConfig {
   }
 
   public void setAccumuloZookeepers( String accumuloZookeepers ) {
-    String old = this.accumuloZookeepers;
-    this.accumuloZookeepers = accumuloZookeepers;
-    pcs.firePropertyChange( ACCUMULO_ZOOKEPERS, old, this.accumuloZookeepers );
+    this.accumuloZookeepers = propertyChange( ACCUMULO_ZOOKEPERS, this.accumuloZookeepers, accumuloZookeepers );
   }
 
 }

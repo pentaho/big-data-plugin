@@ -60,7 +60,7 @@ public class SqoopExportJobEntry extends AbstractSqoopJobEntry<SqoopExportConfig
   }
 
   @Override protected SqoopExportConfig createJobConfig() {
-    return new SqoopExportConfig();
+    return new SqoopExportConfig( this );
   }
 
   /**

@@ -22,6 +22,8 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
+import org.pentaho.big.data.api.cluster.NamedCluster;
+
 /**
  * Configuration for a Sqoop Export
  */
@@ -36,6 +38,7 @@ public class SqoopExportConfig extends SqoopConfig {
 
   public static final String CALL = "call";
   public static final String COLUMNS = "columns";
+  private final SqoopExportJobEntry jobEntry;
 
   @CommandLineArgument( name = "export-dir" )
   private String exportDir;
@@ -56,6 +59,14 @@ public class SqoopExportConfig extends SqoopConfig {
   private String call;
   @CommandLineArgument( name = "columns" )
   private String columns;
+
+  public SqoopExportConfig( SqoopExportJobEntry jobEntry ) {
+    this.jobEntry = jobEntry;
+  }
+
+  @Override protected NamedCluster createClusterTemplate() {
+    return jobEntry.getNamedClusterService().getClusterTemplate();
+  }
 
   public String getExportDir() {
     return exportDir;

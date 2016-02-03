@@ -255,9 +255,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         NamedCluster namedCluster = jobEntry.getNamedClusterService().read( cn, getMetaStore() );
         namedClusterMenu.setSelectedItem( namedCluster );
         setSelectedNamedCluster( namedCluster );
-      } else if ( cn == null
-          && ( config.getNamenodeHost() != null || config.getNamenodePort() != null
-              || config.getJobtrackerHost() != null || config.getJobtrackerPort() != null ) ) {
+      } else if ( config.isAdvancedClusterConfigSet() ) {
         setSelectedNamedCluster( USE_ADVANCED_OPTIONS_CLUSTER );
       } else {
         setSelectedNamedCluster( CHOOSE_AVAILABLE_CLUSTER );
@@ -278,15 +276,12 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   public void setSelectedNamedCluster( NamedCluster namedCluster ) {
     this.selectedNamedCluster = namedCluster;
     if ( !suppressEventHandling ) {
-      if ( namedCluster != null && !namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER )
-          && !namedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER ) ) {
-        setClusterToConfig( namedCluster, config );
-        config.clearAdvancedNamedConfigurationInfo();
-      } else if ( namedCluster != null && namedCluster.equals( CHOOSE_AVAILABLE_CLUSTER ) ) {
-        setClusterToConfig( null, config );
-        config.clearAdvancedNamedConfigurationInfo();
+      if ( CHOOSE_AVAILABLE_CLUSTER.equals( namedCluster ) ) {
+        config.setNamedCluster( null );
+      } else if ( USE_ADVANCED_OPTIONS_CLUSTER.equals( namedCluster ) || namedCluster == null ) {
+        config.setClusterName( null );
       } else {
-        setClusterToConfig( null, config );
+        config.setNamedCluster( namedCluster );
       }
 
       suppressEventHandling = true;
@@ -296,15 +291,6 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         suppressEventHandling = false;
       }
     }
-  }
-
-  private void setClusterToConfig( NamedCluster namedCluster, SqoopConfig config ) {
-    String name = null;
-    if ( namedCluster != null ) {
-      name = namedCluster.getName();
-    }
-    config.setClusterName( name );
-    config.setNamedCluster( namedCluster );
   }
 
   private void updateDeleteButton() {
@@ -724,7 +710,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         if ( selectedNamedCluster != null
           && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER )
           && !suppressEventHandling ) {
-          config.clearAdvancedNamedConfigurationInfo();
+          config.setNamedCluster( null );
         }
         toggleQuickMode( true );
         break;

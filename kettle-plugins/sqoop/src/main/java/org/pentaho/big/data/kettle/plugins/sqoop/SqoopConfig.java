@@ -22,14 +22,24 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.kettle.plugins.job.BlockableJobConfig;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.Password;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.di.repository.ObjectId;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.util.AbstractModelList;
+import org.w3c.dom.Node;
+
+import java.util.Map;
 
 /**
  * A collection of configuration objects for a Sqoop job entry.
@@ -90,7 +100,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   public static final String SKIP_DIST_CACHE = "skipDistCache";
   public static final String MAPREDUCE_JOB_NAME = "mapreduceJobName";
   public static final String VALIDATE = "validate";
-  public static final String VALIDATION_FAILUREHANDLER = "validationFailurehandler";
+  public static final String VALIDATION_FAILURE_HANDLER = "validationFailureHandler";
   public static final String VALIDATION_THRESHOLD = "validationThreshold";
   public static final String VALIDATOR = "validator";
 
@@ -114,11 +124,6 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   public static final String FILES = "files";
   public static final String LIBJARS = "libjars";
   public static final String ARCHIVES = "archives";
-
-  private String namenodeHost;
-  private String namenodePort;
-  private String jobtrackerHost;
-  private String jobtrackerPort;
 
   private String database;
   private String schema;
@@ -301,19 +306,21 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public NamedCluster getNamedCluster() {
+    if ( namedCluster == null ) {
+      namedCluster = createClusterTemplate();
+    }
     return namedCluster;
   }
 
   public void setNamedCluster( NamedCluster namedCluster ) {
-    this.namedCluster = namedCluster;
+    this.namedCluster = createClusterTemplate();
+    if ( namedCluster != null ) {
+      setClusterName( namedCluster.getName() );
+      this.namedCluster.replaceMeta( namedCluster );
+    }
   }
 
-  public void clearAdvancedNamedConfigurationInfo() {
-    this.namenodeHost = null;
-    this.namenodePort = null;
-    this.jobtrackerHost = null;
-    this.jobtrackerPort = null;
-  }
+  protected abstract NamedCluster createClusterTemplate();
 
   @Override
   public SqoopConfig clone() {
@@ -366,9 +373,12 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setDatabase( String database ) {
-    String old = this.database;
-    this.database = database;
-    pcs.firePropertyChange( DATABASE, old, this.database );
+    this.database = propertyChange( DATABASE, this.database, database );
+  }
+
+  protected String propertyChange( String propertyName, String oldValue, String newValue ) {
+    pcs.firePropertyChange( propertyName, oldValue, newValue );
+    return newValue;
   }
 
   public String getSchema() {
@@ -376,9 +386,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setSchema( String schema ) {
-    String old = this.schema;
-    this.schema = schema;
-    pcs.firePropertyChange( SCHEMA, old, this.schema );
+    this.schema = propertyChange( SCHEMA, this.schema, schema );
   }
 
   public String getConnect() {
@@ -386,9 +394,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setConnect( String connect ) {
-    String old = this.connect;
-    this.connect = connect;
-    pcs.firePropertyChange( CONNECT, old, this.connect );
+    this.connect = propertyChange( CONNECT, this.connect, connect );
   }
 
   public String getUsername() {
@@ -396,9 +402,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setUsername( String username ) {
-    String old = this.username;
-    this.username = username;
-    pcs.firePropertyChange( USERNAME, old, this.username );
+    this.username = propertyChange( USERNAME, this.username, username );
   }
 
   public String getPassword() {
@@ -406,9 +410,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setPassword( String password ) {
-    String old = this.password;
-    this.password = password;
-    pcs.firePropertyChange( PASSWORD, old, this.password );
+    this.password = propertyChange( PASSWORD, this.password, password );
   }
 
   public String getConnectFromAdvanced() {
@@ -440,9 +442,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setConnectionManager( String connectionManager ) {
-    String old = this.connectionManager;
-    this.connectionManager = connectionManager;
-    pcs.firePropertyChange( CONNECTION_MANAGER, old, this.connectionManager );
+    this.connectionManager = propertyChange( CONNECTION_MANAGER, this.connectionManager, connectionManager );
   }
 
   public String getDriver() {
@@ -450,9 +450,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setDriver( String driver ) {
-    String old = this.driver;
-    this.driver = driver;
-    pcs.firePropertyChange( DRIVER, old, this.driver );
+    this.driver = propertyChange( DRIVER, this.driver, driver );
   }
 
   public String getVerbose() {
@@ -460,9 +458,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setVerbose( String verbose ) {
-    String old = this.verbose;
-    this.verbose = verbose;
-    pcs.firePropertyChange( VERBOSE, old, this.verbose );
+    this.verbose = propertyChange( VERBOSE, this.verbose, verbose );
   }
 
   public String getConnectionParamFile() {
@@ -470,9 +466,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setConnectionParamFile( String connectionParamFile ) {
-    String old = this.connectionParamFile;
-    this.connectionParamFile = connectionParamFile;
-    pcs.firePropertyChange( CONNECTION_PARAM_FILE, old, this.connectionParamFile );
+    this.connectionParamFile = propertyChange( CONNECTION_PARAM_FILE, this.connectionParamFile, connectionParamFile );
   }
 
   public String getHadoopHome() {
@@ -480,9 +474,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHadoopHome( String hadoopHome ) {
-    String old = this.hadoopHome;
-    this.hadoopHome = hadoopHome;
-    pcs.firePropertyChange( HADOOP_HOME, old, this.hadoopHome );
+    this.hadoopHome = propertyChange( HADOOP_HOME, this.hadoopHome, hadoopHome );
   }
 
   public String getEnclosedBy() {
@@ -490,9 +482,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setEnclosedBy( String enclosedBy ) {
-    String old = this.enclosedBy;
-    this.enclosedBy = enclosedBy;
-    pcs.firePropertyChange( ENCLOSED_BY, old, this.enclosedBy );
+    this.enclosedBy = propertyChange( ENCLOSED_BY, this.enclosedBy, enclosedBy );
   }
 
   public String getEscapedBy() {
@@ -500,9 +490,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setEscapedBy( String escapedBy ) {
-    String old = this.escapedBy;
-    this.escapedBy = escapedBy;
-    pcs.firePropertyChange( ESCAPED_BY, old, this.escapedBy );
+    this.escapedBy = propertyChange( ESCAPED_BY, this.escapedBy, escapedBy );
   }
 
   public String getFieldsTerminatedBy() {
@@ -510,9 +498,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setFieldsTerminatedBy( String fieldsTerminatedBy ) {
-    String old = this.fieldsTerminatedBy;
-    this.fieldsTerminatedBy = fieldsTerminatedBy;
-    pcs.firePropertyChange( FIELDS_TERMINATED_BY, old, this.fieldsTerminatedBy );
+    this.fieldsTerminatedBy = propertyChange( FIELDS_TERMINATED_BY, this.fieldsTerminatedBy, fieldsTerminatedBy );
   }
 
   public String getLinesTerminatedBy() {
@@ -520,9 +506,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setLinesTerminatedBy( String linesTerminatedBy ) {
-    String old = this.linesTerminatedBy;
-    this.linesTerminatedBy = linesTerminatedBy;
-    pcs.firePropertyChange( LINES_TERMINATED_BY, old, this.linesTerminatedBy );
+    this.linesTerminatedBy = propertyChange( LINES_TERMINATED_BY, this.linesTerminatedBy, linesTerminatedBy );
   }
 
   public String getOptionallyEnclosedBy() {
@@ -530,9 +514,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setOptionallyEnclosedBy( String optionallyEnclosedBy ) {
-    String old = this.optionallyEnclosedBy;
-    this.optionallyEnclosedBy = optionallyEnclosedBy;
-    pcs.firePropertyChange( OPTIONALLY_ENCLOSED_BY, old, this.optionallyEnclosedBy );
+    this.optionallyEnclosedBy = propertyChange( OPTIONALLY_ENCLOSED_BY, this.optionallyEnclosedBy, optionallyEnclosedBy );
   }
 
   public String getMysqlDelimiters() {
@@ -540,9 +522,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setMysqlDelimiters( String mysqlDelimiters ) {
-    String old = this.mysqlDelimiters;
-    this.mysqlDelimiters = mysqlDelimiters;
-    pcs.firePropertyChange( MYSQL_DELIMITERS, old, this.mysqlDelimiters );
+    this.mysqlDelimiters = propertyChange( MYSQL_DELIMITERS, this.mysqlDelimiters, mysqlDelimiters );
   }
 
   public String getInputEnclosedBy() {
@@ -550,9 +530,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setInputEnclosedBy( String inputEnclosedBy ) {
-    String old = this.inputEnclosedBy;
-    this.inputEnclosedBy = inputEnclosedBy;
-    pcs.firePropertyChange( INPUT_ENCLOSED_BY, old, this.inputEnclosedBy );
+    this.inputEnclosedBy = propertyChange( INPUT_ENCLOSED_BY, this.inputEnclosedBy, inputEnclosedBy );
   }
 
   public String getInputEscapedBy() {
@@ -560,9 +538,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setInputEscapedBy( String inputEscapedBy ) {
-    String old = this.inputEscapedBy;
-    this.inputEscapedBy = inputEscapedBy;
-    pcs.firePropertyChange( INPUT_ESCAPED_BY, old, this.inputEscapedBy );
+    this.inputEscapedBy = propertyChange( INPUT_ESCAPED_BY, this.inputEscapedBy, inputEscapedBy );
   }
 
   public String getInputFieldsTerminatedBy() {
@@ -570,9 +546,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setInputFieldsTerminatedBy( String inputFieldsTerminatedBy ) {
-    String old = this.inputFieldsTerminatedBy;
-    this.inputFieldsTerminatedBy = inputFieldsTerminatedBy;
-    pcs.firePropertyChange( INPUT_FIELDS_TERMINATED_BY, old, this.inputFieldsTerminatedBy );
+    this.inputFieldsTerminatedBy = propertyChange( INPUT_FIELDS_TERMINATED_BY, this.inputFieldsTerminatedBy, inputFieldsTerminatedBy );
   }
 
   public String getInputLinesTerminatedBy() {
@@ -580,9 +554,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setInputLinesTerminatedBy( String inputLinesTerminatedBy ) {
-    String old = this.inputLinesTerminatedBy;
-    this.inputLinesTerminatedBy = inputLinesTerminatedBy;
-    pcs.firePropertyChange( INPUT_LINES_TERMINATED_BY, old, this.inputLinesTerminatedBy );
+    this.inputLinesTerminatedBy = propertyChange( INPUT_LINES_TERMINATED_BY, this.inputLinesTerminatedBy, inputLinesTerminatedBy );
   }
 
   public String getInputOptionallyEnclosedBy() {
@@ -590,9 +562,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setInputOptionallyEnclosedBy( String inputOptionallyEnclosedBy ) {
-    String old = this.inputOptionallyEnclosedBy;
-    this.inputOptionallyEnclosedBy = inputOptionallyEnclosedBy;
-    pcs.firePropertyChange( INPUT_OPTIONALLY_ENCLOSED_BY, old, this.inputOptionallyEnclosedBy );
+    this.inputOptionallyEnclosedBy = propertyChange( INPUT_OPTIONALLY_ENCLOSED_BY, this.inputOptionallyEnclosedBy, inputOptionallyEnclosedBy );
   }
 
   public String getBinDir() {
@@ -600,9 +570,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setBinDir( String binDir ) {
-    String old = this.binDir;
-    this.binDir = binDir;
-    pcs.firePropertyChange( BIN_DIR, old, this.binDir );
+    this.binDir = propertyChange( BIN_DIR, this.binDir, binDir );
   }
 
   public String getClassName() {
@@ -610,9 +578,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setClassName( String className ) {
-    String old = this.className;
-    this.className = className;
-    pcs.firePropertyChange( CLASS_NAME, old, this.className );
+    this.className = propertyChange( CLASS_NAME, this.className, className );
   }
 
   public String getJarFile() {
@@ -620,9 +586,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setJarFile( String jarFile ) {
-    String old = this.jarFile;
-    this.jarFile = jarFile;
-    pcs.firePropertyChange( JAR_FILE, old, this.jarFile );
+    this.jarFile = propertyChange( JAR_FILE, this.jarFile, jarFile );
   }
 
   public String getOutdir() {
@@ -630,9 +594,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setOutdir( String outdir ) {
-    String old = this.outdir;
-    this.outdir = outdir;
-    pcs.firePropertyChange( OUTDIR, old, this.outdir );
+    this.outdir = propertyChange( OUTDIR, this.outdir, outdir );
   }
 
   public String getPackageName() {
@@ -640,9 +602,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setPackageName( String packageName ) {
-    String old = this.packageName;
-    this.packageName = packageName;
-    pcs.firePropertyChange( PACKAGE_NAME, old, this.packageName );
+    this.packageName = propertyChange( PACKAGE_NAME, this.packageName, packageName );
   }
 
   public String getMapColumnJava() {
@@ -650,9 +610,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setMapColumnJava( String mapColumnJava ) {
-    String old = this.mapColumnJava;
-    this.mapColumnJava = mapColumnJava;
-    pcs.firePropertyChange( MAP_COLUMN_JAVA, old, this.mapColumnJava );
+    this.mapColumnJava = propertyChange( MAP_COLUMN_JAVA, this.mapColumnJava, mapColumnJava );
   }
 
   public String getTable() {
@@ -660,9 +618,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setTable( String table ) {
-    String old = this.table;
-    this.table = table;
-    pcs.firePropertyChange( TABLE, old, this.table );
+    this.table = propertyChange( TABLE, this.table, table );
   }
 
   public String getNumMappers() {
@@ -670,9 +626,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setNumMappers( String numMappers ) {
-    String old = this.numMappers;
-    this.numMappers = numMappers;
-    pcs.firePropertyChange( NUM_MAPPERS, old, this.numMappers );
+    this.numMappers = propertyChange( NUM_MAPPERS, this.numMappers, numMappers );
   }
 
   public String getCommandLine() {
@@ -680,9 +634,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setCommandLine( String commandLine ) {
-    String old = this.commandLine;
-    this.commandLine = commandLine;
-    pcs.firePropertyChange( COMMAND_LINE, old, this.commandLine );
+    this.commandLine = propertyChange( COMMAND_LINE, this.commandLine, commandLine );
   }
 
   public String getMode() {
@@ -708,9 +660,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setMode( String mode ) {
-    String old = this.mode;
-    this.mode = mode;
-    pcs.firePropertyChange( MODE, old, this.mode );
+    this.mode = propertyChange( MODE, this.mode, mode );
   }
 
   public String getClusterName() {
@@ -718,63 +668,39 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setClusterName( String clusterName ) {
-    this.clusterName = clusterName;
+    this.clusterName = propertyChange( "clusterName", this.clusterName, clusterName );
   }
 
   public String getNamenodeHost() {
-    NamedCluster namedCluster = getNamedCluster();
-    if ( namedCluster != null ) {
-      namenodeHost = namedCluster.getHdfsHost();
-    }
-    return namenodeHost;
+    return getNamedCluster().getHdfsHost();
   }
 
   public void setNamenodeHost( String namenodeHost ) {
-    String old = this.namenodeHost;
-    this.namenodeHost = namenodeHost;
-    pcs.firePropertyChange( NAMENODE_HOST, old, this.namenodeHost );
+    getNamedCluster().setHdfsHost( propertyChange( NAMENODE_HOST, getNamenodeHost(), namenodeHost ) );
   }
 
   public String getNamenodePort() {
-    NamedCluster namedCluster = getNamedCluster();
-    if ( namedCluster != null ) {
-      namenodePort = namedCluster.getHdfsPort();
-    }
-    return namenodePort;
+    return getNamedCluster().getHdfsPort();
   }
 
   public void setNamenodePort( String namenodePort ) {
-    String old = this.namenodePort;
-    this.namenodePort = namenodePort;
-    pcs.firePropertyChange( NAMENODE_PORT, old, this.namenodePort );
+    getNamedCluster().setHdfsPort( propertyChange( NAMENODE_PORT, getNamenodePort(), namenodePort ) );
   }
 
   public String getJobtrackerHost() {
-    NamedCluster namedCluster = getNamedCluster();
-    if ( namedCluster != null ) {
-      jobtrackerHost = namedCluster.getJobTrackerHost();
-    }
-    return jobtrackerHost;
+    return getNamedCluster().getJobTrackerHost();
   }
 
   public void setJobtrackerHost( String jobtrackerHost ) {
-    String old = this.jobtrackerHost;
-    this.jobtrackerHost = jobtrackerHost;
-    pcs.firePropertyChange( JOBTRACKER_HOST, old, this.jobtrackerHost );
+    getNamedCluster().setJobTrackerHost( propertyChange( JOBTRACKER_HOST, getJobtrackerHost(), jobtrackerHost ) );
   }
 
   public String getJobtrackerPort() {
-    NamedCluster namedCluster = getNamedCluster();
-    if ( namedCluster != null ) {
-      jobtrackerPort = namedCluster.getJobTrackerPort();
-    }
-    return jobtrackerPort;
+    return getNamedCluster().getJobTrackerPort();
   }
 
   public void setJobtrackerPort( String jobtrackerPort ) {
-    String old = this.jobtrackerPort;
-    this.jobtrackerPort = jobtrackerPort;
-    pcs.firePropertyChange( JOBTRACKER_PORT, old, this.jobtrackerPort );
+    getNamedCluster().setJobTrackerPort( propertyChange( JOBTRACKER_PORT, getJobtrackerPort(), jobtrackerPort ) );
   }
 
   public String getHadoopMapredHome() {
@@ -782,9 +708,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHadoopMapredHome( String hadoopMapredHome ) {
-    String old = this.hadoopMapredHome;
-    this.hadoopMapredHome = hadoopMapredHome;
-    pcs.firePropertyChange( HADOOP_MAPRED_HOME, old, this.hadoopMapredHome );
+    this.hadoopMapredHome = propertyChange( HADOOP_MAPRED_HOME, this.hadoopMapredHome, hadoopMapredHome );
   }
 
   public String getPasswordAlias() {
@@ -792,9 +716,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setPasswordAlias( String passwordAlias ) {
-    String old = this.passwordAlias;
-    this.passwordAlias = passwordAlias;
-    pcs.firePropertyChange( PASSWORD_ALIAS, old, this.passwordAlias );
+    this.passwordAlias = propertyChange( PASSWORD_ALIAS, this.passwordAlias, passwordAlias );
   }
 
   public String getPasswordFile() {
@@ -802,9 +724,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setPasswordFile( String passwordFile ) {
-    String old = this.passwordFile;
-    this.passwordFile = passwordFile;
-    pcs.firePropertyChange( PASSWORD_FILE, old, this.passwordFile );
+    this.passwordFile = propertyChange( PASSWORD_FILE, this.passwordFile, passwordFile );
   }
 
   public String getRelaxedIsolation() {
@@ -812,9 +732,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setRelaxedIsolation( String relaxedIsolation ) {
-    String old = this.relaxedIsolation;
-    this.relaxedIsolation = relaxedIsolation;
-    pcs.firePropertyChange( RELAXED_ISOLATION, old, this.relaxedIsolation );
+    this.relaxedIsolation = propertyChange( RELAXED_ISOLATION, this.relaxedIsolation, relaxedIsolation );
   }
 
   public String getSkipDistCache() {
@@ -822,9 +740,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setSkipDistCache( String skipDistCache ) {
-    String old = this.skipDistCache;
-    this.skipDistCache = skipDistCache;
-    pcs.firePropertyChange( SKIP_DIST_CACHE, old, this.skipDistCache );
+    this.skipDistCache = propertyChange( SKIP_DIST_CACHE, this.skipDistCache, skipDistCache );
   }
 
   public String getMapreduceJobName() {
@@ -832,9 +748,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setMapreduceJobName( String mapreduceJobName ) {
-    String old = this.mapreduceJobName;
-    this.mapreduceJobName = mapreduceJobName;
-    pcs.firePropertyChange( MAPREDUCE_JOB_NAME, old, this.mapreduceJobName );
+    this.mapreduceJobName = propertyChange( MAPREDUCE_JOB_NAME, this.mapreduceJobName, mapreduceJobName );
   }
 
   public String getValidate() {
@@ -842,9 +756,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setValidate( String validate ) {
-    String old = this.validate;
-    this.validate = validate;
-    pcs.firePropertyChange( VALIDATE, old, this.validate );
+    this.validate = propertyChange( VALIDATE, this.validate, validate );
   }
 
   public String getValidationFailureHandler() {
@@ -852,9 +764,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setValidationFailureHandler( String validationFailureHandler ) {
-    String old = this.validationFailureHandler;
-    this.validationFailureHandler = validationFailureHandler;
-    pcs.firePropertyChange( VALIDATION_FAILUREHANDLER, old, this.validationFailureHandler );
+    this.validationFailureHandler = propertyChange( VALIDATION_FAILURE_HANDLER, this.validationFailureHandler, validationFailureHandler );
   }
 
   public String getValidationThreshold() {
@@ -862,9 +772,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setValidationThreshold( String validationThreshold ) {
-    String old = this.validationThreshold;
-    this.validationThreshold = validationThreshold;
-    pcs.firePropertyChange( VALIDATION_THRESHOLD, old, this.validationThreshold );
+    this.validationThreshold = propertyChange( VALIDATION_THRESHOLD, this.validationThreshold, validationThreshold );
   }
 
   public String getValidator() {
@@ -872,9 +780,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setValidator( String validator ) {
-    String old = this.validator;
-    this.validator = validator;
-    pcs.firePropertyChange( VALIDATOR, old, this.validator );
+    this.validator = propertyChange( VALIDATOR, this.validator, validator );
   }
 
   public String getHcatalogDatabase() {
@@ -882,9 +788,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHcatalogDatabase( String hcatalogDatabase ) {
-    String old = this.hcatalogDatabase;
-    this.hcatalogDatabase = hcatalogDatabase;
-    pcs.firePropertyChange( HCATALOG_DATABASE, old, this.hcatalogDatabase );
+    this.hcatalogDatabase = propertyChange( HCATALOG_DATABASE, this.hcatalogDatabase, hcatalogDatabase );
   }
 
   public String getHcatalogHome() {
@@ -892,9 +796,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHcatalogHome( String hcatalogHome ) {
-    String old = this.hcatalogHome;
-    this.hcatalogHome = hcatalogHome;
-    pcs.firePropertyChange( HCATALOG_HOME, old, this.hcatalogHome );
+    this.hcatalogHome = propertyChange( HCATALOG_HOME, this.hcatalogHome, hcatalogHome );
   }
 
   public String getHcatalogPartitionKeys() {
@@ -902,9 +804,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHcatalogPartitionKeys( String hcatalogPartitionKeys ) {
-    String old = this.hcatalogPartitionKeys;
-    this.hcatalogPartitionKeys = hcatalogPartitionKeys;
-    pcs.firePropertyChange( HCATALOG_PARTITION_KEYS, old, this.hcatalogPartitionKeys );
+    this.hcatalogPartitionKeys = propertyChange( HCATALOG_PARTITION_KEYS, this.hcatalogPartitionKeys, hcatalogPartitionKeys );
   }
 
   public String getHcatalogPartitionValues() {
@@ -912,9 +812,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHcatalogPartitionValues( String hcatalogPartitionValues ) {
-    String old = this.hcatalogPartitionValues;
-    this.hcatalogPartitionValues = hcatalogPartitionValues;
-    pcs.firePropertyChange( HCATALOG_PARTITION_VALUES, old, this.hcatalogPartitionValues );
+    this.hcatalogPartitionValues = propertyChange( HCATALOG_PARTITION_VALUES, this.hcatalogPartitionValues, hcatalogPartitionValues );
   }
 
   public String getHcatalogTable() {
@@ -922,9 +820,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHcatalogTable( String hcatalogTable ) {
-    String old = this.hcatalogTable;
-    this.hcatalogTable = hcatalogTable;
-    pcs.firePropertyChange( HCATALOG_TABLE, old, this.hcatalogTable );
+    this.hcatalogTable = propertyChange( HCATALOG_TABLE, this.hcatalogTable, hcatalogTable );
   }
 
   public String getHiveHome() {
@@ -932,9 +828,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHiveHome( String hiveHome ) {
-    String old = this.hiveHome;
-    this.hiveHome = hiveHome;
-    pcs.firePropertyChange( HIVE_HOME, old, this.hiveHome );
+    this.hiveHome = propertyChange( HIVE_HOME, this.hiveHome, hiveHome );
   }
 
   public String getHivePartitionKey() {
@@ -942,9 +836,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHivePartitionKey( String hivePartitionKey ) {
-    String old = this.hivePartitionKey;
-    this.hivePartitionKey = hivePartitionKey;
-    pcs.firePropertyChange( HIVE_PARTITION_KEY, old, this.hivePartitionKey );
+    this.hivePartitionKey = propertyChange( HIVE_PARTITION_KEY, this.hivePartitionKey, hivePartitionKey );
   }
 
   public String getHivePartitionValue() {
@@ -952,9 +844,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setHivePartitionValue( String hivePartitionValue ) {
-    String old = this.hivePartitionValue;
-    this.hivePartitionValue = hivePartitionValue;
-    pcs.firePropertyChange( HIVE_PARTITION_VALUE, old, this.hivePartitionValue );
+    this.hivePartitionValue = propertyChange( HIVE_PARTITION_VALUE, this.hivePartitionValue, hivePartitionValue );
   }
 
   public String getMapColumnHive() {
@@ -962,18 +852,14 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setMapColumnHive( String mapColumnHive ) {
-    String old = this.mapColumnHive;
-    this.mapColumnHive = mapColumnHive;
-    pcs.firePropertyChange( MAP_COLUMN_HIVE, old, this.mapColumnHive );
+    this.mapColumnHive = propertyChange( MAP_COLUMN_HIVE, this.mapColumnHive, mapColumnHive );
   }
   public String getInputNullString() {
     return inputNullString;
   }
 
   public void setInputNullString( String inputNullString ) {
-    String old = this.inputNullString;
-    this.inputNullString = inputNullString;
-    pcs.firePropertyChange( INPUT_NULL_STRING, old, this.inputNullString );
+    this.inputNullString = propertyChange( INPUT_NULL_STRING, this.inputNullString, inputNullString );
   }
 
   public String getInputNullNonString() {
@@ -981,18 +867,14 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setInputNullNonString( String inputNullNonString ) {
-    String old = this.inputNullNonString;
-    this.inputNullNonString = inputNullNonString;
-    pcs.firePropertyChange( INPUT_NULL_NON_STRING, old, this.inputNullNonString );
+    this.inputNullNonString = propertyChange( INPUT_NULL_NON_STRING, this.inputNullNonString, inputNullNonString );
   }
   public String getNullString() {
     return nullString;
   }
 
   public void setNullString( String nullString ) {
-    String old = this.nullString;
-    this.nullString = nullString;
-    pcs.firePropertyChange( NULL_STRING, old, this.nullString );
+    this.nullString = propertyChange( NULL_STRING, this.nullString, nullString );
   }
 
   public String getNullNonString() {
@@ -1000,9 +882,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setNullNonString( String nullNonString ) {
-    String old = this.nullNonString;
-    this.nullNonString = nullNonString;
-    pcs.firePropertyChange( NULL_NON_STRING, old, this.nullNonString );
+    this.nullNonString = propertyChange( NULL_NON_STRING, this.nullNonString, nullNonString );
   }
 
   public String getFiles() {
@@ -1010,9 +890,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setFiles( String files ) {
-    String old = this.files;
-    this.files = files;
-    pcs.firePropertyChange( FILES, old, this.files );
+    this.files = propertyChange( FILES, this.files, files );
   }
 
   public String getLibjars() {
@@ -1020,9 +898,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setLibjars( String libjars ) {
-    String old = this.libjars;
-    this.libjars = libjars;
-    pcs.firePropertyChange( LIBJARS, old, this.libjars );
+    this.libjars = propertyChange( LIBJARS, this.libjars, libjars );
   }
 
   public String getArchives() {
@@ -1030,9 +906,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public void setArchives( String archives ) {
-    String old = this.archives;
-    this.archives = archives;
-    pcs.firePropertyChange( ARCHIVES, old, this.archives );
+    this.archives = propertyChange( ARCHIVES, this.archives, archives );
   }
 
   public AbstractModelList<PropertyEntry> getCustomArguments() {
@@ -1044,5 +918,50 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   public void setCustomArguments( AbstractModelList<PropertyEntry> customArguments ) {
     this.customArguments = customArguments;
+  }
+
+  public void loadClusterConfig( Repository rep, ObjectId id ) throws KettleException {
+    setNamedCluster( null );
+    setNamenodeHost( rep.getJobEntryAttributeString( id, NAMENODE_HOST ) );
+    setNamenodePort( rep.getJobEntryAttributeString( id, NAMENODE_PORT ) );
+    setJobtrackerHost( rep.getJobEntryAttributeString( id, JOBTRACKER_HOST ) );
+    setJobtrackerPort( rep.getJobEntryAttributeString( id, JOBTRACKER_PORT ) );
+  }
+
+  public void loadClusterConfig( Node entrynode ) {
+    setNamedCluster( null );
+    setNamenodeHost( XMLHandler.getTagValue( entrynode, NAMENODE_HOST ) );
+    setNamenodePort( XMLHandler.getTagValue( entrynode, NAMENODE_PORT ) );
+    setJobtrackerHost( XMLHandler.getTagValue( entrynode, JOBTRACKER_HOST ) );
+    setJobtrackerPort( XMLHandler.getTagValue( entrynode, JOBTRACKER_PORT ) );
+  }
+
+  public String getClusterXML() {
+    StringBuilder builder = new StringBuilder();
+    for ( Map.Entry<String, String> entry : namedClusterProperties( getNamedCluster() ).entrySet() ) {
+      builder.append( XMLHandler.addTagValue( entry.getKey(), entry.getValue() ) );
+    }
+    return builder.toString();
+  }
+
+  public void saveClusterConfig( Repository rep, ObjectId id_job, JobEntryInterface jobEntry ) throws KettleException {
+    ObjectId objectId = jobEntry.getObjectId();
+    for ( Map.Entry<String, String> entry : namedClusterProperties( getNamedCluster() ).entrySet() ) {
+      rep.saveJobEntryAttribute( id_job, objectId, entry.getKey(), entry.getValue() );
+    }
+  }
+
+  public boolean isAdvancedClusterConfigSet() {
+    Map<String, String> defaults = namedClusterProperties( createClusterTemplate() );
+    return Strings.isNullOrEmpty( getClusterName() ) && namedClusterProperties( getNamedCluster() ).equals( defaults );
+  }
+
+  private static Map<String, String> namedClusterProperties( NamedCluster namedCluster ) {
+    return ImmutableMap.of(
+      NAMENODE_HOST, Strings.nullToEmpty( namedCluster.getHdfsHost() ),
+      NAMENODE_PORT, Strings.nullToEmpty( namedCluster.getHdfsPort() ),
+      JOBTRACKER_HOST, Strings.nullToEmpty( namedCluster.getJobTrackerHost() ),
+      JOBTRACKER_PORT, Strings.nullToEmpty( namedCluster.getJobTrackerPort() )
+    );
   }
 }

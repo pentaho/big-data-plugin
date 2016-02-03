@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.di.job.entries.helper;
+package org.pentaho.big.data.kettle.plugins.sqoop;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
