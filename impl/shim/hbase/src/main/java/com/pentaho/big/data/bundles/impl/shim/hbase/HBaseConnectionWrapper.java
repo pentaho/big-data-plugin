@@ -22,6 +22,7 @@
 
 package com.pentaho.big.data.bundles.impl.shim.hbase;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.hbase.client.Result;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.hbase.shim.api.ColumnFilter;
@@ -223,11 +224,13 @@ public class HBaseConnectionWrapper extends HBaseConnection {
     }
   }
 
-  private Field getResultSetRowField( Object o ) {
+  @VisibleForTesting
+  static Field getResultSetRowField( Object o ) {
     return getField( o.getClass(), "m_currentResultSetRow" );
   }
 
-  private Field getField( Class<?> clazz, String fieldName ) {
+  @VisibleForTesting
+  static Field getField( Class<?> clazz, String fieldName ) {
     Class<?> current = clazz;
     while ( current != null ) {
       try {
@@ -240,7 +243,8 @@ public class HBaseConnectionWrapper extends HBaseConnection {
     return null;
   }
 
-  private HBaseConnection findRealImpl( Object hBaseConnection ) {
+  @VisibleForTesting
+  static HBaseConnection findRealImpl( Object hBaseConnection ) {
     Class<?> hBaseConnectionClass = hBaseConnection.getClass();
     if ( Proxy.isProxyClass( hBaseConnectionClass ) ) {
       return unwrapProxy( hBaseConnection );
@@ -259,7 +263,8 @@ public class HBaseConnectionWrapper extends HBaseConnection {
     return null;
   }
 
-  private Object getFieldValue( Field field, Object object ) {
+  @VisibleForTesting
+  static Object getFieldValue( Field field, Object object ) {
     final boolean setAccessible = !field.isAccessible();
     try {
       if ( setAccessible ) {
@@ -276,7 +281,8 @@ public class HBaseConnectionWrapper extends HBaseConnection {
     return null;
   }
 
-  private HBaseConnection unwrapProxy( Object proxy ) {
+  @VisibleForTesting
+  static HBaseConnection unwrapProxy( Object proxy ) {
     InvocationHandler invocationHandler = Proxy.getInvocationHandler( proxy );
     Class<?> clazz = invocationHandler.getClass();
     while ( clazz != null ) {
@@ -289,5 +295,15 @@ public class HBaseConnectionWrapper extends HBaseConnection {
       clazz = clazz.getSuperclass();
     }
     return null;
+  }
+
+  @VisibleForTesting
+  Field getResultSetRowField() {
+    return resultSetRowField;
+  }
+
+  @VisibleForTesting
+  HBaseConnection getRealImpl() {
+    return realImpl;
   }
 }

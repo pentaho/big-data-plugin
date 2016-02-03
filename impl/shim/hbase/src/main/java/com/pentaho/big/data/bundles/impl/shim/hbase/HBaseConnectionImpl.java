@@ -27,7 +27,6 @@ import com.pentaho.big.data.bundles.impl.shim.hbase.connectionPool.HBaseConnecti
 import com.pentaho.big.data.bundles.impl.shim.hbase.table.HBaseTableImpl;
 import org.pentaho.bigdata.api.hbase.HBaseConnection;
 import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.table.HBaseTable;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.hbase.shim.spi.HBaseBytesUtilShim;
 import org.pentaho.hbase.shim.spi.HBaseShim;
@@ -55,7 +54,7 @@ public class HBaseConnectionImpl implements HBaseConnection {
     return hBaseService;
   }
 
-  @Override public HBaseTable getTable( String tableName ) throws IOException {
+  @Override public HBaseTableImpl getTable( String tableName ) throws IOException {
     return new HBaseTableImpl( hBaseConnectionPool, hBaseService.getHBaseValueMetaInterfaceFactory(),
       hBaseBytesUtilShim, tableName );
   }
