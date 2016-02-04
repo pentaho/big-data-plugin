@@ -97,7 +97,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   }
 
   public List<String> getValidationWarnings( OozieJobExecutorConfig config, boolean checkOozieConnection ) {
-    List<String> messages = new ArrayList<String>();
+    List<String> messages = new ArrayList<>();
 
     // verify there is a job name
     if ( StringUtil.isEmpty( config.getJobEntryName() ) ) {
@@ -244,7 +244,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
 
   public static Properties getProperties( OozieJobExecutorConfig config, VariableSpace variableSpace )
     throws KettleFileException, IOException {
-    Properties jobProps = null;
+    Properties jobProps;
     if ( config.getModeAsEnum() == JobEntryMode.ADVANCED_LIST && config.getWorkflowProperties() != null ) {
       jobProps = new Properties();
       for ( PropertyEntry propertyEntry : config.getWorkflowProperties() ) {
@@ -335,7 +335,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     setJobResultFailed( jobResult );
   }
 
-  private String getEffectiveOozieUrl( OozieJobExecutorConfig config ) {
+  @VisibleForTesting
+  String getEffectiveOozieUrl( OozieJobExecutorConfig config ) {
     String oozieUrl = config.getOozieUrl();
     try {
       NamedCluster nc = getNamedCluster( config );
@@ -346,7 +347,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     } catch ( Throwable t ) {
       logDebug( t.getMessage(), t );
     }
-    return oozieUrl;
+    return getVariableSpace().environmentSubstitute( oozieUrl );
   }
 
   public OozieService getOozieService() {

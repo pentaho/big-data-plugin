@@ -24,6 +24,8 @@ package org.pentaho.big.data.kettle.plugins.oozie;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -58,6 +60,7 @@ import org.pentaho.bigdata.api.oozie.OozieServiceException;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -114,9 +117,9 @@ public class OozieJobExecutorJobEntryTest {
     jobEntry2.loadXML( d.getDocumentElement(), null, null, null );
 
     OozieJobExecutorConfig jobConfig2 = jobEntry2.getJobConfig();
-    junit.framework.Assert.assertEquals( jobConfig.getOozieWorkflow(), jobConfig2.getOozieWorkflow() );
-    junit.framework.Assert.assertEquals( jobConfig.getOozieWorkflowConfig(), jobConfig2.getOozieWorkflowConfig() );
-    junit.framework.Assert.assertEquals( jobConfig.getOozieUrl(), jobConfig2.getOozieUrl() );
+    assertEquals( jobConfig.getOozieWorkflow(), jobConfig2.getOozieWorkflow() );
+    assertEquals( jobConfig.getOozieWorkflowConfig(), jobConfig2.getOozieWorkflowConfig() );
+    assertEquals( jobConfig.getOozieUrl(), jobConfig2.getOozieUrl() );
   }
 
   @Test
@@ -129,7 +132,7 @@ public class OozieJobExecutorJobEntryTest {
     jobConfig.setOozieWorkflowConfig( "file:///User/test-user/oozie/job.properties" );
     jobConfig.setOozieUrl( "http://localhost:11000/oozie" );
 
-    ArrayList<PropertyEntry> props = new ArrayList<PropertyEntry>();
+    ArrayList<PropertyEntry> props = new ArrayList<>();
     props.add( new PropertyEntry( "testProp", "testValue" ) );
     jobConfig.setWorkflowProperties( props );
 
@@ -145,12 +148,12 @@ public class OozieJobExecutorJobEntryTest {
     jobEntry2.loadXML( d.getDocumentElement(), null, null, null );
 
     OozieJobExecutorConfig jobConfig2 = jobEntry2.getJobConfig();
-    junit.framework.Assert.assertEquals( jobConfig.getOozieWorkflow(), jobConfig2.getOozieWorkflow() );
-    junit.framework.Assert.assertEquals( jobConfig.getOozieWorkflowConfig(), jobConfig2.getOozieWorkflowConfig() );
-    junit.framework.Assert.assertEquals( jobConfig.getOozieUrl(), jobConfig2.getOozieUrl() );
+    assertEquals( jobConfig.getOozieWorkflow(), jobConfig2.getOozieWorkflow() );
+    assertEquals( jobConfig.getOozieWorkflowConfig(), jobConfig2.getOozieWorkflowConfig() );
+    assertEquals( jobConfig.getOozieUrl(), jobConfig2.getOozieUrl() );
 
     assertNotNull( jobConfig2.getWorkflowProperties() );
-    junit.framework.Assert.assertEquals( "testValue", jobConfig2.getWorkflowProperties().get( 0 ).getValue() );
+    assertEquals( "testValue", jobConfig2.getWorkflowProperties().get( 0 ).getValue() );
   }
 
   @Test
@@ -379,7 +382,7 @@ public class OozieJobExecutorJobEntryTest {
   public void testGetProperties_fromAdvancedProperties() throws Exception {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
 
-    ArrayList<PropertyEntry> advancedProps = new ArrayList<PropertyEntry>();
+    ArrayList<PropertyEntry> advancedProps = new ArrayList<>();
     advancedProps.add( new PropertyEntry( "prop1", "value1" ) );
     advancedProps.add( new PropertyEntry( "prop2", "value2" ) );
     advancedProps.add( new PropertyEntry( "prop3", "value3" ) );
@@ -461,6 +464,29 @@ public class OozieJobExecutorJobEntryTest {
     jobEntry.getOozieService();
 
     verify( jobEntry ).logError( anyString(), any( ClusterInitializationException.class ) );
+  }
+
+  @Test
+  public void getEffectiveOozieUrlFromCluster() {
+    when( config.getNamedCluster() ).thenReturn( namedCluster );
+    when( namedCluster.getOozieUrl() ).thenReturn( OOZIE_URL );
+
+    assertThat( oozieJobEntry.getEffectiveOozieUrl( config ),
+      is( OOZIE_URL ) );
+  }
+
+  @Test
+  public void oozieUrlSubstitutedInVariableSpace() {
+    OozieJobExecutorJobEntry jobEntry = getStubbedOozieJobExecutorJobEntry();
+    VariableSpace variableSpace = mock( VariableSpace.class );
+    String OOZIE_VAR = "${oozie_url}";
+    when( jobEntry.getVariableSpace() ).thenReturn( variableSpace );
+    when( config.getOozieUrl() ).thenReturn( OOZIE_VAR );
+    String SUBSTITUTED_URL = "http://my.url";
+    when( variableSpace.environmentSubstitute( OOZIE_VAR ) )
+      .thenReturn( SUBSTITUTED_URL );
+
+    assertThat( jobEntry.getEffectiveOozieUrl( config ), is( SUBSTITUTED_URL ) );
   }
 
   private OozieJobExecutorJobEntry getStubbedOozieJobExecutorJobEntry() {
