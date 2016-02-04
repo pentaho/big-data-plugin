@@ -27,8 +27,7 @@ import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,9 +41,14 @@ import org.apache.oozie.client.WorkflowJob;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.impl.shim.oozie.FallbackOozieClientImpl;
 import org.pentaho.big.data.impl.shim.oozie.OozieServiceImpl;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
@@ -59,6 +63,8 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.job.entry.JobEntryCopy;
+import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Document;
@@ -66,7 +72,20 @@ import org.w3c.dom.Document;
 /**
  * User: RFellows Date: 6/5/12
  */
+@RunWith( MockitoJUnitRunner.class )
 public class OozieJobExecutorJobEntryTest {
+
+  @Mock NamedClusterService namedClusterService;
+  @Mock NamedCluster namedCluster;
+  @Mock OozieJobExecutorConfig config;
+  @Mock RuntimeTestActionService runtimeTestActionService;
+  @Mock NamedClusterServiceLocator namedClusterServiceLocator;
+  @Mock RuntimeTester runtimeTester;
+  @Mock IMetaStore metaStore;
+  @InjectMocks OozieJobExecutorJobEntry oozieJobEntry;
+
+  final String OOZIE_URL = "http://the.url";
+  final String CLUSTER_NAME = "cluster name";
 
   @BeforeClass
   public static void init() throws Exception {
@@ -374,6 +393,82 @@ public class OozieJobExecutorJobEntryTest {
 
     assertTrue( "Advanced properties were not used", props.containsKey( "prop1" ) );
     assertEquals( 3, props.size() );
+  }
+
+  @Test
+  public void getOozieServiceNoMetaStoreNoConfigCluster() throws ClusterInitializationException {
+    when( namedClusterService.getClusterTemplate() )
+      .thenReturn( namedCluster );
+    when( namedCluster.clone() ).thenReturn( namedCluster );
+    when( config.getOozieUrl() ).thenReturn( OOZIE_URL );
+    oozieJobEntry.getOozieService( config );
+
+    verify( namedCluster, atLeastOnce() ).setOozieUrl( OOZIE_URL );
+    verify( namedClusterServiceLocator )
+      .getService( namedCluster, OozieService.class );
+  }
+
+  @Test
+  public void getOozieServiceNamedClusterInMetaStore() throws ClusterInitializationException, MetaStoreException {
+    oozieJobEntry.setMetaStore( metaStore );
+    when( config.getClusterName() ).thenReturn( CLUSTER_NAME );
+    when( namedClusterService.contains( CLUSTER_NAME, metaStore ) )
+      .thenReturn( true );
+    when( namedCluster.clone() ).thenReturn( namedCluster );
+    when( namedClusterService.read( CLUSTER_NAME, metaStore ) )
+      .thenReturn( namedCluster );
+
+    oozieJobEntry.setJobConfig( config );
+    oozieJobEntry.getOozieService();
+
+    verify( namedClusterService, atLeastOnce() ).read( CLUSTER_NAME, metaStore );
+    verify( namedClusterServiceLocator )
+      .getService( namedCluster, OozieService.class );
+  }
+
+  @Test
+  public void getOozieServiceClusterInConfig() throws ClusterInitializationException {
+    when( config.getNamedCluster() ).thenReturn( namedCluster );
+    when( namedCluster.clone() ).thenReturn( namedCluster );
+    oozieJobEntry.getOozieService( config );
+
+    verify( namedClusterServiceLocator )
+      .getService( namedCluster, OozieService.class );
+  }
+
+  @Test
+  public void getOozieServiceHandlesMetaStoreException() throws MetaStoreException {
+    OozieJobExecutorJobEntry jobEntry = getStubbedOozieJobExecutorJobEntry();
+    when( namedClusterService.contains( CLUSTER_NAME, metaStore ) )
+      .thenThrow( mock( MetaStoreException.class ) );
+    jobEntry.getOozieService();
+
+    verify( jobEntry ).logError( anyString(), any( MetaStoreException.class ) );
+  }
+
+  @Test
+  public void getOozieServiceClusterInitializationException() throws MetaStoreException,
+    ClusterInitializationException {
+    OozieJobExecutorJobEntry jobEntry = getStubbedOozieJobExecutorJobEntry();
+    when( namedClusterServiceLocator.getService( namedCluster, OozieService.class ) )
+      .thenThrow( mock( ClusterInitializationException.class ) );
+    when( namedClusterService.contains( CLUSTER_NAME, metaStore ) )
+      .thenReturn( true );
+    when( namedCluster.clone() ).thenReturn( namedCluster );
+    when( namedClusterService.read( CLUSTER_NAME, metaStore ) )
+      .thenReturn( namedCluster );
+
+    jobEntry.getOozieService();
+
+    verify( jobEntry ).logError( anyString(), any( ClusterInitializationException.class ) );
+  }
+
+  private OozieJobExecutorJobEntry getStubbedOozieJobExecutorJobEntry() {
+    OozieJobExecutorJobEntry jobEntry = spy( oozieJobEntry );
+    jobEntry.setMetaStore( metaStore );
+    jobEntry.setJobConfig( config );
+    when( config.getClusterName() ).thenReturn( CLUSTER_NAME );
+    return jobEntry;
   }
 
   private TestOozieClient getFailingTestOozieClient() {

@@ -188,15 +188,21 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   }
 
   private NamedCluster getNamedCluster( OozieJobExecutorConfig config ) throws MetaStoreException {
-    // load from system first, then fall back to copy stored with job (AbstractMeta)
+    // load from system first, then
     NamedCluster nc = null;
     if ( metaStore != null && !StringUtils.isEmpty( jobConfig.getClusterName() )
       && namedClusterService.contains( jobConfig.getClusterName(), metaStore ) ) {
       // pull config from NamedCluster
       nc = namedClusterService.read( jobConfig.getClusterName(), metaStore );
     }
+    // fall back to copy stored with job (AbstractMeta)
     if ( nc == null ) {
       nc = config.getNamedCluster();
+    }
+    // final fallback, construct cluster based on oozie url from job config
+    if ( nc == null && namedClusterService != null ) {
+      nc = namedClusterService.getClusterTemplate();
+      nc.setOozieUrl( config.getOozieUrl() );
     }
     return nc;
   }
@@ -332,7 +338,6 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   private String getEffectiveOozieUrl( OozieJobExecutorConfig config ) {
     String oozieUrl = config.getOozieUrl();
     try {
-      // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = getNamedCluster( config );
 
       if ( nc != null && !StringUtils.isEmpty( nc.getOozieUrl() ) ) {
@@ -356,7 +361,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         cluster,
         OozieService.class );
     } catch ( ClusterInitializationException e ) {
-      logError( "Cluster initialization failure on service load" );
+      logError( "Cluster initialization failure on service load", e );
     } catch ( MetaStoreException e ) {
       logError( "Failed to read cluster from metastore", e );
     }
