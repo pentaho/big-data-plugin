@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.mapreduce.step.exit;
 
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -32,6 +33,8 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
 public class HadoopExit extends BaseStep implements StepInterface {
+  private static final Class<?> PKG = HadoopExit.class;
+
   private HadoopExitMeta meta;
   private HadoopExitData data;
 
@@ -65,6 +68,10 @@ public class HadoopExit extends BaseStep implements StepInterface {
     outputRow[HadoopExitData.getOutValueOrdinal()] = r[data.getInValueOrdinal()];
 
     putRow( data.getOutputRowMeta(), outputRow );
+
+    if ( checkFeedback( getLinesRead() ) ) {
+      logBasic( BaseMessages.getString( PKG, "HadoopExit.Linenr", getLinesRead() ) );
+    }
 
     return true;
   }
