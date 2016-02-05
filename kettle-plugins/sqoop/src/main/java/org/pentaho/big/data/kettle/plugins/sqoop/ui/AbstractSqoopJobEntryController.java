@@ -30,6 +30,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntryController;
+import org.pentaho.big.data.kettle.plugins.job.BlockableJobConfig;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.big.data.kettle.plugins.sqoop.AbstractSqoopJobEntry;
@@ -67,8 +68,6 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 import java.util.Collection;
 import java.util.List;
 
-import static org.pentaho.big.data.kettle.plugins.job.BlockableJobConfig.JOB_ENTRY_NAME;
-import static org.pentaho.big.data.kettle.plugins.sqoop.SqoopConfig.COMMAND_LINE;
 import static org.pentaho.big.data.kettle.plugins.sqoop.SqoopConfig.TABLE;
 
 /**
@@ -118,7 +117,8 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
   private AdvancedButton selectedAdvancedButton = AdvancedButton.LIST;
 
   protected enum AdvancedButton {
-    LIST( 0, JobEntryMode.ADVANCED_LIST ), COMMAND_LINE( 1, JobEntryMode.ADVANCED_COMMAND_LINE );
+    LIST( 0, JobEntryMode.ADVANCED_LIST ),
+    COMMAND_LINE( 1, JobEntryMode.ADVANCED_COMMAND_LINE );
 
     private int deckIndex;
     private JobEntryMode mode;
@@ -196,14 +196,14 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
       Collection<Binding> bindings ) {
 
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
-    bindings.add( bindingFactory.createBinding( config, JOB_ENTRY_NAME, JOB_ENTRY_NAME, VALUE ) );
+    bindings.add( bindingFactory.createBinding( config, BlockableJobConfig.JOB_ENTRY_NAME, BlockableJobConfig.JOB_ENTRY_NAME, VALUE ) );
 
     // TODO Determine if separate schema field is required, this has to be provided as part of the --table argument
     // anyway.
     // bindings.add(bindingFactory.createBinding(config, SCHEMA, SCHEMA, VALUE));
     bindings.add( bindingFactory.createBinding( config, TABLE, TABLE, VALUE ) );
 
-    bindings.add( bindingFactory.createBinding( config, COMMAND_LINE, COMMAND_LINE, VALUE ) );
+    bindings.add( bindingFactory.createBinding( config, SqoopConfig.COMMAND_LINE, SqoopConfig.COMMAND_LINE, VALUE ) );
 
     bindingFactory.setBindingType( Binding.Type.ONE_WAY );
     bindings.add( bindingFactory.createBinding( this, "modeToggleLabel", getModeToggleLabelElementId(), VALUE ) );

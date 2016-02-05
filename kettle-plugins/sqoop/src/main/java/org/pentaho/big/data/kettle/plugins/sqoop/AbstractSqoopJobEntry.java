@@ -369,7 +369,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   }
 
   @VisibleForTesting
-  protected void setLogChannel( LogChannelInterface logChannel ){
+  protected void setLogChannel( LogChannelInterface logChannel ) {
     this.log = logChannel;
   }
 
