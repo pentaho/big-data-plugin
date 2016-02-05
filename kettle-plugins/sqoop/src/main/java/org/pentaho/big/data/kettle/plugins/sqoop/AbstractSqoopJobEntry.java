@@ -48,7 +48,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
@@ -113,6 +113,11 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       Repository repository ) throws KettleXMLException {
     super.loadXML( node, databaseMetas, slaveServers, repository );
     loadUsedDataBaseConnection( databaseMetas, getJobConfig() );
+
+    if ( !loadNamedCluster( metaStore ) ) {
+      // load default values for cluster & legacy fallback
+      getJobConfig().loadClusterConfig( node );
+    }
   }
 
   @Override
@@ -120,6 +125,44 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<SlaveServer> slaveServers ) throws KettleException {
     super.loadRep( rep, id_jobentry, databases, slaveServers );
     loadUsedDataBaseConnection( databases, getJobConfig() );
+    if ( !loadNamedCluster( metaStore ) ) {
+      // load default values for cluster & legacy fallback
+      try {
+        getJobConfig().loadClusterConfig( rep, id_jobentry );
+      } catch ( KettleException ke ) {
+        logError( ke.getMessage(), ke );
+      }
+    }
+  }
+
+  @Override public String getXML() {
+    return super.getXML() + getJobConfig().getClusterXML();
+  }
+
+  @Override public void saveRep( Repository rep, ObjectId id_job ) throws KettleException {
+    super.saveRep( rep, id_job );
+    getJobConfig().saveClusterConfig( rep, id_job, this );
+  }
+
+  private boolean loadNamedCluster( IMetaStore metaStore ) {
+    try {
+      // attempt to load from named cluster
+      String clusterName = getJobConfig().getClusterName();
+
+      // load from system first, then fall back to copy stored with job (AbstractMeta)
+      NamedCluster namedCluster = null;
+      if ( !Strings.isNullOrEmpty( clusterName ) && namedClusterService.contains( clusterName, metaStore ) ) {
+        // pull config from NamedCluster
+        namedCluster = namedClusterService.read( clusterName, metaStore );
+      }
+      if ( namedCluster != null ) {
+        getJobConfig().setNamedCluster( namedCluster );
+        return true;
+      }
+    } catch ( Throwable t ) {
+      logDebug( t.getMessage(), t );
+    }
+    return false;
   }
 
   @VisibleForTesting
@@ -248,7 +291,13 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
       args.add( 0, getToolName() ); // push the tool command-line argument on the top of the args list
 
-      SqoopService service = namedClusterServiceLocator.getService( loadNamedCluster( config ), SqoopService.class );
+      loadNamedCluster( getMetaStore() );
+
+      // Clone named cluster and copy in variable space
+      NamedCluster namedCluster = config.getNamedCluster().clone();
+      namedCluster.copyVariablesFrom( this );
+
+      SqoopService service = namedClusterServiceLocator.getService( namedCluster, SqoopService.class );
 
       int result = service.runTool( args, properties );
       if ( result != 0 ) {
@@ -319,32 +368,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     this.usedDbConnection = usedDbConnection;
   }
 
-  private NamedCluster loadNamedCluster( S config ) {
-    NamedCluster namedCluster = null;
-    if ( !Strings.isNullOrEmpty( config.getClusterName() ) ) {
-      try {
-        namedCluster = namedClusterService.read( config.getClusterName(), getMetaStore() );
-        config.setNamedCluster( namedCluster );
-      } catch ( MetaStoreException e ) {
-        logError( getString( "ErrorLoadNamedCluster", config.getClusterName() ), e );
-      }
-    }
-
-    if ( namedCluster == null ) {
-      namedCluster = namedClusterService.getClusterTemplate();
-      namedCluster.setHdfsHost( config.getNamenodeHost() );
-      namedCluster.setHdfsPort( config.getNamenodePort() );
-      namedCluster.setJobTrackerHost( config.getJobtrackerHost() );
-      namedCluster.setJobTrackerPort( config.getJobtrackerPort() );
-    }
-
-    namedCluster = namedCluster.clone();
-    namedCluster.copyVariablesFrom( this );
-    return namedCluster;
-  }
-
   @VisibleForTesting
-  protected void setLogChannel( LogChannelInterface logChannel ){
+  protected void setLogChannel( LogChannelInterface logChannel ) {
     this.log = logChannel;
   }
 
