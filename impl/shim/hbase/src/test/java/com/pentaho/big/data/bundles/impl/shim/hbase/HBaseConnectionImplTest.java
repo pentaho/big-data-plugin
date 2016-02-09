@@ -22,18 +22,17 @@
 
 package com.pentaho.big.data.bundles.impl.shim.hbase;
 
+import com.pentaho.big.data.bundles.impl.shim.hbase.connectionPool.HBaseConnectionHandle;
+import com.pentaho.big.data.bundles.impl.shim.hbase.connectionPool.HBaseConnectionPool;
+import com.pentaho.big.data.bundles.impl.shim.hbase.connectionPool.HBaseConnectionPoolConnection;
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.hbase.shim.spi.HBaseBytesUtilShim;
-import org.pentaho.hbase.shim.spi.HBaseConnection;
-import org.pentaho.hbase.shim.spi.HBaseShim;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -44,24 +43,27 @@ import static org.mockito.Mockito.*;
  */
 public class HBaseConnectionImplTest {
   private HBaseServiceImpl hBaseService;
-  private HBaseConnection shimHBaseConnection;
-  private HBaseShim hBaseShim;
   private HBaseBytesUtilShim hBaseBytesUtilShim;
-  private Properties connectionProps;
-  private LogChannelInterface logChannelInterface;
   private HBaseConnectionImpl hBaseConnection;
+  private HBaseConnectionPool hBaseConnectionPool;
+  private HBaseConnectionHandle hBaseConnectionHandle;
+  private HBaseConnectionPoolConnection poolConnection;
+  private IOException ioException;
+  private Exception exception;
 
   @Before
   public void setup() throws IOException {
+    exception = new Exception();
+    ioException = new IOException();
     hBaseService = mock( HBaseServiceImpl.class );
-    hBaseShim = mock( HBaseShim.class );
-    shimHBaseConnection = mock( HBaseConnectionWithResultField.class );
-    when( hBaseShim.getHBaseConnection() ).thenReturn( shimHBaseConnection );
     hBaseBytesUtilShim = mock( HBaseBytesUtilShim.class );
-    connectionProps = mock( Properties.class );
-    logChannelInterface = mock( LogChannelInterface.class );
+    hBaseConnectionPool = mock( HBaseConnectionPool.class );
+    hBaseConnectionHandle = mock( HBaseConnectionHandle.class );
+    when( hBaseConnectionPool.getConnectionHandle() ).thenReturn( hBaseConnectionHandle );
+    poolConnection = mock( HBaseConnectionPoolConnection.class );
+    when( hBaseConnectionHandle.getConnection() ).thenReturn( poolConnection );
     hBaseConnection =
-      new HBaseConnectionImpl( hBaseService, hBaseShim, hBaseBytesUtilShim, connectionProps, logChannelInterface );
+      new HBaseConnectionImpl( hBaseService, hBaseBytesUtilShim, hBaseConnectionPool );
   }
 
   @Test
@@ -77,17 +79,27 @@ public class HBaseConnectionImplTest {
   @Test
   public void testCheckHBaseAvailable() throws Exception {
     hBaseConnection.checkHBaseAvailable();
-    verify( shimHBaseConnection ).checkHBaseAvailable();
+    verify( poolConnection ).checkHBaseAvailable();
   }
 
   @Test( expected = IOException.class )
-  public void testCheckHBaseAvailableException() throws Exception {
-    Exception thrown = new Exception();
-    doThrow( thrown ).when( shimHBaseConnection ).checkHBaseAvailable();
+  public void testCheckHBaseAvailableSuppressedException() throws Exception {
+    doThrow( exception ).when( poolConnection ).checkHBaseAvailable();
+    doThrow( ioException ).when( hBaseConnectionHandle ).close();
     try {
       hBaseConnection.checkHBaseAvailable();
     } catch ( IOException e ) {
-      assertEquals( thrown, e.getCause() );
+      checkSuppressedIOE( e );
+    }
+  }
+
+  @Test( expected = IOException.class )
+  public void testCheckHBaseAvailableCloseException() throws Exception {
+    doThrow( ioException ).when( hBaseConnectionHandle ).close();
+    try {
+      hBaseConnection.checkHBaseAvailable();
+    } catch ( IOException e ) {
+      assertEquals( ioException, e );
       throw e;
     }
   }
@@ -95,27 +107,44 @@ public class HBaseConnectionImplTest {
   @Test
   public void testListTableNames() throws Exception {
     List<String> list = new ArrayList<>( Arrays.asList( "a", "b", "c" ) );
-    when( shimHBaseConnection.listTableNames() ).thenReturn( list );
+    when( poolConnection.listTableNames() ).thenReturn( list );
     assertEquals( list, hBaseConnection.listTableNames() );
   }
 
   @Test( expected = IOException.class )
-  public void testListTableNamesException() throws Exception {
-    Exception exception = new Exception();
-    when( shimHBaseConnection.listTableNames() ).thenThrow( exception );
+  public void testListTableNamesSuppressedException() throws Exception {
+    when( poolConnection.listTableNames() ).thenThrow( exception );
+    doThrow( ioException ).when( hBaseConnectionHandle ).close();
     try {
       hBaseConnection.listTableNames();
     } catch ( IOException e ) {
-      assertEquals( exception, e.getCause() );
+      checkSuppressedIOE( e );
+    }
+  }
+
+  @Test( expected = IOException.class )
+  public void testListTableNamesCloseException() throws Exception {
+    doThrow( ioException ).when( hBaseConnectionHandle ).close();
+    try {
+      hBaseConnection.listTableNames();
+    } catch ( IOException e ) {
+      assertEquals( ioException, e );
       throw e;
     }
   }
 
+  private void checkSuppressedIOE( IOException e ) throws IOException {
+    Throwable cause = e.getCause();
+    assertEquals( exception, cause );
+    Throwable[] suppressed = cause.getSuppressed();
+    assertEquals( 1, suppressed.length );
+    assertEquals( ioException, suppressed[0] );
+    throw e;
+  }
+
   @Test
   public void testClose() throws Exception {
-    hBaseConnection.listTableNames();
     hBaseConnection.close();
-    verify( shimHBaseConnection ).closeSourceTable();
-    verify( shimHBaseConnection ).closeTargetTable();
+    verify( hBaseConnectionPool ).close();
   }
 }

@@ -22,12 +22,16 @@
 
 package com.pentaho.big.data.bundles.impl.shim.hbase;
 
-import org.apache.hadoop.hbase.client.Result;
-import org.pentaho.hbase.shim.spi.HBaseConnection;
+import java.io.IOException;
 
 /**
- * Created by bryan on 2/2/16.
+ * Created by bryan on 2/4/16.
  */
-public abstract class HBaseConnectionWithResultField extends HBaseConnection {
-  private Result m_currentResultSetRow;
+public class IOExceptionUtil {
+  public static IOException wrapIfNecessary( Throwable throwable ) {
+    if ( throwable instanceof IOException ) {
+      return (IOException) throwable;
+    }
+    return new IOException( throwable );
+  }
 }

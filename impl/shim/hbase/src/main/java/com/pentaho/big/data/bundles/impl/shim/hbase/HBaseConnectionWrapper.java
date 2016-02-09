@@ -272,7 +272,7 @@ public class HBaseConnectionWrapper extends HBaseConnection {
       }
       return field.get( object );
     } catch ( IllegalAccessException e ) {
-      e.printStackTrace();
+      // Shouldn't happen
     } finally {
       if ( setAccessible ) {
         field.setAccessible( false );
