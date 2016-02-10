@@ -140,15 +140,8 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
-      <version>${dependency.hadoop-shims-cdh54.revision}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hdp22-package</artifactId>
-      <version>${dependency.hadoop-shims-hdp22.revision}</version>
+      <artifactId>pentaho-hadoop-shims-cdh55-package</artifactId>
+      <version>${dependency.hadoop-shims-cdh55.revision}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
@@ -168,15 +161,8 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-emr34-package</artifactId>
-      <version>${dependency.hadoop-shims-emr34.revision}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-emr41-package</artifactId>
-      <version>${dependency.hadoop-shims-emr41.revision}</version>
+      <artifactId>pentaho-hadoop-shims-emr310-package</artifactId>
+      <version>${dependency.hadoop-shims-emr310.revision}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
@@ -219,7 +205,7 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh54-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh55-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
@@ -231,25 +217,13 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-hdp22-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr34-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr41-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-emr310-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
