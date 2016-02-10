@@ -25,12 +25,16 @@ package com.pentaho.big.data.bundles.impl.shim.hbase;
 import org.apache.hadoop.hbase.client.Result;
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.bigdata.api.hbase.HBaseConnection;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.hbase.shim.api.ColumnFilter;
 import org.pentaho.hbase.shim.api.HBaseValueMeta;
 import org.pentaho.hbase.shim.spi.HBaseBytesUtilShim;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.NavigableMap;
@@ -43,7 +47,7 @@ import static org.mockito.Mockito.*;
  * Created by bryan on 2/3/16.
  */
 public class HBaseConnectionWrapperTest {
-  private HBaseConnectionWithResultField delegate;
+  private HBaseConnectionTestImpls.HBaseConnectionWithResultField delegate;
   private HBaseConnectionWrapper hBaseConnectionWrapper;
   private byte[] testBytes;
   private byte[] testBytes2;
@@ -54,7 +58,7 @@ public class HBaseConnectionWrapperTest {
 
   @Before
   public void setup() {
-    delegate = mock( HBaseConnectionWithResultField.class );
+    delegate = mock( HBaseConnectionTestImpls.HBaseConnectionWithResultField.class );
     hBaseConnectionWrapper = new HBaseConnectionWrapper( delegate );
     testBytes = "testBytes".getBytes( Charset.forName( "UTF-8" ) );
     testBytes2 = "testBytes2".getBytes( Charset.forName( "UTF-8" ) );
@@ -366,5 +370,70 @@ public class HBaseConnectionWrapperTest {
     } finally {
       resultSetRowField.setAccessible( true );
     }
+  }
+
+  @Test
+  public void testGetFieldNull() {
+    assertNull( HBaseConnectionWrapper.getField( Object.class, "fake" ) );
+  }
+
+  @Test
+  public void testFindRealImplWrappedProxyAndDelegate() throws IllegalAccessException {
+    final HBaseConnectionTestImpls.HBaseConnectionWithResultField delegate =
+      mock( HBaseConnectionTestImpls.HBaseConnectionWithResultField.Subclass.class );
+    Object instance = Proxy.newProxyInstance( getClass().getClassLoader(), new Class[] { HBaseConnection.class },
+      new InvocationHandler() {
+        private final boolean a = false;
+        private final HBaseConnectionWrapper b = new HBaseConnectionWrapper( delegate );
+        private final int c = 0;
+
+        @Override public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
+          return null;
+        }
+      } );
+    HBaseConnectionTestImpls.HBaseConnectionWithMismatchedDelegate hBaseConnection =
+      mock( HBaseConnectionTestImpls.HBaseConnectionWithMismatchedDelegate.class );
+    Field delegateField = HBaseConnectionWrapper.getField( hBaseConnection.getClass(), "delegate" );
+    delegateField.setAccessible( true );
+    delegateField.set( hBaseConnection, instance );
+    assertEquals( delegate, HBaseConnectionWrapper.findRealImpl( hBaseConnection ) );
+  }
+
+  @Test
+  public void testUnwrapProxyFailure() {
+    Object instance = Proxy.newProxyInstance( getClass().getClassLoader(), new Class[] { HBaseConnection.class },
+      new InvocationHandler() {
+        private final boolean a = false;
+        private final int c = 0;
+
+        @Override public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
+          return null;
+        }
+      } );
+    assertNull( HBaseConnectionWrapper.findRealImpl( instance ) );
+  }
+
+  @Test
+  public void testFindRealImplNull() throws IllegalAccessException {
+    HBaseConnectionTestImpls.HBaseConnectionWithMismatchedDelegate hBaseConnection =
+      mock( HBaseConnectionTestImpls.HBaseConnectionWithMismatchedDelegate.class );
+    Field delegateField = HBaseConnectionWrapper.getField( hBaseConnection.getClass(), "delegate" );
+    delegateField.setAccessible( true );
+    delegateField.set( hBaseConnection, new Object() );
+
+    assertNull( HBaseConnectionWrapper.findRealImpl( new Object() ) );
+    assertNull( HBaseConnectionWrapper.findRealImpl( mock( org.pentaho.hbase.shim.spi.HBaseConnection.class ) ) );
+    assertNull( HBaseConnectionWrapper.findRealImpl( hBaseConnection ) );
+  }
+
+  @Test
+  public void testGetFieldValuePublic() throws IllegalAccessException {
+    HBaseConnectionTestImpls.HBaseConnectionWithPublicDelegate hBaseConnection =
+      mock( HBaseConnectionTestImpls.HBaseConnectionWithPublicDelegate.class );
+    Field delegateField = HBaseConnectionWrapper.getField( hBaseConnection.getClass(), "delegate" );
+    Object value = new Object();
+    delegateField.set( hBaseConnection, value );
+
+    assertEquals( value, HBaseConnectionWrapper.getFieldValue( delegateField, hBaseConnection ) );
   }
 }

@@ -45,9 +45,14 @@ public class HBaseConnectionImpl implements HBaseConnection {
 
   public HBaseConnectionImpl( HBaseServiceImpl hBaseService, HBaseShim hBaseShim, HBaseBytesUtilShim hBaseBytesUtilShim,
                               Properties connectionProps, LogChannelInterface logChannelInterface ) throws IOException {
+    this( hBaseService, hBaseBytesUtilShim, new HBaseConnectionPool( hBaseShim, connectionProps, logChannelInterface ) );
+  }
+
+  public HBaseConnectionImpl( HBaseServiceImpl hBaseService, HBaseBytesUtilShim hBaseBytesUtilShim,
+                              HBaseConnectionPool hBaseConnectionPool ) {
     this.hBaseService = hBaseService;
     this.hBaseBytesUtilShim = hBaseBytesUtilShim;
-    this.hBaseConnectionPool = new HBaseConnectionPool( hBaseShim, connectionProps, logChannelInterface );
+    this.hBaseConnectionPool = hBaseConnectionPool;
   }
 
   @Override public HBaseService getService() {
@@ -63,7 +68,7 @@ public class HBaseConnectionImpl implements HBaseConnection {
     try ( HBaseConnectionHandle hBaseConnectionHandle = hBaseConnectionPool.getConnectionHandle() ) {
       hBaseConnectionHandle.getConnection().checkHBaseAvailable();
     } catch ( Exception e ) {
-      throw new IOException( e );
+      throw IOExceptionUtil.wrapIfNecessary( e );
     }
   }
 
@@ -71,7 +76,7 @@ public class HBaseConnectionImpl implements HBaseConnection {
     try ( HBaseConnectionHandle hBaseConnectionHandle = hBaseConnectionPool.getConnectionHandle() ) {
       return hBaseConnectionHandle.getConnection().listTableNames();
     } catch ( Exception e ) {
-      throw new IOException( e );
+      throw IOExceptionUtil.wrapIfNecessary( e );
     }
   }
 

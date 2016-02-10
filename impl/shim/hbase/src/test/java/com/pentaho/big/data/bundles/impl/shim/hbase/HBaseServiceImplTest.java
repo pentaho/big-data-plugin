@@ -57,7 +57,7 @@ public class HBaseServiceImplTest {
     namedCluster = mock( NamedCluster.class );
     hadoopConfiguration = mock( HadoopConfiguration.class );
     hBaseShim = mock( HBaseShim.class );
-    hBaseConnection = mock( HBaseConnectionWithResultField.class );
+    hBaseConnection = mock( HBaseConnectionTestImpls.HBaseConnectionWithResultField.class );
     hBaseBytesUtilShim = mock( HBaseBytesUtilShim.class );
 
     when( hadoopConfiguration.getHBaseShim() ).thenReturn( hBaseShim );

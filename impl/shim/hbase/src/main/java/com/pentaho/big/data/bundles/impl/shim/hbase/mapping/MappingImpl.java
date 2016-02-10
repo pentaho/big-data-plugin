@@ -54,7 +54,10 @@ public class MappingImpl implements Mapping {
   }
 
   @Override public String addMappedColumn( HBaseValueMetaInterface column, boolean isTupleColumn ) throws Exception {
-    return delegate.addMappedColumn( (HBaseValueMeta) column, isTupleColumn );
+    if ( column instanceof HBaseValueMeta ) {
+      return delegate.addMappedColumn( (HBaseValueMeta) column, isTupleColumn );
+    }
+    return delegate.addMappedColumn( hBaseValueMetaInterfaceFactory.copy( column ), isTupleColumn );
   }
 
   @Override public String getTableName() {
