@@ -70,6 +70,9 @@ public class NamedClusterLoadSaveUtil {
     }
 
     nc = namedClusterService.getClusterTemplate();
+    if ( !StringUtils.isEmpty( clusterName ) ) {
+      nc.setName( clusterName );
+    }
     if ( entrynode != null ) {
       // load default values for cluster & legacy fallback
       nc.setZooKeeperHost( XMLHandler.getTagValue( entrynode, ZOOKEEPER_HOSTS ) ); //$NON-NLS-1$
