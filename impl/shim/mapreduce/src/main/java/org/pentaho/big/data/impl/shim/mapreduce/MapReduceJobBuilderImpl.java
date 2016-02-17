@@ -237,6 +237,10 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     conf.setNumReduceTasks( numReduceTasks );
   }
 
+  public VariableSpace getVariableSpace() {
+    return variableSpace;
+  }
+
   protected Path getOutputPath( Configuration conf, FileSystem fs ) {
     return getPath( conf, fs, outputPath );
   }

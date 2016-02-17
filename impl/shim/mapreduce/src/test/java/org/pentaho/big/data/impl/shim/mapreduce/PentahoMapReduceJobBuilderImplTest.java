@@ -535,11 +535,19 @@ public class PentahoMapReduceJobBuilderImplTest {
 
   @Test
   public void testConfigureMinimal() throws Exception {
+    pentahoMapReduceJobBuilder =
+      spy( new PentahoMapReduceJobBuilderImpl( namedCluster, hadoopConfiguration, logChannelInterface, variableSpace,
+        pluginInterface, vfsPluginDirectory, pmrProperties, transFactory, pmrArchiveGetter ) );
     when( hadoopShim.getPentahoMapReduceMapRunnerClass() ).thenReturn( (Class) String.class );
     pentahoMapReduceJobBuilder.setLogLevel( LogLevel.BASIC );
     pentahoMapReduceJobBuilder.setInputPaths( new String[ 0 ] );
     pentahoMapReduceJobBuilder.setOutputPath( "test" );
     Configuration configuration = mock( Configuration.class );
+    doAnswer( new Answer() {
+      @Override public Object answer( InvocationOnMock invocation ) throws Throwable {
+        return null;
+      }
+    } ).when( pentahoMapReduceJobBuilder ).configureVariableSpace( configuration );
     when( hadoopShim.getFileSystem( configuration ) ).thenReturn( mock( FileSystem.class ) );
     String xml = "testMr.xml";
     String testMrInput = "testMrInput";
@@ -553,6 +561,8 @@ public class PentahoMapReduceJobBuilderImplTest {
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_OUTPUT_STEPNAME, testMrOutput );
     verify( configuration ).setJarByClass( String.class );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.LOG_LEVEL, LogLevel.BASIC.toString() );
+
+    verify( pentahoMapReduceJobBuilder ).configureVariableSpace( configuration );
 
     verify( configuration, never() ).setCombinerClass( any( Class.class ) );
     verify( configuration, never() ).setReducerClass( any( Class.class ) );
@@ -671,7 +681,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
       PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+        mapreduceClasspath );
 
     pentahoMapReduceJobBuilder.submit( conf );
     verify( logChannelInterface ).logBasic( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
@@ -706,7 +716,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
       PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+        mapreduceClasspath );
     String archiveName = "archiveName";
     when( pmrArchiveGetter.getVfsFilename( conf ) ).thenReturn( archiveName );
 
@@ -749,7 +759,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
       PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+        mapreduceClasspath );
     when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
 
     try {
@@ -791,7 +801,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
       PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+        mapreduceClasspath );
     when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
 
     pentahoMapReduceJobBuilder.submit( conf );
