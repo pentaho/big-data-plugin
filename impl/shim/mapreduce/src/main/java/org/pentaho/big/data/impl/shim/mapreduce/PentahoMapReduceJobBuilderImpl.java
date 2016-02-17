@@ -23,6 +23,7 @@
 package org.pentaho.big.data.impl.shim.mapreduce;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.mapreduce.MapReduceJobAdvanced;
@@ -121,6 +122,7 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     "JobEntryHadoopTransJobExecutor.UnableToLocateArchive";
   public static final String JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_KETTLE_INSTALLATION_MISSING_FROM =
     "JobEntryHadoopTransJobExecutor.KettleInstallationMissingFrom";
+  public static final String VARIABLE_SPACE = "variableSpace";
   private final HadoopConfiguration hadoopConfiguration;
   private final HadoopShim hadoopShim;
   private final LogChannelInterface log;
@@ -346,7 +348,7 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     }
     conf.setJarByClass( hadoopShim.getPentahoMapReduceMapRunnerClass() );
     conf.set( LOG_LEVEL, logLevel.toString() );
-
+    configureVariableSpace( conf );
     super.configure( conf );
   }
 
@@ -422,6 +424,20 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     }
 
     return super.submit( conf );
+  }
+
+  protected void configureVariableSpace( Configuration conf ) {
+    // get a reference to the variable space
+    XStream xStream = new XStream();
+
+    // this is optional - for human-readable xml file
+    xStream.alias( VARIABLE_SPACE, VariableSpace.class );
+
+    // serialize the variable space to XML
+    String xmlVariableSpace = xStream.toXML( getVariableSpace() );
+
+    // set a string in the job configuration as the serialized variablespace
+    conf.setStrings( VARIABLE_SPACE, xmlVariableSpace );
   }
 
   @VisibleForTesting void cleanOutputPath( Configuration conf ) throws IOException {
