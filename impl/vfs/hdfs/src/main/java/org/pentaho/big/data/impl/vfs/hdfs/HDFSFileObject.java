@@ -32,8 +32,6 @@ import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 
 public class HDFSFileObject extends AbstractFileObject  {
 
@@ -69,8 +67,7 @@ public class HDFSFileObject extends AbstractFileObject  {
   protected FileType doGetType() throws Exception {
     HadoopFileStatus status = null;
     try {
-      status =
-        hdfs.getFileStatus( hdfs.getPath( URLDecoder.decode( getName().getPath(), "UTF-8" ).replaceAll( " ", "+" ) ) );
+      status = hdfs.getFileStatus( hdfs.getPath( getName().getPath() ) );
     } catch ( Exception ex ) {
       // Ignore
     }
@@ -115,7 +112,7 @@ public class HDFSFileObject extends AbstractFileObject  {
     HadoopFileStatus[] statusList = hdfs.listStatus( hdfs.getPath( getName().getPath() ) );
     String[] children = new String[ statusList.length ];
     for ( int i = 0; i < statusList.length; i++ ) {
-      children[ i ] = URLEncoder.encode( statusList[ i ].getPath().getName(), "UTF-8" );
+      children[ i ] = statusList[ i ].getPath().getName();
     }
     return children;
   }
