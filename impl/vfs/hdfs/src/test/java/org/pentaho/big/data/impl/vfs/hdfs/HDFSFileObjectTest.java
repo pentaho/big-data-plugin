@@ -161,6 +161,16 @@ public class HDFSFileObjectTest {
   @Test
   public void testDoListChildren() throws Exception {
     String childPathName = "fake-path-child";
+    testDoListChildrenInternal( childPathName );
+  }
+
+  @Test
+  public void testDoListChildrenWithSpaces() throws Exception {
+    String childPathName = "fake path child with spaces";
+    testDoListChildrenInternal( childPathName );
+  }
+
+  private void testDoListChildrenInternal( String childPathName ) throws Exception {
     HadoopFileStatus hadoopFileStatus = mock( HadoopFileStatus.class );
     HadoopFileStatus[] hadoopFileStatuses = {
         hadoopFileStatus
