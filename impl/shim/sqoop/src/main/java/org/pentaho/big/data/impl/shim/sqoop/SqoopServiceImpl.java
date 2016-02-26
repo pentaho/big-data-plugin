@@ -1,4 +1,4 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
  * Pentaho Big Data
  *
@@ -37,6 +37,7 @@ import java.util.Properties;
 
 public class SqoopServiceImpl implements SqoopService {
   private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger( SqoopServiceImpl.class );
+  public static final String SQOOP_THROW_ON_ERROR = "sqoop.throwOnError";
 
   private final HadoopShim hadoopShim;
   private final SqoopShim sqoopShim;
@@ -56,7 +57,7 @@ public class SqoopServiceImpl implements SqoopService {
 
     try {
       // Make sure Sqoop throws exceptions instead of returning a status of 1
-      System.setProperty( "sqoop.throwOnError", "true" );
+      System.setProperty( SQOOP_THROW_ON_ERROR, Boolean.toString( true ) );
 
       configureShim( configuration );
       return sqoopShim.runTool( args.toArray( new String[args.size()] ), configuration );
