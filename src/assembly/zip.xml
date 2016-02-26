@@ -13,6 +13,7 @@
       <outputDirectory>${project.name}</outputDirectory>
       <includes>
         <include>*.jar</include>
+	<include>version.xml</include>
       </includes>
     </fileSet>
   </fileSets>
