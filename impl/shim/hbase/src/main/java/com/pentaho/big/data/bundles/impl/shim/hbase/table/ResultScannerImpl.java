@@ -25,7 +25,6 @@ package com.pentaho.big.data.bundles.impl.shim.hbase.table;
 import com.pentaho.big.data.bundles.impl.shim.hbase.HBaseConnectionWrapper;
 import com.pentaho.big.data.bundles.impl.shim.hbase.ResultImpl;
 import com.pentaho.big.data.bundles.impl.shim.hbase.connectionPool.HBaseConnectionHandle;
-import org.pentaho.bigdata.api.hbase.Result;
 import org.pentaho.bigdata.api.hbase.table.ResultScanner;
 import org.pentaho.hbase.shim.spi.HBaseBytesUtilShim;
 
@@ -45,7 +44,7 @@ public class ResultScannerImpl implements ResultScanner {
     hBaseConnectionWrapper = hBaseConnectionHandle.getConnection();
   }
 
-  @Override public Result next() throws IOException {
+  @Override public ResultImpl next() throws IOException {
     try {
       if ( !hBaseConnectionWrapper.resultSetNextRow() ) {
         return null;
