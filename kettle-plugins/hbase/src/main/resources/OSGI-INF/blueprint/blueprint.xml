@@ -19,7 +19,7 @@
     <argument ref="runtimeTester"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
-  <bean id="hBaseRowDecoderMeta" class="org.pentaho.big.data.kettle.plugins.hbase.rowdecoder.HBaseRowDecoderMeta">
+  <bean id="hBaseRowDecoderMeta" class="org.pentaho.big.data.kettle.plugins.hbase.rowdecoder.HBaseRowDecoderMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>

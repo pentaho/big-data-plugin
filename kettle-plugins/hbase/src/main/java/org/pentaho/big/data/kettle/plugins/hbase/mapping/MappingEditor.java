@@ -22,6 +22,15 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -46,6 +55,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.big.data.kettle.plugins.hbase.input.HBaseInput;
 import org.pentaho.big.data.kettle.plugins.hbase.input.Messages;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
@@ -69,25 +79,16 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
-
 /**
  * A re-usable composite for creating and editing table mappings for HBase. Also has the (optional) ability to create
  * the table if the table for which the mapping is being created does not exist. When creating a new table, the name
  * supplied may be optionally suffixed with some parameters for compression and bloom filter type. If no parameters are
  * supplied then the HBase defaults of no compression and no bloom filter(s) are used. The table name may be suffixed
  * with
- * 
+ *
  * @[NONE | GZ | LZO][@[NONE | ROW | ROWCOL]] for compression and bloom filter type respectively. Note that LZO
  *        compression requires LZO libraries to be installed on the HBase nodes.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class MappingEditor extends Composite implements ConfigurationProducer {
@@ -600,13 +601,11 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       String existingName = m_existingTableNamesCombo.getText();
       m_existingTableNamesCombo.removeAll();
       try {
+
         resetConnection();
-        HBaseConnection hbAdmin = m_configProducer.getHBaseConnection();
-        hbAdmin.checkHBaseAvailable();
+        m_admin = MappingUtils.getMappingAdmin( m_configProducer );
 
-        m_admin = new MappingAdmin( hbAdmin );
-
-        List<String> tables = hbAdmin.listTableNames();
+        List<String> tables = m_admin.getConnection().listTableNames();
 
         for ( String currentTableName : tables ) {
           m_existingTableNamesCombo.add( currentTableName );
@@ -622,11 +621,15 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     }
   }
 
-  private void resetConnection() throws Exception {
+  private void resetConnection() throws IOException  {
     if ( m_admin != null ) {
       m_admin.close();
     }
     m_admin = null;
+  }
+
+  private boolean notInitializedMappingAdmin() {
+    return m_admin == null;
   }
 
   private void showConnectionErrorDialog( Exception ex ) {
@@ -657,6 +660,15 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
                   tableName ) );
 
       if ( ok ) {
+        if ( notInitializedMappingAdmin() ) {
+          try {
+            m_admin = MappingUtils.getMappingAdmin( m_configProducer );
+          } catch ( HBaseConnectionException e ) {
+            showConnectionErrorDialog( e );
+            return;
+          }
+        }
+
         boolean result =
             m_admin.deleteMapping( m_existingTableNamesCombo.getText().trim(), m_existingMappingNamesCombo.getText()
                 .trim() );
@@ -946,11 +958,22 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   }
 
   private void saveMapping() {
+
     Mapping theMapping = getMapping( true, null, false );
     if ( theMapping == null ) {
       // some problem with the mapping (user will have been informed via dialog)
       return;
     }
+
+    if ( notInitializedMappingAdmin() ) {
+      try {
+        m_admin = MappingUtils.getMappingAdmin( m_configProducer );
+      } catch ( HBaseConnectionException e ) {
+        showConnectionErrorDialog( e );
+        return;
+      }
+    }
+
 
     String tableName = theMapping.getTableName();
 
@@ -1055,9 +1078,15 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     if ( mapping == null ) {
       return;
     }
+    if ( !Const.isEmpty( mapping.getTableName() ) ) {
+      m_existingTableNamesCombo.setText( mapping.getTableName() );
+    }
+
+    if ( !Const.isEmpty( mapping.getMappingName() ) ) {
+      m_existingMappingNamesCombo.setText( mapping.getMappingName() );
+    }
 
     m_fieldsView.clearAll();
-
     // do the key first
     TableItem keyItem = new TableItem( m_fieldsView.table, SWT.NONE );
     if ( !Const.isEmpty( mapping.getKeyName() ) ) {
@@ -1207,4 +1236,19 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     // TODO Auto-generated method stub
     super.dispose();
   }
+
+  /**
+   * @param name
+   */
+  public void setSelectedNamedCluster( String name ) {
+    namedClusterWidget.setSelectedNamedCluster( name );
+  }
+
+  /**
+   * @return
+   */
+  public NamedCluster getSelectedNamedCluster() {
+    return namedClusterWidget.getSelectedNamedCluster();
+  }
+
 }
