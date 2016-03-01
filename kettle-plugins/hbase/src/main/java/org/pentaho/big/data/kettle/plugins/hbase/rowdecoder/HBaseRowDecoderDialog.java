@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingEditor;
@@ -68,7 +69,7 @@ import java.util.List;
 
 /**
  * UI dialog for the HBase row decoder step
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseRowDecoderDialog extends BaseStepDialog implements StepDialogInterface {
@@ -356,6 +357,10 @@ public class HBaseRowDecoderDialog extends BaseStepDialog implements StepDialogI
     if ( mapping != null ) {
       m_currentMeta.setMapping( mapping );
     }
+    NamedCluster selectedNamedCluster = m_mappingEditor.getSelectedNamedCluster();
+    if ( selectedNamedCluster != null ) {
+      m_currentMeta.setNamedCluster( selectedNamedCluster );
+    }
 
     if ( !m_originalMeta.equals( m_currentMeta ) ) {
       m_currentMeta.setChanged();
@@ -374,6 +379,7 @@ public class HBaseRowDecoderDialog extends BaseStepDialog implements StepDialogI
       m_incomingResultCombo.setText( m_currentMeta.getIncomingResultField() );
     }
 
+    m_mappingEditor.setSelectedNamedCluster( m_currentMeta.getNamedCluster().getName() );
     if ( m_currentMeta.getMapping() != null ) {
       m_mappingEditor.setMapping( m_currentMeta.getMapping() );
     }

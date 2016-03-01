@@ -23,16 +23,17 @@
 package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.Counter;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -53,6 +54,7 @@ import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
@@ -63,15 +65,17 @@ import java.util.Set;
 
 /**
  * Meta class for the HBase row decoder.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
- * 
+ *
  */
 @Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )
 public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterface {
+
+  protected NamedCluster namedCluster;
 
   /** The incoming field that contains the HBase row key */
   protected String m_incomingKeyField = "";
@@ -86,6 +90,8 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
 
+  private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
+
   public HBaseRowDecoderMeta( NamedClusterServiceLocator namedClusterServiceLocator,
                               NamedClusterService namedClusterService,
                               RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
@@ -93,11 +99,29 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     this.namedClusterService = namedClusterService;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
+    this.namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
+  }
+
+
+
+  /**
+   * @param namedCluster the namedCluster to set
+   */
+  public void setNamedCluster( NamedCluster namedCluster ) {
+    this.namedCluster = namedCluster;
   }
 
   /**
+   * @return the namedCluster
+   */
+  public NamedCluster getNamedCluster() {
+    return namedCluster;
+  }
+
+
+  /**
    * Set the incoming field that holds the HBase row key
-   * 
+   *
    * @param inKey
    *          the name of the field that holds the key
    */
@@ -107,7 +131,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the incoming field that holds the HBase row key
-   * 
+   *
    * @return the name of the field that holds the key
    */
   public String getIncomingKeyField() {
@@ -116,7 +140,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Set the incoming field that holds the HBase row Result object
-   * 
+   *
    * @param inResult
    *          the name of the field that holds the HBase row Result object
    */
@@ -126,7 +150,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the incoming field that holds the HBase row Result object
-   * 
+   *
    * @return the name of the field that holds the HBase row Result object
    */
   public String getIncomingResultField() {
@@ -135,7 +159,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Set the mapping to use for decoding the row
-   * 
+   *
    * @param m
    *          the mapping to use
    */
@@ -145,7 +169,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the mapping to use for decoding the row
-   * 
+   *
    * @return the mapping to use
    */
   public Mapping getMapping() {
@@ -155,6 +179,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   public void setDefault() {
     m_incomingKeyField = "";
     m_incomingResultField = "";
+    namedCluster = namedClusterService.getClusterTemplate();
   }
 
   @Override
@@ -231,7 +256,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   @Override
   public String getXML() {
-    StringBuffer retval = new StringBuffer();
+    StringBuilder retval = new StringBuilder();
 
     if ( !Const.isEmpty( m_incomingKeyField ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "incoming_key_field", m_incomingKeyField ) );
@@ -240,6 +265,8 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "incoming_result_field", m_incomingResultField ) );
     }
 
+    namedClusterLoadSaveUtil.getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository
+        .getMetaStore(), log );
     if ( m_mapping != null ) {
       retval.append( m_mapping.getXML() );
     }
@@ -247,36 +274,39 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     return retval.toString();
   }
 
-  public void loadXML( Node stepnode, List<DatabaseMeta> databases, Map<String, Counter> counters )
-    throws KettleXMLException {
-
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
     m_incomingKeyField = XMLHandler.getTagValue( stepnode, "incoming_key_field" );
     m_incomingResultField = XMLHandler.getTagValue( stepnode, "incoming_result_field" );
-
+    this.namedCluster =
+        namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, log );
     try {
-      m_mapping = namedClusterServiceLocator.getService( null, HBaseService.class ).getMappingFactory().createMapping();
+      m_mapping =
+          namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class ).getMappingFactory()
+              .createMapping();
     } catch ( ClusterInitializationException e ) {
       throw new KettleXMLException( e );
     }
     m_mapping.loadXML( stepnode );
-
   }
 
-  public void readRep( Repository rep, ObjectId id_step, List<DatabaseMeta> databases, Map<String, Counter> counters )
+  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
 
     m_incomingKeyField = rep.getStepAttributeString( id_step, 0, "incoming_key_field" );
     m_incomingResultField = rep.getStepAttributeString( id_step, 0, "incoming_result_field" );
-
+    this.namedCluster =
+        namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, log );
     try {
-      m_mapping = namedClusterServiceLocator.getService( null, HBaseService.class ).getMappingFactory().createMapping();
+      m_mapping =
+          namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class ).getMappingFactory()
+              .createMapping();
     } catch ( ClusterInitializationException e ) {
       throw new KettleXMLException( e );
     }
     m_mapping.readRep( rep, id_step );
   }
 
-  public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
 
     if ( !Const.isEmpty( m_incomingKeyField ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "incoming_key_field", m_incomingKeyField );
@@ -285,6 +315,8 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
       rep.saveStepAttribute( id_transformation, id_step, 0, "incoming_result_field", m_incomingResultField );
     }
 
+    namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, log );
+
     if ( m_mapping != null ) {
       m_mapping.saveRep( rep, id_transformation, id_step );
     }
@@ -292,7 +324,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   /**
    * Get the UI for this step.
-   * 
+   *
    * @param shell
    *          a <code>Shell</code> value
    * @param meta
@@ -307,4 +339,5 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     return new HBaseRowDecoderDialog( shell, meta, transMeta, name, namedClusterService, runtimeTestActionService,
       runtimeTester, namedClusterServiceLocator );
   }
+
 }
