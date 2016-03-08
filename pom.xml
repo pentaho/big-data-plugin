@@ -9,7 +9,7 @@
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pdi-spark-plugin</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>7.0-SNAPSHOT</version>
   <name>pdi-spark-plugin</name>
   <scm>
     <developerConnection>scm:git:git@github.com:pentaho/pdi-spark-plugin.git</developerConnection>
@@ -22,10 +22,10 @@
     </site>
   </distributionManagement>
   <properties>
-    <dependency.metastore.revision>${project.version}</dependency.metastore.revision>
-    <dependency.kettle.revision>${project.version}</dependency.kettle.revision>
+    <dependency.metastore.revision>7.0-SNAPSHOT</dependency.metastore.revision>
     <dependency.org.mockito.mockito-all.version>1.9.5</dependency.org.mockito.mockito-all.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <dependency.kettle.revision>7.0-SNAPSHOT</dependency.kettle.revision>
   </properties>
   <dependencies>
     <dependency>
@@ -67,7 +67,7 @@
   </dependencies>
   <build>
     <plugins>
-	  <plugin>
+      <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>2.7</version>
         <executions>
