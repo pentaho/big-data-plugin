@@ -69,6 +69,7 @@ import org.pentaho.bigdata.api.hbase.table.HBaseTable;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -92,6 +93,8 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class MappingEditor extends Composite implements ConfigurationProducer {
+
+  private static final Class<?> PKG = MappingEditor.class;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   protected Shell m_shell;
@@ -584,6 +587,12 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   }
 
   private void populateTableCombo( boolean force ) {
+    if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() == null ) {
+      MessageDialog.openError( m_shell, BaseMessages.getString( PKG,
+          "MappingDialog.Error.Title.NamedClusterNotSelected" ), BaseMessages.getString( PKG,
+              "MappingDialog.Error.Message.NamedClusterNotSelected.Msg" ) );
+      return;
+    }
 
     if ( m_configProducer == null ) {
       return;
@@ -639,6 +648,12 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   }
 
   private void deleteMapping() {
+    if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() == null ) {
+      MessageDialog.openError( m_shell, BaseMessages.getString( PKG,
+          "MappingDialog.Error.Title.NamedClusterNotSelected" ), BaseMessages.getString( PKG,
+              "MappingDialog.Error.Message.NamedClusterNotSelected.Msg" ) );
+      return;
+    }
     String tableName = "";
     if ( !Const.isEmpty( m_existingTableNamesCombo.getText().trim() ) ) {
       tableName = m_existingTableNamesCombo.getText().trim();
@@ -958,6 +973,12 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   }
 
   private void saveMapping() {
+    if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() == null ) {
+      MessageDialog.openError( m_shell, BaseMessages.getString( PKG,
+          "MappingDialog.Error.Title.NamedClusterNotSelected" ), BaseMessages.getString( PKG,
+              "MappingDialog.Error.Message.NamedClusterNotSelected.Msg" ) );
+      return;
+    }
 
     Mapping theMapping = getMapping( true, null, false );
     if ( theMapping == null ) {
@@ -1208,9 +1229,6 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
   @Override public HBaseService getHBaseService() throws ClusterInitializationException {
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-    if ( nc == null ) {
-      return null;
-    }
     return namedClusterServiceLocator.getService( nc, HBaseService.class );
   }
 
