@@ -329,7 +329,7 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
 
   @Override protected void configure( Configuration conf ) throws Exception {
     setMapRunnerClass( hadoopShim.getPentahoMapReduceMapRunnerClass().getCanonicalName() );
-
+    conf.set( "java.system.pentaho.working.dir.as.karaf.data.parent.folder", "true" );
     conf.set( TRANSFORMATION_MAP_XML, mapperTransformationXml );
     conf.set( TRANSFORMATION_MAP_INPUT_STEPNAME, mapperInputStep );
     conf.set( TRANSFORMATION_MAP_OUTPUT_STEPNAME, mapperOutputStep );
