@@ -38,6 +38,7 @@ import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -137,5 +138,21 @@ public class HBaseServiceImplTest {
   @Test
   public void testGetResultFactory() {
     assertNotNull( hBaseService.getResultFactory() );
+  }
+
+  @Test
+  public void testGetHBaseConnectionWithNullNamedCluster() throws Exception {
+    String siteConfig = "site";
+    String defaultConfig = "default";
+    VariableSpace variableSpace = mock( VariableSpace.class );
+    LogChannelInterface logChannelInterface = mock( LogChannelInterface.class );
+    hBaseService = new HBaseServiceImpl( null, hadoopConfiguration );
+    try {
+      HBaseConnectionImpl hhBaseConnection =
+          hBaseService.getHBaseConnection( variableSpace, siteConfig, defaultConfig, logChannelInterface );
+      assertNotNull( hhBaseConnection );
+    } catch ( NullPointerException e ) {
+      fail( "No NPE is expected but it occurs" );
+    }
   }
 }

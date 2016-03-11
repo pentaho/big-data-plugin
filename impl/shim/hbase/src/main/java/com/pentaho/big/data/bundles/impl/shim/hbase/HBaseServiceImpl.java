@@ -63,8 +63,12 @@ public class HBaseServiceImpl implements HBaseService {
   public HBaseConnectionImpl getHBaseConnection( VariableSpace variableSpace, String siteConfig, String defaultConfig,
                                              LogChannelInterface logChannelInterface ) throws IOException {
     Properties connProps = new Properties();
-    String zooKeeperHost = variableSpace.environmentSubstitute( namedCluster.getZooKeeperHost() );
-    String zooKeeperPort = variableSpace.environmentSubstitute( namedCluster.getZooKeeperPort() );
+    String zooKeeperHost = null;
+    String zooKeeperPort  = null;
+    if ( namedCluster != null ) {
+      zooKeeperHost = variableSpace.environmentSubstitute( namedCluster.getZooKeeperHost() );
+      zooKeeperPort = variableSpace.environmentSubstitute( namedCluster.getZooKeeperPort() );
+    }
     if ( !Const.isEmpty( zooKeeperHost ) ) {
       connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.ZOOKEEPER_QUORUM_KEY, zooKeeperHost );
     }
