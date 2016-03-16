@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.bigdata.api.hbase.HBaseConnection;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hbase.shim.api.ColumnFilter;
 import org.pentaho.hbase.shim.api.HBaseValueMeta;
 import org.pentaho.hbase.shim.spi.HBaseBytesUtilShim;
@@ -347,6 +348,13 @@ public class HBaseConnectionWrapperTest {
   public void testClose() throws Exception {
     hBaseConnectionWrapper.close();
     verify( delegate ).close();
+  }
+
+  @Test
+  public void testObtainAuthTokenForJob() throws Exception {
+    Configuration configuration = mock( Configuration.class );
+    hBaseConnectionWrapper.obtainAuthTokenForJob( configuration );
+    verify( delegate ).obtainAuthTokenForJob( configuration );
   }
 
   @Test
