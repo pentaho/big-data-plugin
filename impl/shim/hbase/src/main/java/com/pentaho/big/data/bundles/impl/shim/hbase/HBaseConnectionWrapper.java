@@ -216,6 +216,11 @@ public class HBaseConnectionWrapper extends HBaseConnection {
     delegate.close();
   }
 
+  @Override
+  public void obtainAuthTokenForJob( org.pentaho.hadoop.shim.api.Configuration conf ) throws Exception {
+    delegate.obtainAuthTokenForJob( conf );
+  }
+
   public Result getCurrentResult() {
     try {
       return (Result) resultSetRowField.get( realImpl );
