@@ -22,9 +22,6 @@ package org.pentaho.big.data.plugins.common.ui;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -132,10 +129,11 @@ public class ClusterTestDialog extends Dialog {
 
     final ProgressBar progressBar = new ProgressBar( shell, SWT.SMOOTH );
     progressBar.setMinimum( 0 ); // Max tests will be set upon first return
-    
+
     fd = new FormData();
     fd.top = new FormAttachment( testLabel, 10 );
     fd.left = new FormAttachment( 0, margin );
+    fd.right = new FormAttachment( 100, -margin );
     progressBar.setLayoutData( fd );
 
     Button wCancel = new Button( shell, SWT.PUSH );
