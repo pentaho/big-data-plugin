@@ -638,12 +638,14 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         return result;
       }
 
+      Schema.Type fieldT = fieldS.schema().getType();
       Schema fieldSchema = fieldS.schema();
-      if ( fieldSchema.getType() == Schema.Type.UNION ) {
+      if ( fieldT == Schema.Type.UNION ) {
         if ( field instanceof GenericContainer ) {
           // we can ask these things for their schema (covers
           // records, arrays, enums and fixed)
           fieldSchema = ( (GenericContainer) field ).getSchema();
+          fieldT = fieldSchema.getType();
         } else {
           // either have a map or primitive here
           if ( field instanceof Map ) {
@@ -660,6 +662,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
                   "AvroInput.Error.UnableToFindSchemaForUnionMap" ) );
             }
             fieldSchema = mapSchema;
+            fieldT = Schema.Type.MAP;
           } else {
             // We shouldn't have a primitive here
             if ( !ignoreMissing ) {
@@ -673,13 +676,13 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
       }
 
       // what have we got?
-      if ( fieldS.schema().getType() == Schema.Type.RECORD ) {
-        return convertToKettleValues( (GenericData.Record) field, fieldS.schema(), space, ignoreMissing );
-      } else if ( fieldS.schema().getType() == Schema.Type.ARRAY ) {
-        return convertToKettleValues( (GenericData.Array) field, fieldS.schema(), space, ignoreMissing );
-      } else if ( fieldS.schema().getType() == Schema.Type.MAP ) {
+      if ( fieldT == Schema.Type.RECORD ) {
+        return convertToKettleValues( (GenericData.Record) field, fieldSchema, space, ignoreMissing );
+      } else if ( fieldT == Schema.Type.ARRAY ) {
+        return convertToKettleValues( (GenericData.Array) field, fieldSchema, space, ignoreMissing );
+      } else if ( fieldT == Schema.Type.MAP ) {
 
-        return convertToKettleValues( (Map<Utf8, Object>) field, fieldS.schema(), space, ignoreMissing );
+        return convertToKettleValues( (Map<Utf8, Object>) field, fieldSchema, space, ignoreMissing );
       } else {
         // primitives will always be handled by the subField delegates, so we
         // should'nt
