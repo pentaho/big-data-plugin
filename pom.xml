@@ -72,6 +72,7 @@
     <publish-sonar-phase></publish-sonar-phase>
     <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.hadoop-shims-hdp23.revision>7.0-SNAPSHOT</dependency.hadoop-shims-hdp23.revision>
+    <dependency.hadoop-shims-hdp24.revision>7.0-SNAPSHOT</dependency.hadoop-shims-hdp24.revision>
     <dependency.junit.revision>4.11</dependency.junit.revision>
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
     <dependency.jline.revision>0.9.94</dependency.jline.revision>
