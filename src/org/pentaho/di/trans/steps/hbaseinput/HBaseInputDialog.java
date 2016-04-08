@@ -130,6 +130,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   // Key stop line
   private TextVar m_keyStopText;
 
+  // Number of records to pull
+  private TextVar m_resultsLimitText;
+
   // Rows to be cached by Scanner
   private TextVar m_scanCacheText;
 
@@ -519,6 +522,27 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd.top = new FormAttachment( m_keyStartText, margin );
     m_keyStopText.setLayoutData( fd );
 
+    // results limit
+    Label resultsLimitLab = new Label( wConfigComp, SWT.RIGHT );
+    resultsLimitLab.setText( Messages.getString( "HBaseInputDialog.ResultsLimit.Label" ) );
+    resultsLimitLab.setToolTipText( Messages.getString( "HBaseInputDialog.ResultsLimit.TipText" ) );
+    props.setLook( resultsLimitLab );
+    fd = new FormData();
+    fd.left = new FormAttachment( 0, 0 );
+    fd.top = new FormAttachment( m_keyStopText, margin );
+    fd.right = new FormAttachment( middle, -margin );
+    resultsLimitLab.setLayoutData( fd );
+
+    m_resultsLimitText = new TextVar( transMeta, wConfigComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    m_resultsLimitText.setToolTipText( Messages.getString( "HBaseInputDialog.ResultsLimit.TipText" ) );
+    m_resultsLimitText.addModifyListener( lsMod );
+    props.setLook( m_resultsLimitText );
+    fd = new FormData();
+    fd.right = new FormAttachment( 100, 0 );
+    fd.left = new FormAttachment( middle, 0 );
+    fd.top = new FormAttachment( m_keyStopText, margin );
+    m_resultsLimitText.setLayoutData( fd );
+
     // Scanner caching
     Label scannerCacheLab = new Label( wConfigComp, SWT.RIGHT );
     scannerCacheLab.setText( Messages.getString( "HBaseInputDialog.ScannerCache.Label" ) );
@@ -526,7 +550,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     props.setLook( scannerCacheLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_keyStopText, margin );
+    fd.top = new FormAttachment( m_resultsLimitText, margin );
     fd.right = new FormAttachment( middle, -margin );
     scannerCacheLab.setLayoutData( fd );
 
@@ -536,7 +560,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_keyStopText, margin );
+    fd.top = new FormAttachment( m_resultsLimitText, margin );
     m_scanCacheText.setLayoutData( fd );
 
     m_getKeyInfoBut = new Button( wConfigComp, SWT.PUSH );
@@ -966,6 +990,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
     m_currentMeta.setKeyStartValue( m_keyStartText.getText() );
     m_currentMeta.setKeyStopValue( m_keyStopText.getText() );
+    m_currentMeta.setResultsLimitValue( m_resultsLimitText.getText() );
     m_currentMeta.setScannerCacheSize( m_scanCacheText.getText() );
     m_currentMeta.setMatchAnyFilter( m_matchAnyBut.getSelection() );
 
@@ -1129,6 +1154,10 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
     if ( !Const.isEmpty( m_currentMeta.getKeyStopValue() ) ) {
       m_keyStopText.setText( m_currentMeta.getKeyStopValue() );
+    }
+
+    if ( !Const.isEmpty( m_currentMeta.getResultsLimitValue() ) ) {
+      m_resultsLimitText.setText( m_currentMeta.getResultsLimitValue() );
     }
 
     if ( !Const.isEmpty( m_currentMeta.getScannerCacheSize() ) ) {

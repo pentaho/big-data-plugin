@@ -105,6 +105,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /** Stop key value for range scans */
   protected String m_keyStop;
 
+  /** Results limit for range scans */
+  protected String m_resultsLimit;
+
   /** Scanner caching */
   protected String m_scannerCacheSize;
 
@@ -343,6 +346,25 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   /**
+   * Set the limit of results for range scans. May be null to indicate there is no limit
+   *
+   * @param limit
+   *          the max number of records to retrieve on range scans
+   */
+  public void setResultsLimitValue( String limit ) {
+    m_resultsLimit = limit;
+  }
+
+  /**
+   * Get the limit of results for range scans.
+   *
+   * @return the limit of results for range scans
+   */
+  public String getResultsLimitValue() {
+    return m_resultsLimit;
+  }
+
+  /**
    * Set the number of rows to cache for scans. Higher values result in improved performance since there will be fewer
    * requests to HBase but at the expense of increased memory consumption.
    * 
@@ -410,6 +432,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_sourceMappingName = null;
     m_keyStart = null;
     m_keyStop = null;
+    m_resultsLimit = null;
   }
 
   private String getIndexValues( HBaseValueMeta vm ) {
@@ -511,6 +534,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( !Const.isEmpty( m_keyStop ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "key_stop", m_keyStop ) );
     }
+    if ( !Const.isEmpty( m_resultsLimit ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( "results_limit", m_resultsLimit ) );
+    }
     if ( !Const.isEmpty( m_scannerCacheSize ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "scanner_cache_size", m_scannerCacheSize ) );
     }
@@ -568,6 +594,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_sourceMappingName = XMLHandler.getTagValue( stepnode, "source_mapping_name" );
     m_keyStart = XMLHandler.getTagValue( stepnode, "key_start" );
     m_keyStop = XMLHandler.getTagValue( stepnode, "key_stop" );
+    m_resultsLimit = XMLHandler.getTagValue( stepnode, "results_limit" );
     m_scannerCacheSize = XMLHandler.getTagValue( stepnode, "scanner_cache_size" );
     String m = XMLHandler.getTagValue( stepnode, "match_any_filter" );
     if ( !Const.isEmpty( m ) ) {
@@ -684,6 +711,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( !Const.isEmpty( m_keyStop ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "key_stop", m_keyStop );
     }
+    if ( !Const.isEmpty( m_resultsLimit ) ) {
+      rep.saveStepAttribute( id_transformation, id_step, 0, "results_limit", m_resultsLimit );
+    }
     if ( !Const.isEmpty( m_scannerCacheSize ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "scanner_cache_size", m_scannerCacheSize );
     }
@@ -733,6 +763,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_sourceMappingName = rep.getStepAttributeString( id_step, 0, "source_mapping_name" );
     m_keyStart = rep.getStepAttributeString( id_step, 0, "key_start" );
     m_keyStop = rep.getStepAttributeString( id_step, 0, "key_stop" );
+    m_resultsLimit = rep.getStepAttributeString( id_step, 0, "results_limit" );
     m_matchAnyFilter = rep.getStepAttributeBoolean( id_step, 0, "match_any_filter" );
     m_scannerCacheSize = rep.getStepAttributeString( id_step, 0, "scanner_cache_size" );
 

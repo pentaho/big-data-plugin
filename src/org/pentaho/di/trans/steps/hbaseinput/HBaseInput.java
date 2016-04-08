@@ -57,6 +57,9 @@ public class HBaseInput extends BaseStep implements StepInterface {
   protected HBaseInputMeta m_meta;
   protected HBaseInputData m_data;
 
+  protected long scanRowCount = 0;
+  protected long scanRowLimit = 0;
+
   public HBaseInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans ) {
 
@@ -91,6 +94,7 @@ public class HBaseInput extends BaseStep implements StepInterface {
 
     if ( first ) {
       first = false;
+      scanRowCount = 0;
       m_meta = (HBaseInputMeta) smi;
       m_data = (HBaseInputData) sdi;
 
@@ -216,6 +220,19 @@ public class HBaseInput extends BaseStep implements StepInterface {
         }
       }
 
+      // set results limit (max count)
+      scanRowLimit = 0;
+      // set any user-specified max results limit
+      if ( !Const.isEmpty( m_meta.getResultsLimitValue() ) ) {
+        String temp = this.environmentSubstitute( m_meta.getResultsLimitValue() );
+        scanRowLimit = Integer.parseInt( temp );
+
+        if ( log != null ) {
+          log.logBasic( BaseMessages
+                  .getString( HBaseInputMeta.PKG, "HBaseInput.Message.SettingResultsLimit", scanRowLimit ) );
+        }
+      }
+
       if ( !isStopped() ) {
         try {
           m_hbAdmin.executeSourceTableScan();
@@ -234,6 +251,15 @@ public class HBaseInput extends BaseStep implements StepInterface {
     if ( !isStopped() ) {
       try {
         hasNext = m_hbAdmin.resultSetNextRow();
+
+        if (scanRowLimit > 0) {
+          if (scanRowCount >= scanRowLimit) {
+            hasNext = false;
+          } else {
+            ++scanRowCount;
+          }
+        }
+
       } catch ( Exception e ) {
         throw new KettleException( e.getMessage(), e );
       }

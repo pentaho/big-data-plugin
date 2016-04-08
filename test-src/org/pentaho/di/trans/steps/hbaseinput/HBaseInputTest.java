@@ -216,7 +216,53 @@ public class HBaseInputTest {
     int count = 0;
     while ( conn.resultSetNextRow() ) {
       Object[] decodedRow =
-          HBaseInputData.getOutputRow( conn, null, tableMapping.getMappedColumns(), tableMapping, outputRowMeta, bu );
+              HBaseInputData.getOutputRow( conn, null, tableMapping.getMappedColumns(), tableMapping, outputRowMeta, bu );
+
+      assertTrue( decodedRow != null );
+      assertEquals( decodedRow.length, expectedNumColsPerRow );
+
+      if ( count == 0 ) {
+        // check the key of the first row returned
+        assertTrue( decodedRow[0] != null );
+        assertTrue( decodedRow[0] instanceof Long );
+        assertEquals( new Long( -10 ), decodedRow[0] );
+      }
+      count++;
+    }
+
+    // 20010 rows returned by this scan
+    assertEquals( 20010, count );
+  }
+
+  @Test
+  public void testTableScanFromLowerKeyBoundWithResultsLimit() throws Exception {
+    FakeHBaseConnection conn = new FakeHBaseConnection();
+
+    MappingAdmin ma = initMappingAdmin( conn );
+    ma.createTestTable();
+    assertTrue( conn.tableExists( "MarksTestTable" ) );
+    ma.createTestMapping();
+    assertTrue( ma.mappingExists( "MarksTestTable", "MarksTestMapping" ) );
+
+    Mapping tableMapping = ma.getMapping( "MarksTestTable", "MarksTestMapping" );
+    assertTrue( tableMapping != null );
+
+    CommonHBaseBytesUtil bu = new CommonHBaseBytesUtil();
+
+    conn.newSourceTable( "MarksTestTable" );
+    VariableSpace vars = new Variables();
+
+    HBaseInputData.initializeScan( conn, bu, tableMapping, null, "-10", null, null, null, vars );
+
+    RowMetaInterface outputRowMeta = configureRowMeta( tableMapping, null );
+    conn.executeSourceTableScan();
+
+    // +1 for the key
+    int expectedNumColsPerRow = RowDataUtil.OVER_ALLOCATE_SIZE + tableMapping.getMappedColumns().size() + 1;
+    int count = 0;
+    while ( conn.resultSetNextRow() ) {
+      Object[] decodedRow =
+              HBaseInputData.getOutputRow( conn, null, tableMapping.getMappedColumns(), tableMapping, outputRowMeta, bu );
 
       assertTrue( decodedRow != null );
       assertEquals( decodedRow.length, expectedNumColsPerRow );
