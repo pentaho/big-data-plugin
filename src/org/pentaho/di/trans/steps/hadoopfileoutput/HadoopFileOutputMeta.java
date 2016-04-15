@@ -105,15 +105,15 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   }
 
   private String getUrl( IMetaStore metastore, String url, NamedCluster c ) {
-      if ( c != null && c.isMapr() ) {
-        url = namedClusterManager.processURLsubstitution(
-          sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore, new Variables() );
-        if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-          url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
-        }
-      } else if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-        return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
-          metastore, new Variables() );
+    if ( c != null && c.isMapr() ) {
+      url = namedClusterManager.processURLsubstitution(
+        sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore, new Variables() );
+      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
+      }
+    } else if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+      return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
+        metastore, new Variables() );
     }
 
     return url;
