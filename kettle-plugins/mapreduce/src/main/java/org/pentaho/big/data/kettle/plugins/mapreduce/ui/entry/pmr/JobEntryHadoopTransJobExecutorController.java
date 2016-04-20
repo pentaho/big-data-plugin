@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -59,6 +59,8 @@ import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.ui.xul.jface.tags.JfaceMenuList;
 import org.pentaho.ui.xul.util.AbstractModelList;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.io.File;
 import java.util.List;
@@ -786,8 +788,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void browseLocalFilesystem( StringResultSetter setter, String originalTransformationName ) {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
-    Shell shell = (Shell) xulDialog.getRootObject();
+    Shell shell = getJobEntryDialog();
 
     FileDialog dialog = new FileDialog( shell, SWT.OPEN );
     dialog.setFilterExtensions( Const.STRING_TRANS_FILTER_EXT );
@@ -850,8 +851,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private void browseRepository( StringResultSetter transSetter, StringResultSetter repoDirSetter,
       StringResultSetter repoFileSetter, ObjectIdResultSetter repoReferenceSetter ) {
     if ( rep != null ) {
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
-      Shell shell = (Shell) xulDialog.getRootObject();
+      Shell shell = getJobEntryDialog();
       SelectObjectDialog sod = new SelectObjectDialog( shell, rep, true, false );
       String transname = sod.open();
       if ( transname != null ) {
@@ -1472,8 +1472,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void help() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
-    Shell shell = (Shell) xulDialog.getRootObject();
+    Shell shell = getJobEntryDialog();
     PluginInterface plugin =
         PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
@@ -1481,37 +1480,57 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public void editNamedCluster() throws MetaStoreException {
     if ( isSelectedNamedCluster() ) {
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
-      Shell shell = (Shell) xulDialog.getRootObject();
-      String ncName = this.selectedNamedCluster != null ? this.selectedNamedCluster.getName() : null;
-      String newNcName = ncDelegate.editNamedCluster( null, this.selectedNamedCluster, shell );
-      if ( newNcName != null ) {
-        ncName = newNcName;
-      }
-      firePropertyChange( "namedClusters", null, getNamedClusters() );
-      if ( ncName != null ) {
-        for ( NamedCluster nc : this.namedClusters ) {
-          if ( nc.getName().equals( ncName ) ) {
-            firePropertyChange( "selectedNamedCluster", null, nc );
-            return;
-          }
-        }
-      }
+      String newNcName = ncDelegate.editNamedCluster( null, getSelectedNamedCluster(), getJobEntryDialog() );
+      namedClustersChanged();
+      selectedNamedClusterChanged( getNamedClusterName( getSelectedNamedCluster() ), newNcName );
     }
   }
 
   public void newNamedCluster() throws MetaStoreException {
+    String newNcName = ncDelegate.newNamedCluster( jobMeta, null, getJobEntryDialog() );
+    namedClustersChanged();
+    selectedNamedClusterChanged( getNamedClusterName( getSelectedNamedCluster() ), newNcName );
+  }
+
+  private Shell getJobEntryDialog() {
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    String ncName = this.selectedNamedCluster != null ? this.selectedNamedCluster.getName() : null;
-    String newNcName = ncDelegate.newNamedCluster( jobMeta, null, shell );
-    if ( newNcName != null ) {
-      ncName = newNcName;
-    }
+    return shell;
+  }
+
+  private String getNamedClusterName( NamedCluster namedCluster ) {
+    return namedCluster != null ? namedCluster.getName() : null;
+  }
+
+  /**
+   * Reports the named clusters list has been changed.
+   *
+   * @throws MetaStoreException
+   *           if the exception occurs
+   */
+  @VisibleForTesting
+    void namedClustersChanged() throws MetaStoreException {
     firePropertyChange( "namedClusters", null, getNamedClusters() );
-    if ( ncName != null ) {
-      for ( NamedCluster nc : this.namedClusters ) {
-        if ( nc.getName().equals( ncName ) ) {
+  }
+
+  /**
+   * Reports that the selected named cluster has been changed.
+   *
+   * @param ncVal
+   *          the old value of the selected named cluster
+   * @param newNcVal
+   *          the new value of the selected named cluster
+   * @throws MetaStoreException
+   *           if the exception occurs
+   */
+  @VisibleForTesting
+    void selectedNamedClusterChanged( String ncVal, String newNcVal ) throws MetaStoreException {
+    if ( newNcVal != null ) {
+      ncVal = newNcVal;
+    }
+    if ( ncVal != null ) {
+      for ( NamedCluster nc : getNamedClusters() ) {
+        if ( nc.getName().equals( ncVal ) ) {
           firePropertyChange( "selectedNamedCluster", null, nc );
           return;
         }
