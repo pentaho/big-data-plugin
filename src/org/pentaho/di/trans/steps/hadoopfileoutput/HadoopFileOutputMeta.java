@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -87,18 +87,7 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
     NamedCluster c = metastore == null ? null :
       namedClusterManager.getNamedClusterByName( sourceConfigurationName, metastore );
-    if ( c != null && c.isMapr() ) {
-      url =
-          namedClusterManager.processURLsubstitution(
-              sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore, new Variables() );
-      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
-      }
-    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-      return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
-          metastore, new Variables() );
-    }
-    return url;
+    return getUrl( metastore, url, c );
   }
 
   protected void saveSource( StringBuffer retVal, String fileName ) {
@@ -112,17 +101,21 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
     NamedCluster c = rep.getMetaStore() == null ? null :
       namedClusterManager.getNamedClusterByName( sourceConfigurationName, rep.getMetaStore() );
+    return getUrl( rep.getMetaStore(), url, c );
+  }
+
+  private String getUrl( IMetaStore metastore, String url, NamedCluster c ) {
     if ( c != null && c.isMapr() ) {
-      url =
-          namedClusterManager.processURLsubstitution(
-              sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, rep.getMetaStore(), new Variables() );
+      url = namedClusterManager.processURLsubstitution(
+        sourceConfigurationName, url, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore, new Variables() );
       if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
         url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
       }
-    } else if ( !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
+    } else if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
       return namedClusterManager.processURLsubstitution( sourceConfigurationName, url, HadoopSpoonPlugin.HDFS_SCHEME,
-          rep.getMetaStore(), new Variables() );
+        metastore, new Variables() );
     }
+
     return url;
   }
 
