@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -41,6 +42,7 @@ import org.w3c.dom.Node;
     description = "HadoopFileOutputPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileoutput" )
+@InjectionSupported( localizationPrefix = "HadoopFileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
 public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
   // for message resolution
