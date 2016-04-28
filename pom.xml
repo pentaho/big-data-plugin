@@ -80,7 +80,6 @@
     <dependency.commons-vfs-revision>2.1-20150824</dependency.commons-vfs-revision>
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
     <dependency.hadoop-shims-api.revision>7.0-SNAPSHOT</dependency.hadoop-shims-api.revision>
-    <dependency.pentaho-hadoop-hive-jdbc-shim.revision>7.0-SNAPSHOT</dependency.pentaho-hadoop-hive-jdbc-shim.revision>
     <dependency.avro.revision>1.6.2</dependency.avro.revision>
     <dependency.cxf.revision>2.6.15</dependency.cxf.revision>
     <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
