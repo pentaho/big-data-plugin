@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,6 +28,8 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -58,6 +60,8 @@ import java.util.List;
   description = "CouchDbInput.Description",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   i18nPackageName = "org.pentaho.di.trans.steps.couchdbinput" )
+
+@InjectionSupported( localizationPrefix = "CouchDbInput.Injection." )
 public class CouchDbInputMeta extends BaseStepMeta implements StepMetaInterface {
   public static final String DEFAULT_HOSTNAME = "localhost";
   public static final String DEFAULT_PORT = "5984";
@@ -66,13 +70,29 @@ public class CouchDbInputMeta extends BaseStepMeta implements StepMetaInterface 
   public static final String VALUE_META_NAME = "json";
   private static Class<?> PKG = CouchDbInputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
 
+  public CouchDbInputMeta() {
+    super(); // allocate BaseStepMeta
+  }
+
+  @Injection( name = "HOSTNAME" )
   private String hostname;
+
+  @Injection( name = "PORT" )
   private String port;
+
+  @Injection( name = "DBNAME" )
   private String dbName;
+
+  @Injection( name = "DESIGN_DOCUMENT" )
   private String designDocument;
+
+  @Injection( name = "VIEW_NAME" )
   private String viewName;
 
+  @Injection( name = "AUTHENTICATION_USER" )
   private String authenticationUser;
+
+  @Injection( name = "AUTHENTICATION_PASSWORD" )
   private String authenticationPassword;
 
   @Override
