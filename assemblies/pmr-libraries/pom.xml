@@ -816,11 +816,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-hive-jdbc-shim</artifactId>
-      <version>${dependency.pentaho-hadoop-hive-jdbc-shim.revision}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
       <version>${dependency.hadoop-shims-api.revision}</version>
     </dependency>
