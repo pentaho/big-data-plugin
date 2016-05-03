@@ -1,0 +1,11 @@
+kettlePlugin:KP "Kettle Plugin"
+namedClusterServiceLocator:NCSL "Named Cluster Service"
+clusterInitializer:CI "Cluster Initializer"
+hadoopConfigurationBootstrap:HCB "Hadoop Configuration Bootstrap"
+hbaseServiceFactory:HSF "HBase Service Factory"
+
+kettlePlugin:namedClusterServiceLocator.getService(cdh55unsec, HBaseService.class)
+namedClusterServiceLocator:clusterInitializer.initialize(cdh55unsec)
+clusterInitializer:hadoopConfigurationBootstrap.getProvider(cdh55)
+namedClusterServiceLocator:hbaseServiceFactory.canHandle(cdh55unsec)
+namedClusterServiceLocator:hbaseServiceFactory.create(cdh55unsec)
