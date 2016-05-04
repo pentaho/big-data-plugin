@@ -30,6 +30,8 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -54,6 +56,7 @@ import java.util.List;
     description = "HadoopExitPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopexit" )
+@InjectionSupported( localizationPrefix = "HadoopExitPlugin.Injection." )
 public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
   public static final String ERROR_INVALID_KEY_FIELD = "Error.InvalidKeyField";
   public static final String ERROR_INVALID_VALUE_FIELD = "Error.InvalidValueField";
@@ -73,8 +76,10 @@ public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {
 
   public static String OUT_VALUE_FIELDNAME = "outvaluefieldname";
 
+  @Injection( name = "KEY_FIELD" )
   private String outKeyFieldname;
 
+  @Injection( name = "VALUE_FIELD" )
   private String outValueFieldname;
 
   public HadoopExitMeta() throws Throwable {
