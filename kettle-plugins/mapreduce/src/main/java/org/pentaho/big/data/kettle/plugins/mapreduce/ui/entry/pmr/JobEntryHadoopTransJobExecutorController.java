@@ -1481,15 +1481,21 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   public void editNamedCluster() throws MetaStoreException {
     if ( isSelectedNamedCluster() ) {
       String newNcName = ncDelegate.editNamedCluster( null, getSelectedNamedCluster(), getJobEntryDialog() );
-      namedClustersChanged();
-      selectedNamedClusterChanged( getNamedClusterName( getSelectedNamedCluster() ), newNcName );
+      if ( newNcName != null ) {
+        //cancel button on editing pressed, clusters not changed
+        namedClustersChanged();
+        selectedNamedClusterChanged( getNamedClusterName( getSelectedNamedCluster() ), newNcName );
+      }
     }
   }
 
   public void newNamedCluster() throws MetaStoreException {
     String newNcName = ncDelegate.newNamedCluster( jobMeta, null, getJobEntryDialog() );
-    namedClustersChanged();
-    selectedNamedClusterChanged( getNamedClusterName( getSelectedNamedCluster() ), newNcName );
+    if ( newNcName != null ) {
+      //cancel button on editing pressed, clusters not changed
+      namedClustersChanged();
+      selectedNamedClusterChanged( getNamedClusterName( getSelectedNamedCluster() ), newNcName );
+    }
   }
 
   private Shell getJobEntryDialog() {

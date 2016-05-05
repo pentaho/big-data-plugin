@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.sqoop.ui;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.big.data.kettle.plugins.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.big.data.kettle.plugins.sqoop.SqoopExportConfig;
@@ -37,18 +36,17 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
-import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.Collection;
-
-import static org.pentaho.big.data.kettle.plugins.sqoop.SqoopExportConfig.EXPORT_DIR;
 
 /**
  * Controller for the Sqoop Export Dialog.
  */
 public class SqoopExportJobEntryController extends
     AbstractSqoopJobEntryController<SqoopExportConfig, SqoopExportJobEntry> {
+
+  public static final String SQOOP_EXPORT_STEP_NAME = "sqoop-export";
 
   public SqoopExportJobEntryController( JobMeta jobMeta, XulDomContainer container, SqoopExportJobEntry sqoopJobEntry,
       BindingFactory bindingFactory ) {
@@ -57,7 +55,7 @@ public class SqoopExportJobEntryController extends
 
   @Override
   public String getDialogElementId() {
-    return "sqoop-export";
+    return SQOOP_EXPORT_STEP_NAME;
   }
 
   @Override
@@ -65,7 +63,7 @@ public class SqoopExportJobEntryController extends
       Collection<Binding> bindings ) {
     super.createBindings( config, container, bindingFactory, bindings );
 
-    bindings.add( bindingFactory.createBinding( config, EXPORT_DIR, EXPORT_DIR, "value" ) );
+    bindings.add( bindingFactory.createBinding( config, SqoopExportConfig.EXPORT_DIR, SqoopExportConfig.EXPORT_DIR, "value" ) );
   }
 
   public void browseForExportDirectory() {
@@ -109,18 +107,10 @@ public class SqoopExportJobEntryController extends
   }
 
   public void editNamedCluster() {
-    if ( isSelectedNamedCluster() ) {
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
-      Shell shell = (Shell) xulDialog.getRootObject();
-      ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
-      populateNamedClusters();
-    }
+    editNamedCluster( SQOOP_EXPORT_STEP_NAME );
   }
 
   public void newNamedCluster() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-export" );
-    Shell shell = (Shell) xulDialog.getRootObject();
-    ncDelegate.newNamedCluster( jobMeta, null, shell );
-    populateNamedClusters();
+    newNamedCluster( SQOOP_EXPORT_STEP_NAME );
   }
 }

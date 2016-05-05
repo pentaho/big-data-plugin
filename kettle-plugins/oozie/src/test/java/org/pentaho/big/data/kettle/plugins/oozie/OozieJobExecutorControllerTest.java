@@ -29,6 +29,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
@@ -36,6 +38,9 @@ import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.job.JobMeta;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
 import org.pentaho.ui.xul.containers.XulDeck;
@@ -45,6 +50,7 @@ import org.pentaho.ui.xul.util.AbstractModelList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -59,6 +65,7 @@ public class OozieJobExecutorControllerTest {
 
   @Mock HadoopClusterDelegateImpl delegate;
   @Mock NamedCluster cluster;
+  @Mock NamedCluster cluster2;
 
   OozieJobExecutorConfig jobConfig = null;
   OozieJobExecutorJobEntryController controller = null;
@@ -69,17 +76,25 @@ public class OozieJobExecutorControllerTest {
   }
 
   @Before
-  public void before() throws XulException {
+  public void before() throws XulException, MetaStoreException {
     MockitoAnnotations.initMocks( this );
 
     jobConfig = new OozieJobExecutorConfig();
     jobConfig.setOozieWorkflow( "hdfs://localhost:9000/user/" + System.getProperty( "user.name" )
       + "/examples/apps/map-reduce" );
 
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    when( namedClusterService.list(any()) ).thenReturn( Arrays.asList( cluster ) );
+    OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
+      namedClusterService,
+      mock( RuntimeTestActionService.class ),
+      mock( RuntimeTester.class ),
+      mock( NamedClusterServiceLocator.class ) );
+
     controller =
       new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
-        new OozieJobExecutorJobEntry(), new DefaultBindingFactory(),
-        delegate, Arrays.asList( cluster ) );
+        jobEntry, new DefaultBindingFactory(),
+        delegate );
   }
 
   @Test
@@ -92,6 +107,72 @@ public class OozieJobExecutorControllerTest {
     controller.setModeToggleLabel( JobEntryMode.ADVANCED_LIST );
     assertEquals( controller.getModeToggleLabel(), "Advanced Options" );
 
+  }
+
+  @Test
+  public void testGetNamedClusterOnChangedDataInClusterNamedService() throws Exception {
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    when( namedClusterService.list(any()) ).thenReturn( Arrays.asList( cluster ) );
+    OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
+      namedClusterService,
+      mock( RuntimeTestActionService.class ),
+      mock( RuntimeTester.class ),
+      mock( NamedClusterServiceLocator.class ) );
+    OozieJobExecutorJobEntryController controller =
+      new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
+        jobEntry, new DefaultBindingFactory(),
+        delegate );
+
+    assertEquals( controller.getNamedClusters().size(), 1 );
+    assertEquals( controller.getNamedClusters().get( 0 ), cluster );
+
+    when( namedClusterService.list( any() ) ).thenReturn( Arrays.asList( cluster, cluster2 ) );
+    List<NamedCluster> namedClusters = controller.getNamedClusters();
+    assertEquals( namedClusters.size(), 2 );
+    assertEquals( namedClusters.get( 1 ), cluster2 );
+  }
+
+  @Test
+  public void testReturnEmptyCollectionOnNamedClusterServiceThrowMetaStoreException() throws Exception {
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
+      namedClusterService,
+      mock( RuntimeTestActionService.class ),
+      mock( RuntimeTester.class ),
+      mock( NamedClusterServiceLocator.class ) );
+    OozieJobExecutorJobEntryController controller =
+      new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
+        jobEntry, new DefaultBindingFactory(),
+        delegate );
+    when(jobEntry.getNamedClusterService().list( anyObject() )).thenThrow( new MetaStoreException(  ) );
+    List<NamedCluster> namedClusters = controller.getNamedClusters();
+    assertEquals( namedClusters.size(), 0 );
+  }
+
+  @Test
+  public void testConfigNamedClustersChangedOnPopulateNamedClusters() throws Exception {
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    when( namedClusterService.list(any()) ).thenReturn( Arrays.asList( cluster ) );
+    OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
+      namedClusterService,
+      mock( RuntimeTestActionService.class ),
+      mock( RuntimeTester.class ),
+      mock( NamedClusterServiceLocator.class ) );
+    OozieJobExecutorJobEntryController controller =
+      new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
+        jobEntry, new DefaultBindingFactory(),
+        delegate );
+
+    controller.populateNamedClusters();
+    assertEquals( controller.getConfig().getNamedClusters().size(), 1 );
+
+    when( namedClusterService.list( any() ) ).thenReturn( Arrays.asList( cluster, cluster2 ) );
+    controller.populateNamedClusters();
+    assertEquals( controller.getConfig().getNamedClusters().size(), 2 );
+
+    when( namedClusterService.list( any() ) ).thenReturn( Collections.emptyList() );
+    controller.populateNamedClusters();
+    assertEquals( controller.getConfig().getNamedClusters().size(), 0 );
   }
 
   @Test( expected = RuntimeException.class )
@@ -273,8 +354,12 @@ public class OozieJobExecutorControllerTest {
     }
 
     public TestOozieJobExecutorController( XulDeck modeDeck ) {
-      super( new JobMeta(), new XulFragmentContainer( null ), new OozieJobExecutorJobEntry(),
-          new DefaultBindingFactory(), delegate, Arrays.asList( cluster ) );
+      super( new JobMeta(), new XulFragmentContainer( null ), new OozieJobExecutorJobEntry(
+          mock( NamedClusterService.class ),
+          mock( RuntimeTestActionService.class ),
+          mock( RuntimeTester.class ),
+          mock( NamedClusterServiceLocator.class ) ),
+          new DefaultBindingFactory(), delegate );
 
       this.modeDeck = modeDeck;
       syncModel();

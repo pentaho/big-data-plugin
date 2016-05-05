@@ -24,7 +24,6 @@ package org.pentaho.big.data.kettle.plugins.sqoop.ui;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.big.data.kettle.plugins.sqoop.AbstractSqoopJobEntry;
 import org.pentaho.big.data.kettle.plugins.sqoop.SqoopImportConfig;
@@ -36,18 +35,17 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
-import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.Collection;
-
-import static org.pentaho.big.data.kettle.plugins.sqoop.SqoopImportConfig.TARGET_DIR;
 
 /**
  * Controller for the Sqoop Import Dialog.
  */
 public class SqoopImportJobEntryController extends
     AbstractSqoopJobEntryController<SqoopImportConfig, SqoopImportJobEntry> {
+
+  public static final String SQOOP_IMPORT_STEP_NAME = "sqoop-import";
 
   public SqoopImportJobEntryController( JobMeta jobMeta, XulDomContainer container, SqoopImportJobEntry sqoopJobEntry,
       BindingFactory bindingFactory ) {
@@ -64,7 +62,7 @@ public class SqoopImportJobEntryController extends
       Collection<Binding> bindings ) {
     super.createBindings( config, container, bindingFactory, bindings );
 
-    bindings.add( bindingFactory.createBinding( config, TARGET_DIR, TARGET_DIR, "value" ) );
+    bindings.add( bindingFactory.createBinding( config, SqoopImportConfig.TARGET_DIR, SqoopImportConfig.TARGET_DIR, "value" ) );
   }
 
   public void browseForTargetDirectory() {
@@ -101,18 +99,10 @@ public class SqoopImportJobEntryController extends
   }
 
   public void editNamedCluster() {
-    if ( isSelectedNamedCluster() ) {
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
-      Shell shell = (Shell) xulDialog.getRootObject();
-      ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
-      populateNamedClusters();
-    }
+    editNamedCluster( SQOOP_IMPORT_STEP_NAME );
   }
 
   public void newNamedCluster() {
-    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "sqoop-import" );
-    Shell shell = (Shell) xulDialog.getRootObject();
-    ncDelegate.newNamedCluster( jobMeta, null, shell );
-    populateNamedClusters();
+    newNamedCluster( SQOOP_IMPORT_STEP_NAME );
   }
 }

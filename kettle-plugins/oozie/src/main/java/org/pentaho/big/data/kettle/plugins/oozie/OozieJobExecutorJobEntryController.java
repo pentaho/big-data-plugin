@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.oozie;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
@@ -35,6 +36,7 @@ import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingConvertor;
@@ -48,6 +50,7 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -67,7 +70,6 @@ public class OozieJobExecutorJobEntryController extends
   public static final String CHILDREN = "children";
   public static final String ELEMENTS = "elements";
   private final HadoopClusterDelegateImpl hadoopClusterDelegate;
-  private final List<NamedCluster> namedClusters;
 
   protected AbstractModelList<PropertyEntry> advancedArguments;
   private transient boolean advancedArgumentsChanged = false;
@@ -83,17 +85,15 @@ public class OozieJobExecutorJobEntryController extends
 
   public OozieJobExecutorJobEntryController( JobMeta jobMeta, XulDomContainer container,
                                              OozieJobExecutorJobEntry jobEntry, BindingFactory bindingFactory,
-                                             HadoopClusterDelegateImpl hadoopClusterDelegate,
-                                             List<NamedCluster> namedClusters ) {
+                                             HadoopClusterDelegateImpl hadoopClusterDelegate ) {
     super( jobMeta, container, jobEntry, bindingFactory );
     advancedArguments = new AbstractModelList<PropertyEntry>();
     this.hadoopClusterDelegate = hadoopClusterDelegate;
-    this.namedClusters = namedClusters;
 
     if ( jobEntry.getJobConfig().getWorkflowProperties().size() > 0 ) {
       advancedArguments.addAll( jobEntry.getJobConfig().getWorkflowProperties() );
     }
-    config.setNamedClusters( namedClusters );
+    populateNamedClusters();
   }
 
   @Override
@@ -168,7 +168,7 @@ public class OozieJobExecutorJobEntryController extends
     //config.setRepository( rep );
     String clusterName = config.getClusterName();
 
-    namedClustersBinding = bindingFactory.createBinding( config, "namedClusters", "named-clusters", "elements" );
+    namedClustersBinding = bindingFactory.createBinding( config.getNamedClusters(), "children", "named-clusters", "elements" );
     try {
       namedClustersBinding.fireSourceChanged();
     } catch ( Throwable ignored ) {
@@ -186,7 +186,7 @@ public class OozieJobExecutorJobEntryController extends
         }
 
         public Integer targetToSource( final NamedCluster value ) {
-          return null;
+          return config.getNamedClusters().indexOf( value );
         }
       } );
     try {
@@ -248,8 +248,13 @@ public class OozieJobExecutorJobEntryController extends
 
   }
 
-  private List<NamedCluster> getNamedClusters() {
-    return namedClusters;
+  @VisibleForTesting List<NamedCluster> getNamedClusters() {
+    try {
+      return jobEntry.getNamedClusterService().list( jobMeta.getMetaStore() );
+    } catch ( MetaStoreException e ) {
+      jobEntry.logError( e.getMessage(), e );
+      return Collections.emptyList();
+    }
   }
 
   public void selectNamedCluster( String configName ) {
@@ -264,29 +269,32 @@ public class OozieJobExecutorJobEntryController extends
   }
 
   public void editNamedCluster() {
-    String cn = config.getClusterName();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
 
-    hadoopClusterDelegate
+    String clusterName = hadoopClusterDelegate
       .editNamedCluster( null, config.getNamedCluster(), shell );
-    firePropertyChange( "namedClusters", config.getClusterName(), config.getNamedClusters() );
-    selectNamedCluster( cn );
+    if ( clusterName != null ) {
+      //cancel button on editing pressed, clusters not changed
+      populateNamedClusters();
+      selectNamedCluster( clusterName );
+    }
+  }
+
+  protected void populateNamedClusters() {
+    config.getNamedClusters().clear();
+    config.getNamedClusters().addAll( getNamedClusters() );
   }
 
   public void newNamedCluster() {
-    String cn = config.getClusterName();
     XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "oozie-job-executor" );
     Shell shell = (Shell) xulDialog.getRootObject();
-    hadoopClusterDelegate.newNamedCluster( jobMeta, null, shell );
-    config.setNamedClusters( getNamedClusters() );
-    firePropertyChange( "namedClusters", null, config.getNamedClusters() );
-    try {
-      namedClustersBinding.fireSourceChanged();
-    } catch ( Throwable ignored ) {
-      // Ignore
+    String newNamedCluster = hadoopClusterDelegate.newNamedCluster( jobMeta, null, shell );
+    if ( newNamedCluster != null ) {
+      //cancel button on editing pressed, clusters not changed
+      populateNamedClusters();
+      selectNamedCluster( newNamedCluster );
     }
-    selectNamedCluster( cn );
   }
 
   @Bindable

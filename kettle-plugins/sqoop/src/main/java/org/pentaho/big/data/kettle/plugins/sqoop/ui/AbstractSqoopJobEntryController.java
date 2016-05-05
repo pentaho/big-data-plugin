@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.sqoop.ui;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
@@ -60,6 +61,7 @@ import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.components.XulButton;
 import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.containers.XulDeck;
+import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.containers.XulTree;
 import org.pentaho.ui.xul.util.AbstractModelList;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
@@ -67,8 +69,6 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.Collection;
 import java.util.List;
-
-import static org.pentaho.big.data.kettle.plugins.sqoop.SqoopConfig.TABLE;
 
 /**
  * Base functionality to support a Sqoop job entry controller that provides most of the common functionality to back a
@@ -201,7 +201,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     // TODO Determine if separate schema field is required, this has to be provided as part of the --table argument
     // anyway.
     // bindings.add(bindingFactory.createBinding(config, SCHEMA, SCHEMA, VALUE));
-    bindings.add( bindingFactory.createBinding( config, TABLE, TABLE, VALUE ) );
+    bindings.add( bindingFactory.createBinding( config, SqoopConfig.TABLE, SqoopConfig.TABLE, VALUE ) );
 
     bindings.add( bindingFactory.createBinding( config, SqoopConfig.COMMAND_LINE, SqoopConfig.COMMAND_LINE, VALUE ) );
 
@@ -1001,4 +1001,40 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
     }
     updateDeleteButton();
   }
+
+  public void newNamedCluster( String stepName ) {
+    XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( stepName );
+    Shell shell = (Shell) xulDialog.getRootObject();
+    String newNamedCluster = ncDelegate.newNamedCluster( jobMeta, null, shell );
+    if ( newNamedCluster != null ) {
+      //cancel button on editing pressed, clusters not changed
+      populateNamedClusters();
+      selectNamedCluster( newNamedCluster );
+    }
+  }
+
+  public void editNamedCluster( String stepName ) {
+    if ( isSelectedNamedCluster() ) {
+      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( stepName );
+      Shell shell = (Shell) xulDialog.getRootObject();
+      String clusterName = ncDelegate.editNamedCluster( null, selectedNamedCluster, shell );
+      if ( clusterName != null ) {
+        //cancel button on editing pressed, clusters not changed
+        populateNamedClusters();
+        selectNamedCluster( clusterName );
+      }
+    }
+  }
+
+  public void selectNamedCluster( String configName ) {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<NamedCluster> namedConfigMenu =
+      (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" );
+    for ( NamedCluster nc : getNamedClusters() ) {
+      if ( configName != null && configName.equals( nc.getName() ) ) {
+        namedConfigMenu.setSelectedItem( nc );
+      }
+    }
+  }
+
 }
