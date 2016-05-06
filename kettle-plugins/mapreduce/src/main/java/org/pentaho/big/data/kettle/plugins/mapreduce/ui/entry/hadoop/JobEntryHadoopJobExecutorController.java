@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -486,7 +486,6 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   public void editNamedCluster() {
     try {
-      Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
       NamedCluster namedCluster;
@@ -495,8 +494,12 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       } else {
         namedCluster = namedClusterService.getClusterTemplate();
       }
-      ncDelegate.editNamedCluster( null, namedCluster, shell );
-      firePropertyChange( "namedClusters", namedCluster, getNamedClusters() );
+      String clusterName = ncDelegate.editNamedCluster( null, namedCluster, shell );
+      if ( clusterName != null ) {
+        //cancel button on editing pressed, clusters not changed
+        firePropertyChange( "namedClusters", namedCluster, getNamedClusters() );
+        selectNamedCluster( clusterName );
+      }
     } catch ( Throwable t ) {
       t.printStackTrace();
     }
@@ -504,14 +507,28 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
   public void newNamedCluster() {
     try {
-      Spoon spoon = Spoon.getInstance();
       XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
       Shell shell = (Shell) xulDialog.getRootObject();
-      ncDelegate.newNamedCluster( jobMeta, null, shell );
-      firePropertyChange( "namedClusters", null, getNamedClusters() );
-      aConf.selectNamedCluster();
+      String newClusterName = ncDelegate.newNamedCluster( jobMeta, null, shell );
+      if ( newClusterName != null ) {
+        //cancel button on editing pressed, clusters not changed
+        firePropertyChange( "namedClusters", null, getNamedClusters() );
+        selectNamedCluster( newClusterName );
+      }
     } catch ( Throwable t ) {
       t.printStackTrace();
+    }
+  }
+
+  private void selectNamedCluster( String clusterName ) throws MetaStoreException {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) getXulDomContainer().getDocumentRoot()
+      .getElementById( "named-clusters" );
+    for ( NamedCluster nc : getNamedClusters() ) {
+      if ( clusterName != null && clusterName.equals( nc.getName() ) ) {
+        namedClusterMenu.setSelectedItem( nc );
+        aConf.setSelectedNamedCluster( nc );
+      }
     }
   }
 
@@ -792,36 +809,6 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
 
       this.numReduceTasks = numReduceTasks;
       firePropertyChange( AdvancedConfiguration.NUM_REDUCE_TASKS, previousVal, newVal );
-    }
-
-    public void editNamedCluster() throws MetaStoreException {
-      if ( isSelectedNamedCluster() ) {
-        Spoon spoon = Spoon.getInstance();
-        XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
-        Shell shell = (Shell) xulDialog.getRootObject();
-        ncDelegate.editNamedCluster( null, this.selectedNamedCluster, shell );
-        firePropertyChange( "namedClusters", this.selectedNamedCluster, getNamedClusters() );
-      }
-    }
-
-    public void newNamedCluster() throws MetaStoreException {
-      Spoon spoon = Spoon.getInstance();
-      XulDialog xulDialog = (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( "job-entry-dialog" );
-      Shell shell = (Shell) xulDialog.getRootObject();
-      ncDelegate.newNamedCluster( jobMeta, null, shell );
-      firePropertyChange( "namedClusters", null, getNamedClusters() );
-      selectNamedCluster();
-    }
-
-    private void selectNamedCluster() throws MetaStoreException {
-      @SuppressWarnings( "unchecked" )
-      XulMenuList<NamedCluster> namedClusterMenu = (XulMenuList<NamedCluster>) getXulDomContainer().getDocumentRoot()
-        .getElementById( "named-clusters" ); //$NON-NLS-1$
-      NamedCluster namedCluster = jobEntry.getNamedCluster();
-      if ( namedCluster != null ) {
-        namedClusterMenu.setSelectedItem( namedCluster );
-        setSelectedNamedCluster( namedCluster );
-      }
     }
 
     public boolean isSelectedNamedCluster() {

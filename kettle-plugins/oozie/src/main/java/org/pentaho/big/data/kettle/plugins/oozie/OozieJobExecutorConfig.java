@@ -28,6 +28,7 @@ import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.ui.xul.XulEventSource;
 import org.pentaho.ui.xul.stereotype.Bindable;
+import org.pentaho.ui.xul.util.AbstractModelList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   public static final String OOZIE_WORKFLOW_PROPERTIES = "oozieWorkflowProperties";
   public static final String MODE = "mode";
 
-  private transient List<NamedCluster> namedClusters;
+  private transient AbstractModelList<NamedCluster> namedClusters;
   private transient NamedCluster namedCluster = null; // selected
   private String clusterName; // saved (String)
   private String oozieUrl = null;
@@ -57,6 +58,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   private String mode = null;
 
   public OozieJobExecutorConfig() {
+    namedClusters = new AbstractModelList<>(  );
   }
 
   @Bindable
@@ -101,7 +103,7 @@ public class OozieJobExecutorConfig extends BlockableJobConfig implements XulEve
   }
 
   @Bindable
-  public void setNamedClusters( List<NamedCluster> namedClusters ) {
+  public void setNamedClusters( AbstractModelList<NamedCluster> namedClusters ) {
     this.namedClusters = namedClusters;
   }
 

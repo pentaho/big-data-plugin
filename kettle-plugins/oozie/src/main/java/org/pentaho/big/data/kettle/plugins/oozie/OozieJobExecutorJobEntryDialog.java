@@ -23,7 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.oozie;
 
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
@@ -31,11 +30,9 @@ import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
-import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.XulSpoonSettingsManager;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
@@ -44,9 +41,7 @@ import org.pentaho.ui.xul.binding.DefaultBindingFactory;
 import org.pentaho.ui.xul.swt.SwtXulLoader;
 import org.pentaho.ui.xul.swt.SwtXulRunner;
 
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -100,20 +95,7 @@ public class OozieJobExecutorJobEntryDialog extends JobEntryDialog implements Jo
       XulDomContainer container, BindingFactory bindingFactory ) {
     return new OozieJobExecutorJobEntryController( jobMeta, container, jobEntry, bindingFactory,
       new HadoopClusterDelegateImpl( Spoon.getInstance(), jobEntry.getNamedClusterService(),
-        jobEntry.getRuntimeTestActionService(), jobEntry.getRuntimeTester() ),
-      getNamedClusters( jobEntry ) );
-  }
-
-  private List<NamedCluster> getNamedClusters( OozieJobExecutorJobEntry jobEntry ) {
-    try {
-      return jobEntry.getNamedClusterService().list( Spoon.getInstance().getMetaStore() );
-    } catch ( MetaStoreException e ) {
-      new ErrorDialog( parent,
-        getMessage( "ErrorLoadingClusters.Title" ),
-        getMessage( "ErrorLoadingClusters.Message" ),
-        e );
-      return Collections.emptyList();
-    }
+        jobEntry.getRuntimeTestActionService(), jobEntry.getRuntimeTester() ) );
   }
 
   private String getMessage( String key ) {
