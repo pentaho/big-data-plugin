@@ -20,6 +20,8 @@ The factory loader implements the [HadoopConfigurationListener](https://github.c
 
 The factory has two parent classloaders, the OSGi Bundle Context Classloader and the Shim's classloader.  This way it is able to implement the Factory interface and the Service it instantiates can use the shim classes to do the work.
 
+![Logic flow chart](shim-bridge-classloading.png)
+
 The Service interface is able to reference anything in the shim to do its job but sticking with the hadoop shim api classes is preferable as they are less likely to change from shim to shim.
 
 [Example blueprint](https://github.com/pentaho/big-data-plugin/blob/master/impl/shim/pig/src/main/resources/OSGI-INF/blueprint/blueprint.xml)
