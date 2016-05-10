@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.api.jdbc.DriverRegistry;
+import org.osgi.framework.BundleContext;
 import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.hadoop.shim.ConfigurationException;
@@ -51,12 +51,12 @@ public class ShimDriverLoaderTest {
   @Mock HadoopConfiguration hadoopConfiguration;
   @Mock HadoopShim hadoopShim;
   @Mock Driver driver;
-  @Mock DriverRegistry driverRegistry;
+  @Mock BundleContext bundleContext;
   private ShimDriverLoader shimDriverLoader;
 
   @Before
   public void setup() {
-    shimDriverLoader = new ShimDriverLoader( jdbcUrlParser, driverRegistry, hadoopConfigurationBootstrap );
+    shimDriverLoader = new ShimDriverLoader( jdbcUrlParser, bundleContext, hadoopConfigurationBootstrap );
     when( hadoopConfiguration.getHadoopShim() ).thenReturn( hadoopShim );
   }
 

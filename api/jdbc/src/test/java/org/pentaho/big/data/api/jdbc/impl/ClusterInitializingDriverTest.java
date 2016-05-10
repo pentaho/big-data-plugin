@@ -30,7 +30,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.api.initializer.ClusterInitializer;
-import org.pentaho.big.data.api.jdbc.DriverRegistry;
 import org.pentaho.big.data.api.jdbc.JdbcUrl;
 import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -56,7 +55,7 @@ import static org.mockito.Mockito.when;
 public class ClusterInitializingDriverTest {
   @Mock ClusterInitializer clusterInitializer;
   @Mock JdbcUrlParser jdbcUrlParser;
-  @Mock DriverRegistry driverRegistry;
+  @Mock DriverLocatorImpl driverRegistry;
   @Mock HasRegisterDriver hasRegisterDriver;
   @Mock NamedCluster namedCluster;
   @Mock JdbcUrl jdbcUrl;
@@ -84,7 +83,8 @@ public class ClusterInitializingDriverTest {
   @Test
   public void testRegisterDriverFailures() throws SQLException {
     doThrow( new SQLException() ).when( hasRegisterDriver ).registerDriver( any() );
-    assertNotNull( new ClusterInitializingDriver( clusterInitializer, jdbcUrlParser, driverRegistry, null, hasRegisterDriver ) );
+    assertNotNull(
+      new ClusterInitializingDriver( clusterInitializer, jdbcUrlParser, driverRegistry, null, hasRegisterDriver ) );
   }
 
   @Test

@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.api.jdbc.DriverRegistry;
+import org.osgi.framework.ServiceReference;
 
 import java.sql.Connection;
 import java.sql.Driver;
@@ -36,6 +36,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
@@ -43,6 +44,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -50,18 +52,27 @@ import static org.mockito.Mockito.when;
  */
 @RunWith( MockitoJUnitRunner.class )
 public class LazyDelegatingDriverTest {
-  @Mock DriverRegistry driverRegistry;
+  @Mock DriverLocatorImpl driverRegistry;
   @Mock HasRegisterDriver hasRegisterDriver;
+  @Mock ServiceReference<Driver> badDriverServiceReference;
   @Mock Driver badDriver;
+  @Mock ServiceReference<Driver> goodDriverServiceReference;
   @Mock Driver driver;
   @Mock Connection connection;
   @Mock DriverPropertyInfo driverPropertyInfo;
   @Mock Logger logger;
-  List<Driver> drivers;
+  List<Map.Entry<ServiceReference<Driver>, Driver>> drivers;
   LazyDelegatingDriver lazyDelegatingDriver;
   String testUrl;
   int majorVersion;
   int minorVersion;
+
+  private Map.Entry<ServiceReference<Driver>, Driver> makeEntry( ServiceReference<Driver> serviceReference, Driver driver ) {
+    Map.Entry<ServiceReference<Driver>, Driver> entry = mock( Map.Entry.class );
+    when( entry.getKey() ).thenReturn( serviceReference );
+    when( entry.getValue() ).thenReturn( driver );
+    return entry;
+  }
 
   @Before
   public void setup() throws SQLException {
@@ -70,19 +81,19 @@ public class LazyDelegatingDriverTest {
     minorVersion = 11;
     lazyDelegatingDriver = new LazyDelegatingDriver( driverRegistry, hasRegisterDriver );
     drivers = new ArrayList<>();
-    drivers.add( badDriver );
-    drivers.add( driver );
+    drivers.add( makeEntry( badDriverServiceReference, badDriver ) );
+    drivers.add( makeEntry( goodDriverServiceReference, driver ) );
     when( driver.connect( testUrl, null ) ).thenReturn( connection );
     when( driver.acceptsURL( testUrl ) ).thenReturn( true );
     when( driver.getPropertyInfo( testUrl, null ) ).thenReturn( new DriverPropertyInfo[] { driverPropertyInfo } );
     when( driver.getMajorVersion() ).thenReturn( majorVersion );
     when( driver.getMinorVersion() ).thenReturn( minorVersion );
     when( driver.getParentLogger() ).thenReturn( logger );
-    when( driverRegistry.getDrivers() ).thenReturn( drivers );
+    when( driverRegistry.getDrivers() ).thenReturn( drivers.iterator() );
   }
 
   @Test
-  public void testSimpleConstructor() {
+  public void testSimpleConstructor() throws SQLException {
     assertNotNull( new LazyDelegatingDriver( driverRegistry ) );
   }
 

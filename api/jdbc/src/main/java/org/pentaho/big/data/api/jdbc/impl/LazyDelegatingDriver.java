@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.api.jdbc.impl;
 
-import org.pentaho.big.data.api.jdbc.DriverRegistry;
+import org.osgi.framework.ServiceReference;
 import org.pentaho.di.core.database.DelegatingDriver;
 
 import java.sql.Connection;
@@ -31,8 +31,8 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.Collections;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
@@ -43,35 +43,43 @@ import java.util.logging.Logger;
  * Created by bryan on 4/27/16.
  */
 public class LazyDelegatingDriver implements Driver {
-  private final DriverRegistry driverRegistry;
+  private final DriverLocatorImpl driverLocator;
   private final HasRegisterDriver hasRegisterDriver;
   private Driver delegate;
+  private DelegatingDriver delegatingDriver;
 
-  public LazyDelegatingDriver( DriverRegistry driverRegistry ) {
-    this( driverRegistry, DriverManager::registerDriver );
+  public LazyDelegatingDriver( DriverLocatorImpl driverLocator ) throws SQLException {
+    this( driverLocator, DriverManager::registerDriver );
   }
-  public LazyDelegatingDriver( DriverRegistry driverRegistry, HasRegisterDriver hasRegisterDriver ) {
-    this.driverRegistry = driverRegistry;
+
+  public LazyDelegatingDriver( DriverLocatorImpl driverLocator, HasRegisterDriver hasRegisterDriver )
+    throws SQLException {
+    this.driverLocator = driverLocator;
     this.hasRegisterDriver = hasRegisterDriver;
+    this.delegatingDriver = new DelegatingDriver( this );
+    hasRegisterDriver.registerDriver( delegatingDriver );
   }
 
   private synchronized <T> T findAndProcess( FunctionWithSQLException<Driver, T> attempt, Predicate<T> success,
                                              T defaultVal )
     throws SQLException {
-    List<Driver> drivers;
     if ( delegate == null ) {
-      drivers = driverRegistry.getDrivers();
-    } else {
-      drivers = Collections.singletonList( delegate );
-    }
-    for ( Driver driver : drivers ) {
-      T result = attempt.apply( driver );
-      if ( success.test( result ) ) {
-        if ( delegate == null ) {
+      Iterator<Map.Entry<ServiceReference<Driver>, Driver>> drivers = driverLocator.getDrivers();
+      while ( drivers.hasNext() ) {
+        Map.Entry<ServiceReference<Driver>, Driver> driverEntry = drivers.next();
+        ServiceReference<Driver> serviceReference = driverEntry.getKey();
+        Driver driver = driverEntry.getValue();
+        T result = attempt.apply( driver );
+        if ( success.test( result ) ) {
           delegate = driver;
-          hasRegisterDriver.registerDriver( new DelegatingDriver( new LazyDelegatingDriver( driverRegistry,
-            hasRegisterDriver ) ) );
+          new LazyDelegatingDriver( driverLocator, hasRegisterDriver );
+          driverLocator.registerDriverServiceReferencePair( serviceReference, delegatingDriver, false );
+          return result;
         }
+      }
+    } else {
+      T result = attempt.apply( delegate );
+      if ( success.test( result ) ) {
         return result;
       }
     }

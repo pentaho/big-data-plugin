@@ -11,10 +11,9 @@
     <argument>
       <list>
         <ref component-id="jdbcUrlParser"/>
-        <ref component-id="driverRegistry"/>
+        <ref component-id="blueprintBundleContext"/>
       </list>
     </argument>
   </bean>
   <reference id="jdbcUrlParser" interface="org.pentaho.big.data.api.jdbc.JdbcUrlParser"/>
-  <reference id="driverRegistry" interface="org.pentaho.big.data.api.jdbc.DriverRegistry"/>
 </blueprint>

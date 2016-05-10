@@ -13,17 +13,18 @@
         <argument ref="metastoreLocator"/>
     </bean>
 
-    <bean id="driverRegistry" class="org.pentaho.big.data.api.jdbc.impl.DriverRegistryImpl" scope="singleton"/>
+    <bean id="driverLocator" class="org.pentaho.big.data.api.jdbc.impl.DriverLocatorImpl" scope="singleton">
+        <argument ref="blueprintBundleContext"/>
+    </bean>
 
     <bean class="org.pentaho.big.data.api.jdbc.impl.ClusterInitializingDriver">
         <argument ref="clusterInitializer"/>
         <argument ref="jdbcUrlParserImpl"/>
-        <argument ref="driverRegistry"/>
+        <argument ref="driverLocator"/>
         <argument value="${pentaho.jdbc.lazydrivers.num}"/>
     </bean>
 
-    <service ref="driverRegistry" interface="org.pentaho.big.data.api.jdbc.DriverRegistry"/>
-    <service ref="driverRegistry" interface="org.pentaho.big.data.api.jdbc.DriverLocator"/>
+    <service ref="driverLocator" interface="org.pentaho.big.data.api.jdbc.DriverLocator"/>
     <service ref="jdbcUrlParserImpl" interface="org.pentaho.big.data.api.jdbc.JdbcUrlParser"/>
     <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
     <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>

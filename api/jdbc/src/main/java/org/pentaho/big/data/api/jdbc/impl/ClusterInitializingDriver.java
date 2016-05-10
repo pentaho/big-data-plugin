@@ -23,7 +23,6 @@
 package org.pentaho.big.data.api.jdbc.impl;
 
 import org.pentaho.big.data.api.initializer.ClusterInitializer;
-import org.pentaho.big.data.api.jdbc.DriverRegistry;
 import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
 import org.pentaho.di.core.database.DelegatingDriver;
 import org.slf4j.LoggerFactory;
@@ -45,24 +44,22 @@ public class ClusterInitializingDriver implements Driver {
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger( ClusterInitializingDriver.class );
   private final ClusterInitializer clusterInitializer;
   private final JdbcUrlParser jdbcUrlParser;
-  private final HasRegisterDriver hasRegisterDriver;
 
   public ClusterInitializingDriver( ClusterInitializer clusterInitializer, JdbcUrlParser jdbcUrlParser,
-                                    DriverRegistry driverRegistry ) {
+                                    DriverLocatorImpl driverRegistry ) {
     this( clusterInitializer, jdbcUrlParser, driverRegistry, null );
   }
 
   public ClusterInitializingDriver( ClusterInitializer clusterInitializer, JdbcUrlParser jdbcUrlParser,
-                                    DriverRegistry driverRegistry, Integer numLazyProxies ) {
+                                    DriverLocatorImpl driverRegistry, Integer numLazyProxies ) {
     this( clusterInitializer, jdbcUrlParser, driverRegistry, numLazyProxies, DriverManager::registerDriver );
   }
 
   public ClusterInitializingDriver( ClusterInitializer clusterInitializer, JdbcUrlParser jdbcUrlParser,
-                                    DriverRegistry driverRegistry, Integer numLazyProxies,
+                                    DriverLocatorImpl driverRegistry, Integer numLazyProxies,
                                     HasRegisterDriver hasRegisterDriver ) {
     this.clusterInitializer = clusterInitializer;
     this.jdbcUrlParser = jdbcUrlParser;
-    this.hasRegisterDriver = hasRegisterDriver;
     int lazyProxies = Optional.ofNullable( numLazyProxies ).orElse( 5 );
     try {
       hasRegisterDriver.registerDriver( new DelegatingDriver( this ) );
@@ -71,8 +68,7 @@ public class ClusterInitializingDriver implements Driver {
     }
     for ( int i = 0; i < lazyProxies; i++ ) {
       try {
-        hasRegisterDriver.registerDriver( new DelegatingDriver( new LazyDelegatingDriver( driverRegistry,
-          hasRegisterDriver ) ) );
+        new LazyDelegatingDriver( driverRegistry, hasRegisterDriver );
       } catch ( SQLException e ) {
         logger.warn( "Failed to register " + LazyDelegatingDriver.class.getName(), e );
       }

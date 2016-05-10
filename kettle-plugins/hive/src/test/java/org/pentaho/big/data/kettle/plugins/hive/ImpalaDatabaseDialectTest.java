@@ -20,19 +20,26 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.api.jdbc;
+package org.pentaho.big.data.kettle.plugins.hive;
 
-import java.sql.Driver;
-import java.sql.SQLException;
-import java.util.List;
+import org.junit.Test;
+import org.pentaho.database.model.DatabaseConnection;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Created by bryan on 4/18/16.
+ * User: Dzmitry Stsiapanau Date: 10/4/14 Time: 10:55 PM
  */
-public interface DriverRegistry {
-  void registerDriver( Driver driver ) throws SQLException;
+public class ImpalaDatabaseDialectTest {
 
-  void deregisterDriver( Driver driver ) throws SQLException;
-
-  List<Driver> getDrivers();
+  @Test
+  public void testGetURL() throws Exception {
+    ImpalaDatabaseDialect impala = new ImpalaDatabaseDialect();
+    DatabaseConnection dbconn = new DatabaseConnection();
+    String url = impala.getURL( dbconn );
+    assertEquals( "noauth url", "jdbc:hive2://null:null/null;auth=noSasl", url );
+    dbconn.addExtraOption( impala.getDatabaseType().getShortName(), "principal", "someValue" );
+    url = impala.getURL( dbconn );
+    assertEquals( "principal url", "jdbc:hive2://null:null/null", url );
+  }
 }
