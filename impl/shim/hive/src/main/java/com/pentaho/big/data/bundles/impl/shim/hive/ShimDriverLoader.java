@@ -22,9 +22,9 @@
 
 package com.pentaho.big.data.bundles.impl.shim.hive;
 
-import org.pentaho.big.data.api.jdbc.DriverRegistry;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
-import org.pentaho.di.core.database.DelegatingDriver;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopConfigurationListener;
 import org.pentaho.hadoop.shim.ConfigurationException;
@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Driver;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,24 +53,24 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
   private final Logger LOGGER = LoggerFactory.getLogger( ShimDriverLoader.class );
 
   private final JdbcUrlParser jdbcUrlParser;
-  private final ConcurrentMap<HadoopConfiguration, ConcurrentMap<String, Driver>> configMap;
+  private final ConcurrentMap<HadoopConfiguration, ConcurrentMap<String, ServiceRegistration>> configMap;
   private final Map<String, DriverFactory> hiveDriverFactoryMap;
-  private final DriverRegistry driverRegistry;
+  private final BundleContext bundleContext;
 
-  public ShimDriverLoader( JdbcUrlParser jdbcUrlParser, DriverRegistry driverRegistry ) {
-    this( jdbcUrlParser, driverRegistry, HadoopConfigurationBootstrap.getInstance(), initHiveDriverFactoryMap() );
+  public ShimDriverLoader( JdbcUrlParser jdbcUrlParser, BundleContext bundleContext ) {
+    this( jdbcUrlParser, bundleContext, HadoopConfigurationBootstrap.getInstance(), initHiveDriverFactoryMap() );
   }
 
-  public ShimDriverLoader( JdbcUrlParser jdbcUrlParser, DriverRegistry driverRegistry,
+  public ShimDriverLoader( JdbcUrlParser jdbcUrlParser, BundleContext bundleContext,
                            HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
-    this( jdbcUrlParser, driverRegistry, hadoopConfigurationBootstrap, initHiveDriverFactoryMap() );
+    this( jdbcUrlParser, bundleContext, hadoopConfigurationBootstrap, initHiveDriverFactoryMap() );
   }
 
   public ShimDriverLoader( JdbcUrlParser jdbcUrlParser,
-                           DriverRegistry driverRegistry, HadoopConfigurationBootstrap hadoopConfigurationBootstrap,
+                           BundleContext bundleContext, HadoopConfigurationBootstrap hadoopConfigurationBootstrap,
                            Map<String, DriverFactory> hiveDriverFactoryMap ) {
     this.jdbcUrlParser = jdbcUrlParser;
-    this.driverRegistry = driverRegistry;
+    this.bundleContext = bundleContext;
     this.configMap = new ConcurrentHashMap<>();
     this.hiveDriverFactoryMap = new ConcurrentHashMap<>( hiveDriverFactoryMap );
     try {
@@ -115,14 +114,9 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
         if ( hiveDriver == null ) {
           return null;
         }
-        DelegatingDriver driver = new DelegatingDriver( hiveDriver );
-        try {
-          driverRegistry.registerDriver( driver );
-        } catch ( SQLException e ) {
-          LOGGER.error( "Unable to register " + hiveDriver, e );
-          return null;
-        }
-        return new Map.Entry<String, Driver>() {
+        ServiceRegistration<?> serviceRegistration =
+          bundleContext.registerService( Driver.class.getCanonicalName(), hiveDriver, null );
+        return new Map.Entry<String, ServiceRegistration>() {
 
           @Override
           public String getKey() {
@@ -130,12 +124,12 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
           }
 
           @Override
-          public Driver getValue() {
-            return driver;
+          public ServiceRegistration getValue() {
+            return serviceRegistration;
           }
 
           @Override
-          public Driver setValue( Driver value ) {
+          public ServiceRegistration setValue( ServiceRegistration value ) {
             throw new UnsupportedOperationException();
           }
         };
@@ -150,16 +144,12 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
     if ( hadoopConfiguration == null ) {
       return;
     }
-    Map<String, Driver> hiveDrivers = configMap.remove( hadoopConfiguration );
+    Map<String, ServiceRegistration> hiveDrivers = configMap.remove( hadoopConfiguration );
     if ( hiveDrivers == null ) {
       return;
     }
     hiveDrivers.values().forEach( hiveDriver -> {
-      try {
-        driverRegistry.deregisterDriver( hiveDriver );
-      } catch ( SQLException e ) {
-        LOGGER.error( "Unable to deregister " + hiveDriver );
-      }
+      hiveDriver.unregister();
     } );
   }
 

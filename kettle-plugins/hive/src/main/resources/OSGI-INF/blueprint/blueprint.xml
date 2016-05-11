@@ -30,4 +30,14 @@
   </bean>
 
   <reference id="driverLocator" interface="org.pentaho.big.data.api.jdbc.DriverLocator"/>
+
+  <!--<bean id="hive2DatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2DatabaseDialect"/>
+  <bean id="hive2SimbaDatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2SimbaDatabaseDialect"/>
+  <bean id="impalaDatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.ImpalaDatabaseDialect"/>
+  <bean id="impalaSimbaDatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.ImpalaSimbaDatabaseDialect"/>
+
+  <service ref="hive2DatabaseDialect" interface="org.pentaho.database.IDatabaseDialect"/>
+  <service ref="hive2SimbaDatabaseDialect" interface="org.pentaho.database.IDatabaseDialect"/>
+  <service ref="impalaDatabaseDialect" interface="org.pentaho.database.IDatabaseDialect"/>
+  <service ref="impalaSimbaDatabaseDialect" interface="org.pentaho.database.IDatabaseDialect"/>-->
 </blueprint>
