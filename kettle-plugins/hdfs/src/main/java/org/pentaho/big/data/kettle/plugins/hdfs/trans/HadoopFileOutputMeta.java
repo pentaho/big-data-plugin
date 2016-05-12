@@ -111,7 +111,7 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     return url;
   }
 
-  protected void saveSource( StringBuffer retVal, String fileName ) {
+  protected void saveSource( StringBuilder retVal, String fileName ) {
     retVal.append( "      " ).append( XMLHandler.addTagValue( "name", fileName ) );
     retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
   }
