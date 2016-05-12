@@ -1,50 +1,61 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p/>
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * <p/>
+ * ******************************************************************************
+ * <p/>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.apache.log4j.Logger;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.filter.ElementFilter;
+import org.jdom.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.w3c.dom.Node;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URL;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by bryan on 11/23/15.
  */
 public class HadoopFileOutputMetaTest {
 
+  public static final String TEST_CLUSTER_NAME = "TEST-CLUSTER-NAME";
+  public static final String SAMPLE_HADOOP_FILE_OUTPUT_STEP = "sample-hadoop-file-output-step.xml";
+  public static final String ENTRY_TAG_NAME = "entry";
+  private static Logger logger = Logger.getLogger( HadoopFileOutputMetaTest.class );
   // for message resolution
   private static Class<?> MessagePKG = HadoopFileOutputMeta.class;
   private NamedClusterService namedClusterService;
@@ -91,13 +102,76 @@ public class HadoopFileOutputMetaTest {
     HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
       runtimeTester );
     IMetaStore metaStore = mock( IMetaStore.class );
-    assertTrue( null == hadoopFileOutputMeta.getProcessedUrl( metaStore, null ));
+    assertTrue( null == hadoopFileOutputMeta.getProcessedUrl( metaStore, null ) );
     hadoopFileOutputMeta.setSourceConfigurationName( sourceConfigurationName );
     NamedCluster nc = mock( NamedCluster.class );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) ).thenReturn( null );
+    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
+      .thenReturn( null );
     assertEquals( url, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) ).thenReturn( nc );
-    when( nc.processURLsubstitution( eq( url ), (IMetaStore) anyObject(), (VariableSpace) anyObject() ) ).thenReturn( desiredUrl );
+    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
+      .thenReturn( nc );
+    when( nc.processURLsubstitution( eq( url ), (IMetaStore) anyObject(), (VariableSpace) anyObject() ) )
+      .thenReturn( desiredUrl );
     assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
+  }
+
+  /**
+   * BACKLOG-7972 - Hadoop File Output: Hadoop Clusters dropdown doesn't preserve selected cluster after reopen a
+   * transformation after changing signature of loadSource in , saveSource in HadoopFileOutputMeta wasn't called
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSaveSourceCalledFromGetXml() throws Exception {
+    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
+      runtimeTester );
+    hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
+    //set required data for step - empty
+    hadoopFileOutputMeta.setOutputFields( new TextFileField[] {} );
+    //create spy to check whether saveSource now is called
+    HadoopFileOutputMeta spy = Mockito.spy( hadoopFileOutputMeta );
+    //getting from structure file node
+    Document hadoopOutputMetaStep = getDocumentFromString( spy.getXML(), new SAXBuilder() );
+    Element fileElement = getChildElementByTagName( hadoopOutputMetaStep.getRootElement(), "file" );
+    //getting from file node cluster attribute value
+    Element clusterNameElement = getChildElementByTagName( fileElement, HadoopFileInputMeta.SOURCE_CONFIGURATION_NAME );
+    assertEquals( clusterNameElement.getValue(), TEST_CLUSTER_NAME );
+    //check that saveSource is called from TextFileOutputMeta
+    verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), any( String.class ) );
+  }
+
+  public Node getChildElementByTagName( String fileName ) throws Exception {
+    URL resource = getClass().getClassLoader().getResource( fileName );
+    if ( resource == null ) {
+      logger.error( "no file " + fileName + " found in resources" );
+      throw new IllegalArgumentException( "no file " + fileName + " found in resources" );
+    } else {
+      return XMLHandler.getSubNode( XMLHandler.loadXMLFile( resource ), "entry" );
+    }
+  }
+
+  public static Element getChildElementByTagName( Element element, String tagName ) throws Exception {
+    return (Element) element.getContent( new ElementFilter( tagName ) ).get( 0 );
+  }
+
+  @Test
+  public void testLoadSourceCalledFromReadData() throws Exception {
+    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
+      runtimeTester );
+    hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
+    //set required data for step - empty
+    hadoopFileOutputMeta.setOutputFields( new TextFileField[] {} );
+    HadoopFileOutputMeta spy = Mockito.spy( hadoopFileOutputMeta );
+    Node node = getChildElementByTagName( SAMPLE_HADOOP_FILE_OUTPUT_STEP );
+    //create spy to check whether saveSource now is called from readData
+    spy.readData( node );
+    assertEquals( hadoopFileOutputMeta.getSourceConfigurationName(), TEST_CLUSTER_NAME );
+    verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( IMetaStore.class ) );
+  }
+
+  public static Document getDocumentFromString( String xmlStep, SAXBuilder jdomBuilder )
+    throws JDOMException, IOException {
+    String xml = XMLHandler.openTag( ENTRY_TAG_NAME ) + xmlStep + XMLHandler.closeTag( ENTRY_TAG_NAME );
+    return jdomBuilder.build( new ByteArrayInputStream( xml.getBytes() ) );
   }
 }

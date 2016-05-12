@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -53,7 +53,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
   private VariableSpace variableSpace;
   private Map<String, String> namedClusterURLMapping = null;
 
-  private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
+  public static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
   public static final String LOCAL_SOURCE_FILE = "LOCAL-SOURCE-FILE-";
   public static final String STATIC_SOURCE_FILE = "STATIC-SOURCE-FILE-";
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
@@ -77,7 +77,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     return loadUrl( source_filefolder, source, metaStore, namedClusterURLMapping );
   }
 
-  protected void saveSource( StringBuffer retVal, String source ) {
+  protected void saveSource( StringBuilder retVal, String source ) {
     String namedCluster = namedClusterURLMapping.get( source );
     retVal.append( "      " ).append( XMLHandler.addTagValue( "name", source ) );
     retVal.append( "          " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, namedCluster ) );
