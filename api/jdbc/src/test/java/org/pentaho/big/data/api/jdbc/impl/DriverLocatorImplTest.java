@@ -72,7 +72,8 @@ public class DriverLocatorImplTest {
     ArgumentCaptor<ServiceListener> serviceListenerArgumentCaptor = ArgumentCaptor.forClass( ServiceListener.class );
     verify( bundleContext ).addServiceListener( serviceListenerArgumentCaptor.capture() );
     serviceListener = serviceListenerArgumentCaptor.getValue();
-    when( bundleContext.getServiceReferences( Driver.class, null ) ).thenReturn( Arrays.asList( serviceReference ) );
+    when( bundleContext.getServiceReferences( Driver.class, DriverLocatorImpl.DATA_SOURCE_TYPE_BIGDATA ) )
+      .thenReturn( Arrays.asList( serviceReference ) );
     when( bundleContext.getService( serviceReference ) ).thenReturn( driver );
     testURL = "testURL";
   }
