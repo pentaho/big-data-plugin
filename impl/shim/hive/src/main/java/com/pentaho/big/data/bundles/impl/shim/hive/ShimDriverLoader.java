@@ -33,7 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Driver;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -114,8 +116,10 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
         if ( hiveDriver == null ) {
           return null;
         }
+        Dictionary<String, String> dictionary = new Hashtable<>();
+        dictionary.put( "dataSourceType", "bigdata" );
         ServiceRegistration<?> serviceRegistration =
-          bundleContext.registerService( Driver.class.getCanonicalName(), hiveDriver, null );
+          bundleContext.registerService( Driver.class.getCanonicalName(), hiveDriver, dictionary );
         return new Map.Entry<String, ServiceRegistration>() {
 
           @Override

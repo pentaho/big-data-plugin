@@ -44,6 +44,7 @@ import java.util.Map;
  */
 public class DriverLocatorImpl implements DriverLocator {
   private static final Logger logger = LoggerFactory.getLogger( DriverLocatorImpl.class );
+  public static final String DATA_SOURCE_TYPE_BIGDATA = "(dataSourceType=bigdata)";
   private final BundleContext bundleContext;
   private final HasRegisterDriver hasRegisterDriver;
   private final Map<ServiceReference<Driver>, List<Driver>> registeredDrivers;
@@ -77,7 +78,7 @@ public class DriverLocatorImpl implements DriverLocator {
 
   public Iterator<Map.Entry<ServiceReference<Driver>, Driver>> getDrivers() {
     try {
-      return bundleContext.getServiceReferences( Driver.class, null ).stream()
+      return bundleContext.getServiceReferences( Driver.class, DATA_SOURCE_TYPE_BIGDATA ).stream()
         .<Map.Entry<ServiceReference<Driver>, Driver>>map(
           driverServiceReference -> new Map.Entry<ServiceReference<Driver>, Driver>() {
             @Override public ServiceReference<Driver> getKey() {
