@@ -57,4 +57,20 @@ public class HadoopEnterMetaTest {
   public void testGetDialogClassName() {
     assertEquals( HadoopEnterDialog.class.getCanonicalName(), hadoopEnterMeta.getDialogClassName() );
   }
+
+  @Test
+  public void testSetters() {
+    hadoopEnterMeta.setKeyType( 1 );
+    assertEquals( 1, hadoopEnterMeta.getType()[0] );
+    hadoopEnterMeta.setKeyLength( 2 );
+    assertEquals( 2, hadoopEnterMeta.getLength()[0] );
+    hadoopEnterMeta.setKeyPrecision( 3 );
+    assertEquals( 3, hadoopEnterMeta.getPrecision()[0] );
+    hadoopEnterMeta.setValueType( 1 );
+    assertEquals( 1, hadoopEnterMeta.getType()[1] );
+    hadoopEnterMeta.setValueLength( 2 );
+    assertEquals( 2, hadoopEnterMeta.getLength()[1] );
+    hadoopEnterMeta.setValuePrecision( 3 );
+    assertEquals( 3, hadoopEnterMeta.getPrecision()[1] );
+  }
 }
