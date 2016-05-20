@@ -1,0 +1,36 @@
+<entry>
+  <separator/>
+  <enclosure/>
+  <enclosure_forced>N</enclosure_forced>
+  <enclosure_fix_disabled>N</enclosure_fix_disabled>
+  <header>N</header>
+  <footer>N</footer>
+  <format/>
+  <compression/>
+  <encoding/>
+  <endedLine/>
+  <fileNameInField>N</fileNameInField>
+  <fileNameField/>
+  <create_parent_folder>Y</create_parent_folder>
+  <file>
+    <name/>
+    <source_configuration_name>TEST-CLUSTER-NAME</source_configuration_name>
+    <is_command>N</is_command>
+    <servlet_output>N</servlet_output>
+    <do_not_open_new_file_init>N</do_not_open_new_file_init>
+    <extention/>
+    <append>N</append>
+    <split>N</split>
+    <haspartno>N</haspartno>
+    <add_date>N</add_date>
+    <add_time>N</add_time>
+    <SpecifyFormat>N</SpecifyFormat>
+    <date_time_format/>
+    <add_to_result_filenames>N</add_to_result_filenames>
+    <pad>N</pad>
+    <fast_dump>N</fast_dump>
+    <splitevery>0</splitevery>
+  </file>
+  <fields>
+  </fields>
+</entry>
