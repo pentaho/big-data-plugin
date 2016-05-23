@@ -26,8 +26,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.trans.steps.textfileinput.TextFileFilter;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
+import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
+import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
@@ -96,11 +96,11 @@ public class HadoopFileInputMetaTest {
     when( spy.getFileName() ).thenReturn( new String[] {} );
     spy.setFileName( new String[] { TEST_FILE_NAME } );
     spy.setFilter( new TextFileFilter[] {} );
-    spy.setInputFields( new TextFileInputField[] {} );
-    spy.setFileMask( new String[] { TEST_FILE_NAME } );
-    spy.setFileRequired( new String[] { TEST_FILE_NAME } );
-    spy.setIncludeSubFolders( new String[] { TEST_FOLDER_NAME } );
-    spy.setDateFormatLocale( Locale.getDefault() );
+    spy.inputFiles.inputFields = new BaseFileInputField[] {};
+    spy.inputFiles.fileMask = new String[] { TEST_FILE_NAME };
+    spy.inputFiles.fileRequired = new String[] { TEST_FILE_NAME };
+    spy.inputFiles.includeSubFolders = new String[] { TEST_FOLDER_NAME };
+    spy.content.dateFormatLocale = Locale.getDefault();
     return spy;
   }
 
