@@ -1,11 +1,14 @@
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0">
+<features name="pentaho-big-data-features" xmlns="http://karaf.apache.org/xmlns/features/v1.2.1" >
   <feature name="pentaho-big-data-plugin-osgi" version="1.0">
   	<feature>pentaho-big-data-plugin-testless-osgi</feature>
   	<feature>pentaho-big-data-plugin-tests</feature>
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
-    <feature>pentaho-big-data-plugin-shim-impl</feature>
     <feature>pentaho-big-data-kettle-plugins</feature>
+    <conditional>
+      <condition>community-edition</condition>
+      <feature>pentaho-big-data-plugin-shim-impl</feature>
+    </conditional>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
