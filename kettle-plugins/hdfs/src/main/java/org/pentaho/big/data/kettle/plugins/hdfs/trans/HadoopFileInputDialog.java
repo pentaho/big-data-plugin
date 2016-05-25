@@ -87,10 +87,11 @@ import org.pentaho.di.trans.TransPreviewFactory;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.trans.steps.textfileinput.TextFileFilter;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInput;
+import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
+import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
+import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
 import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputMeta;
+import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
@@ -104,9 +105,10 @@ import org.pentaho.di.ui.core.widget.VariableButtonListenerFactory;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
-import org.pentaho.di.ui.trans.steps.textfileinput.TextFileCSVImportProgressDialog;
-import org.pentaho.di.ui.trans.steps.textfileinput.TextFileImportWizardPage1;
-import org.pentaho.di.ui.trans.steps.textfileinput.TextFileImportWizardPage2;
+import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileCSVImportProgressDialog;
+import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage1;
+import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage2;
+
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
@@ -1870,7 +1872,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     fdGet.bottom = new FormAttachment( 100, 0 );
     wGet.setLayoutData( fdGet );
 
-    final int FieldsRows = input.getInputFields().length;
+    final int FieldsRows = input.inputFiles.inputFields.length;
 
     ColumnInfo[] colinf =
         new ColumnInfo[] {
@@ -2004,7 +2006,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     final TextFileInputMeta in = meta;
 
     wAccFilenames.setSelection( in.isAcceptingFilenames() );
-    wPassThruFields.setSelection( in.isPassingThruFields() );
+    wPassThruFields.setSelection( in.inputFiles.passingThruFields );
     if ( in.getAcceptingField() != null ) {
       wAccField.setText( in.getAcceptingField() );
     }
@@ -2030,55 +2032,55 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         }
 
         wFilenameList
-            .add( new String[] { environment, sourceUrl, in.getFileMask()[i],
-                in.getRequiredFilesDesc( in.getFileRequired()[i] ),
-                in.getRequiredFilesDesc( in.getIncludeSubFolders()[i] ) } );
+            .add( new String[] { environment, sourceUrl, in.inputFiles.fileMask[i],
+                in.getRequiredFilesDesc( in.inputFiles.fileRequired[i] ),
+                in.getRequiredFilesDesc( in.inputFiles.includeSubFolders[i] ) } );
       }
       wFilenameList.removeEmptyRows();
       wFilenameList.setRowNums();
       wFilenameList.optWidth( true );
     }
-    if ( in.getFileType() != null ) {
-      wFiletype.setText( in.getFileType() );
+    if ( in.content.fileType != null ) {
+      wFiletype.setText( in.content.fileType );
     }
-    if ( in.getSeparator() != null ) {
-      wSeparator.setText( in.getSeparator() );
+    if ( in.content.separator != null ) {
+      wSeparator.setText( in.content.separator );
     }
-    if ( in.getEnclosure() != null ) {
-      wEnclosure.setText( in.getEnclosure() );
+    if ( in.content.enclosure != null ) {
+      wEnclosure.setText( in.content.enclosure );
     }
-    if ( in.getEscapeCharacter() != null ) {
-      wEscape.setText( in.getEscapeCharacter() );
+    if ( in.content.escapeCharacter != null ) {
+      wEscape.setText( in.content.escapeCharacter );
     }
-    wHeader.setSelection( in.hasHeader() );
-    wNrHeader.setText( "" + in.getNrHeaderLines() );
-    wFooter.setSelection( in.hasFooter() );
-    wNrFooter.setText( "" + in.getNrFooterLines() );
-    wWraps.setSelection( in.isLineWrapped() );
-    wNrWraps.setText( "" + in.getNrWraps() );
-    wLayoutPaged.setSelection( in.isLayoutPaged() );
-    wNrLinesPerPage.setText( "" + in.getNrLinesPerPage() );
-    wNrLinesDocHeader.setText( "" + in.getNrLinesDocHeader() );
-    if ( in.getFileCompression() != null ) {
-      wCompression.setText( in.getFileCompression() );
+    wHeader.setSelection( in.content.header );
+    wNrHeader.setText( "" + in.content.nrHeaderLines );
+    wFooter.setSelection( in.content.footer );
+    wNrFooter.setText( "" + in.content.nrFooterLines );
+    wWraps.setSelection( in.content.lineWrapped );
+    wNrWraps.setText( "" + in.content.nrWraps );
+    wLayoutPaged.setSelection( in.content.layoutPaged );
+    wNrLinesPerPage.setText( "" + in.content.nrLinesPerPage );
+    wNrLinesDocHeader.setText( "" + in.content.nrLinesDocHeader );
+    if ( in.content.fileCompression != null ) {
+      wCompression.setText( in.content.fileCompression );
     }
-    wNoempty.setSelection( in.noEmptyLines() );
-    wInclFilename.setSelection( in.includeFilename() );
-    wInclRownum.setSelection( in.includeRowNumber() );
-    wRownumByFile.setSelection( in.isRowNumberByFile() );
-    wDateLenient.setSelection( in.isDateFormatLenient() );
-    wAddResult.setSelection( in.isAddResultFile() );
+    wNoempty.setSelection( in.content.noEmptyLines );
+    wInclFilename.setSelection( in.content.includeFilename );
+    wInclRownum.setSelection( in.content.includeRowNumber );
+    wRownumByFile.setSelection( in.content.rowNumberByFile );
+    wDateLenient.setSelection( in.content.dateFormatLenient );
+    wAddResult.setSelection( in.inputFiles.isaddresult );
 
-    if ( in.getFilenameField() != null ) {
-      wInclFilenameField.setText( in.getFilenameField() );
+    if ( in.content.filenameField != null ) {
+      wInclFilenameField.setText( in.content.filenameField );
     }
-    if ( in.getRowNumberField() != null ) {
-      wInclRownumField.setText( in.getRowNumberField() );
+    if ( in.content.rowNumberField != null ) {
+      wInclRownumField.setText( in.content.rowNumberField );
     }
-    if ( in.getFileFormat() != null ) {
-      wFormat.setText( in.getFileFormat() );
+    if ( in.content.fileFormat != null ) {
+      wFormat.setText( in.content.fileFormat );
     }
-    wLimit.setText( "" + in.getRowLimit() );
+    wLimit.setText( "" + in.content.rowLimit );
 
     logDebug( "getting fields info..." );
     getFieldsData( in, false );
@@ -2088,7 +2090,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     }
 
     // Error handling fields...
-    wErrorIgnored.setSelection( in.isErrorIgnored() );
+    wErrorIgnored.setSelection( in.errorHandling.errorIgnored );
     wSkipErrorLines.setSelection( in.isErrorLineSkipped() );
     if ( in.getErrorCountField() != null ) {
       wErrorCount.setText( in.getErrorCountField() );
@@ -2099,23 +2101,23 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     if ( in.getErrorTextField() != null ) {
       wErrorText.setText( in.getErrorTextField() );
     }
-    if ( in.getWarningFilesDestinationDirectory() != null ) {
-      wWarnDestDir.setText( in.getWarningFilesDestinationDirectory() );
+    if ( in.errorHandling.warningFilesDestinationDirectory != null ) {
+      wWarnDestDir.setText( in.errorHandling.warningFilesDestinationDirectory );
     }
-    if ( in.getWarningFilesExtension() != null ) {
-      wWarnExt.setText( in.getWarningFilesExtension() );
+    if ( in.errorHandling.warningFilesExtension != null ) {
+      wWarnExt.setText( in.errorHandling.warningFilesExtension );
     }
-    if ( in.getErrorFilesDestinationDirectory() != null ) {
-      wErrorDestDir.setText( in.getErrorFilesDestinationDirectory() );
+    if ( in.errorHandling.errorFilesDestinationDirectory != null ) {
+      wErrorDestDir.setText( in.errorHandling.errorFilesDestinationDirectory );
     }
-    if ( in.getErrorLineFilesExtension() != null ) {
-      wErrorExt.setText( in.getErrorLineFilesExtension() );
+    if ( in.errorHandling.errorFilesExtension != null ) {
+      wErrorExt.setText( in.errorHandling.errorFilesExtension );
     }
-    if ( in.getLineNumberFilesDestinationDirectory() != null ) {
-      wLineNrDestDir.setText( in.getLineNumberFilesDestinationDirectory() );
+    if ( in.errorHandling.lineNumberFilesDestinationDirectory != null ) {
+      wLineNrDestDir.setText( in.errorHandling.lineNumberFilesDestinationDirectory );
     }
-    if ( in.getLineNumberFilesExtension() != null ) {
-      wLineNrExt.setText( in.getLineNumberFilesExtension() );
+    if ( in.errorHandling.lineNumberFilesExtension != null ) {
+      wLineNrExt.setText( in.errorHandling.lineNumberFilesExtension );
     }
     for ( int i = 0; i < in.getFilter().length; i++ ) {
       TableItem item = wFilter.table.getItem( i );
@@ -2134,7 +2136,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     }
 
     // Date locale
-    wDateLocale.setText( in.getDateFormatLocale().toString() );
+    wDateLocale.setText( in.content.dateFormatLocale.toString() );
 
     wFields.removeEmptyRows();
     wFields.setRowNums();
@@ -2150,8 +2152,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private void getFieldsData( TextFileInputMeta in, boolean insertAtTop ) {
-    for ( int i = 0; i < in.getInputFields().length; i++ ) {
-      TextFileInputField field = in.getInputFields()[i];
+    for ( int i = 0; i < in.inputFiles.inputFields.length; i++ ) {
+      BaseFileInputField field = in.inputFiles.inputFields[i];
 
       TableItem item;
 
@@ -2260,38 +2262,38 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     stepname = wStepname.getText(); // return value
 
     // copy info to TextFileInputMeta class (input)
-    meta.setAcceptingFilenames( wAccFilenames.getSelection() );
-    meta.setPassingThruFields( wPassThruFields.getSelection() );
-    meta.setAcceptingField( wAccField.getText() );
-    meta.setAcceptingStepName( wAccStep.getText() );
+    meta.inputFiles.acceptingFilenames = wAccFilenames.getSelection();
+    meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
+    meta.inputFiles.acceptingField = wAccField.getText();
+    meta.inputFiles.acceptingStepName = wAccStep.getText();
     meta.setAcceptingStep( transMeta.findStep( wAccStep.getText() ) );
 
-    meta.setFileType( wFiletype.getText() );
-    meta.setFileFormat( wFormat.getText() );
-    meta.setSeparator( wSeparator.getText() );
-    meta.setEnclosure( wEnclosure.getText() );
-    meta.setEscapeCharacter( wEscape.getText() );
-    meta.setRowLimit( Const.toLong( wLimit.getText(), 0L ) );
-    meta.setFilenameField( wInclFilenameField.getText() );
-    meta.setRowNumberField( wInclRownumField.getText() );
-    meta.setAddResultFile( wAddResult.getSelection() );
+    meta.content.fileType = wFiletype.getText();
+    meta.content.fileFormat = wFormat.getText();
+    meta.content.separator = wSeparator.getText();
+    meta.content.enclosure = wEnclosure.getText();
+    meta.content.escapeCharacter = wEscape.getText();
+    meta.content.rowLimit = Const.toLong( wLimit.getText(), 0L );
+    meta.content.filenameField = wInclFilenameField.getText();
+    meta.content.rowNumberField = wInclRownumField.getText();
+    meta.inputFiles.isaddresult = wAddResult.getSelection();
 
-    meta.setIncludeFilename( wInclFilename.getSelection() );
-    meta.setIncludeRowNumber( wInclRownum.getSelection() );
-    meta.setRowNumberByFile( wRownumByFile.getSelection() );
-    meta.setHeader( wHeader.getSelection() );
-    meta.setNrHeaderLines( Const.toInt( wNrHeader.getText(), 1 ) );
-    meta.setFooter( wFooter.getSelection() );
-    meta.setNrFooterLines( Const.toInt( wNrFooter.getText(), 1 ) );
-    meta.setLineWrapped( wWraps.getSelection() );
-    meta.setNrWraps( Const.toInt( wNrWraps.getText(), 1 ) );
-    meta.setLayoutPaged( wLayoutPaged.getSelection() );
-    meta.setNrLinesPerPage( Const.toInt( wNrLinesPerPage.getText(), 80 ) );
-    meta.setNrLinesDocHeader( Const.toInt( wNrLinesDocHeader.getText(), 0 ) );
-    meta.setFileCompression( wCompression.getText() );
-    meta.setDateFormatLenient( wDateLenient.getSelection() );
-    meta.setNoEmptyLines( wNoempty.getSelection() );
-    meta.setEncoding( wEncoding.getText() );
+    meta.content.includeFilename = wInclFilename.getSelection();
+    meta.content.includeRowNumber =  wInclRownum.getSelection();
+    meta.content.rowNumberByFile =  wRownumByFile.getSelection();
+    meta.content.header = wHeader.getSelection();
+    meta.content.nrHeaderLines = Const.toInt( wNrHeader.getText(), 1 );
+    meta.content.footer = wFooter.getSelection();
+    meta.content.nrFooterLines = Const.toInt( wNrFooter.getText(), 1 );
+    meta.content.lineWrapped = wWraps.getSelection();
+    meta.content.nrWraps = Const.toInt( wNrWraps.getText(), 1 );
+    meta.content.layoutPaged = wLayoutPaged.getSelection();
+    meta.content.nrLinesPerPage = Const.toInt( wNrLinesPerPage.getText(), 80 );
+    meta.content.nrLinesDocHeader = Const.toInt( wNrLinesDocHeader.getText(), 0 );
+    meta.content.fileCompression = wCompression.getText();
+    meta.content.dateFormatLenient = wDateLenient.getSelection();
+    meta.content.noEmptyLines = wNoempty.getSelection();
+    meta.content.encoding = wEncoding.getText();
 
     int nrfiles = wFilenameList.getItemCount();
     int nrfields = wFields.nrNonEmpty();
@@ -2316,14 +2318,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     }
 
     meta.setFileName( fileNames );
-    meta.setFileMask( wFilenameList.getItems( 2 ) );
-    meta.setFileRequired( wFilenameList.getItems( 3 ) );
-    meta.setIncludeSubFolders( wFilenameList.getItems( 4 ) );
+    meta.inputFiles.fileMask = wFilenameList.getItems( 2 );
+    meta.inputFiles.fileRequired = wFilenameList.getItems( 3 );
+    meta.inputFiles.includeSubFolders = wFilenameList.getItems( 4 );
 
     hadoopFileInputMeta.setNamedClusterURLMapping( namedClusterURLMappings );
 
     for ( int i = 0; i < nrfields; i++ ) {
-      TextFileInputField field = new TextFileInputField();
+      BaseFileInputField field = new BaseFileInputField();
 
       TableItem item = wFields.getNonEmpty( i );
       field.setName( item.getText( 1 ) );
@@ -2340,7 +2342,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 12 ) ) );
       field.setRepeated( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase( item.getText( 13 ) ) );
 
-      ( meta.getInputFields() )[i] = field;
+      ( meta.inputFiles.inputFields )[i] = field;
     }
 
     for ( int i = 0; i < nrfilters; i++ ) {
@@ -2356,25 +2358,25 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           item.getText( 4 ) ) );
     }
     // Error handling fields...
-    meta.setErrorIgnored( wErrorIgnored.getSelection() );
+    meta.errorHandling.errorIgnored = wErrorIgnored.getSelection();
     meta.setErrorLineSkipped( wSkipErrorLines.getSelection() );
     meta.setErrorCountField( wErrorCount.getText() );
     meta.setErrorFieldsField( wErrorFields.getText() );
     meta.setErrorTextField( wErrorText.getText() );
 
-    meta.setWarningFilesDestinationDirectory( wWarnDestDir.getText() );
-    meta.setWarningFilesExtension( wWarnExt.getText() );
-    meta.setErrorFilesDestinationDirectory( wErrorDestDir.getText() );
-    meta.setErrorLineFilesExtension( wErrorExt.getText() );
-    meta.setLineNumberFilesDestinationDirectory( wLineNrDestDir.getText() );
-    meta.setLineNumberFilesExtension( wLineNrExt.getText() );
+    meta.errorHandling.warningFilesDestinationDirectory = wWarnDestDir.getText();
+    meta.errorHandling.warningFilesExtension = wWarnExt.getText();
+    meta.errorHandling.errorFilesDestinationDirectory = wErrorDestDir.getText();
+    meta.errorHandling.errorFilesExtension = wErrorExt.getText();
+    meta.errorHandling.lineNumberFilesDestinationDirectory = wLineNrDestDir.getText();
+    meta.errorHandling.lineNumberFilesExtension = wLineNrExt.getText();
 
     // Date format Locale
     Locale locale = EnvUtil.createLocale( wDateLocale.getText() );
     if ( !locale.equals( Locale.getDefault() ) ) {
-      meta.setDateFormatLocale( locale );
+      meta.content.dateFormatLocale = locale;
     } else {
-      meta.setDateFormatLocale( Locale.getDefault() );
+      meta.content.dateFormatLocale = Locale.getDefault();
     }
   }
 
@@ -2397,13 +2399,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     StringBuilder lineStringBuilder = new StringBuilder( 256 );
     int fileFormatType = meta.getFileFormatTypeNr();
 
-    String delimiter = transMeta.environmentSubstitute( meta.getSeparator() );
+    String delimiter = transMeta.environmentSubstitute( meta.content.separator );
 
     if ( textFileList.nrOfFiles() > 0 ) {
-      int clearFields = meta.hasHeader() ? SWT.YES : SWT.NO;
-      int nrInputFields = meta.getInputFields().length;
+      int clearFields = meta.content.header ? SWT.YES : SWT.NO;
+      int nrInputFields = meta.inputFiles.inputFields.length;
 
-      if ( meta.hasHeader() && nrInputFields > 0 ) {
+      if ( meta.content.header && nrInputFields > 0 ) {
         MessageBox mb = new MessageBox( shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION );
         mb.setMessage( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ClearFieldList.DialogMessage" ) );
         mb.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ClearFieldList.DialogTitle" ) );
@@ -2421,7 +2423,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         Table table = wFields.table;
 
         CompressionProvider provider =
-            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.getFileCompression() );
+            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
         inputStream = provider.createInputStream( fileInputStream );
 
         InputStreamReader reader;
@@ -2431,22 +2433,22 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           reader = new InputStreamReader( inputStream );
         }
 
-        if ( clearFields == SWT.YES || !meta.hasHeader() || nrInputFields > 0 ) {
+        if ( clearFields == SWT.YES || !meta.content.header || nrInputFields > 0 ) {
           // Scan the header-line, determine fields...
           String line = null;
 
-          if ( meta.hasHeader() || meta.getInputFields().length == 0 ) {
-            line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
+          if ( meta.content.header || meta.inputFiles.inputFields.length == 0 ) {
+            line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
             if ( line != null ) {
               // Estimate the number of input fields...
               // Chop up the line using the delimiter
               String[] fields =
-                  TextFileInput.guessStringsFromLine( new Variables(), log, line, meta, delimiter, StringUtil
-                      .substituteHex( meta.getEnclosure() ), StringUtil.substituteHex( meta.getEscapeCharacter() ) );
+                  TextFileInputUtils.guessStringsFromLine( new Variables(), log, line, meta, delimiter, StringUtil
+                      .substituteHex( meta.content.enclosure ), StringUtil.substituteHex( meta.content.escapeCharacter ) );
 
               for ( int i = 0; i < fields.length; i++ ) {
                 String field = fields[i];
-                if ( field == null || field.length() == 0 || ( nrInputFields == 0 && !meta.hasHeader() ) ) {
+                if ( field == null || field.length() == 0 || ( nrInputFields == 0 && !meta.content.header ) ) {
                   field = "Field" + ( i + 1 );
                 } else {
                   // Trim the field
@@ -2490,7 +2492,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               //
               if ( clearFields == SWT.NO ) {
                 getFieldsData( previousMeta, true );
-                wFields.table.setSelection( previousMeta.getInputFields().length, wFields.table.getItemCount() - 1 );
+                wFields.table.setSelection( previousMeta.inputFiles.inputFields.length, wFields.table.getItemCount() - 1 );
               }
 
               wFields.removeEmptyRows();
@@ -2694,7 +2696,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         fi = KettleVFS.getInputStream( file );
 
         CompressionProvider provider =
-            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.getFileCompression() );
+            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
         f = provider.createInputStream( fi );
 
         InputStreamReader reader;
@@ -2705,35 +2707,35 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         }
 
         int linenr = 0;
-        int maxnr = nrlines + ( meta.hasHeader() ? meta.getNrHeaderLines() : 0 );
+        int maxnr = nrlines + ( meta.content.header ? meta.content.nrHeaderLines : 0 );
 
         if ( skipHeaders ) {
           // Skip the header lines first if more then one, it helps us position
-          if ( meta.isLayoutPaged() && meta.getNrLinesDocHeader() > 0 ) {
+          if ( meta.content.layoutPaged && meta.content.nrLinesDocHeader > 0 ) {
             int skipped = 0;
-            String line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
-            while ( line != null && skipped < meta.getNrLinesDocHeader() - 1 ) {
+            String line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
+            while ( line != null && skipped < meta.content.nrLinesDocHeader - 1 ) {
               skipped++;
-              line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
+              line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
             }
           }
 
           // Skip the header lines first if more then one, it helps us position
-          if ( meta.hasHeader() && meta.getNrHeaderLines() > 0 ) {
+          if ( meta.content.header && meta.content.nrHeaderLines > 0 ) {
             int skipped = 0;
-            String line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
-            while ( line != null && skipped < meta.getNrHeaderLines() - 1 ) {
+            String line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
+            while ( line != null && skipped < meta.content.nrHeaderLines - 1 ) {
               skipped++;
-              line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
+              line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
             }
           }
         }
 
-        String line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
+        String line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
         while ( line != null && ( linenr < maxnr || nrlines == 0 ) ) {
           retval.add( line );
           linenr++;
-          line = TextFileInput.getLine( log, reader, fileFormatType, lineStringBuilder );
+          line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
         }
       } catch ( Exception e ) {
         throw new KettleException( BaseMessages.getString( BASE_PKG,
@@ -2834,8 +2836,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     int prevEnd = 0;
     int dummynr = 1;
 
-    for ( int i = 0; i < info.getInputFields().length; i++ ) {
-      TextFileInputField f = info.getInputFields()[i];
+    for ( int i = 0; i < info.inputFiles.inputFields.length; i++ ) {
+      BaseFileInputField f = info.inputFiles.inputFields[i];
 
       // See if positions are skipped, if this is the case, add dummy fields...
       if ( f.getPosition() != prevEnd ) {
@@ -2863,12 +2865,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       prevEnd = field.getPosition() + field.getLength();
     }
 
-    if ( info.getInputFields().length == 0 ) {
+    if ( info.inputFiles.inputFields.length == 0 ) {
       TextFileInputField field = new TextFileInputField( "Field1", 0, maxsize );
       fields.add( field );
     } else {
       // Take the last field and see if it reached until the maximum...
-      TextFileInputField f = info.getInputFields()[info.getInputFields().length - 1];
+      BaseFileInputField f = info.inputFiles.inputFields[info.inputFiles.inputFields.length - 1];
 
       int pos = f.getPosition();
       int len = f.getLength();
