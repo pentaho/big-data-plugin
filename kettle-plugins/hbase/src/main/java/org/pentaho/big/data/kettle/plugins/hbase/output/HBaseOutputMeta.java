@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.output;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -95,7 +96,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   private NamedCluster namedCluster;
 
-  private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
+  private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -120,11 +121,22 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public HBaseOutputMeta( NamedClusterService namedClusterService,
                           NamedClusterServiceLocator namedClusterServiceLocator,
                           RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+    this( namedClusterService, namedClusterServiceLocator,
+      runtimeTestActionService, runtimeTester, new NamedClusterLoadSaveUtil() );
+  }
+
+  @VisibleForTesting
+  protected HBaseOutputMeta( NamedClusterService namedClusterService,
+                             NamedClusterServiceLocator namedClusterServiceLocator,
+                             RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
+                             NamedClusterLoadSaveUtil namedClusterLoadSaveUtil ) {
     this.namedClusterService = namedClusterService;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
 
     this.runtimeTester = runtimeTester;
+    this.namedClusterLoadSaveUtil = namedClusterLoadSaveUtil;
+
   }
 
   /**
@@ -290,7 +302,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
 
-    namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, log );
+    this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, log );
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
