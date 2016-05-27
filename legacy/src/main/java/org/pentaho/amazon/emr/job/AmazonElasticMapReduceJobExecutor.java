@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -57,6 +57,7 @@ import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceClient;
@@ -105,6 +106,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     throw new RuntimeException( "Could not find main class in: " + localJarUrl.toExternalForm() );
   }
 
+  @Override
   public Result execute( Result result, int arg1 ) throws KettleException {
     Log4jFileAppender appender = null;
     String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
@@ -367,9 +369,11 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     return true;
   }
 
-  public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers, Repository rep )
+  @Override
+  public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers,
+      Repository rep, IMetaStore metaStore )
     throws KettleXMLException {
-    super.loadXML( entrynode, databases, slaveServers );
+    super.loadXML( entrynode, databases, slaveServers, rep, metaStore );
     hadoopJobName = XMLHandler.getTagValue( entrynode, "hadoop_job_name" );
     hadoopJobFlowId = XMLHandler.getTagValue( entrynode, "hadoop_job_flow_id" );
     jarUrl = XMLHandler.getTagValue( entrynode, "jar_url" );
@@ -390,6 +394,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     loggingInterval = XMLHandler.getTagValue( entrynode, "logging_interval" );
   }
 
+  @Override
   public String getXML() {
     StringBuffer retval = new StringBuffer( 1024 );
     retval.append( super.getXML() );
@@ -413,10 +418,11 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     return retval.toString();
   }
 
-  public void loadRep( Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases,
+  @Override
+  public void loadRep( Repository rep, IMetaStore metaStore, ObjectId id_jobentry, List<DatabaseMeta> databases,
       List<SlaveServer> slaveServers ) throws KettleException {
     if ( rep != null ) {
-      super.loadRep( rep, id_jobentry, databases, slaveServers );
+      super.loadRep( rep, metaStore, id_jobentry, databases, slaveServers );
 
       setHadoopJobName( rep.getJobEntryAttributeString( id_jobentry, "hadoop_job_name" ) );
       setHadoopJobFlowId( rep.getJobEntryAttributeString( id_jobentry, "hadoop_job_flow_id" ) );
@@ -443,9 +449,10 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     }
   }
 
-  public void saveRep( Repository rep, ObjectId id_job ) throws KettleException {
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_job ) throws KettleException {
     if ( rep != null ) {
-      super.saveRep( rep, id_job );
+      super.saveRep( rep, metaStore, id_job );
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_name", hadoopJobName ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_flow_id", hadoopJobFlowId ); //$NON-NLS-1$
@@ -473,10 +480,12 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     return filename;
   }
 
+  @Override
   public boolean evaluates() {
     return true;
   }
 
+  @Override
   public boolean isUnconditional() {
     return true;
   }

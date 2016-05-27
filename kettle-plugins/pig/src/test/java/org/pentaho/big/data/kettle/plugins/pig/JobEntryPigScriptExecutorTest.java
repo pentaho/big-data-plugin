@@ -143,8 +143,7 @@ public class JobEntryPigScriptExecutorTest {
         }
       };
 
-    jobEntryPigScriptExecutorLoadSaveTester.testXmlRoundTrip();
-    jobEntryPigScriptExecutorLoadSaveTester.testRepoRoundTrip();
+    jobEntryPigScriptExecutorLoadSaveTester.testSerialization();
   }
 
   @Test
