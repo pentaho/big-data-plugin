@@ -1079,7 +1079,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-5</version>
+        <version>${maven-assembly-plugin.version}</version>
         <executions>
           <execution>
             <id>assembly</id>
