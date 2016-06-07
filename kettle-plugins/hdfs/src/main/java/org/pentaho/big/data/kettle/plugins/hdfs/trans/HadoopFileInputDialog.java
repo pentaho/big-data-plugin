@@ -2319,8 +2319,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     meta.setFileName( fileNames );
     meta.inputFiles.fileMask = wFilenameList.getItems( 2 );
-    meta.inputFiles.fileRequired = wFilenameList.getItems( 3 );
-    meta.inputFiles.includeSubFolders = wFilenameList.getItems( 4 );
+    meta.inputFiles.setFileRequired( wFilenameList.getItems( 3 ) );
+    meta.inputFiles.setIncludeSubFolders( wFilenameList.getItems( 4 ) );
 
     hadoopFileInputMeta.setNamedClusterURLMapping( namedClusterURLMappings );
 
