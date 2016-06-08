@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -50,6 +50,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.s3.vfs.S3FileProvider;
 import org.w3c.dom.Node;
 
@@ -117,6 +118,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
   /**
    * Executes a Hive job into the AWS Elastic MapReduce service.
    */
+  @Override
   public Result execute( Result result, int arg1 ) throws KettleException {
 
     // Setup a log file.
@@ -314,7 +316,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Prepare to create a EMR job flow.
-   * 
+   *
    * @return RunJobFlowRequest The object to request an EMR job flow
    */
   public RunJobFlowRequest createJobFlow() {
@@ -360,9 +362,9 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Configure the bootstrap actions, which are executed before Hadoop starts.
-   * 
+   *
    * @return List<StepConfig> configuration data for the bootstrap actions
-   * 
+   *
    */
   public List<BootstrapActionConfig> ConfigBootstrapActions() {
 
@@ -446,7 +448,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Configure a bootstrap action object, given its name, path and arguments.
-   * 
+   *
    * @param path
    *          - path for the bootstrap action program in S3
    * @param name
@@ -454,7 +456,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
    * @param args
    *          - arguments for the bootstrap action
    * @return configuration data object for one bootstrap action
-   * 
+   *
    */
   BootstrapActionConfig ConfigureBootstrapAction( String path, String name, List<String> args ) {
 
@@ -470,7 +472,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Configure the HadoopJarStep, which is one Hadoop step of an EMR job to be submitted to AWS.
-   * 
+   *
    * @param stepName
    *          name of step
    * @param stagingS3JarUrl
@@ -478,7 +480,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
    * @param args
    *          arguments for MapReduce jar
    * @return configuration data object for the step
-   * 
+   *
    */
   public List<StepConfig> ConfigHadoopJarStep( String stepName, String stagingS3JarUrl, String args ) {
 
@@ -506,7 +508,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Given a unparsed arguments and a separator, print log for each argument and return a list of arguments.
-   * 
+   *
    * @param args
    *          - unparsed arguments
    * @param separator
@@ -531,7 +533,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Get an instance type.
-   * 
+   *
    * @param unparsedInstanceType
    *          - unparsed instance type
    * @return A string for the instance type
@@ -543,7 +545,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Determine if the job flow is in a running state.
-   * 
+   *
    * @param state
    *          - state of job low
    * @return true if it is not in COMPLETED or FAILED or TERMINATED, and false otherwise.
@@ -565,7 +567,9 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
   /**
    * Load attributes
    */
-  public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers, Repository rep )
+  @Override
+  public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers,
+      Repository rep, IMetaStore metaStore )
     throws KettleXMLException {
     super.loadXML( entrynode, databases, slaveServers );
     hadoopJobName = XMLHandler.getTagValue( entrynode, "hadoop_job_name" ); //$NON-NLS-1$
@@ -587,8 +591,9 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
   /**
    * Get attributes
    */
+  @Override
   public String getXML() {
-    StringBuffer retval = new StringBuffer( 1024 );
+    StringBuilder retval = new StringBuilder( 1024 );
     retval.append( super.getXML() );
     retval.append( "      " ).append( XMLHandler.addTagValue( "hadoop_job_name", hadoopJobName ) ); //$NON-NLS-1$ //$NON-NLS-1$
     retval.append( "      " ).append( XMLHandler.addTagValue( "hadoop_job_flow_id", hadoopJobFlowId ) ); //$NON-NLS-1$ //$NON-NLS-1$
@@ -606,7 +611,6 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
     retval.append( "      " ).append( XMLHandler.addTagValue( "alive", alive ) ); //$NON-NLS-1$ //$NON-NLS-1$
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) ); //$NON-NLS-1$ //$NON-NLS-1$
     retval.append( "      " ).append( XMLHandler.addTagValue( "logging_interval", loggingInterval ) ); //$NON-NLS-1$ //$NON-NLS-1$
-    retval.append( "      " ).append( XMLHandler.addTagValue( "hadoop_job_name", hadoopJobName ) ); //$NON-NLS-1$ //$NON-NLS-1$
 
     return retval.toString();
   }
@@ -614,10 +618,11 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
   /**
    * Load attributes from a repository
    */
-  public void loadRep( Repository rep, ObjectId id_jobentry, List<DatabaseMeta> databases,
+  @Override
+  public void loadRep( Repository rep, IMetaStore metaStore, ObjectId id_jobentry, List<DatabaseMeta> databases,
       List<SlaveServer> slaveServers ) throws KettleException {
     if ( rep != null ) {
-      super.loadRep( rep, id_jobentry, databases, slaveServers );
+      super.loadRep( rep, metaStore, id_jobentry, databases, slaveServers );
 
       setHadoopJobName( rep.getJobEntryAttributeString( id_jobentry, "hadoop_job_name" ) ); //$NON-NLS-1$
       setHadoopJobFlowId( rep.getJobEntryAttributeString( id_jobentry, "hadoop_job_flow_id" ) ); //$NON-NLS-1$
@@ -645,9 +650,10 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
   /**
    * Save attributes to a repository
    */
-  public void saveRep( Repository rep, ObjectId id_job ) throws KettleException {
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_job ) throws KettleException {
     if ( rep != null ) {
-      super.saveRep( rep, id_job );
+      super.saveRep( rep, metaStore, id_job );
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_name", hadoopJobName ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_flow_id", hadoopJobFlowId ); //$NON-NLS-1$
@@ -675,7 +681,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
   /**
    * Build S3 URL. Replace "/" and "\" with ASCII equivalents within the access/secret keys, otherwise VFS will have
    * trouble in parsing the filename.
-   * 
+   *
    * @param filename
    *          - S3 URL of a file with access/secret keys in it
    * @return S3 URL with "/" and "\" with ASCII equivalents within the access/secret keys
@@ -706,7 +712,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Get a bucket name from S3 URL.
-   * 
+   *
    * @param filename
    *          - S3 URL with or without access/secret keys
    * @return a string for bucket name
@@ -733,7 +739,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
 
   /**
    * Get a file key from full S3 URL, which is a string after "{bucketname}/".
-   * 
+   *
    * @param filename
    *          - S3 URL with access/secret keys
    * @return key, which is a string after "{bucketname}/"
@@ -748,10 +754,12 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Clo
     return filename;
   }
 
+  @Override
   public boolean evaluates() {
     return true;
   }
 
+  @Override
   public boolean isUnconditional() {
     return true;
   }

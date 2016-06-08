@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,6 +21,19 @@
  ******************************************************************************/
 
 package org.pentaho.di.trans.steps.couchdbinput;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -42,20 +55,6 @@ import org.pentaho.di.trans.steps.loadsave.LoadSaveTester;
 import org.pentaho.di.trans.steps.mock.StepMockHelper;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 10/28/15.
@@ -86,12 +85,10 @@ public class CouchDbInputMetaTest {
     commonAttributes.add( "authenticationUser" );
     commonAttributes.add( "authenticationPassword" );
 
-    LoadSaveTester couchDbInputLoadSaveTester =
-      new LoadSaveTester( CouchDbInputMeta.class, commonAttributes, new HashMap<String, String>(),
-        new HashMap<String, String>() );
+    LoadSaveTester<CouchDbInputMeta> couchDbInputLoadSaveTester =
+      new LoadSaveTester<CouchDbInputMeta>( CouchDbInputMeta.class, commonAttributes );
 
-    couchDbInputLoadSaveTester.testXmlRoundTrip();
-    couchDbInputLoadSaveTester.testRepoRoundTrip();
+    couchDbInputLoadSaveTester.testSerialization();
   }
 
   @Test
@@ -157,7 +154,8 @@ public class CouchDbInputMetaTest {
   @Test
   public void testGetStep() {
     StepMockHelper<CouchDbInputMeta, CouchDbInputData> stepMockHelper =
-      new StepMockHelper( "testName", CouchDbInputMeta.class, CouchDbInputData.class );
+      new StepMockHelper<CouchDbInputMeta, CouchDbInputData>( "testName", CouchDbInputMeta.class,
+        CouchDbInputData.class );
     when( stepMockHelper.logChannelInterfaceFactory.create( anyObject(), any( LoggingObjectInterface.class ) ) )
       .thenReturn( mock( LogChannelInterface.class ) );
     assertTrue( couchDbInputMeta
