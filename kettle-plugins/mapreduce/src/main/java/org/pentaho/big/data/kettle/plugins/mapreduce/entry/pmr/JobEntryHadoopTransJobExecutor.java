@@ -131,7 +131,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   private String inputPath;
   private String outputPath;
   private boolean cleanOutputPath;
-  private boolean blocking;
+  private boolean blocking = true;
   private String loggingInterval = "60";
   private String numMapTasks = "1";
   private String numReduceTasks = "1";
