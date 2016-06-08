@@ -844,8 +844,10 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wFormat.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format.Label" ) );
     props.setLook( wFormat );
 
-    wFormat.add( "DOS" );
-    wFormat.add( "Unix" );
+    for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
+      wFormat.add( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format."
+        + TextFileOutputMeta.formatMapperLineTerminator[i] ) );
+    }
     wFormat.select( 0 );
     wFormat.addModifyListener( lsMod );
     fdFormat = new FormData();
@@ -1463,7 +1465,12 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       wEnclosure.setText( input.getEnclosure() );
     }
     if ( input.getFileFormat() != null ) {
-      wFormat.setText( input.getFileFormat() );
+      wFormat.select( 0 ); // default if not found: CR+LF
+      for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
+        if ( input.getFileFormat().equalsIgnoreCase( TextFileOutputMeta.formatMapperLineTerminator[i] ) ) {
+          wFormat.select( i );
+        }
+      }
     }
     if ( input.getFileCompression() != null ) {
       wCompression.setText( input.getFileCompression() );
@@ -1559,7 +1566,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     tfoi.setFileName( fileName );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
     tfoi.setCreateParentFolder( wCreateParentFolder.getSelection() );
-    tfoi.setFileFormat( wFormat.getText() );
+    tfoi.setFileFormat( TextFileOutputMeta.formatMapperLineTerminator[wFormat.getSelectionIndex()] );
     tfoi.setFileCompression( wCompression.getText() );
     tfoi.setEncoding( wEncoding.getText() );
     tfoi.setSeparator( wSeparator.getText() );
