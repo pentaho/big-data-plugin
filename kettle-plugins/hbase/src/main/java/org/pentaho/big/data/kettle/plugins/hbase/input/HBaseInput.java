@@ -22,17 +22,22 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.HBaseRowToKettleTuple;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
 import org.pentaho.bigdata.api.hbase.HBaseConnection;
 import org.pentaho.bigdata.api.hbase.HBaseService;
+import org.pentaho.bigdata.api.hbase.Result;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.bigdata.api.hbase.table.HBaseTable;
-import org.pentaho.bigdata.api.hbase.Result;
 import org.pentaho.bigdata.api.hbase.table.ResultScanner;
 import org.pentaho.bigdata.api.hbase.table.ResultScannerBuilder;
 import org.pentaho.di.core.Const;
@@ -48,11 +53,6 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Class providing an input step for reading data from an HBase table according to meta data mapping info stored in a
@@ -289,6 +289,20 @@ public class HBaseInput extends BaseStep implements StepInterface {
       putRow( m_data.getOutputRowMeta(), outRowData );
       return true;
     }
+  }
+
+  @Override
+  public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
+    if ( super.init( smi, sdi ) ) {
+      HBaseInputMeta meta = (HBaseInputMeta) smi;
+      try {
+        meta.applyInjection( this );
+        return true;
+      } catch ( KettleException e ) {
+        logError( "Error while injecting properties", e );
+      }
+    }
+    return false;
   }
 
   public static int getKettleTypeByKeyType( Mapping.KeyType keyType ) {
