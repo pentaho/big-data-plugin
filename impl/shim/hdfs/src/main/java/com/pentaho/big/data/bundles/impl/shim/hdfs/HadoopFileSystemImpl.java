@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -40,7 +40,7 @@ import java.io.OutputStream;
  * Created by bryan on 5/28/15.
  */
 public class HadoopFileSystemImpl implements HadoopFileSystem {
-  private HadoopFileSystemCallable hadoopFileSystemCallable;
+  protected HadoopFileSystemCallable hadoopFileSystemCallable;
 
   public HadoopFileSystemImpl( HadoopFileSystemCallable hadoopFileSystemCallable ) {
     this.hadoopFileSystemCallable = hadoopFileSystemCallable;
@@ -211,11 +211,11 @@ public class HadoopFileSystemImpl implements HadoopFileSystem {
     }
   }
 
-  private interface IOExceptionCallable<T> {
+  protected interface IOExceptionCallable<T> {
     T call() throws IOException;
   }
 
-  private FileSystem getFileSystem() {
+  protected FileSystem getFileSystem() {
     return hadoopFileSystemCallable.getFileSystem();
   }
 }
