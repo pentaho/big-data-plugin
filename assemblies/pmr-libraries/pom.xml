@@ -15,9 +15,9 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.antlr</groupId>
+      <groupId>antlr</groupId>
       <artifactId>antlr</artifactId>
-      <version>3.4-complete</version>
+      <version>2.7.7</version>
     </dependency>
     <dependency>
       <groupId>ascsapjco3wrp</groupId>
