@@ -5,11 +5,11 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.3-223</version>
   </parent>
   <groupId>pentaho-karaf-features</groupId>
   <artifactId>pentaho-big-data-plugin-osgi</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.3-223</version>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
