@@ -25,27 +25,8 @@ package org.apache.hadoop.hive.jdbc;
 import org.pentaho.big.data.kettle.plugins.hive.DummyDriver;
 
 /**
- * <p>
- * This is proxy driver for the Hive JDBC Driver available through the current
- * active Hadoop configuration.
- * </p>
- * <p>
- * This driver is named exactly the same as the official Apache Hive driver
- * so no further modifications are required by calling code to swap in this
- * proxy.
- * </p>
- * <p>
- * This class uses reflection to attempt to find the Big Data Plugin and load
- * the HadoopConfigurationBootstrap so we have access to the Hive JDBC driver
- * that is compatible with the currently selected Hadoop configuration. All
- * operations are delegated to the current active Hadoop configuration's Hive
- * JDBC driver via HadoopConfiguration#getHiveJdbcDriver.
- * </p>
- * <p>
- * All calls to the loaded HiveDriver will have the current Thread's context
- * class loader set to the class that loaded the driver so subsequent resource
- * lookups are successful.
- * </p>
+ * DummyDriver implementation to avoid CNF exception
+ * when Hive2DatabaseMeta is loaded.  See DummyDriver.
  */
 public class HiveDriver extends DummyDriver {
 }

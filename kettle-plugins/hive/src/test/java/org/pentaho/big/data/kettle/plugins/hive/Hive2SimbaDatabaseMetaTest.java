@@ -25,34 +25,19 @@ package org.pentaho.big.data.kettle.plugins.hive;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.exception.KettleDatabaseException;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaBigNumber;
-import org.pentaho.di.core.row.value.ValueMetaBoolean;
-import org.pentaho.di.core.row.value.ValueMetaDate;
-import org.pentaho.di.core.row.value.ValueMetaInteger;
-import org.pentaho.di.core.row.value.ValueMetaInternetAddress;
-import org.pentaho.di.core.row.value.ValueMetaNumber;
-import org.pentaho.di.core.row.value.ValueMetaString;
-import org.pentaho.di.core.row.value.ValueMetaTimestamp;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.Driver;
+import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by bryan on 10/20/15.
- */
 @RunWith( MockitoJUnitRunner.class )
 public class Hive2SimbaDatabaseMetaTest {
   public static final String LOCALHOST = "localhost";
@@ -60,33 +45,18 @@ public class Hive2SimbaDatabaseMetaTest {
   public static final String DEFAULT = "default";
   @Mock DriverLocator driverLocator;
   @Mock Driver driver;
-
-  private Hive2SimbaDatabaseMeta hive2SimbaDatabaseMeta;
+  @InjectMocks Hive2SimbaDatabaseMeta hive2SimbaDatabaseMeta;
   private String hive2SimbaDatabaseMetaURL;
 
   @Before
   public void setup() throws Throwable {
-    hive2SimbaDatabaseMeta = new Hive2SimbaDatabaseMeta( driverLocator );
     hive2SimbaDatabaseMetaURL = hive2SimbaDatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
     when( driverLocator.getDriver( hive2SimbaDatabaseMetaURL ) ).thenReturn( driver );
   }
 
   @Test
-  public void testVersionConstructor() throws Throwable {
-    int majorVersion = 22;
-    int minorVersion = 33;
-    when( driver.getMajorVersion() ).thenReturn( 22 );
-    when( driver.getMinorVersion() ).thenReturn( 33 );
-    assertTrue( hive2SimbaDatabaseMeta.isDriverVersion( majorVersion, minorVersion ) );
-    assertFalse( hive2SimbaDatabaseMeta.isDriverVersion( majorVersion, minorVersion + 1 ) );
-    assertFalse( hive2SimbaDatabaseMeta.isDriverVersion( majorVersion + 1, minorVersion ) );
-  }
-
-  @Test
-  public void testGetAccessTypeList() {
-    assertArrayEquals(
-      new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE, DatabaseMeta.TYPE_ACCESS_ODBC, DatabaseMeta.TYPE_ACCESS_JNDI },
-      hive2SimbaDatabaseMeta.getAccessTypeList() );
+  public void testGetDriverClassOther() {
+    assertEquals( Hive2SimbaDatabaseMeta.DRIVER_CLASS_NAME, hive2SimbaDatabaseMeta.getDriverClass() );
   }
 
   @Test
@@ -96,236 +66,21 @@ public class Hive2SimbaDatabaseMetaTest {
   }
 
   @Test
-  public void testGetDriverClassOther() {
-    assertEquals( Hive2SimbaDatabaseMeta.DRIVER_CLASS_NAME, hive2SimbaDatabaseMeta.getDriverClass() );
+  public void testGetJdbcPrefix() {
+    assertEquals( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX,
+      hive2SimbaDatabaseMeta.getJdbcPrefix() );
   }
 
   @Test
-  public void testGetUrlDefaults() throws KettleDatabaseException, MalformedURLException {
-    String testHost = "testHost";
-    String urlString = hive2SimbaDatabaseMeta.getURL( testHost, "", "" );
-    assertTrue( urlString.startsWith( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( hive2SimbaDatabaseMeta.getDefaultDatabasePort(), url.getPort() );
-    assertEquals( "/default;" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=0", url.getPath() );
+  public void testGetUsedLibraries() {
+    assertTrue( Arrays.equals(
+      hive2SimbaDatabaseMeta.getUsedLibraries(),
+      new String[] { hive2SimbaDatabaseMeta.JAR_FILE } ) );
   }
 
   @Test
-  public void testGetUrlOdbc() throws KettleDatabaseException {
-    String testDbName = "testDbName";
-    hive2SimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_ODBC );
-    assertEquals( String.format( Hive2SimbaDatabaseMeta.JDBC_ODBC_S, testDbName ),
-      hive2SimbaDatabaseMeta.getURL( "", "", testDbName ) );
-  }
-
-  @Test
-  public void testGetUrlJndi() throws KettleDatabaseException {
-    hive2SimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_JNDI );
-    assertEquals( Hive2SimbaDatabaseMeta.URL_IS_CONFIGURED_THROUGH_JNDI, hive2SimbaDatabaseMeta.getURL( "", "", "" ) );
-  }
-
-  @Test
-  public void testGetUrlKerb() throws Throwable {
-    String testHost = "testHost";
-    String testPort = "1111";
-    String testDb = "testDb";
-    // Regular properties
-    hive2SimbaDatabaseMeta.getAttributes().put( Hive2SimbaDatabaseMeta.KRB_HOST_FQDN, "fqdn" );
-    hive2SimbaDatabaseMeta.getAttributes().put( Hive2SimbaDatabaseMeta.KRB_SERVICE_NAME, "service" );
-    String urlString = hive2SimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals( "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=1", url.getPath() );
-
-    // Extra properties
-    hive2SimbaDatabaseMeta = new Hive2SimbaDatabaseMeta( driverLocator );
-    hive2SimbaDatabaseMeta.getAttributes().put(
-      Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + hive2SimbaDatabaseMeta.getPluginId() + "."
-        + Hive2SimbaDatabaseMeta.KRB_HOST_FQDN, "fqdn" );
-    hive2SimbaDatabaseMeta.getAttributes()
-      .put( Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + hive2SimbaDatabaseMeta.getPluginId() + "."
-        + Hive2SimbaDatabaseMeta.KRB_SERVICE_NAME, "service" );
-    urlString = hive2SimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    url = new URL( "http://" + urlString.substring( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals( "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=1", url.getPath() );
-  }
-
-  @Test
-  public void testGetUrlUsername() throws KettleDatabaseException, MalformedURLException {
-    String testUsername = "testUsername";
-    hive2SimbaDatabaseMeta.setUsername( testUsername );
-
-    String testHost = "testHost";
-    String testPort = "1111";
-    String testDb = "testDb";
-    String urlString = hive2SimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals( "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=2;UID=" + testUsername, url.getPath() );
-  }
-
-  @Test
-  public void testGetUrlPassword() throws KettleDatabaseException, MalformedURLException {
-    String testUsername = "testUsername";
-    String testPassword = "testPassword";
-    hive2SimbaDatabaseMeta.setUsername( testUsername );
-    hive2SimbaDatabaseMeta.setPassword( testPassword );
-
-    String testHost = "testHost";
-    String testPort = "1111";
-    String testDb = "testDb";
-    String urlString = hive2SimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( Hive2SimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals(
-      "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=3;UID=" + testUsername + ";PWD=" + testPassword,
-      url.getPath() );
-  }
-
-  @Test
-  public void testGetFieldDefinitionBoolean() {
-    assertGetFieldDefinition( new ValueMetaBoolean(), "boolName", "BOOLEAN" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionDate() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 12 );
-    assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
-  }
-
-  @Test( expected = IllegalArgumentException.class )
-  public void testGetFieldDefinitionDateUnsupported() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 11 );
-    assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionTimestamp() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 8 );
-    assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
-  }
-
-  @Test( expected = IllegalArgumentException.class )
-  public void testGetFieldDefinitionUnsupported() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 7 );
-    assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionString() {
-    assertGetFieldDefinition( new ValueMetaString(), "stringName", "STRING" );
-    ValueMetaString valueMetaInterface = new ValueMetaString();
-    valueMetaInterface.setLength( 1 );
-    assertGetFieldDefinition( valueMetaInterface, "stringName", "STRING" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionStringChar() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 13 );
-    ValueMetaString valueMetaInterface = new ValueMetaString();
-    valueMetaInterface.setLength( 1 );
-    assertGetFieldDefinition( valueMetaInterface, "stringName", "CHAR" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionStringVarchar() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 12 );
-    assertGetFieldDefinition( new ValueMetaString(), "stringName", "VARCHAR" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionNumber() {
-    String numberName = "numberName";
-    ValueMetaInterface valueMetaInterface = new ValueMetaNumber();
-    valueMetaInterface.setName( numberName );
-    valueMetaInterface.setPrecision( 0 );
-    valueMetaInterface.setLength( 9 );
-    assertGetFieldDefinition( valueMetaInterface, "INT" );
-
-    valueMetaInterface.setLength( 18 );
-    assertGetFieldDefinition( valueMetaInterface, "BIGINT" );
-
-    valueMetaInterface.setLength( 19 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setPrecision( 10 );
-    valueMetaInterface.setLength( 16 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setLength( 15 );
-    assertGetFieldDefinition( valueMetaInterface, "DOUBLE" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionInteger() {
-    String integerName = "integerName";
-    ValueMetaInterface valueMetaInterface = new ValueMetaInteger();
-    valueMetaInterface.setName( integerName );
-    valueMetaInterface.setPrecision( 0 );
-    valueMetaInterface.setLength( 9 );
-    assertGetFieldDefinition( valueMetaInterface, "INT" );
-
-    valueMetaInterface.setLength( 18 );
-    assertGetFieldDefinition( valueMetaInterface, "BIGINT" );
-
-    valueMetaInterface.setLength( 19 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionBigNumber() {
-    String bigNumberName = "bigNumberName";
-    ValueMetaInterface valueMetaInterface = new ValueMetaBigNumber();
-    valueMetaInterface.setName( bigNumberName );
-    valueMetaInterface.setPrecision( 0 );
-    valueMetaInterface.setLength( 9 );
-    assertGetFieldDefinition( valueMetaInterface, "INT" );
-
-    valueMetaInterface.setLength( 18 );
-    assertGetFieldDefinition( valueMetaInterface, "BIGINT" );
-
-    valueMetaInterface.setLength( 19 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setPrecision( 10 );
-    valueMetaInterface.setLength( 16 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setLength( 15 );
-    assertGetFieldDefinition( valueMetaInterface, "DOUBLE" );
-  }
-
-  @Test
-  public void testGetFieldDefinition() {
-    assertGetFieldDefinition( new ValueMetaInternetAddress(), "internetAddressName", "" );
-  }
-
-  private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String name, String expectedType ) {
-    valueMetaInterface = valueMetaInterface.clone();
-    valueMetaInterface.setName( name );
-    assertGetFieldDefinition( valueMetaInterface, expectedType );
-  }
-
-  private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String expectedType ) {
-    assertEquals( expectedType, hive2SimbaDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, false,
-      false ) );
-    assertEquals( valueMetaInterface.getName() + " " + expectedType,
-      hive2SimbaDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, true, false ) );
+  public void testGetDefaultDatabasePort() {
+    assertEquals( Hive2SimbaDatabaseMeta.DEFAULT_PORT,
+      hive2SimbaDatabaseMeta.getDefaultDatabasePort() );
   }
 }

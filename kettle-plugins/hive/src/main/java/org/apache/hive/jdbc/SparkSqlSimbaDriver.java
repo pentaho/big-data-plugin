@@ -26,7 +26,7 @@ import org.pentaho.big.data.kettle.plugins.hive.DummyDriver;
 
 /**
  * DummyDriver implementation to avoid CNF exception
- * when ImpalaDatabaseMeta is loaded.  See DummyDriver.
+ * when SparkSqlSimbaDriver is loaded.  See DummyDriver.
  */
-public class ImpalaDriver extends DummyDriver {
+public class SparkSqlSimbaDriver extends DummyDriver {
 }

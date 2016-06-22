@@ -25,29 +25,16 @@ package org.pentaho.big.data.kettle.plugins.hive;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.exception.KettleDatabaseException;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaBigNumber;
-import org.pentaho.di.core.row.value.ValueMetaBoolean;
-import org.pentaho.di.core.row.value.ValueMetaDate;
-import org.pentaho.di.core.row.value.ValueMetaInteger;
-import org.pentaho.di.core.row.value.ValueMetaInternetAddress;
-import org.pentaho.di.core.row.value.ValueMetaNumber;
-import org.pentaho.di.core.row.value.ValueMetaString;
-import org.pentaho.di.core.row.value.ValueMetaTimestamp;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.sql.Driver;
+import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,25 +47,13 @@ public class ImpalaSimbaDatabaseMetaTest {
   public static final String DEFAULT = "default";
   @Mock DriverLocator driverLocator;
   @Mock Driver driver;
-  private ImpalaSimbaDatabaseMeta impalaSimbaDatabaseMeta;
+  @InjectMocks ImpalaSimbaDatabaseMeta impalaSimbaDatabaseMeta;
   private String impalaSimbaDatabaseMetaURL;
 
   @Before
   public void setup() throws Throwable {
-    impalaSimbaDatabaseMeta = new ImpalaSimbaDatabaseMeta( driverLocator );
     impalaSimbaDatabaseMetaURL = impalaSimbaDatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
     when( driverLocator.getDriver( impalaSimbaDatabaseMetaURL ) ).thenReturn( driver );
-  }
-
-  @Test
-  public void testVersionConstructor() throws Throwable {
-    int majorVersion = 22;
-    int minorVersion = 33;
-    when( driver.getMajorVersion() ).thenReturn( majorVersion );
-    when( driver.getMinorVersion() ).thenReturn( minorVersion );
-    assertTrue( impalaSimbaDatabaseMeta.isDriverVersion( majorVersion, minorVersion ) );
-    assertFalse( impalaSimbaDatabaseMeta.isDriverVersion( majorVersion, minorVersion + 1 ) );
-    assertFalse( impalaSimbaDatabaseMeta.isDriverVersion( majorVersion + 1, minorVersion ) );
   }
 
   @Test
@@ -100,232 +75,21 @@ public class ImpalaSimbaDatabaseMetaTest {
   }
 
   @Test
-  public void testGetUrlDefaults() throws KettleDatabaseException, MalformedURLException {
-    String testHost = "testHost";
-    String urlString = impalaSimbaDatabaseMeta.getURL( testHost, "", "" );
-    assertTrue( urlString.startsWith( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( impalaSimbaDatabaseMeta.getDefaultDatabasePort(), url.getPort() );
-    assertEquals( "/default;" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=0", url.getPath() );
+  public void testGetJdbcPrefix() {
+    assertEquals( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX,
+      impalaSimbaDatabaseMeta.getJdbcPrefix() );
   }
 
   @Test
-  public void testGetUrlOdbc() throws KettleDatabaseException {
-    String testDbName = "testDbName";
-    impalaSimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_ODBC );
-    assertEquals( String.format( Hive2SimbaDatabaseMeta.JDBC_ODBC_S, testDbName ),
-      impalaSimbaDatabaseMeta.getURL( "", "", testDbName ) );
+  public void testGetUsedLibraries() {
+    assertTrue( Arrays.equals(
+      impalaSimbaDatabaseMeta.getUsedLibraries(),
+      new String[] { impalaSimbaDatabaseMeta.JAR_FILE } ) );
   }
 
   @Test
-  public void testGetUrlJndi() throws KettleDatabaseException {
-    impalaSimbaDatabaseMeta.setAccessType( DatabaseMeta.TYPE_ACCESS_JNDI );
-    assertEquals( Hive2SimbaDatabaseMeta.URL_IS_CONFIGURED_THROUGH_JNDI, impalaSimbaDatabaseMeta.getURL( "", "", "" ) );
-  }
-
-  @Test
-  public void testGetUrlKerb() throws Throwable {
-    String testHost = "testHost";
-    String testPort = "1111";
-    String testDb = "testDb";
-    // Regular properties
-    impalaSimbaDatabaseMeta.getAttributes().put( ImpalaSimbaDatabaseMeta.KRB_HOST_FQDN, "fqdn" );
-    impalaSimbaDatabaseMeta.getAttributes().put( Hive2SimbaDatabaseMeta.KRB_SERVICE_NAME, "service" );
-    String urlString = impalaSimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals( "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=1", url.getPath() );
-
-    // Extra properties
-    impalaSimbaDatabaseMeta = new ImpalaSimbaDatabaseMeta( driverLocator );
-    impalaSimbaDatabaseMeta.getAttributes().put(
-      Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + impalaSimbaDatabaseMeta.getPluginId() + "."
-        + Hive2SimbaDatabaseMeta.KRB_HOST_FQDN, "fqdn" );
-    impalaSimbaDatabaseMeta.getAttributes()
-      .put( Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + impalaSimbaDatabaseMeta.getPluginId() + "."
-        + Hive2SimbaDatabaseMeta.KRB_SERVICE_NAME, "service" );
-    urlString = impalaSimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals( "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=1", url.getPath() );
-  }
-
-  @Test
-  public void testGetUrlUsername() throws KettleDatabaseException, MalformedURLException {
-    String testUsername = "testUsername";
-    impalaSimbaDatabaseMeta.setUsername( testUsername );
-
-    String testHost = "testHost";
-    String testPort = "1111";
-    String testDb = "testDb";
-    String urlString = impalaSimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals( "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=2;UID=" + testUsername, url.getPath() );
-  }
-
-  @Test
-  public void testGetUrlPassword() throws KettleDatabaseException, MalformedURLException {
-    String testUsername = "testUsername";
-    String testPassword = "testPassword";
-    impalaSimbaDatabaseMeta.setUsername( testUsername );
-    impalaSimbaDatabaseMeta.setPassword( testPassword );
-
-    String testHost = "testHost";
-    String testPort = "1111";
-    String testDb = "testDb";
-    String urlString = impalaSimbaDatabaseMeta.getURL( testHost, testPort, testDb );
-    assertTrue( urlString.startsWith( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX ) );
-    URL url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
-    assertEquals( testHost, url.getHost() );
-    assertEquals( Integer.valueOf( testPort ).intValue(), url.getPort() );
-    assertEquals(
-      "/" + testDb + ";" + Hive2SimbaDatabaseMeta.AUTH_MECH + "=3;UID=" + testUsername + ";PWD=" + testPassword,
-      url.getPath() );
-  }
-
-  @Test
-  public void testGetFieldDefinitionBoolean() {
-    assertGetFieldDefinition( new ValueMetaBoolean(), "boolName", "BOOLEAN" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionDate() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 12 );
-    assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
-  }
-
-  @Test( expected = IllegalArgumentException.class )
-  public void testGetFieldDefinitionDateUnsupported() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 11 );
-    assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionTimestamp() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 8 );
-    assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
-  }
-
-  @Test( expected = IllegalArgumentException.class )
-  public void testGetFieldDefinitionUnsupported() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 7 );
-    assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionString() {
-    assertGetFieldDefinition( new ValueMetaString(), "stringName", "STRING" );
-    ValueMetaString valueMetaInterface = new ValueMetaString();
-    valueMetaInterface.setLength( 1 );
-    assertGetFieldDefinition( valueMetaInterface, "stringName", "STRING" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionStringChar() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 13 );
-    ValueMetaString valueMetaInterface = new ValueMetaString();
-    valueMetaInterface.setLength( 1 );
-    assertGetFieldDefinition( valueMetaInterface, "stringName", "CHAR" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionStringVarchar() {
-    when( driver.getMajorVersion() ).thenReturn( 0 );
-    when( driver.getMinorVersion() ).thenReturn( 12 );
-    assertGetFieldDefinition( new ValueMetaString(), "stringName", "VARCHAR" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionNumber() {
-    String numberName = "numberName";
-    ValueMetaInterface valueMetaInterface = new ValueMetaNumber();
-    valueMetaInterface.setName( numberName );
-    valueMetaInterface.setPrecision( 0 );
-    valueMetaInterface.setLength( 9 );
-    assertGetFieldDefinition( valueMetaInterface, "INT" );
-
-    valueMetaInterface.setLength( 18 );
-    assertGetFieldDefinition( valueMetaInterface, "BIGINT" );
-
-    valueMetaInterface.setLength( 19 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setPrecision( 10 );
-    valueMetaInterface.setLength( 16 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setLength( 15 );
-    assertGetFieldDefinition( valueMetaInterface, "DOUBLE" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionInteger() {
-    String integerName = "integerName";
-    ValueMetaInterface valueMetaInterface = new ValueMetaInteger();
-    valueMetaInterface.setName( integerName );
-    valueMetaInterface.setPrecision( 0 );
-    valueMetaInterface.setLength( 9 );
-    assertGetFieldDefinition( valueMetaInterface, "INT" );
-
-    valueMetaInterface.setLength( 18 );
-    assertGetFieldDefinition( valueMetaInterface, "BIGINT" );
-
-    valueMetaInterface.setLength( 19 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-  }
-
-  @Test
-  public void testGetFieldDefinitionBigNumber() {
-    String bigNumberName = "bigNumberName";
-    ValueMetaInterface valueMetaInterface = new ValueMetaBigNumber();
-    valueMetaInterface.setName( bigNumberName );
-    valueMetaInterface.setPrecision( 0 );
-    valueMetaInterface.setLength( 9 );
-    assertGetFieldDefinition( valueMetaInterface, "INT" );
-
-    valueMetaInterface.setLength( 18 );
-    assertGetFieldDefinition( valueMetaInterface, "BIGINT" );
-
-    valueMetaInterface.setLength( 19 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setPrecision( 10 );
-    valueMetaInterface.setLength( 16 );
-    assertGetFieldDefinition( valueMetaInterface, "FLOAT" );
-
-    valueMetaInterface.setLength( 15 );
-    assertGetFieldDefinition( valueMetaInterface, "DOUBLE" );
-  }
-
-  @Test
-  public void testGetFieldDefinition() {
-    assertGetFieldDefinition( new ValueMetaInternetAddress(), "internetAddressName", "" );
-  }
-
-  private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String name, String expectedType ) {
-    valueMetaInterface = valueMetaInterface.clone();
-    valueMetaInterface.setName( name );
-    assertGetFieldDefinition( valueMetaInterface, expectedType );
-  }
-
-  private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String expectedType ) {
-    assertEquals( expectedType,
-      impalaSimbaDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, false,
-        false ) );
-    assertEquals( valueMetaInterface.getName() + " " + expectedType,
-      impalaSimbaDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, true, false ) );
+  public void testGetDefaultDatabasePort() {
+    assertEquals( ImpalaSimbaDatabaseMeta.DEFAULT_PORT,
+      impalaSimbaDatabaseMeta.getDefaultDatabasePort() );
   }
 }

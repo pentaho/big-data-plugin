@@ -25,7 +25,8 @@ package org.apache.hive.jdbc;
 import org.pentaho.big.data.kettle.plugins.hive.DummyDriver;
 
 /**
- * User: Dzmitry Stsiapanau Date: 7/2/2015 Time: 03:42
+ * DummyDriver implementation to avoid CNF exception
+ * when HiveSimbaDatabaseMeta is loaded.  See DummyDriver.
  */
 public class HiveSimbaDriver extends DummyDriver {
 }
