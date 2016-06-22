@@ -20,13 +20,25 @@
  *
  ******************************************************************************/
 
-package org.apache.hive.jdbc;
+package com.pentaho.big.data.bundles.impl.shim.hive;
 
-import org.pentaho.big.data.kettle.plugins.hive.DummyDriver;
+import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
 
-/**
- * DummyDriver implementation to avoid CNF exception
- * when ImpalaDatabaseMeta is loaded.  See DummyDriver.
- */
-public class ImpalaDriver extends DummyDriver {
+import java.sql.Driver;
+import java.sql.SQLException;
+
+public class SparkSimbaDriver extends HiveSimbaDriver {
+  public SparkSimbaDriver( Driver delegate, String hadoopConfigurationId, boolean defaultConfiguration,
+                          JdbcUrlParser jdbcUrlParser ) {
+    super( delegate, hadoopConfigurationId, defaultConfiguration, jdbcUrlParser );
+  }
+
+  @Override
+  protected Driver checkBeforeCallActiveDriver( String url ) throws SQLException {
+    if ( !url.contains( SIMBA_SPECIFIC_URL_PARAMETER ) || !url.matches( ".+:spark:.*" ) ) {
+      // BAD-215 check required to distinguish Simba driver
+      return null;
+    }
+    return delegate;
+  }
 }

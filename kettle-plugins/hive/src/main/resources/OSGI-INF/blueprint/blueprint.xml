@@ -29,6 +29,11 @@
     <argument ref="driverLocator"/>
   </bean>
 
+  <bean id="sparkSimbaDatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.SparkSimbaDatabaseMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.DatabasePluginType"/>
+    <argument ref="driverLocator"/>
+  </bean>
+
   <reference id="driverLocator" interface="org.pentaho.big.data.api.jdbc.DriverLocator"/>
 
   <!--<bean id="hive2DatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2DatabaseDialect"/>

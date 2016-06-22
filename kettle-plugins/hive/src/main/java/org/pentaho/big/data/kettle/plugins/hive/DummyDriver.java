@@ -31,6 +31,14 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
+ * DummyDriver is a bare Driver implementation used as a way
+ * to avoid ClassNotFoundException when kettle attempts to load
+ * the class associated with each meta.
+ *
+ * The classes which extend DummyDriver have the same unique
+ * names as the name exposed by .getDriverClass() in the
+ * DatabaseMeta implementation.
+ *
  * Created by bryan on 3/30/16.
  */
 public class DummyDriver implements Driver {

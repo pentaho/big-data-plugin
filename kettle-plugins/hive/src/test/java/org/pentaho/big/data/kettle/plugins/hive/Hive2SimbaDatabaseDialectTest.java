@@ -28,6 +28,8 @@ import org.pentaho.database.model.DatabaseAccessType;
 import org.pentaho.database.model.DatabaseConnection;
 import org.pentaho.database.model.IDatabaseType;
 
+import static org.junit.Assert.assertEquals;
+
 public class Hive2SimbaDatabaseDialectTest {
 
   private Hive2SimbaDatabaseDialect dialect;
@@ -51,7 +53,7 @@ public class Hive2SimbaDatabaseDialectTest {
 
   @Test
   public void testGetUsedLibraries() {
-    Assert.assertEquals( dialect.getUsedLibraries()[0], "HiveJDBC41.jar" );
+    assertEquals( dialect.getUsedLibraries()[0], "HiveJDBC41.jar" );
   }
 
   @Test
@@ -62,7 +64,7 @@ public class Hive2SimbaDatabaseDialectTest {
   @Test
   public void testGetDatabaseType() {
     IDatabaseType dbType = dialect.getDatabaseType();
-    Assert.assertEquals( dbType.getName(), "Hadoop Hive 2 (Simba)" );
+    assertEquals( dbType.getName(), "Hadoop Hive 2 (Simba)" );
   }
 
   @Test
@@ -78,6 +80,6 @@ public class Hive2SimbaDatabaseDialectTest {
   @Test
   public void testGetTruncateTableStatement() {
     String tableName = "table1";
-    Assert.assertEquals( dialect.getTruncateTableStatement( tableName ), "TRUNCATE TABLE " + tableName );
+    assertEquals( dialect.getTruncateTableStatement( tableName ), "TRUNCATE TABLE " + tableName );
   }
 }

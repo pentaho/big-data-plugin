@@ -51,6 +51,7 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
   public static final String HIVE_2_SIMBA = "hive2Simba";
   public static final String IMPALA = "Impala";
   public static final String IMPALA_SIMBA = "ImpalaSimba";
+  public static final String SPARK_SIMBA = "SparkSqlSimba";
 
   private final Logger LOGGER = LoggerFactory.getLogger( ShimDriverLoader.class );
 
@@ -89,6 +90,7 @@ public class ShimDriverLoader implements HadoopConfigurationListener {
     hiveDriverFactoryMap.put( HIVE_2_SIMBA, HiveSimbaDriver::new );
     hiveDriverFactoryMap.put( IMPALA, ImpalaDriver::new );
     hiveDriverFactoryMap.put( IMPALA_SIMBA, ImpalaSimbaDriver::new );
+    hiveDriverFactoryMap.put( SPARK_SIMBA, SparkSimbaDriver::new );
     return hiveDriverFactoryMap;
   }
 
