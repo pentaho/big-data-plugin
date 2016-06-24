@@ -51,12 +51,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-engine</artifactId>
-      <version>${dependency.kettle.revision}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
       <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
@@ -127,13 +121,19 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>${dependency.xerces.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.revision}</version>
+        <version>${dependency.maven-bundle-plugin.version}</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
