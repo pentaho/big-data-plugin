@@ -5,10 +5,7 @@
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
     <feature>pentaho-big-data-kettle-plugins</feature>
-    <conditional>
-      <condition>community-edition</condition>
-      <feature>pentaho-big-data-plugin-shim-impl</feature>
-    </conditional>
+    <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
@@ -24,11 +21,12 @@
     <bundle>mvn:pentaho/pentaho-metastore-locator-api/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-local/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-repository/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-api-cluster/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
   </feature>
   <feature name="pentaho-big-data-plugin-api" version="1.0">
     <feature>pentaho-big-data-plugin-base</feature>
-    <bundle>mvn:pentaho/pentaho-big-data-api-cluster/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-api-cluster-service-locator/${project.version}</bundle>
+     <bundle>mvn:pentaho/pentaho-big-data-api-cluster-service-locator/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-initializer/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-hbase/${project.version}</bundle>
@@ -43,17 +41,19 @@
   
   <feature name="pentaho-big-data-plugin-shim-impl" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-initializer/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hdfs/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hbase/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-mapreduce/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-pig/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-oozie/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-sqoop/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hive/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-hadoop-shims-mapr-osgi-jaas/${project.version}</bundle>
+    <conditional>
+        <condition>community-edition</condition>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-initializer/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hdfs/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hbase/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-mapreduce/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-pig/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-oozie/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-sqoop/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hive/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-hadoop-shims-mapr-osgi-jaas/${project.version}</bundle>
+    </conditional>
   </feature>
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
