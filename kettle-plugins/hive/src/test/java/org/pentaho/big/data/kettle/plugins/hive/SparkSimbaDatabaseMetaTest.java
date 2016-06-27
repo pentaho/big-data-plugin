@@ -94,27 +94,27 @@ public class SparkSimbaDatabaseMetaTest {
 
   @Test
   public void testGeneratedSQLContainsSchemaReferenceWhenTableUnqualified() {
-    verifySchemaQualifier( null, "foo" );
+    verifyExpectedSql( null, "foo" );
   }
 
   @Test
   public void testGeneratedSQLContainsSchemaReferenceWhenTableQualified() {
-    verifySchemaQualifier( DB_NAME, "foo" );
+    verifyExpectedSql( DB_NAME, "foo" );
   }
 
-  private void verifySchemaQualifier( String schemaName, String tableName ) {
-    String combinedSchemaTable = schemaName == null ? tableName
+  private void verifyExpectedSql( String schemaName, String tableName ) {
+    String expectedTableName = schemaName == null ? tableName
       : schemaName + "." + tableName;
-    assertThat( sparkSimbaDatabaseMeta.getSQLTableExists( combinedSchemaTable ),
-      is( "SELECT 1 FROM " + DB_NAME + "." + tableName ) );
-    assertThat( sparkSimbaDatabaseMeta.getTruncateTableStatement( combinedSchemaTable ),
-      is( "TRUNCATE TABLE " + DB_NAME + "." + tableName ) );
-    assertThat( sparkSimbaDatabaseMeta.getSQLColumnExists( "column", combinedSchemaTable ),
-      is( "SELECT column FROM " + DB_NAME + "." + tableName ) );
-    assertThat( sparkSimbaDatabaseMeta.getSQLQueryFields( combinedSchemaTable ),
-      is( "SELECT * FROM " + DB_NAME + "." + "foo LIMIT 0" ) );
-    assertThat( sparkSimbaDatabaseMeta.getSelectCountStatement( combinedSchemaTable ),
-      is( SparkSimbaDatabaseMeta.SELECT_COUNT_STATEMENT + " " + DB_NAME + "." + tableName ) );
+    assertThat( sparkSimbaDatabaseMeta.getSQLTableExists( expectedTableName ),
+      is( "SELECT 1 FROM " + expectedTableName + " LIMIT 1" ) );
+    assertThat( sparkSimbaDatabaseMeta.getTruncateTableStatement( expectedTableName ),
+      is( "TRUNCATE TABLE " + expectedTableName ) );
+    assertThat( sparkSimbaDatabaseMeta.getSQLColumnExists( "column", expectedTableName ),
+      is( "SELECT column FROM " + expectedTableName  + " LIMIT 1" ) );
+    assertThat( sparkSimbaDatabaseMeta.getSQLQueryFields( expectedTableName ),
+      is( "SELECT * FROM " + expectedTableName + " LIMIT 1" ) );
+    assertThat( sparkSimbaDatabaseMeta.getSelectCountStatement( expectedTableName ),
+      is( SparkSimbaDatabaseMeta.SELECT_COUNT_STATEMENT + " " + expectedTableName ) );
   }
 
 

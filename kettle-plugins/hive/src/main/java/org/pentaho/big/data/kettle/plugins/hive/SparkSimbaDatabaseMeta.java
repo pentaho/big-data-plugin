@@ -30,6 +30,7 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @VisibleForTesting static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.SparkSqlSimbaDriver";
   @VisibleForTesting static final String JAR_FILE = "SparkJDBC41.jar";
   @VisibleForTesting static final int DEFAULT_PORT = 10015;
+  private final String LIMIT_1 = " LIMIT 1";
 
   public SparkSimbaDatabaseMeta( DriverLocator driverLocator ) {
     super( driverLocator );
@@ -50,7 +51,7 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
 
   @Override
   public String getSQLQueryFields( String tableName ) {
-    return "SELECT * FROM " + getTableReference( tableName ) + " LIMIT 0";
+    return "SELECT * FROM " + tableName + LIMIT_1;
   }
 
   @Override
@@ -63,37 +64,24 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
     return "`";
   }
 
-  private String getTableReference( String tableName ) {
-    if ( !isTableNameQualified( tableName ) ) {
-      return getSchemaTableCombination( getDatabaseName(), tableName );
-    } else {
-      return tableName;
-    }
-  }
-
-  private boolean isTableNameQualified( String tableName ) {
-    String quotedDbName = getStartQuote() + getDatabaseName() + getEndQuote();
-    return tableName.startsWith( getDatabaseName() ) || tableName.startsWith( quotedDbName );
-  }
-
   @Override
   public String getSQLTableExists( String tablename ) {
-    return "SELECT 1 FROM " + getTableReference( tablename );
+    return "SELECT 1 FROM " + tablename + LIMIT_1;
   }
 
   @Override
   public String getTruncateTableStatement( String tableName ) {
-    return "TRUNCATE TABLE " + getTableReference( tableName );
+    return "TRUNCATE TABLE " + tableName;
   }
 
   @Override
   public String getSQLColumnExists( String columnname, String tablename ) {
-    return "SELECT " + columnname + " FROM " + getTableReference( tablename );
+    return "SELECT " + columnname + " FROM " + tablename + LIMIT_1;
   }
 
   @Override
   public String getSelectCountStatement( String tableName ) {
-    return SELECT_COUNT_STATEMENT + " " + getTableReference( tableName );
+    return SELECT_COUNT_STATEMENT + " " + tableName;
   }
 
   @Override
