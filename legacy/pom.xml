@@ -35,7 +35,6 @@
     <xml-apis.version>2.0.2</xml-apis.version>
     <commands.version>3.3.0-I20070605-0010</commands.version>
     <avro.version>1.6.2</avro.version>
-    <xercesImpl.version>2.9.1</xercesImpl.version>
     <dependency.hadoop-shims-hadoop-20.revision>7.0-SNAPSHOT</dependency.hadoop-shims-hadoop-20.revision>
     <libthrift.version>0.6</libthrift.version>
     <publish-sonar-phase>site</publish-sonar-phase>
@@ -206,18 +205,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hadoop-20</artifactId>
-      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hadoop-20-mapred</artifactId>
-      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.jboss.shrinkwrap</groupId>
       <artifactId>shrinkwrap-impl-base</artifactId>
       <version>1.0.0-alpha-12</version>
@@ -262,7 +249,7 @@
     <dependency>
       <groupId>xerces</groupId>
       <artifactId>xercesImpl</artifactId>
-      <version>${xercesImpl.version}</version>
+      <version>${dependency.xerces.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

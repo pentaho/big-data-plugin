@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -204,7 +205,11 @@ public class PropertiesConfigurationPropertiesTest {
   public void testPropertyNames() {
     HashSet<String> names = new HashSet<>( Arrays.asList( "a", "b", "c" ) );
     mockKeys( names );
-    assertEquals( names, new HashSet<>( Collections.list( propertiesConfigurationProperties.propertyNames() ) ) );
+
+    HashSet<String> propertyNames = Collections.list( propertiesConfigurationProperties.propertyNames() ).stream()
+      .map( Object::toString )
+      .collect( Collectors.toCollection( HashSet::new ) );
+    assertEquals( names, propertyNames );
   }
 
   @Test

@@ -38,7 +38,7 @@
   <properties>
     <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
     <dependency.json.revision>7.0-SNAPSHOT</dependency.json.revision>
-    <dependency.maven-bundle-plugin.revision>2.3.7</dependency.maven-bundle-plugin.revision>
+    <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
     <dependency.httpcomponents.revision>4.4</dependency.httpcomponents.revision>
     <dependency.hadoop-shims-emr310.revision>7.0-SNAPSHOT</dependency.hadoop-shims-emr310.revision>
     <dependency.karaf.revision>3.0.3</dependency.karaf.revision>
@@ -85,6 +85,7 @@
     <dependency.cxf.revision>2.6.15</dependency.cxf.revision>
     <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
     <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
+    <dependency.xerces.version>2.9.1</dependency.xerces.version>
   </properties>
   <build>
     <plugins>
@@ -142,7 +143,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.revision}</version>
+        <version>${dependency.maven-bundle-plugin.version}</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
