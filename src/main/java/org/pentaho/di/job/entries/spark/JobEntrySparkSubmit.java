@@ -80,6 +80,8 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
   private String scriptPath; // the path for the spark-submit utility
   private String master = "yarn-cluster"; // the URL for the Spark master
+  private String type = "Java or Scala"; // the URL for the Spark master
+  private List<String> supportingDocuments = new ArrayList<String>(); // supporting documents options, "environment = path"
   private List<String> configParams = new ArrayList<String>(); // configuration options, "key=value"
   private String jar; // the path for the jar containing the Spark code to run
   private String className; // the name of the class to run
@@ -114,6 +116,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     retval.append( super.getXML() );
     retval.append( "      " ).append( XMLHandler.addTagValue( "scriptPath", scriptPath ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "master", master ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "type", type ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "jar", jar ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "className", className ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "args", args ) );
@@ -121,8 +124,12 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     for ( String param : configParams ) {
       retval.append( "            " ).append( XMLHandler.addTagValue( "param", param ) );
     }
-
     retval.append( "      " ).append( XMLHandler.closeTag( "configParams" ) ).append( Const.CR );
+    retval.append( "      " ).append( XMLHandler.openTag( "supportingDocuments" ) ).append( Const.CR );
+    for ( String param : supportingDocuments ) {
+      retval.append( "            " ).append( XMLHandler.addTagValue( "doc", param ) );
+    }
+    retval.append( "      " ).append( XMLHandler.closeTag( "supportingDocuments" ) ).append( Const.CR );
     retval.append( "      " ).append( XMLHandler.addTagValue( "driverMemory", driverMemory ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "executorMemory", executorMemory ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blockExecution", blockExecution ) );
@@ -140,6 +147,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
       scriptPath = XMLHandler.getTagValue( entrynode, "scriptPath" );
       master = XMLHandler.getTagValue( entrynode, "master" );
+      type = XMLHandler.getTagValue( entrynode, "type" );
       jar = XMLHandler.getTagValue( entrynode, "jar" );
       className = XMLHandler.getTagValue( entrynode, "className" );
       args = XMLHandler.getTagValue( entrynode, "args" );
@@ -147,6 +155,11 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       List<Node> paramNodes = XMLHandler.getNodes( configParamsNode, "param" );
       for ( Node paramNode : paramNodes ) {
         configParams.add( paramNode.getTextContent() );
+      }
+      Node suppDocsNode = XMLHandler.getSubNode( entrynode, "supportingDocuments" );
+      List<Node> docNodes = XMLHandler.getNodes( suppDocsNode, "doc" );
+      for ( Node n : docNodes ) {
+        supportingDocuments.add( n.getTextContent() );
       }
       driverMemory = XMLHandler.getTagValue( entrynode, "driverMemory" );
       executorMemory = XMLHandler.getTagValue( entrynode, "executorMemory" );
@@ -164,11 +177,15 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     try {
       scriptPath = rep.getJobEntryAttributeString( id_jobentry, "scriptPath" );
       master = rep.getJobEntryAttributeString( id_jobentry, "master" );
+      type = rep.getJobEntryAttributeString( id_jobentry, "type" );
       jar = rep.getJobEntryAttributeString( id_jobentry, "jar" );
       className = rep.getJobEntryAttributeString( id_jobentry, "className" );
       args = rep.getJobEntryAttributeString( id_jobentry, "args" );
       for ( int i = 0; i < rep.countNrJobEntryAttributes( id_jobentry, "param" ); i++ ) {
         configParams.add( rep.getJobEntryAttributeString( id_jobentry, i, "param" ) );
+      }
+      for ( int i = 0; i < rep.countNrJobEntryAttributes( id_jobentry, "supportingDocuments" ); i++ ) {
+        supportingDocuments.add( rep.getJobEntryAttributeString( id_jobentry, i, "supportingDocuments" ) );
       }
       driverMemory = rep.getJobEntryAttributeString( id_jobentry, "driverMemory" );
       executorMemory = rep.getJobEntryAttributeString( id_jobentry, "executorMemory" );
@@ -186,11 +203,15 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     try {
       rep.saveJobEntryAttribute( id_job, getObjectId(), "scriptPath", scriptPath );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "master", master );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "type", type );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "jar", jar );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "className", className );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "args", args );
       for ( int i = 0; i < configParams.size(); i++ ) {
         rep.saveJobEntryAttribute( id_job, getObjectId(), i, "param", configParams.get( i ) );
+      }
+      for ( int i = 0; i < supportingDocuments.size(); i++ ) {
+        rep.saveJobEntryAttribute( id_job, getObjectId(), i, "supportingDocuments", supportingDocuments.get( i ) );
       }
       rep.saveJobEntryAttribute( id_job, getObjectId(), "driverMemory", driverMemory );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "executorMemory", executorMemory );
@@ -240,6 +261,25 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   }
 
   /**
+   * Returns the type for the Spark master node
+   *
+   * @return The type for the Spark master node
+   */
+  public String getType() {
+    return type;
+  }
+
+  /**
+   * Sets the type for the Spark master node
+   *
+   * @param master
+   *          type for the Spark master node
+   */
+  public void setType( String type ) {
+    this.type = type;
+  }
+
+  /**
    * Returns map of configuration params
    *
    * @return map of configuration params
@@ -253,6 +293,23 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
    */
   public void setConfigParams( List<String> configParams ) {
     this.configParams = configParams;
+  }
+
+
+  /**
+   * Returns list of supported documents
+   *
+   * @return list of supported documents
+   */
+  public List<String> getSupportingDocuments() {
+    return supportingDocuments;
+  }
+
+  /**
+   * Sets supported documents
+   */
+  public void setSupportingDocuments( List<String> docs ) {
+    this.supportingDocuments = docs;
   }
 
   /**
@@ -390,6 +447,11 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     for ( String confParam : configParams ) {
       cmds.add( "--conf" );
       cmds.add( environmentSubstitute( confParam ) );
+    }
+
+    for ( String doc : supportingDocuments ) {
+      cmds.add( "--supported-documents" );
+      cmds.add( environmentSubstitute( doc ) );
     }
 
     if ( !Const.isEmpty( driverMemory ) ) {

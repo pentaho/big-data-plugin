@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,8 @@ package org.pentaho.di.ui.job.entries.spark;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -34,16 +36,16 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -52,15 +54,18 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.spark.JobEntrySparkSubmit;
 import org.pentaho.di.job.entry.JobEntryDialogInterface;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -68,422 +73,97 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 /**
  * Dialog that allows you to enter the settings for a Spark submit job entry.
  *
+ * @author Alexander Buloichik
  * @author jdixon
  * @since Dec-4-2014
  */
 public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntryDialogInterface {
   private static Class<?> PKG = JobEntrySparkSubmit.class; // for i18n purposes, needed by Translator2!!
   private static final int SHELL_MINIMUM_WIDTH = 400;
-  private static final int MARGIN_LARGE = 15;
-  private static final int MARGIN_MEDIUM = 10;
-  private static final int MARGIN_SMALL = 5;
 
-  private static final String[] FILEFORMATS = new String[] { BaseMessages.getString( PKG,
-      "JobEntrySparkSubmit.Fileformat.All" ) };
+  private static final String[] FILEFORMATS =
+      new String[] { BaseMessages.getString( PKG, "JobEntrySparkSubmit.Fileformat.All" ) };
 
   private static final String[] MASTER_URLS = new String[] { "yarn-cluster", "yarn-client" };
 
-  private Shell shell;
+  private static final String[] TYPES = new String[] { "Java or Scala", "Python" };
+
+  public static final String LOCAL_ENVIRONMENT = "Local";
+  public static final String STATIC_ENVIRONMENT = "<Static>";
+
+  protected static final String[] FILETYPES =
+      new String[] { BaseMessages.getString( PKG, "JobEntrySparkSubmit.Fileformat.All" ) };
+
+  protected Object result;
+  protected Shell shell;
+  private Text txtEntryName;
+  private TextVar txtSparkSubmitUtility;
+  private Button btnSparkSubmitUtility;
+  private Button btnOK;
+  private Button btnCancel;
+  private TextVar txtClass;
+  private TextVar txtFilesApplicationJar;
+  private TextVar txtArguments;
+  private Button btnFilesApplicationJar;
+  private TextVar txtFilesPyFile;
+  private Button btnFilesPyFile;
+  private TableView tblFilesSupportingDocs;
+  private TableView tblUtilityParameters;
+  private Combo cmbType;
+  private ComboVar cmbMasterURL;
+  private Composite filesHeader;
+  private Composite tabFilesComposite;
+  private TextVar txtExecutorMemory;
+  private TextVar txtDriverMemory;
+  private Button chkEnableBlocking;
 
   private JobEntrySparkSubmit jobEntry;
   private boolean backupChanged;
 
-  private Text name;
-  private TableView configParams;
-  private TextVar sparkSubmit;
-  private ComboVar masterUrl;
-  private TextVar clazz;
-  private TextVar jar;
-  private TextVar args;
-  private TextVar driverMemory;
-  private TextVar executorMemory;
-  private Button blockExecution;
+  public static void main( String[] a ) {
+    Display display = new Display();
+    PropsUI.init( display, Props.TYPE_PROPERTIES_SPOON );
+    Shell shell = new Shell( display );
+
+    JobEntrySparkSubmitDialog sh =
+        new JobEntrySparkSubmitDialog( shell, new JobEntrySparkSubmit( "Spark submit job entry" ), null,
+            new JobMeta() );
+
+    sh.open();
+  }
 
   public JobEntrySparkSubmitDialog( Shell parent, JobEntryInterface jobEntryInt, Repository rep, JobMeta jobMeta ) {
     super( parent, jobEntryInt, rep, jobMeta );
     jobEntry = (JobEntrySparkSubmit) jobEntryInt;
   }
 
+  @Override
   public JobEntryInterface open() {
     Shell parent = getParent();
     Display display = parent.getDisplay();
 
     shell = new Shell( parent, props.getJobsDialogStyle() );
+
     props.setLook( shell );
     JobDialog.setShellImage( shell, jobEntry );
 
-    ModifyListener lsMod = new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        jobEntry.setChanged();
-      }
-    };
     backupChanged = jobEntry.hasChanged();
 
-    SelectionAdapter lsDef = new SelectionAdapter() {
-      public void widgetDefaultSelected( SelectionEvent e ) {
-        ok();
-      }
-    };
-
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = MARGIN_LARGE;
-    formLayout.marginHeight = MARGIN_LARGE;
-
-    shell.setLayout( formLayout );
-    shell.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Title" ) );
-
-    // Job entry name
-    Label nameLabel = new Label( shell, SWT.RIGHT );
-    props.setLook( nameLabel );
-    nameLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Name.Label" ) );
-    FormData fdlName = new FormData();
-    fdlName.left = new FormAttachment( 0, 0 );
-    nameLabel.setLayoutData( fdlName );
-    name = new Text( shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( name );
-    name.addModifyListener( lsMod );
-    FormData fdName = new FormData();
-    fdName.top = new FormAttachment( nameLabel, MARGIN_SMALL );
-    fdName.left = new FormAttachment( nameLabel, 0, SWT.LEFT );
-    fdName.right = new FormAttachment( 70, 0 );
-    name.setLayoutData( fdName );
-
-    // Job entry icon
-    Label stepIcon = new Label( shell, SWT.NONE );
-    props.setLook( stepIcon );
-    stepIcon.setImage( GUIResource.getInstance().getImage( "org/pentaho/di/ui/job/entries/spark/img/spark.svg",
-        getClass().getClassLoader(), ConstUI.ICON_SIZE, ConstUI.ICON_SIZE ) );
-
-    FormData fdIcon = new FormData();
-    fdIcon.right = new FormAttachment( 100 );
-    fdIcon.top = new FormAttachment( nameLabel, 0, SWT.TOP );
-    stepIcon.setLayoutData( fdIcon );
-
-    Label topSeparator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    props.setLook( topSeparator );
-    FormData fdTopSeparator = new FormData();
-    fdTopSeparator.top = new FormAttachment( name, MARGIN_LARGE );
-    fdTopSeparator.left = new FormAttachment( 0 );
-    fdTopSeparator.right = new FormAttachment( 100 );
-    topSeparator.setLayoutData( fdTopSeparator );
-
-    // Ok and cancel buttons
-    Button wCancel = new Button( shell, SWT.PUSH );
-    props.setLook( wCancel );
-    wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
-    FormData fdCancel = new FormData();
-    fdCancel.right = new FormAttachment( 100 );
-    fdCancel.bottom = new FormAttachment( 100 );
-    wCancel.setLayoutData( fdCancel );
-
-    Button wOK = new Button( shell, SWT.PUSH );
-    props.setLook( wOK );
-    wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
-    FormData fdOk = new FormData();
-    fdOk.right = new FormAttachment( wCancel, -MARGIN_SMALL );
-    fdOk.bottom = new FormAttachment( wCancel, 0, SWT.BOTTOM );
-    wOK.setLayoutData( fdOk );
-
-    Label bottomSeparator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    props.setLook( bottomSeparator );
-    FormData fdBottomSeparator = new FormData();
-    fdBottomSeparator.bottom = new FormAttachment( wCancel, -MARGIN_LARGE );
-    fdBottomSeparator.left = new FormAttachment( 0 );
-    fdBottomSeparator.right = new FormAttachment( 100 );
-    bottomSeparator.setLayoutData( fdBottomSeparator );
-
-    // Job config and parameters tabs
-    CTabFolder tabs = new CTabFolder( shell, SWT.BORDER );
-    props.setLook( tabs, Props.WIDGET_STYLE_TAB );
-    FormData fdTabs = new FormData();
-    fdTabs.left = new FormAttachment( 0 );
-    fdTabs.right = new FormAttachment( 100 );
-    fdTabs.top = new FormAttachment( topSeparator, MARGIN_LARGE );
-    fdTabs.bottom = new FormAttachment( bottomSeparator, -MARGIN_LARGE, SWT.TOP );
-    tabs.setLayoutData( fdTabs );
-
-    CTabItem jobConfigTab = new CTabItem( tabs, SWT.NONE );
-    jobConfigTab.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.JobSetupTab.Label" ) );
-
-    Composite jobConfigTabComposite = new Composite( tabs, SWT.NONE );
-    props.setLook( jobConfigTabComposite );
-    jobConfigTab.setControl( jobConfigTabComposite );
-    FormLayout jobConfigCompositeLayout = new FormLayout();
-    jobConfigCompositeLayout.marginHeight = MARGIN_LARGE;
-    jobConfigCompositeLayout.marginWidth = MARGIN_LARGE;
-    jobConfigTabComposite.setLayout( jobConfigCompositeLayout );
-
-    // Spark-submit path
-    Label sparkSubmitLabel = new Label( jobConfigTabComposite, SWT.RIGHT );
-    sparkSubmitLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.ScriptPath.Label" ) );
-    props.setLook( sparkSubmitLabel );
-    FormData fdSparkSubmitLabel = new FormData();
-    fdSparkSubmitLabel.left = new FormAttachment( 0 );
-    fdSparkSubmitLabel.top = new FormAttachment( 0 );
-    sparkSubmitLabel.setLayoutData( fdSparkSubmitLabel );
-
-    sparkSubmit = new TextVar( jobMeta, jobConfigTabComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( sparkSubmit );
-    sparkSubmit.addModifyListener( lsMod );
-    sparkSubmit.addSelectionListener( lsDef );
-
-    Button browseSparkSubmit = new Button( jobConfigTabComposite, SWT.PUSH );
-    props.setLook( browseSparkSubmit );
-    browseSparkSubmit.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
-    FormData fdBrowseSparkSubmit = new FormData();
-    fdBrowseSparkSubmit.top = new FormAttachment( sparkSubmitLabel, MARGIN_SMALL );
-    fdBrowseSparkSubmit.right = new FormAttachment( 100, 0 );
-    browseSparkSubmit.setLayoutData( fdBrowseSparkSubmit );
-
-    FormData fdSparkSubmit = new FormData();
-    fdSparkSubmit.left = new FormAttachment( 0 );
-    fdSparkSubmit.right = new FormAttachment( browseSparkSubmit, -MARGIN_SMALL );
-    fdSparkSubmit.top = new FormAttachment( sparkSubmitLabel, MARGIN_SMALL );
-    sparkSubmit.setLayoutData( fdSparkSubmit );
-
-    browseSparkSubmit.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        FileDialog dialog = new FileDialog( shell, SWT.OPEN );
-        dialog.setFilterExtensions( new String[] { "*;*.*" } );
-        dialog.setFilterNames( FILEFORMATS );
-
-        if ( sparkSubmit.getText() != null ) {
-          dialog.setFileName( sparkSubmit.getText() );
-        }
-
-        if ( dialog.open() != null ) {
-          sparkSubmit.setText( dialog.getFilterPath() + Const.FILE_SEPARATOR + dialog.getFileName() );
-        }
-      }
-    } );
-
-    // Spark master
-    Label masterUrlLabel = new Label( jobConfigTabComposite, SWT.NONE );
-    props.setLook( masterUrlLabel );
-    masterUrlLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.SparkMaster.Label" ) );
-    FormData fdMasterUrlLabel = new FormData();
-    fdMasterUrlLabel.left = new FormAttachment( 0 );
-    fdMasterUrlLabel.top = new FormAttachment( sparkSubmit, MARGIN_MEDIUM );
-    masterUrlLabel.setLayoutData( fdMasterUrlLabel );
-
-    masterUrl = new ComboVar( jobMeta, jobConfigTabComposite, SWT.BORDER );
-    props.setLook( masterUrl );
-    masterUrl.addModifyListener( lsMod );
-
-    FormData fdMasterUrl = new FormData();
-    fdMasterUrl.left = new FormAttachment( 0 );
-    fdMasterUrl.right = new FormAttachment( 100, 0 );
-    fdMasterUrl.top = new FormAttachment( masterUrlLabel, MARGIN_SMALL );
-    masterUrl.setLayoutData( fdMasterUrl );
-
-    // Jar
-    Label jarLabel = new Label( jobConfigTabComposite, SWT.RIGHT );
-    jarLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Jar.Label" ) );
-    props.setLook( jarLabel );
-    FormData fdJarLabel = new FormData();
-    fdJarLabel.left = new FormAttachment( 0 );
-    fdJarLabel.top = new FormAttachment( masterUrl, MARGIN_MEDIUM );
-    jarLabel.setLayoutData( fdJarLabel );
-
-    jar = new TextVar( jobMeta, jobConfigTabComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( jar );
-    jar.addModifyListener( lsMod );
-    jar.addSelectionListener( lsDef );
-
-    Button browseJar = new Button( jobConfigTabComposite, SWT.PUSH | SWT.CENTER );
-    props.setLook( browseJar );
-    browseJar.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
-    FormData fdBrowseJar = new FormData();
-    fdBrowseJar.top = new FormAttachment( jarLabel, MARGIN_SMALL );
-    fdBrowseJar.right = new FormAttachment( 100, 0 );
-    browseJar.setLayoutData( fdBrowseJar );
-
-    FormData fdJar = new FormData();
-    fdJar.left = new FormAttachment( 0 );
-    fdJar.right = new FormAttachment( browseJar, -MARGIN_SMALL );
-    fdJar.top = new FormAttachment( jarLabel, MARGIN_SMALL );
-    jar.setLayoutData( fdJar );
-
-    browseJar.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        FileDialog dialog = new FileDialog( shell, SWT.OPEN );
-        dialog.setFilterExtensions( new String[] { "*;*.*" } );
-        dialog.setFilterNames( FILEFORMATS );
-
-        if ( jar.getText() != null ) {
-          dialog.setFileName( jar.getText() );
-        }
-
-        if ( dialog.open() != null ) {
-          jar.setText( dialog.getFilterPath() + Const.FILE_SEPARATOR + dialog.getFileName() );
-        }
-      }
-    } );
-
-    // Class
-    Label classLabel = new Label( jobConfigTabComposite, SWT.RIGHT );
-    classLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Class.Label" ) );
-    props.setLook( classLabel );
-    FormData fdClassLabel = new FormData();
-    fdClassLabel.left = new FormAttachment( 0 );
-    fdClassLabel.top = new FormAttachment( jar, MARGIN_MEDIUM );
-    classLabel.setLayoutData( fdClassLabel );
-
-    clazz = new TextVar( jobMeta, jobConfigTabComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( clazz );
-    clazz.addModifyListener( lsMod );
-    clazz.addSelectionListener( lsDef );
-
-    FormData fdClass = new FormData();
-    fdClass.left = new FormAttachment( 0 );
-    fdClass.right = new FormAttachment( 100, 0 );
-    fdClass.top = new FormAttachment( classLabel, MARGIN_SMALL );
-    clazz.setLayoutData( fdClass );
-
-    // Arguments
-    Label argsLabel = new Label( jobConfigTabComposite, SWT.RIGHT );
-    argsLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Args.Label" ) );
-    props.setLook( argsLabel );
-    FormData fdArgsLabel = new FormData();
-    fdArgsLabel.left = new FormAttachment( 0 );
-    fdArgsLabel.top = new FormAttachment( clazz, MARGIN_MEDIUM );
-    argsLabel.setLayoutData( fdArgsLabel );
-
-    args = new TextVar( jobMeta, jobConfigTabComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( args );
-    args.addModifyListener( lsMod );
-    args.addSelectionListener( lsDef );
-
-    FormData fdArgs = new FormData();
-    fdArgs.left = new FormAttachment( 0 );
-    fdArgs.right = new FormAttachment( 100, 0 );
-    fdArgs.top = new FormAttachment( argsLabel, MARGIN_SMALL );
-    args.setLayoutData( fdArgs );
-
-    // Add group control
-    Group group = new Group( jobConfigTabComposite, SWT.NONE );
-    props.setLook( group );
-    group.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.MemoryAllocation.Label" ) );
-    FormLayout groupLayout = new FormLayout();
-    groupLayout.marginHeight = MARGIN_LARGE;
-    groupLayout.marginWidth = MARGIN_MEDIUM;
-    group.setLayout( groupLayout );
-    FormData fdGroup = new FormData();
-    fdGroup.left = new FormAttachment( 0 );
-    fdGroup.right = new FormAttachment( 100 );
-    fdGroup.top = new FormAttachment( args, MARGIN_LARGE );
-    group.setLayoutData( fdGroup );
-
-    // Memory allocation settings
-    Label executorMemoryLabel = new Label( group, SWT.NONE );
-    props.setLook( executorMemoryLabel );
-    executorMemoryLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.MemoryAllocation.Executor.Label" ) );
-    FormData fdExecutorLabel = new FormData();
-    fdExecutorLabel.top = new FormAttachment( 0 );
-    fdExecutorLabel.left = new FormAttachment( 0 );
-    executorMemoryLabel.setLayoutData( fdExecutorLabel );
-
-    executorMemory = new TextVar( jobEntry, group, SWT.BORDER );
-    props.setLook( executorMemory );
-    executorMemory.addModifyListener( lsMod );
-    executorMemory.addSelectionListener( lsDef );
-    FormData fdExecutorMemory = new FormData();
-    fdExecutorMemory.top = new FormAttachment( executorMemoryLabel, MARGIN_MEDIUM );
-    fdExecutorMemory.left = new FormAttachment( 0 );
-    executorMemory.setLayoutData( fdExecutorMemory );
-
-    Label driverMemoryLabel = new Label( group, SWT.NONE );
-    props.setLook( driverMemoryLabel );
-    driverMemoryLabel.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.MemoryAllocation.Driver.Label" ) );
-    FormData fdDriverMemoryLabel = new FormData();
-    fdDriverMemoryLabel.top = new FormAttachment( 0 );
-    fdDriverMemoryLabel.left = new FormAttachment( executorMemory, 6 * MARGIN_LARGE );
-    driverMemoryLabel.setLayoutData( fdDriverMemoryLabel );
-
-    driverMemory = new TextVar( jobEntry, group, SWT.BORDER );
-    props.setLook( driverMemory );
-    driverMemory.addModifyListener( lsMod );
-    driverMemory.addSelectionListener( lsDef );
-    FormData fdDriverMemory = new FormData();
-    fdDriverMemory.top = new FormAttachment( driverMemoryLabel, MARGIN_MEDIUM );
-    fdDriverMemory.left = new FormAttachment( driverMemoryLabel, 0, SWT.LEFT );
-    driverMemory.setLayoutData( fdDriverMemory );
-
-    blockExecution = new Button( jobConfigTabComposite, SWT.CHECK );
-    props.setLook( blockExecution );
-    blockExecution.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.BlockExecution.Label" ) );
-    FormData fdBlockExecution = new FormData();
-    fdBlockExecution.top = new FormAttachment( group, MARGIN_MEDIUM );
-    fdBlockExecution.left = new FormAttachment( 0 );
-    blockExecution.setLayoutData( fdBlockExecution );
-
-    // Config parameters tab
-    CTabItem parametersTab = new CTabItem( tabs, SWT.NONE );
-    parametersTab.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.ParametersTab.Label" ) );
-
-    Composite parametersTabComposite = new Composite( tabs, SWT.NONE );
-    props.setLook( parametersTabComposite );
-    parametersTab.setControl( parametersTabComposite );
-    FormLayout parametersTabCompositeLayout = new FormLayout();
-    parametersTabCompositeLayout.marginHeight = MARGIN_LARGE;
-    parametersTabCompositeLayout.marginWidth = MARGIN_LARGE;
-    parametersTabComposite.setLayout( parametersTabCompositeLayout );
-
-    ColumnInfo[] columns =
-        new ColumnInfo[] {
-          new ColumnInfo( BaseMessages.getString( PKG, "JobEntrySparkSubmit.NameColumn.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT ),
-          new ColumnInfo( BaseMessages.getString( PKG, "JobEntrySparkSubmit.ValueColumn.Label" ),
-              ColumnInfo.COLUMN_TYPE_TEXT ) };
-
-    configParams =
-        new TableView( jobEntry, parametersTabComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, columns,
-            jobEntry.getConfigParams().size(), null, props );
-    props.setLook( configParams );
-    FormData fdConfigParams = new FormData();
-    fdConfigParams.left = new FormAttachment( 0 );
-    fdConfigParams.top = new FormAttachment( 0 );
-    fdConfigParams.right = new FormAttachment( 100 );
-    fdConfigParams.bottom = new FormAttachment( 100 );
-    configParams.setLayoutData( fdConfigParams );
-    configParams.addModifyListener( lsMod );
-    tabs.setSelection( jobConfigTab );
-
-    // Add listeners
-    Listener lsCancel = new Listener() {
-      public void handleEvent( Event e ) {
-        cancel();
-      }
-    };
-    Listener lsOK = new Listener() {
-      public void handleEvent( Event e ) {
-        ok();
-      }
-    };
-
-    wOK.addListener( SWT.Selection, lsOK );
-    wCancel.addListener( SWT.Selection, lsCancel );
-
-    name.addSelectionListener( lsDef );
-
-    // Detect [X] or ALT-F4 or something that kills this window...
-    shell.addShellListener( new ShellAdapter() {
-      public void shellClosed( ShellEvent e ) {
-        cancel();
-      }
-    } );
+    createContents();
 
     getData();
-    setActive();
     BaseStepDialog.setSize( shell );
 
     shell.pack();
     shell.setMinimumSize( SHELL_MINIMUM_WIDTH, shell.getSize().y );
+    shell.setSize( 530, 652 );
     shell.open();
     props.setDialogSize( shell, "JobEntrySparkSubmitDialogSize" );
     while ( !shell.isDisposed() ) {
@@ -494,44 +174,403 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     return jobEntry;
   }
 
+  /**
+   * Create contents of the shell.
+   */
+  private void createContents() {
+    shell.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Title" ) );
+
+    FormLayout formLayout = new FormLayout();
+    formLayout.marginWidth = 15;
+    formLayout.marginHeight = 15;
+    shell.setLayout( formLayout );
+
+    // shell = new Shell( getParent(), SWT.DIALOG_TRIM | SWT.RESIZE | SWT.TITLE | SWT.APPLICATION_MODAL );
+    // shell.setSize( 621, 557 );
+
+    Label lblIcon = new Label( shell, SWT.NONE );
+    props.setLook( lblIcon );
+    lblIcon.setImage( GUIResource.getInstance().getImage( "org/pentaho/di/ui/job/entries/spark/img/spark.svg",
+        getClass().getClassLoader(), ConstUI.ICON_SIZE, ConstUI.ICON_SIZE ) );
+    lblIcon.setLayoutData( fd( null, fa( 0, 0 ), fa( 100, 0 ) ) );
+
+    Label lblEntryName = new Label( shell, SWT.NONE );
+    props.setLook( lblEntryName );
+    lblEntryName.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Name.Label" ) );
+    lblEntryName.setLayoutData( fd() );
+
+    txtEntryName = new Text( shell, SWT.BORDER );
+    props.setLook( txtEntryName );
+    txtEntryName.setLayoutData( fdwidth( 300, null, fa( lblEntryName, 5 ) ) );
+    txtEntryName.addModifyListener( lsMod );
+
+    Label sep = new Label( shell, SWT.SEPARATOR | SWT.HORIZONTAL );
+    props.setLook( sep );
+    sep.setLayoutData( fd( fa( 0, 0 ), fa( txtEntryName, 15 ), fa( 100, 0 ) ) );
+
+    Label lblSparkSubmitUtility = new Label( shell, SWT.NONE );
+    props.setLook( lblSparkSubmitUtility );
+    lblSparkSubmitUtility.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.ScriptPath.Label" ) );
+    lblSparkSubmitUtility.setLayoutData( fd( null, fa( sep, 15 ) ) );
+
+    txtSparkSubmitUtility = new TextVar( jobMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( txtSparkSubmitUtility );
+    txtSparkSubmitUtility.setLayoutData( fdwidth( 300, null, fa( lblSparkSubmitUtility, 5 ) ) );
+
+    btnSparkSubmitUtility = new Button( shell, SWT.PUSH );
+    props.setLook( btnSparkSubmitUtility );
+    btnSparkSubmitUtility.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
+    btnSparkSubmitUtility.setLayoutData( fd( fa( txtSparkSubmitUtility, 10 ), fa( txtSparkSubmitUtility, 0, SWT.TOP ),
+        null ) );
+    btnSparkSubmitUtility.addSelectionListener( btnSparkSubmitUtilityListener );
+
+    Label lblMasterURL = new Label( shell, SWT.NONE );
+    props.setLook( lblMasterURL );
+    lblMasterURL.setLayoutData( fd( null, fa( txtSparkSubmitUtility, 10 ) ) );
+    lblMasterURL.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.SparkMaster.Label" ) );
+
+    cmbMasterURL = new ComboVar( jobMeta, shell, SWT.BORDER );
+    props.setLook( cmbMasterURL );
+    cmbMasterURL.setLayoutData( fd( fa( 0, 0 ), fa( lblMasterURL, 5 ), fa( txtSparkSubmitUtility, 0, SWT.RIGHT ) ) );
+
+    Label lblType = new Label( shell, SWT.NONE );
+    props.setLook( lblType );
+    lblType.setLayoutData( fd( fa( cmbMasterURL, 10 ), fa( txtSparkSubmitUtility, 10 ) ) );
+    lblType.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Type.Label" ) );
+
+    cmbType = new Combo( shell, SWT.NONE );
+    props.setLook( cmbType );
+    cmbType.setLayoutData( fdwidth( 300, fa( cmbMasterURL, 10 ), fa( lblType, 5 ), fa( 100, 0 ) ) );
+    cmbType.addSelectionListener( typeSelectionListener );
+
+    btnCancel = new Button( shell, SWT.PUSH );
+    props.setLook( btnCancel );
+    btnCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
+    btnCancel.setLayoutData( fd( null, null, fa( 100, 0 ), fa( 100, 0 ) ) );
+
+    btnOK = new Button( shell, SWT.PUSH );
+    props.setLook( btnOK );
+    btnOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
+    btnOK.setLayoutData( fd( null, null, fa( btnCancel, -5 ), fa( 100, 0 ) ) );
+
+    Label sep2 = new Label( shell, SWT.SEPARATOR | SWT.HORIZONTAL );
+    props.setLook( sep2 );
+    sep2.setLayoutData( fd( fa( 0, 0 ), null, fa( 100, 0 ), fa( btnOK, -15 ) ) );
+
+    chkEnableBlocking = new Button( shell, SWT.CHECK );
+    props.setLook( chkEnableBlocking );
+    chkEnableBlocking.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.BlockExecution.Label" ) );
+    chkEnableBlocking.setLayoutData( fd( fa( 0, 0 ), null, null, fa( sep2, -15 ) ) );
+
+    CTabFolder tabs = new CTabFolder( shell, SWT.BORDER );
+    props.setLook( tabs, Props.WIDGET_STYLE_TAB );
+    props.setLook( tabs );
+    tabs.setLayoutData( fd( fa( 0, 0 ), fa( cmbMasterURL, 15 ), fa( 100, 0 ), fa( chkEnableBlocking, -15 ) ) );
+
+    CTabItem tabFiles = new CTabItem( tabs, SWT.NONE );
+    tabFiles.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Files.TabLabel" ) );
+    tabFilesComposite = new Composite( tabs, SWT.NONE );
+    props.setLook( tabFilesComposite );
+    tabFiles.setControl( tabFilesComposite );
+    addOnFilesTab( tabFilesComposite );
+
+    CTabItem tabArguments = new CTabItem( tabs, SWT.NONE );
+    tabArguments.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Arguments.TabLabel" ) );
+    Composite tabArgumentsComposite = new Composite( tabs, SWT.NONE );
+    props.setLook( tabArgumentsComposite );
+    tabArguments.setControl( tabArgumentsComposite );
+    addOnArgumentsTab( tabArgumentsComposite );
+
+    CTabItem tabOptions = new CTabItem( tabs, SWT.NONE );
+    tabOptions.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Options.TabLabel" ) );
+    Composite tabOptionsComposite = new Composite( tabs, SWT.NONE );
+    props.setLook( tabOptionsComposite );
+    tabOptions.setControl( tabOptionsComposite );
+    addOnOptionsTab( tabOptionsComposite );
+
+    tabs.setSelection( tabFiles );
+
+    typeSelectionListener.widgetSelected( null );
+
+    btnOK.addListener( SWT.Selection, new Listener() {
+      public void handleEvent( Event e ) {
+        ok();
+      }
+    } );
+    btnCancel.addListener( SWT.Selection, new Listener() {
+      public void handleEvent( Event e ) {
+        cancel();
+      }
+    } );
+
+    // Detect [X] or ALT-F4 or something that kills this window...
+    shell.addShellListener( new ShellAdapter() {
+      public void shellClosed( ShellEvent e ) {
+        cancel();
+      }
+    } );
+  }
+
+  private void addOnArgumentsTab( Composite tab ) {
+    tab.setLayout( new FormLayout() );
+
+    Label lblArguments = new Label( tab, SWT.NONE );
+    props.setLook( lblArguments );
+    lblArguments.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Args.Label" ) );
+    lblArguments.setLayoutData( fd( fa( 0, 15 ), fa( 0, 15 ) ) );
+
+    txtArguments = new TextVar( jobMeta, tab, SWT.BORDER | SWT.MULTI | SWT.WRAP );
+    props.setLook( txtArguments );
+    txtArguments.setLayoutData( fd( fa( 0, 15 ), fa( lblArguments, 5 ), fa( 100, -15 ), fa( 100, -15 ) ) );
+  }
+
+  private void addOnOptionsTab( Composite tab ) {
+    tab.setLayout( new FormLayout() );
+
+    Label lblExecutorMemory = new Label( tab, SWT.NONE );
+    props.setLook( lblExecutorMemory );
+    lblExecutorMemory.setLayoutData( fd( fa( 0, 15 ), fa( 0, 15 ) ) );
+    lblExecutorMemory.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.MemoryAllocation.Executor.Label" ) );
+
+    txtExecutorMemory = new TextVar( jobMeta, tab, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( txtExecutorMemory );
+    txtExecutorMemory.setLayoutData( fdwidth( 200, fa( 0, 15 ), fa( lblExecutorMemory, 5 ) ) );
+
+    Label lblDriverMemory = new Label( tab, SWT.NONE );
+    props.setLook( lblDriverMemory );
+    lblDriverMemory.setLayoutData( fd( fa( txtExecutorMemory, 50 ), fa( 0, 15 ) ) );
+    lblDriverMemory.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.MemoryAllocation.Driver.Label" ) );
+
+    txtDriverMemory = new TextVar( jobMeta, tab, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( txtDriverMemory );
+    txtDriverMemory.setLayoutData( fdwidth( 200, fa( txtExecutorMemory, 50 ), fa( lblDriverMemory, 5 ) ) );
+
+    Label lblUtilityParameters = new Label( tab, SWT.NONE );
+    props.setLook( lblUtilityParameters );
+    lblUtilityParameters.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.UtilityParameters.Label" ) );
+    lblUtilityParameters.setLayoutData( fd( fa( 0, 15 ), fa( txtExecutorMemory, 10 ) ) );
+
+    ColumnInfo[] columns =
+        new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "JobEntrySparkSubmit.NameColumn.Label" ),
+            ColumnInfo.COLUMN_TYPE_TEXT ), new ColumnInfo( BaseMessages.getString( PKG,
+                "JobEntrySparkSubmit.ValueColumn.Label" ), ColumnInfo.COLUMN_TYPE_TEXT ) };
+
+    tblUtilityParameters =
+        new TableView( jobEntry, tab, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, columns, jobEntry.getConfigParams()
+            .size(), false, null, props, false );
+    props.setLook( tblUtilityParameters );
+    tblUtilityParameters.setLayoutData( fd( fa( 0, 15 ), fa( lblUtilityParameters, 5 ), fa( 100, -15 ), fa( 100,
+        -15 ) ) );
+  }
+
+  private void addOnFilesTab( Composite tab ) {
+    tab.setLayout( new FormLayout() );
+
+    filesHeader = new Composite( tab, SWT.NONE );
+    props.setLook( filesHeader );
+    filesHeader.setLayoutData( fd( fa( 0, 15 ), fa( 0, 15 ), fa( 100, -15 ) ) );
+    addOnFilesTabJavaScala( filesHeader );
+
+    Label lblSupportingDocs = new Label( tab, SWT.NONE );
+    props.setLook( lblSupportingDocs );
+    lblSupportingDocs.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.SupportingDocuments.Label" ) );
+    lblSupportingDocs.setLayoutData( fd( fa( 0, 15 ), fa( filesHeader, 10 ) ) );
+
+    ColumnInfo[] columns =
+        new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "JobEntrySparkSubmit.EnvironmentColumn.Label" ),
+            ColumnInfo.COLUMN_TYPE_CCOMBO ), new ColumnInfo( BaseMessages.getString( PKG,
+                "JobEntrySparkSubmit.PathColumn.Label" ), ColumnInfo.COLUMN_TYPE_TEXT_BUTTON ) };
+    columns[0].setComboValues( new String[] { LOCAL_ENVIRONMENT, STATIC_ENVIRONMENT } );
+    columns[1].setUsingVariables( true );
+    columns[1].setTextVarButtonSelectionListener( pathSelection );
+
+    tblFilesSupportingDocs =
+        new TableView( jobEntry, tab, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, columns, jobEntry
+            .getSupportingDocuments().size(), false, null, props, false );
+    props.setLook( tblFilesSupportingDocs );
+    tblFilesSupportingDocs.setLayoutData( fd( fa( 0, 15 ), fa( lblSupportingDocs, 5 ), fa( 100, -15 ), fa( 100,
+        -15 ) ) );
+  }
+
+  private void addOnFilesTabJavaScala( Composite panel ) {
+    panel.setLayout( new FormLayout() );
+
+    Label lblClass = new Label( panel, SWT.NONE );
+    props.setLook( lblClass );
+    lblClass.setLayoutData( fd( fa( 0, 0 ), fa( 0, 0 ) ) );
+    lblClass.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Class.Label" ) );
+
+    txtClass = new TextVar( jobMeta, panel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( txtClass );
+    txtClass.setLayoutData( fdwidth( 300, fa( 0, 0 ), fa( lblClass, 5 ) ) );
+
+    Label lblApplicationJar = new Label( panel, SWT.NONE );
+    props.setLook( lblApplicationJar );
+    lblApplicationJar.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Jar.Label" ) );
+    lblApplicationJar.setLayoutData( fd( fa( 0, 0 ), fa( txtClass, 10 ) ) );
+
+    txtFilesApplicationJar = new TextVar( jobMeta, panel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( txtFilesApplicationJar );
+    txtFilesApplicationJar.setLayoutData( fdwidth( 300, fa( 0, 0 ), fa( lblApplicationJar, 5 ) ) );
+
+    btnFilesApplicationJar = new Button( panel, SWT.PUSH );
+    props.setLook( btnFilesApplicationJar );
+    btnFilesApplicationJar.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
+    btnFilesApplicationJar.setLayoutData( fd( fa( txtFilesApplicationJar, 10 ), fa( txtFilesApplicationJar, 0,
+        SWT.TOP ), null ) );
+    btnFilesApplicationJar.addSelectionListener( btnFilesApplicationJarListener );
+  }
+
+  private void addOnFilesTabPython( Composite panel ) {
+    panel.setLayout( new FormLayout() );
+
+    Label lblPyFile = new Label( panel, SWT.NONE );
+    props.setLook( lblPyFile );
+    lblPyFile.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.PyFile.Label" ) );
+    lblPyFile.setLayoutData( fd( fa( 0, 0 ), fa( 0, 0 ) ) );
+
+    txtFilesPyFile = new TextVar( jobMeta, panel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( txtFilesPyFile );
+    txtFilesPyFile.setLayoutData( fdwidth( 300, fa( 0, 0 ), fa( lblPyFile, 5 ) ) );
+
+    btnFilesPyFile = new Button( panel, SWT.PUSH );
+    props.setLook( btnFilesPyFile );
+    btnFilesPyFile.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
+    btnFilesPyFile.setLayoutData( fd( fa( txtFilesPyFile, 10 ), fa( txtFilesPyFile, 0, SWT.TOP ), null ) );
+    btnFilesPyFile.addSelectionListener( btnFilesPyFileListener );
+  }
+
+  private SelectionAdapter btnSparkSubmitUtilityListener = new SelectionAdapter() {
+    public void widgetSelected( SelectionEvent e ) {
+      FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+      dialog.setFilterExtensions( new String[] { "*;*.*" } );
+      dialog.setFilterNames( FILEFORMATS );
+
+      if ( txtSparkSubmitUtility.getText() != null ) {
+        dialog.setFileName( txtSparkSubmitUtility.getText() );
+      }
+
+      if ( dialog.open() != null ) {
+        txtSparkSubmitUtility.setText( dialog.getFilterPath() + Const.FILE_SEPARATOR + dialog.getFileName() );
+      }
+    }
+  };
+
+  private ModifyListener lsMod = new ModifyListener() {
+    public void modifyText( ModifyEvent e ) {
+      jobEntry.setChanged();
+    }
+  };
+
+  SelectionAdapter pathSelection = new SelectionAdapter() {
+    public void widgetSelected( SelectionEvent e ) {
+
+      FileObject selectedFile = null;
+
+      try {
+        // Get current file
+        FileObject rootFile = null;
+        FileObject initialFile = null;
+        FileObject defaultInitialFile = null;
+
+        String original =
+            tblFilesSupportingDocs.getActiveTableItem().getText( tblFilesSupportingDocs.getActiveTableColumn() );
+
+        if ( original != null ) {
+
+          String fileName = jobMeta.environmentSubstitute( original );
+
+          if ( fileName != null && !fileName.equals( "" ) ) {
+            try {
+              initialFile = KettleVFS.getFileObject( fileName );
+            } catch ( KettleException ex ) {
+              initialFile = KettleVFS.getFileObject( "" );
+            }
+            defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+            rootFile = initialFile.getFileSystem().getRoot();
+          } else {
+            defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+          }
+        }
+
+        if ( rootFile == null ) {
+          rootFile = defaultInitialFile.getFileSystem().getRoot();
+          initialFile = defaultInitialFile;
+        }
+        VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
+        fileChooserDialog.defaultInitialFile = defaultInitialFile;
+
+        selectedFile =
+            fileChooserDialog.open( shell, new String[] { "file" }, "file", true, null, new String[] { "*.*" },
+                FILETYPES, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+
+        if ( selectedFile != null ) {
+          String url = selectedFile.getURL().toString();
+          tblFilesSupportingDocs.getActiveTableItem().setText( tblFilesSupportingDocs.getActiveTableColumn(), url );
+        }
+
+      } catch ( KettleFileException ex ) {
+      } catch ( FileSystemException ex ) {
+      }
+    }
+  };
+
+  private SelectionAdapter btnFilesApplicationJarListener = new SelectionAdapter() {
+    public void widgetSelected( SelectionEvent e ) {
+      FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+      dialog.setFilterExtensions( new String[] { "*;*.*" } );
+      dialog.setFilterNames( FILEFORMATS );
+
+      if ( txtFilesApplicationJar.getText() != null ) {
+        dialog.setFileName( txtFilesApplicationJar.getText() );
+      }
+
+      if ( dialog.open() != null ) {
+        txtFilesApplicationJar.setText( dialog.getFilterPath() + Const.FILE_SEPARATOR + dialog.getFileName() );
+      }
+    }
+  };
+
+  private SelectionAdapter btnFilesPyFileListener = new SelectionAdapter() {
+    public void widgetSelected( SelectionEvent e ) {
+      FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+      dialog.setFilterExtensions( new String[] { "*;*.*" } );
+      dialog.setFilterNames( FILEFORMATS );
+
+      if ( txtFilesPyFile.getText() != null ) {
+        dialog.setFileName( txtFilesPyFile.getText() );
+      }
+
+      if ( dialog.open() != null ) {
+        txtFilesPyFile.setText( dialog.getFilterPath() + Const.FILE_SEPARATOR + dialog.getFileName() );
+      }
+    }
+  };
+
+  private SelectionAdapter typeSelectionListener = new SelectionAdapter() {
+    @Override
+    public void widgetSelected( SelectionEvent event ) {
+      int s = cmbType.getSelectionIndex();
+      if ( s < 0 || s >= cmbType.getItemCount() ) {
+        return;
+      }
+      for ( Control c : filesHeader.getChildren() ) {
+        c.dispose();
+      }
+      if ( s == 0 ) {
+        addOnFilesTabJavaScala( filesHeader );
+      } else {
+        addOnFilesTabPython( filesHeader );
+      }
+      tabFilesComposite.layout( true );
+      filesHeader.layout( true );
+    }
+  };
+
   public void dispose() {
     WindowProperty winprop = new WindowProperty( shell );
     props.setScreen( winprop );
     shell.dispose();
-  }
-
-  public void setActive() {
-  }
-
-  public void getData() {
-    name.setText( Const.nullToEmpty( jobEntry.getName() ) );
-    sparkSubmit.setText( Const.nullToEmpty( jobEntry.getScriptPath() ) );
-    clazz.setText( Const.nullToEmpty( jobEntry.getClassName() ) );
-
-    for ( String url : MASTER_URLS ) {
-      masterUrl.add( url );
-    }
-
-    masterUrl.setText( Const.nullToEmpty( jobEntry.getMaster() ) );
-    jar.setText( Const.nullToEmpty( jobEntry.getJar() ) );
-    args.setText( Const.nullToEmpty( jobEntry.getArgs() ) );
-    blockExecution.setSelection( jobEntry.isBlockExecution() );
-
-    List<String> params = jobEntry.getConfigParams();
-    for ( int i = 0; i < params.size(); i++ ) {
-      TableItem ti = configParams.table.getItem( i );
-      String[] nameValue = params.get( i ).split( "=" );
-      ti.setText( 1, nameValue[0] );
-      ti.setText( 2, nameValue[1] );
-    }
-    configParams.setRowNums();
-    configParams.optWidth( true );
-
-    executorMemory.setText( Const.nullToEmpty( jobEntry.getExecutorMemory() ) );
-    driverMemory.setText( Const.nullToEmpty( jobEntry.getDriverMemory() ) );
-
-    name.selectAll();
-    name.setFocus();
   }
 
   private void cancel() {
@@ -540,44 +579,124 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     dispose();
   }
 
+  public void getData() {
+    txtEntryName.setText( Const.nullToEmpty( jobEntry.getName() ) );
+    txtSparkSubmitUtility.setText( Const.nullToEmpty( jobEntry.getScriptPath() ) );
+    txtClass.setText( Const.nullToEmpty( jobEntry.getClassName() ) );
+
+    for ( String url : MASTER_URLS ) {
+      cmbMasterURL.add( url );
+    }
+    cmbMasterURL.setText( Const.nullToEmpty( jobEntry.getMaster() ) );
+
+    for ( String t : TYPES ) {
+      cmbType.add( t );
+    }
+    cmbType.setText( Const.nullToEmpty( jobEntry.getType() ) );
+
+    txtFilesApplicationJar.setText( Const.nullToEmpty( jobEntry.getJar() ) );
+    txtArguments.setText( Const.nullToEmpty( jobEntry.getArgs() ) );
+    chkEnableBlocking.setSelection( jobEntry.isBlockExecution() );
+
+    List<String> params = jobEntry.getConfigParams();
+    for ( int i = 0; i < params.size(); i++ ) {
+      TableItem ti = tblUtilityParameters.table.getItem( i );
+      String[] nameValue = params.get( i ).split( "=" );
+      ti.setText( 1, nameValue[0] );
+      ti.setText( 2, nameValue[1] );
+    }
+    tblUtilityParameters.setRowNums();
+    tblUtilityParameters.optWidth( true );
+
+    List<String> docs = jobEntry.getSupportingDocuments();
+    for ( int i = 0; i < docs.size(); i++ ) {
+      TableItem ti = tblFilesSupportingDocs.table.getItem( i );
+      String[] nameValue = docs.get( i ).split( "=" );
+      ti.setText( 1, nameValue[0] );
+      ti.setText( 2, nameValue[1] );
+    }
+    tblFilesSupportingDocs.setRowNums();
+    tblFilesSupportingDocs.optWidth( true );
+
+    txtExecutorMemory.setText( Const.nullToEmpty( jobEntry.getExecutorMemory() ) );
+    txtDriverMemory.setText( Const.nullToEmpty( jobEntry.getDriverMemory() ) );
+
+    txtEntryName.selectAll();
+    txtEntryName.setFocus();
+  }
+
   protected void ok() {
-    if ( Const.isEmpty( name.getText() ) ) {
+    if ( Const.isEmpty( txtEntryName.getText() ) ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( PKG, "System.StepJobEntryNameMissing.Title" ) );
       mb.setMessage( BaseMessages.getString( PKG, "System.JobEntryNameMissing.Msg" ) );
       mb.open();
       return;
     }
-    jobEntry.setName( name.getText() );
-    jobEntry.setScriptPath( sparkSubmit.getText() );
-    jobEntry.setMaster( masterUrl.getText() );
-    jobEntry.setJar( jar.getText() );
-    jobEntry.setClassName( clazz.getText() );
-    jobEntry.setArgs( args.getText() );
-    jobEntry.setBlockExecution( blockExecution.getSelection() );
+    jobEntry.setName( txtEntryName.getText() );
+    jobEntry.setScriptPath( txtSparkSubmitUtility.getText() );
+    jobEntry.setMaster( cmbMasterURL.getText() );
+    jobEntry.setJar( txtFilesApplicationJar.getText() );
+    jobEntry.setClassName( txtClass.getText() );
+    jobEntry.setArgs( txtArguments.getText() );
+    jobEntry.setBlockExecution( chkEnableBlocking.getSelection() );
 
-    ArrayList<String> configParams = new ArrayList<String>( this.configParams.getItemCount() );
-    for ( int i = 0; i < this.configParams.getItemCount(); i++ ) {
-      String[] item = this.configParams.getItem( i );
+    List<String> configParams = new ArrayList<String>( this.tblUtilityParameters.getItemCount() );
+    for ( int i = 0; i < this.tblUtilityParameters.getItemCount(); i++ ) {
+      String[] item = this.tblUtilityParameters.getItem( i );
       if ( !Const.isEmpty( item[0] ) && !Const.isEmpty( item[1] ) ) {
         configParams.add( item[0].trim() + "=" + item[1].trim() );
       }
     }
     jobEntry.setConfigParams( configParams );
-    jobEntry.setDriverMemory( driverMemory.getText() );
-    jobEntry.setExecutorMemory( executorMemory.getText() );
+
+    List<String> supporingDocuments = new ArrayList<String>( this.tblFilesSupportingDocs.getItemCount() );
+    for ( int i = 0; i < this.tblFilesSupportingDocs.getItemCount(); i++ ) {
+      String[] item = this.tblFilesSupportingDocs.getItem( i );
+      if ( !Const.isEmpty( item[0] ) && !Const.isEmpty( item[1] ) ) {
+        supporingDocuments.add( item[0].trim() + "=" + item[1].trim() );
+      }
+    }
+    jobEntry.setSupportingDocuments( supporingDocuments );
+
+    jobEntry.setDriverMemory( txtDriverMemory.getText() );
+    jobEntry.setExecutorMemory( txtExecutorMemory.getText() );
 
     dispose();
   }
 
-  public static void main( String[] args ) {
-    Display display = new Display();
-    PropsUI.init( display, Props.TYPE_PROPERTIES_SPOON );
-    Shell shell = new Shell( display );
+  private FormData fd( FormAttachment... att ) {
+    FormData fd = new FormData();
+    if ( att.length >= 1 ) {
+      fd.left = att[0];
+    }
+    if ( att.length >= 2 ) {
+      fd.top = att[1];
+    }
+    if ( att.length >= 3 ) {
+      fd.right = att[2];
+    }
+    if ( att.length >= 4 ) {
+      fd.bottom = att[3];
+    }
+    return fd;
+  }
 
-    JobEntrySparkSubmitDialog dialog =
-        new JobEntrySparkSubmitDialog( shell, new JobEntrySparkSubmit( "Spark submit job entry" ), null, new JobMeta() );
+  private FormData fdwidth( int width, FormAttachment... att ) {
+    FormData fd = fd( att );
+    fd.width = width;
+    return fd;
+  }
 
-    dialog.open();
+  private FormAttachment fa( int numerator, int offset ) {
+    return new FormAttachment( numerator, offset );
+  }
+
+  private FormAttachment fa( Control control, int offset ) {
+    return new FormAttachment( control, offset );
+  }
+
+  private FormAttachment fa( Control control, int offset, int alignment ) {
+    return new FormAttachment( control, offset, alignment );
   }
 }
