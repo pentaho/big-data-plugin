@@ -34,7 +34,7 @@ public class JobEntrySparkSubmitLoadSaveTest extends JobEntryLoadSaveTestSupport
 
   @Override
   protected List<String> listCommonAttributes() {
-    return asList( "scriptPath", "master", "jar", "className", "args", "configParams", "configParams", "driverMemory",
+    return asList( "scriptPath", "master", "jar", "className", "args", "configParams", "supportingDocuments", "driverMemory",
         "executorMemory", "blockExecution" );
   }
 }
