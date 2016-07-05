@@ -22,12 +22,16 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.output;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
+
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
+import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.di.core.CheckResult;
@@ -37,7 +41,12 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionDeep;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -53,7 +62,7 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
-import java.util.List;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Class providing an output step for writing data to an HBase table according to meta data column/type mapping info
@@ -65,34 +74,44 @@ import java.util.List;
 @Step( id = "HBaseOutput", image = "HBO.svg", name = "HBaseOutput.Name", description = "HBaseOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
+@InjectionSupported( localizationPrefix = "HBaseOutput.Injection.", groups = { "MAPPING" } )
 public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected static Class<?> PKG = HBaseOutputMeta.class;
 
   /** path/url to hbase-site.xml */
+  @Injection( name = "HBASE_SITE_XML_URL" )
   protected String m_coreConfigURL;
 
   /** path/url to hbase-default.xml */
+  @Injection( name = "HBASE_DEFAULT_XML_URL" )
   protected String m_defaultConfigURL;
 
   /** the name of the HBase table to write to */
+  @Injection( name = "TARGET_TABLE_NAME" )
   protected String m_targetTableName;
 
   /** the name of the mapping for columns/types for the target table */
+  @Injection( name = "TARGET_MAPPING_NAME" )
   protected String m_targetMappingName;
 
   /** if true then the WAL will not be written to */
+  @Injection( name = "DISABLE_WRITE_TO_WAL" )
   protected boolean m_disableWriteToWAL;
 
   /**
    * The size of the write buffer in bytes (empty - default from hbase-default.xml is used)
    */
+  @Injection( name = "WRITE_BUFFER_SIZE" )
   protected String m_writeBufferSize;
 
   /**
    * The mapping to use if we are not loading one dynamically at runtime from HBase itself
    */
   protected Mapping m_mapping;
+
+  @InjectionDeep
+  protected MappingDefinition mappingDefinition;
 
   private NamedCluster namedCluster;
 
@@ -206,6 +225,48 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_writeBufferSize;
   }
 
+  void applyInjection( VariableSpace space ) throws KettleException {
+    if ( namedCluster == null ) {
+      throw new KettleException( "Named cluster was not initialized!" );
+    }
+    try {
+      HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      Mapping tempMapping = null;
+      if ( mappingDefinition != null ) {
+        tempMapping = MappingUtils.getMapping( mappingDefinition, hBaseService );
+        m_mapping = tempMapping;
+      } else {
+        if ( !Const.isEmpty( m_targetMappingName ) ) {
+          tempMapping =
+              getMappingFromHBase( hBaseService, space, m_targetTableName, m_targetMappingName, m_coreConfigURL,
+                  m_defaultConfigURL );
+        } else {
+          tempMapping = m_mapping;
+        }
+      }
+    } catch ( ClusterInitializationException e ) {
+      throw new KettleException( e );
+    }
+  }
+
+  static Mapping getMappingFromHBase( HBaseService hBaseService, VariableSpace space, String tableName,
+      String mappingName, String coreConfigURL, String defaultConfigURL ) throws KettleException {
+    try {
+      String siteConfig = "";
+      if ( !Const.isEmpty( coreConfigURL ) ) {
+        siteConfig = space.environmentSubstitute( coreConfigURL );
+      }
+      String defaultConfig = "";
+      if ( !Const.isEmpty( ( defaultConfigURL ) ) ) {
+        defaultConfig = space.environmentSubstitute( defaultConfigURL );
+      }
+      MappingAdmin mappingAdmin = MappingUtils.getMappingAdmin( hBaseService, space, siteConfig, defaultConfig );
+      return mappingAdmin.getMapping( tableName, mappingName );
+    } catch ( Exception e ) {
+      throw new KettleException( e );
+    }
+  }
+
   public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
       String[] input, String[] output, RowMetaInterface info ) {
 
@@ -234,6 +295,11 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   @Override
   public String getXML() {
+    try {
+      applyInjection( new Variables() );
+    } catch ( KettleException e ) {
+      log.logError( "Error occurred while injecting metadata. Transformation meta could be incorrect!", e );
+    }
     StringBuilder retval = new StringBuilder();
     namedClusterLoadSaveUtil
       .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), log );
@@ -371,5 +437,13 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public void setNamedCluster( NamedCluster namedCluster ) {
     this.namedCluster = namedCluster;
+  }
+
+  public MappingDefinition getMappingDefinition() {
+    return mappingDefinition;
+  }
+
+  public void setMappingDefinition( MappingDefinition mappingDefinition ) {
+    this.mappingDefinition = mappingDefinition;
   }
 }
