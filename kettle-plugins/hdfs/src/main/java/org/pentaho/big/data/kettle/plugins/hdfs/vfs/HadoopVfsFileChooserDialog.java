@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -110,8 +110,8 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     connectionGroup.setLayoutData( gData );
     connectionGroup.setLayout( connectionGroupLayout );
 
-    namedClusterWidget = new NamedClusterWidgetImpl( connectionGroup, true, namedClusterService, runtimeTestActionService, runtimeTester );
-    namedClusterWidget.addSelectionListener( new SelectionAdapter() {
+    setNamedClusterWidget( new NamedClusterWidgetImpl( connectionGroup, true, namedClusterService, runtimeTestActionService, runtimeTester ) );
+    getNamedClusterWidget().addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent evt ) {
         try {
           connect();
@@ -158,6 +158,10 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     return namedClusterWidget;
   }
 
+  protected void setNamedClusterWidget( NamedClusterWidgetImpl namedClusterWidget ) {
+    this.namedClusterWidget = namedClusterWidget;
+  }
+
   public void setNamedCluster( String namedCluster ) {
     this.namedCluster = namedCluster;
   }
@@ -167,13 +171,14 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     vfsFileChooserDialog.setInitialFile( null );
     vfsFileChooserDialog.openFileCombo.setText( "hdfs://" );
     vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
-    namedClusterWidget.setSelectedNamedCluster( namedCluster );
+    getNamedClusterWidget().initiate();
+    getNamedClusterWidget().setSelectedNamedCluster( namedCluster );
     super.activate();
   }
 
   public void connect() {
     HadoopVfsConnection hdfsConnection =
-        new HadoopVfsConnection( namedClusterWidget.getSelectedNamedCluster(), getVariableSpace() );
+        new HadoopVfsConnection( getNamedClusterWidget().getSelectedNamedCluster(), getVariableSpace() );
     hdfsConnection.setCustomParameters( Props.getInstance() );
 
     FileObject root = rootFile;
