@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -70,8 +70,8 @@ public class NamedClusterWidgetImpl extends Composite {
       props.setLook( nameLabel );
     }
 
-    nameClusterCombo = new Combo( this, SWT.DROP_DOWN | SWT.READ_ONLY );
-    nameClusterCombo.setLayoutData( new RowData( 150, SWT.DEFAULT ) );
+    setNameClusterCombo( new Combo( this, SWT.DROP_DOWN | SWT.READ_ONLY ) );
+    getNameClusterCombo().setLayoutData( new RowData( 150, SWT.DEFAULT ) );
 
     Button editButton = new Button( this, SWT.NONE );
     editButton.setText( BaseMessages.getString( PKG, "NamedClusterWidget.NamedCluster.Edit" ) );
@@ -112,7 +112,7 @@ public class NamedClusterWidgetImpl extends Composite {
         //Ignore
       }
 
-      int index = nameClusterCombo.getSelectionIndex();
+      int index = getNameClusterCombo().getSelectionIndex();
       if ( index > -1 && namedClusters != null && namedClusters.size() > 0 ) {
         ncDelegate.editNamedCluster( spoon.getMetaStore(), namedClusters
           .get( index ), getShell() );
@@ -121,7 +121,7 @@ public class NamedClusterWidgetImpl extends Composite {
     }
   }
 
-  private String[] getNamedClusterNames() {
+  protected String[] getNamedClusterNames() {
     try {
       return namedClusterService.listNames( Spoon.getInstance().getMetaStore() )
         .toArray( new String[ 0 ] );
@@ -131,17 +131,17 @@ public class NamedClusterWidgetImpl extends Composite {
   }
 
   public void initiate() {
-    int selectedIndex = nameClusterCombo.getSelectionIndex();
-    nameClusterCombo.removeAll();
-    nameClusterCombo.setItems( getNamedClusterNames() );
-    nameClusterCombo.select( selectedIndex );
+    int selectedIndex = getNameClusterCombo().getSelectionIndex();
+    getNameClusterCombo().removeAll();
+    getNameClusterCombo().setItems( getNamedClusterNames() );
+    getNameClusterCombo().select( selectedIndex );
   }
 
   public NamedCluster getSelectedNamedCluster() {
     Spoon spoon = Spoon.getInstance();
-    int index = nameClusterCombo.getSelectionIndex();
+    int index = getNameClusterCombo().getSelectionIndex();
     if ( index > -1 ) {
-      String name = nameClusterCombo.getItem( index );
+      String name = getNameClusterCombo().getItem( index );
       try {
         return namedClusterService.read( name, spoon.getMetaStore() );
       } catch ( MetaStoreException e ) {
@@ -152,16 +152,24 @@ public class NamedClusterWidgetImpl extends Composite {
   }
 
   public void setSelectedNamedCluster( String name ) {
-    nameClusterCombo.deselectAll();
-    for ( int i = 0; i < nameClusterCombo.getItemCount(); i++ ) {
-      if ( nameClusterCombo.getItem( i ).equals( name ) ) {
-        nameClusterCombo.select( i );
+    getNameClusterCombo().deselectAll();
+    for ( int i = 0; i < getNameClusterCombo().getItemCount(); i++ ) {
+      if ( getNameClusterCombo().getItem( i ).equals( name ) ) {
+        getNameClusterCombo().select( i );
         return;
       }
     }
   }
 
   public void addSelectionListener( SelectionListener selectionListener ) {
-    nameClusterCombo.addSelectionListener( selectionListener );
+    getNameClusterCombo().addSelectionListener( selectionListener );
+  }
+
+  public Combo getNameClusterCombo() {
+    return nameClusterCombo;
+  }
+
+  protected void setNameClusterCombo( Combo nameClusterCombo ) {
+    this.nameClusterCombo = nameClusterCombo;
   }
 }
