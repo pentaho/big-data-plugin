@@ -40,7 +40,6 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -71,6 +70,7 @@ import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
+import org.pentaho.di.ui.core.widget.ControlSpaceKeyAdapter;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.job.dialog.JobDialog;
@@ -112,13 +112,13 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
   private Button btnCancel;
   private TextVar txtClass;
   private TextVar txtFilesApplicationJar;
-  private TextVar txtArguments;
+  private Text txtArguments;
   private Button btnFilesApplicationJar;
   private TextVar txtFilesPyFile;
   private Button btnFilesPyFile;
   private TableView tblFilesSupportingDocs;
   private TableView tblUtilityParameters;
-  private Combo cmbType;
+  private ComboVar cmbType;
   private ComboVar cmbMasterURL;
   private Composite filesHeader;
   private Composite tabFilesComposite;
@@ -240,7 +240,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     lblType.setLayoutData( fd( fa( cmbMasterURL, 10 ), fa( txtSparkSubmitUtility, 10 ) ) );
     lblType.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Type.Label" ) );
 
-    cmbType = new Combo( shell, SWT.NONE );
+    cmbType = new ComboVar( jobMeta, shell, SWT.BORDER );
     props.setLook( cmbType );
     cmbType.setLayoutData( fdwidth( 300, fa( cmbMasterURL, 10 ), fa( lblType, 5 ), fa( 100, 0 ) ) );
     cmbType.addSelectionListener( typeSelectionListener );
@@ -321,9 +321,20 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     lblArguments.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Args.Label" ) );
     lblArguments.setLayoutData( fd( fa( 0, 15 ), fa( 0, 15 ) ) );
 
-    txtArguments = new TextVar( jobMeta, tab, SWT.BORDER | SWT.MULTI | SWT.WRAP );
+    txtArguments = new Text( tab, SWT.BORDER | SWT.MULTI | SWT.WRAP );
     props.setLook( txtArguments );
     txtArguments.setLayoutData( fd( fa( 0, 15 ), fa( lblArguments, 5 ), fa( 100, -15 ), fa( 100, -15 ) ) );
+    ControlSpaceKeyAdapter controlSpaceKeyAdapter = new ControlSpaceKeyAdapter( jobMeta, txtArguments, null, null );
+    txtArguments.addKeyListener( controlSpaceKeyAdapter );
+
+    Label txtArgumentsVar = new Label( tab, SWT.NONE );
+    txtArgumentsVar.setImage( GUIResource.getInstance().getImageVariable() );
+    txtArgumentsVar.setToolTipText( BaseMessages.getString( TextVar.class, "TextVar.tooltip.InsertVariable" ) );
+    props.setLook( txtArgumentsVar );
+    FormData fdArgumentsVar = new FormData();
+    fdArgumentsVar.right = new FormAttachment( 100, -15 );
+    fdArgumentsVar.bottom = new FormAttachment( txtArguments, 0, SWT.TOP );
+    txtArgumentsVar.setLayoutData( fdArgumentsVar );
   }
 
   private void addOnOptionsTab( Composite tab ) {
@@ -554,17 +565,14 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
   private SelectionAdapter typeSelectionListener = new SelectionAdapter() {
     @Override
     public void widgetSelected( SelectionEvent event ) {
-      int s = cmbType.getSelectionIndex();
-      if ( s < 0 || s >= cmbType.getItemCount() ) {
-        return;
-      }
+      String text = cmbType.getText();
       for ( Control c : filesHeader.getChildren() ) {
         c.dispose();
       }
-      if ( s == 0 ) {
-        addOnFilesTabJavaScala( filesHeader );
-      } else {
+      if ( "Python".equals( text ) ) {
         addOnFilesTabPython( filesHeader );
+      } else {
+        addOnFilesTabJavaScala( filesHeader );
       }
       tabFilesComposite.layout( true );
       filesHeader.layout( true );
