@@ -69,6 +69,8 @@
         <include>com.sun.jersey:jersey-bundle</include>
         <include>com.sun.jersey:jersey-client</include>
         <include>com.sun.jersey:jersey-core</include>
+        <include>xmlpull:xmlpull</include>
+        <include>xpp3:xpp3_min</include>
         <include>com.thoughtworks.xstream:xstream</include>
         <include>dom4j:dom4j</include>
         <include>eigenbase:eigenbase-properties</include>
