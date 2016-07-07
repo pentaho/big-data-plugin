@@ -139,8 +139,8 @@
       <version>${dependency.xmlpull.revision}</version>
     </dependency>
 	<dependency>
-      <groupId>xpp3_min</groupId>
-      <artifactId>xpp3</artifactId>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3_min</artifactId>
       <version>${dependency.xpp3.revision}</version>
     </dependency>
 	<dependency>
