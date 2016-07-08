@@ -87,19 +87,19 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @Override
   public String getDropColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean use_autoinc,
                                         String pk, boolean semicolon ) {
-    throw new UnsupportedOperationException( "Cannot DROP columns with SparkSQL" );
+    return "";
   }
 
   @Override
   public String getAddColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
                                        String pk, boolean semicolon ) {
-    throw new UnsupportedOperationException( "Cannot ADD columns with SparkSQL" );
+    return "";
   }
 
   @Override
   public String getModifyColumnStatement( String tablename, ValueMetaInterface v, String tk, boolean useAutoinc,
                                           String pk, boolean semicolon ) {
-    throw new UnsupportedOperationException( "Cannot MODIFY columns with SparkSQL" );
+    return "";
   }
 
   @Override
