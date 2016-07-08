@@ -22,15 +22,17 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 
+import java.util.List;
+
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.HBaseRowToKettleTuple;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
 import org.pentaho.bigdata.api.hbase.HBaseService;
+import org.pentaho.bigdata.api.hbase.Result;
 import org.pentaho.bigdata.api.hbase.ResultFactory;
 import org.pentaho.bigdata.api.hbase.ResultFactoryException;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.Result;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
@@ -43,8 +45,6 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-
-import java.util.List;
 
 /**
  * Step for decoding incoming HBase row objects using a supplied mapping. Can be used in a Hadoop MR job for processing
@@ -214,4 +214,19 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
 
     return true;
   }
+
+  @Override
+  public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
+    if ( super.init( smi, sdi ) ) {
+      HBaseRowDecoderMeta meta = (HBaseRowDecoderMeta) smi;
+      try {
+        meta.applyInjection( this );
+        return true;
+      } catch ( KettleException e ) {
+        logError( "Error while injecting properties", e );
+      }
+    }
+    return false;
+  }
+
 }
