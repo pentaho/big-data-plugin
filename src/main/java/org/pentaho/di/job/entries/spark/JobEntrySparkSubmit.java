@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,19 +22,17 @@
 
 package org.pentaho.di.job.entries.spark;
 
-import static org.pentaho.di.job.entry.validator.AndValidator.putValidators;
-import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.*;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import java.io.File;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -45,7 +43,6 @@ import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
@@ -58,6 +55,11 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
+
+import static org.pentaho.di.job.entry.validator.AndValidator.putValidators;
+import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.andValidator;
+import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.fileExistsValidator;
+import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlankValidator;
 
 /**
  * This job entry submits a JAR to Spark and executes a class. It uses the spark-submit script to submit a command like
@@ -76,14 +78,19 @@ import org.w3c.dom.Node;
     i18nPackageName = "org.pentaho.di.job.entries.spark",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Spark+Submit" )
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
+  public static final String JOB_TYPE_JAVA_SCALA = "Java or Scala";
+  public static final String JOB_TYPE_PYTHON = "Python";
+
   private static Class<?> PKG = JobEntrySparkSubmit.class; // for i18n purposes, needed by Translator2!!
 
+  private String jobType = JOB_TYPE_JAVA_SCALA;
   private String scriptPath; // the path for the spark-submit utility
   private String master = "yarn-cluster"; // the URL for the Spark master
-  private String type = "Java or Scala"; // the URL for the Spark master
-  private List<String> supportingDocuments = new ArrayList<String>(); // supporting documents options, "environment = path"
+  private Map<String, String> libs = new LinkedHashMap<>();
+  // supporting documents options, "path->environment"
   private List<String> configParams = new ArrayList<String>(); // configuration options, "key=value"
   private String jar; // the path for the jar containing the Spark code to run
+  private String pyFile; // path to python file for python jobs
   private String className; // the name of the class to run
   private String args; // arguments for the Spark code
   private boolean blockExecution = true; // wait for job to complete
@@ -115,9 +122,10 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
     retval.append( super.getXML() );
     retval.append( "      " ).append( XMLHandler.addTagValue( "scriptPath", scriptPath ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "jobType", jobType ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "master", master ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "type", type ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "jar", jar ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "pyFile", pyFile ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "className", className ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "args", args ) );
     retval.append( "      " ).append( XMLHandler.openTag( "configParams" ) ).append( Const.CR );
@@ -125,11 +133,13 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       retval.append( "            " ).append( XMLHandler.addTagValue( "param", param ) );
     }
     retval.append( "      " ).append( XMLHandler.closeTag( "configParams" ) ).append( Const.CR );
-    retval.append( "      " ).append( XMLHandler.openTag( "supportingDocuments" ) ).append( Const.CR );
-    for ( String param : supportingDocuments ) {
-      retval.append( "            " ).append( XMLHandler.addTagValue( "doc", param ) );
+    retval.append( "      " ).append( XMLHandler.openTag( "libs" ) ).append( Const.CR );
+
+    for ( String key : libs.keySet() ) {
+      retval.append( "            " ).append( XMLHandler.addTagValue( "env", libs.get( key ) ) );
+      retval.append( "            " ).append( XMLHandler.addTagValue( "path", key ) );
     }
-    retval.append( "      " ).append( XMLHandler.closeTag( "supportingDocuments" ) ).append( Const.CR );
+    retval.append( "      " ).append( XMLHandler.closeTag( "libs" ) ).append( Const.CR );
     retval.append( "      " ).append( XMLHandler.addTagValue( "driverMemory", driverMemory ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "executorMemory", executorMemory ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blockExecution", blockExecution ) );
@@ -147,8 +157,12 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
       scriptPath = XMLHandler.getTagValue( entrynode, "scriptPath" );
       master = XMLHandler.getTagValue( entrynode, "master" );
-      type = XMLHandler.getTagValue( entrynode, "type" );
+      jobType = XMLHandler.getTagValue( entrynode, "jobType" );
+      if ( jobType == null ) {
+        this.jobType = JOB_TYPE_JAVA_SCALA;
+      }
       jar = XMLHandler.getTagValue( entrynode, "jar" );
+      pyFile = XMLHandler.getTagValue( entrynode, "pyFile" );
       className = XMLHandler.getTagValue( entrynode, "className" );
       args = XMLHandler.getTagValue( entrynode, "args" );
       Node configParamsNode = XMLHandler.getSubNode( entrynode, "configParams" );
@@ -156,10 +170,13 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       for ( Node paramNode : paramNodes ) {
         configParams.add( paramNode.getTextContent() );
       }
-      Node suppDocsNode = XMLHandler.getSubNode( entrynode, "supportingDocuments" );
-      List<Node> docNodes = XMLHandler.getNodes( suppDocsNode, "doc" );
-      for ( Node n : docNodes ) {
-        supportingDocuments.add( n.getTextContent() );
+      Node libsNode = XMLHandler.getSubNode( entrynode, "libs" );
+      if ( libsNode != null ) {
+        List<Node> envNodes = XMLHandler.getNodes( libsNode, "env" );
+        List<Node> pathNodes = XMLHandler.getNodes( libsNode, "path" );
+        for ( int i = 0; i < envNodes.size(); i++ ) {
+          libs.put( pathNodes.get( i ).getTextContent(), envNodes.get( i ).getTextContent() );
+        }
       }
       driverMemory = XMLHandler.getTagValue( entrynode, "driverMemory" );
       executorMemory = XMLHandler.getTagValue( entrynode, "executorMemory" );
@@ -177,15 +194,20 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     try {
       scriptPath = rep.getJobEntryAttributeString( id_jobentry, "scriptPath" );
       master = rep.getJobEntryAttributeString( id_jobentry, "master" );
-      type = rep.getJobEntryAttributeString( id_jobentry, "type" );
+      jobType = rep.getJobEntryAttributeString( id_jobentry, "jobType" );
+      if ( jobType == null ) {
+        this.jobType = JOB_TYPE_JAVA_SCALA;
+      }
       jar = rep.getJobEntryAttributeString( id_jobentry, "jar" );
+      pyFile = rep.getJobEntryAttributeString( id_jobentry, "pyFile" );
       className = rep.getJobEntryAttributeString( id_jobentry, "className" );
       args = rep.getJobEntryAttributeString( id_jobentry, "args" );
       for ( int i = 0; i < rep.countNrJobEntryAttributes( id_jobentry, "param" ); i++ ) {
         configParams.add( rep.getJobEntryAttributeString( id_jobentry, i, "param" ) );
       }
-      for ( int i = 0; i < rep.countNrJobEntryAttributes( id_jobentry, "supportingDocuments" ); i++ ) {
-        supportingDocuments.add( rep.getJobEntryAttributeString( id_jobentry, i, "supportingDocuments" ) );
+      for ( int i = 0; i < rep.countNrJobEntryAttributes( id_jobentry, "libsEnv" ); i++ ) {
+        libs.put( rep.getJobEntryAttributeString( id_jobentry, i, "libsPath" ),
+            rep.getJobEntryAttributeString( id_jobentry, i, "libsEnv" ) );
       }
       driverMemory = rep.getJobEntryAttributeString( id_jobentry, "driverMemory" );
       executorMemory = rep.getJobEntryAttributeString( id_jobentry, "executorMemory" );
@@ -203,15 +225,19 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     try {
       rep.saveJobEntryAttribute( id_job, getObjectId(), "scriptPath", scriptPath );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "master", master );
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "type", type );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "jobType", jobType );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "jar", jar );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "pyFile", pyFile );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "className", className );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "args", args );
       for ( int i = 0; i < configParams.size(); i++ ) {
         rep.saveJobEntryAttribute( id_job, getObjectId(), i, "param", configParams.get( i ) );
       }
-      for ( int i = 0; i < supportingDocuments.size(); i++ ) {
-        rep.saveJobEntryAttribute( id_job, getObjectId(), i, "supportingDocuments", supportingDocuments.get( i ) );
+
+      int i = 0;
+      for ( String key : libs.keySet() ) {
+        rep.saveJobEntryAttribute( id_job, getObjectId(), i, "libsEnv", libs.get( key ) );
+        rep.saveJobEntryAttribute( id_job, getObjectId(), i++, "libsPath", key );
       }
       rep.saveJobEntryAttribute( id_job, getObjectId(), "driverMemory", driverMemory );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "executorMemory", executorMemory );
@@ -261,25 +287,6 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   }
 
   /**
-   * Returns the type for the Spark master node
-   *
-   * @return The type for the Spark master node
-   */
-  public String getType() {
-    return type;
-  }
-
-  /**
-   * Sets the type for the Spark master node
-   *
-   * @param master
-   *          type for the Spark master node
-   */
-  public void setType( String type ) {
-    this.type = type;
-  }
-
-  /**
    * Returns map of configuration params
    *
    * @return map of configuration params
@@ -295,21 +302,20 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     this.configParams = configParams;
   }
 
-
   /**
-   * Returns list of supported documents
+   * Returns list of library-env pairs.
    *
-   * @return list of supported documents
+   * @return list of libs.
    */
-  public List<String> getSupportingDocuments() {
-    return supportingDocuments;
+  public Map<String, String> getLibs() {
+    return libs;
   }
 
   /**
-   * Sets supported documents
+   * Sets path-env pairs for libraries
    */
-  public void setSupportingDocuments( List<String> docs ) {
-    this.supportingDocuments = docs;
+  public void setLibs( Map<String, String> docs ) {
+    this.libs = docs;
   }
 
   /**
@@ -427,6 +433,42 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   }
 
   /**
+   * Returns type of job, valid types are {@link #JOB_TYPE_JAVA_SCALA} and {@link #JOB_TYPE_PYTHON}.
+   *
+   * @return spark job's type
+   */
+  public String getJobType() {
+    return jobType;
+  }
+
+  /**
+   * Sets spark job type to be executed, valid types are {@link #JOB_TYPE_JAVA_SCALA} and {@link #JOB_TYPE_PYTHON}..
+   *
+   * @param jobType to be set
+   */
+  public void setJobType( String jobType ) {
+    this.jobType = jobType;
+  }
+
+  /**
+   * Returns path to job's python file. Valid for jobs of {@link #JOB_TYPE_PYTHON} type.
+   *
+   * @return path to python script
+   */
+  public String getPyFile() {
+    return pyFile;
+  }
+
+  /**
+   * Sets path to python script to be executed. Valid for jobs of {@link #JOB_TYPE_PYTHON} type.
+   *
+   * @param pyFile path to set
+   */
+  public void setPyFile( String pyFile ) {
+    this.pyFile = pyFile;
+  }
+
+  /**
    * Returns the spark-submit command as a list of strings. e.g. <path to spark-submit> --class <main-class> --master
    * <master-url> --deploy-mode <deploy-mode> --conf <key>=<value> <application-jar> \ [application-arguments]
    *
@@ -439,19 +481,9 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     cmds.add( "--master" );
     cmds.add( environmentSubstitute( master ) );
 
-    if ( !Const.isEmpty( className ) ) {
-      cmds.add( "--class" );
-      cmds.add( environmentSubstitute( className ) );
-    }
-
     for ( String confParam : configParams ) {
       cmds.add( "--conf" );
       cmds.add( environmentSubstitute( confParam ) );
-    }
-
-    for ( String doc : supportingDocuments ) {
-      cmds.add( "--supported-documents" );
-      cmds.add( environmentSubstitute( doc ) );
     }
 
     if ( !Const.isEmpty( driverMemory ) ) {
@@ -464,7 +496,33 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       cmds.add( environmentSubstitute( executorMemory ) );
     }
 
-    cmds.add( jar );
+    switch ( jobType ) {
+      case JOB_TYPE_JAVA_SCALA: {
+        if ( !Const.isEmpty( className ) ) {
+          cmds.add( "--class" );
+          cmds.add( environmentSubstitute( className ) );
+        }
+
+        if ( !libs.isEmpty() ) {
+          cmds.add( "--jars" );
+          cmds.add( environmentSubstitute( Joiner.on( ',' ).join( libs.keySet() ) ) );
+        }
+
+        cmds.add( environmentSubstitute( jar ) );
+
+        break;
+      }
+      case JOB_TYPE_PYTHON: {
+        if ( !libs.isEmpty() ) {
+          cmds.add( "--py-files" );
+          cmds.add( environmentSubstitute( Joiner.on( ',' ).join( libs.keySet() ) ) );
+        }
+
+        cmds.add( environmentSubstitute( pyFile ) );
+
+        break;
+      }
+    }
 
     if ( !Const.isEmpty( args ) ) {
       List<String> argArray = parseCommandLine( args );
@@ -490,9 +548,17 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.MasterURLEmpty" ) );
       valid = false;
     }
-    if ( Const.isEmpty( jar ) ) {
-      logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.JarPathEmpty" ) );
-      valid = false;
+
+    if ( JOB_TYPE_JAVA_SCALA.equals( getJobType() ) ) {
+      if ( Const.isEmpty( jar ) ) {
+        logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.JarPathEmpty" ) );
+        valid = false;
+      }
+    } else {
+      if ( Const.isEmpty( pyFile ) ) {
+        logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.PyFilePathEmpty" ) );
+        valid = false;
+      }
     }
 
     return valid;
@@ -541,14 +607,14 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
       if ( !blockExecution ) {
         PatternMatchingStreamLogger.PatternMatchedListener cb =
-            new PatternMatchingStreamLogger.PatternMatchedListener() {
-              @Override
-              public void onPatternFound( String pattern ) {
-                log.logDebug( "Found match in output, considering job submitted, stopping spark-submit" );
-                jobSubmitted.set( true );
-                proc.destroy();
-              }
-            };
+          new PatternMatchingStreamLogger.PatternMatchedListener() {
+            @Override
+            public void onPatternFound( String pattern ) {
+              log.logDebug( "Found match in output, considering job submitted, stopping spark-submit" );
+              jobSubmitted.set( true );
+              proc.destroy();
+            }
+          };
         errorLogger.addPatternMatchedListener( cb );
         outputLogger.addPatternMatchedListener( cb );
       }
@@ -632,8 +698,11 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     andValidator().validate( this, "scriptPath", remarks, putValidators( notBlankValidator() ) );
     andValidator().validate( this, "scriptPath", remarks, putValidators( fileExistsValidator() ) );
     andValidator().validate( this, "master", remarks, putValidators( notBlankValidator() ) );
-    andValidator().validate( this, "jar", remarks, putValidators( notBlankValidator() ) );
-    andValidator().validate( this, "className", remarks, putValidators( notBlankValidator() ) );
+    if ( JOB_TYPE_JAVA_SCALA.equals( getJobType() ) ) {
+      andValidator().validate( this, "jar", remarks, putValidators( notBlankValidator() ) );
+    } else {
+      andValidator().validate( this, "pyFile", remarks, putValidators( notBlankValidator() ) );
+    }
   }
 
   /**
@@ -677,12 +746,6 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     }
 
     return args;
-  }
-
-  public static void main( String[] args ) {
-    List<CheckResultInterface> remarks = new ArrayList<CheckResultInterface>();
-    new JobEntrySparkSubmit().check( remarks, null, new Variables(), null, null );
-    System.out.printf( "Remarks: %s\n", remarks );
   }
 
   @Override
