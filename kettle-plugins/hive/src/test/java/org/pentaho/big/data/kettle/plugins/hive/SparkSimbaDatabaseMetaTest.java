@@ -120,20 +120,23 @@ public class SparkSimbaDatabaseMetaTest {
 
   @Test
   public void testUnsupportedDrop() {
-    exception.expect( UnsupportedOperationException.class );
-    sparkSimbaDatabaseMeta.getDropColumnStatement( "tab", null, "tk", false, "pk", false );
+    assertThat(
+      sparkSimbaDatabaseMeta.getDropColumnStatement( "tab", null, "tk", false, "pk", false ),
+      is( "" ) );
   }
 
   @Test
   public void testUnsupportedAddCol() {
-    exception.expect( UnsupportedOperationException.class );
-    sparkSimbaDatabaseMeta.getAddColumnStatement( "tab", null, "tk", false, "pk", false );
+    assertThat(
+      sparkSimbaDatabaseMeta.getAddColumnStatement( "tab", null, "tk", false, "pk", false ),
+      is( "" ) );
   }
 
   @Test
   public void testUnsupportedModCol() {
-    exception.expect( UnsupportedOperationException.class );
-    sparkSimbaDatabaseMeta.getModifyColumnStatement( "tab", null, "tk", false, "pk", false );
+    assertThat(
+      sparkSimbaDatabaseMeta.getModifyColumnStatement( "tab", null, "tk", false, "pk", false ),
+      is( "" ) );
   }
 
   @Test
