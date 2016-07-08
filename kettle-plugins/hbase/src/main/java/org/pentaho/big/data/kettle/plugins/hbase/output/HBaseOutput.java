@@ -22,6 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.output;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
@@ -44,11 +49,6 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Class providing an output step for writing data to an HBase table according to meta data column/type mapping info
@@ -326,6 +326,20 @@ public class HBaseOutput extends BaseStep implements StepInterface {
     }
 
     return true;
+  }
+
+  @Override
+  public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
+    if ( super.init( smi, sdi ) ) {
+      HBaseOutputMeta meta = (HBaseOutputMeta) smi;
+      try {
+        meta.applyInjection( this );
+        return true;
+      } catch ( KettleException e ) {
+        logError( "Error while injecting properties", e );
+      }
+    }
+    return false;
   }
 
   @Override
