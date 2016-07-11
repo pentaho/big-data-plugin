@@ -23,8 +23,9 @@
 package org.pentaho.di.ui.job.entries.spark;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-
+import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
@@ -40,6 +41,7 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -73,6 +75,7 @@ import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.ControlSpaceKeyAdapter;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
+import org.pentaho.di.ui.core.widget.TextVarButtonRenderCallback;
 import org.pentaho.di.ui.job.dialog.JobDialog;
 import org.pentaho.di.ui.job.entry.JobEntryDialog;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -95,15 +98,12 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
 
   private static final String[] MASTER_URLS = new String[] { "yarn-cluster", "yarn-client" };
 
-  private static final String[] TYPES = new String[] { "Java or Scala", "Python" };
-
   public static final String LOCAL_ENVIRONMENT = "Local";
   public static final String STATIC_ENVIRONMENT = "<Static>";
 
   protected static final String[] FILETYPES =
       new String[] { BaseMessages.getString( PKG, "JobEntrySparkSubmit.Fileformat.All" ) };
 
-  protected Object result;
   protected Shell shell;
   private Text txtEntryName;
   private TextVar txtSparkSubmitUtility;
@@ -118,7 +118,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
   private Button btnFilesPyFile;
   private TableView tblFilesSupportingDocs;
   private TableView tblUtilityParameters;
-  private ComboVar cmbType;
+  private Combo cmbType;
   private ComboVar cmbMasterURL;
   private Composite filesHeader;
   private Composite tabFilesComposite;
@@ -240,7 +240,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     lblType.setLayoutData( fd( fa( cmbMasterURL, 10 ), fa( txtSparkSubmitUtility, 10 ) ) );
     lblType.setText( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Type.Label" ) );
 
-    cmbType = new ComboVar( jobMeta, shell, SWT.BORDER );
+    cmbType = new Combo( shell, SWT.NONE | SWT.READ_ONLY );
     props.setLook( cmbType );
     cmbType.setLayoutData( fdwidth( 300, fa( cmbMasterURL, 10 ), fa( lblType, 5 ), fa( 100, 0 ) ) );
     cmbType.addSelectionListener( typeSelectionListener );
@@ -383,7 +383,12 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     filesHeader = new Composite( tab, SWT.NONE );
     props.setLook( filesHeader );
     filesHeader.setLayoutData( fd( fa( 0, 15 ), fa( 0, 15 ), fa( 100, -15 ) ) );
-    addOnFilesTabJavaScala( filesHeader );
+
+    if ( JobEntrySparkSubmit.JOB_TYPE_PYTHON.equals( jobEntry.getJobType() ) ) {
+      addOnFilesTabPython( filesHeader );
+    } else {
+      addOnFilesTabJavaScala( filesHeader );
+    }
 
     Label lblSupportingDocs = new Label( tab, SWT.NONE );
     props.setLook( lblSupportingDocs );
@@ -395,12 +400,24 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
             ColumnInfo.COLUMN_TYPE_CCOMBO ), new ColumnInfo( BaseMessages.getString( PKG,
                 "JobEntrySparkSubmit.PathColumn.Label" ), ColumnInfo.COLUMN_TYPE_TEXT_BUTTON ) };
     columns[0].setComboValues( new String[] { LOCAL_ENVIRONMENT, STATIC_ENVIRONMENT } );
+    columns[0].setReadOnly( true );
     columns[1].setUsingVariables( true );
     columns[1].setTextVarButtonSelectionListener( pathSelection );
 
+    TextVarButtonRenderCallback callback = new TextVarButtonRenderCallback() {
+      public boolean shouldRenderButton() {
+        String
+            envType =
+            tblFilesSupportingDocs.getActiveTableItem().getText( tblFilesSupportingDocs.getActiveTableColumn() - 1 );
+        return !STATIC_ENVIRONMENT.equalsIgnoreCase( envType );
+      }
+    };
+
+    columns[1].setRenderTextVarButtonCallback( callback );
+
     tblFilesSupportingDocs =
         new TableView( jobEntry, tab, SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE, columns, jobEntry
-            .getSupportingDocuments().size(), false, null, props, false );
+            .getLibs().size(), false, null, props, false );
     props.setLook( tblFilesSupportingDocs );
     tblFilesSupportingDocs.setLayoutData( fd( fa( 0, 15 ), fa( lblSupportingDocs, 5 ), fa( 100, -15 ), fa( 100,
         -15 ) ) );
@@ -418,6 +435,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     txtClass = new TextVar( jobMeta, panel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( txtClass );
     txtClass.setLayoutData( fdwidth( 300, fa( 0, 0 ), fa( lblClass, 5 ) ) );
+    txtClass.setText( Const.nullToEmpty( jobEntry.getClassName() ) );
 
     Label lblApplicationJar = new Label( panel, SWT.NONE );
     props.setLook( lblApplicationJar );
@@ -427,6 +445,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     txtFilesApplicationJar = new TextVar( jobMeta, panel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( txtFilesApplicationJar );
     txtFilesApplicationJar.setLayoutData( fdwidth( 300, fa( 0, 0 ), fa( lblApplicationJar, 5 ) ) );
+    txtFilesApplicationJar.setText( Const.nullToEmpty( jobEntry.getJar() ) );
 
     btnFilesApplicationJar = new Button( panel, SWT.PUSH );
     props.setLook( btnFilesApplicationJar );
@@ -447,6 +466,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     txtFilesPyFile = new TextVar( jobMeta, panel, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( txtFilesPyFile );
     txtFilesPyFile.setLayoutData( fdwidth( 300, fa( 0, 0 ), fa( lblPyFile, 5 ) ) );
+    txtFilesPyFile.setText( Const.nullToEmpty( jobEntry.getPyFile() ) );
 
     btnFilesPyFile = new Button( panel, SWT.PUSH );
     props.setLook( btnFilesPyFile );
@@ -525,7 +545,9 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
         }
 
       } catch ( KettleFileException ex ) {
+        // Ignore
       } catch ( FileSystemException ex ) {
+        // Ignore
       }
     }
   };
@@ -566,13 +588,23 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     @Override
     public void widgetSelected( SelectionEvent event ) {
       String text = cmbType.getText();
+
+      if ( Const.isEmpty( text ) ) {
+        return;
+      }
+
       for ( Control c : filesHeader.getChildren() ) {
         c.dispose();
       }
-      if ( "Python".equals( text ) ) {
+      if ( JobEntrySparkSubmit.JOB_TYPE_PYTHON.equals( text ) ) {
         addOnFilesTabPython( filesHeader );
+        jobEntry.setPyFile( txtFilesPyFile.getText() );
+        jobEntry.setJobType( JobEntrySparkSubmit.JOB_TYPE_PYTHON );
       } else {
         addOnFilesTabJavaScala( filesHeader );
+        jobEntry.setJar( txtFilesApplicationJar.getText() );
+        jobEntry.setClassName( txtClass.getText() );
+        jobEntry.setJobType( JobEntrySparkSubmit.JOB_TYPE_JAVA_SCALA );
       }
       tabFilesComposite.layout( true );
       filesHeader.layout( true );
@@ -594,19 +626,21 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
   public void getData() {
     txtEntryName.setText( Const.nullToEmpty( jobEntry.getName() ) );
     txtSparkSubmitUtility.setText( Const.nullToEmpty( jobEntry.getScriptPath() ) );
-    txtClass.setText( Const.nullToEmpty( jobEntry.getClassName() ) );
 
     for ( String url : MASTER_URLS ) {
       cmbMasterURL.add( url );
     }
     cmbMasterURL.setText( Const.nullToEmpty( jobEntry.getMaster() ) );
 
-    for ( String t : TYPES ) {
-      cmbType.add( t );
-    }
-    cmbType.setText( Const.nullToEmpty( jobEntry.getType() ) );
+    cmbType.add( JobEntrySparkSubmit.JOB_TYPE_JAVA_SCALA );
+    cmbType.add( JobEntrySparkSubmit.JOB_TYPE_PYTHON );
 
-    txtFilesApplicationJar.setText( Const.nullToEmpty( jobEntry.getJar() ) );
+    if ( JobEntrySparkSubmit.JOB_TYPE_PYTHON.equals( jobEntry.getJobType() ) ) {
+      cmbType.select( 1 );
+    } else {
+      cmbType.select( 0 );
+    }
+
     txtArguments.setText( Const.nullToEmpty( jobEntry.getArgs() ) );
     chkEnableBlocking.setSelection( jobEntry.isBlockExecution() );
 
@@ -620,13 +654,15 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     tblUtilityParameters.setRowNums();
     tblUtilityParameters.optWidth( true );
 
-    List<String> docs = jobEntry.getSupportingDocuments();
-    for ( int i = 0; i < docs.size(); i++ ) {
-      TableItem ti = tblFilesSupportingDocs.table.getItem( i );
-      String[] nameValue = docs.get( i ).split( "=" );
-      ti.setText( 1, nameValue[0] );
-      ti.setText( 2, nameValue[1] );
+    Map<String, String> docs = jobEntry.getLibs();
+
+    int i = 0;
+    for ( String path : docs.keySet() ) {
+      TableItem ti = tblFilesSupportingDocs.table.getItem( i++ );
+      ti.setText( 1, docs.get( path ) );
+      ti.setText( 2, path );
     }
+
     tblFilesSupportingDocs.setRowNums();
     tblFilesSupportingDocs.optWidth( true );
 
@@ -648,8 +684,22 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     jobEntry.setName( txtEntryName.getText() );
     jobEntry.setScriptPath( txtSparkSubmitUtility.getText() );
     jobEntry.setMaster( cmbMasterURL.getText() );
-    jobEntry.setJar( txtFilesApplicationJar.getText() );
-    jobEntry.setClassName( txtClass.getText() );
+    switch ( jobEntry.getJobType() ) {
+      case JobEntrySparkSubmit.JOB_TYPE_JAVA_SCALA: {
+        jobEntry.setJar( txtFilesApplicationJar.getText() );
+        jobEntry.setClassName( txtClass.getText() );
+        jobEntry.setPyFile( null );
+
+        break;
+      }
+      case JobEntrySparkSubmit.JOB_TYPE_PYTHON: {
+        jobEntry.setPyFile( txtFilesPyFile.getText() );
+        jobEntry.setJar( null );
+        jobEntry.setClassName( null );
+
+        break;
+      }
+    }
     jobEntry.setArgs( txtArguments.getText() );
     jobEntry.setBlockExecution( chkEnableBlocking.getSelection() );
 
@@ -662,14 +712,14 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     }
     jobEntry.setConfigParams( configParams );
 
-    List<String> supporingDocuments = new ArrayList<String>( this.tblFilesSupportingDocs.getItemCount() );
+    Map<String, String> supportingDocuments = new LinkedHashMap<>();
     for ( int i = 0; i < this.tblFilesSupportingDocs.getItemCount(); i++ ) {
       String[] item = this.tblFilesSupportingDocs.getItem( i );
       if ( !Const.isEmpty( item[0] ) && !Const.isEmpty( item[1] ) ) {
-        supporingDocuments.add( item[0].trim() + "=" + item[1].trim() );
+        supportingDocuments.put( item[1].trim(), item[0].trim() );
       }
     }
-    jobEntry.setSupportingDocuments( supporingDocuments );
+    jobEntry.setLibs( supportingDocuments );
 
     jobEntry.setDriverMemory( txtDriverMemory.getText() );
     jobEntry.setExecutorMemory( txtExecutorMemory.getText() );
