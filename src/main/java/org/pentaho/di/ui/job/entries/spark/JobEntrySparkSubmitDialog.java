@@ -647,7 +647,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     List<String> params = jobEntry.getConfigParams();
     for ( int i = 0; i < params.size(); i++ ) {
       TableItem ti = tblUtilityParameters.table.getItem( i );
-      String[] nameValue = params.get( i ).split( "=" );
+      String[] nameValue = params.get( i ).split( "=", 2 );
       ti.setText( 1, nameValue[0] );
       ti.setText( 2, nameValue[1] );
     }
