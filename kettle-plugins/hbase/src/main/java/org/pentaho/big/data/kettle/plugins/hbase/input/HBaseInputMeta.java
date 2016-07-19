@@ -508,12 +508,12 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     try {
       applyInjection( new Variables() );
     } catch ( KettleException e ) {
-      log.logError( "Error occurred while injecting metadata. Transformation meta could be incorrect!", e );
+      logError( "Error occurred while injecting metadata. Transformation meta could be incorrect!", e );
     }
     StringBuilder retval = new StringBuilder();
 
     namedClusterLoadSaveUtil
-      .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), log );
+      .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
 
     if ( !Const.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
@@ -569,7 +569,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     throws KettleXMLException {
     System.out.println( "loading data" );
     this.namedCluster =
-      namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, log );
+      namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
 
     HBaseService hBaseService;
     try {
@@ -615,7 +615,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
-    namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, log );
+    namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
 
     if ( !Const.isEmpty( m_coreConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "core_config_url", m_coreConfigURL );
@@ -663,7 +663,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
 
-    this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, log );
+    this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, getLog() );
 
     HBaseService hBaseService = null;
     try {
@@ -767,7 +767,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
         List<String> forLogging = new ArrayList<String>();
 
-        try ( HBaseConnection conf = hBaseService.getHBaseConnection( space, coreConf, defaultConf, log ) ) {
+        try ( HBaseConnection conf = hBaseService.getHBaseConnection( space, coreConf, defaultConf, getLog() ) ) {
           MappingAdmin mappingAdmin = null;
 
           for ( String m : forLogging ) {
