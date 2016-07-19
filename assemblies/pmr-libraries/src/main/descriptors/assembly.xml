@@ -27,7 +27,6 @@
       <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
       </outputFileNameMapping>
       <includes>
-        <include>antlr:antlr</include>
         <include>ascsapjco3wrp:ascsapjco3wrp</include>
         <include>asm:asm</include>
         <include>bouncycastle:bcmail-jdk14</include>
@@ -108,7 +107,7 @@
         <include>net.sf.scannotation:scannotation</include>
         <include>net.sourceforge.nekohtml:nekohtml</include>
         <include>ognl:ognl</include>
-        <include>org.antlr:antlr</include>
+        <include>org.antlr:antlr-complete</include>
         <include>org.apache.ant:ant</include>
         <include>org.apache.ant:ant-launcher</include>
         <include>org.apache.axis:axis</include>
