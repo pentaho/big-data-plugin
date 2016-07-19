@@ -18,6 +18,8 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.HashMap;
+import java.util.Map;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
@@ -30,6 +32,7 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @VisibleForTesting static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.SparkSqlSimbaDriver";
   @VisibleForTesting static final String JAR_FILE = "SparkJDBC41.jar";
   @VisibleForTesting static final int DEFAULT_PORT = 10015;
+  @VisibleForTesting static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
   private final String LIMIT_1 = " LIMIT 1";
 
   public SparkSimbaDatabaseMeta( DriverLocator driverLocator ) {
@@ -110,5 +113,12 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @Override
   public int getDefaultDatabasePort() {
     return DEFAULT_PORT;
+  }
+
+  @Override public Map<String, String> getDefaultOptions() {
+    HashMap<String, String> options = new HashMap<>();
+    options.put( String.format( "%s.%s", getPluginId(), SOCKET_TIMEOUT_OPTION ), "10" );
+
+    return options;
   }
 }
