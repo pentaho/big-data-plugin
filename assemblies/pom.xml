@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.4-227</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.4-227</version>
   <packaging>pom</packaging>
   <profiles>
     <profile>

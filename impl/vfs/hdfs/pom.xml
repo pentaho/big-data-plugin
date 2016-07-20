@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-impl-vfs</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.4-227</version>
   </parent>
   <artifactId>pentaho-big-data-impl-vfs-hdfs</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.4-227</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <properties>
