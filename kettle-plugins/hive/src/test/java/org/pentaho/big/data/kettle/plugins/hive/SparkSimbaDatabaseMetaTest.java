@@ -22,6 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import java.sql.Driver;
+import java.util.Arrays;
+import java.util.Map;
+import org.hamcrest.collection.IsMapContaining;
+import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,11 +38,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 
-import java.sql.Driver;
-import java.util.Arrays;
-
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -143,5 +149,17 @@ public class SparkSimbaDatabaseMetaTest {
   public void testGetDriverClass() {
     assertThat( sparkSimbaDatabaseMeta.getDriverClass(),
       is( SparkSimbaDatabaseMeta.DRIVER_CLASS_NAME ) );
+  }
+
+  @Test
+  public void testGetDefaultOptions() {
+    SparkSimbaDatabaseMeta meta = mock( SparkSimbaDatabaseMeta.class );
+    when( meta.getPluginId() ).thenReturn( "SPARKSIMBA" );
+    when( meta.getDefaultOptions() ).thenCallRealMethod();
+
+    Map<String, String> options = meta.getDefaultOptions();
+    assertThat( options, IsMapWithSize.aMapWithSize( 1 ) );
+    assertThat( options, IsMapContaining.hasEntry( meta.getPluginId() + "." +
+      SparkSimbaDatabaseMeta.SOCKET_TIMEOUT_OPTION, "10" ) );
   }
 }
