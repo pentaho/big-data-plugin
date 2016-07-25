@@ -37,9 +37,9 @@ public class ImpalaDatabaseDialectTest {
     ImpalaDatabaseDialect impala = new ImpalaDatabaseDialect();
     DatabaseConnection dbconn = new DatabaseConnection();
     String url = impala.getURL( dbconn );
-    assertEquals( "noauth url", "jdbc:hive2://null:null/null;auth=noSasl", url );
+    assertEquals( "noauth url", "jdbc:hive2://null:null/null;impala_db=true;auth=noSasl", url );
     dbconn.addExtraOption( impala.getDatabaseType().getShortName(), "principal", "someValue" );
     url = impala.getURL( dbconn );
-    assertEquals( "principal url", "jdbc:hive2://null:null/null", url );
+    assertEquals( "principal url", "jdbc:hive2://null:null/null;impala_db=true", url );
   }
 }

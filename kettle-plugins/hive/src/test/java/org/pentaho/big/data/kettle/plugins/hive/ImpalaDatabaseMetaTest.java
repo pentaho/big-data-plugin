@@ -208,7 +208,7 @@ public class ImpalaDatabaseMetaTest {
     URL url = new URL( urlString );
     assertEquals( testHostname, url.getHost() );
     assertEquals( port, url.getPort() );
-    assertEquals( "/" + testDbName + ImpalaDatabaseMeta.AUTH_NO_SASL, url.getPath() );
+    assertEquals( "/" + testDbName + ImpalaDatabaseMeta.AUTH_NO_SASL + ";impala_db=true", url.getPath() );
   }
 
   @Test
@@ -224,7 +224,7 @@ public class ImpalaDatabaseMetaTest {
     URL url = new URL( urlString );
     assertEquals( testHostname, url.getHost() );
     assertEquals( port, url.getPort() );
-    assertEquals( "/" + testDbName, url.getPath() );
+    assertEquals( "/" + testDbName + ";impala_db=true", url.getPath() );
 
     impalaDatabaseMeta.getAttributes().remove( "principal" );
     impalaDatabaseMeta.getAttributes()
@@ -237,7 +237,7 @@ public class ImpalaDatabaseMetaTest {
     url = new URL( urlString );
     assertEquals( testHostname, url.getHost() );
     assertEquals( port, url.getPort() );
-    assertEquals( "/" + testDbName, url.getPath() );
+    assertEquals( "/" + testDbName + ";impala_db=true", url.getPath() );
   }
 
   @Test
@@ -251,7 +251,7 @@ public class ImpalaDatabaseMetaTest {
     URL url = new URL( urlString );
     assertEquals( testHostname, url.getHost() );
     assertEquals( impalaDatabaseMeta.getDefaultDatabasePort(), url.getPort() );
-    assertEquals( "/" + testDbName + ImpalaDatabaseMeta.AUTH_NO_SASL, url.getPath() );
+    assertEquals( "/" + testDbName + ImpalaDatabaseMeta.AUTH_NO_SASL + ";impala_db=true", url.getPath() );
   }
 
   @Test

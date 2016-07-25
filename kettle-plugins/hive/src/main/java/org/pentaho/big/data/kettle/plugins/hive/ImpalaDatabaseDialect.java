@@ -75,6 +75,7 @@ public class ImpalaDatabaseDialect extends Hive2DatabaseDialect {
     String principal = connection.getExtraOptions().get( principalPropertyName );
     String extraPrincipal =
       connection.getAttributes().get( DatabaseConnection.ATTRIBUTE_PREFIX_EXTRA_OPTION + principalPropertyName );
+    urlBuffer.append( ";impala_db=true" );
     if ( principal != null || extraPrincipal != null ) {
       return urlBuffer.toString();
     }
