@@ -22,6 +22,7 @@
 
 package com.pentaho.big.data.bundles.impl.shim.hbase.table;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.pentaho.big.data.bundles.impl.shim.hbase.BatchHBaseConnectionOperation;
 import com.pentaho.big.data.bundles.impl.shim.hbase.HBaseConnectionOperation;
 import com.pentaho.big.data.bundles.impl.shim.hbase.HBaseConnectionWrapper;
@@ -52,6 +53,7 @@ public class ResultScannerBuilderImpl implements ResultScannerBuilder {
   public ResultScannerBuilderImpl( HBaseConnectionPool hBaseConnectionPool,
                                    HBaseValueMetaInterfaceFactoryImpl hBaseValueMetaInterfaceFactory,
                                    HBaseBytesUtilShim hBaseBytesUtilShim, String tableName,
+                                   final int caching,
                                    final byte[] keyLowerBound,
                                    final byte[] keyUpperBound ) {
     this.hBaseConnectionPool = hBaseConnectionPool;
@@ -59,10 +61,12 @@ public class ResultScannerBuilderImpl implements ResultScannerBuilder {
     this.hBaseBytesUtilShim = hBaseBytesUtilShim;
     this.batchHBaseConnectionOperation = new BatchHBaseConnectionOperation();
     this.tableName = tableName;
+    this.caching = caching;
     batchHBaseConnectionOperation.addOperation( new HBaseConnectionOperation() {
       @Override public void perform( HBaseConnectionWrapper hBaseConnectionWrapper ) throws IOException {
         try {
-          hBaseConnectionWrapper.newSourceTableScan( keyLowerBound, keyUpperBound, caching );
+          hBaseConnectionWrapper
+            .newSourceTableScan( keyLowerBound, keyUpperBound, ResultScannerBuilderImpl.this.caching );
         } catch ( Exception e ) {
           throw new IOException( e );
         }
@@ -110,6 +114,11 @@ public class ResultScannerBuilderImpl implements ResultScannerBuilder {
 
   @Override public void setCaching( int cacheSize ) {
     this.caching = cacheSize;
+  }
+
+  @VisibleForTesting
+  int getCaching() {
+    return caching;
   }
 
   @Override public ResultScanner build() throws IOException {
