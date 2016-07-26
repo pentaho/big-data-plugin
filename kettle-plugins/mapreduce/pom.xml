@@ -15,7 +15,7 @@
   <url>http://www.pentaho.com</url>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-    <xstream.version>1.4.2</xstream.version>
+    <xstream.version>1.4.9</xstream.version>
     <easymock.versin>3.0</easymock.versin>
   </properties>
   <dependencies>
