@@ -134,6 +134,16 @@
       <version>${dependency.slf4j.revision}</version>
     </dependency>
     <dependency>
+      <groupId>xmlpull</groupId>
+      <artifactId>xmlpull</artifactId>
+      <version>${dependency.xmlpull.revision}</version>
+    </dependency>
+	<dependency>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3_min</artifactId>
+      <version>${dependency.xpp3.revision}</version>
+    </dependency>
+    <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
       <version>${dependency.xstream.revision}</version>
