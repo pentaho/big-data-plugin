@@ -280,9 +280,9 @@
       <version>20081125</version>
     </dependency>
     <dependency>
-      <groupId>javassist</groupId>
+      <groupId>org.javassist</groupId>
       <artifactId>javassist</artifactId>
-      <version>3.12.1.GA</version>
+      <version>3.20.0-GA</version>
     </dependency>
     <dependency>
       <groupId>javax.activation</groupId>
@@ -388,6 +388,12 @@
       <groupId>net.sf.scannotation</groupId>
       <artifactId>scannotation</artifactId>
       <version>1.0.2</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>javassist</artifactId>
+          <groupId>javassist</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.sourceforge.nekohtml</groupId>
@@ -653,6 +659,12 @@
       <groupId>org.scannotation</groupId>
       <artifactId>scannotation</artifactId>
       <version>1.0.2</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>javassist</artifactId>
+          <groupId>javassist</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.snmp4j</groupId>
