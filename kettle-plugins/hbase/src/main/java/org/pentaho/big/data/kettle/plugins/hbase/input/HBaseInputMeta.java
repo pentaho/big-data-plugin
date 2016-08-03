@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -418,29 +419,35 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
       Mapping tempMapping = null;
       if ( mappingDefinition != null ) {
-        tempMapping = MappingUtils.getMapping( mappingDefinition, hBaseService );
-        m_mapping = tempMapping;
-      } else {
-        if ( !Const.isEmpty( m_sourceMappingName ) ) {
-          tempMapping =
-              getMappingFromHBase( hBaseService, space, m_sourceTableName, m_sourceMappingName, m_coreConfigURL,
-                  m_defaultConfigURL );
-        } else {
-          tempMapping = m_mapping;
-        }
+        tempMapping = getMapping( mappingDefinition, hBaseService );
+        setMapping( tempMapping );
       }
 
       if ( outputFieldsDefinition != null && !outputFieldsDefinition.isEmpty() ) {
-        m_outputFields = createOutputFieldsDefinition( outputFieldsDefinition, tempMapping, hBaseService );
+        if ( mappingDefinition == null ) {
+          if ( !Const.isEmpty( m_sourceMappingName ) ) {
+            tempMapping =
+              getMappingFromHBase( hBaseService, space, m_sourceTableName, m_sourceMappingName, m_coreConfigURL,
+                m_defaultConfigURL );
+          } else {
+            tempMapping = m_mapping;
+          }
+        }
+        setOutputFields( createOutputFieldsDefinition( tempMapping, hBaseService ) );
       }
 
       if ( filtersDefinition != null && !filtersDefinition.isEmpty() ) {
         ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-        m_filters = createColumnFiltersFromDefinition( filtersDefinition, columnFilterFactory );
+        setColumnFilters( createColumnFiltersFromDefinition( columnFilterFactory ) );
       }
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( e );
     }
+  }
+
+  @VisibleForTesting
+  Mapping getMapping( MappingDefinition mappingDefinition, HBaseService hBaseService ) throws KettleException {
+    return MappingUtils.getMapping( mappingDefinition, hBaseService );
   }
 
   static Mapping getMappingFromHBase( HBaseService hBaseService, VariableSpace space, String tableName,
@@ -459,6 +466,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     } catch ( Exception e ) {
       throw new KettleException( e );
     }
+  }
+
+  @VisibleForTesting
+  List<HBaseValueMetaInterface> createOutputFieldsDefinition( Mapping mapping, HBaseService hBaseService ) {
+    return createOutputFieldsDefinition( outputFieldsDefinition, mapping, hBaseService );
   }
 
   static List<HBaseValueMetaInterface> createOutputFieldsDefinition(
@@ -487,6 +499,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       outputFields.add( valueMeta );
     }
     return outputFields;
+  }
+
+  @VisibleForTesting
+  List<ColumnFilter> createColumnFiltersFromDefinition( ColumnFilterFactory c ) {
+    return createColumnFiltersFromDefinition( filtersDefinition, c );
   }
 
   static List<ColumnFilter> createColumnFiltersFromDefinition( List<FilterDefinition> filtersDefinition,

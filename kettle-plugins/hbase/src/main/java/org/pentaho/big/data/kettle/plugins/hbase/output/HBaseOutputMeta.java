@@ -30,7 +30,6 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
-import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
@@ -229,42 +228,22 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
+    if ( mappingDefinition == null ) {
+      return;
+    }
     try {
       HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
       Mapping tempMapping = null;
-      if ( mappingDefinition != null ) {
-        tempMapping = MappingUtils.getMapping( mappingDefinition, hBaseService );
-        m_mapping = tempMapping;
-      } else {
-        if ( !Const.isEmpty( m_targetMappingName ) ) {
-          tempMapping =
-              getMappingFromHBase( hBaseService, space, m_targetTableName, m_targetMappingName, m_coreConfigURL,
-                  m_defaultConfigURL );
-        } else {
-          tempMapping = m_mapping;
-        }
-      }
+      tempMapping = getMapping( mappingDefinition, hBaseService );
+      setMapping( tempMapping );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( e );
     }
   }
 
-  static Mapping getMappingFromHBase( HBaseService hBaseService, VariableSpace space, String tableName,
-      String mappingName, String coreConfigURL, String defaultConfigURL ) throws KettleException {
-    try {
-      String siteConfig = "";
-      if ( !Const.isEmpty( coreConfigURL ) ) {
-        siteConfig = space.environmentSubstitute( coreConfigURL );
-      }
-      String defaultConfig = "";
-      if ( !Const.isEmpty( ( defaultConfigURL ) ) ) {
-        defaultConfig = space.environmentSubstitute( defaultConfigURL );
-      }
-      MappingAdmin mappingAdmin = MappingUtils.getMappingAdmin( hBaseService, space, siteConfig, defaultConfig );
-      return mappingAdmin.getMapping( tableName, mappingName );
-    } catch ( Exception e ) {
-      throw new KettleException( e );
-    }
+  @VisibleForTesting
+  Mapping getMapping( MappingDefinition mappingDefinition, HBaseService hBaseService ) throws KettleException {
+    return MappingUtils.getMapping( mappingDefinition, hBaseService );
   }
 
   public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
