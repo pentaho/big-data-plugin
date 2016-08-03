@@ -27,6 +27,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.LogInjector;
+import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
@@ -37,7 +38,6 @@ import org.pentaho.di.core.logging.LoggingBuffer;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -47,7 +47,11 @@ import java.util.List;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @RunWith( org.mockito.runners.MockitoJUnitRunner.class )
 public class HBaseOutputMetaTest {
@@ -62,6 +66,8 @@ public class HBaseOutputMetaTest {
   @Mock Repository rep;
   @Mock IMetaStore metaStore;
   @Mock ObjectId id_step;
+  @Mock HBaseService hBaseService;
+  @Mock MappingDefinition mappingDefinition;
 
   List<DatabaseMeta> databases = new ArrayList<>();
 
@@ -71,13 +77,12 @@ public class HBaseOutputMetaTest {
   public void testReadRepSetsNamedCluster() throws Exception {
     when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
       .thenReturn( namedCluster );
-    HBaseService service = mock( HBaseService.class );
-    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( service );
-    when( service.getMappingFactory() )
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( hBaseService.getMappingFactory() )
       .thenReturn( mock( MappingFactory.class ) );
     Mapping mapping = mock( Mapping.class );
     when( mapping.readRep( rep, id_step ) ).thenReturn( true );
-    when( service.getMappingFactory().createMapping() ).thenReturn( mapping );
+    when( hBaseService.getMappingFactory().createMapping() ).thenReturn( mapping );
 
     hBaseOutputMeta.readRep( rep, metaStore, id_step, databases );
     assertThat( hBaseOutputMeta.getNamedCluster(), is( namedCluster ) );
@@ -95,5 +100,36 @@ public class HBaseOutputMetaTest {
     LoggingBuffer loggingBuffer = LogInjector.setMockForLoggingBuffer();
     hBaseOutputMetaSpy.getXML();
     verify( loggingBuffer, atLeast( 1 ) ).addLogggingEvent( any() );
+  }
+
+  /**
+   * actual for bug BACKLOG-9629
+   */
+  @Test
+  public void testApplyInjectionDefinitionExists() throws Exception {
+    HBaseOutputMeta hBaseOutputMetaSpy = Mockito.spy( this.hBaseOutputMeta );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    hBaseOutputMetaSpy.setMappingDefinition( mappingDefinition );
+    hBaseOutputMetaSpy.setNamedCluster (namedCluster);
+    Mockito.doReturn( null ).when( hBaseOutputMetaSpy ).getMapping( any(), any() );
+
+    hBaseOutputMetaSpy.getXML( );
+    verify( hBaseOutputMetaSpy, times( 1 ) ).setMapping( any() );
+  }
+
+  /**
+   * actual for bug BACKLOG-9629
+   */
+  @Test
+  public void testApplyInjectionDefinitionNull () throws Exception {
+    HBaseOutputMeta hBaseOutputMetaSpy = Mockito.spy( this.hBaseOutputMeta );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    hBaseOutputMetaSpy.setMappingDefinition( null );
+    hBaseOutputMetaSpy.setNamedCluster ( namedCluster );
+    Mockito.doReturn( null ).when( hBaseOutputMetaSpy ).getMapping( any(), any() );
+
+    hBaseOutputMetaSpy.getXML();
+    verify( hBaseOutputMetaSpy, times( 0 ) ).getMapping( any(), any() );
+    verify( hBaseOutputMetaSpy, times( 0 ) ).setMapping( any() );
   }
 }

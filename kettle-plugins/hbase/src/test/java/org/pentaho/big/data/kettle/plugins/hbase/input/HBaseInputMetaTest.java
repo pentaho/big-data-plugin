@@ -16,25 +16,35 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.LogInjector;
+import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
+import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LoggingBuffer;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 
 @RunWith( org.mockito.runners.MockitoJUnitRunner.class )
 public class HBaseInputMetaTest {
 
   @InjectMocks HBaseInputMeta hBaseInputMeta;
   @Mock NamedCluster namedCluster;
+  @Mock NamedClusterServiceLocator namedClusterServiceLocator;
+  @Mock HBaseService hBaseService;
+  @Mock MappingDefinition mappingDefinition;
 
   /**
    * actual for bug BACKLOG-9529
@@ -51,4 +61,45 @@ public class HBaseInputMetaTest {
     verify( loggingBuffer, atLeast( 1 ) ).addLogggingEvent( any() );
   }
 
+  /**
+   * actual for bug BACKLOG-9629
+   */
+  @SuppressWarnings( "unchecked" )
+  @Test
+  public void testApplyInjectionDefinitionsExists () throws Exception {
+    HBaseInputMeta hBaseInputMetaSpy = Mockito.spy( hBaseInputMeta );
+    hBaseInputMetaSpy.setNamedCluster( namedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    hBaseInputMetaSpy.setMappingDefinition( mappingDefinition );
+    List list = mock( List.class );
+    hBaseInputMetaSpy.setOutputFieldsDefinition( list );
+    hBaseInputMetaSpy.setFiltersDefinition( list );
+    Mockito.doReturn( list ).when( hBaseInputMetaSpy ).createOutputFieldsDefinition( any(), any() );
+    Mockito.doReturn( list ).when( hBaseInputMetaSpy ).createColumnFiltersFromDefinition( any() );
+    Mockito.doReturn( null ).when( hBaseInputMetaSpy ).getMapping( any(), any() );
+
+    hBaseInputMetaSpy.getXML( );
+    verify( hBaseInputMetaSpy, times( 1 ) ).setMapping ( any() );
+    verify( hBaseInputMetaSpy, times( 1 ) ).setOutputFields ( any() );
+    verify( hBaseInputMetaSpy, times( 1 ) ).setColumnFilters ( any() );
+  }
+
+  /**
+   * actual for bug BACKLOG-9629
+   */
+  @Test
+  public void testApplyInjectionDefinitionsNull () throws Exception {
+    HBaseInputMeta hBaseInputMetaSpy = Mockito.spy( hBaseInputMeta );
+    hBaseInputMetaSpy.setNamedCluster( namedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    hBaseInputMetaSpy.setMappingDefinition( null );
+    hBaseInputMetaSpy.setOutputFieldsDefinition( null );
+    hBaseInputMetaSpy.setFiltersDefinition( null );
+
+    hBaseInputMetaSpy.getXML();
+    verify( hBaseInputMetaSpy, times( 0 ) ).setMapping ( any() );
+    verify( hBaseInputMetaSpy, times( 0 ) ).getMapping ();
+    verify( hBaseInputMetaSpy, times( 0 ) ).setOutputFields ( any() );
+    verify( hBaseInputMetaSpy, times( 0 ) ).setColumnFilters ( any() );
+  }
 }
