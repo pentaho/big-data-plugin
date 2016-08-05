@@ -78,6 +78,7 @@ import java.util.Set;
  */
 @Step( id = "HBaseInput", image = "HB.svg", name = "HBaseInput.Name", description = "HBaseInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 

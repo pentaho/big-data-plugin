@@ -52,6 +52,7 @@ import java.util.List;
 
 @Step( id = "HadoopExitPlugin", image = "MRO.svg", name = "HadoopExitPlugin.Name",
     description = "HadoopExitPlugin.Description",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/MapReduce+Output",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopexit" )
 public class HadoopExitMeta extends BaseStepMeta implements StepMetaInterface {

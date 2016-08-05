@@ -64,6 +64,7 @@ import java.util.List;
  */
 @Step( id = "HBaseOutput", image = "HBO.svg", name = "HBaseOutput.Name", description = "HBaseOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Output",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
 public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
