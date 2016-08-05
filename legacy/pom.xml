@@ -264,6 +264,11 @@
       <version>${dependency.xerces.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-api-cluster</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <build>
     <resources>
