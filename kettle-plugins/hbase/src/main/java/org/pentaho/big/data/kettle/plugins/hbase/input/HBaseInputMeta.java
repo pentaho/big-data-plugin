@@ -86,6 +86,7 @@ import org.w3c.dom.Node;
  */
 @Step( id = "HBaseInput", image = "HB.svg", name = "HBaseInput.Name", description = "HBaseInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
 @InjectionSupported( localizationPrefix = "HBaseInput.Injection.", groups = { "OUTPUT_FIELDS", "MAPPING", "FILTER" } )
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {

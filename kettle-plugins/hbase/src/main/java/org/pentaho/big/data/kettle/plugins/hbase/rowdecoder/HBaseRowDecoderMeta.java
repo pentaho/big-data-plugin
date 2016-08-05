@@ -78,6 +78,7 @@ import org.w3c.dom.Node;
 @Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Row+Decoder",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )
 @InjectionSupported( localizationPrefix = "HBaseRowDecoder.Injection.", groups = { "MAPPING" } )
 public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterface {
