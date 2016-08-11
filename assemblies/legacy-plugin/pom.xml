@@ -148,6 +148,13 @@
       <artifactId>xstream</artifactId>
       <version>${dependency.xstream.revision}</version>
     </dependency>
+	<dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-cdh55-package</artifactId>
+      <version>${dependency.hadoop-shims-cdh55.revision}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
@@ -213,6 +220,12 @@
             </goals>
             <configuration>
               <artifactItems>
+			  	<artifactItem>
+                  <groupId>pentaho</groupId>
+                  <artifactId>pentaho-hadoop-shims-cdh55-package</artifactId>
+                  <type>zip</type>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
+                </artifactItem>
 				<artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
