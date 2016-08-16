@@ -45,7 +45,7 @@ public class HadoopModule {
   }
 
   public enum HadoopModuleType {
-    HIVE, HBASE, IMPALA, CLOUDERA_IMPALA, PMR
+    HIVE, HBASE, IMPALA, CLOUDERA_IMPALA, PMR, OOZIE
   }
 
 }
