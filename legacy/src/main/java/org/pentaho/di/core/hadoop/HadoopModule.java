@@ -27,13 +27,16 @@ import org.pentaho.hadoop.shim.HadoopConfiguration;
 public class HadoopModule {
   private NamedCluster namedCluster;
   private HadoopModuleType hadoopModuleType;
-  private HadoopConfiguration hadoopConfiguration;
 
-  public HadoopModule( NamedCluster namedCluster, HadoopModule.HadoopModuleType hadoopModuleType,
-      HadoopConfiguration hadoopConfiguration ) {
+  public HadoopModule( NamedCluster namedCluster, HadoopModule.HadoopModuleType hadoopModuleType ) {
     this.namedCluster = namedCluster;
     this.hadoopModuleType = hadoopModuleType;
-    this.hadoopConfiguration = hadoopConfiguration;
+  }
+
+  @Deprecated
+  public HadoopModule( NamedCluster namedCluster, HadoopModule.HadoopModuleType hadoopModuleType,
+                       HadoopConfiguration hadoopConfiguration ) {
+    this( namedCluster, hadoopModuleType );
   }
 
   public NamedCluster getNamedCluster() {
