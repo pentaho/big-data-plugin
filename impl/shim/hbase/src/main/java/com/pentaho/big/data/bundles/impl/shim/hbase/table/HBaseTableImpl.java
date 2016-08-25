@@ -122,7 +122,7 @@ public class HBaseTableImpl implements HBaseTable {
 
   @Override public ResultScannerBuilder createScannerBuilder( byte[] keyLowerBound, byte[] keyUpperBound ) {
     return new ResultScannerBuilderImpl( hBaseConnectionPool, hBaseValueMetaInterfaceFactory, hBaseBytesUtilShim, name,
-      keyLowerBound, keyUpperBound );
+      0, keyLowerBound, keyUpperBound );
   }
 
   @Override
@@ -256,7 +256,7 @@ public class HBaseTableImpl implements HBaseTable {
       }
     }
     return new ResultScannerBuilderImpl( hBaseConnectionPool, hBaseValueMetaInterfaceFactory, hBaseBytesUtilShim, name,
-      keyLowerBound, keyUpperBound );
+      cacheSize, keyLowerBound, keyUpperBound );
   }
 
   @Override public List<String> getColumnFamilies() throws IOException {
