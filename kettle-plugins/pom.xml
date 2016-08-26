@@ -20,5 +20,6 @@
     <module>hbase</module>
     <module>sqoop</module>
     <module>hive</module>
+    <module>spark</module>
   </modules>
 </project>
