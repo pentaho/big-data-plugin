@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,17 +23,21 @@
 package org.pentaho.big.data.impl.shim.mapreduce;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.security.Credentials;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceOutputStepMetaInterface;
+import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
 import org.pentaho.di.core.plugins.PluginInterface;
@@ -55,8 +59,10 @@ import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -85,9 +91,15 @@ public class PentahoMapReduceJobBuilderImplTest {
   private PentahoMapReduceJobBuilderImpl.TransFactory transFactory;
   private PentahoMapReduceJobBuilderImpl.PMRArchiveGetter pmrArchiveGetter;
   private FileObject vfsPluginDirectory;
+  private List<TransformationVisitorService> visitorServices = new ArrayList<>();
+  private String transXml = "<transformation><info><log></log></info></transformation>";
 
   @Before
   public void setup() {
+
+    KettleLogStore.init();
+
+    visitorServices.add(new MockVisitorService());
     namedCluster = mock( NamedCluster.class );
     hadoopConfiguration = mock( HadoopConfiguration.class );
     hadoopShim = mock( HadoopShim.class );
@@ -102,7 +114,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     vfsPluginDirectory = mock( FileObject.class );
     pentahoMapReduceJobBuilder =
       new PentahoMapReduceJobBuilderImpl( namedCluster, hadoopConfiguration, logChannelInterface, variableSpace,
-        pluginInterface, vfsPluginDirectory, pmrProperties, transFactory, pmrArchiveGetter );
+        pluginInterface, vfsPluginDirectory, pmrProperties, transFactory, pmrArchiveGetter, visitorServices);
   }
 
   @Test
@@ -537,7 +549,7 @@ public class PentahoMapReduceJobBuilderImplTest {
   public void testConfigureMinimal() throws Exception {
     pentahoMapReduceJobBuilder =
       spy( new PentahoMapReduceJobBuilderImpl( namedCluster, hadoopConfiguration, logChannelInterface, variableSpace,
-        pluginInterface, vfsPluginDirectory, pmrProperties, transFactory, pmrArchiveGetter ) );
+        pluginInterface, vfsPluginDirectory, pmrProperties, transFactory, pmrArchiveGetter, visitorServices ) );
     when( hadoopShim.getPentahoMapReduceMapRunnerClass() ).thenReturn( (Class) String.class );
     pentahoMapReduceJobBuilder.setLogLevel( LogLevel.BASIC );
     pentahoMapReduceJobBuilder.setInputPaths( new String[ 0 ] );
@@ -549,14 +561,13 @@ public class PentahoMapReduceJobBuilderImplTest {
       }
     } ).when( pentahoMapReduceJobBuilder ).configureVariableSpace( configuration );
     when( hadoopShim.getFileSystem( configuration ) ).thenReturn( mock( FileSystem.class ) );
-    String xml = "testMr.xml";
     String testMrInput = "testMrInput";
     String testMrOutput = "testMrOutput";
-    pentahoMapReduceJobBuilder.setMapperInfo( xml, testMrInput, testMrOutput );
+    pentahoMapReduceJobBuilder.setMapperInfo( transXml, testMrInput, testMrOutput );
     pentahoMapReduceJobBuilder.configure( configuration );
 
     verify( configuration ).setMapRunnerClass( String.class );
-    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_XML, xml );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_XML, transXml );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_INPUT_STEPNAME, testMrInput );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_OUTPUT_STEPNAME, testMrOutput );
     verify( configuration ).setJarByClass( String.class );
@@ -578,34 +589,31 @@ public class PentahoMapReduceJobBuilderImplTest {
     pentahoMapReduceJobBuilder.setOutputPath( "test" );
     Configuration configuration = mock( Configuration.class );
     when( hadoopShim.getFileSystem( configuration ) ).thenReturn( mock( FileSystem.class ) );
-    String mrXml = "testMr.xml";
     String testMrInput = "testMrInput";
     String testMrOutput = "testMrOutput";
-    pentahoMapReduceJobBuilder.setMapperInfo( mrXml, testMrInput, testMrOutput );
-    String combinerTransformationXml = "testC.xml";
+    pentahoMapReduceJobBuilder.setMapperInfo( transXml, testMrInput, testMrOutput );
     String combinerInputStep = "testCInput";
     String combinerOutputStep = "testCOutput";
-    pentahoMapReduceJobBuilder.setCombinerInfo( combinerTransformationXml, combinerInputStep, combinerOutputStep );
-    String reducerTransformationXml = "testR.xml";
+    pentahoMapReduceJobBuilder.setCombinerInfo( transXml, combinerInputStep, combinerOutputStep );
     String testRInput = "testRInput";
     String testROutput = "testROutput";
-    pentahoMapReduceJobBuilder.setReducerInfo( reducerTransformationXml, testRInput, testROutput );
+    pentahoMapReduceJobBuilder.setReducerInfo( transXml, testRInput, testROutput );
     pentahoMapReduceJobBuilder.configure( configuration );
 
     verify( configuration ).setMapRunnerClass( String.class );
-    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_XML, mrXml );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_XML, transXml );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_INPUT_STEPNAME, testMrInput );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_OUTPUT_STEPNAME, testMrOutput );
 
     verify( configuration )
-      .set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_COMBINER_XML, combinerTransformationXml );
+      .set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_COMBINER_XML, transXml );
     verify( configuration )
       .set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_COMBINER_INPUT_STEPNAME, combinerInputStep );
     verify( configuration )
       .set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_COMBINER_OUTPUT_STEPNAME, combinerOutputStep );
     verify( configuration ).setCombinerClass( Void.class );
 
-    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_REDUCE_XML, reducerTransformationXml );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_REDUCE_XML, transXml );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_REDUCE_INPUT_STEPNAME, testRInput );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_REDUCE_OUTPUT_STEPNAME, testROutput );
     verify( configuration ).setReducerClass( Integer.class );
@@ -617,6 +625,9 @@ public class PentahoMapReduceJobBuilderImplTest {
   @Test
   public void testSubmitNoDistributedCache() throws IOException {
     Configuration conf = mock( Configuration.class );
+    JobConf jobConf = mock( JobConf.class );
+    when(jobConf.getCredentials()).thenReturn(new Credentials());
+    when(conf.getAsDelegateConf( any() )).thenReturn(jobConf);
     pentahoMapReduceJobBuilder.submit( conf );
     verify( hadoopShim ).submitJob( conf );
   }
@@ -660,6 +671,10 @@ public class PentahoMapReduceJobBuilderImplTest {
   @Test
   public void testSubmitAlreadyInstalled() throws Exception {
     Configuration conf = mock( Configuration.class );
+    JobConf jobConf = mock( JobConf.class );
+    when(jobConf.getCredentials()).thenReturn(new Credentials());
+
+    when(conf.getAsDelegateConf( any() )).thenReturn(jobConf);
     FileSystem fileSystem = mock( FileSystem.class );
     DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
     Path kettleEnvInstallDir = mock( Path.class );
@@ -779,6 +794,10 @@ public class PentahoMapReduceJobBuilderImplTest {
   public void testSubmitInstallSucceed()
     throws Exception {
     Configuration conf = mock( Configuration.class );
+    JobConf jobConf = mock( JobConf.class );
+    when(jobConf.getCredentials()).thenReturn(new Credentials());
+    when(conf.getAsDelegateConf( any() )).thenReturn(jobConf);
+
     FileSystem fileSystem = mock( FileSystem.class );
     DistributedCacheUtil distributedCacheUtil = mock( DistributedCacheUtil.class );
     Path kettleEnvInstallDir = mock( Path.class );

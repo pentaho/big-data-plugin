@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,8 +26,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.mapreduce.MapReduceService;
+import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.assertEquals;
@@ -44,6 +47,7 @@ public class MapReduceServiceFactoryImplTest {
   private ExecutorService executorService;
   private MapReduceServiceFactoryImpl mapReduceServiceFactory;
   private NamedCluster namedCluster;
+  private List<TransformationVisitorService> visitorServices = new ArrayList<>();
 
   @Before
   public void setup() {
@@ -51,7 +55,7 @@ public class MapReduceServiceFactoryImplTest {
     hadoopConfiguration = mock( HadoopConfiguration.class );
     executorService = mock( ExecutorService.class );
     mapReduceServiceFactory =
-      new MapReduceServiceFactoryImpl( isActiveConfiguration, hadoopConfiguration, executorService );
+      new MapReduceServiceFactoryImpl( isActiveConfiguration, hadoopConfiguration, executorService, visitorServices );
     namedCluster = mock( NamedCluster.class );
   }
 
@@ -69,7 +73,7 @@ public class MapReduceServiceFactoryImplTest {
   public void testCanHandleInactive() {
     isActiveConfiguration = false;
     mapReduceServiceFactory =
-      new MapReduceServiceFactoryImpl( isActiveConfiguration, hadoopConfiguration, executorService );
+      new MapReduceServiceFactoryImpl( isActiveConfiguration, hadoopConfiguration, executorService, visitorServices );
     assertFalse( mapReduceServiceFactory.canHandle( namedCluster ) );
   }
 
