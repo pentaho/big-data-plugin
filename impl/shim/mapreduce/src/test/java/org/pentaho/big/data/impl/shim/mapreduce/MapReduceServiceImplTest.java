@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,11 +25,7 @@ package org.pentaho.big.data.impl.shim.mapreduce;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.bigdata.api.mapreduce.MapReduceExecutionException;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJarInfo;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJobBuilder;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJobSimple;
-import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceJobBuilder;
+import org.pentaho.bigdata.api.mapreduce.*;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -50,6 +46,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.*;
@@ -82,9 +79,10 @@ public class MapReduceServiceImplTest {
     resolvedJarUrl = new URL( "http://jar.net/jar" );
     pluginPropertiesUtil = mock( PluginPropertiesUtil.class );
     pluginRegistry = mock( PluginRegistry.class );
+    List<TransformationVisitorService> visitorServices = new ArrayList<>();
     mapReduceService =
       new MapReduceServiceImpl( namedCluster, hadoopConfiguration, executorService, jarUtility, pluginPropertiesUtil,
-        pluginRegistry );
+        pluginRegistry, visitorServices );
   }
 
   @Test( expected = MapReduceExecutionException.class )

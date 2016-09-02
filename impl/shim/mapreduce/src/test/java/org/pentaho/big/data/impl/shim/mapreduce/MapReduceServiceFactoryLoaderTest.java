@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,12 +28,15 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.osgi.framework.BundleContext;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceFactory;
+import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static org.junit.Assert.assertEquals;
@@ -57,6 +60,7 @@ public class MapReduceServiceFactoryLoaderTest {
   private ExecutorService executorService;
   private MapReduceServiceFactoryLoader mapReduceServiceFactoryLoader;
   private HadoopConfiguration hadoopConfiguration;
+  private List<TransformationVisitorService> visitorServices = new ArrayList<>();
 
   @Before
   public void setup() throws ConfigurationException {
@@ -66,13 +70,13 @@ public class MapReduceServiceFactoryLoaderTest {
     executorService = mock( ExecutorService.class );
     mapReduceServiceFactoryLoader =
       new MapReduceServiceFactoryLoader( bundleContext, shimBridgingServiceTracker, hadoopConfigurationBootstrap,
-        executorService );
+        executorService, visitorServices );
     hadoopConfiguration = mock( HadoopConfiguration.class );
   }
 
   @Test
   public void testSimpleConstructor() throws ConfigurationException {
-    assertNotNull( new MapReduceServiceFactoryLoader( bundleContext, shimBridgingServiceTracker, executorService ) );
+    assertNotNull( new MapReduceServiceFactoryLoader( bundleContext, shimBridgingServiceTracker, executorService, visitorServices ) );
   }
 
   @Test
@@ -101,8 +105,8 @@ public class MapReduceServiceFactoryLoaderTest {
     Class[] parameterTypes = classArgumentCaptor.getValue();
     Object[] objects = objectArgumentCaptor.getValue();
     assertNotNull( mapReduceServiceFactoryClass.getConstructor( parameterTypes ) );
-    assertEquals( 3, parameterTypes.length );
-    assertEquals( 3, objects.length );
+    assertEquals( 4, parameterTypes.length );
+    assertEquals( 4, objects.length );
     for ( int i = 0; i < parameterTypes.length; i++ ) {
       assertTrue( parameterTypes[ i ].isInstance( objects[ i ] ) || ( parameterTypes[ i ] == boolean.class && (
         (boolean) objects[ i ] || !(boolean) objects[ i ] ) ) );
