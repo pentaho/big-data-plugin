@@ -11,7 +11,7 @@
         <ref component-id="blueprintBundleContext"/>
         <bean class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingServiceTracker"/>
         <ref component-id="executorService"/>
-        <reference-list interface="com.pentaho.big.data.ee.secure.impersonation.api.DelegationTokenService"
+        <reference-list interface="org.pentaho.bigdata.api.mapreduce.TransformationVisitorService"
                         availability="optional"/>
       </list>
     </argument>
