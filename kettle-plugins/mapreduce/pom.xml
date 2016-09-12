@@ -110,24 +110,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>0.20.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hadoop-20</artifactId>
-      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hadoop-20-mapred</artifactId>
-      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-shim-pig</artifactId>
       <version>${project.version}</version>
