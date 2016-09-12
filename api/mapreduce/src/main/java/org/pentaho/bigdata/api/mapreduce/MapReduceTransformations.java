@@ -21,18 +21,21 @@
  ******************************************************************************/
 package org.pentaho.bigdata.api.mapreduce;
 
-import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.TransConfiguration;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by ccaspanello on 8/29/2016.
  */
 public class MapReduceTransformations {
 
-  private Optional<TransMeta> combiner;
-  private Optional<TransMeta> mapper;
-  private Optional<TransMeta> reducer;
+  private Optional<TransConfiguration> combiner;
+  private Optional<TransConfiguration> mapper;
+  private Optional<TransConfiguration> reducer;
 
   public MapReduceTransformations() {
     this.combiner = Optional.empty();
@@ -41,28 +44,33 @@ public class MapReduceTransformations {
   }
 
   //<editor-fold desc="Getters & Setters">
-  public Optional<TransMeta> getCombiner() {
+  public Optional<TransConfiguration> getCombiner() {
     return combiner;
   }
 
-  public void setCombiner( Optional<TransMeta> combiner ) {
+  public void setCombiner( Optional<TransConfiguration> combiner ) {
     this.combiner = combiner;
   }
 
-  public Optional<TransMeta> getMapper() {
+  public Optional<TransConfiguration> getMapper() {
     return mapper;
   }
 
-  public void setMapper( Optional<TransMeta> mapper ) {
+  public void setMapper( Optional<TransConfiguration> mapper ) {
     this.mapper = mapper;
   }
 
-  public Optional<TransMeta> getReducer() {
+  public Optional<TransConfiguration> getReducer() {
     return reducer;
   }
 
-  public void setReducer( Optional<TransMeta> reducer ) {
+  public void setReducer( Optional<TransConfiguration> reducer ) {
     this.reducer = reducer;
   }
   //</editor-fold>
+
+  public List<TransConfiguration> presentTransformations() {
+    return Stream.of( combiner, mapper, reducer ).filter( Optional::isPresent ).map( Optional::get )
+      .collect( Collectors.toList() );
+  }
 }
