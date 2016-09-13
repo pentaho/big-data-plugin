@@ -85,12 +85,6 @@
       <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hadoop-20</artifactId>
-      <version>${dependency.hadoop-shims-hadoop-20.revision}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <build>
     <plugins>
