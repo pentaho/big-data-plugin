@@ -83,6 +83,11 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   }
 
   @Override
+  public String getLimitClause( int nrRows ) {
+    return " LIMIT " + nrRows;
+  }
+
+  @Override
   public String getSelectCountStatement( String tableName ) {
     return SELECT_COUNT_STATEMENT + " " + tableName;
   }
