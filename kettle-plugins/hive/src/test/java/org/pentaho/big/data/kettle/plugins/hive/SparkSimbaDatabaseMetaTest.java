@@ -159,7 +159,13 @@ public class SparkSimbaDatabaseMetaTest {
 
     Map<String, String> options = meta.getDefaultOptions();
     assertThat( options, IsMapWithSize.aMapWithSize( 1 ) );
-    assertThat( options, IsMapContaining.hasEntry( meta.getPluginId() + "." +
-      SparkSimbaDatabaseMeta.SOCKET_TIMEOUT_OPTION, "10" ) );
+    assertThat( options, IsMapContaining.hasEntry( meta.getPluginId() + "."
+      + SparkSimbaDatabaseMeta.SOCKET_TIMEOUT_OPTION, "10" ) );
+  }
+
+  @Test
+  public void testLimit() {
+    assertThat(
+      sparkSimbaDatabaseMeta.getLimitClause( 100 ), is( " LIMIT 100" ) );
   }
 }
