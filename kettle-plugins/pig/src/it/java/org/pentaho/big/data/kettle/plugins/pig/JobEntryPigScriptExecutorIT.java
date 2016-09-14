@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -47,7 +47,7 @@ public class JobEntryPigScriptExecutorIT {
   private StringBuffer readResource( Reader r ) throws IOException {
 
     StringBuffer ret = new StringBuffer();
-    char[] buf = new char[ 5 ];
+    char[] buf = new char[5];
 
     for ( int read = r.read( buf ); read > 0; read = r.read( buf ) ) {
       ret.append( new String( buf, 0, read ) );
@@ -60,9 +60,7 @@ public class JobEntryPigScriptExecutorIT {
   @Before
   public void setup() throws IOException {
     BufferedReader br =
-      new BufferedReader(
-        new InputStreamReader( JobEntryPigScriptExecutorIT.class.getClassLoader().getResourceAsStream(
-          "org/pentaho/di/job/entries/pig/JobEntryPigScriptExecutorTest.ref" ) ) );
+        new BufferedReader( new InputStreamReader( JobEntryPigScriptExecutorIT.class.getClassLoader().getResourceAsStream( "org/pentaho/di/job/entries/pig/JobEntryPigScriptExecutorTest.ref" ) ) );
 
     m_reference = readResource( br );
   }
@@ -85,12 +83,11 @@ public class JobEntryPigScriptExecutorIT {
     job.start();
     job.waitUntilFinished();
 
-    BufferedReader br =
-      new BufferedReader( new FileReader( "target/pigTest/bin/test/pig/script1-local-results.txt/part-r-00000" ) );
+    BufferedReader br = new BufferedReader( new FileReader( "target/pigTest/bin/test/pig/script1-local-results.txt/part-r-00000" ) );
     StringBuffer pigOutput = readResource( br );
 
-    assertEquals( m_reference.toString().replace( '\n', ' ' ).replace( '\t', ' ' ).replace( '\r', ' ' ).replace( " ", "" ),
-      pigOutput.toString().replace( '\n', ' ' ).replace( '\t', ' ' ).replace( '\r', ' ' ).replace( " ", "" ) );
+    assertEquals( m_reference.toString().replace( '\n', ' ' ).replace( '\t', ' ' ).replace( '\r', ' ' ).replace( " ", "" ), pigOutput.toString().replace( '\n', ' ' ).replace( '\t', ' ' ).replace(
+        '\r', ' ' ).replace( " ", "" ) );
   }
 
 }
