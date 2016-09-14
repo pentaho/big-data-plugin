@@ -541,17 +541,33 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     for ( TransformationVisitorService visitorService : visitorServices ) {
       visitorService.visit( transformations );
     }
+
+    combinerTransformationXml = convert( transformations.getCombiner() );
+    mapperTransformationXml = convert( transformations.getMapper() );
+    reducerTransformationXml = convert( transformations.getReducer() );
   }
 
-  private Optional<TransMeta> convert( String xmlString ) {
+  private Optional<TransConfiguration> convert( String xmlString ) {
     try {
       if ( xmlString == null ) {
         return Optional.empty();
       }
-      TransMeta transMeta = TransConfiguration.fromXML( xmlString ).getTransMeta();
-      return Optional.of( transMeta );
+      TransConfiguration transConfiguration = TransConfiguration.fromXML( xmlString );
+      return Optional.of( transConfiguration );
     } catch ( KettleException e ) {
-      throw new RuntimeException( "Unable to configure object", e );
+      throw new RuntimeException( "Unable to convert string to object", e );
+    }
+  }
+
+  private String convert( Optional<TransConfiguration> transConfiguration ) {
+    try {
+      if ( transConfiguration.isPresent() ) {
+        return transConfiguration.get().getXML();
+      } else {
+        return null;
+      }
+    } catch ( KettleException | IOException e ) {
+      throw new RuntimeException( "Unable to convert object to string.", e );
     }
   }
 
