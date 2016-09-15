@@ -90,7 +90,7 @@ public class ClusterInitializingDriverTest {
   @Test
   public void testConnect() throws SQLException, ClusterInitializationException {
     assertNull( clusterInitializingDriver.connect( testUrl, null ) );
-    verify( clusterInitializer ).initialize( namedCluster );
+    verify( clusterInitializer ).initialize( null );
   }
 
   @Test
@@ -102,7 +102,7 @@ public class ClusterInitializingDriverTest {
   @Test
   public void testAccept() throws SQLException, ClusterInitializationException {
     assertFalse( clusterInitializingDriver.acceptsURL( testUrl ) );
-    verify( clusterInitializer ).initialize( namedCluster );
+    verify( clusterInitializer ).initialize( null );
   }
 
   @Test

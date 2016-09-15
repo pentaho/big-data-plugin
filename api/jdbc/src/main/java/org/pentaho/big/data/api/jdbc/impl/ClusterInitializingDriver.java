@@ -87,7 +87,12 @@ public class ClusterInitializingDriver implements Driver {
 
   private void initializeCluster( String url ) {
     try {
-      clusterInitializer.initialize( jdbcUrlParser.parse( url ).getNamedCluster() );
+      // Initialize with a null namedCluster, since jdbc connections are not
+      // associated with namedClusters.
+      // Formerly this method used the following to determine cluster:
+      //      jdbcUrlParser.parse( url ).getNamedCluster() );
+      // But this had the potential to create a block.  BACKLOG-10983
+      clusterInitializer.initialize( null );
     } catch ( Exception e ) {
       logger.warn( "Can't parse " + url, e );
     }
