@@ -25,6 +25,7 @@ package org.pentaho.di.trans.steps.avroinput;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 import static org.pentaho.di.trans.steps.avroinput.AvroInputData.checkFieldPaths;
 import static org.pentaho.di.trans.steps.avroinput.AvroInputData.getLeafFields;
 
@@ -186,7 +187,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
       assertTrue( result != null );
       assertTrue( result instanceof Long );
@@ -219,7 +220,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
       assertTrue( result != null );
       assertTrue( result instanceof String );
@@ -252,7 +253,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
       assertTrue( result != null );
       assertTrue( result instanceof byte[] );
@@ -287,7 +288,7 @@ public class AvroInputTest {
       field.reset( new Variables() );
 
       // invoke the conversion using the schema of the record just read
-      Object result = field.convertToKettleValue( topLevel, topLevel.getSchema(), false );
+      Object result = field.convertToKettleValue( topLevel, topLevel.getSchema(), mock( Schema.class ), false );
 
       assertTrue( result != null );
       assertTrue( result instanceof byte[] );
@@ -872,7 +873,7 @@ public class AvroInputTest {
     field.reset( new Variables() );
 
     try {
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
       fail( "Was expecting an exception as $.nonExistent.notThere does not exist in the schma" );
     } catch ( Exception ex ) {
       assertTrue( ex.getMessage().contains( "Field nonExistent does not seem to exist in the schema!" ) );
@@ -905,7 +906,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
       assertTrue( result != null );
       assertTrue( result instanceof String );
@@ -940,7 +941,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
       assertTrue( result == null );
     }
   }
@@ -967,7 +968,7 @@ public class AvroInputTest {
     field.init( 0 ); // output index isn't needed for the test
     field.reset( new org.pentaho.di.core.variables.Variables() );
 
-    Object result = field.convertToKettleValue( topLevel, schema, false );
+    Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
     assertTrue( result != null );
     assertTrue( result instanceof Long );
@@ -999,7 +1000,7 @@ public class AvroInputTest {
     field.init( 0 ); // output index isn't needed for the test
     field.reset( new org.pentaho.di.core.variables.Variables() );
 
-    Object result = field.convertToKettleValue( topLevel, schema, false );
+    Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
     assertTrue( result != null );
     assertTrue( result instanceof String );
@@ -1028,7 +1029,7 @@ public class AvroInputTest {
     field.init( 0 ); // output index isn't needed for the test
     field.reset( new org.pentaho.di.core.variables.Variables() );
 
-    Object result = field.convertToKettleValue( topLevel, schema, false );
+    Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
     assertTrue( result == null );
   }
@@ -1058,7 +1059,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
       if ( i != 2 ) {
         assertTrue( result != null );
@@ -1095,7 +1096,7 @@ public class AvroInputTest {
       field.init( 0 ); // output index isn't needed for the test
       field.reset( new Variables() );
 
-      Object result = field.convertToKettleValue( topLevel, schema, false );
+      Object result = field.convertToKettleValue( topLevel, schema, mock( Schema.class ), false );
 
       if ( i != 2 ) {
         assertTrue( result != null );
@@ -1135,7 +1136,7 @@ public class AvroInputTest {
     decoder = factory.jsonDecoder( schema, s_jsonDataTopLevelMap );
     reader.read( topLevel, decoder );
 
-    Object[][] result = expansion.convertToKettleValues( topLevel, schema, new Variables(), false );
+    Object[][] result = expansion.convertToKettleValues( topLevel, schema, mock( Schema.class ), new Variables(), false );
 
     assertTrue( result != null );
     assertTrue( result.length == 3 );

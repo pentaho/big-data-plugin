@@ -59,7 +59,7 @@ public class AvroInputDataTest {
   @Test
   public void testConvertToKettleValuesNullMap() throws KettleException {
     assertNull( new AvroInputData.AvroArrayExpansion( Collections.<AvroInputMeta.AvroField>emptyList() )
-      .convertToKettleValues( (Map<Utf8, Object>) null, null, null, true ) );
+      .convertToKettleValues( (Map<Utf8, Object>) null, null, null, null, true ) );
   }
 
   @Test( expected = KettleException.class )
@@ -79,7 +79,7 @@ public class AvroInputDataTest {
     avroArrayExpansion.m_expansionPath = "c";
     avroArrayExpansion.init();
     assertNull( avroArrayExpansion
-      .convertToKettleValues( new HashMap<Utf8, Object>(), null, null, true ) );
+      .convertToKettleValues( new HashMap<Utf8, Object>(), null, null, null, true ) );
   }
 
   @Test( expected = KettleException.class )
@@ -99,7 +99,7 @@ public class AvroInputDataTest {
     avroArrayExpansion.m_expansionPath = "c";
     avroArrayExpansion.init();
     avroArrayExpansion.reset( new Variables() );
-    avroArrayExpansion.convertToKettleValues( new HashMap<Utf8, Object>(), null, null, true );
+    avroArrayExpansion.convertToKettleValues( new HashMap<Utf8, Object>(), null, null, null, true );
   }
 
   public void testConvertToKettleValuesMapMalformed() throws KettleException {
@@ -118,6 +118,6 @@ public class AvroInputDataTest {
     avroArrayExpansion.m_expansionPath = "c";
     avroArrayExpansion.init();
     avroArrayExpansion.reset( new Variables() );
-    avroArrayExpansion.convertToKettleValues( new HashMap<Utf8, Object>(), null, null, true );
+    avroArrayExpansion.convertToKettleValues( new HashMap<Utf8, Object>(), null, null, null, true );
   }
 }

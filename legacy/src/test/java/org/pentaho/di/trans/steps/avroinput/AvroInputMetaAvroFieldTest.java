@@ -25,6 +25,8 @@ package org.pentaho.di.trans.steps.avroinput;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.Utf8;
+import org.codehaus.jackson.node.IntNode;
+import org.codehaus.jackson.node.LongNode;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -201,20 +203,20 @@ public class AvroInputMetaAvroFieldTest {
 
   @Test
   public void testConvertToKettleValueMapNull() throws KettleException {
-    assertNull( avroField.convertToKettleValue( (Map<Utf8, Object>) null, null, false ) );
+    assertNull( avroField.convertToKettleValue( (Map<Utf8, Object>) null, null, null, false ) );
   }
 
   @Test( expected = KettleException.class )
   public void testConvertToKettleValueMapExceptionWithNoTempParts() throws KettleException {
     avroField.init( 0 );
-    avroField.convertToKettleValue( Collections.<Utf8, Object>emptyMap(), mock( Schema.class ), false );
+    avroField.convertToKettleValue( Collections.<Utf8, Object>emptyMap(), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test( expected = KettleException.class )
   public void testConvertToKettleValueMapExceptionWithMalformedPath() throws KettleException {
     avroField.init( 0 );
     avroField.reset( variableSpace );
-    avroField.convertToKettleValue( Collections.<Utf8, Object>emptyMap(), mock( Schema.class ), false );
+    avroField.convertToKettleValue( Collections.<Utf8, Object>emptyMap(), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test
@@ -222,7 +224,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.m_fieldPath = "[key]";
     avroField.init( 0 );
     avroField.reset( variableSpace );
-    assertNull( avroField.convertToKettleValue( new HashMap<Utf8, Object>(), mock( Schema.class ), false ) );
+    assertNull( avroField.convertToKettleValue( new HashMap<Utf8, Object>(), mock( Schema.class ), mock( Schema.class ), false ) );
   }
 
   @Test
@@ -238,12 +240,12 @@ public class AvroInputMetaAvroFieldTest {
     Schema valueSchema = mock( Schema.class );
     when( schema.getValueType() ).thenReturn( valueSchema );
     when( valueSchema.getType() ).thenReturn( Schema.Type.STRING );
-    assertEquals( testString, avroField.convertToKettleValue( map, schema, false ) );
+    assertEquals( testString, avroField.convertToKettleValue( map, schema, mock( Schema.class ), false ) );
   }
 
   @Test
   public void testConvertToKettleValueArrayNull() throws KettleException {
-    assertNull( avroField.convertToKettleValue( (GenericData.Array) null, null, false ) );
+    assertNull( avroField.convertToKettleValue( (GenericData.Array) null, null, mock( Schema.class ), false ) );
   }
 
   @Test( expected = KettleException.class )
@@ -251,7 +253,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.init( 0 );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.ARRAY );
-    avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), false );
+    avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test( expected = KettleException.class )
@@ -260,7 +262,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.reset( variableSpace );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.ARRAY );
-    avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), false );
+    avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test( expected = KettleException.class )
@@ -270,7 +272,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.reset( variableSpace );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.ARRAY );
-    avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), false );
+    avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test
@@ -280,7 +282,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.reset( variableSpace );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.ARRAY );
-    assertNull( avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), false ) );
+    assertNull( avroField.convertToKettleValue( new GenericData.Array( 0, schema ), mock( Schema.class ), mock( Schema.class ), false ) );
   }
 
   @Test
@@ -290,7 +292,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.reset( variableSpace );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.ARRAY );
-    assertNull( avroField.convertToKettleValue( new GenericData.Array( 1, schema ), mock( Schema.class ), false ) );
+    assertNull( avroField.convertToKettleValue( new GenericData.Array( 1, schema ), mock( Schema.class ), mock( Schema.class ), false ) );
   }
 
   @Test
@@ -302,7 +304,7 @@ public class AvroInputMetaAvroFieldTest {
     when( schema.getType() ).thenReturn( Schema.Type.ARRAY );
     GenericData.Array array = new GenericData.Array( 1, schema );
     array.add( null );
-    assertNull( avroField.convertToKettleValue( array, mock( Schema.class ), false ) );
+    assertNull( avroField.convertToKettleValue( array, mock( Schema.class ), mock( Schema.class ), false ) );
   }
 
   @Test
@@ -319,12 +321,12 @@ public class AvroInputMetaAvroFieldTest {
     when( valueSchema.getType() ).thenReturn( Schema.Type.STRING );
     GenericData.Array array = new GenericData.Array( 1, schema );
     array.add( testString );
-    assertEquals( testString, avroField.convertToKettleValue( array, schema, false ) );
+    assertEquals( testString, avroField.convertToKettleValue( array, schema, mock( Schema.class ), false ) );
   }
 
   @Test
   public void testConvertToKettleValueRecordNull() throws KettleException {
-    assertNull( avroField.convertToKettleValue( (GenericData.Record) null, null, false ) );
+    assertNull( avroField.convertToKettleValue( (GenericData.Record) null, null, mock( Schema.class ), false ) );
   }
 
   @Test( expected = KettleException.class )
@@ -332,7 +334,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.init( 0 );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.RECORD );
-    avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), false );
+    avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test( expected = KettleException.class )
@@ -342,7 +344,7 @@ public class AvroInputMetaAvroFieldTest {
     avroField.reset( variableSpace );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.RECORD );
-    avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), false );
+    avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test( expected = KettleException.class )
@@ -352,8 +354,8 @@ public class AvroInputMetaAvroFieldTest {
     avroField.reset( variableSpace );
     Schema schema = mock( Schema.class );
     when( schema.getType() ).thenReturn( Schema.Type.RECORD );
-    assertNull( avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), true ) );
-    avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), false );
+    assertNull( avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), mock( Schema.class ), true ) );
+    avroField.convertToKettleValue( new GenericData.Record( schema ), mock( Schema.class ), mock( Schema.class ), false );
   }
 
   @Test
@@ -373,6 +375,36 @@ public class AvroInputMetaAvroFieldTest {
     when( fieldSchema.getType() ).thenReturn( Schema.Type.STRING );
     GenericData.Record record = new GenericData.Record( schema );
     record.put( avroField.m_fieldPath, testString );
-    assertEquals( testString, avroField.convertToKettleValue( record, schema, false ) );
+    assertEquals( testString, avroField.convertToKettleValue( record, schema, mock( Schema.class ), false ) );
+  }
+
+  @Test
+  public void testGetDefaultValueFromDefaultSchemaIfNull() throws KettleException {
+    avroField.m_kettleType = "Integer";
+    avroField.m_fieldPath = "key";
+    avroField.init( 0 );
+    avroField.reset( variableSpace );
+    IntNode node = new IntNode( 5 );
+    Schema schemaToUse = mock( Schema.class );
+    Schema defaultSchema = mock( Schema.class );
+    Schema fieldSchema = mock( Schema.class );
+    Schema.Field field = mock( Schema.Field.class );
+    GenericData.Record record = mock( GenericData.Record.class );
+    when( record.get( avroField.m_fieldPath ) ).thenReturn( null );
+    when( defaultSchema.getField( avroField.m_fieldPath ) ).thenReturn( field );
+    when( field.defaultValue() ).thenReturn( node ).thenReturn( node );
+    when( field.schema() ).thenReturn( fieldSchema );
+    when( fieldSchema.getType() ).thenReturn( Schema.Type.INT );
+    assertEquals( 5L, avroField.convertToKettleValue( record, schemaToUse, defaultSchema, true ) );
+  }
+
+  @Test
+  public void testGetPrimitiveFromConvertNode() throws KettleException {
+    avroField.m_kettleType = "Integer";
+    avroField.init( 0 );
+    Schema schema = mock( Schema.class );
+    LongNode node = new LongNode( 22 );
+    when( schema.getType() ).thenReturn( Schema.Type.LONG );
+    assertEquals( 22L,  avroField.getPrimitive( node, schema ) );
   }
 }

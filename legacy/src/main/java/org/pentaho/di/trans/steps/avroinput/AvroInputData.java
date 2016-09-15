@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -57,7 +57,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
  * Data class for the AvroInput step. Contains methods to determine the type of Avro file (i.e. container or just
  * serialized objects), extract all the leaf fields from the object structure described in the schema and convert Avro
  * leaf fields to kettle values.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class AvroInputData extends BaseStepData implements StepDataInterface {
@@ -152,7 +152,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
   /**
    * Cleanses a string path by ensuring that any variables names present in the path do not contain "."s (replaces any
    * dots with underscores).
-   * 
+   *
    * @param path
    *          the path to cleanse
    * @return the cleansed path
@@ -195,7 +195,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
   /**
    * Inner class that handles a single array/map expansion process. Expands an array or map to multiple Kettle rows.
    * Delegates to AvroInptuMeta.AvroField objects to handle the extraction of leaf primitives.
-   * 
+   *
    * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
    * @version $Revision$
    */
@@ -220,7 +220,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
     /**
      * Initialize this field by parsing the path etc.
-     * 
+     *
      * @throws KettleException
      *           if a problem occurs
      */
@@ -261,7 +261,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
     /**
      * Reset this field. Should be called prior to processing a new field value from the avro file
-     * 
+     *
      * @param space
      *          environment variables (values that environment variables resolve to cannot contain "."s)
      */
@@ -280,7 +280,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
     /**
      * Processes a map at this point in the path.
-     * 
+     *
      * @param map
      *          the map to process
      * @param s
@@ -295,7 +295,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
      *           if a problem occurs
      */
     public Object[][] convertToKettleValues(
-        Map<Utf8, Object> map, Schema s, VariableSpace space, boolean ignoreMissing ) throws KettleException {
+        Map<Utf8, Object> map, Schema s, Schema defaultSchema, VariableSpace space,  boolean ignoreMissing ) throws KettleException {
 
       if ( map == null ) {
         return null;
@@ -335,13 +335,13 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
             // what have we got
             if ( valueType.getType() == Schema.Type.RECORD ) {
               result[i][sf.m_outputIndex] =
-                  sf.convertToKettleValue( (GenericData.Record) value, valueType, ignoreMissing );
+                  sf.convertToKettleValue( (GenericData.Record) value, valueType, defaultSchema, ignoreMissing );
             } else if ( valueType.getType() == Schema.Type.ARRAY ) {
               result[i][sf.m_outputIndex] =
-                  sf.convertToKettleValue( (GenericData.Array) value, valueType, ignoreMissing );
+                  sf.convertToKettleValue( (GenericData.Array) value, valueType, defaultSchema, ignoreMissing );
             } else if ( valueType.getType() == Schema.Type.MAP ) {
               result[i][sf.m_outputIndex] =
-                  sf.convertToKettleValue( (Map<Utf8, Object>) value, valueType, ignoreMissing );
+                  sf.convertToKettleValue( (Map<Utf8, Object>) value, valueType, defaultSchema, ignoreMissing );
             } else {
               // assume a primitive
               result[i][sf.m_outputIndex] = sf.getPrimitive( value, valueType );
@@ -402,11 +402,11 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
         // what have we got?
         if ( valueType.getType() == Schema.Type.RECORD ) {
-          return convertToKettleValues( (GenericData.Record) value, valueType, space, ignoreMissing );
+          return convertToKettleValues( (GenericData.Record) value, valueType, defaultSchema, space, ignoreMissing );
         } else if ( valueType.getType() == Schema.Type.ARRAY ) {
-          return convertToKettleValues( (GenericData.Array) value, valueType, space, ignoreMissing );
+          return convertToKettleValues( (GenericData.Array) value, valueType, defaultSchema, space, ignoreMissing );
         } else if ( valueType.getType() == Schema.Type.MAP ) {
-          return convertToKettleValues( (Map<Utf8, Object>) value, valueType, space, ignoreMissing );
+          return convertToKettleValues( (Map<Utf8, Object>) value, valueType, defaultSchema, space, ignoreMissing );
         } else {
           // we shouldn't have a primitive at this point. If we are
           // extracting a particular key from the map then we're not to the
@@ -426,7 +426,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
     /**
      * Processes an array at this point in the path.
-     * 
+     *
      * @param array
      *          the array to process
      * @param s
@@ -440,7 +440,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
      * @throws KettleException
      *           if a problem occurs
      */
-    public Object[][] convertToKettleValues( GenericData.Array array, Schema s, VariableSpace space,
+    public Object[][] convertToKettleValues( GenericData.Array array, Schema s, Schema defaultSchema, VariableSpace space,
         boolean ignoreMissing ) throws KettleException {
 
       if ( array == null ) {
@@ -480,13 +480,13 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
             // what have we got
             if ( elementType.getType() == Schema.Type.RECORD ) {
               result[i][sf.m_outputIndex] =
-                  sf.convertToKettleValue( (GenericData.Record) value, elementType, ignoreMissing );
+                  sf.convertToKettleValue( (GenericData.Record) value, elementType, defaultSchema, ignoreMissing );
             } else if ( elementType.getType() == Schema.Type.ARRAY ) {
               result[i][sf.m_outputIndex] =
-                  sf.convertToKettleValue( (GenericData.Array) value, elementType, ignoreMissing );
+                  sf.convertToKettleValue( (GenericData.Array) value, elementType, defaultSchema, ignoreMissing );
             } else if ( elementType.getType() == Schema.Type.MAP ) {
               result[i][sf.m_outputIndex] =
-                  sf.convertToKettleValue( (Map<Utf8, Object>) value, elementType, ignoreMissing );
+                  sf.convertToKettleValue( (Map<Utf8, Object>) value, elementType, defaultSchema, ignoreMissing );
             } else {
               // assume a primitive
               result[i][sf.m_outputIndex] = sf.getPrimitive( value, elementType );
@@ -554,11 +554,11 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
         // what have we got?
         if ( elementType.getType() == Schema.Type.RECORD ) {
-          return convertToKettleValues( (GenericData.Record) value, elementType, space, ignoreMissing );
+          return convertToKettleValues( (GenericData.Record) value, elementType, defaultSchema, space, ignoreMissing );
         } else if ( elementType.getType() == Schema.Type.ARRAY ) {
-          return convertToKettleValues( (GenericData.Array) value, elementType, space, ignoreMissing );
+          return convertToKettleValues( (GenericData.Array) value, elementType, defaultSchema, space, ignoreMissing );
         } else if ( elementType.getType() == Schema.Type.MAP ) {
-          return convertToKettleValues( (Map<Utf8, Object>) value, elementType, space, ignoreMissing );
+          return convertToKettleValues( (Map<Utf8, Object>) value, elementType, defaultSchema, space, ignoreMissing );
         } else {
           // we shouldn't have a primitive at this point. If we are
           // extracting a particular index from the array then we're not to the
@@ -579,7 +579,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
     /**
      * Processes a record at this point in the path.
-     * 
+     *
      * @param record
      *          the record to process
      * @param s
@@ -593,7 +593,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
      * @throws KettleException
      *           if a problem occurs
      */
-    public Object[][] convertToKettleValues( GenericData.Record record, Schema s, VariableSpace space,
+    public Object[][] convertToKettleValues( GenericData.Record record, Schema s, Schema defaultSchema, VariableSpace space,
         boolean ignoreMissing ) throws KettleException {
 
       if ( record == null ) {
@@ -677,12 +677,12 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
       // what have we got?
       if ( fieldT == Schema.Type.RECORD ) {
-        return convertToKettleValues( (GenericData.Record) field, fieldSchema, space, ignoreMissing );
+        return convertToKettleValues( (GenericData.Record) field, fieldSchema, defaultSchema, space, ignoreMissing );
       } else if ( fieldT == Schema.Type.ARRAY ) {
-        return convertToKettleValues( (GenericData.Array) field, fieldSchema, space, ignoreMissing );
+        return convertToKettleValues( (GenericData.Array) field, fieldSchema, defaultSchema, space, ignoreMissing );
       } else if ( fieldT == Schema.Type.MAP ) {
 
-        return convertToKettleValues( (Map<Utf8, Object>) field, fieldSchema, space, ignoreMissing );
+        return convertToKettleValues( (Map<Utf8, Object>) field, fieldSchema, defaultSchema, space, ignoreMissing );
       } else {
         // primitives will always be handled by the subField delegates, so we
         // should'nt
@@ -695,7 +695,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Get the output row format
-   * 
+   *
    * @return the output row format
    */
   public RowMetaInterface getOutputRowMeta() {
@@ -704,7 +704,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Helper function that creates a field object once we've reached a leaf in the schema.
-   * 
+   *
    * @param path
    *          the path so far
    * @param s
@@ -758,7 +758,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
   /**
    * Helper function that checks the validity of a union. We can only handle unions that contain two elements: a type
    * and null.
-   * 
+   *
    * @param s
    *          the union schema to check
    * @return the type of the element that is not null.
@@ -793,7 +793,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Check the supplied union for primitive/leaf types
-   * 
+   *
    * @param s
    *          the union schema to check
    * @return a list of primitive/leaf types in this union
@@ -824,7 +824,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Builds a list of field objects holding paths corresponding to the leaf primitives in an Avro schema.
-   * 
+   *
    * @param s
    *          the schema to process
    * @return a List of field objects
@@ -869,7 +869,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Helper function used to build paths automatically when extracting leaf fields from a schema
-   * 
+   *
    * @param path
    *          the path so far
    * @param s
@@ -924,7 +924,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Helper function used to build paths automatically when extracting leaf fields from a schema
-   * 
+   *
    * @param path
    *          the path so far
    * @param s
@@ -966,7 +966,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Helper function used to build paths automatically when extracting leaf fields from a schema
-   * 
+   *
    * @param path
    *          the path so far
    * @param s
@@ -999,7 +999,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Helper function used to build paths automatically when extracting leaf fields from a schema
-   * 
+   *
    * @param path
    *          the path so far
    * @param s
@@ -1032,7 +1032,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Load a schema from a file
-   * 
+   *
    * @param schemaFile
    *          the file to load from
    * @return the schema
@@ -1061,7 +1061,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Load a schema from a Avro container file
-   * 
+   *
    * @param containerFilename
    *          the name of the Avro container file
    * @return the schema
@@ -1094,7 +1094,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Set the output row format
-   * 
+   *
    * @param rmi
    *          the output row format
    */
@@ -1104,7 +1104,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Performs initialization based on decoding from an incoming field.
-   * 
+   *
    * @param fieldNameToDecode
    *          name of the field to decode from
    * @param readerSchemaFile
@@ -1183,7 +1183,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
   /**
    * Performs initialization based on the Avro file and schema provided.
    * <p>
-   * 
+   *
    * There are four possibilities:
    * <p>
    * <ol>
@@ -1196,7 +1196,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * <li>Schema file provided and fields defined - output leaf primitives associated with paths. Have to determine if
    * file is container or not. If container, assume supplied schema overrides encapsulated schema</li>
    * </ol>
-   * 
+   *
    * @param avroFile
    *          the Avro file
    * @param readerSchemaFile
@@ -1477,7 +1477,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
   /**
    * Examines the user-specified paths for the presence of a map/array expansion. If such an expansion is detected it
    * checks that it is valid and, if so, creates an expansion handler for processing it.
-   * 
+   *
    * @param normalFields
    *          the original user-specified paths. This is modified to contain only non-expansion paths.
    * @param outputRowMeta
@@ -1573,15 +1573,15 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         // call getSchema() on the top level record here in case it has been
         // read as one of the elements from a top-level union
         result =
-            m_expansionHandler.convertToKettleValues( m_topLevelRecord, m_topLevelRecord.getSchema(), space,
+            m_expansionHandler.convertToKettleValues( m_topLevelRecord, m_topLevelRecord.getSchema(), m_defaultSchema, space,
                 m_dontComplainAboutMissingFields );
       } else if ( m_schemaToUse.getType() == Schema.Type.ARRAY ) {
         result =
-            m_expansionHandler.convertToKettleValues( m_topLevelArray, m_schemaToUse, space,
+            m_expansionHandler.convertToKettleValues( m_topLevelArray, m_schemaToUse, m_defaultSchema, space,
                 m_dontComplainAboutMissingFields );
       } else {
         result =
-            m_expansionHandler.convertToKettleValues( m_topLevelMap, m_schemaToUse, space,
+            m_expansionHandler.convertToKettleValues( m_topLevelMap, m_schemaToUse, m_defaultSchema, space,
                 m_dontComplainAboutMissingFields );
       }
     } else {
@@ -1606,11 +1606,11 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
         // call getSchema() on the top level record here in case it has been
         // read as one of the elements from a top-level union
         value =
-            f.convertToKettleValue( m_topLevelRecord, m_topLevelRecord.getSchema(), m_dontComplainAboutMissingFields );
+            f.convertToKettleValue( m_topLevelRecord, m_topLevelRecord.getSchema(), m_defaultSchema, m_dontComplainAboutMissingFields );
       } else if ( m_schemaToUse.getType() == Schema.Type.ARRAY ) {
-        value = f.convertToKettleValue( m_topLevelArray, m_schemaToUse, m_dontComplainAboutMissingFields );
+        value = f.convertToKettleValue( m_topLevelArray, m_schemaToUse, m_defaultSchema, m_dontComplainAboutMissingFields );
       } else {
-        value = f.convertToKettleValue( m_topLevelMap, m_schemaToUse, m_dontComplainAboutMissingFields );
+        value = f.convertToKettleValue( m_topLevelMap, m_schemaToUse, m_defaultSchema, m_dontComplainAboutMissingFields );
       }
 
       outputRowData[f.m_outputIndex] = value;
@@ -1642,7 +1642,7 @@ public class AvroInputData extends BaseStepData implements StepDataInterface {
    * Converts an incoming row to outgoing format. Extracts fields from either an Avro object in the incoming row or from
    * the next structure in the container or non-container Avro file. May return more than one row if a map/array is
    * being expanded.
-   * 
+   *
    * @param incoming
    *          incoming kettle row - may be null if decoding from a file rather than a field
    * @param space
