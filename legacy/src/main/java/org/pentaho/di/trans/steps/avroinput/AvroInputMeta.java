@@ -25,12 +25,17 @@ package org.pentaho.di.trans.steps.avroinput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericFixed;
 import org.apache.avro.util.Utf8;
+import org.codehaus.jackson.node.IntNode;
+import org.codehaus.jackson.node.BooleanNode;
+import org.codehaus.jackson.node.LongNode;
+import org.codehaus.jackson.node.DoubleNode;
+import org.codehaus.jackson.node.NumericNode;
+import org.codehaus.jackson.node.TextNode;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
@@ -62,12 +67,12 @@ import org.w3c.dom.Node;
  * container files (where the schema is serialized into the file) and schemaless files. In the case of the later (and
  * incoming field), the user must supply a schema in order to read objects from the file/field. In the case of the
  * former, a schema can be optionally supplied.
- * 
+ *
  * Currently supports Avro records, arrays, maps, unions and primitive types. Union types are limited to two base types,
  * where one of the base types must be "null". Paths use the "dot" notation and "$" indicates the root of the object.
  * Arrays and maps are accessed via "[]" and differ only in that array elements are accessed via zero-based integer
  * indexes and map values are accessed by string keys.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
@@ -82,9 +87,9 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Inner class encapsulating a field to provide lookup values. Field values (non-avro) from the incoming row stream
    * can be substituted into the avro paths used to extract avro fields from an incoming binary/json avro field.
-   * 
+   *
    * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
-   * 
+   *
    */
   public static class LookupField {
 
@@ -165,7 +170,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Inner class for encapsulating name, path and type information for a field to be extracted from an Avro file.
-   * 
+   *
    * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
    * @version $Revision$
    */
@@ -191,7 +196,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     /**
      * Initialize this field by parsing the path etc.
-     * 
+     *
      * @param outputIndex
      *          the index in the output row structure for this field
      * @throws KettleException
@@ -231,7 +236,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     /**
      * Reset this field. Should be called prior to processing a new field value from the avro file
-     * 
+     *
      * @param space
      *          environment variables (values that environment variables resolve to cannot contain "."s)
      */
@@ -248,7 +253,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     /**
      * Perform Kettle type conversions for the Avro leaf field value.
-     * 
+     *
      * @param fieldValue
      *          the leaf value from the Avro structure
      * @return an Object of the appropriate Kettle type
@@ -279,7 +284,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     /**
      * Get the value of the Avro leaf primitive with respect to the Kettle type for this path.
-     * 
+     *
      * @param fieldValue
      *          the Avro leaf value
      * @param s
@@ -294,28 +299,56 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
         return null;
       }
 
-      switch ( s.getType() ) {
-        case BOOLEAN:
-        case LONG:
-        case DOUBLE:
-        case BYTES:
-        case ENUM:
-        case STRING:
-          return getKettleValue( fieldValue );
-        case INT:
-          return getKettleValue( new Long( (Integer) fieldValue ) );
-        case FLOAT:
-          return getKettleValue( new Double( (Float) fieldValue ) );
-        case FIXED:
-          return ( (GenericFixed) fieldValue ).bytes();
-        default:
-          return null;
+      try {
+
+        switch ( s.getType() ) {
+          case BOOLEAN:
+            if ( fieldValue.getClass() == BooleanNode.class ) {
+              return getKettleValue( ( (BooleanNode) fieldValue ).getBooleanValue() );
+            }
+            return getKettleValue( fieldValue );
+          case LONG:
+            if ( fieldValue.getClass() == LongNode.class ) {
+              return getKettleValue( ( (LongNode) fieldValue ).getLongValue() );
+            }
+            return getKettleValue( fieldValue );
+          case DOUBLE:
+            if ( fieldValue.getClass() == DoubleNode.class ) {
+              return getKettleValue( ( (DoubleNode) fieldValue ).getDoubleValue() );
+            }
+            return getKettleValue( fieldValue );
+          case STRING:
+            if ( fieldValue.getClass() == TextNode.class ) {
+              return getKettleValue( fieldValue.toString() );
+            }
+            return getKettleValue( fieldValue );
+          case BYTES:
+          case ENUM:
+            return getKettleValue( fieldValue );
+          case INT:
+            if ( fieldValue.getClass() == IntNode.class ) {
+              return getKettleValue( new Long( ( (IntNode) fieldValue ).getIntValue() ) );
+            }
+            return getKettleValue( new Long( (Integer) fieldValue ) );
+          case FLOAT:
+            if ( fieldValue instanceof NumericNode ) {
+              return getKettleValue( ( (DoubleNode) fieldValue ).getDoubleValue() );
+            }
+            return getKettleValue( new Double( (Float) fieldValue ) );
+          case FIXED:
+            return ( (GenericFixed) fieldValue ).bytes();
+          default:
+            return null;
+        }
+
+      } catch ( ClassCastException e ) {
+        return null;
       }
     }
 
     /**
      * Processes a map at this point in the path.
-     * 
+     *
      * @param map
      *          the map to process
      * @param s
@@ -327,7 +360,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
      *           if a problem occurs
      */
     public Object convertToKettleValue(
-        Map<Utf8, Object> map, Schema s, boolean ignoreMissing ) throws KettleException {
+        Map<Utf8, Object> map, Schema s, Schema defaultSchema, boolean ignoreMissing ) throws KettleException {
 
       if ( map == null ) {
         return null;
@@ -395,11 +428,11 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
       // what have we got?
       if ( valueType.getType() == Schema.Type.RECORD ) {
-        return convertToKettleValue( (GenericData.Record) value, valueType, ignoreMissing );
+        return convertToKettleValue( (GenericData.Record) value, valueType, defaultSchema, ignoreMissing );
       } else if ( valueType.getType() == Schema.Type.ARRAY ) {
-        return convertToKettleValue( (GenericData.Array) value, valueType, ignoreMissing );
+        return convertToKettleValue( (GenericData.Array) value, valueType, defaultSchema, ignoreMissing );
       } else if ( valueType.getType() == Schema.Type.MAP ) {
-        return convertToKettleValue( (Map<Utf8, Object>) value, valueType, ignoreMissing );
+        return convertToKettleValue( (Map<Utf8, Object>) value, valueType, defaultSchema, ignoreMissing );
       } else {
         // assume a primitive
         return getPrimitive( value, valueType );
@@ -408,7 +441,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     /**
      * Processes an array at this point in the path.
-     * 
+     *
      * @param array
      *          the array to process
      * @param s
@@ -419,7 +452,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
      * @throws KettleException
      *           if a problem occurs
      */
-    public Object convertToKettleValue( GenericData.Array array, Schema s, boolean ignoreMissing )
+    public Object convertToKettleValue( GenericData.Array array, Schema s, Schema defaultSchema, boolean ignoreMissing )
       throws KettleException {
 
       if ( array == null ) {
@@ -498,11 +531,11 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
       // what have we got?
       if ( elementType.getType() == Schema.Type.RECORD ) {
-        return convertToKettleValue( (GenericData.Record) element, elementType, ignoreMissing );
+        return convertToKettleValue( (GenericData.Record) element, elementType, defaultSchema, ignoreMissing );
       } else if ( elementType.getType() == Schema.Type.ARRAY ) {
-        return convertToKettleValue( (GenericData.Array) element, elementType, ignoreMissing );
+        return convertToKettleValue( (GenericData.Array) element, elementType, defaultSchema, ignoreMissing );
       } else if ( elementType.getType() == Schema.Type.MAP ) {
-        return convertToKettleValue( (Map<Utf8, Object>) element, elementType, ignoreMissing );
+        return convertToKettleValue( (Map<Utf8, Object>) element, elementType, defaultSchema, ignoreMissing );
       } else {
         // assume a primitive (covers bytes encapsulated in FIXED type)
         return getPrimitive( element, elementType );
@@ -511,7 +544,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     /**
      * Processes a record at this point in the path.
-     * 
+     *
      * @param record
      *          the record to process
      * @param s
@@ -522,7 +555,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
      * @throws KettleException
      *           if a problem occurs
      */
-    public Object convertToKettleValue( GenericData.Record record, Schema s, boolean ignoreMissing )
+    public Object convertToKettleValue( GenericData.Record record, Schema s, Schema defaultSchema, boolean ignoreMissing )
       throws KettleException {
 
       if ( record == null ) {
@@ -554,7 +587,11 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
       Object field = record.get( part );
 
       if ( field == null ) {
-        return null;
+        fieldS = defaultSchema.getField( part );
+        if ( fieldS == null || fieldS.defaultValue() == null ) {
+          return null;
+        }
+        field = fieldS.defaultValue();
       }
 
       Schema.Type fieldT = fieldS.schema().getType();
@@ -604,11 +641,11 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
       // what have we got?
       if ( fieldT == Schema.Type.RECORD ) {
-        return convertToKettleValue( (GenericData.Record) field, fieldSchema, ignoreMissing );
+        return convertToKettleValue( (GenericData.Record) field, fieldSchema, defaultSchema, ignoreMissing );
       } else if ( fieldT == Schema.Type.ARRAY ) {
-        return convertToKettleValue( (GenericData.Array) field, fieldSchema, ignoreMissing );
+        return convertToKettleValue( (GenericData.Array) field, fieldSchema, defaultSchema, ignoreMissing );
       } else if ( fieldT == Schema.Type.MAP ) {
-        return convertToKettleValue( (Map<Utf8, Object>) field, fieldSchema, ignoreMissing );
+        return convertToKettleValue( (Map<Utf8, Object>) field, fieldSchema, defaultSchema, ignoreMissing );
       } else {
         // assume primitive (covers bytes encapsulated in FIXED type)
         return getPrimitive( field, fieldSchema );
@@ -668,7 +705,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether the avro to be decoded is contained in an incoming field
-   * 
+   *
    * @param a
    *          true if the avro to be decoded is contained in an incoming field
    */
@@ -678,7 +715,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether the avro to be decoded is contained in an incoming field
-   * 
+   *
    * @return true if the avro to be decoded is contained in an incoming field
    */
   public boolean getAvroInField() {
@@ -687,7 +724,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the name of the incoming field to decode avro from (if decoding from a field rather than a file)
-   * 
+   *
    * @param f
    *          the name of the incoming field to decode from
    */
@@ -697,7 +734,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the name of the incoming field to decode avro from (if decoding from a field rather than a file)
-   * 
+   *
    * @return the name of the incoming field to decode from
    */
   public String getAvroFieldName() {
@@ -706,7 +743,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether the schema to use for decoding incoming Avro objects is contained in an incoming field
-   * 
+   *
    * @param s
    *          true if the schema to use for decoding incoming objects is itself in an incoming field
    */
@@ -716,7 +753,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether the schema to use for decoding incoming Avro objects is contained in an incoming field
-   * 
+   *
    * @return true if the schema to use for decoding incoming objects is itself in an incoming field
    */
   public boolean getSchemaInField() {
@@ -725,7 +762,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the name of the incoming field that contains the schema to use.
-   * 
+   *
    * @param fn
    *          the name of the incoming field that holds the schema to use
    */
@@ -735,7 +772,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the name of the incoming field that contains the schema to use.
-   * 
+   *
    * @return the name of the incoming field that holds the schema to use
    */
   public String getSchemaFieldName() {
@@ -744,7 +781,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether the incoming schema field value contains a path to a schema on disk.
-   * 
+   *
    * @param p
    *          true if the incoming schema field value is actually a path to an on disk schema file.
    */
@@ -754,7 +791,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether the incoming schema field value contains a path to a schema on disk.
-   * 
+   *
    * @return true if the incoming schema field value is actually a path to an on disk schema file.
    */
   public boolean getSchemaInFieldIsPath() {
@@ -763,7 +800,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether to cache schemas in memory when they are being supplied via an incoming field.
-   * 
+   *
    * @param c
    *          true if schemas are to be cached in memory.
    */
@@ -773,7 +810,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether to cache schemas in memory when they are being supplied via an incoming field.
-   * 
+   *
    * @return true if schemas are to be cached in memory.
    */
   public boolean getCacheSchemasInMemory() {
@@ -782,7 +819,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the avro filename
-   * 
+   *
    * @param filename
    *          the avro filename
    */
@@ -792,7 +829,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the avro filename
-   * 
+   *
    * @return the avro filename
    */
   public String getFilename() {
@@ -801,7 +838,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the schema filename to use
-   * 
+   *
    * @param schemaFile
    *          the name of the schema file to use
    */
@@ -811,7 +848,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the schema filename to use
-   * 
+   *
    * @return the name of the schema file to use
    */
   public String getSchemaFilename() {
@@ -820,7 +857,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether the avro file to read is json encoded rather than binary
-   * 
+   *
    * @return true if the file to read is json encoded
    */
   public boolean getAvroIsJsonEncoded() {
@@ -829,7 +866,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether the avro file to read is json encoded rather than binary
-   * 
+   *
    * @param j
    *          true if the file to read is json encoded
    */
@@ -839,7 +876,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the Avro fields that will be extracted
-   * 
+   *
    * @param fields
    *          the Avro fields that will be extracted
    */
@@ -849,7 +886,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the Avro fields that will be extracted
-   * 
+   *
    * @return the Avro fields that will be extracted
    */
   public List<AvroField> getAvroFields() {
@@ -858,7 +895,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the incoming field values that will be used for lookup/substitution in the avro paths
-   * 
+   *
    * @return the lookup fields
    */
   public List<LookupField> getLookupFields() {
@@ -867,7 +904,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the incoming field values that will be used for lookup/substitution in the avro paths
-   * 
+   *
    * @param lookups
    *          the lookup fields
    */
@@ -878,7 +915,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set whether null is to be output if a user-supplied field path does not exist in the Avro schema being used.
    * Otherwise, an exception is raised
-   * 
+   *
    * @param c
    *          true to ignore missing fields
    */
@@ -889,7 +926,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Get whether null is to be output if a user-supplied field path does not exist in the Avro schema being used.
    * Otherwise, an exception is raised
-   * 
+   *
    * @return true to ignore missing fields
    */
   public boolean getDontComplainAboutMissingFields() {
@@ -989,7 +1026,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Helper function that takes a list of indexed values and returns them as a String in comma-separated form.
-   * 
+   *
    * @param indexedVals
    *          a list of indexed values
    * @return the list a String in comma-separated form
@@ -1009,7 +1046,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Helper function that takes a comma-separated list in a String and returns a list.
-   * 
+   *
    * @param indexedVals
    *          the String containing the lsit
    * @return a List containing the values
