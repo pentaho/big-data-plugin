@@ -53,7 +53,6 @@
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
     <dependency.mondrian.revision>3.13-SNAPSHOT</dependency.mondrian.revision>
     <dependency.kettle.revision>7.0-SNAPSHOT</dependency.kettle.revision>
-    <dependency.hadoop-shims-hadoop-20.revision>7.0-SNAPSHOT</dependency.hadoop-shims-hadoop-20.revision>
     <dependency.pentaho-reporting.revision>7.0-SNAPSHOT</dependency.pentaho-reporting.revision>
     <dependency.slf4j.revision>1.7.3</dependency.slf4j.revision>
     <dependency.jets3t.revision>0.9.3</dependency.jets3t.revision>
