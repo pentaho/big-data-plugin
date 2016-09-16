@@ -148,9 +148,10 @@ public class HiveDriverTest {
   @Test
   public void testAcceptsUrlExceptionGettingId() throws SQLException {
     when( delegate.acceptsURL( testUrl ) ).thenReturn( true );
-    assertFalse( new HiveDriver( delegate, null, true, jdbcUrlParser ) {
-      @Override String getHadoopConfigurationId( NamedCluster namedCluster ) {
-        throw new RuntimeException();
+    assertFalse( new HiveDriver( delegate, null, true, jdbcUrlParser ){
+      @Override
+      public Driver checkBeforeCallActiveDriver(String url) throws SQLException {
+        throw new SQLException("Mock Exception");
       }
     }.acceptsURL( testUrl ) );
   }
@@ -172,23 +173,7 @@ public class HiveDriverTest {
   public void testAcceptsUrlNotDefaultWithConfigId() throws SQLException {
     when( delegate.acceptsURL( testUrl ) ).thenReturn( true );
     String testId = "testId";
-    assertTrue( new HiveDriver( delegate, testId, false, jdbcUrlParser ) {
-      @Override String getHadoopConfigurationId( NamedCluster namedCluster ) {
-        return testId;
-      }
-    }.acceptsURL( testUrl ) );
-    assertFalse( new HiveDriver( delegate, testId, false, jdbcUrlParser ) {
-      @Override String getHadoopConfigurationId( NamedCluster namedCluster ) {
-        return "OtherId";
-      }
-    }.acceptsURL( testUrl ) );
-  }
-
-  @Test
-  public void testGetHadoopConfigurationId() {
-    NamedCluster namedCluster = mock( NamedCluster.class );
-    assertNull( hiveDriver.getHadoopConfigurationId( namedCluster ) );
-    assertNull( hiveDriver.getHadoopConfigurationId( null ) );
+    assertFalse( new HiveDriver( delegate, testId, false, jdbcUrlParser ).acceptsURL( testUrl ) );
   }
 
   @Test
