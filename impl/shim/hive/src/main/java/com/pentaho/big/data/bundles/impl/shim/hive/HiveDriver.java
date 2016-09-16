@@ -22,7 +22,6 @@
 
 package com.pentaho.big.data.bundles.impl.shim.hive;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.jdbc.JdbcUrl;
 import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
@@ -100,35 +99,18 @@ public class HiveDriver implements Driver {
 
   @Override public final boolean acceptsURL( String url ) throws SQLException {
     try {
-      return acceptsURL( url, checkBeforeCallActiveDriver( url ),
-        jdbcUrlParser.parse( url ).getNamedCluster() );
+      return acceptsURL( url, checkBeforeCallActiveDriver( url ), null );
     } catch ( Exception e ) {
       return false;
     }
-  }
-
-  @VisibleForTesting
-  String getHadoopConfigurationId( NamedCluster namedCluster ) {
-    // TODO specify shim
-    if ( namedCluster == null ) {
-      return null;
-    }
-    return null;
   }
 
   private final boolean acceptsURL( String url, Driver driver, NamedCluster namedCluster ) throws SQLException {
-    try {
-      String hadoopConfigurationId = getHadoopConfigurationId( namedCluster );
-      if ( hadoopConfigurationId == null ) {
-        if ( !defaultConfiguration ) {
-          return false;
-        }
-      } else if ( !hadoopConfigurationId.equals( this.hadoopConfigurationId ) ) {
-        return false;
-      }
-    } catch ( Exception e ) {
+
+    if ( !defaultConfiguration ) {
       return false;
     }
+
     if ( driver == null ) {
       return false;
     }
