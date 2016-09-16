@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.api.jdbc.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.initializer.ClusterInitializer;
 import org.pentaho.big.data.api.jdbc.JdbcUrlParser;
 import org.pentaho.di.core.database.DelegatingDriver;
@@ -41,7 +42,10 @@ import java.util.logging.Logger;
  * Created by bryan on 4/27/16.
  */
 public class ClusterInitializingDriver implements Driver {
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger( ClusterInitializingDriver.class );
+
+  @VisibleForTesting
+  protected static org.slf4j.Logger logger = LoggerFactory.getLogger( ClusterInitializingDriver.class );
+
   private final ClusterInitializer clusterInitializer;
   private final JdbcUrlParser jdbcUrlParser;
 
@@ -94,7 +98,14 @@ public class ClusterInitializingDriver implements Driver {
       // But this had the potential to create a block.  BACKLOG-10983
       clusterInitializer.initialize( null );
     } catch ( Exception e ) {
-      logger.warn( "Can't parse " + url, e );
+      // Don't want to depend on legacy, so can't directly
+      // check for NoShimSpecifiedException
+      if ( e.getCause() != null
+        && e.getCause().getClass().getName().contains( "NoShimSpecifiedException" ) ) {
+        logger.debug( "No shim specified", e );
+      } else {
+        logger.error( "Failed to initialize cluster", e );
+      }
     }
   }
 

@@ -43,10 +43,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by bryan on 4/29/16.
@@ -59,6 +57,9 @@ public class ClusterInitializingDriverTest {
   @Mock HasRegisterDriver hasRegisterDriver;
   @Mock NamedCluster namedCluster;
   @Mock JdbcUrl jdbcUrl;
+  @Mock org.slf4j.Logger mockLogger;
+  @Mock Exception exception;
+
   Integer numLazyProxies;
   ClusterInitializingDriver clusterInitializingDriver;
   String testUrl;
@@ -68,7 +69,9 @@ public class ClusterInitializingDriverTest {
     numLazyProxies = 6;
     clusterInitializingDriver =
       new ClusterInitializingDriver( clusterInitializer, jdbcUrlParser, driverRegistry, numLazyProxies,
-        hasRegisterDriver );
+        hasRegisterDriver ) { {
+        logger = mockLogger;
+      } };
     verify( hasRegisterDriver, times( 7 ) ).registerDriver( any() );
     testUrl = "testUrl";
     when( jdbcUrlParser.parse( testUrl ) ).thenReturn( jdbcUrl );
@@ -106,6 +109,29 @@ public class ClusterInitializingDriverTest {
   }
 
   @Test
+  public void testConfigFailureLoggedAsError() throws SQLException, ClusterInitializationException {
+    RuntimeException badness = new RuntimeException( "badness" );
+    doThrow( badness )
+      .when( clusterInitializer ).initialize( null );
+    assertFalse( clusterInitializingDriver.acceptsURL( testUrl ) );
+    verify( clusterInitializer ).initialize( null );
+    verify( mockLogger ).error( anyString(), same( badness ) );
+    verifyNoMoreInteractions( mockLogger );
+  }
+
+  @Test
+  public void testNoShimDefinedLoggedAsDebug() throws SQLException, ClusterInitializationException {
+    RuntimeException re = new RuntimeException(
+      new NoShimSpecifiedException( "foo" ) );
+    doThrow( re )
+      .when( clusterInitializer ).initialize( null );
+    assertFalse( clusterInitializingDriver.acceptsURL( testUrl ) );
+    verify( clusterInitializer ).initialize( null );
+    verify( mockLogger ).debug( anyString(), same( re ) );
+    verifyNoMoreInteractions( mockLogger );
+  }
+
+  @Test
   public void testGetPropertyInfo() throws SQLException {
     assertEquals( 0, clusterInitializingDriver.getPropertyInfo( null, null ).length );
   }
@@ -128,5 +154,11 @@ public class ClusterInitializingDriverTest {
   @Test
   public void testGetParentLogger() throws SQLFeatureNotSupportedException {
     assertNull( clusterInitializingDriver.getParentLogger() );
+  }
+
+  class NoShimSpecifiedException extends RuntimeException {
+    public NoShimSpecifiedException( String message ) {
+      super( message );
+    }
   }
 }
