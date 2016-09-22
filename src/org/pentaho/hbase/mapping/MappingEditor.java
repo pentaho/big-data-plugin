@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -86,7 +86,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   protected boolean m_allowTableCreate;
 
   protected NamedClusterWidget namedClusterWidget;
-  
+
   // table name line
   protected CCombo m_existingTableNamesCombo;
   protected Button m_getTableNames;
@@ -290,13 +290,13 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ), ColumnInfo.COLUMN_TYPE_TEXT,
               false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
-              true ),
+              false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
-              true ),
+              false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_NAME" ), ColumnInfo.COLUMN_TYPE_TEXT,
               false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
-              true ),
+              false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT,
               false ), };
 
@@ -1127,8 +1127,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     if ( nc != null ) {
       zookeeperHosts = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
       zookeeperPort =  m_transMeta.environmentSubstitute( nc.getZooKeeperPort() );
-    }      
-    
+    }
+
     conf = HBaseInputData.getHBaseConnection( zookeeperHosts, zookeeperPort, null, null, null );
 
     return conf;
@@ -1137,9 +1137,9 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   public String getCurrentConfiguration() {
     String host = "";
     String port = "";
-    
+
     NamedCluster nc = namedClusterWidget.getSelectedNamedCluster();
-    
+
     if ( nc != null ) {
       host = m_transMeta.environmentSubstitute( nc.getZooKeeperHost() );
       port =  m_transMeta.environmentSubstitute( nc.getZooKeeperPort() );
