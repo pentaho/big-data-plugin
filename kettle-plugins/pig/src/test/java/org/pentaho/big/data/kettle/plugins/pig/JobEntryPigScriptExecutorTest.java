@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -202,4 +204,29 @@ public class JobEntryPigScriptExecutorTest {
     verify( result ).setNrErrors( 10 );
     verify( result ).setResult( false );
   }
+
+  @Test
+  public void testGettingFailedStatusIfExecutionException() {
+    pigResult = mock( PigResult.class );
+    result = new Result(  );
+    when( pigResult.getResult() ).thenReturn( null );
+    when( pigResult.getException() ).thenReturn( new Exception(  ) );
+    jobEntryPigScriptExecutor.processScriptExecutionResult( pigResult, result );
+    assertFalse( result.getResult() );
+    assertTrue( result.isStopped() );
+    assertEquals( 1L, result.getNrErrors() );
+  }
+
+  @Test
+  public void testGettingFailedStatusIfNrErrors() {
+    pigResult = mock( PigResult.class );
+    result = new Result(  );
+    when( pigResult.getResult() ).thenReturn( new int[] { 0, 1} ).thenReturn( null );
+    when( pigResult.getException() ).thenReturn( null );
+    jobEntryPigScriptExecutor.processScriptExecutionResult(  pigResult, result );
+    assertFalse( result.getResult() );
+    assertTrue( result.isStopped() );
+    assertEquals( 1L, result.getNrErrors() );
+  }
+
 }
