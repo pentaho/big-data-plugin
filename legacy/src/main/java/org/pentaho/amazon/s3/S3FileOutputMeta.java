@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -63,7 +63,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   @Injection( name = "AWS_ACCESS_KEY" )
   private String accessKey = null;
-  
+
   @Injection( name = "AWS_SECRET_KEY" )
   private String secretKey = null;
 
