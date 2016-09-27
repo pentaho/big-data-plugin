@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -73,6 +73,7 @@ import org.w3c.dom.Node;
  */
 @Step( id = "AvroInput", image = "Avro.svg", name = "AvroInput.Name", description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+Input",
     i18nPackageName = "org.pentaho.di.trans.steps.avroinput" )
 public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 

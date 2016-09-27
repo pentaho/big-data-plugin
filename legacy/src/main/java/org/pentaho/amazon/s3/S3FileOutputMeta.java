@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -48,6 +48,7 @@ import org.w3c.dom.Node;
 
 @Step( id = "S3FileOutputPlugin", image = "S3O.svg", name = "S3FileOutput.Name",
     description = "S3FileOutput.Description",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/S3+File+Output",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
     i18nPackageName = "org.pentaho.amazon.s3" )
 @InjectionSupported( localizationPrefix = "S3FileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
@@ -62,7 +63,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   @Injection( name = "AWS_ACCESS_KEY" )
   private String accessKey = null;
-  
+
   @Injection( name = "AWS_SECRET_KEY" )
   private String secretKey = null;
 

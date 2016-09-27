@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -56,6 +56,7 @@ import java.util.List;
  */
 @Step( id = "CouchDbInput", image = "couchdb-input.svg", name = "CouchDbInput.Name",
   description = "CouchDbInput.Description",
+  documentationUrl = "http://wiki.pentaho.com/display/EAI/CouchDB+Input",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   i18nPackageName = "org.pentaho.di.trans.steps.couchdbinput" )
 public class CouchDbInputMeta extends BaseStepMeta implements StepMetaInterface {
