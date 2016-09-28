@@ -407,15 +407,21 @@ public class OozieJobExecutorJobEntryController extends
   @Bindable
   public void testSettings() {
     syncModel();
-    List<String> warnings = jobEntry.getValidationWarnings( getConfig() );
-    if ( !warnings.isEmpty() ) {
-      StringBuilder sb = new StringBuilder();
-      for ( String warning : warnings ) {
-        sb.append( warning ).append( "\n" );
+    try {
+      List<String> warnings = jobEntry.getValidationWarnings( getConfig() );
+      if ( !warnings.isEmpty() ) {
+        StringBuilder sb = new StringBuilder();
+        for ( String warning : warnings ) {
+          sb.append( warning ).append( "\n" );
+        }
+        showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
+          .toString() );
+        return;
       }
-      showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
-        .toString() );
-      return;
+    } catch ( RuntimeException re ) {
+      showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ),
+        re.getMessage() );
+      throw re;
     }
     showInfoDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Info.Dialog.Title" ), BaseMessages
       .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
