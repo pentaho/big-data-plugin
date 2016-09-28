@@ -24,11 +24,13 @@ package org.pentaho.big.data.kettle.plugins.hive;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.pentaho.database.DatabaseDialectException;
 import org.pentaho.database.model.DatabaseAccessType;
 import org.pentaho.database.model.DatabaseConnection;
 import org.pentaho.database.model.IDatabaseType;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 public class Hive2SimbaDatabaseDialectTest {
 
@@ -44,11 +46,28 @@ public class Hive2SimbaDatabaseDialectTest {
   }
 
   @Test
-  public void testGetURL() throws Exception {
+  public void testGetURLNative() throws Exception {
     DatabaseConnection conn = new DatabaseConnection();
     conn.setAccessType( DatabaseAccessType.NATIVE );
-    Assert
-        .assertEquals( dialect.getURL( conn ), "jdbc:hive2://null:null/null;AuthMech=0" );
+    conn.setUsername( "joe" );
+    assertThat( dialect.getURL( conn ), is( "jdbc:hive2://null:10000/default;AuthMech=2;UID=joe" ) );
+  }
+
+  @Test
+  public void testGetURLJndi() throws DatabaseDialectException {
+    DatabaseConnection conn = new DatabaseConnection();
+    conn.setAccessType( DatabaseAccessType.JNDI );
+    assertThat( dialect.getURL( conn ),
+      is( SimbaUrl.URL_IS_CONFIGURED_THROUGH_JNDI ) );
+  }
+
+  @Test
+  public void testGetUrlODBC() throws DatabaseDialectException {
+    DatabaseConnection conn = new DatabaseConnection();
+    conn.setAccessType( DatabaseAccessType.ODBC );
+    conn.setDatabaseName( "mydb" );
+    assertThat( dialect.getURL( conn ),
+      is( "jdbc:odbc:mydb" ) );
   }
 
   @Test
@@ -64,17 +83,17 @@ public class Hive2SimbaDatabaseDialectTest {
   @Test
   public void testGetDatabaseType() {
     IDatabaseType dbType = dialect.getDatabaseType();
-    assertEquals( dbType.getName(), "Hadoop Hive 2 (Simba)" );
+    assertThat( dbType.getName(), is( "Hadoop Hive 2 (Simba)" ) );
   }
 
   @Test
   public void testGetReservedWords() {
-    Assert.assertFalse( dialect.getReservedWords().length > 0 );
+    assertFalse( dialect.getReservedWords().length > 0 );
   }
 
   @Test
   public void testSupportsBitmapIndex() {
-    Assert.assertTrue( dialect.supportsBitmapIndex() );
+    assertTrue( dialect.supportsBitmapIndex() );
   }
 
   @Test

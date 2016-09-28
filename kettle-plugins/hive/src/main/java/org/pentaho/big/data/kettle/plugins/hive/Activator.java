@@ -38,13 +38,13 @@ import java.util.stream.Collectors;
  * Created by bryan on 5/6/16.
  */
 public class Activator implements BundleActivator {
-  public static final String I_DATABASE_DIALECT_CANONICAL_NAME = IDatabaseDialect.class.getCanonicalName();
+  private static final String I_DATABASE_DIALECT_CANONICAL_NAME = IDatabaseDialect.class.getCanonicalName();
 
   private final List<ServiceRegistration> serviceRegistrations = new ArrayList<>();
 
   private final List<Supplier<IDatabaseDialect>> databaseDialectSuppliers = Collections.unmodifiableList( Arrays
     .asList( Hive2DatabaseDialect::new, Hive2SimbaDatabaseDialect::new, ImpalaDatabaseDialect::new,
-      ImpalaSimbaDatabaseDialect::new ) );
+      ImpalaSimbaDatabaseDialect::new, SparkSimbaDatabaseDialect::new ) );
 
   @Override public void start( BundleContext context ) throws Exception {
     serviceRegistrations.addAll( databaseDialectSuppliers.stream()
