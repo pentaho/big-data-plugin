@@ -46,22 +46,20 @@ import java.sql.Driver;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
+import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_HOST_FQDN;
+import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_SERVICE_NAME;
 
-/**
- * Created by bryan on 10/21/15.
- */
 @RunWith( MockitoJUnitRunner.class )
 public class BaseSimbaDatabaseMetaTest {
-  public static final String LOCALHOST = "localhost";
-  public static final String PORT = "10000";
-  public static final String DEFAULT = "default";
-  @Mock DriverLocator driverLocator;
-  @Mock Driver driver;
+  private static final String LOCALHOST = "localhost";
+  private static final String PORT = "10000";
+  private static final String DEFAULT = "default";
+  @Mock private DriverLocator driverLocator;
+  @Mock private Driver driver;
   private BaseSimbaDatabaseMeta baseSimbaDatabaseMeta;
-  private String baseSimbaDatabaseMetaURL;
 
-  String driverClassname = "driverClassname";
-  String jdbcPrefix = "jdbc:prefix://";
+  private String driverClassname = "driverClassname";
+  private String jdbcPrefix = "jdbc:prefix://";
 
   @Before
   public void setup() throws Throwable {
@@ -74,7 +72,7 @@ public class BaseSimbaDatabaseMetaTest {
         return driverClassname;
       }
     };
-    baseSimbaDatabaseMetaURL = baseSimbaDatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
+    String baseSimbaDatabaseMetaURL = baseSimbaDatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
     when( driverLocator.getDriver( baseSimbaDatabaseMetaURL ) ).thenReturn( driver );
   }
 
@@ -133,8 +131,8 @@ public class BaseSimbaDatabaseMetaTest {
     String testPort = "1111";
     String testDb = "testDb";
     // Regular properties
-    baseSimbaDatabaseMeta.getAttributes().put( ImpalaSimbaDatabaseMeta.KRB_HOST_FQDN, "fqdn" );
-    baseSimbaDatabaseMeta.getAttributes().put( Hive2SimbaDatabaseMeta.KRB_SERVICE_NAME, "service" );
+    baseSimbaDatabaseMeta.getAttributes().put( KRB_HOST_FQDN, "fqdn" );
+    baseSimbaDatabaseMeta.getAttributes().put( KRB_SERVICE_NAME, "service" );
     String urlString = baseSimbaDatabaseMeta.getURL( testHost, testPort, testDb );
     assertTrue( urlString.startsWith( jdbcPrefix ) );
     URL url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );
@@ -146,10 +144,10 @@ public class BaseSimbaDatabaseMetaTest {
     baseSimbaDatabaseMeta = new ImpalaSimbaDatabaseMeta( driverLocator );
     baseSimbaDatabaseMeta.getAttributes().put(
       Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + baseSimbaDatabaseMeta.getPluginId() + "."
-        + Hive2SimbaDatabaseMeta.KRB_HOST_FQDN, "fqdn" );
+        + KRB_HOST_FQDN, "fqdn" );
     baseSimbaDatabaseMeta.getAttributes()
       .put( Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + baseSimbaDatabaseMeta.getPluginId() + "."
-        + Hive2SimbaDatabaseMeta.KRB_SERVICE_NAME, "service" );
+        + KRB_SERVICE_NAME, "service" );
     urlString = baseSimbaDatabaseMeta.getURL( testHost, testPort, testDb );
     assertTrue( urlString.startsWith( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX ) );
     url = new URL( "http://" + urlString.substring( ImpalaSimbaDatabaseMeta.JDBC_URL_PREFIX.length() ) );

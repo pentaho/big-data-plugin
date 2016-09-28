@@ -28,12 +28,16 @@ import org.pentaho.database.model.DatabaseConnection;
 import org.pentaho.database.model.DatabaseType;
 import org.pentaho.database.model.IDatabaseConnection;
 import org.pentaho.database.model.IDatabaseType;
-import org.pentaho.database.util.Const;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_HOST_FQDN;
+import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_SERVICE_NAME;
 
 /**
  * User: Dzmitry Stsiapanau Date: 8/28/2015 Time: 10:23
  */
 public class Hive2SimbaDatabaseDialect extends Hive2DatabaseDialect {
+
 
   public Hive2SimbaDatabaseDialect() {
     super();
@@ -43,8 +47,6 @@ public class Hive2SimbaDatabaseDialect extends Hive2DatabaseDialect {
    * UID for serialization
    */
   private static final long serialVersionUID = -8456961348836455937L;
-
-  protected static final String JDBC_URL_TEMPLATE = "jdbc:hive2://%s:%s/%s;AuthMech=%d%s";
 
   private static final IDatabaseType DBTYPE =
     new DatabaseType( "Hadoop Hive 2 (Simba)", "HIVE2SIMBA",
@@ -63,45 +65,18 @@ public class Hive2SimbaDatabaseDialect extends Hive2DatabaseDialect {
 
   @Override
   public String getURL( IDatabaseConnection databaseConnection ) throws DatabaseDialectException {
-    switch ( databaseConnection.getAccessType() ) {
-      case ODBC: {
-        return String.format( "jdbc:odbc:%s", databaseConnection.getDatabaseName() );
-      }
-      case JNDI: {
-        return "Url is configured through JNDI";
-      }
-      case NATIVE:
-      default: {
-        Integer authMethod = 0;
-        StringBuilder additional = new StringBuilder();
-        String userName = databaseConnection.getUsername();
-        String password = databaseConnection.getPassword();
-        String krbFQDN = getProperty( "KrbHostFQDN", databaseConnection );
-        String extraKrbFQDN = getExtraProperty( "KrbHostFQDN", databaseConnection );
-        String krbPrincipal = getProperty( "KrbServiceName", databaseConnection );
-        String extraKrbPrincipal = getExtraProperty( "KrbServiceName", databaseConnection );
-        if ( ( !Const.isEmpty( krbPrincipal ) || !Const.isEmpty( extraKrbPrincipal ) ) && ( !Const.isEmpty( krbFQDN )
-          || !Const.isEmpty( extraKrbFQDN ) ) ) {
-          authMethod = 1;
-        } else if ( !Const.isEmpty( userName ) ) {
-          additional.append( ";UID=" );
-          additional.append( userName );
-          if ( !Const.isEmpty( password ) ) {
-            authMethod = 3;
-            additional.append( ";PWD=" );
-            additional.append( password );
-          } else {
-            authMethod = 2;
-          }
-        }
-        return String.format( getJdbcUrlTemplate(), databaseConnection.getHostname(), databaseConnection.getDatabasePort(),
-          databaseConnection.getDatabaseName(), authMethod, additional );
-      }
-    }
-  }
-
-  protected String getJdbcUrlTemplate() {
-    return JDBC_URL_TEMPLATE;
+    return SimbaUrl.Builder.create()
+      .withAccessType( databaseConnection.getAccessType().ordinal() )
+      .withDatabaseName( databaseConnection.getDatabaseName() )
+      .withPort( databaseConnection.getDatabasePort() )
+      .withDefaultPort( getDefaultDatabasePort() )
+      .withHostname( databaseConnection.getHostname() )
+      .withJdbcPrefix( getNativeJdbcPre() )
+      .withUsername( databaseConnection.getUsername() )
+      .withPassword( databaseConnection.getPassword() )
+      .withIsKerberos( isKerberos( databaseConnection ) )
+      .build()
+      .getURL();
   }
 
   private String getExtraProperty( String key, IDatabaseConnection databaseConnection ) {
@@ -125,5 +100,12 @@ public class Hive2SimbaDatabaseDialect extends Hive2DatabaseDialect {
 
   @Override public boolean initialize( String classname ) {
     return true;
+  }
+
+  public boolean isKerberos( IDatabaseConnection databaseConnection ) {
+    return !( isNullOrEmpty( getProperty( KRB_HOST_FQDN, databaseConnection ) )
+      && isNullOrEmpty( getExtraProperty( KRB_HOST_FQDN, databaseConnection ) )
+      && isNullOrEmpty( getProperty( KRB_SERVICE_NAME, databaseConnection ) )
+      && isNullOrEmpty( getExtraProperty( KRB_SERVICE_NAME, databaseConnection ) ) );
   }
 }

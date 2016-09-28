@@ -19,24 +19,21 @@ package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
-public abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_HOST_FQDN;
+import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_SERVICE_NAME;
+
+abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
 
   @VisibleForTesting static final String ODBC_DRIVER_CLASS_NAME = "sun.jdbc.odbc.JdbcOdbcDriver";
-  @VisibleForTesting static final String KRB_HOST_FQDN = "KrbHostFQDN";
-  @VisibleForTesting static final String KRB_SERVICE_NAME = "KrbServiceName";
   @VisibleForTesting static final String URL_IS_CONFIGURED_THROUGH_JNDI = "Url is configured through JNDI";
   @VisibleForTesting static final String JDBC_ODBC_S = "jdbc:odbc:%s";
 
-  private final String jdbcUrlTemplate;
-  private static final String DEFAULT_DB = "default";
-
-  public BaseSimbaDatabaseMeta( DriverLocator driverLocator ) {
+  BaseSimbaDatabaseMeta( DriverLocator driverLocator ) {
     super( driverLocator );
-    jdbcUrlTemplate = getJdbcPrefix() + "%s:%d/%s;AuthMech=%d%s";
   }
 
   protected abstract String getJdbcPrefix();
@@ -49,49 +46,18 @@ public abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
   }
 
   @Override public String getURL( String hostname, String port, String databaseName ) {
-    Integer portNumber;
-    if ( Const.isEmpty( port ) ) {
-      portNumber = getDefaultDatabasePort();
-    } else {
-      portNumber = Integer.valueOf( port );
-    }
-    if ( Const.isEmpty( databaseName ) ) {
-      databaseName = DEFAULT_DB;
-    }
-    switch ( getAccessType() ) {
-      case DatabaseMeta.TYPE_ACCESS_ODBC: {
-        return String.format( JDBC_ODBC_S, databaseName );
-      }
-      case DatabaseMeta.TYPE_ACCESS_JNDI: {
-        return URL_IS_CONFIGURED_THROUGH_JNDI;
-      }
-      case DatabaseMeta.TYPE_ACCESS_NATIVE:
-      default: {
-        Integer authMethod = 0;
-        StringBuilder additional = new StringBuilder();
-        String userName = getUsername();
-        String password = getPassword();
-        String krbFQDN = getProperty( KRB_HOST_FQDN );
-        String extraKrbFQDN = getExtraProperty( KRB_HOST_FQDN );
-        String krbPrincipal = getProperty( KRB_SERVICE_NAME );
-        String extraKrbPrincipal = getExtraProperty( KRB_SERVICE_NAME );
-        if ( ( !Const.isEmpty( krbPrincipal ) || !Const.isEmpty( extraKrbPrincipal ) ) && ( !Const.isEmpty( krbFQDN )
-          || !Const.isEmpty( extraKrbFQDN ) ) ) {
-          authMethod = 1;
-        } else if ( !Const.isEmpty( userName ) ) {
-          additional.append( ";UID=" );
-          additional.append( userName );
-          if ( !Const.isEmpty( password ) ) {
-            authMethod = 3;
-            additional.append( ";PWD=" );
-            additional.append( password );
-          } else {
-            authMethod = 2;
-          }
-        }
-        return String.format( jdbcUrlTemplate, hostname, portNumber, databaseName, authMethod, additional );
-      }
-    }
+    return SimbaUrl.Builder.create()
+      .withAccessType( getAccessType() )
+      .withDatabaseName( databaseName )
+      .withPort( port )
+      .withDefaultPort( getDefaultDatabasePort() )
+      .withHostname( hostname )
+      .withJdbcPrefix( getJdbcPrefix() )
+      .withUsername( getUsername() )
+      .withPassword( getPassword() )
+      .withIsKerberos( isKerberos() )
+      .build()
+      .getURL();
   }
 
   private String getExtraProperty( String key ) {
@@ -165,5 +131,15 @@ public abstract class BaseSimbaDatabaseMeta extends Hive2DatabaseMeta {
         break;
     }
     return retval.toString();
+  }
+
+  /**
+   * Assume kerberos if any of the kerb props have been set.
+   */
+  private boolean isKerberos() {
+    return !( isNullOrEmpty( getProperty( KRB_HOST_FQDN ) )
+      && isNullOrEmpty( getExtraProperty( KRB_HOST_FQDN ) )
+      && isNullOrEmpty( getProperty( KRB_SERVICE_NAME ) )
+      && isNullOrEmpty( getExtraProperty( KRB_SERVICE_NAME ) ) );
   }
 }

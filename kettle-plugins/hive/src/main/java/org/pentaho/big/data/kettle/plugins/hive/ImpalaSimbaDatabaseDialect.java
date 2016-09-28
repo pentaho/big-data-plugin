@@ -74,10 +74,6 @@ public class ImpalaSimbaDatabaseDialect extends Hive2SimbaDatabaseDialect {
     return new String[] { "ImpalaJDBC41.jar" };
   }
 
-  @Override
-  protected String getJdbcUrlTemplate() {
-    return JDBC_URL_TEMPLATE;
-  }
 
   @Override public boolean initialize( String classname ) {
     return true;
