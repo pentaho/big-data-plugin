@@ -43,7 +43,7 @@ public class Activator implements BundleActivator {
   private final List<ServiceRegistration> serviceRegistrations = new ArrayList<>();
 
   private final List<Supplier<IDatabaseDialect>> databaseDialectSuppliers = Collections.unmodifiableList( Arrays
-    .asList( Hive2DatabaseDialect::new, Hive2SimbaDatabaseDialect::new, ImpalaDatabaseDialect::new,
+    .asList( Hive2DatabaseDialect::new, ImpalaDatabaseDialect::new,
       ImpalaSimbaDatabaseDialect::new, SparkSimbaDatabaseDialect::new ) );
 
   @Override public void start( BundleContext context ) throws Exception {
