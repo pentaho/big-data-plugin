@@ -40,6 +40,7 @@ import java.sql.SQLFeatureNotSupportedException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.any;
@@ -68,10 +69,10 @@ public class ClusterInitializingDriverTest {
   public void setup() throws SQLException, URISyntaxException, MetaStoreException {
     numLazyProxies = 6;
     clusterInitializingDriver =
-      new ClusterInitializingDriver( clusterInitializer, jdbcUrlParser, driverRegistry, numLazyProxies,
+      spy( new ClusterInitializingDriver( clusterInitializer, jdbcUrlParser, driverRegistry, numLazyProxies,
         hasRegisterDriver ) { {
         logger = mockLogger;
-      } };
+      } });
     verify( hasRegisterDriver, times( 7 ) ).registerDriver( any() );
     testUrl = "testUrl";
     when( jdbcUrlParser.parse( testUrl ) ).thenReturn( jdbcUrl );
@@ -92,6 +93,7 @@ public class ClusterInitializingDriverTest {
 
   @Test
   public void testConnect() throws SQLException, ClusterInitializationException {
+    doReturn( true ).when( clusterInitializingDriver ).checkIfUsesBigDataDriver( any() );
     assertNull( clusterInitializingDriver.connect( testUrl, null ) );
     verify( clusterInitializer ).initialize( null );
   }
@@ -104,12 +106,14 @@ public class ClusterInitializingDriverTest {
 
   @Test
   public void testAccept() throws SQLException, ClusterInitializationException {
+    doReturn( true ).when( clusterInitializingDriver ).checkIfUsesBigDataDriver( any() );
     assertFalse( clusterInitializingDriver.acceptsURL( testUrl ) );
     verify( clusterInitializer ).initialize( null );
   }
 
   @Test
   public void testConfigFailureLoggedAsError() throws SQLException, ClusterInitializationException {
+    doReturn( true ).when( clusterInitializingDriver ).checkIfUsesBigDataDriver( any() );
     RuntimeException badness = new RuntimeException( "badness" );
     doThrow( badness )
       .when( clusterInitializer ).initialize( null );
@@ -121,6 +125,7 @@ public class ClusterInitializingDriverTest {
 
   @Test
   public void testNoShimDefinedLoggedAsDebug() throws SQLException, ClusterInitializationException {
+    doReturn( true ).when( clusterInitializingDriver ).checkIfUsesBigDataDriver( any() );
     RuntimeException re = new RuntimeException(
       new NoShimSpecifiedException( "foo" ) );
     doThrow( re )
@@ -154,6 +159,16 @@ public class ClusterInitializingDriverTest {
   @Test
   public void testGetParentLogger() throws SQLFeatureNotSupportedException {
     assertNull( clusterInitializingDriver.getParentLogger() );
+  }
+
+  @Test
+  public void testCheckIfUsesBigDataDriver() {
+    assertTrue( clusterInitializingDriver.checkIfUsesBigDataDriver( "jdbc:hive2://localhost:10000" ) );
+  }
+
+  @Test
+  public void testCheckIfUsesBigDataDriverReturnFalse() {
+    assertFalse( clusterInitializingDriver.checkIfUsesBigDataDriver( "jdbc:postgresql://localhost/test" ) );
   }
 
   class NoShimSpecifiedException extends RuntimeException {
