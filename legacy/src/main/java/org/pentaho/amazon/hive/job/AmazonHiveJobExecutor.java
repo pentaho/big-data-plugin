@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -78,6 +78,7 @@ import com.amazonaws.services.s3.model.S3Object;
 @JobEntry( id = "HiveJobExecutorPlugin", image = "AWS-HIVE.svg", name = "HiveJobExecutorPlugin.Name",
     description = "HiveJobExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Amazon+Hive+Job+Executor",
     i18nPackageName = "org.pentaho.amazon.hive.job" )
 public class AmazonHiveJobExecutor extends AbstractAmazonJobEntry implements Cloneable, JobEntryInterface {
 

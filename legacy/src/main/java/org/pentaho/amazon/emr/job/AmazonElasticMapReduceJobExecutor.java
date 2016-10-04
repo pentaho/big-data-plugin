@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -77,6 +77,7 @@ import com.amazonaws.services.s3.model.S3Object;
 @JobEntry( id = "EMRJobExecutorPlugin", image = "EMR.svg", name = "EMRJobExecutorPlugin.Name",
     description = "EMRJobExecutorPlugin.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Amazon+EMR+Job+Executor",
     i18nPackageName = "org.pentaho.amazon.emr.job" )
 public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry implements Cloneable, JobEntryInterface {
 
