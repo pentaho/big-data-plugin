@@ -190,6 +190,7 @@ public class HBaseValueMetaInterfaceFactoryImpl implements HBaseValueMetaInterfa
     result.setConversionMask( hBaseValueMetaInterface.getConversionMask() );
     result.setIndex( hBaseValueMetaInterface.getIndex() );
     result.setStorageType( hBaseValueMetaInterface.getStorageType() );
+    result.setIsLongOrDouble( hBaseValueMetaInterface.getIsLongOrDouble() );
     return result;
   }
 
@@ -203,6 +204,7 @@ public class HBaseValueMetaInterfaceFactoryImpl implements HBaseValueMetaInterfa
     result.setConversionMask( hBaseValueMeta.getConversionMask() );
     result.setIndex( hBaseValueMeta.getIndex() );
     result.setStorageType( hBaseValueMeta.getStorageType() );
+    result.setIsLongOrDouble( hBaseValueMeta.getIsLongOrDouble() );
     return result;
   }
 }
