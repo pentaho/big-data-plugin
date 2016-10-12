@@ -22,6 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import java.sql.Driver;
+import java.util.Arrays;
+import java.util.Map;
+import org.hamcrest.collection.IsMapContaining;
+import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,10 +36,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 
-import java.sql.Driver;
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 /**
@@ -91,5 +96,13 @@ public class ImpalaSimbaDatabaseMetaTest {
   public void testGetDefaultDatabasePort() {
     assertEquals( ImpalaSimbaDatabaseMeta.DEFAULT_PORT,
       impalaSimbaDatabaseMeta.getDefaultDatabasePort() );
+  }
+
+  @Test
+  public void testGetDefaultOptions() {
+    Map<String, String> options = impalaSimbaDatabaseMeta.getDefaultOptions();
+    assertThat( options, IsMapWithSize.aMapWithSize( 1 ) );
+    assertThat( options, IsMapContaining.hasEntry( impalaSimbaDatabaseMeta.getPluginId() + "." +
+        SparkSimbaDatabaseMeta.SOCKET_TIMEOUT_OPTION, "10" ) );
   }
 }

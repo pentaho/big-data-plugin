@@ -22,6 +22,8 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
@@ -33,6 +35,7 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   protected static final String JDBC_URL_PREFIX = "jdbc:impala://";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.ImpalaSimbaDriver";
   protected static final int DEFAULT_PORT = 21050;
+  protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 
   public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator ) {
     super( driverLocator );
@@ -61,4 +64,11 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
     return DEFAULT_PORT;
   }
 
+  @Override
+  public Map<String, String> getDefaultOptions() {
+    HashMap<String, String> options = new HashMap<>();
+    options.put( String.format( "%s.%s", getPluginId(), SOCKET_TIMEOUT_OPTION ), "10" );
+
+    return options;
+  }
 }
