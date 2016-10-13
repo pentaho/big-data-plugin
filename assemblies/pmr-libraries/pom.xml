@@ -559,18 +559,18 @@
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
-      <artifactId>drools-api</artifactId>
-      <version>5.0.1</version>
+      <artifactId>knowledge-api</artifactId>
+      <version>6.4.0.Final</version>
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-compiler</artifactId>
-      <version>5.0.1</version>
+      <version>6.4.0.Final</version>
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-core</artifactId>
-      <version>5.0.1</version>
+      <version>6.4.0.Final</version>
     </dependency>
     <dependency>
       <groupId>org.eobjects.sassyreader</groupId>
