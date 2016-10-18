@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
@@ -113,6 +114,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   public static final String MAPPER_STORAGE_TYPE = "mapperStorageType"; //$NON-NLS-1$
   public static final String COMBINER_STORAGE_TYPE = "combinerStorageType"; //$NON-NLS-1$
   public static final String REDUCER_STORAGE_TYPE = "reducerStorageType"; //$NON-NLS-1$
+
+  public static final String LOCAL = "local";
+  public static final String REPOSITORY = "repository";
+  public static final String REFERENCE = "reference";
+
+  public static final String MAPPER = "mapper";
+  public static final String COMBINER = "combiner";
+  public static final String REDUCER = "reducer";
+
 
   private final NamedClusterService namedClusterService;
 
@@ -251,7 +261,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     if ( StringUtil.isEmpty( hadoopJobName ) ) {
       validationErrors += BaseMessages.getString( PKG, "JobEntryHadoopTransJobExecutor.HadoopJobName.Error" ) + "\n";
     }
-    if ( !Const.isEmpty( numReduceTasks ) ) {
+    if ( !StringUtils.isEmpty( numReduceTasks ) ) {
       String reduceS = getVariableSpace().environmentSubstitute( numReduceTasks );
       try {
         int numR = Integer.parseInt( reduceS );
@@ -264,7 +274,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         // omit
       }
     }
-    if ( !Const.isEmpty( numMapTasks ) ) {
+    if ( !StringUtils.isEmpty( numMapTasks ) ) {
       String mapS = getVariableSpace().environmentSubstitute( numMapTasks );
 
       try {
@@ -291,7 +301,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     // Save only one method of accessing the transformation
     if ( mapRepositoryReference != null ) {
       jobEntry.setMapRepositoryReference( mapRepositoryReference );
-      if ( !Const.isEmpty( mapRepositoryDir ) && !Const.isEmpty( mapRepositoryFile ) ) {
+      if ( !StringUtils.isEmpty( mapRepositoryDir ) && !StringUtils.isEmpty( mapRepositoryFile ) ) {
         jobEntry.setMapRepositoryDir( mapRepositoryDir );
         jobEntry.setMapRepositoryFile( mapRepositoryFile );
       } else {
@@ -299,7 +309,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         jobEntry.setMapRepositoryFile( null );
       }
       jobEntry.setMapTrans( null );
-    } else if ( !Const.isEmpty( mapRepositoryDir ) && !Const.isEmpty( mapRepositoryFile ) ) {
+    } else if ( REPOSITORY.equalsIgnoreCase( getMapperStorageType() ) ) {
+      extractDirFileRepositoryTask( mapTrans, MAPPER );
       jobEntry.setMapRepositoryDir( mapRepositoryDir );
       jobEntry.setMapRepositoryFile( mapRepositoryFile );
       jobEntry.setMapRepositoryReference( null );
@@ -317,7 +328,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     // Save only one method of accessing the transformation
     if ( combinerRepositoryReference != null ) {
       jobEntry.setCombinerRepositoryReference( combinerRepositoryReference );
-      if ( !Const.isEmpty( combinerRepositoryDir ) && !Const.isEmpty( combinerRepositoryFile ) ) {
+      if ( !StringUtils.isEmpty( combinerRepositoryDir ) && !StringUtils.isEmpty( combinerRepositoryFile ) ) {
         jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
         jobEntry.setCombinerRepositoryFile( combinerRepositoryFile );
       } else {
@@ -325,7 +336,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         jobEntry.setCombinerRepositoryFile( null );
       }
       jobEntry.setCombinerTrans( null );
-    } else if ( !Const.isEmpty( combinerRepositoryDir ) && !Const.isEmpty( combinerRepositoryFile ) ) {
+    } else if ( REPOSITORY.equalsIgnoreCase( getCombinerStorageType() ) ) {
+      extractDirFileRepositoryTask( combinerTrans, COMBINER );
       jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
       jobEntry.setCombinerRepositoryFile( combinerRepositoryFile );
       jobEntry.setCombinerRepositoryReference( null );
@@ -344,7 +356,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     // Save only one method of accessing the transformation
     if ( reduceRepositoryReference != null ) {
       jobEntry.setReduceRepositoryReference( reduceRepositoryReference );
-      if ( !Const.isEmpty( reduceRepositoryDir ) && !Const.isEmpty( reduceRepositoryFile ) ) {
+      if ( !StringUtils.isEmpty( reduceRepositoryDir ) && !StringUtils.isEmpty( reduceRepositoryFile ) ) {
         jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
         jobEntry.setReduceRepositoryFile( reduceRepositoryFile );
       } else {
@@ -352,7 +364,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         jobEntry.setReduceRepositoryFile( null );
       }
       jobEntry.setReduceTrans( null );
-    } else if ( !Const.isEmpty( reduceRepositoryDir ) && !Const.isEmpty( reduceRepositoryFile ) ) {
+    } else if ( REPOSITORY.equalsIgnoreCase( getReducerStorageType() ) ) {
+      extractDirFileRepositoryTask( reduceTrans, REDUCER );
       jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
       jobEntry.setReduceRepositoryFile( reduceRepositoryFile );
       jobEntry.setReduceRepositoryReference( null );
@@ -457,12 +470,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
           .setSelectedIndex( 0 );
         setMapTrans( jobEntry.getMapTrans() );
-        this.mapperStorageType = "local";
+        this.mapperStorageType = LOCAL;
       } else if ( jobEntry.getMapRepositoryReference() != null ) {
         ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
           .setSelectedIndex( 2 );
         setMapRepositoryReference( jobEntry.getMapRepositoryReference() );
-        this.mapperStorageType = "reference";
+        this.mapperStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
         try {
           TransMeta transMeta = rep.loadTransformation( getMapRepositoryReference(), null );
@@ -479,7 +492,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         setMapRepositoryDir( jobEntry.getMapRepositoryDir() );
         setMapRepositoryFile( jobEntry.getMapRepositoryFile() );
         setMapTrans( buildRepositoryPath( getMapRepositoryDir(), getMapRepositoryFile() ) );
-        this.mapperStorageType = "repository";
+        this.mapperStorageType = REPOSITORY;
       }
       setMapTransInputStepName( jobEntry.getMapInputStepName() );
       setMapTransOutputStepName( jobEntry.getMapOutputStepName() );
@@ -489,12 +502,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
           .setSelectedIndex( 0 );
         setCombinerTrans( jobEntry.getCombinerTrans() );
-        this.combinerStorageType = "local";
+        this.combinerStorageType = LOCAL;
       } else if ( jobEntry.getCombinerRepositoryReference() != null ) {
         ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
           .setSelectedIndex( 2 );
         setCombinerRepositoryReference( jobEntry.getCombinerRepositoryReference() );
-        this.combinerStorageType = "reference";
+        this.combinerStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
         try {
           TransMeta transMeta = rep.loadTransformation( getCombinerRepositoryReference(), null );
@@ -512,7 +525,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         setCombinerRepositoryDir( jobEntry.getCombinerRepositoryDir() );
         setCombinerRepositoryFile( jobEntry.getCombinerRepositoryFile() );
         setCombinerTrans( buildRepositoryPath( getCombinerRepositoryDir(), getCombinerRepositoryFile() ) );
-        this.combinerStorageType = "repository";
+        this.combinerStorageType = REPOSITORY;
       }
 
       setCombinerTransInputStepName( jobEntry.getCombinerInputStepName() );
@@ -524,12 +537,12 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
           .setSelectedIndex( 0 );
         setReduceTrans( jobEntry.getReduceTrans() );
-        this.reducerStorageType = "local";
+        this.reducerStorageType = LOCAL;
       } else if ( jobEntry.getReduceRepositoryReference() != null ) {
         ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
           .setSelectedIndex( 2 );
         setReduceRepositoryReference( jobEntry.getReduceRepositoryReference() );
-        this.reducerStorageType = "reference";
+        this.reducerStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
         try {
           TransMeta transMeta = rep.loadTransformation( getReduceRepositoryReference(), null );
@@ -546,7 +559,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
         setReduceRepositoryDir( jobEntry.getReduceRepositoryDir() );
         setReduceRepositoryFile( jobEntry.getReduceRepositoryFile() );
         setReduceTrans( buildRepositoryPath( getReduceRepositoryDir(), getReduceRepositoryFile() ) );
-        this.reducerStorageType = "repository";
+        this.reducerStorageType = REPOSITORY;
       }
 
       setReduceTransInputStepName( jobEntry.getReduceInputStepName() );
@@ -612,6 +625,51 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     return dir + "/" + file;
   }
 
+  /**
+   * This method parses a path which specifies the target location of file on repository. The path
+   * is considered as invalid one when : it is null, it ends by '/' since there is no name of file,
+   * it doesn't contain '/'.
+   *
+   * @param path
+   *          A path to a mapper, combiner or reducer file on a repository
+   * @param taskType
+   *          "mapper", "combiner" or "reducer"
+   */
+  protected void extractDirFileRepositoryTask( String path, String taskType ) {
+
+    if ( path == null ) {
+      return;
+    }
+    String trimPath = path.trim();
+
+    if ( trimPath.isEmpty() || trimPath.endsWith( "/" ) ) {
+      return;
+    }
+
+    int index = trimPath.lastIndexOf( '/' );
+
+    if ( index == -1 ) {
+      return;
+    }
+
+    String filename = trimPath.substring( index + 1 );
+    String repDir = trimPath.substring( 0, index );
+
+    switch ( taskType ) {
+      case MAPPER:
+        setMapRepositoryDir( repDir );
+        setMapRepositoryFile( filename );
+        break;
+      case REDUCER:
+        setReduceRepositoryDir( repDir );
+        setReduceRepositoryFile( filename );
+        break;
+      case COMBINER:
+        setCombinerRepositoryDir( repDir );
+        setCombinerRepositoryFile( filename );
+        break;
+    }
+  }
   public void setRepository( Repository rep ) {
     this.rep = rep;
   }
@@ -641,7 +699,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void mapTransBrowse() {
-    if ( getMapperStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
+    if ( getMapperStorageType().equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
       browseLocalFilesystem( new StringResultSetter() {
         @Override
         public void set( String val ) {
@@ -651,7 +709,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( null );
         }
       }, mapTrans );
-    } else if ( getMapperStorageType().equalsIgnoreCase( "repository" ) ) { //$NON-NLS-1$
+    } else if ( getMapperStorageType().equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
       browseRepository( new StringResultSetter() {
         public void set( String val ) {
           JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
@@ -666,7 +724,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( val );
         }
       } );
-    } else if ( getMapperStorageType().equalsIgnoreCase( "reference" ) ) { //$NON-NLS-1$
+    } else if ( getMapperStorageType().equalsIgnoreCase( REFERENCE ) ) { //$NON-NLS-1$
       browseRepository( new StringResultSetter() {
         public void set( String val ) {
           JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
@@ -690,7 +748,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void combinerTransBrowse() {
-    if ( getCombinerStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
+    if ( getCombinerStorageType().equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
       browseLocalFilesystem( new StringResultSetter() {
         @Override
         public void set( String val ) {
@@ -700,7 +758,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( null );
         }
       }, combinerTrans );
-    } else if ( getCombinerStorageType().equalsIgnoreCase( "repository" ) ) { //$NON-NLS-1$
+    } else if ( getCombinerStorageType().equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
       browseRepository( new StringResultSetter() {
         public void set( String val ) {
           JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
@@ -715,7 +773,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( val );
         }
       } );
-    } else if ( getCombinerStorageType().equalsIgnoreCase( "reference" ) ) { //$NON-NLS-1$
+    } else if ( getCombinerStorageType().equalsIgnoreCase( REFERENCE ) ) { //$NON-NLS-1$
       browseRepository( new StringResultSetter() {
         public void set( String val ) {
           JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
@@ -739,7 +797,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void reduceTransBrowse() {
-    if ( getReducerStorageType().equalsIgnoreCase( "local" ) ) { //$NON-NLS-1$
+    if ( getReducerStorageType().equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
       browseLocalFilesystem( new StringResultSetter() {
         @Override
         public void set( String val ) {
@@ -749,7 +807,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( null );
         }
       }, reduceTrans );
-    } else if ( getReducerStorageType().equalsIgnoreCase( "repository" ) ) { //$NON-NLS-1$
+    } else if ( getReducerStorageType().equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
       browseRepository( new StringResultSetter() {
         public void set( String val ) {
           JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
@@ -764,7 +822,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( val );
         }
       } );
-    } else if ( getReducerStorageType().equalsIgnoreCase( "reference" ) ) { //$NON-NLS-1$
+    } else if ( getReducerStorageType().equalsIgnoreCase( REFERENCE ) ) { //$NON-NLS-1$
       browseRepository( new StringResultSetter() {
         public void set( String val ) {
           JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
@@ -802,7 +860,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     } catch ( Exception e ) {
       // not that important
     }
-    if ( !Const.isEmpty( prevName ) ) {
+    if ( !StringUtils.isEmpty( prevName ) ) {
       try {
         if ( KettleVFS.fileExists( prevName ) ) {
           dialog.setFilterPath( KettleVFS.getFilename( KettleVFS.getFileObject( prevName ).getParent() ) );
@@ -821,7 +879,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       } catch ( Exception e ) {
         dialog.setFilterPath( parentFolder );
       }
-    } else if ( !Const.isEmpty( parentFolder ) ) {
+    } else if ( !StringUtils.isEmpty( parentFolder ) ) {
       dialog.setFilterPath( parentFolder );
     }
 
@@ -831,7 +889,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       String name = file.getName();
       String parentFolderSelection = file.getParentFile().toString();
 
-      if ( !Const.isEmpty( parentFolder ) && parentFolder.equals( parentFolderSelection ) ) {
+      if ( !StringUtils.isEmpty( parentFolder ) && parentFolder.equals( parentFolderSelection ) ) {
         setter.set( "${" + Const.INTERNAL_VARIABLE_JOB_FILENAME_DIRECTORY + "}/" + name );
       } else {
         setter.set( fname );
@@ -1221,15 +1279,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     String prevMapperStorageType = menuList.getSelectedItem();
     switch ( menuList.getSelectedIndex() ) {
       case 0: // Local
-        mapperStorageTypeChanged( "local" );
+        mapperStorageTypeChanged( LOCAL );
         break;
 
       case 1: // By name
-        mapperStorageTypeChanged( "repository" );
+        mapperStorageTypeChanged( REPOSITORY );
         break;
 
       case 2: // By reference
-        mapperStorageTypeChanged( "reference" );
+        mapperStorageTypeChanged( REFERENCE );
         break;
     }
 
@@ -1246,7 +1304,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       this.mapperStorageType = newStorageType;
 
       // Disable the text box?
-      if ( this.mapperStorageType.equals( "reference" ) ) {
+      if ( this.mapperStorageType.equals( REFERENCE ) ) {
         ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" ) )
             .setReadonly( true );
       } else {
@@ -1269,15 +1327,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     String prevCombinerStorageType = menuList.getSelectedItem();
     switch ( menuList.getSelectedIndex() ) {
       case 0: // Local
-        combinerStorageTypeChanged( "local" );
+        combinerStorageTypeChanged( LOCAL );
         break;
 
       case 1: // By name
-        combinerStorageTypeChanged( "repository" );
+        combinerStorageTypeChanged( REPOSITORY );
         break;
 
       case 2: // By reference
-        combinerStorageTypeChanged( "reference" );
+        combinerStorageTypeChanged( REFERENCE );
         break;
     }
 
@@ -1294,7 +1352,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       this.combinerStorageType = newStorageType;
 
       // Disable the text box?
-      if ( this.combinerStorageType.equals( "reference" ) ) {
+      if ( this.combinerStorageType.equals( REFERENCE ) ) {
         ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" ) )
             .setReadonly( true );
       } else {
@@ -1317,15 +1375,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     String prevReducerStorageType = menuList.getSelectedItem();
     switch ( menuList.getSelectedIndex() ) {
       case 0: // Local
-        reducerStorageTypeChanged( "local" );
+        reducerStorageTypeChanged( LOCAL );
         break;
 
       case 1: // By name
-        reducerStorageTypeChanged( "repository" );
+        reducerStorageTypeChanged( REPOSITORY );
         break;
 
       case 2: // By reference
-        reducerStorageTypeChanged( "reference" );
+        reducerStorageTypeChanged( REFERENCE );
         break;
     }
 
@@ -1342,7 +1400,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       this.reducerStorageType = newStorageType;
 
       // Disable the text box?
-      if ( this.reducerStorageType.equals( "reference" ) ) {
+      if ( this.reducerStorageType.equals( REFERENCE ) ) {
         ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" ) )
             .setReadonly( true );
       } else {

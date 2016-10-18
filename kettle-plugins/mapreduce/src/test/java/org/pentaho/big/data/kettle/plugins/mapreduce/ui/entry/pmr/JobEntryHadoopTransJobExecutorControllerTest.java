@@ -21,7 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr;
 
-import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -30,6 +30,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.inOrder;
+import static org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr.JobEntryHadoopTransJobExecutorController.MAPPER;
+import static org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr.JobEntryHadoopTransJobExecutorController.REDUCER;
+import static org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr.JobEntryHadoopTransJobExecutorController.COMBINER;
 
 import java.util.Arrays;
 import java.util.List;
@@ -40,6 +43,7 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.job.JobMeta;
@@ -70,6 +74,7 @@ public class JobEntryHadoopTransJobExecutorControllerTest {
   private NamedCluster editedNamedClusterMock = mock( NamedCluster.class );
   private IMetaStore metaStoreMock = mock( IMetaStore.class );
   private JobMeta jobMetaMock = mock( JobMeta.class );
+  private JobEntryHadoopTransJobExecutor jobEntryHadoopTransJobExecutor = mock( JobEntryHadoopTransJobExecutor.class );
 
   private List<NamedCluster> ncList;
 
@@ -155,4 +160,28 @@ public class JobEntryHadoopTransJobExecutorControllerTest {
     order.verify( testController ).selectedNamedClusterChanged( null, A_NEW_NAMED_CLUSTER );
   }
 
+  @Test
+  public void testExtractDirFileFromRepositoryByName() throws Exception {
+    String validPath = "/path/to/file";
+    String invalidPathWithoutName = "/path/to/";
+    String invalid_test_1 = "smth/ ";
+    String invalid_test_2 = "invalidPath";
+    String invalid_test_3 = "   1 ";
+    testController.extractDirFileRepositoryTask( invalidPathWithoutName, MAPPER );
+    testController.extractDirFileRepositoryTask( invalid_test_1, REDUCER );
+    testController.extractDirFileRepositoryTask( invalid_test_2, COMBINER );
+    testController.extractDirFileRepositoryTask( invalid_test_3, MAPPER );
+    //ensure that the invalid paths were not set
+    verify( testController, never() ).setMapRepositoryDir( anyString() );
+    verify( testController, never() ).setMapRepositoryFile( anyString() );
+    verify( testController, never() ).setReduceRepositoryDir( anyString() );
+    verify( testController, never() ).setReduceRepositoryFile( anyString() );
+    verify( testController, never() ).setCombinerRepositoryDir( anyString() );
+    verify( testController, never() ).setCombinerRepositoryFile( anyString() );
+    testController.extractDirFileRepositoryTask( validPath, COMBINER );
+    //ensure that the valid path was parsed successfully
+    verify( testController, times( 1 ) ).setCombinerRepositoryDir( "/path/to" );
+    verify( testController, times( 1 ) ).setCombinerRepositoryFile( "file" );
+
+  }
 }
