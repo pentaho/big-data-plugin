@@ -37,7 +37,8 @@ import static org.pentaho.big.data.kettle.plugins.hive.SimbaUrl.KRB_SERVICE_NAME
  * User: Dzmitry Stsiapanau Date: 8/28/2015 Time: 10:23
  */
 public class Hive2SimbaDatabaseDialect extends Hive2DatabaseDialect {
-
+  public static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
+  public static final String DEFAULT_SOCKET_TIMEOUT = "10";
 
   public Hive2SimbaDatabaseDialect() {
     super();

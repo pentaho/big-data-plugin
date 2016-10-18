@@ -17,6 +17,10 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import com.google.common.base.Joiner;
+import java.util.Map;
+import org.hamcrest.collection.IsMapContaining;
+import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -51,4 +55,11 @@ public class SparkSimbaDatabaseDialectTest {
     assertThat( dialect.getUsedLibraries(), is( new String[] { SparkSimbaDatabaseMeta.JAR_FILE } ) );
   }
 
+  @Test
+  public void testDefaultSocketTimeout() {
+    Map<String, String> options = dialect.getDatabaseType().getDefaultOptions();
+    assertThat( options, IsMapWithSize.aMapWithSize( 1 ) );
+    assertThat( options, IsMapContaining.hasEntry( Joiner.on( "." ).join( SparkSimbaDatabaseDialect.DB_TYPE_NAME_SHORT,
+        Hive2SimbaDatabaseDialect.SOCKET_TIMEOUT_OPTION ), Hive2SimbaDatabaseDialect.DEFAULT_SOCKET_TIMEOUT ) );
+  }
 }

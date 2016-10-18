@@ -22,6 +22,8 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.pentaho.database.model.DatabaseAccessType;
 import org.pentaho.database.model.DatabaseType;
 import org.pentaho.database.model.IDatabaseType;
@@ -30,6 +32,7 @@ import org.pentaho.database.model.IDatabaseType;
  * User: Dzmitry Stsiapanau Date: 8/28/2015 Time: 10:23
  */
 public class ImpalaSimbaDatabaseDialect extends Hive2SimbaDatabaseDialect {
+  public static final String DB_TYPE_NAME_SHORT = "IMPALASIMBA";
 
   public ImpalaSimbaDatabaseDialect() {
     super();
@@ -45,10 +48,14 @@ public class ImpalaSimbaDatabaseDialect extends Hive2SimbaDatabaseDialect {
   protected static final String JDBC_URL_TEMPLATE = "jdbc:impala://%s:%s/%s;AuthMech=%d%s";
 
   private static final IDatabaseType DBTYPE =
-    new DatabaseType( "Cloudera Impala", "IMPALASIMBA",
+    new DatabaseType( "Cloudera Impala", DB_TYPE_NAME_SHORT,
       DatabaseAccessType.getList( DatabaseAccessType.NATIVE,
         DatabaseAccessType.JNDI, DatabaseAccessType.ODBC ), DEFAULT_PORT,
-      "http://go.cloudera.com/odbc-driver-hive-impala.html" );
+      "http://go.cloudera.com/odbc-driver-hive-impala.html",
+        "",
+        ImmutableMap.<String, String>builder().put( Joiner.on( "." ).join( DB_TYPE_NAME_SHORT, SOCKET_TIMEOUT_OPTION ),
+            DEFAULT_SOCKET_TIMEOUT ).build()
+    );
 
   public IDatabaseType getDatabaseType() {
     return DBTYPE;

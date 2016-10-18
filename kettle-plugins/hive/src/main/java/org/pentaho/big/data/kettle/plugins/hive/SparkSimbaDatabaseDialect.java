@@ -18,11 +18,14 @@
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.pentaho.database.model.DatabaseAccessType;
 import org.pentaho.database.model.DatabaseType;
 import org.pentaho.database.model.IDatabaseType;
 
 public class SparkSimbaDatabaseDialect extends Hive2SimbaDatabaseDialect {
+  public static final String DB_TYPE_NAME_SHORT = "SPARKSIMBA";
 
   public SparkSimbaDatabaseDialect() {
     super();
@@ -31,10 +34,14 @@ public class SparkSimbaDatabaseDialect extends Hive2SimbaDatabaseDialect {
   private static final long serialVersionUID = 5665821298486490578L;
 
   @VisibleForTesting static final IDatabaseType DBTYPE =
-    new DatabaseType( "SparkSQL", "SPARKSIMBA",
+    new DatabaseType( "SparkSQL", DB_TYPE_NAME_SHORT,
       DatabaseAccessType.getList( DatabaseAccessType.NATIVE,
         DatabaseAccessType.JNDI ), SparkSimbaDatabaseMeta.DEFAULT_PORT,
-      "http://www.simba.com/drivers/spark-jdbc-odbc/" );
+      "http://www.simba.com/drivers/spark-jdbc-odbc/",
+        "",
+        ImmutableMap.<String, String>builder().put( Joiner.on( "." ).join( DB_TYPE_NAME_SHORT, SOCKET_TIMEOUT_OPTION ),
+            DEFAULT_SOCKET_TIMEOUT ).build()
+    );
 
   public IDatabaseType getDatabaseType() {
     return DBTYPE;
