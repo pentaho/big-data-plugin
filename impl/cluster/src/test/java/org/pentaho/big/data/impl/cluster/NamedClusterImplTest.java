@@ -1,21 +1,18 @@
 /*******************************************************************************
  * Pentaho Big Data
- * <p/>
+ * <p>
  * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- * <p/>
+ * <p>
  * ******************************************************************************
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * <p/>
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.big.data.impl.cluster;
@@ -27,22 +24,13 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.metastore.persist.MetaStoreFactory;
 
 import java.util.Map;
 
-import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
-import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEqualsFor;
-import static com.google.code.beanmatchers.BeanMatchers.hasValidGettersAndSetters;
+import static com.google.code.beanmatchers.BeanMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by bryan on 7/14/15.
@@ -149,7 +137,7 @@ public class NamedClusterImplTest {
   public void testFieldSubstitute() throws KettleValueException {
     String testString = "testString";
     RowMetaInterface rowMetaInterface = mock( RowMetaInterface.class );
-    Object[] rowData = new Object[]{};
+    Object[] rowData = new Object[] {};
     String testVal = "testVal";
     when( variableSpace.fieldSubstitute( testString, rowMetaInterface, rowData ) ).thenReturn( testVal );
     assertEquals( testVal, namedCluster.fieldSubstitute( testString, rowMetaInterface, rowData ) );
@@ -190,7 +178,7 @@ public class NamedClusterImplTest {
 
   @Test
   public void testListVariables() {
-    String[] vars = new String[]{ "vars" };
+    String[] vars = new String[] { "vars" };
     when( variableSpace.listVariables() ).thenReturn( vars );
     assertArrayEquals( vars, namedCluster.listVariables() );
   }
@@ -276,6 +264,95 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsHost( " " + testHost + " " );
     namedCluster.setHdfsPort( " " + testPort + " " );
     assertNull( namedCluster.generateURL( scheme, metaStore, null ) );
+  }
+
+  @Test
+  public void testCheckHdfsNameEmpty() throws MetaStoreException {
+    String testHost = "";
+    namedCluster.setHdfsHost( " " + testHost + " " );
+    assertEquals( true, namedCluster.isHdfsHostEmpty( null ) );
+  }
+
+  @Test
+  public void testGetHdfsNameParsed() throws MetaStoreException {
+    String testHost = "test";
+    namedCluster.setHdfsHost( " " + testHost + " " );
+    assertEquals( "test", namedCluster.getHostNameParsed( null ) );
+  }
+
+  @Test
+  public void testGetHdfsNameParsedFromVariable() throws MetaStoreException {
+    String testHost = "${hdfsHost}";
+    namedCluster.setHdfsHost( " " + testHost + " " );
+    when( variableSpace.getVariable( "hdfsHost" ) ).thenReturn( "test" );
+    when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( "test" );
+    assertEquals( "test", namedCluster.getHostNameParsed( variableSpace ) );
+  }
+
+  @Test
+  public void testGetHdfsNameParsedFromVariableNoVariableInSpace() throws MetaStoreException {
+    String testHost = "${hdfsHost}";
+    namedCluster.setHdfsHost( " " + testHost + " " );
+    assertEquals( null, namedCluster.getHostNameParsed( variableSpace ) );
+  }
+
+  @Test
+  public void testCheckHdfsNameNotEmpty() throws MetaStoreException {
+    String testHost = "test";
+    namedCluster.setHdfsHost( " " + testHost + " " );
+    assertEquals( false, namedCluster.isHdfsHostEmpty( null ) );
+  }
+
+  @Test
+  public void testCheckHdfsNameNull() throws MetaStoreException {
+    namedCluster.setHdfsHost( null );
+    assertEquals( true, namedCluster.isHdfsHostEmpty( null ) );
+  }
+
+  @Test
+  public void testCheckHdfsNameVariableNull() throws MetaStoreException {
+    namedCluster.setHdfsHost( "${hdfsHost}" );
+    assertEquals( true, namedCluster.isHdfsHostEmpty( null ) );
+  }
+
+  @Test
+  public void testCheckHdfsNameVariableNotNull() throws MetaStoreException {
+    namedCluster.setHdfsHost( "${hdfsHost}" );
+    when( variableSpace.getVariable( "hdfsHost" ) ).thenReturn( "test" );
+    when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( "test" );
+    assertEquals( false, namedCluster.isHdfsHostEmpty( variableSpace ) );
+  }
+
+  @Test
+  public void testProcessURLHostEmpty() throws MetaStoreException {
+    namedCluster.setHdfsHost( null );
+    namedCluster.setMapr( false );
+    String incomingURL = "${hdfsUrl}/test";
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+  }
+
+  @Test
+  public void testProcessURLHostVariableNull() throws MetaStoreException {
+    namedCluster.setHdfsHost( "${hostUrl}" );
+    namedCluster.setMapr( false );
+    String incomingURL = "${hdfsUrl}/test";
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+  }
+
+  @Test
+  public void testProcessURLHostVariableNotNull() throws MetaStoreException {
+    namedCluster.setHdfsHost( "${hostUrl}" );
+    namedCluster.setMapr( false );
+    String hostPort = "1000";
+    namedCluster.setHdfsPort( hostPort );
+    namedCluster.setHdfsUsername( "" );
+    namedCluster.setHdfsPassword( "" );
+    String incomingURL = "${hdfsUrl}/test";
+    String hostName = "test";
+    when( variableSpace.getVariable( "hostUrl" ) ).thenReturn( hostName );
+    when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( hostName );
+    assertEquals( "hdfs://" + hostName + ":" + hostPort + incomingURL,
+      namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
   }
 
   @Test

@@ -1,23 +1,18 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p>
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * <p>
+ * ******************************************************************************
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.big.data.impl.cluster;
@@ -77,7 +72,6 @@ public class NamedClusterImpl implements NamedCluster {
 
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
-
 
 
   public NamedClusterImpl() {
@@ -198,7 +192,7 @@ public class NamedClusterImpl implements NamedCluster {
     String outgoingURL = null;
     try {
       String clusterURL = generateURL( hdfsScheme, metastore, variableSpace );
-      if ( clusterURL == null ) {
+      if ( clusterURL == null || isHdfsHostEmpty( variableSpace ) ) {
         outgoingURL = incomingURL;
       } else if ( incomingURL.equals( "/" ) ) {
         outgoingURL = clusterURL;
@@ -226,6 +220,20 @@ public class NamedClusterImpl implements NamedCluster {
     return outgoingURL;
   }
 
+  @VisibleForTesting boolean isHdfsHostEmpty( VariableSpace variableSpace ) {
+    String hostNameParsed = getHostNameParsed( variableSpace );
+    return hostNameParsed == null || hostNameParsed.trim().isEmpty();
+  }
+
+  public String getHostNameParsed( VariableSpace variableSpace ) {
+    if ( StringUtil.isVariable( hdfsHost ) ) {
+      if ( variableSpace == null ) {
+        return null;
+      }
+      return variableSpace.getVariable( StringUtil.getVariableName( getHdfsHost() ) );
+    }
+    return hdfsHost != null ? hdfsHost.trim() : null;
+  }
 
   /**
    * This method generates the URL from the specific NamedCluster using the specified scheme.
