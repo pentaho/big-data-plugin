@@ -28,6 +28,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.core.xml.XMLParserFactoryProducer;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.w3c.dom.Document;
@@ -476,7 +477,8 @@ public class JobEntrySerializationHelper implements Serializable {
     try {
       String xml = rep.getJobEntryAttributeString( id_job, "job-xml" );
       ByteArrayInputStream bais = new ByteArrayInputStream( xml.getBytes() );
-      Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse( bais );
+      DocumentBuilderFactory factory = XMLParserFactoryProducer.createSecureDocBuilderFactory();
+      Document doc = factory.newDocumentBuilder().parse( bais );
       read( object, doc.getDocumentElement() );
     } catch ( ParserConfigurationException ex ) {
       throw new KettleException( ex.getMessage(), ex );
