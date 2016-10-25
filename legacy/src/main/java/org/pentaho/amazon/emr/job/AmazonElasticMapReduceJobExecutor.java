@@ -374,7 +374,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
   public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers,
       Repository rep, IMetaStore metaStore )
     throws KettleXMLException {
-    super.loadXML( entrynode, databases, slaveServers, rep, metaStore );
+    super.loadXML( entrynode, databases, slaveServers );
     hadoopJobName = XMLHandler.getTagValue( entrynode, "hadoop_job_name" );
     hadoopJobFlowId = XMLHandler.getTagValue( entrynode, "hadoop_job_flow_id" );
     jarUrl = XMLHandler.getTagValue( entrynode, "jar_url" );
