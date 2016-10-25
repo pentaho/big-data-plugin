@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>7.0-SNAPSHOT</version>
+    <version>7.1-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>7.0-SNAPSHOT</version>
+  <version>7.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -138,12 +138,12 @@
       <artifactId>xmlpull</artifactId>
       <version>${dependency.xmlpull.revision}</version>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>xpp3</groupId>
       <artifactId>xpp3_min</artifactId>
       <version>${dependency.xpp3.revision}</version>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
       <version>${dependency.xstream.revision}</version>
@@ -183,7 +183,7 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-emr46-package</artifactId>
       <version>${dependency.hadoop-shims-emr46.revision}</version>
@@ -227,7 +227,7 @@
             </goals>
             <configuration>
               <artifactItems>
-				<artifactItem>
+                <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
                   <type>zip</type>
@@ -239,7 +239,7 @@
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
-                 <artifactItem>
+                <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-hdp24-package</artifactId>
                   <type>zip</type>
