@@ -76,7 +76,7 @@ import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlank
     name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
     i18nPackageName = "org.pentaho.di.job.entries.spark",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Spark+Submit" )
+    documentationUrl = "0L0/0Y0/0L0/Spark_Submit" )
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
   public static final String JOB_TYPE_JAVA_SCALA = "Java or Scala";
   public static final String JOB_TYPE_PYTHON = "Python";
