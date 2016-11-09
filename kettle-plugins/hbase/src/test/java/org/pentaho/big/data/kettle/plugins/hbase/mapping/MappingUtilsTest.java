@@ -21,18 +21,11 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 
-import static org.mockito.Mockito.verify;
-
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.bigdata.api.hbase.HBaseConnection;
@@ -47,19 +40,19 @@ public class MappingUtilsTest {
    *
    */
   private static final String UNABLE_TO_CONNECT_TO_H_BASE = "Unable to connect to HBase";
-  private ConfigurationProducer cProducerMock = mock( ConfigurationProducer.class );
-  private HBaseConnection hbConnectionMock = mock( HBaseConnection.class );
+  private ConfigurationProducer cProducerMock = Mockito.mock( ConfigurationProducer.class );
+  private HBaseConnection hbConnectionMock = Mockito.mock( HBaseConnection.class );
 
   @Test
   public void testGetMappingAdmin_NoException() {
     try {
-      when( cProducerMock.getHBaseConnection() ).thenReturn( hbConnectionMock );
+      Mockito.when( cProducerMock.getHBaseConnection() ).thenReturn( hbConnectionMock );
       MappingAdmin mappingAdmin = MappingUtils.getMappingAdmin( cProducerMock );
-      assertNotNull( mappingAdmin );
-      assertSame( hbConnectionMock, mappingAdmin.getConnection() );
-      verify( hbConnectionMock ).checkHBaseAvailable();
+      Assert.assertNotNull( mappingAdmin );
+      Assert.assertSame( hbConnectionMock, mappingAdmin.getConnection() );
+      Mockito.verify( hbConnectionMock ).checkHBaseAvailable();
     } catch ( Exception e ) {
-      fail( "No exception expected but it occurs!" );
+      Assert.fail( "No exception expected but it occurs!" );
     }
   }
 
@@ -68,12 +61,12 @@ public class MappingUtilsTest {
     ClusterInitializationException clusterInitializationException =
         new ClusterInitializationException( new Exception( "ClusterInitializationException" ) );
     try {
-      when( cProducerMock.getHBaseConnection() ).thenThrow( clusterInitializationException );
+      Mockito.when( cProducerMock.getHBaseConnection() ).thenThrow( clusterInitializationException );
       MappingUtils.getMappingAdmin( cProducerMock );
-      fail( "Expected HBaseConnectionException but it doen not occur!" );
+      Assert.fail( "Expected HBaseConnectionException but it doen not occur!" );
     } catch ( HBaseConnectionException e ) {
-      assertEquals( UNABLE_TO_CONNECT_TO_H_BASE, e.getMessage() );
-      assertSame( clusterInitializationException, e.getCause() );
+      Assert.assertEquals( UNABLE_TO_CONNECT_TO_H_BASE, e.getMessage() );
+      Assert.assertSame( clusterInitializationException, e.getCause() );
     }
   }
 
@@ -81,12 +74,12 @@ public class MappingUtilsTest {
   public void testGetMappingAdmin_IOExceptionToHBaseConnectionException() throws Exception {
     IOException ioException = new IOException( "IOException" );
     try {
-      when( cProducerMock.getHBaseConnection() ).thenThrow( ioException );
+      Mockito.when( cProducerMock.getHBaseConnection() ).thenThrow( ioException );
       MappingUtils.getMappingAdmin( cProducerMock );
-      fail( "Expected HBaseConnectionException but it doen not occur!" );
+      Assert.fail( "Expected HBaseConnectionException but it doen not occur!" );
     } catch ( HBaseConnectionException e ) {
-      assertEquals( UNABLE_TO_CONNECT_TO_H_BASE, e.getMessage() );
-      assertSame( ioException, e.getCause() );
+      Assert.assertEquals( UNABLE_TO_CONNECT_TO_H_BASE, e.getMessage() );
+      Assert.assertSame( ioException, e.getCause() );
     }
   }
 
