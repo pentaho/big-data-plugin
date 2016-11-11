@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -41,18 +41,18 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 
 import com.google.common.base.Strings;
 
-public class MaprJaasRealmsRegistrarTest {
+public class JaasRealmsRegistrarTest {
   private static final String JAAS_CONFIG_PROP_NAME = "java.security.auth.login.config";
   private String jaasConfLocationBackup;
-  private MaprJaasRealmsRegistrar testee;
+  private JaasRealmsRegistrar testee;
 
   @Before
   public void setup() throws ConfigurationException {
     jaasConfLocationBackup = System.getProperty( JAAS_CONFIG_PROP_NAME );
-    testee = mock( MaprJaasRealmsRegistrar.class );
+    testee = mock( JaasRealmsRegistrar.class );
     doCallRealMethod().when( testee ).onClassLoaderAvailable( any( ClassLoader.class ) );
     doCallRealMethod().when( testee ).onConfigurationClose( any( HadoopConfiguration.class ) );
-    doReturn( true ).when( testee ).isMaprShimActive( any( HadoopConfigurationBootstrap.class) );
+    doReturn( true ).when( testee ).isMaprShimActive( any( HadoopConfigurationBootstrap.class ) );
   }
 
   @After
@@ -66,7 +66,7 @@ public class MaprJaasRealmsRegistrarTest {
 
   @Test
   public void testIgnoresNotMaprShims() throws ConfigurationException {
-    doReturn( true ).when( testee ).isMaprShimActive( any( HadoopConfigurationBootstrap.class) );
+    doReturn( true ).when( testee ).isMaprShimActive( any( HadoopConfigurationBootstrap.class ) );
     BundleContext bundleContext = mock( BundleContext.class );
     doReturn( bundleContext ).when( testee ).getBundleContext();
     testee.onClassLoaderAvailable( mock( ClassLoader.class ) );
@@ -87,7 +87,7 @@ public class MaprJaasRealmsRegistrarTest {
     verify( bundleContext ).registerService( eq( JaasRealm.class.getCanonicalName() ),
         argThat( jaasRealmWithName( "mapr-jaas-config" ) ), isNull( Dictionary.class ) );
     testee.onConfigurationClose( hadoopConf );
-    verify( realmRegistration ).unregister();
+    verify( realmRegistration, times( 2 ) ).unregister();
   }
 
   private HadoopConfiguration createHadoopConfiguration( String hadoopVersion ) {

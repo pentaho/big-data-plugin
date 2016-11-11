@@ -4,7 +4,7 @@
     <bean class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader" factory-method="create">
         <argument ref="blueprintBundleContext"/>
         <argument>
-            <value type="java.lang.String">org.pentaho.hadoop.shim.mapr.osgi.jaas.MaprJaasRealmsRegistrar</value>
+            <value type="java.lang.String">org.pentaho.hadoop.shim.mapr.osgi.jaas.JaasRealmsRegistrar</value>
         </argument>
         <argument>
             <list>

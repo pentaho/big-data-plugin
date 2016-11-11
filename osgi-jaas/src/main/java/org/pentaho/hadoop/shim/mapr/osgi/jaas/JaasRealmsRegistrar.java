@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -45,12 +45,12 @@ import java.util.List;
  * Class used to append jaas configuration set via <code>java.security.auth.login.config</code> system property to
  * currently active jaas configuration.
  */
-public class MaprJaasRealmsRegistrar implements HadoopConfigurationListener {
-  private static final Logger LOGGER = LoggerFactory.getLogger( MaprJaasRealmsRegistrar.class );
+public class JaasRealmsRegistrar implements HadoopConfigurationListener {
+  private static final Logger LOGGER = LoggerFactory.getLogger( JaasRealmsRegistrar.class );
   private BundleContext bundleContext;
   private List<ServiceRegistration> realmRegistrations;
 
-  public MaprJaasRealmsRegistrar( BundleContext bundleContext ) throws ConfigurationException {
+  public JaasRealmsRegistrar( BundleContext bundleContext ) throws ConfigurationException {
     this.bundleContext = bundleContext;
     HadoopConfigurationBootstrap hcb = HadoopConfigurationBootstrap.getInstance();
     hcb.registerHadoopConfigurationListener( this );
@@ -62,12 +62,15 @@ public class MaprJaasRealmsRegistrar implements HadoopConfigurationListener {
     try {
       Thread.currentThread().setContextClassLoader( classLoader );
 
-      if ( !isMaprShimActive( HadoopConfigurationBootstrap.getInstance() ) ) {
-        LOGGER.info( "Active hadoop configuration is not MapR. Skipping JAAS realms registration." );
-        return;
-      }
+      HashMap<String, LinkedList<AppConfigurationEntry>> configs = new HashMap<>();
 
-      HashMap<String, LinkedList<AppConfigurationEntry>> configs = getMaprJaasConfig();
+      configs.putAll( getOverridenDefaultConfigs() );
+
+      if ( isMaprShimActive( HadoopConfigurationBootstrap.getInstance() ) ) {
+        configs.putAll( getMaprJaasConfig() );
+      } else {
+        LOGGER.info( "Active hadoop configuration is not MapR. Skipping JAAS realms registration." );
+      }
 
       realmRegistrations = new ArrayList<>( configs.size() );
 
@@ -83,6 +86,21 @@ public class MaprJaasRealmsRegistrar implements HadoopConfigurationListener {
     } finally {
       Thread.currentThread().setContextClassLoader( originalCL );
     }
+  }
+
+  private HashMap<String, LinkedList<AppConfigurationEntry>> getOverridenDefaultConfigs() {
+    HashMap<String, LinkedList<AppConfigurationEntry>> configs = new HashMap<>();
+
+    HashMap<String, String> options = new HashMap<>();
+    LinkedList<AppConfigurationEntry> entries = new LinkedList<>();
+
+    options.put( "useTicketCache", "true" );
+    options.put( "doNotPrompt", "true" );
+    entries.add( new AppConfigurationEntry( "com.sun.security.auth.module.Krb5LoginModule",
+      AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, options ) );
+    configs.put( "com.sun.security.jgss.krb5.initiate", entries );
+
+    return configs;
   }
 
   @Override public void onConfigurationOpen( HadoopConfiguration hadoopConfiguration, boolean defaultConfiguration ) {
@@ -166,7 +184,7 @@ public class MaprJaasRealmsRegistrar implements HadoopConfigurationListener {
 
       @Override
       public AppConfigurationEntry[] getEntries() {
-        return entries.toArray( new AppConfigurationEntry[entries.size()] );
+        return entries.toArray( new AppConfigurationEntry[ entries.size() ] );
       }
     };
   }
