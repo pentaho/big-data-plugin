@@ -52,7 +52,7 @@
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-sqoop/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hive/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
-	    <bundle>mvn:pentaho/pentaho-hadoop-shims-mapr-osgi-jaas/${project.version}</bundle>
+	    <bundle>mvn:pentaho/pentaho-hadoop-shims-osgi-jaas/${project.version}</bundle>
     </conditional>
   </feature>
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
