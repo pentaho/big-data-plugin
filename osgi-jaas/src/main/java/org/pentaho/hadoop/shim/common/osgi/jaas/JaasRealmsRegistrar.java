@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.hadoop.shim.mapr.osgi.jaas;
+package org.pentaho.hadoop.shim.common.osgi.jaas;
 
 import com.sun.security.auth.login.ConfigFile;
 import org.apache.karaf.jaas.config.JaasRealm;

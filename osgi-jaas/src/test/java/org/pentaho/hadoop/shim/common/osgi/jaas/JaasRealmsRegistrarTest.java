@@ -18,7 +18,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package org.pentaho.hadoop.shim.mapr.osgi.jaas;
+package org.pentaho.hadoop.shim.common.osgi.jaas;
 
 import static org.mockito.Mockito.*;
 
