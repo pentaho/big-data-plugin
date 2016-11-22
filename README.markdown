@@ -5,13 +5,32 @@ The Pentaho Big Data Plugin Project provides support for an ever-expanding Big D
 
 Building
 --------
-The Pentaho Big Data Plugin is built with Apache Ant and uses Apache Ivy for dependency management. All you'll need to get started is Ant 1.7.0 or newer to build the project. The build scripts will download Ivy if you do not already have it installed.
+It's a maven build, so `mvn clean install` is a typical default for a local build.
 
-    $ git clone git://github.com/pentaho/big-data-plugin.git
-    $ cd big-data-plugin
-    $ ant
+Pre-requisites
+---------------
+JDK 8 in your path.
+Maven 3.3.9 in your path.
+This settings.xml: https://bintray.com/pentaho/public-maven/download_file?file_path=settings.xml
 
-This will produce a plugin archive in dist/pentaho-big-data-plugin-${project.revision}.tar.gz (and .zip). This archive can then be extracted into your Pentaho Data Integration plugin directory.
+How to use the custom settings.xml
+---------------
+Option 1: Copy this file into your <user-home>/.m2 folder and name it "settings.xml". 
+Warning: If you do this, it will become your default settings.xml for all maven builds.
+
+Option 2: Copy this file into some other folder--possibly the project folder for the project you want to build and use the maven 's' option to build with this settings.xml file. Example: `mvn -s public-settings.xml install`.
+
+The Pentaho profile defaults to pull all artifacts through the Pentaho public repository. 
+If you want to try resolving maven plugin dependencies through the maven central repository instead of the Pentaho public repository, activate the "central" profile like this:
+
+`mvn -s -public-settings.xml -P central install`
+
+
+If your fails to resolve the jacoco-maven-plugin version 0.7.7-SNAPSHOT
+---------------
+This SNAPSHOT version is several releases of the Pentaho parent poms and is only available in the Pentaho artifact repositories. If you are trying to resolve through maven central or other public repositories you should override this with the latest version like this:
+
+`mvn -s -public-settings.xml -P central install -Djacoco-maven-plugin.version=0.7.7.201606060606`
 
 Further Reading
 ---------------
