@@ -28,7 +28,7 @@ If you want to try resolving maven plugin dependencies through the maven central
 
 If your fails to resolve the jacoco-maven-plugin version 0.7.7-SNAPSHOT
 ---------------
-This SNAPSHOT version is several releases of the Pentaho parent poms and is only available in the Pentaho artifact repositories. If you are trying to resolve through maven central or other public repositories you should override this with the latest version like this:
+The 0.7.7-SNAPSHOT property version for the jacoco-maven-plugin is defined in several releases of the Pentaho parent poms, but it is only available in the Pentaho artifact repositories. If you are trying to resolve through maven central or other public repositories you should override to get the latest version like this:
 
 `mvn -s -public-settings.xml -P central install -Djacoco-maven-plugin.version=0.7.7.201606060606`
 
