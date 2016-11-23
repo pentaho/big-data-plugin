@@ -150,15 +150,15 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
-      <version>${dependency.hadoop-shims-cdh57.revision}</version>
+      <artifactId>pentaho-hadoop-shims-cdh58-package</artifactId>
+      <version>${dependency.hadoop-shims-cdh58.revision}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh58-package</artifactId>
-      <version>${dependency.hadoop-shims-cdh58.revision}</version>
+      <artifactId>pentaho-hadoop-shims-cdh59-package</artifactId>
+      <version>${dependency.hadoop-shims-cdh59.revision}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
@@ -229,13 +229,13 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh58-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh58-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh59-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
