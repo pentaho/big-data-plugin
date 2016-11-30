@@ -166,7 +166,7 @@
         <include>org.odftoolkit:odfdom-java</include>
         <include>org.olap4j:olap4j</include>
         <include>org.olap4j:olap4j-xmla</include>
-        <include>org.owasp.esapi:esapi</include>
+        <include>org.owasp.encoder:encoder</include>
         <include>org.postgresql:postgresql</include>
         <include>org.safehaus.jug:jug-lgpl</include>
         <include>org.samba.jcifs:jcifs</include>
