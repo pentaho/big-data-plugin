@@ -710,7 +710,7 @@ public abstract class AbstractSqoopJobEntryController<S extends SqoopConfig, E e
         if ( selectedNamedCluster != null
           && !this.selectedNamedCluster.equals( USE_ADVANCED_OPTIONS_CLUSTER )
           && !suppressEventHandling ) {
-          config.setNamedCluster( null );
+          config.setNamedCluster( selectedNamedCluster );
         }
         toggleQuickMode( true );
         break;

@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import org.pentaho.big.data.api.cluster.NamedCluster;
@@ -329,7 +330,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * Silently set the following properties: {@code database, connect, username, password}.
-   * 
+   *
    * @param database
    *          Database name
    * @param connect
@@ -652,7 +653,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
 
   /**
    * Sets the mode based on the enum value
-   * 
+   *
    * @param mode
    */
   public void setMode( JobEntryMode mode ) {
@@ -952,8 +953,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
   }
 
   public boolean isAdvancedClusterConfigSet() {
-    Map<String, String> defaults = namedClusterProperties( createClusterTemplate() );
-    return Strings.isNullOrEmpty( getClusterName() ) && namedClusterProperties( getNamedCluster() ).equals( defaults );
+    return Strings.isNullOrEmpty( getClusterName() ) && ncPropertiesNotNullOrEmpty( getNamedCluster() );
   }
 
   private static Map<String, String> namedClusterProperties( NamedCluster namedCluster ) {
@@ -964,4 +964,11 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
       JOBTRACKER_PORT, Strings.nullToEmpty( namedCluster.getJobTrackerPort() )
     );
   }
+
+  @VisibleForTesting
+    boolean ncPropertiesNotNullOrEmpty( NamedCluster nc ) {
+    return !Strings.isNullOrEmpty( nc.getHdfsHost() ) || !Strings.isNullOrEmpty( nc.getHdfsPort() ) || !Strings.isNullOrEmpty( nc.getJobTrackerHost() ) || !Strings.isNullOrEmpty( nc
+        .getJobTrackerPort() );
+  }
+
 }

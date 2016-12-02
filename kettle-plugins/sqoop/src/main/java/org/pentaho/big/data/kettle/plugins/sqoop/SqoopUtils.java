@@ -74,7 +74,7 @@ public class SqoopUtils {
 
   /**
    * Parse a string into arguments as if it were provided on the command line.
-   * 
+   *
    * @param commandLineString
    *          A command line string, e.g. "sqoop import --table test --connect jdbc:mysql://bogus/bogus"
    * @param variableSpace
@@ -146,7 +146,7 @@ public class SqoopUtils {
   /**
    * Configure a {@link SqoopConfig} object from a command line string. Variables will be replaced if
    * {@code variableSpace} is provided.
-   * 
+   *
    * @param config
    *          Configuration to update
    * @param commandLineString
@@ -218,7 +218,7 @@ public class SqoopUtils {
 
   /**
    * Does the string reprsent an argument name as provided on the command line? Format: "--argname"
-   * 
+   *
    * @param s
    *          Possible argument name
    * @return {@code true} if the string represents an argument name (is prefixed with ARG_PREFIX)
@@ -242,7 +242,7 @@ public class SqoopUtils {
   /**
    * Updates arguments of {@code config} based on the map of argument values. All other arguments will be cleared from
    * {@code config}.
-   * 
+   *
    * @param config
    *          Configuration object to update
    * @param args
@@ -320,7 +320,7 @@ public class SqoopUtils {
 
   /**
    * Generate a list of command line arguments and their values for arguments that require them.
-   * 
+   *
    * @param config
    *          Sqoop configuration to build a list of command line arguments from
    * @param variableSpace
@@ -347,7 +347,7 @@ public class SqoopUtils {
   /**
    * Generate a command line string for the given configuration. Replace variables with the values from
    * {@code variableSpace} if provided.
-   * 
+   *
    * @param config
    *          Sqoop configuration
    * @param variableSpace
@@ -403,7 +403,7 @@ public class SqoopUtils {
 
   /**
    * Escapes known Java escape sequences. See {@link #ESCAPE_SEQUENCES} for the list of escape sequences we escape here.
-   * 
+   *
    * @param s
    *          String to escape
    * @return Escaped string where all escape sequences are properly escaped
@@ -417,7 +417,7 @@ public class SqoopUtils {
 
   /**
    * If any whitespace is detected the string will be quoted. If any quotes exist in the string they will be escaped.
-   * 
+   *
    * @param s
    *          String to quote
    * @return A quoted version of {@code s} if whitespace exists in the string, otherwise unmodified {@code s}.
@@ -434,7 +434,7 @@ public class SqoopUtils {
 
   /**
    * Add all {@link ArgumentWrapper}s to a list of arguments
-   * 
+   *
    * @param args
    *          Arguments to append to
    * @param arguments
@@ -451,7 +451,7 @@ public class SqoopUtils {
 
   /**
    * Append this argument to a list of arguments if it has a value or if it's a flag.
-   * 
+   *
    * @param args
    *          List of arguments to append to
    */
@@ -470,7 +470,7 @@ public class SqoopUtils {
     }
   }
 
-  private static void appendCustomArguments( List<String> args , SqoopConfig config, VariableSpace variableSpace ) {
+  private static void appendCustomArguments( List<String> args, SqoopConfig config, VariableSpace variableSpace ) {
     for ( PropertyEntry entry : config.getCustomArguments() ) {
       appendCustomArgument( args, entry, variableSpace, false );
     }
@@ -541,7 +541,7 @@ public class SqoopUtils {
   /**
    * Find all fields annotated with {@link CommandLineArgument} in the class provided. All arguments must have valid
    * JavaBeans-style getter and setter methods in the object.
-   * 
+   *
    * @param o
    *          Object to look for arguments in
    * @return Ordered set of arguments representing all {@link CommandLineArgument}-annotated fields in {@code o}
@@ -584,7 +584,7 @@ public class SqoopUtils {
 
   /**
    * Determine the display name for the command line argument.
-   * 
+   *
    * @param anno
    *          Command line argument
    * @return {@link CommandLineArgument#displayName()} or, if not set,
@@ -597,7 +597,7 @@ public class SqoopUtils {
   /**
    * Finds a method in the given class or any super class with the name {@code prefix + methodName} that accepts 0
    * parameters.
-   * 
+   *
    * @param aClass
    *          Class to search for method in
    * @param methodName
