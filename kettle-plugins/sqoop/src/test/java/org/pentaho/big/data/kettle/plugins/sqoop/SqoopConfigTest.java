@@ -32,6 +32,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
+import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.big.data.kettle.plugins.sqoop.util.MockitoAutoBean;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -50,8 +51,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -67,10 +71,20 @@ import static org.mockito.Mockito.when;
  */
 @RunWith( MockitoJUnitRunner.class )
 public class SqoopConfigTest {
+  /**
+   *
+   */
+  private static final String ENTRY_VALUE = "entryValue";
+  /**
+   *
+   */
+  private static final String ENTRY_KEY = "entryKey";
+  private static final String EMPTY = "";
   public static final String HDFS_HOST = "hdfsHost";
   public static final String HDFS_PORT = "8020";
   public static final String JOB_TRACKER_HOST = "jobTracker";
   public static final String JOB_TRACKER_PORT = "2222";
+  private NamedCluster namedClusterMock = mock( NamedCluster.class );
 
   private SqoopConfig config;
   private NamedCluster template;
@@ -336,4 +350,113 @@ public class SqoopConfigTest {
     verify( template ).replaceMeta( namedCluster );
     assertEquals( "named cluster", config.getClusterName() );
   }
+
+  @Test
+  public void testIsAdvancedClusterConfigSet_ClusterNameNull() throws Exception {
+    when( namedClusterMock.getName() ).thenReturn( null );
+    config.setNamedCluster( namedClusterMock );
+    assertTrue( config.isAdvancedClusterConfigSet() );
+  }
+
+  @Test
+  public void testIsAdvancedClusterConfigSet_ClusterNameEmpty() throws Exception {
+    when( namedClusterMock.getName() ).thenReturn( EMPTY );
+    config.setNamedCluster( namedClusterMock );
+    assertTrue( config.isAdvancedClusterConfigSet() );
+  }
+
+  @Test
+  public void testIsAdvancedClusterConfigSet_ClusterNameEmptyOrNullAndAllNcPropertiesNull() throws Exception {
+    when( namedClusterMock.getName() ).thenReturn( null );
+    config.setNamedCluster( namedClusterMock );
+    when( config.getNamedCluster().getHdfsHost() ).thenReturn( null );
+    when( config.getNamedCluster().getHdfsPort() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerHost() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerPort() ).thenReturn( null );
+    assertFalse( config.isAdvancedClusterConfigSet() );
+  }
+
+  @Test
+  public void testIsAdvancedClusterConfigSet_ClusterNameNotNull() throws Exception {
+    when( namedClusterMock.getName() ).thenReturn( "Cluster Name For Testing" );
+    config.setNamedCluster( namedClusterMock );
+    assertFalse( config.isAdvancedClusterConfigSet() );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_AllNotNullNotEmpty() throws Exception {
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertTrue( ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_AllNull() throws Exception {
+    when( config.getNamedCluster().getHdfsHost() ).thenReturn( null );
+    when( config.getNamedCluster().getHdfsPort() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerHost() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerPort() ).thenReturn( null );
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertFalse( ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_AllEmpty() throws Exception {
+    when( config.getNamedCluster().getHdfsHost() ).thenReturn( EMPTY );
+    when( config.getNamedCluster().getHdfsPort() ).thenReturn( EMPTY );
+    when( config.getNamedCluster().getJobTrackerHost() ).thenReturn( EMPTY );
+    when( config.getNamedCluster().getJobTrackerPort() ).thenReturn( EMPTY );
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertFalse( ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_HdfsHostOnlyNotNull() throws Exception {
+    when( config.getNamedCluster().getHdfsPort() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerHost() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerPort() ).thenReturn( null );
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertTrue( "It should be true - HDFS host: " + config.getNamedCluster().getHdfsHost(), ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_HdfsPortOnlyNotNull() throws Exception {
+    when( config.getNamedCluster().getHdfsHost() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerHost() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerPort() ).thenReturn( null );
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertTrue( "It should be true - HDFS port: " + config.getNamedCluster().getHdfsPort(), ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_JobTrackerHostOnlyNotNull() throws Exception {
+    when( config.getNamedCluster().getHdfsHost() ).thenReturn( null );
+    when( config.getNamedCluster().getHdfsPort() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerPort() ).thenReturn( null );
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertTrue( "It should be true - Job tracker host: " + config.getNamedCluster().getJobTrackerHost(), ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testNcPropertiesNotNullOrEmpty_JobTrackerPortOnlyNotNull() throws Exception {
+    when( config.getNamedCluster().getHdfsHost() ).thenReturn( null );
+    when( config.getNamedCluster().getHdfsPort() ).thenReturn( null );
+    when( config.getNamedCluster().getJobTrackerHost() ).thenReturn( null );
+    boolean ncPropertiesNotNullOrEmpty = config.ncPropertiesNotNullOrEmpty( config.getNamedCluster() );
+    assertTrue( "It should be true - Job tracker host: " + config.getNamedCluster().getJobTrackerPort(), ncPropertiesNotNullOrEmpty );
+  }
+
+  @Test
+  public void testSetCustomArguments_GetCustomArguments() throws Exception {
+    PropertyEntry pEntryMock = new PropertyEntry( ENTRY_KEY, ENTRY_VALUE );
+    AbstractModelList<PropertyEntry> customArguments = new AbstractModelList<>();
+    customArguments.add( pEntryMock );
+    assertNotNull( config.getCustomArguments() );
+    assertEquals( 0, config.getCustomArguments().size() );
+    config.setCustomArguments( customArguments );
+    assertSame( customArguments, config.getCustomArguments() );
+    assertEquals( 1, config.getCustomArguments().size() );
+    assertEquals( ENTRY_KEY, config.getCustomArguments().get( 0 ).getKey() );
+    assertEquals( ENTRY_VALUE, config.getCustomArguments().get( 0 ).getValue() );
+  }
+
 }

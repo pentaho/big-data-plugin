@@ -60,7 +60,7 @@ public class PropertyFiringObjectTest {
   /**
    * Test that all private fields of the provided object have getter and setter methods, and they work as they should:
    * the getter returns the value and the setter generates a {@link PropertyChangeEvent} for that property.
-   * 
+   *
    * @param o
    *          Object to test
    * @throws Exception
@@ -85,7 +85,7 @@ public class PropertyFiringObjectTest {
   /**
    * Test that all private fields have getter and setter methods, and they work as they should: the getter returns the
    * value and the setter generates a {@link PropertyChangeEvent} for that property.
-   * 
+   *
    * @param o
    *          instance of event source to test
    * @param oClass
@@ -100,8 +100,7 @@ public class PropertyFiringObjectTest {
     }
 
     for ( Field f : oClass.getDeclaredFields() ) {
-      if ( !Modifier.isPrivate( f.getModifiers() ) || Modifier.isTransient( f.getModifiers() ) ||
-        !supportedTypes.contains( f.getType() ) ) {
+      if ( !Modifier.isPrivate( f.getModifiers() ) || Modifier.isTransient( f.getModifiers() ) || !supportedTypes.contains( f.getType() ) ) {
         // Skip non-private or transient fields
         continue;
       }
@@ -142,7 +141,7 @@ public class PropertyFiringObjectTest {
 
   /**
    * Get a value to test with that matches the type provided.
-   * 
+   *
    * @param type
    *          Type of test value
    * @param originalValue
