@@ -150,13 +150,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
-      <version>${dependency.hadoop-shims-cdh57.revision}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-cdh58-package</artifactId>
       <version>${dependency.hadoop-shims-cdh58.revision}</version>
       <type>zip</type>
@@ -171,13 +164,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
-      <version>${dependency.hadoop-shims-mapr410.revision}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr510-package</artifactId>
       <version>${dependency.hadoop-shims-mapr510.revision}</version>
       <type>zip</type>
@@ -185,8 +171,8 @@
     </dependency>
      <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-emr46-package</artifactId>
-      <version>${dependency.hadoop-shims-emr46.revision}</version>
+      <artifactId>pentaho-hadoop-shims-emr41-package</artifactId>
+      <version>${dependency.hadoop-shims-emr41.revision}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
@@ -227,12 +213,6 @@
             </goals>
             <configuration>
               <artifactItems>
-				<artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh57-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-cdh58-package</artifactId>
@@ -247,19 +227,13 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-mapr510-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr46-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-emr41-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
