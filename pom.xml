@@ -36,7 +36,6 @@
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
   <properties>
-    <dependency.xerces.version>2.9.1</dependency.xerces.version>
     <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
     <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
     <dependency.json.revision>8.0-SNAPSHOT</dependency.json.revision>
