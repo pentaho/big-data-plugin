@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.9-307</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.9-307</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -138,7 +138,7 @@
       <artifactId>xmlpull</artifactId>
       <version>${dependency.xmlpull.revision}</version>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>xpp3</groupId>
       <artifactId>xpp3_min</artifactId>
       <version>${dependency.xpp3.revision}</version>
