@@ -171,13 +171,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
-      <version>${dependency.hadoop-shims-mapr410.revision}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr510-package</artifactId>
       <version>${dependency.hadoop-shims-mapr510.revision}</version>
       <type>zip</type>
@@ -242,12 +235,6 @@
                 <artifactItem>
                   <groupId>pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-hdp25-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-mapr410-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
