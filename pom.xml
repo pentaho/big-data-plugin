@@ -39,7 +39,8 @@
     <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
     <dependency.json.revision>7.0-SNAPSHOT</dependency.json.revision>
     <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
-    <dependency.httpcomponents.revision>4.4</dependency.httpcomponents.revision>
+    <dependency.httpcomponents-client.revision>4.5.2</dependency.httpcomponents-client.revision>
+    <dependency.httpcomponents-core.revision>4.4</dependency.httpcomponents-core.revision>
     <dependency.hadoop-shims-emr41.revision>7.0-SNAPSHOT</dependency.hadoop-shims-emr41.revision>
     <dependency.karaf.revision>3.0.3</dependency.karaf.revision>
     <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5</plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
