@@ -29,7 +29,7 @@
       <version>${oozie.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
       <version>${dependency.hadoop-shims-api.revision}</version>
     </dependency>
