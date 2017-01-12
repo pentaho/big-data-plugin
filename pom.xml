@@ -86,6 +86,7 @@
     <dependency.cxf.revision>2.6.15</dependency.cxf.revision>
     <dependency.hadoop-shims-hdp25.revision>7.1-SNAPSHOT</dependency.hadoop-shims-hdp25.revision>
     <dependency.aws-java-sdk.revision>1.0.008</dependency.aws-java-sdk.revision>
+    <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
     <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
   </properties>
   <build>

@@ -70,11 +70,22 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk</artifactId>
-      <version>1.0.008</version>
+      <version>${dependency.aws-java-sdk.revision}</version>
       <exclusions>
         <exclusion>
           <artifactId>jackson-core-asl</artifactId>
           <groupId>org.codehaus.jackson</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>${dependency.joda-time.revision}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
