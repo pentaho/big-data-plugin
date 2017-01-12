@@ -45,6 +45,7 @@
     <jline.version>0.9.94</jline.version>
     <jackson.version>1.5.2</jackson.version>
     <easymock.versin>3.0</easymock.versin>
+    <joda-time.version>2.9.4</joda-time.version>
   </properties>
   <dependencies>
     <dependency>
@@ -75,6 +76,17 @@
         <exclusion>
           <artifactId>jackson-core-asl</artifactId>
           <groupId>org.codehaus.jackson</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>${joda-time.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
