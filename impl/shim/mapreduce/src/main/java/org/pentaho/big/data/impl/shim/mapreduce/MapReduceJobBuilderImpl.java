@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -203,6 +203,8 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     String hdfsPortS = variableSpace.environmentSubstitute( namedCluster.getHdfsPort() );
     String jobTrackerHostnameS = variableSpace.environmentSubstitute( namedCluster.getJobTrackerHost() );
     String jobTrackerPortS = variableSpace.environmentSubstitute( namedCluster.getJobTrackerPort() );
+    //String defaultFsName = variableSpace.environmentSubstitute( namedCluster.getDefaultFS() );
+//    conf.set( "pentaho.runtime.fs.default.name", conf.get( "fs.defaultFS" ) );
 
     List<String> configMessages = new ArrayList<String>();
     hadoopShim.configureConnectionInformation( hdfsHostnameS, hdfsPortS, jobTrackerHostnameS, jobTrackerPortS, conf,

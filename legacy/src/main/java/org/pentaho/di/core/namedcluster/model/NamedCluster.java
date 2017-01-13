@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -41,6 +41,9 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   @MetaStoreAttribute
   private String name;
+
+  @MetaStoreAttribute
+  private String shimIdentifier;
 
   @MetaStoreAttribute
   private String hdfsHost;
@@ -285,6 +288,14 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public boolean isMapr() {
     return mapr;
+  }
+
+  public String getShimIdentifier() {
+    return shimIdentifier;
+  }
+
+  public void setShimIdentifier( String shimIdentifier ) {
+    this.shimIdentifier = shimIdentifier;
   }
 
   @Override

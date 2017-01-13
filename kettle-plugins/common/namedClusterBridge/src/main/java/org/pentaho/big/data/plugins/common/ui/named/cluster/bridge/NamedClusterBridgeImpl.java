@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -73,6 +73,7 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public void replaceMeta( NamedCluster nc ) {
     delegate.setName( nc.getName() );
+    delegate.setShimIdentifier( nc.getShimIdentifier() );
     delegate.setHdfsHost( nc.getHdfsHost() );
     delegate.setHdfsPort( nc.getHdfsPort() );
     delegate.setHdfsUsername( nc.getHdfsUsername() );
@@ -194,6 +195,16 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public void setMapr( boolean mapr ) {
     delegate.setMapr( mapr );
+  }
+
+  @Override
+  public String getShimIdentifier() {
+    return delegate.getShimIdentifier();
+  }
+
+  @Override
+  public void setShimIdentifier( String shimIdentifier ) {
+    delegate.setShimIdentifier( shimIdentifier );
   }
 
   @Override

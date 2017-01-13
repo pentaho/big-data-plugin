@@ -1,23 +1,18 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p>
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * <p>
+ * ******************************************************************************
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.big.data.impl.vfs.hdfs;
@@ -38,6 +33,7 @@ import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.di.core.vfs.KettleVFS;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,12 +75,14 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
   @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
                            DefaultFileSystemManager fileSystemManager ) throws FileSystemException {
-    this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(), new String[] { SCHEME, MAPRFS } );
+    this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(),
+      new String[] { SCHEME, MAPRFS } );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
                            FileNameParser fileNameParser, String schema ) throws FileSystemException {
-    this( hadoopFileSystemLocator, namedClusterService, (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
+    this( hadoopFileSystemLocator, namedClusterService,
+      (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
       fileNameParser, new String[] { schema } );
   }
 
@@ -113,7 +111,8 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
     }
     namedCluster.setMapr( MAPRFS.equals( name.getScheme() ) );
     try {
-      return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( namedCluster ) );
+      return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( namedCluster,
+        URI.create( name.getURI() == null ? "" : name.getURI() ) ) );
     } catch ( ClusterInitializationException e ) {
       throw new FileSystemException( e );
     }
