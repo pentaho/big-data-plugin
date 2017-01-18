@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -104,13 +104,6 @@ public class JobEntryHadoopTransJobExecutorDialog extends JobEntryDialog impleme
     bf = new DefaultBindingFactory();
     bf.setDocument( container.getDocumentRoot() );
     bf.setBindingType( Type.BI_DIRECTIONAL );
-
-    bf.createBinding( "mapper-storage-type", "selectedItem", controller,
-        JobEntryHadoopTransJobExecutorController.MAPPER_STORAGE_TYPE ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "combiner-storage-type", "selectedItem", controller,
-        JobEntryHadoopTransJobExecutorController.COMBINER_STORAGE_TYPE ); //$NON-NLS-1$ //$NON-NLS-2$
-    bf.createBinding( "reducer-storage-type", "selectedItem", controller,
-        JobEntryHadoopTransJobExecutorController.REDUCER_STORAGE_TYPE ); //$NON-NLS-1$ //$NON-NLS-2$
 
     bf.createBinding( "jobentry-name", "value", controller, JobEntryHadoopTransJobExecutorController.JOB_ENTRY_NAME ); //$NON-NLS-1$ //$NON-NLS-2$
     bf.createBinding( "jobentry-hadoopjob-name", "value", controller,

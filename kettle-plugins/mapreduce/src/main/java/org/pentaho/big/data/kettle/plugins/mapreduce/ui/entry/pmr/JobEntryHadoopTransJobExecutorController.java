@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -54,7 +54,6 @@ import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
@@ -174,8 +173,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String reduceTransInputStepName = "";
   private String reduceTransOutputStepName = "";
 
-  private String mapperStorageType = "";
-  private String combinerStorageType = "";
+  private String mapperStorageType = LOCAL;
+  private String combinerStorageType = LOCAL;
   private String reducerStorageType = "";
   private List<NamedCluster> namedClusters;
 
@@ -456,91 +455,15 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "logging-interval" );
       tempBox.setVariableSpace( varSpace );
 
-      if ( rep == null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
-          .setDisabled( true );
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
-          .setDisabled( true );
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
-          .setDisabled( true );
-      }
-
-      // Load the map transformation into the UI
-      if ( jobEntry.getMapTrans() != null || rep == null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
-          .setSelectedIndex( 0 );
-        setMapTrans( jobEntry.getMapTrans() );
-        this.mapperStorageType = LOCAL;
-      } else if ( jobEntry.getMapRepositoryReference() != null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
-          .setSelectedIndex( 2 );
-        setMapRepositoryReference( jobEntry.getMapRepositoryReference() );
-        this.mapperStorageType = REFERENCE;
-        // Load the repository directory and file for displaying to the user
-        try {
-          TransMeta transMeta = rep.loadTransformation( getMapRepositoryReference(), null );
-          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
-            setMapTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
-          }
-        } catch ( KettleException e ) {
-          // The transformation cannot be loaded from the repository
-          setMapRepositoryReference( null );
-        }
-      } else {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" ) )
-          .setSelectedIndex( 1 );
-        setMapRepositoryDir( jobEntry.getMapRepositoryDir() );
-        setMapRepositoryFile( jobEntry.getMapRepositoryFile() );
-        setMapTrans( buildRepositoryPath( getMapRepositoryDir(), getMapRepositoryFile() ) );
-        this.mapperStorageType = REPOSITORY;
-      }
-      setMapTransInputStepName( jobEntry.getMapInputStepName() );
-      setMapTransOutputStepName( jobEntry.getMapOutputStepName() );
-
-      // Load the combiner transformation into the UI
-      if ( jobEntry.getCombinerTrans() != null || rep == null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
-          .setSelectedIndex( 0 );
-        setCombinerTrans( jobEntry.getCombinerTrans() );
-        this.combinerStorageType = LOCAL;
-      } else if ( jobEntry.getCombinerRepositoryReference() != null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
-          .setSelectedIndex( 2 );
-        setCombinerRepositoryReference( jobEntry.getCombinerRepositoryReference() );
-        this.combinerStorageType = REFERENCE;
-        // Load the repository directory and file for displaying to the user
-        try {
-          TransMeta transMeta = rep.loadTransformation( getCombinerRepositoryReference(), null );
-          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
-            setCombinerTrans(
-              buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
-          }
-        } catch ( KettleException e ) {
-          // The transformation cannot be loaded from the repository
-          setCombinerRepositoryReference( null );
-        }
-      } else {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" ) )
-          .setSelectedIndex( 1 );
-        setCombinerRepositoryDir( jobEntry.getCombinerRepositoryDir() );
-        setCombinerRepositoryFile( jobEntry.getCombinerRepositoryFile() );
-        setCombinerTrans( buildRepositoryPath( getCombinerRepositoryDir(), getCombinerRepositoryFile() ) );
-        this.combinerStorageType = REPOSITORY;
-      }
-
       setCombinerTransInputStepName( jobEntry.getCombinerInputStepName() );
       setCombinerTransOutputStepName( jobEntry.getCombinerOutputStepName() );
       setCombiningSingleThreaded( jobEntry.isCombiningSingleThreaded() );
 
       // Load the reduce transformation into the UI
       if ( jobEntry.getReduceTrans() != null || rep == null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
-          .setSelectedIndex( 0 );
         setReduceTrans( jobEntry.getReduceTrans() );
         this.reducerStorageType = LOCAL;
       } else if ( jobEntry.getReduceRepositoryReference() != null ) {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
-          .setSelectedIndex( 2 );
         setReduceRepositoryReference( jobEntry.getReduceRepositoryReference() );
         this.reducerStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
@@ -554,8 +477,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
           setReduceRepositoryReference( null );
         }
       } else {
-        ( (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" ) )
-          .setSelectedIndex( 1 );
         setReduceRepositoryDir( jobEntry.getReduceRepositoryDir() );
         setReduceRepositoryFile( jobEntry.getReduceRepositoryFile() );
         setReduceTrans( buildRepositoryPath( getReduceRepositoryDir(), getReduceRepositoryFile() ) );
@@ -579,19 +500,19 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
       setSuppressOutputOfMapKey( jobEntry.getSuppressOutputOfMapKey() );
       setSuppressOutputOfMapValue( jobEntry.getSuppressOutputOfMapValue() );
-      // setMapOutputKeyClass(jobEntry.getMapOutputKeyClass());
-      // setMapOutputValueClass(jobEntry.getMapOutputValueClass());
 
       setSuppressOutputOfKey( jobEntry.getSuppressOutputOfKey() );
       setSuppressOutputOfValue( jobEntry.getSuppressOutputOfValue() );
-      // setOutputKeyClass(jobEntry.getOutputKeyClass());
-      // setOutputValueClass(jobEntry.getOutputValueClass());
       setOutputFormatClass( jobEntry.getOutputFormatClass() );
 
       selectedNamedCluster = jobEntry.getNamedCluster();
 
       setNumMapTasks( jobEntry.getNumMapTasks() );
       setNumReduceTasks( jobEntry.getNumReduceTasks() );
+      if ( Spoon.getInstance().getRepository() != null ) {
+        mapperStorageType = REPOSITORY;
+        combinerStorageType = REPOSITORY;
+      }
     }
   }
 
@@ -1273,147 +1194,16 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     firePropertyChange( NUM_REDUCE_TASKS, previousVal, newVal );
   }
 
-  @SuppressWarnings( "rawtypes" )
-  public void setMapperStorageType( String mapperStorageType ) {
-    XulMenuList menuList = (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "mapper-storage-type" );
-    String prevMapperStorageType = menuList.getSelectedItem();
-    switch ( menuList.getSelectedIndex() ) {
-      case 0: // Local
-        mapperStorageTypeChanged( LOCAL );
-        break;
-
-      case 1: // By name
-        mapperStorageTypeChanged( REPOSITORY );
-        break;
-
-      case 2: // By reference
-        mapperStorageTypeChanged( REFERENCE );
-        break;
-    }
-
-    firePropertyChange( MAPPER_STORAGE_TYPE, prevMapperStorageType, mapperStorageType );
-  }
-
   public String getMapperStorageType() {
     return mapperStorageType;
-  }
-
-  private void mapperStorageTypeChanged( String newStorageType ) {
-    // Only execute this code if the storage type has changed
-    if ( !this.mapperStorageType.equals( newStorageType ) ) {
-      this.mapperStorageType = newStorageType;
-
-      // Disable the text box?
-      if ( this.mapperStorageType.equals( REFERENCE ) ) {
-        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" ) )
-            .setReadonly( true );
-      } else {
-        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" ) )
-            .setReadonly( false );
-      }
-
-      // Clear current settings
-      setMapRepositoryDir( null );
-      setMapRepositoryFile( null );
-      setMapRepositoryReference( null );
-      setMapTrans( "" );
-    }
-  }
-
-  @SuppressWarnings( "rawtypes" )
-  public void setCombinerStorageType( String combinerStorageType ) {
-    XulMenuList menuList =
-        (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "combiner-storage-type" );
-    String prevCombinerStorageType = menuList.getSelectedItem();
-    switch ( menuList.getSelectedIndex() ) {
-      case 0: // Local
-        combinerStorageTypeChanged( LOCAL );
-        break;
-
-      case 1: // By name
-        combinerStorageTypeChanged( REPOSITORY );
-        break;
-
-      case 2: // By reference
-        combinerStorageTypeChanged( REFERENCE );
-        break;
-    }
-
-    firePropertyChange( COMBINER_STORAGE_TYPE, prevCombinerStorageType, combinerStorageType );
   }
 
   public String getCombinerStorageType() {
     return combinerStorageType;
   }
 
-  private void combinerStorageTypeChanged( String newStorageType ) {
-    // Only execute this code if the storage type has changed
-    if ( !this.combinerStorageType.equals( newStorageType ) ) {
-      this.combinerStorageType = newStorageType;
-
-      // Disable the text box?
-      if ( this.combinerStorageType.equals( REFERENCE ) ) {
-        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" ) )
-            .setReadonly( true );
-      } else {
-        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" ) )
-            .setReadonly( false );
-      }
-
-      // Clear current settings
-      setCombinerRepositoryDir( null );
-      setCombinerRepositoryFile( null );
-      setCombinerRepositoryReference( null );
-      setCombinerTrans( "" );
-    }
-  }
-
-  @SuppressWarnings( "rawtypes" )
-  public void setReducerStorageType( String reducerStorageType ) {
-    XulMenuList menuList =
-        (XulMenuList) getXulDomContainer().getDocumentRoot().getElementById( "reducer-storage-type" );
-    String prevReducerStorageType = menuList.getSelectedItem();
-    switch ( menuList.getSelectedIndex() ) {
-      case 0: // Local
-        reducerStorageTypeChanged( LOCAL );
-        break;
-
-      case 1: // By name
-        reducerStorageTypeChanged( REPOSITORY );
-        break;
-
-      case 2: // By reference
-        reducerStorageTypeChanged( REFERENCE );
-        break;
-    }
-
-    firePropertyChange( REDUCER_STORAGE_TYPE, prevReducerStorageType, reducerStorageType );
-  }
-
   public String getReducerStorageType() {
     return reducerStorageType;
-  }
-
-  private void reducerStorageTypeChanged( String newStorageType ) {
-    // Only execute this code if the storage type has changed
-    if ( !this.reducerStorageType.equals( newStorageType ) ) {
-      this.reducerStorageType = newStorageType;
-
-      // Disable the text box?
-      if ( this.reducerStorageType.equals( REFERENCE ) ) {
-        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" ) )
-            .setReadonly( true );
-      } else {
-        ( (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" ) )
-            .setReadonly( false );
-      }
-
-      // Clear current settings
-      setReduceRepositoryDir( null );
-      setReduceRepositoryFile( null );
-      setReduceRepositoryReference( null );
-      setReduceTrans( "" );
-    }
   }
 
   public String getMapRepositoryDir() {
