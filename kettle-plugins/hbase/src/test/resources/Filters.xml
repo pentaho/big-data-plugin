@@ -1,0 +1,16 @@
+<column_filters>
+	<filter>
+		<alias>0</alias>
+		<type>String</type>
+		<comparison_opp>Substring</comparison_opp>
+		<signed_comp>N</signed_comp>
+		<constant>value1</constant>
+	</filter>
+	<filter>
+		<alias>1</alias>
+		<type>String</type>
+		<comparison_opp>&#x3d;</comparison_opp>
+		<signed_comp>Y</signed_comp>
+		<constant>value2</constant>
+	</filter>
+</column_filters>
