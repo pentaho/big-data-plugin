@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,24 +22,30 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.di.core.row.RowMeta;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.runtime.test.RuntimeTester;
-import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
+import org.pentaho.bigdata.api.hbase.HBaseService;
+import org.pentaho.bigdata.api.hbase.mapping.Mapping;
+import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 /**
  * @author Tatsiana_Kasiankova
@@ -48,22 +54,21 @@ import static org.mockito.Mockito.when;
 public class HBaseRowDecoderMetaTest {
 
   private static final String MAPPING_NAME = "MappingName";
-
   private static final String TABLE_NAME = "TableName";
-
-  private static final String COLUMN_NAME = "ColumnName";
-  private static final String FAMILY_NAME = "fm";
   private static final String ALIAS = "alias";
   private static final String MAPPING_KEY_NAME = "mappingKeyName";
   private static final String ORIGIN = "HBase Row Decoder";
   private HBaseRowDecoderMeta hbRowDecoderMeta;
   private RowMeta rowMeta;
+  private VariableSpace vsMock = mock( VariableSpace.class );
+  private NamedClusterServiceLocator ncLocatorMock = mock( NamedClusterServiceLocator.class );
+  private NamedClusterService ncsMock = mock( NamedClusterService.class );
+  private NamedCluster ncMock = mock( NamedCluster.class );
+  private MappingDefinition mapDefMock = mock( MappingDefinition.class );
 
   @Before
   public void setup() {
-    hbRowDecoderMeta =
-      new HBaseRowDecoderMeta( mock( NamedClusterServiceLocator.class ), mock( NamedClusterService.class ), mock(
-        RuntimeTestActionService.class ), mock( RuntimeTester.class ) );
+    hbRowDecoderMeta = new HBaseRowDecoderMeta( ncLocatorMock, ncsMock, mock( RuntimeTestActionService.class ), mock( RuntimeTester.class ) );
     rowMeta = new RowMeta();
   }
 
@@ -111,4 +116,12 @@ public class HBaseRowDecoderMetaTest {
     return maping;
   }
 
+  @Test
+  public void testNotAppliedInjectionWhenMappingDefinitionNull() throws Exception {
+    when( ncsMock.getClusterTemplate() ).thenReturn( ncMock );
+    hbRowDecoderMeta.setNamedCluster( ncsMock.getClusterTemplate() );
+    hbRowDecoderMeta.setMappingDefinition( null );
+    hbRowDecoderMeta.applyInjection( vsMock );
+    verify( ncLocatorMock, times( 0 ) ).getService( ncMock, HBaseService.class );
+  }
 }

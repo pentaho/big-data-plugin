@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,12 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
+import org.pentaho.big.data.kettle.plugins.hbase.HBaseDataLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.HBaseServiceLocalImp;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
@@ -43,12 +44,10 @@ import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.ColumnFilter;
 import org.pentaho.bigdata.api.hbase.mapping.ColumnFilterFactory;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.mapping.MappingFactory;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -61,9 +60,11 @@ import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -78,17 +79,17 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Class providing an input step for reading data from an HBase table according to meta data mapping info stored in a
  * separate HBase table called "pentaho_mappings". See org.pentaho.hbase.mapping.Mapping for details on the meta data
  * format.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
-@Step( id = "HBaseInput", image = "HB.svg", name = "HBaseInput.Name", description = "HBaseInput.Description",
-    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
-    i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
+@Step( id = "HBaseInput", image = "HB.svg", name = "HBaseInput.Name", description = "HBaseInput.Description", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input", i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
 @InjectionSupported( localizationPrefix = "HBaseInput.Injection.", groups = { "OUTPUT_FIELDS", "MAPPING", "FILTER" } )
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
@@ -163,19 +164,26 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   @InjectionDeep
   protected MappingDefinition mappingDefinition;
 
-  public HBaseInputMeta( NamedClusterService namedClusterService,
-                         NamedClusterServiceLocator namedClusterServiceLocator,
-                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+  private HBaseService hBaseLocalService;
+
+  public HBaseInputMeta( NamedClusterService namedClusterService, NamedClusterServiceLocator namedClusterServiceLocator, RuntimeTestActionService runtimeTestActionService,
+      RuntimeTester runtimeTester ) {
     this.namedClusterService = namedClusterService;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
+    hBaseLocalService = new HBaseServiceLocalImp();
+  }
+
+
+  public HBaseService getHBaseLocalService() {
+    return hBaseLocalService;
   }
 
   /**
    * Set the mapping to use for decoding the row
-   * 
+   *
    * @param m
    *          the mapping to use
    */
@@ -185,7 +193,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the mapping to use for decoding the row
-   * 
+   *
    * @return the mapping to use
    */
   public Mapping getMapping() {
@@ -194,7 +202,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the URL to the hbase-site.xml. Either this OR the zookeeper host list can be used to establish a connection.
-   * 
+   *
    * @param coreConfig
    */
   public void setCoreConfigURL( String coreConfig ) {
@@ -204,7 +212,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the URL to the hbase-site.xml file.
-   * 
+   *
    * @return the URL to the hbase-site.xml file or null if not set.
    */
   public String getCoreConfigURL() {
@@ -214,7 +222,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the URL to the hbase-default.xml file. This can be optionally supplied in conjuction with hbase-site.xml. If
    * not supplied, then the default hbase-default.xml included in the main hbase jar file is used.
-   * 
+   *
    * @param defaultConfig
    *          URL to the hbase-default.xml file.
    */
@@ -225,7 +233,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the URL to hbase-default.xml
-   * 
+   *
    * @return the URL to hbase-default.xml or null if not set.
    */
   public String getDefaultConfigURL() {
@@ -239,7 +247,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the name of the HBase table to read from.
-   * 
+   *
    * @return the name of the source HBase table.
    */
   public String getSourceTableName() {
@@ -248,7 +256,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the name of the mapping to use that defines column names and types for the source table.
-   * 
+   *
    * @param sourceMapping
    *          the name of the mapping to use.
    */
@@ -259,7 +267,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the name of the mapping to use for reading and decoding column values for the source table.
-   * 
+   *
    * @return the name of the mapping to use.
    */
   public String getSourceMappingName() {
@@ -268,7 +276,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether a given row needs to match at least one of the user specified column filters.
-   * 
+   *
    * @param a
    *          true if at least one filter needs to match before a given row is returned. If false then *all* filters
    *          must match.
@@ -279,7 +287,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether a given row needs to match at least one of the user-specified column filters.
-   * 
+   *
    * @return true if a given row needs to match at least one of the user specified column filters. Returns false if
    *         *all* column filters need to match
    */
@@ -289,7 +297,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the starting value (inclusive) of the key for range scans
-   * 
+   *
    * @param start
    *          the starting value of the key to use in range scans.
    */
@@ -299,7 +307,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the starting value of the key to use in range scans
-   * 
+   *
    * @return the starting value of the key
    */
   public String getKeyStartValue() {
@@ -309,7 +317,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the stop value (exclusive) of the key to use in range scans. May be null to indicate scan to the end of the
    * table
-   * 
+   *
    * @param stop
    *          the stop value of the key to use in range scans
    */
@@ -319,7 +327,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the stop value of the key to use in range scans
-   * 
+   *
    * @return the stop value of the key
    */
   public String getKeyStopValue() {
@@ -329,7 +337,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the number of rows to cache for scans. Higher values result in improved performance since there will be fewer
    * requests to HBase but at the expense of increased memory consumption.
-   * 
+   *
    * @param s
    *          the number of rows to cache for scans.
    */
@@ -339,7 +347,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * The number of rows to cache for scans.
-   * 
+   *
    * @return the number of rows to cache for scans.
    */
   public String getScannerCacheSize() {
@@ -349,7 +357,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set a list of fields to emit from this steo. If not specified, then all fields defined in the mapping for the
    * source table will be emitted.
-   * 
+   *
    * @param fields
    *          a list of fields to emit from this step.
    */
@@ -360,7 +368,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Get the list of fields to emit from this step. May return null, which indicates that *all* fields defined in the
    * mapping for the source table will be emitted.
-   * 
+   *
    * @return the fields that will be output or null (indicating all fields defined in the mapping will be output).
    */
   public List<HBaseValueMetaInterface> getOutputFields() {
@@ -369,7 +377,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set a list of column filters to use to refine the query
-   * 
+   *
    * @param list
    *          a list of column filters to refine the query
    */
@@ -379,7 +387,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the list of column filters to use for refining the results of a scan. May return null if no filters are in use.
-   * 
+   *
    * @return a list of columm filters by which to refine the results of a query scan.
    */
   public List<ColumnFilter> getColumnFilters() {
@@ -416,50 +424,51 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
-    try {
-      HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
-      Mapping tempMapping = null;
-      if ( mappingDefinition != null ) {
-        tempMapping = getMapping( mappingDefinition, hBaseService );
-        setMapping( tempMapping );
-      }
 
-      if ( outputFieldsDefinition != null && !outputFieldsDefinition.isEmpty() ) {
-        if ( mappingDefinition == null ) {
-          if ( !Const.isEmpty( m_sourceMappingName ) ) {
-            tempMapping =
-              getMappingFromHBase( hBaseService, space, m_sourceTableName, m_sourceMappingName, m_coreConfigURL,
-                m_defaultConfigURL );
-          } else {
-            tempMapping = m_mapping;
-          }
+    if ( !isInjectionApplicable() ) {
+      return;
+    }
+
+    Mapping tempMapping = null;
+    if ( mappingDefinition != null ) {
+      tempMapping = getMapping( mappingDefinition, getHBaseLocalService() );
+      setMapping( tempMapping );
+    }
+
+    if ( outputFieldsDefinition != null && !outputFieldsDefinition.isEmpty() ) {
+      if ( mappingDefinition == null ) {
+        if ( !Utils.isEmpty( m_sourceMappingName ) ) {
+          tempMapping = getMappingFromHBase( getHBaseLocalService(), space, m_sourceTableName, m_sourceMappingName, m_coreConfigURL, m_defaultConfigURL );
+        } else {
+          tempMapping = m_mapping;
         }
-        setOutputFields( createOutputFieldsDefinition( tempMapping, hBaseService ) );
       }
+      setOutputFields( createOutputFieldsDefinition( tempMapping, getHBaseLocalService() ) );
+    }
 
-      if ( filtersDefinition != null && !filtersDefinition.isEmpty() ) {
-        ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-        setColumnFilters( createColumnFiltersFromDefinition( columnFilterFactory ) );
-      }
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleException( e );
+    if ( filtersDefinition != null && !filtersDefinition.isEmpty() ) {
+      ColumnFilterFactory columnFilterFactory = getHBaseLocalService().getColumnFilterFactory();
+      setColumnFilters( createColumnFiltersFromDefinition( columnFilterFactory ) );
     }
   }
 
+  boolean isInjectionApplicable() {
+    return mappingDefinition != null || outputFieldsDefinition != null && !outputFieldsDefinition.isEmpty() || filtersDefinition != null && !filtersDefinition.isEmpty();
+  }
+
   @VisibleForTesting
-  Mapping getMapping( MappingDefinition mappingDefinition, HBaseService hBaseService ) throws KettleException {
+    Mapping getMapping( MappingDefinition mappingDefinition, HBaseService hBaseService ) throws KettleException {
     return MappingUtils.getMapping( mappingDefinition, hBaseService );
   }
 
-  static Mapping getMappingFromHBase( HBaseService hBaseService, VariableSpace space, String tableName,
-      String mappingName, String coreConfigURL, String defaultConfigURL ) throws KettleException {
+  static Mapping getMappingFromHBase( HBaseService hBaseService, VariableSpace space, String tableName, String mappingName, String coreConfigURL, String defaultConfigURL ) throws KettleException {
     try {
       String siteConfig = "";
-      if ( !Const.isEmpty( coreConfigURL ) ) {
+      if ( !Utils.isEmpty( coreConfigURL ) ) {
         siteConfig = space.environmentSubstitute( coreConfigURL );
       }
       String defaultConfig = "";
-      if ( !Const.isEmpty( ( defaultConfigURL ) ) ) {
+      if ( !Utils.isEmpty( ( defaultConfigURL ) ) ) {
         defaultConfig = space.environmentSubstitute( defaultConfigURL );
       }
       MappingAdmin mappingAdmin = MappingUtils.getMappingAdmin( hBaseService, space, siteConfig, defaultConfig );
@@ -470,12 +479,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   @VisibleForTesting
-  List<HBaseValueMetaInterface> createOutputFieldsDefinition( Mapping mapping, HBaseService hBaseService ) {
+    List<HBaseValueMetaInterface> createOutputFieldsDefinition( Mapping mapping, HBaseService hBaseService ) {
     return createOutputFieldsDefinition( outputFieldsDefinition, mapping, hBaseService );
   }
 
-  static List<HBaseValueMetaInterface> createOutputFieldsDefinition(
-      List<OutputFieldDefinition> outputFieldsDefinition, Mapping m_mapping, HBaseService hBaseService ) {
+  static List<HBaseValueMetaInterface> createOutputFieldsDefinition( List<OutputFieldDefinition> outputFieldsDefinition, Mapping m_mapping, HBaseService hBaseService ) {
     HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
     ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
 
@@ -483,9 +491,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     Map<String, HBaseValueMetaInterface> columns = m_mapping.getMappedColumns();
     for ( OutputFieldDefinition fieldDefinition : outputFieldsDefinition ) {
       HBaseValueMetaInterface valueMeta =
-          valueMetaInterfaceFactory.createHBaseValueMetaInterface( fieldDefinition.getFamily(), fieldDefinition
-              .getColumnName(), fieldDefinition.getAlias(), ValueMeta.getType( fieldDefinition.getHbaseType() ), -1,
-              -1 );
+          valueMetaInterfaceFactory.createHBaseValueMetaInterface( fieldDefinition.getFamily(), fieldDefinition.getColumnName(), fieldDefinition.getAlias(), ValueMeta.getType( fieldDefinition
+              .getHbaseType() ), -1, -1 );
       valueMeta.setKey( fieldDefinition.isKey() );
       valueMeta.setConversionMask( fieldDefinition.getFormat() );
       HBaseValueMetaInterface mappedColumn = columns.get( fieldDefinition.getAlias() );
@@ -503,12 +510,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   @VisibleForTesting
-  List<ColumnFilter> createColumnFiltersFromDefinition( ColumnFilterFactory c ) {
+    List<ColumnFilter> createColumnFiltersFromDefinition( ColumnFilterFactory c ) {
     return createColumnFiltersFromDefinition( filtersDefinition, c );
   }
 
-  static List<ColumnFilter> createColumnFiltersFromDefinition( List<FilterDefinition> filtersDefinition,
-    ColumnFilterFactory columnFilterFactory ) {
+  static List<ColumnFilter> createColumnFiltersFromDefinition( List<FilterDefinition> filtersDefinition, ColumnFilterFactory columnFilterFactory ) {
     List<ColumnFilter> filters = new ArrayList<>();
     for ( FilterDefinition filterDefinition : filtersDefinition ) {
       ColumnFilter columnFilter = columnFilterFactory.createFilter( filterDefinition.getAlias() );
@@ -522,7 +528,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     return filters;
   }
 
-  @Override public String getXML() {
+  @Override
+  public String getXML() {
     try {
       applyInjection( new Variables() );
     } catch ( KettleException e ) {
@@ -530,28 +537,27 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
     StringBuilder retval = new StringBuilder();
 
-    namedClusterLoadSaveUtil
-      .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
+    namedClusterLoadSaveUtil.getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
 
-    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+    if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
     }
-    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "default_config_url", m_defaultConfigURL ) );
     }
-    if ( !Const.isEmpty( m_sourceTableName ) ) {
+    if ( !Utils.isEmpty( m_sourceTableName ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "source_table_name", m_sourceTableName ) );
     }
-    if ( !Const.isEmpty( m_sourceMappingName ) ) {
+    if ( !Utils.isEmpty( m_sourceMappingName ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "source_mapping_name", m_sourceMappingName ) );
     }
-    if ( !Const.isEmpty( m_keyStart ) ) {
+    if ( !Utils.isEmpty( m_keyStart ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "key_start", m_keyStart ) );
     }
-    if ( !Const.isEmpty( m_keyStop ) ) {
+    if ( !Utils.isEmpty( m_keyStop ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "key_stop", m_keyStop ) );
     }
-    if ( !Const.isEmpty( m_scannerCacheSize ) ) {
+    if ( !Utils.isEmpty( m_scannerCacheSize ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "scanner_cache_size", m_scannerCacheSize ) );
     }
 
@@ -583,21 +589,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     return retval.toString();
   }
 
-  @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore )
-    throws KettleXMLException {
-    System.out.println( "loading data" );
-    this.namedCluster =
-      namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
-
-    HBaseService hBaseService;
-    try {
-      hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleXMLException( e );
-    }
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
-    ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
+  @Override
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+    logDebug( BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputMeta.Message.Loading" ) );
+    this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
     m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
@@ -607,53 +602,39 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_keyStop = XMLHandler.getTagValue( stepnode, "key_stop" );
     m_scannerCacheSize = XMLHandler.getTagValue( stepnode, "scanner_cache_size" );
     String m = XMLHandler.getTagValue( stepnode, "match_any_filter" );
-    if ( !Const.isEmpty( m ) ) {
+    if ( !Utils.isEmpty( m ) ) {
       m_matchAnyFilter = m.equalsIgnoreCase( "Y" );
     }
 
-    m_outputFields = valueMetaInterfaceFactory.createListFromNode( stepnode );
+    m_outputFields = getHBaseLocalService().getHBaseValueMetaInterfaceFactory().createListFromNode( stepnode );
+    m_filters = HBaseDataLoadSaveUtil.loadFilters( stepnode, getHBaseLocalService().getColumnFilterFactory() );
+    m_mapping = HBaseDataLoadSaveUtil.loadMapping( stepnode, getHBaseLocalService().getMappingFactory() );
 
-    Node filters = XMLHandler.getSubNode( stepnode, "column_filters" );
-    if ( filters != null && XMLHandler.countNodes( filters, "filter" ) > 0 ) {
-      int nrFilters = XMLHandler.countNodes( filters, "filter" );
-      m_filters = new ArrayList<ColumnFilter>();
-
-      for ( int i = 0; i < nrFilters; i++ ) {
-        Node filterNode = XMLHandler.getSubNodeByNr( filters, "filter", i );
-        m_filters.add( columnFilterFactory.createFilter( filterNode ) );
-      }
-    }
-
-    Mapping tempMapping = mappingFactory.createMapping();
-    if ( tempMapping.loadXML( stepnode ) ) {
-      m_mapping = tempMapping;
-    } else {
-      m_mapping = null;
-    }
   }
 
-  @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
     namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
 
-    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+    if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "core_config_url", m_coreConfigURL );
     }
-    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "default_config_url", m_defaultConfigURL );
     }
-    if ( !Const.isEmpty( m_sourceTableName ) ) {
+    if ( !Utils.isEmpty( m_sourceTableName ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "source_table_name", m_sourceTableName );
     }
-    if ( !Const.isEmpty( m_sourceMappingName ) ) {
+    if ( !Utils.isEmpty( m_sourceMappingName ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "source_mapping_name", m_sourceMappingName );
     }
-    if ( !Const.isEmpty( m_keyStart ) ) {
+    if ( !Utils.isEmpty( m_keyStart ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "key_start", m_keyStart );
     }
-    if ( !Const.isEmpty( m_keyStop ) ) {
+    if ( !Utils.isEmpty( m_keyStop ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "key_stop", m_keyStop );
     }
-    if ( !Const.isEmpty( m_scannerCacheSize ) ) {
+    if ( !Utils.isEmpty( m_scannerCacheSize ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "scanner_cache_size", m_scannerCacheSize );
     }
 
@@ -678,20 +659,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
   }
 
-  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-    throws KettleException {
-
+  @Override
+  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases ) throws KettleException {
     this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, getLog() );
-
-    HBaseService hBaseService = null;
-    try {
-      hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleException( e );
-    }
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
-    ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
@@ -702,34 +672,20 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_matchAnyFilter = rep.getStepAttributeBoolean( id_step, 0, "match_any_filter" );
     m_scannerCacheSize = rep.getStepAttributeString( id_step, 0, "scanner_cache_size" );
 
-    m_outputFields = valueMetaInterfaceFactory.createListFromRepository( rep, id_step );
-
-    int nrFilters = rep.countNrStepAttributes( id_step, "cf_comparison_opp" );
-    if ( nrFilters > 0 ) {
-      m_filters = new ArrayList<>();
-
-      for ( int i = 0; i < nrFilters; i++ ) {
-        m_filters.add( columnFilterFactory.createFilter( rep, i, id_step ) );
-      }
-    }
-
-    Mapping tempMapping = mappingFactory.createMapping();
-    if ( tempMapping.readRep( rep, id_step ) ) {
-      m_mapping = tempMapping;
-    } else {
-      m_mapping = null;
-    }
+    m_outputFields = getHBaseLocalService().getHBaseValueMetaInterfaceFactory().createListFromRepository( rep, id_step );
+    m_filters = HBaseDataLoadSaveUtil.loadFilters( rep, id_step, getHBaseLocalService().getColumnFilterFactory() );
+    m_mapping = HBaseDataLoadSaveUtil.loadMapping( rep, id_step, getHBaseLocalService().getMappingFactory() );
   }
 
-  @Override public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
-      String[] input, String[] output, RowMetaInterface info, VariableSpace variableSpace, Repository repository, IMetaStore metaStore ) {
+  @Override
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev, String[] input, String[] output, RowMetaInterface info,
+      VariableSpace variableSpace, Repository repository, IMetaStore metaStore ) {
 
     RowMeta r = new RowMeta();
     try {
       getFields( r, "testName", null, null, null, repository, metaStore );
 
-      CheckResult cr =
-          new CheckResult( CheckResult.TYPE_RESULT_OK, "Step can connect to HBase. Named mapping exists", stepMeta );
+      CheckResult cr = new CheckResult( CheckResult.TYPE_RESULT_OK, "Step can connect to HBase. Named mapping exists", stepMeta );
       remarks.add( cr );
     } catch ( Exception ex ) {
       CheckResult cr = new CheckResult( CheckResult.TYPE_RESULT_ERROR, ex.getMessage(), stepMeta );
@@ -737,8 +693,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
   }
 
-  public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
-      TransMeta transMeta, Trans trans ) {
+  public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans ) {
 
     return new HBaseInput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
   }
@@ -755,11 +710,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     } catch ( ClusterInitializationException e ) {
       throw new KettleStepException( e );
     }
-    if ( Const.isEmpty( m_coreConfigURL ) && Const.isEmpty( namedCluster.getZooKeeperHost() ) ) {
+    if ( Utils.isEmpty( m_coreConfigURL ) && Utils.isEmpty( namedCluster.getZooKeeperHost() ) ) {
       throw new KettleStepException( "No output fields available (missing " + "connection details)!" );
     }
 
-    if ( m_mapping == null && ( Const.isEmpty( m_sourceTableName ) || Const.isEmpty( m_sourceMappingName ) ) ) {
+    if ( m_mapping == null && ( Utils.isEmpty( m_sourceTableName ) || Utils.isEmpty( m_sourceMappingName ) ) ) {
       throw new KettleStepException( "No output fields available (missing table " + "mapping details)!" );
     }
 
@@ -772,10 +727,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
         String defaultConf = null;
 
         try {
-          if ( !Const.isEmpty( m_coreConfigURL ) ) {
+          if ( !Utils.isEmpty( m_coreConfigURL ) ) {
             coreConf = space.environmentSubstitute( m_coreConfigURL );
           }
-          if ( !Const.isEmpty( ( m_defaultConfigURL ) ) ) {
+          if ( !Utils.isEmpty( ( m_defaultConfigURL ) ) ) {
             defaultConf = space.environmentSubstitute( m_defaultConfigURL );
           }
 
@@ -803,8 +758,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   @Override
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-      VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep, VariableSpace space, Repository repository, IMetaStore metaStore )
+    throws KettleStepException {
 
     rowMeta.clear(); // start afresh - eats the input
 
@@ -820,8 +775,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       setupCachedMapping( space );
 
       int kettleType;
-      if ( m_cachedMapping.getKeyType() == Mapping.KeyType.DATE
-          || m_cachedMapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
+      if ( m_cachedMapping.getKeyType() == Mapping.KeyType.DATE || m_cachedMapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
         kettleType = ValueMetaInterface.TYPE_DATE;
       } else if ( m_cachedMapping.getKeyType() == Mapping.KeyType.STRING ) {
         kettleType = ValueMetaInterface.TYPE_STRING;
