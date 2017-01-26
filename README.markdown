@@ -11,7 +11,7 @@ Pre-requisites
 ---------------
 JDK 8 in your path.
 Maven 3.3.9 in your path.
-This settings.xml: https://bintray.com/pentaho/public-maven/download_file?file_path=settings.xml
+This [settings.xml](https://raw.githubusercontent.com/pentaho/maven-parent-poms/master/maven-support-files/settings.xml)
 
 How to use the custom settings.xml
 ---------------
