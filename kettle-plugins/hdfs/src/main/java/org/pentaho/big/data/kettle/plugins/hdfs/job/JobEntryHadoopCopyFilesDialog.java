@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -152,7 +152,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
                 clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
                   || clusterName.equals( S3_ENVIRONMENT ) ? destinationURL : jobEntry.getUrlPath( destinationURL );
           }
-          ti.setText( 5, destinationURL );
+          ti.setText( 5, destinationURL != null ? destinationURL : "" );
         }
       }
       wFields.setRowNums();
