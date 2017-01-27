@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -148,6 +148,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       namedCluster = namedClusterService.getClusterTemplate();
       if ( entrynode != null ) {
         // load default values for cluster & legacy fallback
+        namedCluster.setName( XMLHandler.getTagValue( entrynode, CLUSTER_NAME ) );
         namedCluster.setHdfsHost( XMLHandler.getTagValue( entrynode, HDFS_HOSTNAME ) ); //$NON-NLS-1$
         namedCluster.setHdfsPort( XMLHandler.getTagValue( entrynode, HDFS_PORT ) ); //$NON-NLS-1$
         namedCluster.setJobTrackerHost( XMLHandler.getTagValue( entrynode, JOBTRACKER_HOSTNAME ) ); //$NON-NLS-1$
@@ -155,6 +156,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       } else if ( rep != null ) {
         // load default values for cluster & legacy fallback
         try {
+          namedCluster.setName( rep.getJobEntryAttributeString( id_jobentry, CLUSTER_NAME ) );
           namedCluster.setHdfsHost( rep.getJobEntryAttributeString( id_jobentry, HDFS_HOSTNAME ) );
           namedCluster.setHdfsPort( rep.getJobEntryAttributeString( id_jobentry, HDFS_PORT ) ); //$NON-NLS-1$
           namedCluster

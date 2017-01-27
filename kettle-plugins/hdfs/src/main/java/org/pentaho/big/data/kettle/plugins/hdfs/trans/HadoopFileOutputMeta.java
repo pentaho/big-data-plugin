@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -117,11 +117,12 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
   }
 
-  protected String loadSourceRep( Repository rep, ObjectId id_step ) throws KettleException {
+  // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null
+  protected String loadSourceRep( Repository rep, ObjectId id_step,  IMetaStore metaStore ) throws KettleException {
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
 
-    return getProcessedUrl( rep.getMetaStore(), url );
+    return getProcessedUrl( metaStore, url );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, String fileName )

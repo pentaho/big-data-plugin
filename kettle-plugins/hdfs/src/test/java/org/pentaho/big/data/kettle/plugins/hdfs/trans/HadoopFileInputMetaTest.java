@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -24,8 +24,10 @@ import org.jdom.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.metastore.api.IMetaStore;
@@ -39,7 +41,11 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
+
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+
 import static org.mockito.Mockito.*;
 
 /**
@@ -128,5 +134,22 @@ public class HadoopFileInputMetaTest {
     verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( Node.class ), anyInt(), any( IMetaStore.class) );
   }
 
+  @Test
+  public void testLoadSourceRepForUrlRefresh() throws Exception {
+    final String URL_FROM_CLUSTER = "urlFromCluster";
+    IMetaStore mockMetaStore = mock( IMetaStore.class );
+    NamedCluster mockNamedCluster = mock( NamedCluster.class );
+    when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
+    when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) )
+      .thenReturn( mockNamedCluster );
+    Repository mockRep = mock( Repository.class );
+    when( mockRep.getJobEntryAttributeString( anyObject(), eq( 0 ), eq( "source_configuration_name" ) ) ).thenReturn(
+        TEST_CLUSTER_NAME );
+    HadoopFileInputMeta hadoopFileInputMeta =
+        new HadoopFileInputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+    when( mockRep.getStepAttributeString( anyObject(), eq( 0 ), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
+
+    assertEquals( URL_FROM_CLUSTER, hadoopFileInputMeta.loadSourceRep( mockRep, null, 0, mockMetaStore ) );
+  }
 
 }

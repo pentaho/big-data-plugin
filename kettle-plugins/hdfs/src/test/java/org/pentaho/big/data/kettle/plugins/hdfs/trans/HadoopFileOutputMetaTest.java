@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -31,6 +31,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
@@ -42,9 +43,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import static org.junit.Assert.*;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
+
 import static org.mockito.Mockito.*;
 
 /**
@@ -167,6 +170,25 @@ public class HadoopFileOutputMetaTest {
     spy.readData( node );
     assertEquals( TEST_CLUSTER_NAME, hadoopFileOutputMeta.getSourceConfigurationName() );
     verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( IMetaStore.class ) );
+  }
+
+  @Test
+  public void testLoadSourceRepForUrlRefresh() throws Exception {
+    final String URL_FROM_CLUSTER = "urlFromCluster";
+    IMetaStore mockMetaStore = mock( IMetaStore.class );
+    NamedCluster mockNamedCluster = mock( NamedCluster.class );
+    when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
+    when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) )
+      .thenReturn( mockNamedCluster );
+    Repository mockRep = mock( Repository.class );
+    when( mockRep.getStepAttributeString( anyObject(), eq( "source_configuration_name" ) ) ).thenReturn(
+        TEST_CLUSTER_NAME );
+    HadoopFileOutputMeta hadoopFileOutputMeta =
+        new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+    hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
+    when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
+
+    assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, mockMetaStore ) );
   }
 
   public static Document getDocumentFromString( String xmlStep, SAXBuilder jdomBuilder )

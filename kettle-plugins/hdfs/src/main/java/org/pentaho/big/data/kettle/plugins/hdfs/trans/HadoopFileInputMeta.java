@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -86,11 +86,12 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     retVal.append( "          " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, namedCluster ) );
   }
 
-  protected String loadSourceRep( Repository rep, ObjectId id_step, int i ) throws KettleException {
+  // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null 
+  protected String loadSourceRep( Repository rep, ObjectId id_step, int i, IMetaStore metaStore )
+    throws KettleException {
     String source_filefolder = rep.getStepAttributeString( id_step, i, "file_name" );
     String ncName = rep.getJobEntryAttributeString( id_step, i, SOURCE_CONFIGURATION_NAME );
-    return loadUrl( source_filefolder, ncName, repository != null ? repository.getMetaStore() : null,
-        namedClusterURLMapping );
+    return loadUrl( source_filefolder, ncName, metaStore, namedClusterURLMapping );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, int i, String fileName )
