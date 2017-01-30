@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -44,6 +44,9 @@ public class NamedClusterImpl implements NamedCluster {
 
   @MetaStoreAttribute
   private String name;
+
+  @MetaStoreAttribute
+  private String shimIdentifier;
 
   @MetaStoreAttribute
   private String hdfsHost;
@@ -89,6 +92,14 @@ public class NamedClusterImpl implements NamedCluster {
 
   public String getName() {
     return name;
+  }
+
+  public String getShimIdentifier() {
+    return shimIdentifier;
+  }
+
+  public void setShimIdentifier( String shimIdentifier ) {
+    this.shimIdentifier = shimIdentifier;
   }
 
   public void copyVariablesFrom( VariableSpace space ) {

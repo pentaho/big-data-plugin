@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,10 @@ public interface NamedCluster extends Cloneable, VariableSpace {
   String getName();
 
   void setName( String name );
+
+  String getShimIdentifier();
+
+  void setShimIdentifier( String shimIdentifier );
 
   void replaceMeta( NamedCluster nc );
 

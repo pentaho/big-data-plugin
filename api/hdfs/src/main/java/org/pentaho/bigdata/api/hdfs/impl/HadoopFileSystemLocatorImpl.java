@@ -1,23 +1,18 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p>
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * <p>
+ * ******************************************************************************
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.bigdata.api.hdfs.impl;
@@ -32,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -50,13 +46,20 @@ public class HadoopFileSystemLocatorImpl implements HadoopFileSystemLocator {
 
   @Override public HadoopFileSystem getHadoopFilesystem( NamedCluster namedCluster )
     throws ClusterInitializationException {
+    return getHadoopFilesystem( namedCluster, null );
+  }
+
+  @Override
+  public HadoopFileSystem getHadoopFilesystem( NamedCluster namedCluster, URI uri )
+    throws ClusterInitializationException {
     clusterInitializer.initialize( namedCluster );
     for ( HadoopFileSystemFactory hadoopFileSystemFactory : hadoopFileSystemFactories ) {
       if ( hadoopFileSystemFactory.canHandle( namedCluster ) ) {
         try {
-          return hadoopFileSystemFactory.create( namedCluster );
+          return hadoopFileSystemFactory.create( namedCluster, uri );
         } catch ( IOException e ) {
-          LOGGER.warn( "Unable to create hdfs service with " + hadoopFileSystemFactory + " for " + namedCluster, e );
+          LOGGER
+            .warn( "Unable to create " + uri.getScheme() + " service with " + hadoopFileSystemFactory + " for " + namedCluster, e );
         }
       }
     }

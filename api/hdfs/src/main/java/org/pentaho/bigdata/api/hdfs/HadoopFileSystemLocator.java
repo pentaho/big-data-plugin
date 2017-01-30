@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,9 +25,14 @@ package org.pentaho.bigdata.api.hdfs;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 
+import java.net.URI;
+
 /**
  * Created by bryan on 5/22/15.
  */
 public interface HadoopFileSystemLocator {
+  @Deprecated
   HadoopFileSystem getHadoopFilesystem( NamedCluster namedCluster ) throws ClusterInitializationException;
+
+  HadoopFileSystem getHadoopFilesystem( NamedCluster namedCluster, URI uri ) throws ClusterInitializationException;
 }
