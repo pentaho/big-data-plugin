@@ -81,7 +81,6 @@ public class HadoopFileSystemFactoryImplTest {
   public void testCreateMapr() throws IOException {
     when( namedCluster.isMapr() ).thenReturn( true );
     HadoopFileSystem hadoopFileSystem = hadoopFileSystemFactory.create( namedCluster );
-    verify( configuration ).set( HadoopFileSystem.FS_DEFAULT_NAME, "maprfs:///" );
     assertNotNull( hadoopFileSystem );
   }
 
@@ -91,7 +90,6 @@ public class HadoopFileSystemFactoryImplTest {
     when( namedCluster.isMapr() ).thenReturn( false );
     when( namedCluster.getHdfsHost() ).thenReturn( testHost );
     HadoopFileSystem hadoopFileSystem = hadoopFileSystemFactory.create( namedCluster );
-    verify( configuration ).set( HadoopFileSystem.FS_DEFAULT_NAME, "hdfs://" + testHost );
     assertNotNull( hadoopFileSystem );
   }
 
@@ -103,7 +101,6 @@ public class HadoopFileSystemFactoryImplTest {
     when( namedCluster.getHdfsHost() ).thenReturn( testHost );
     when( namedCluster.getHdfsPort() ).thenReturn( testPort );
     HadoopFileSystem hadoopFileSystem = hadoopFileSystemFactory.create( namedCluster );
-    verify( configuration ).set( HadoopFileSystem.FS_DEFAULT_NAME, "hdfs://" + testHost + ":" + testPort );
     assertNotNull( hadoopFileSystem );
   }
 
