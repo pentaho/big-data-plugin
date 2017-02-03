@@ -188,7 +188,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private AbstractModelList<UserDefinedItem> userDefined = new AbstractModelList<UserDefinedItem>();
 
   public JobEntryHadoopTransJobExecutorController( HadoopClusterDelegateImpl ncDelegate,
-                                                   NamedClusterService namedClusterService ) throws Throwable {
+      NamedClusterService namedClusterService ) throws Throwable {
     this.ncDelegate = ncDelegate;
     this.namedClusterService = namedClusterService;
   }
@@ -204,8 +204,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void accept() {
-    ExtTextbox tempBox =
-        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
+    ExtTextbox tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-hadoopjob-name" );
     this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-transformation" );
     this.mapTrans = ( (Text) tempBox.getTextControl() ).getText();
@@ -424,14 +423,11 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-map-output-stepname" );
       tempBox.setVariableSpace( varSpace );
-      tempBox =
-        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-transformation" );
       tempBox.setVariableSpace( varSpace );
-      tempBox =
-        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-input-stepname" );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-input-stepname" );
       tempBox.setVariableSpace( varSpace );
-      tempBox =
-        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-output-stepname" );
+      tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-combiner-output-stepname" );
       tempBox.setVariableSpace( varSpace );
       tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( "jobentry-reduce-transformation" );
       tempBox.setVariableSpace( varSpace );
@@ -458,6 +454,56 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       setCombinerTransInputStepName( jobEntry.getCombinerInputStepName() );
       setCombinerTransOutputStepName( jobEntry.getCombinerOutputStepName() );
       setCombiningSingleThreaded( jobEntry.isCombiningSingleThreaded() );
+
+      // Load the map transformation into the UI
+      if ( jobEntry.getMapTrans() != null || rep == null ) {
+        setMapTrans( jobEntry.getMapTrans() );
+        this.mapperStorageType = LOCAL;
+      } else if ( jobEntry.getMapRepositoryReference() != null ) {
+        setMapRepositoryReference( jobEntry.getMapRepositoryReference() );
+        this.mapperStorageType = REFERENCE;
+        // Load the repository directory and file for displaying to the user
+        try {
+          TransMeta transMeta = rep.loadTransformation( getMapRepositoryReference(), null );
+          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
+            setMapTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
+          }
+        } catch ( KettleException e ) {
+          // The transformation cannot be loaded from the repository
+          setMapRepositoryReference( null );
+        }
+      } else {
+        setMapRepositoryDir( jobEntry.getMapRepositoryDir() );
+        setMapRepositoryFile( jobEntry.getMapRepositoryFile() );
+        setMapTrans( buildRepositoryPath( getMapRepositoryDir(), getMapRepositoryFile() ) );
+        this.mapperStorageType = REPOSITORY;
+      }
+      setMapTransInputStepName( jobEntry.getMapInputStepName() );
+      setMapTransOutputStepName( jobEntry.getMapOutputStepName() );
+
+      // Load the combiner transformation into the UI
+      if ( jobEntry.getCombinerTrans() != null || rep == null ) {
+        setCombinerTrans( jobEntry.getCombinerTrans() );
+        this.combinerStorageType = LOCAL;
+      } else if ( jobEntry.getCombinerRepositoryReference() != null ) {
+        setCombinerRepositoryReference( jobEntry.getCombinerRepositoryReference() );
+        this.combinerStorageType = REFERENCE;
+        // Load the repository directory and file for displaying to the user
+        try {
+          TransMeta transMeta = rep.loadTransformation( getCombinerRepositoryReference(), null );
+          if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
+            setCombinerTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
+          }
+        } catch ( KettleException e ) {
+          // The transformation cannot be loaded from the repository
+          setCombinerRepositoryReference( null );
+        }
+      } else {
+        setCombinerRepositoryDir( jobEntry.getCombinerRepositoryDir() );
+        setCombinerRepositoryFile( jobEntry.getCombinerRepositoryFile() );
+        setCombinerTrans( buildRepositoryPath( getCombinerRepositoryDir(), getCombinerRepositoryFile() ) );
+        this.combinerStorageType = REPOSITORY;
+      }
 
       // Load the reduce transformation into the UI
       if ( jobEntry.getReduceTrans() != null || rep == null ) {
