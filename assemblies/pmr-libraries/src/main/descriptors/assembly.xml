@@ -91,7 +91,6 @@
         <include>javax.validation:validation-api</include>
         <include>javax.xml:jaxrpc-api</include>
         <include>jaxen:jaxen</include>
-        <include>jcifs:jcifs</include>
         <include>jdom:jdom</include>
         <include>jexcelapi:jxl</include>
         <include>jfree:jcommon</include>
@@ -169,7 +168,6 @@
         <include>org.owasp.encoder:encoder</include>
         <include>org.postgresql:postgresql</include>
         <include>org.safehaus.jug:jug-lgpl</include>
-        <include>org.samba.jcifs:jcifs</include>
         <include>org.scannotation:scannotation</include>
         <include>org.slf4j:slf4j-api</include>
         <include>org.slf4j:slf4j-log4j12</include>
