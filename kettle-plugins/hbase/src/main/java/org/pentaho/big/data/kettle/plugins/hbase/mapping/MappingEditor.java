@@ -750,7 +750,9 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     try {
       hBaseService = m_configProducer.getHBaseService();
     } catch ( Exception e ) {
-      problems.add( e.getMessage() );
+      if ( problems != null ) {
+        problems.add( e.getMessage() );
+      }
       return null;
     }
     Mapping theMapping =

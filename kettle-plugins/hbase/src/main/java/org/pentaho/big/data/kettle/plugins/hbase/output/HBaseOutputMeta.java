@@ -30,6 +30,7 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
@@ -120,6 +121,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
+  private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public NamedClusterService getNamedClusterService() {
     return namedClusterService;
@@ -229,15 +231,19 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
-    if ( mappingDefinition == null ) {
-      return;
-    }
     try {
-      HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      if ( mappingDefinition == null ) {
+        ServiceStatus serviceStatus = this.getServiceStatus();
+        if ( !serviceStatus.isOk() ) {
+          throw serviceStatus.getException();
+        }
+        return;
+      }
+      HBaseService hBaseService = getService();
       Mapping tempMapping = null;
       tempMapping = getMapping( mappingDefinition, hBaseService );
       setMapping( tempMapping );
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       throw new KettleException( e );
     }
   }
@@ -331,14 +337,14 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     String disableWAL = XMLHandler.getTagValue( stepnode, "disable_wal" );
     m_disableWriteToWAL = disableWAL.equalsIgnoreCase( "Y" );
 
-    Mapping tempMapping;
+    Mapping tempMapping = null;
     try {
       tempMapping =
-        namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleXMLException( e );
+        getService().getMappingFactory().createMapping();
+    } catch ( Exception e ) {
+      getLog().logError( e.getMessage() );
     }
-    if ( tempMapping.loadXML( stepnode ) ) {
+    if ( tempMapping != null && tempMapping.loadXML( stepnode ) ) {
       m_mapping = tempMapping;
     } else {
       m_mapping = null;
@@ -357,14 +363,14 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     m_writeBufferSize = rep.getStepAttributeString( id_step, 0, "write_buffer_size" );
     m_disableWriteToWAL = rep.getStepAttributeBoolean( id_step, 0, "disable_wal" );
 
-    Mapping tempMapping;
+    Mapping tempMapping = null;
     try {
       tempMapping =
-        namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleException( e );
+        getService().getMappingFactory().createMapping();
+    } catch ( Exception e ) {
+      getLog().logError( e.getMessage() );
     }
-    if ( tempMapping.readRep( rep, id_step ) ) {
+    if ( tempMapping != null && tempMapping.readRep( rep, id_step ) ) {
       m_mapping = tempMapping;
     } else {
       m_mapping = null;
@@ -425,5 +431,25 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public void setMappingDefinition( MappingDefinition mappingDefinition ) {
     this.mappingDefinition = mappingDefinition;
+  }
+
+  protected HBaseService getService() throws ClusterInitializationException {
+    HBaseService service = null;
+    try {
+      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      this.serviceStatus = ServiceStatus.OK;
+    } catch ( Exception e ) {
+      this.serviceStatus = ServiceStatus.notOk( e );
+      logError( Messages.getString( "HBaseOutput.Error.ServiceStatus" ) );
+      throw e;
+    }
+    return service;
+  }
+
+  public ServiceStatus getServiceStatus() {
+    if ( this.serviceStatus == null ) {
+      this.serviceStatus = ServiceStatus.OK;
+    }
+    return this.serviceStatus;
   }
 }
