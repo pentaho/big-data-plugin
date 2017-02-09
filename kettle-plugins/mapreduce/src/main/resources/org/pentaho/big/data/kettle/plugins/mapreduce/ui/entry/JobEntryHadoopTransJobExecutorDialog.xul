@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <window id="hadoop-window-wrapper">
-   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="585" width="612" appicon="ui/images/spoon.ico">
-      <vbox flex="1">
+   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="600" width="612" appicon="ui/images/spoon.ico">
+      <vbox>
          <grid>
             <columns>
                <column />
@@ -22,7 +22,7 @@
          </grid>
          <separator class="groove-thin" height="20" flex="1" />
       </vbox>
-      <vbox id="advanced-configuration" flex="1" hidden="false">
+      <vbox id="advanced-configuration" flex="5" hidden="false">
          <tabbox height="375" flex="2">
             <tabs>
                <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.MapReduceMapper.Label}" />
@@ -34,7 +34,7 @@
             </tabs>
             <tabpanels>
                <!-- The Mapper tab -->
-               <tabpanel padding="15">
+               <tabpanel padding="8">
                   <vbox flex="1">
                      <grid>
                         <columns>
@@ -71,7 +71,7 @@
                   </vbox>
                </tabpanel>
                <!-- The Combiner tab -->
-               <tabpanel padding="15">
+               <tabpanel padding="8">
                   <vbox flex="1">
                      <grid>
                         <columns>
@@ -115,7 +115,7 @@
                   </vbox>
                </tabpanel>
                <!-- The Reducer tab -->
-               <tabpanel padding="15">
+               <tabpanel padding="8">
                   <vbox flex="1">
                      <grid>
                         <columns>
@@ -159,7 +159,7 @@
                   </vbox>
                </tabpanel>
                <!-- Job Setup Tab -->
-               <tabpanel padding="15">
+               <tabpanel padding="8">
                   <vbox flex="1">
                      <grid>
                         <columns>
@@ -225,7 +225,7 @@
                   </vbox>
                </tabpanel>
                <!-- Cluster Tab -->
-               <tabpanel padding="15">
+               <tabpanel padding="8">
                   <vbox flex="1">
                      <grid>
                         <columns>
@@ -288,18 +288,18 @@
                      </grid>
                   </vbox>
                </tabpanel>
-               <tabpanel padding="15">
+               <tabpanel padding="12">
                   <tree id="fields-table" flex="1" hidecolumnpicker="true" autocreatenewrows="true" newitembinding="jobEntryController.newUserDefinedItem()">
                      <treecols>
-                        <treecol id="name-col" editable="true" flex="1" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.NameColumn.Label}" pen:binding="name" />
-                        <treecol id="value-col" editable="true" flex="1" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.ValueColumn.Label}" pen:binding="value" />
+                        <treecol id="name-col" editable="true" width="273" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.NameColumn.Label}" pen:binding="name" />
+                        <treecol id="value-col" editable="true" width="273" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.UserDefined.ValueColumn.Label}" pen:binding="value" />
                      </treecols>
                      <treechildren />
                   </tree>
                </tabpanel>
             </tabpanels>
          </tabbox>
-         <separator class="groove-thin" height="20" flex="1" />
+         <separator class="groove-thin" height="25" flex="1" />
          <hbox>
             <button label="${Dialog.Help}" image="${HelpImage.Url}" onclick="jobEntryController.help()" />
             <spacer flex="1" />
