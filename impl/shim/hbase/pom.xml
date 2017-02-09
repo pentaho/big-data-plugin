@@ -96,7 +96,8 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,*</Import-Package>
+            <Import-Package>!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,*</Import-Package>
+            <Export-Package>com.pentaho.big.data.bundles.impl.shim.hbase.mapping,com.pentaho.big.data.bundles.impl.shim.hbase.meta, com.pentaho.big.data.bundles.impl.shim.hbase</Export-Package>
           </instructions>
         </configuration>
       </plugin>

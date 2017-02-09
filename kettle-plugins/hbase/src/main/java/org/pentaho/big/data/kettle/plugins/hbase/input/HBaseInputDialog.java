@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -53,6 +53,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.HBaseServiceLocalImp;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.ConfigurationProducer;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingEditor;
@@ -70,6 +71,7 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
@@ -84,6 +86,8 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -93,7 +97,7 @@ import java.util.Set;
 
 /**
  * Dialog class for HBaseInput
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterface, ConfigurationProducer {
@@ -174,6 +178,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
+  private HBaseService hBaseLocalService;
 
   public HBaseInputDialog( Shell parent, Object in, TransMeta tr, String name ) {
 
@@ -186,6 +191,11 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     runtimeTestActionService = m_currentMeta.getRuntimeTestActionService();
     runtimeTester = m_currentMeta.getRuntimeTester();
     namedClusterServiceLocator = m_currentMeta.getNamedClusterServiceLocator();
+    hBaseLocalService = new HBaseServiceLocalImp();
+  }
+
+  private HBaseService getHBaseLocalService() {
+    return hBaseLocalService;
   }
 
   public String open() {
@@ -760,7 +770,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         // try to fill in the type
         String alias = tableItem.getText( 1 );
         HBaseValueMetaInterface vm = null;
-        if ( !Const.isEmpty( alias ) ) {
+        if ( !Utils.isEmpty( alias ) ) {
           vm = setFilterTableTypeColumn( tableItem );
         }
 
@@ -790,7 +800,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
         // try to fill in the type
         String alias = tableItem.getText( 1 );
-        if ( !Const.isEmpty( alias ) ) {
+        if ( !Utils.isEmpty( alias ) ) {
           setFilterTableTypeColumn( tableItem );
         }
         int type = ValueMeta.getType( tableItem.getText( 2 ) );
@@ -901,7 +911,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   protected HBaseValueMetaInterface setFilterTableTypeColumn( TableItem tableItem ) {
     // try to fill in the type
     String alias = tableItem.getText( 1 ).trim();
-    if ( !Const.isEmpty( alias ) ) {
+    if ( !Utils.isEmpty( alias ) ) {
       // try using the mapping information first since it is complete
       if ( transMeta.environmentSubstitute( alias ).equals( m_keyName ) ) {
         tableItem.setText( 2, m_keyType.toString() );
@@ -964,7 +974,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   }
 
   protected void ok() {
-    if ( Const.isEmpty( m_stepnameText.getText() ) ) {
+    if ( Utils.isEmpty( m_stepnameText.getText() ) ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( Messages.getString( "System.StepJobEntryNameMissing.Title" ) );
       mb.setMessage( Messages.getString( "System.JobEntryNameMissing.Msg" ) );
@@ -987,87 +997,24 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         return;
       }
     }
-    HBaseService hBaseService = null;
-    try {
-      hBaseService = getHBaseService();
-    } catch ( ClusterInitializationException e ) {
-      throw new RuntimeException( e );
-    }
-    HBaseValueMetaInterfaceFactory hBaseValueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
 
     stepname = m_stepnameText.getText();
-
     updateMetaConnectionDetails( m_currentMeta );
-
     m_currentMeta.setKeyStartValue( m_keyStartText.getText() );
     m_currentMeta.setKeyStopValue( m_keyStopText.getText() );
     m_currentMeta.setScannerCacheSize( m_scanCacheText.getText() );
     m_currentMeta.setMatchAnyFilter( m_matchAnyBut.getSelection() );
 
-    int numNonEmpty = m_fieldsView.nrNonEmpty();
-    if ( numNonEmpty > 0 ) {
-      ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
-      List<HBaseValueMetaInterface> outputFields = new ArrayList<>();
+    List<HBaseValueMetaInterface> outputFields =
+        getOutputFields( m_fieldsView, m_mappedTableNamesCombo.getText(), m_mappingNamesCombo.getText(), m_indexedLookup, getHBaseLocalService().getHBaseValueMetaInterfaceFactory(),
+            getHBaseLocalService().getByteConversionUtil() );
+    m_currentMeta.setOutputFields( outputFields );
 
-      for ( int i = 0; i < numNonEmpty; i++ ) {
-        TableItem item = m_fieldsView.getNonEmpty( i );
-        String alias = item.getText( 1 ).trim();
-        String isKey = item.getText( 2 ).trim();
-        String family = item.getText( 3 ).trim();
-        String column = item.getText( 4 ).trim();
-        String type = item.getText( 5 ).trim();
-        String format = item.getText( 6 ).trim();
-
-        HBaseValueMetaInterface vm = hBaseValueMetaInterfaceFactory
-          .createHBaseValueMetaInterface( family, column, alias, ValueMeta.getType( type ), -1, -1 );
-
-        vm.setTableName( m_mappedTableNamesCombo.getText() );
-        vm.setMappingName( m_mappingNamesCombo.getText() );
-        vm.setKey( isKey.equalsIgnoreCase( "Y" ) );
-        String indexItems = m_indexedLookup.get( alias );
-        if ( indexItems != null ) {
-          Object[] values = byteConversionUtil.stringIndexListToObjects( indexItems );
-          vm.setIndex( values );
-          vm.setStorageType( ValueMetaInterface.STORAGE_TYPE_INDEXED );
-        }
-        vm.setConversionMask( format );
-
-        outputFields.add( vm );
-      }
-      m_currentMeta.setOutputFields( outputFields );
-    } else {
-      m_currentMeta.setOutputFields( null ); // output everything
-    }
-
-    numNonEmpty = m_filtersView.nrNonEmpty();
-    if ( numNonEmpty > 0 ) {
-      ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-      List<ColumnFilter> filters = new ArrayList<>();
-
-      for ( int i = 0; i < m_filtersView.nrNonEmpty(); i++ ) {
-        TableItem item = m_filtersView.getNonEmpty( i );
-        String alias = item.getText( 1 ).trim();
-        String type = item.getText( 2 ).trim();
-        String operator = item.getText( 3 ).trim();
-        String comparison = item.getText( 4 ).trim();
-        String signed = item.getText( 6 ).trim();
-        String format = item.getText( 5 ).trim();
-        ColumnFilter f = columnFilterFactory.createFilter( alias );
-        f.setFieldType( type );
-        f.setComparisonOperator( ColumnFilter.ComparisonType.stringToOpp( operator ) );
-        f.setConstant( comparison );
-        f.setSignedComparison( signed.equalsIgnoreCase( "Y" ) );
-        f.setFormat( format );
-        filters.add( f );
-      }
-
-      m_currentMeta.setColumnFilters( filters );
-    } else {
-      m_currentMeta.setColumnFilters( null );
-    }
+    List<ColumnFilter> columnsFilters = getColumnsFilters( m_filtersView, getHBaseLocalService().getColumnFilterFactory() );
+    m_currentMeta.setColumnFilters( columnsFilters );
 
     if ( m_storeMappingInStepMetaData.getSelection() ) {
-      if ( Const.isEmpty( m_mappingNamesCombo.getText() ) ) {
+      if ( Utils.isEmpty( m_mappingNamesCombo.getText() ) ) {
         List<String> problems = new ArrayList<String>();
 
         Mapping toSet = m_mappingEditor.getMapping( false, problems, false );
@@ -1136,6 +1083,67 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     dispose();
   }
 
+  @VisibleForTesting
+  static List<HBaseValueMetaInterface> getOutputFields( TableView fieldsView, String tableName, String mappingName, Map<String, String> indexedLookup, HBaseValueMetaInterfaceFactory vmFactory,
+      ByteConversionUtil convUtills ) {
+    List<HBaseValueMetaInterface> outputFields = null;
+    int numNonEmpty = fieldsView.nrNonEmpty();
+    if ( numNonEmpty > 0 ) {
+      outputFields = new ArrayList<>( numNonEmpty );
+      for ( int i = 0; i < numNonEmpty; i++ ) {
+        TableItem item = fieldsView.getNonEmpty( i );
+        String alias = item.getText( 1 ).trim();
+        String isKey = item.getText( 2 ).trim();
+        String family = item.getText( 3 ).trim();
+        String column = item.getText( 4 ).trim();
+        String type = item.getText( 5 ).trim();
+        String format = item.getText( 6 ).trim();
+
+        HBaseValueMetaInterface vm = vmFactory.createHBaseValueMetaInterface( family, column, alias, ValueMeta.getType( type ), -1, -1 );
+
+        vm.setTableName( tableName );
+        vm.setMappingName( mappingName );
+        vm.setKey( isKey.equalsIgnoreCase( "Y" ) );
+        String indexItems = indexedLookup.get( alias );
+        if ( indexItems != null ) {
+          Object[] values = convUtills.stringIndexListToObjects( indexItems );
+          vm.setIndex( values );
+          vm.setStorageType( ValueMetaInterface.STORAGE_TYPE_INDEXED );
+        }
+        vm.setConversionMask( format );
+        outputFields.add( vm );
+      }
+    }
+    return outputFields;
+  }
+
+  @VisibleForTesting
+  static List<ColumnFilter> getColumnsFilters( TableView filtersView, ColumnFilterFactory colFtFactory ) {
+    List<ColumnFilter> filters = null;
+    int numNonEmpty = filtersView.nrNonEmpty();
+    if ( numNonEmpty > 0 ) {
+      filters = new ArrayList<>( numNonEmpty );
+      for ( int i = 0; i < numNonEmpty; i++ ) {
+        TableItem item = filtersView.getNonEmpty( i );
+        String alias = item.getText( 1 ).trim();
+        String type = item.getText( 2 ).trim();
+        String operator = item.getText( 3 ).trim();
+        String comparison = item.getText( 4 ).trim();
+        String signed = item.getText( 6 ).trim();
+        String format = item.getText( 5 ).trim();
+
+        ColumnFilter f = colFtFactory.createFilter( alias );
+        f.setFieldType( type );
+        f.setComparisonOperator( ColumnFilter.ComparisonType.stringToOpp( operator ) );
+        f.setConstant( comparison );
+        f.setSignedComparison( signed.equalsIgnoreCase( "Y" ) );
+        f.setFormat( format );
+        filters.add( f );
+      }
+    }
+    return filters;
+  }
+
   protected void cancel() {
     stepname = null;
     m_currentMeta.setChanged( changed );
@@ -1147,31 +1155,31 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
     namedClusterWidget.setSelectedNamedCluster( m_currentMeta.getNamedCluster().getName() );
 
-    if ( !Const.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
       m_coreConfigText.setText( m_currentMeta.getCoreConfigURL() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getDefaultConfigURL() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getDefaultConfigURL() ) ) {
       m_defaultConfigText.setText( m_currentMeta.getDefaultConfigURL() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getSourceTableName() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getSourceTableName() ) ) {
       m_mappedTableNamesCombo.setText( m_currentMeta.getSourceTableName() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getSourceMappingName() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getSourceMappingName() ) ) {
       m_mappingNamesCombo.setText( m_currentMeta.getSourceMappingName() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getKeyStartValue() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getKeyStartValue() ) ) {
       m_keyStartText.setText( m_currentMeta.getKeyStartValue() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getKeyStopValue() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getKeyStopValue() ) ) {
       m_keyStopText.setText( m_currentMeta.getKeyStopValue() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getScannerCacheSize() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getScannerCacheSize() ) ) {
       m_scanCacheText.setText( m_currentMeta.getScannerCacheSize() );
     }
 
@@ -1183,20 +1191,20 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       for ( ColumnFilter f : m_currentMeta.getColumnFilters() ) {
         TableItem item = new TableItem( m_filtersView.table, SWT.NONE );
 
-        if ( !Const.isEmpty( f.getFieldAlias() ) ) {
+        if ( !Utils.isEmpty( f.getFieldAlias() ) ) {
           item.setText( 1, f.getFieldAlias() );
         }
-        if ( !Const.isEmpty( f.getFieldType() ) ) {
+        if ( !Utils.isEmpty( f.getFieldType() ) ) {
           item.setText( 2, f.getFieldType() );
         }
         if ( f.getComparisonOperator() != null ) {
           item.setText( 3, f.getComparisonOperator().toString() );
         }
-        if ( !Const.isEmpty( f.getConstant() ) ) {
+        if ( !Utils.isEmpty( f.getConstant() ) ) {
           item.setText( 4, f.getConstant() );
         }
         item.setText( 6, ( f.getSignedComparison() ) ? "Y" : "N" );
-        if ( !Const.isEmpty( f.getFormat() ) ) {
+        if ( !Utils.isEmpty( f.getFormat() ) ) {
           item.setText( 5, f.getFormat() );
         }
       }
@@ -1206,7 +1214,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       m_filtersView.optWidth( true );
     }
 
-    if ( Const.isEmpty( m_currentMeta.getSourceMappingName() ) && m_currentMeta.getMapping() != null ) {
+    if ( Utils.isEmpty( m_currentMeta.getSourceMappingName() ) && m_currentMeta.getMapping() != null ) {
       m_mappingEditor.setMapping( m_currentMeta.getMapping() );
       m_storeMappingInStepMetaData.setSelection( true );
     }
@@ -1221,8 +1229,6 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   }
 
   public HBaseConnection getHBaseConnection() throws IOException, ClusterInitializationException {
-    HBaseConnection conf = null;
-
     String coreConf = "";
     String defaultConf = "";
     String zookeeperHosts = "";
@@ -1233,15 +1239,15 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
     }
 
-    if ( !Const.isEmpty( m_coreConfigText.getText() ) ) {
+    if ( !Utils.isEmpty( m_coreConfigText.getText() ) ) {
       coreConf = transMeta.environmentSubstitute( m_coreConfigText.getText() );
     }
 
-    if ( !Const.isEmpty( m_defaultConfigText.getText() ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigText.getText() ) ) {
       defaultConf = transMeta.environmentSubstitute( m_defaultConfigText.getText() );
     }
 
-    if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
+    if ( Utils.isEmpty( zookeeperHosts ) && Utils.isEmpty( coreConf ) && Utils.isEmpty( defaultConf ) ) {
       throw new IOException( BaseMessages.getString( HBaseInputMeta.PKG,
           "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
     }
@@ -1257,10 +1263,10 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     }
 
     boolean displayFieldsEmbeddedMapping =
-      ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
+      ( ( m_mappingEditor.getMapping( false, null, false ) != null && Utils.isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
-      ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) )
-        && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
+      ( !Utils.isEmpty( m_coreConfigText.getText() ) || !Utils.isEmpty( zookeeperQuorumText ) )
+        && !Utils.isEmpty( m_mappedTableNamesCombo.getText() ) && !Utils.isEmpty( m_mappingNamesCombo.getText() );
 
     if ( displayFieldsEmbeddedMapping || displayFieldsMappingFromHBase ) {
       try {
@@ -1333,7 +1339,6 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
         // Fields information
         m_fieldsView.clearAll( false );
-        ByteConversionUtil byteConversionUtil = getHBaseService().getByteConversionUtil();
 
         if ( current != null && readFieldsFromMapping ) {
           TableItem item = new TableItem( m_fieldsView.table, SWT.NONE );
@@ -1364,7 +1369,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
             item = new TableItem( m_fieldsView.table, SWT.NONE );
             if ( column.getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED ) {
-              String valuesString = byteConversionUtil.objectIndexValuesToString( column.getIndex() );
+              String valuesString = getHBaseLocalService().getByteConversionUtil().objectIndexValuesToString( column.getIndex() );
 
               m_indexedLookup.put( aliasS, valuesString );
               item.setText( 7, "Y" );
@@ -1377,7 +1382,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             item.setText( 3, family );
             item.setText( 4, name );
             item.setText( 5, type );
-            if ( !Const.isEmpty( format ) ) {
+            if ( !Utils.isEmpty( format ) ) {
               item.setText( 6, format );
             }
           }
@@ -1400,7 +1405,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
               item.setText( 2, "Y" );
               item.setText( 7, "N" );
 
-              if ( !Const.isEmpty( column.getConversionMask() ) ) {
+              if ( !Utils.isEmpty( column.getConversionMask() ) ) {
                 item.setText( 6, column.getConversionMask() );
               }
               if ( !filterAliasesDone ) {                //todo check for key type may be do not work in some cases
@@ -1421,7 +1426,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             String format = column.getConversionMask();
 
             if ( column.getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED ) {
-              String valuesString = byteConversionUtil.objectIndexValuesToString( column.getIndex() );
+              String valuesString = getHBaseLocalService().getByteConversionUtil().objectIndexValuesToString( column.getIndex() );
 
               m_indexedLookup.put( aliasS, valuesString );
               item.setText( 7, "Y" );
@@ -1432,7 +1437,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             item.setText( 3, family );
             item.setText( 4, name );
 
-            if ( !Const.isEmpty( format ) ) {
+            if ( !Utils.isEmpty( format ) ) {
               item.setText( 6, format );
             }
           }
@@ -1501,7 +1506,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   private void setupMappingNamesForTable( boolean quiet ) {
     m_mappingNamesCombo.removeAll();
 
-    if ( !Const.isEmpty( m_mappedTableNamesCombo.getText() ) ) {
+    if ( !Utils.isEmpty( m_mappedTableNamesCombo.getText() ) ) {
       HBaseConnection connection = null;
       try {
         connection = getHBaseConnection();

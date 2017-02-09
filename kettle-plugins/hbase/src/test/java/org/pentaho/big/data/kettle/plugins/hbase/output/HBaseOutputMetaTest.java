@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -75,18 +75,17 @@ public class HBaseOutputMetaTest {
 
   @Test
   public void testReadRepSetsNamedCluster() throws Exception {
-    when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) )
-      .thenReturn( namedCluster );
+    when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) ).thenReturn( namedCluster );
     when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
-    when( hBaseService.getMappingFactory() )
-      .thenReturn( mock( MappingFactory.class ) );
+    HBaseOutputMeta hBaseOutputMetaSpy = Mockito.spy( this.hBaseOutputMeta );
+    when( hBaseOutputMetaSpy.getHBaseLocalService() ).thenReturn( hBaseService );
+    when( hBaseService.getMappingFactory() ).thenReturn( mock( MappingFactory.class ) );
     Mapping mapping = mock( Mapping.class );
     when( mapping.readRep( rep, id_step ) ).thenReturn( true );
     when( hBaseService.getMappingFactory().createMapping() ).thenReturn( mapping );
-
-    hBaseOutputMeta.readRep( rep, metaStore, id_step, databases );
-    assertThat( hBaseOutputMeta.getNamedCluster(), is( namedCluster ) );
-    assertThat( hBaseOutputMeta.getMapping(), is( mapping ) );
+    hBaseOutputMetaSpy.readRep( rep, metaStore, id_step, databases );
+    assertThat( hBaseOutputMetaSpy.getNamedCluster(), is( namedCluster ) );
+    assertThat( hBaseOutputMetaSpy.getMapping(), is( mapping ) );
   }
 
   /**
