@@ -35,6 +35,7 @@ import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
@@ -162,6 +163,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   @InjectionDeep
   protected MappingDefinition mappingDefinition;
+
+  private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public HBaseInputMeta( NamedClusterService namedClusterService,
                          NamedClusterServiceLocator namedClusterServiceLocator,
@@ -592,8 +595,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     HBaseService hBaseService = null;
     try {
       hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      serviceStatus = ServiceStatus.OK;
     } catch ( ClusterInitializationException e ) {
       getLog().logError( e.getMessage() );
+      this.serviceStatus = ServiceStatus.notOk( e );
     }
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
@@ -689,8 +694,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     HBaseService hBaseService = null;
     try {
       hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
+      serviceStatus = ServiceStatus.OK;
     } catch ( ClusterInitializationException e ) {
       getLog().logError( e.getMessage() );
+      serviceStatus = ServiceStatus.notOk( e );
     }
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
@@ -902,4 +909,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     this.mappingDefinition = mappingDefinition;
   }
 
+  public ServiceStatus getServiceStatus() {
+    return this.serviceStatus;
+  }
 }
