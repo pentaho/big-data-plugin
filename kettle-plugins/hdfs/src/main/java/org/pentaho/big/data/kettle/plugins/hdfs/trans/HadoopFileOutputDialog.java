@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -1560,7 +1561,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     NamedCluster c = getMetaStore() == null ? null
       : namedClusterService.getNamedClusterByName( ncName, getMetaStore() );
     if ( c != null ) {
-      fileName = c.processURLsubstitution( fileName, getMetaStore(), variables );
+      fileName = getUnescapedURLRoot( c );
     }
 
     tfoi.setFileName( fileName );
@@ -1728,6 +1729,35 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       path = null;
     }
     return path;
+  }
+
+  public static String getUnescapedURLRoot( NamedCluster namedCluster ) {
+
+    String ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost().trim() : "";
+    String ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort().trim() : "";
+    String ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername().trim() : "";
+    String ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword().trim() : "";
+    String clusterURL = null;
+    if ( ncPort.isEmpty() ) {
+      ncPort = "-1";
+    }
+
+    String scheme = namedCluster.isMapr() ? "maprfs" : "hdfs";
+
+    try {
+      UrlFileName file =
+        new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername, ncPassword, null, null,
+          null );
+      clusterURL = file.getURI();
+      if ( clusterURL.endsWith( "/" ) ) {
+        clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+      }
+
+    } catch ( Exception e ) {
+      clusterURL = null;
+    }
+
+    return clusterURL;
   }
 
   private void showMessageAndLog( String title, String message, String messageToLog ) {
