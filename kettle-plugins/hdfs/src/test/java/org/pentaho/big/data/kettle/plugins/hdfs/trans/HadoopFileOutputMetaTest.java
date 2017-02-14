@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
@@ -97,27 +96,6 @@ public class HadoopFileOutputMetaTest {
     }
   }
 
-  @Test
-  public void testProcessedUrl() throws Exception {
-    String sourceConfigurationName = "scName";
-    String desiredUrl = "desiredUrl";
-    String url = "url";
-    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
-    IMetaStore metaStore = mock( IMetaStore.class );
-    assertTrue( null == hadoopFileOutputMeta.getProcessedUrl( metaStore, null ) );
-    hadoopFileOutputMeta.setSourceConfigurationName( sourceConfigurationName );
-    NamedCluster nc = mock( NamedCluster.class );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
-      .thenReturn( null );
-    assertEquals( url, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
-      .thenReturn( nc );
-    when( nc.processURLsubstitution( eq( url ), (IMetaStore) anyObject(), (VariableSpace) anyObject() ) )
-      .thenReturn( desiredUrl );
-    assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
-  }
-
   /**
    * BACKLOG-7972 - Hadoop File Output: Hadoop Clusters dropdown doesn't preserve selected cluster after reopen a
    * transformation after changing signature of loadSource in , saveSource in HadoopFileOutputMeta wasn't called
@@ -175,20 +153,14 @@ public class HadoopFileOutputMetaTest {
   @Test
   public void testLoadSourceRepForUrlRefresh() throws Exception {
     final String URL_FROM_CLUSTER = "urlFromCluster";
-    IMetaStore mockMetaStore = mock( IMetaStore.class );
-    NamedCluster mockNamedCluster = mock( NamedCluster.class );
-    when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
-    when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) )
-      .thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
     when( mockRep.getStepAttributeString( anyObject(), eq( "source_configuration_name" ) ) ).thenReturn(
         TEST_CLUSTER_NAME );
     HadoopFileOutputMeta hadoopFileOutputMeta =
         new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
-    hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
-    when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
+    when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( URL_FROM_CLUSTER );
 
-    assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, mockMetaStore ) );
+    assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, null ) );
   }
 
   public static Document getDocumentFromString( String xmlStep, SAXBuilder jdomBuilder )
