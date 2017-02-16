@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <window id="hadoop-window-wrapper">
-   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="610" width="612" appicon="ui/images/spoon.ico">
+   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="610" width="615" appicon="ui/images/spoon.ico">
       <vbox>
          <grid>
             <columns>
@@ -242,22 +242,13 @@
                               <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200" />
                            </row>
                            <row>
-                              <grid>
-                                 <columns>
-                                    <column flex="1"/>
-                                    <column />
-                                    <column />
-                                 </columns>
-                                 <rows>
-                                    <row>
-                                       <menulist id="named-clusters" pen:binding="name" width="200" minwidth="200" maxwidth="200">
-                                          <menupopup width="200" maxwidth="200" flex="1"/>
-                                       </menulist>
-                                       <button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()" />
-                                       <button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()" />
-                                    </row>
-                                 </rows>
-                              </grid>
+                           	  <hbox>
+                                 <menulist id="named-clusters" pen:binding="name" width="200">
+                                    <menupopup />
+                                 </menulist>
+                                 <button id="editNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()" />
+                                 <button id="newNamedCluster" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()" />
+                              </hbox>
                            </row>
                            <row>
                               <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
