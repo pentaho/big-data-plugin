@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -30,6 +30,7 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
@@ -120,6 +121,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
+  private ServiceStatus serviceStatus;
 
   public NamedClusterService getNamedClusterService() {
     return namedClusterService;
@@ -331,14 +333,16 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     String disableWAL = XMLHandler.getTagValue( stepnode, "disable_wal" );
     m_disableWriteToWAL = disableWAL.equalsIgnoreCase( "Y" );
 
-    Mapping tempMapping;
+    Mapping tempMapping = null;
     try {
       tempMapping =
         namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
+      serviceStatus = ServiceStatus.OK;
     } catch ( ClusterInitializationException e ) {
-      throw new KettleXMLException( e );
+      getLog().logError( e.getMessage() );
+      this.serviceStatus = ServiceStatus.notOk( e );
     }
-    if ( tempMapping.loadXML( stepnode ) ) {
+    if ( tempMapping != null && tempMapping.loadXML( stepnode ) ) {
       m_mapping = tempMapping;
     } else {
       m_mapping = null;
@@ -357,14 +361,16 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     m_writeBufferSize = rep.getStepAttributeString( id_step, 0, "write_buffer_size" );
     m_disableWriteToWAL = rep.getStepAttributeBoolean( id_step, 0, "disable_wal" );
 
-    Mapping tempMapping;
+    Mapping tempMapping = null;
     try {
       tempMapping =
         namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
+      serviceStatus = ServiceStatus.OK;
     } catch ( ClusterInitializationException e ) {
-      throw new KettleException( e );
+      getLog().logError( e.getMessage() );
+      this.serviceStatus = ServiceStatus.notOk( e );
     }
-    if ( tempMapping.readRep( rep, id_step ) ) {
+    if ( tempMapping != null && tempMapping.readRep( rep, id_step ) ) {
       m_mapping = tempMapping;
     } else {
       m_mapping = null;
@@ -425,5 +431,9 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public void setMappingDefinition( MappingDefinition mappingDefinition ) {
     this.mappingDefinition = mappingDefinition;
+  }
+
+  public ServiceStatus getServiceStatus() {
+    return this.serviceStatus;
   }
 }
