@@ -740,62 +740,62 @@
       <version>${dependency.kettle.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>flute</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libbase</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libdocbundle</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libfonts</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libformat</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libformula</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libloader</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libpixie</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>librepository</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libserializer</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libswing</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-library</groupId>
+      <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libxml</artifactId>
       <version>${dependency.pentaho-reporting.revision}</version>
     </dependency>
@@ -845,8 +845,8 @@
       <version>${dependency.pentaho-registry.revision}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho-reporting-engine</groupId>
-      <artifactId>pentaho-reporting-engine-classic-core</artifactId>
+      <groupId>org.pentaho.reporting.engine</groupId>
+      <artifactId>classic-core</artifactId>
       <version>${dependency.reporting-engine.revision}</version>
     </dependency>
     <dependency>
