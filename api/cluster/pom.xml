@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-api</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.11-331</version>
   </parent>
   <artifactId>pentaho-big-data-api-cluster</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.11-331</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
