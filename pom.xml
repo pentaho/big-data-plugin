@@ -54,7 +54,7 @@
     <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
     <dependency.mondrian.revision>3.14-SNAPSHOT</dependency.mondrian.revision>
-    <dependency.hadoop-shims-emr46.revision>7.1-SNAPSHOT</dependency.hadoop-shims-emr46.revision>
+    <dependency.hadoop-shims-emr52.revision>7.1-SNAPSHOT</dependency.hadoop-shims-emr52.revision>
     <dependency.kettle.revision>7.1-SNAPSHOT</dependency.kettle.revision>
     <dependency.pentaho-reporting.revision>7.1-SNAPSHOT</dependency.pentaho-reporting.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
