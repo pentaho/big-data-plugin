@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <window id="hadoop-window-wrapper">
-   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="610" width="615" appicon="ui/images/spoon.ico">
+   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="610" width="625" appicon="ui/images/spoon.ico">
       <vbox>
          <grid>
             <columns>
