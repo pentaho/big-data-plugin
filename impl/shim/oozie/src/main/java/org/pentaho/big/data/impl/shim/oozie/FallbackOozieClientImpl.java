@@ -50,7 +50,7 @@ public class FallbackOozieClientImpl implements org.pentaho.oozie.shim.api.Oozie
     try {
       return delegate.getProtocolUrl();
     } catch ( org.apache.oozie.client.OozieClientException e ) {
-      throw new OozieClientException( e.getCause(), e.getErrorCode() );
+      throw new OozieClientException( e, e.getErrorCode() );
     }
   }
 
@@ -66,7 +66,7 @@ public class FallbackOozieClientImpl implements org.pentaho.oozie.shim.api.Oozie
       String jobId = delegate.run( props );
       return new OozieJobInfoImpl( jobId, delegate );
     } catch ( org.apache.oozie.client.OozieClientException e ) {
-      throw new OozieClientException( e.getCause(), e.getErrorCode() );
+      throw new OozieClientException( e, e.getErrorCode() );
     }
   }
 
@@ -75,7 +75,7 @@ public class FallbackOozieClientImpl implements org.pentaho.oozie.shim.api.Oozie
     try {
       delegate.validateWSVersion();
     } catch ( org.apache.oozie.client.OozieClientException e ) {
-      throw new OozieClientException( e.getCause(), e.getErrorCode() );
+      throw new OozieClientException( e, e.getErrorCode() );
     }
   }
 

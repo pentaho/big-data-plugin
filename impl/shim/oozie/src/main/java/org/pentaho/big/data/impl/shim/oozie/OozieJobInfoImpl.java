@@ -41,7 +41,7 @@ public class OozieJobInfoImpl implements OozieJob {
     try {
       return oozieClient.getJobInfo( id ).getStatus().equals( WorkflowJob.Status.SUCCEEDED );
     } catch ( org.apache.oozie.client.OozieClientException e ) {
-      throw new OozieClientException( e.getCause(), e.getErrorCode() );
+      throw new OozieClientException( e, e.getErrorCode() );
     }
   }
 
@@ -55,7 +55,7 @@ public class OozieJobInfoImpl implements OozieJob {
     try {
       return oozieClient.getJobLog( id );
     } catch ( org.apache.oozie.client.OozieClientException e ) {
-      throw new OozieClientException( e.getCause(), e.getErrorCode() );
+      throw new OozieClientException( e, e.getErrorCode() );
     }
   }
 
@@ -64,7 +64,7 @@ public class OozieJobInfoImpl implements OozieJob {
     try {
       return oozieClient.getJobInfo( id ).getStatus().equals( WorkflowJob.Status.RUNNING );
     } catch ( org.apache.oozie.client.OozieClientException e ) {
-      throw new OozieClientException( e.getCause(), e.getErrorCode() );
+      throw new OozieClientException( e, e.getErrorCode() );
     }
   }
 

@@ -53,7 +53,7 @@ public class OozieServiceImpl implements OozieService {
     try {
       return delegate.getProtocolUrl();
     } catch ( OozieClientException e ) {
-      throw new OozieServiceException( e.getCause(), e.getErrorCode() );
+      throw new OozieServiceException( e, e.getErrorCode() );
     }
   }
 
@@ -70,7 +70,7 @@ public class OozieServiceImpl implements OozieService {
       OozieJob job = delegate.run( props );
       return new OozieJobInfoDelegate( job );
     } catch ( OozieClientException e ) {
-      throw new OozieServiceException( e.getCause(), e.getErrorCode() );
+      throw new OozieServiceException( e, e.getErrorCode() );
     }
   }
 
@@ -79,7 +79,7 @@ public class OozieServiceImpl implements OozieService {
     try {
       delegate.validateWSVersion();
     } catch ( OozieClientException e ) {
-      throw new OozieServiceException( e.getCause(), e.getErrorCode() );
+      throw new OozieServiceException( e, e.getErrorCode() );
     }
   }
 
