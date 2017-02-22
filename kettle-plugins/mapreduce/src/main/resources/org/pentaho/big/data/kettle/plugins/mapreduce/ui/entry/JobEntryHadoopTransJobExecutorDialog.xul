@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<window id="hadoop-window-wrapper">
-   <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul" id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15" ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" height="610" width="625" appicon="ui/images/spoon.ico">
+<window id="hadoop-window-wrapper" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:pen="http://www.pentaho.org/2008/xul">
+   <dialog id="job-entry-dialog" title="${JobEntryDialog.Title}" resizable="true" buttons="" padding="15"
+           ondialogaccept="jobEntryController.accept()" ondialogcancel="jobEntryController.cancel()" width="625"
+           appicon="ui/images/spoon.ico">
       <vbox>
          <grid>
             <columns>
@@ -23,7 +25,7 @@
          <separator class="groove-thin" height="20" flex="1" />
       </vbox>
       <vbox id="advanced-configuration" flex="5" hidden="false">
-         <tabbox height="375" flex="2">
+         <tabbox flex="2">
             <tabs>
                <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.MapReduceMapper.Label}" />
                <tab label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.MapReduceCombiner.Label}" />
@@ -290,14 +292,14 @@
                </tabpanel>
             </tabpanels>
          </tabbox>
-         <separator class="groove-thin" height="25" flex="1" />
-         <hbox>
-            <button label="${Dialog.Help}" image="${HelpImage.Url}" onclick="jobEntryController.help()" />
-            <spacer flex="1" />
-            <button label="${Dialog.Accept}" onclick="jobEntryController.accept()" width="80" />
-            <button label="${Dialog.Cancel}" onclick="jobEntryController.cancel()" width="80" />
-         </hbox>
       </vbox>
+      <separator class="groove-thin" height="25" flex="1" />
+      <hbox>
+         <button label="${Dialog.Help}" image="${HelpImage.Url}" onclick="jobEntryController.help()" />
+         <spacer flex="1" />
+         <button label="${Dialog.Accept}" onclick="jobEntryController.accept()" width="80" />
+         <button label="${Dialog.Cancel}" onclick="jobEntryController.cancel()" width="80" />
+      </hbox>
    </dialog>
    <!--  ###############################################################################   -->
    <!--     ERROR DIALOG: Dialog to display error text                                     -->
