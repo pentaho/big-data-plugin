@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,8 +24,8 @@ package org.pentaho.big.data.plugins.common.ui;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
@@ -132,7 +132,7 @@ public class NamedClusterComposite extends Composite {
     Composite confUI = createConfigurationUI( c, cluster );
 
     // Create a horizontal separator
-    Label topSeparator = new Label(c, SWT.HORIZONTAL | SWT.SEPARATOR );
+    Label topSeparator = new Label( c, SWT.HORIZONTAL | SWT.SEPARATOR );
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
@@ -200,15 +200,11 @@ public class NamedClusterComposite extends Composite {
     nameValue.setText( String.valueOf( namedCluster.getName() ) );
     nameValue.setLayoutData( gridData );
     props.setLook( nameValue );
-    nameValue.addKeyListener( new KeyListener() {
-      public void keyReleased( KeyEvent event ) {
+    nameValue.addModifyListener( new ModifyListener() {
+      public void modifyText( final ModifyEvent modifyEvent ) {
         namedCluster.setName( nameValue.getText() );
       }
-
-      public void keyPressed( KeyEvent event ) {
-      }
     } );
-
     return mainParent;
   }
 
@@ -227,12 +223,9 @@ public class NamedClusterComposite extends Composite {
     textVar.setLayoutData( gd );
     props.setLook( textVar );
 
-    textVar.addKeyListener( new KeyListener() {
-      public void keyReleased( KeyEvent event ) {
+    textVar.addModifyListener( new ModifyListener() {
+      public void modifyText( final ModifyEvent modifyEvent ) {
         cb.invoke( c, textVar, textVar.getText() );
-      }
-
-      public void keyPressed( KeyEvent event ) {
       }
     } );
 
@@ -267,7 +260,7 @@ public class NamedClusterComposite extends Composite {
     return pp;
   }
 
-  private Composite createTwoColumnsContainer(Composite parentComposite) {
+  private Composite createTwoColumnsContainer( Composite parentComposite ) {
     Composite twoColumnsComposite = new Composite( parentComposite, SWT.NONE );
     props.setLook( twoColumnsComposite );
     GridLayout gridLayout = new GridLayout( TWO_COLUMNS, false );
