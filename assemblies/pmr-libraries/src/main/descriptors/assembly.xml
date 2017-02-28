@@ -187,18 +187,18 @@
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
-        <include>pentaho-library:flute</include>
-        <include>pentaho-library:libbase</include>
-        <include>pentaho-library:libdocbundle</include>
-        <include>pentaho-library:libfonts</include>
-        <include>pentaho-library:libformat</include>
-        <include>pentaho-library:libformula</include>
-        <include>pentaho-library:libloader</include>
-        <include>pentaho-library:libpixie</include>
-        <include>pentaho-library:librepository</include>
-        <include>pentaho-library:libserializer</include>
-        <include>pentaho-library:libswing</include>
-        <include>pentaho-library:libxml</include>
+        <include>org.pentaho.reporting.library:flute</include>
+        <include>org.pentaho.reporting.library:libbase</include>
+        <include>org.pentaho.reporting.library:libdocbundle</include>
+        <include>org.pentaho.reporting.library:libfonts</include>
+        <include>org.pentaho.reporting.library:libformat</include>
+        <include>org.pentaho.reporting.library:libformula</include>
+        <include>org.pentaho.reporting.library:libloader</include>
+        <include>org.pentaho.reporting.library:libpixie</include>
+        <include>org.pentaho.reporting.library:librepository</include>
+        <include>org.pentaho.reporting.library:libserializer</include>
+        <include>org.pentaho.reporting.library:libswing</include>
+        <include>org.pentaho.reporting.library:libxml</include>
         <include>pentaho:pdi-osgi-bridge-core</include>
         <include>pentaho:pentaho-platform-api</include>
         <include>pentaho:pentaho-platform-core</include>
@@ -212,7 +212,7 @@
         <include>pentaho:pentaho-metadata</include>
         <include>pentaho:pentaho-osgi-utils-api</include>
         <include>pentaho:pentaho-registry</include>
-        <include>pentaho-reporting-engine:pentaho-reporting-engine-classic-core</include>
+        <include>org.pentaho.reporting.engine:classic-core</include>
         <include>pentaho:salesforce-partner</include>
         <include>pentaho:pentaho-service-coordinator</include>
         <include>rhino:js</include>
