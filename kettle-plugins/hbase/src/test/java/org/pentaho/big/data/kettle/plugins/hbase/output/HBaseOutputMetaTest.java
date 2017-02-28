@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -26,26 +26,31 @@ import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.LogInjector;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.bigdata.api.hbase.mapping.MappingFactory;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LoggingBuffer;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.trans.steps.loadsave.MemoryRepository;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
+import javax.imageio.metadata.IIOMetadataNode;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.when;
@@ -131,5 +136,79 @@ public class HBaseOutputMetaTest {
     hBaseOutputMetaSpy.getXML();
     verify( hBaseOutputMetaSpy, times( 0 ) ).getMapping( any(), any() );
     verify( hBaseOutputMetaSpy, times( 0 ) ).setMapping( any() );
+  }
+
+  @Test
+  public void testLoadXmlDoesntBubleUpException() throws Exception {
+    KettleLogStore.init();
+    ClusterInitializationException exception = new ClusterInitializationException( new Exception());
+    hBaseOutputMeta.setNamedCluster( namedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenThrow( exception );
+    when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) ).thenReturn( namedCluster );
+
+    IIOMetadataNode node = new IIOMetadataNode();
+    IIOMetadataNode child = new IIOMetadataNode("disable_wal");
+    IIOMetadataNode grandChild = new IIOMetadataNode();
+    grandChild.setNodeValue( "N" );
+    child.appendChild( grandChild );
+    node.appendChild( child );
+
+    hBaseOutputMeta.loadXML( node, new ArrayList<>(), metaStore );
+
+    ServiceStatus serviceStatus = hBaseOutputMeta.getServiceStatus();
+    assertNotNull( serviceStatus );
+    assertFalse( serviceStatus.isOk() );
+    assertEquals( exception, serviceStatus.getException() );
+  }
+
+  @Test
+  public void testLoadXmlServiceStatusOk() throws Exception {
+    KettleLogStore.init();
+    hBaseOutputMeta.setNamedCluster( namedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) ).thenReturn( namedCluster );
+
+    IIOMetadataNode node = new IIOMetadataNode();
+    IIOMetadataNode child = new IIOMetadataNode("disable_wal");
+    IIOMetadataNode grandChild = new IIOMetadataNode();
+    grandChild.setNodeValue( "N" );
+    child.appendChild( grandChild );
+    node.appendChild( child );
+
+    hBaseOutputMeta.loadXML( node, new ArrayList<>(), metaStore );
+
+    ServiceStatus serviceStatus = hBaseOutputMeta.getServiceStatus();
+    assertNotNull( serviceStatus );
+    assertTrue( serviceStatus.isOk() );
+  }
+
+  @Test
+  public void testReadRepDoesntBubleUpException() throws Exception {
+    KettleLogStore.init();
+    ClusterInitializationException exception = new ClusterInitializationException( new Exception());
+    hBaseOutputMeta.setNamedCluster( namedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenThrow( exception );
+    when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) ).thenReturn( namedCluster );
+
+    hBaseOutputMeta.readRep( new MemoryRepository(), metaStore, mock( ObjectId.class ), new ArrayList<>() );
+
+    ServiceStatus serviceStatus = hBaseOutputMeta.getServiceStatus();
+    assertNotNull( serviceStatus );
+    assertFalse( serviceStatus.isOk() );
+    assertEquals( exception, serviceStatus.getException() );
+  }
+
+  @Test
+  public void testReadRepServiceStatusOk() throws Exception {
+    KettleLogStore.init();
+    hBaseOutputMeta.setNamedCluster( namedCluster );
+    when( namedClusterServiceLocator.getService( namedCluster, HBaseService.class ) ).thenReturn( hBaseService );
+    when( namedClusterLoadSaveUtil.loadClusterConfig( any(), any(), any(), any(), any(), any() ) ).thenReturn( namedCluster );
+
+    hBaseOutputMeta.readRep( new MemoryRepository(), metaStore, mock( ObjectId.class ), new ArrayList<>() );
+
+    ServiceStatus serviceStatus = hBaseOutputMeta.getServiceStatus();
+    assertNotNull( serviceStatus );
+    assertTrue( serviceStatus.isOk() );
   }
 }
