@@ -444,7 +444,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
         ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
         setColumnFilters( createColumnFiltersFromDefinition( columnFilterFactory ) );
       }
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       throw new KettleException( e );
     }
   }
@@ -596,7 +596,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     try {
       hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
       serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
       this.serviceStatus = ServiceStatus.notOk( e );
     }
@@ -695,7 +695,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     try {
       hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
       serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
       serviceStatus = ServiceStatus.notOk( e );
     }
@@ -910,6 +910,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public ServiceStatus getServiceStatus() {
+    if ( this.serviceStatus == null ) {
+      this.serviceStatus = ServiceStatus.OK;
+    }
     return this.serviceStatus;
   }
 }

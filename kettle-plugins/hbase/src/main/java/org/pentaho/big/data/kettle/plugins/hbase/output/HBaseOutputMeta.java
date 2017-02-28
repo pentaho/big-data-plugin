@@ -27,7 +27,6 @@ import java.util.List;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
@@ -121,7 +120,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
-  private ServiceStatus serviceStatus;
+  private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public NamedClusterService getNamedClusterService() {
     return namedClusterService;
@@ -239,7 +238,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       Mapping tempMapping = null;
       tempMapping = getMapping( mappingDefinition, hBaseService );
       setMapping( tempMapping );
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       throw new KettleException( e );
     }
   }
@@ -338,7 +337,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       tempMapping =
         namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
       serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
       this.serviceStatus = ServiceStatus.notOk( e );
     }
@@ -366,7 +365,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
       tempMapping =
         namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
       serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
       this.serviceStatus = ServiceStatus.notOk( e );
     }
@@ -434,6 +433,9 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public ServiceStatus getServiceStatus() {
+    if ( this.serviceStatus == null ) {
+      this.serviceStatus = ServiceStatus.OK;
+    }
     return this.serviceStatus;
   }
 }
