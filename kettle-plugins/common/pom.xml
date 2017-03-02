@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.12-334</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-common</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.12-334</version>
   <packaging>pom</packaging>
   <modules>
     <module>ui</module>
