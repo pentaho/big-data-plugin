@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -144,7 +144,7 @@ public class NamedClusterDialogImpl extends Dialog {
     fd.right = new FormAttachment( 100, 0 );
     namedClusterComposite.setLayoutData( fd );
 
-    shell.setSize( 450, 660 );
+    shell.setSize( 450, 685 );
 
     // Buttons
     Button wTest = new Button( shell, SWT.PUSH );

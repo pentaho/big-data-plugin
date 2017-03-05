@@ -23,6 +23,7 @@
 package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 
 import com.google.common.annotations.VisibleForTesting;
+
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
@@ -83,8 +84,17 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setZooKeeperHost( nc.getZooKeeperHost() );
     delegate.setZooKeeperPort( nc.getZooKeeperPort() );
     delegate.setOozieUrl( nc.getOozieUrl() );
-    delegate.setMapr( nc.isMapr() );
+    delegate.setStorageScheme( nc.getStorageScheme() );
+    //delegate.setMapr( nc.isMapr() );
     delegate.setLastModifiedDate( System.currentTimeMillis() );
+  }
+
+  public String getStorageScheme() {
+    return delegate.getStorageScheme();
+  }
+
+  public void setStorageScheme( String storageScheme ) {
+    delegate.setStorageScheme( storageScheme );
   }
 
   @Override
@@ -301,5 +311,9 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public String toString() {
     return delegate.toString();
+  }
+
+  public String[] validStorageSchemes() {
+    return delegate.validStorageSchemes();
   }
 }

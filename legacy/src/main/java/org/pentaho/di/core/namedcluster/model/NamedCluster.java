@@ -36,6 +36,9 @@ import org.pentaho.metastore.persist.MetaStoreElementType;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
 public class NamedCluster implements Cloneable, VariableSpace {
+  public static final String HDFS_SCHEME = "hdfs";
+  public static final String MAPRFS_SCHEME = "maprfs";
+  public static final String WASB_SCHEME = "wasb";
 
   private VariableSpace variables = new Variables();
 
@@ -44,6 +47,9 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   @MetaStoreAttribute
   private String shimIdentifier;
+
+  @MetaStoreAttribute
+  private String storageScheme;
 
   @MetaStoreAttribute
   private String hdfsHost;
@@ -283,11 +289,18 @@ public class NamedCluster implements Cloneable, VariableSpace {
   }
 
   public void setMapr( boolean mapr ) {
-    this.mapr = mapr;
+    if ( mapr ) {
+      setStorageScheme( MAPRFS_SCHEME );
+    }
   }
 
+  @Deprecated
   public boolean isMapr() {
-    return mapr;
+    if ( storageScheme == null ) {
+      return mapr;
+    } else {
+      return storageScheme.equals( MAPRFS_SCHEME );
+    }
   }
 
   public String getShimIdentifier() {
@@ -301,5 +314,24 @@ public class NamedCluster implements Cloneable, VariableSpace {
   @Override
   public String toString() {
     return "Named cluster: " + getName();
+  }
+
+  public String getStorageScheme() {
+    if ( storageScheme == null ) {
+      if ( isMapr() ) {
+        storageScheme = MAPRFS_SCHEME;
+      } else {
+        storageScheme = HDFS_SCHEME;
+      }
+    }
+    return storageScheme;
+  }
+
+  public void setStorageScheme( String storageScheme ) {
+    this.storageScheme = storageScheme;
+  }
+
+  public String[] validStorageSchemes() {
+    return new String[] { HDFS_SCHEME, MAPRFS_SCHEME, WASB_SCHEME };
   }
 }

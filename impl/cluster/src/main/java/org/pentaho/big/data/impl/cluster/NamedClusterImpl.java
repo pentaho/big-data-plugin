@@ -18,6 +18,7 @@
 package org.pentaho.big.data.impl.cluster;
 
 import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
@@ -39,6 +40,7 @@ import java.util.Map;
 public class NamedClusterImpl implements NamedCluster {
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
+  public static final String WASB_SCHEME = "wasb";
 
   private VariableSpace variables = new Variables();
 
@@ -47,6 +49,9 @@ public class NamedClusterImpl implements NamedCluster {
 
   @MetaStoreAttribute
   private String shimIdentifier;
+
+  @MetaStoreAttribute
+  private String storageScheme;
 
   @MetaStoreAttribute
   private String hdfsHost;
@@ -71,6 +76,7 @@ public class NamedClusterImpl implements NamedCluster {
   private String oozieUrl;
 
   @MetaStoreAttribute
+  @Deprecated
   private boolean mapr;
 
   @MetaStoreAttribute
@@ -100,6 +106,21 @@ public class NamedClusterImpl implements NamedCluster {
 
   public void setShimIdentifier( String shimIdentifier ) {
     this.shimIdentifier = shimIdentifier;
+  }
+
+  public String getStorageScheme() {
+    if ( storageScheme == null ) {
+      if ( isMapr() ) {
+        storageScheme = MAPRFS_SCHEME;
+      } else {
+        storageScheme = HDFS_SCHEME;
+      }
+    }
+    return storageScheme;
+  }
+
+  public void setStorageScheme( String storageScheme ) {
+    this.storageScheme = storageScheme;
   }
 
   public void copyVariablesFrom( VariableSpace space ) {
@@ -167,6 +188,7 @@ public class NamedClusterImpl implements NamedCluster {
 
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
+    this.setStorageScheme( nc.getStorageScheme() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );
     this.setHdfsUsername( nc.getHdfsUsername() );
@@ -194,12 +216,13 @@ public class NamedClusterImpl implements NamedCluster {
       }
       return url;
     } else {
-      return processURLsubstitution( incomingURL, HDFS_SCHEME, metastore, variableSpace );
+      return processURLsubstitution( incomingURL, getStorageScheme(), metastore, variableSpace );
     }
   }
 
   private String processURLsubstitution( String incomingURL, String hdfsScheme, IMetaStore metastore,
                                          VariableSpace variableSpace ) {
+
     String outgoingURL = null;
     try {
       String clusterURL = generateURL( hdfsScheme, metastore, variableSpace );
@@ -256,7 +279,7 @@ public class NamedClusterImpl implements NamedCluster {
     String clusterURL = null;
     try {
       if ( !Const.isEmpty( scheme ) && metastore != null ) {
-        if ( !scheme.equals( HDFS_SCHEME ) ) {
+        if ( !scheme.equals( HDFS_SCHEME ) && !scheme.equals( WASB_SCHEME ) ) {
           return null;
         }
 
@@ -421,15 +444,28 @@ public class NamedClusterImpl implements NamedCluster {
   }
 
   public void setMapr( boolean mapr ) {
-    this.mapr = mapr;
+    if ( mapr ) {
+      setStorageScheme( MAPRFS_SCHEME );
+    }
   }
 
+  @Deprecated
   public boolean isMapr() {
-    return mapr;
+    if ( storageScheme == null ) {
+      return mapr;
+    } else {
+      return storageScheme.equals( MAPRFS_SCHEME );
+    }
   }
 
   @Override
   public String toString() {
     return "Named cluster: " + getName();
   }
+
+  @Override
+  public String[] validStorageSchemes() {
+    return new String[] { HDFS_SCHEME, MAPRFS_SCHEME, WASB_SCHEME };
+  }
+
 }
