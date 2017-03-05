@@ -22,8 +22,11 @@
 
 package org.pentaho.big.data.plugins.common.ui;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -34,7 +37,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -70,6 +72,7 @@ public class NamedClusterComposite extends Composite {
   private TextVar jtHostNameText;
   private Label jtPortLabel;
   private TextVar jtPortText;
+  private Group hdfsGroup;
   private Label hdfsHostLabel;
   private TextVar hdfsHostText;
   private Label hdfsPortLabel;
@@ -78,6 +81,7 @@ public class NamedClusterComposite extends Composite {
   private TextVar hdfsUsernameText;
   private Label hdfsPasswordLabel;
   private TextVar hdfsPasswordText;
+  private Label storageLabel;
 
   private interface Callback {
     public void invoke( NamedCluster nc, TextVar textVar, String value );
@@ -139,30 +143,50 @@ public class NamedClusterComposite extends Composite {
     fd.top = new FormAttachment( confUI, 10 );
     topSeparator.setLayoutData( fd );
 
-    // Create MapR check box
-    final Button maprButton = new Button( c, SWT.CHECK );
-    maprButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR" ) );
-    maprButton.setToolTipText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.IsMapR.Title" ) );
-
+    // Create a storage type Label
+    storageLabel = new Label( c, SWT.NONE );
+    storageLabel.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Storage" ) );
+    storageLabel.setLayoutData( fd );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( topSeparator, 10 );
-    maprButton.setLayoutData( fd );
-    props.setLook( maprButton );
-    maprButton.setSelection( cluster.isMapr() );
-    maprButton.addSelectionListener( new SelectionAdapter() {
+    props.setLook( storageLabel );
+    storageLabel.setLayoutData( fd );
+
+    // Create a storage type Drop Down
+    final CCombo storageCombo = new CCombo( c, SWT.READ_ONLY | SWT.BORDER );
+    fd = new FormData();
+    fd.left = new FormAttachment( 0, 0 );
+    fd.right = new FormAttachment( 80, 0 );
+    fd.top = new FormAttachment( storageLabel, 10 );
+    String[] internalSchemeNames = cluster.validStorageSchemes();
+    String[] uiSchemeNames = new String[internalSchemeNames.length];
+    for ( int i = 0; i < internalSchemeNames.length; i++ ) {
+      uiSchemeNames[i] = BaseMessages.getString( PKG, "NamedClusterDialog.Scheme." + internalSchemeNames[i] );
+    }
+    storageCombo.setLayoutData( fd );
+    props.setLook( storageCombo );
+    storageCombo.setItems( uiSchemeNames );
+    storageCombo.select( Arrays.asList( cluster.validStorageSchemes() ).indexOf( cluster.getStorageScheme() ) );
+
+    storageCombo.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
         super.widgetSelected( e );
-        cluster.setMapr( maprButton.getSelection() );
-        setHdfsAndJobTrackerState( !maprButton.getSelection() );
+        int index = storageCombo.getSelectionIndex();
+        if ( index == -1 ) {
+          index = 0;
+        }
+        cluster.setStorageScheme( internalSchemeNames[Arrays.asList( uiSchemeNames ).indexOf( uiSchemeNames[index] )] );
+        setHdfsAndJobTrackerState( cluster );
       }
     } );
 
     // Create a child composite to hold the controls
     final Composite c1 = new Composite( c, SWT.NONE );
     fd = new FormData();
-    fd.top = new FormAttachment( maprButton, 10 );
+    //fd.top = new FormAttachment( maprButton, 10 );
+    fd.top = new FormAttachment( storageCombo, 10 );
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     c1.setLayoutData( fd );
@@ -181,7 +205,7 @@ public class NamedClusterComposite extends Composite {
 
     c1.setSize( c1.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
-    setHdfsAndJobTrackerState( !cluster.isMapr() );
+    setHdfsAndJobTrackerState( cluster );
   }
 
   private Composite createConfigurationUI( final Composite c, final NamedCluster namedCluster  ) {
@@ -271,7 +295,7 @@ public class NamedClusterComposite extends Composite {
 
   private void createHdfsGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.HDFS" ) );
-
+    hdfsGroup = (Group) pp.getParent();
     Composite hdfsRowComposite = createTwoColumnsContainer( pp );
     Composite hostUIComposite = new Composite( hdfsRowComposite, SWT.NONE );
     props.setLook( hostUIComposite );
@@ -417,7 +441,8 @@ public class NamedClusterComposite extends Composite {
     createTextVar( c, container, c.getOozieUrl(), gridData, TEXT_FLAGS, hostCB );
   }
 
-  private void setHdfsAndJobTrackerState( boolean state ) {
+  private void setHdfsAndJobTrackerState( NamedCluster cluster ) {
+    boolean state = !cluster.isMapr();
     jtHostLabel.setEnabled( state );
     jtHostNameText.setEnabled( state );
     jtPortLabel.setEnabled( state );
@@ -430,5 +455,6 @@ public class NamedClusterComposite extends Composite {
     hdfsUsernameText.setEnabled( state );
     hdfsPasswordLabel.setEnabled( state );
     hdfsPasswordText.setEnabled( state );
+    hdfsGroup.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Scheme." + cluster.getStorageScheme() ) );
   }
 }

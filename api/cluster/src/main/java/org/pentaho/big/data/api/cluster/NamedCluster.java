@@ -39,6 +39,10 @@ public interface NamedCluster extends Cloneable, VariableSpace {
 
   void setShimIdentifier( String shimIdentifier );
 
+  String getStorageScheme();
+
+  void setStorageScheme( String storageScheme );
+
   void replaceMeta( NamedCluster nc );
 
   String getHdfsHost();
@@ -86,6 +90,13 @@ public interface NamedCluster extends Cloneable, VariableSpace {
   void setMapr( boolean mapr );
 
   NamedCluster clone();
+
+  /**
+   * @return Returns an array of defined storage schemes for this cluster.  It is used to populate the combo
+   * box on the Cluster Dialog.  There is not guarantee that all storage schemes will work properly
+   * with every shim. 
+   */
+  String[] validStorageSchemes();
 
   /**
    * This method performs the root URL substitution with the URL of the specified NamedCluster

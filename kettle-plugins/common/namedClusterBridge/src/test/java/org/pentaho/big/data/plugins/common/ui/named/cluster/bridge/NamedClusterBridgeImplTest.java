@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -46,6 +46,7 @@ public class NamedClusterBridgeImplTest {
   private org.pentaho.di.core.namedcluster.model.NamedCluster legacyNamedCluster;
   private NamedClusterBridgeImpl namedClusterBridge;
   private String namedClusterName;
+  private String storageScheme;
   private String hdfsHost;
   private String hdfsPort;
   private String hdfsUsername;
@@ -112,6 +113,7 @@ public class NamedClusterBridgeImplTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
 
     when( namedCluster.getName() ).thenReturn( namedClusterName );
+    when( namedCluster.getStorageScheme() ).thenReturn( storageScheme );
     when( namedCluster.getHdfsHost() ).thenReturn( hdfsHost );
     when( namedCluster.getHdfsPort() ).thenReturn( hdfsPort );
     when( namedCluster.getHdfsUsername() ).thenReturn( hdfsUsername );
@@ -127,6 +129,7 @@ public class NamedClusterBridgeImplTest {
     namedClusterBridge.replaceMeta( namedCluster );
     long after = System.currentTimeMillis();
     verify( legacyNamedCluster ).setName( namedClusterName );
+    verify( legacyNamedCluster ).setStorageScheme( storageScheme );
     verify( legacyNamedCluster ).setHdfsHost( hdfsHost );
     verify( legacyNamedCluster ).setHdfsPort( hdfsPort );
     verify( legacyNamedCluster ).setHdfsUsername( hdfsUsername );
@@ -136,7 +139,7 @@ public class NamedClusterBridgeImplTest {
     verify( legacyNamedCluster ).setZooKeeperHost( zookeeperHost );
     verify( legacyNamedCluster ).setZooKeeperPort( zookeeperPort );
     verify( legacyNamedCluster ).setOozieUrl( oozieUrl );
-    verify( legacyNamedCluster ).setMapr( isMapr );
+    //verify( legacyNamedCluster ).setMapr( isMapr );  *** Mapr is set by the setStorageScheme variable.  It is being deprecated.
     ArgumentCaptor<Long> argumentCaptor = ArgumentCaptor.forClass( long.class );
     verify( legacyNamedCluster ).setLastModifiedDate( argumentCaptor.capture() );
     Long modified = argumentCaptor.getValue();
@@ -394,7 +397,7 @@ public class NamedClusterBridgeImplTest {
       testUrlTransformed );
     assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
-
+  
   @Test
   public void testProcessURLsubstitutionMapRQualified() {
     when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );

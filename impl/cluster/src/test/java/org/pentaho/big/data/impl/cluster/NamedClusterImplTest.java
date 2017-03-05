@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -62,7 +62,7 @@ public class NamedClusterImplTest {
     namedCluster.shareVariablesWith( variableSpace );
     namedClusterName = "namedClusterName";
     namedClusterHdfsHost = "namedClusterHdfsHost";
-    namedClusterHdfsPort = "namedClusterHdfsPort";
+    namedClusterHdfsPort = "12345";
     namedClusterHdfsUsername = "namedClusterHdfsUsername";
     namedClusterHdfsPassword = "namedClusterHdfsPassword";
     namedClusterJobTrackerHost = "namedClusterJobTrackerHost";
@@ -325,16 +325,37 @@ public class NamedClusterImplTest {
 
   @Test
   public void testProcessURLHostEmpty() throws MetaStoreException {
+    //namedCluster.setHdfsHost( "hostname" );
+    //namedCluster.setHdfsPort( "12340");
     namedCluster.setHdfsHost( null );
-    namedCluster.setMapr( false );
+    namedCluster.setStorageScheme( "hdfs");
     String incomingURL = "${hdfsUrl}/test";
+    //incomingURL = "/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
-
+  
+  @Test
+  public void testProcessURLhdfsFullSubstitution() throws MetaStoreException {
+    namedCluster.setHdfsHost( "hostname" );
+    namedCluster.setHdfsPort( "12340");
+    namedCluster.setStorageScheme( "hdfs");
+    String incomingURL = "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+  }
+  
+  @Test
+  public void testProcessURLWASBFullSubstitution() throws MetaStoreException {
+    namedCluster.setHdfsHost( "hostname" );
+    namedCluster.setHdfsPort( "12340");
+    namedCluster.setStorageScheme( "wasb");
+    String incomingURL = "wasb://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+  }
+  
   @Test
   public void testProcessURLHostVariableNull() throws MetaStoreException {
     namedCluster.setHdfsHost( "${hostUrl}" );
-    namedCluster.setMapr( false );
+    namedCluster.setStorageScheme( "hdfs");
     String incomingURL = "${hdfsUrl}/test";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
@@ -342,7 +363,7 @@ public class NamedClusterImplTest {
   @Test
   public void testProcessURLHostVariableNotNull() throws MetaStoreException {
     namedCluster.setHdfsHost( "${hostUrl}" );
-    namedCluster.setMapr( false );
+    namedCluster.setStorageScheme( "hdfs");
     String hostPort = "1000";
     namedCluster.setHdfsPort( hostPort );
     namedCluster.setHdfsUsername( "" );
