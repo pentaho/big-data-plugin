@@ -42,7 +42,9 @@
         </executions>
         <configuration>
           <appendAssemblyId>false</appendAssemblyId>
-          <descriptor>${basedir}/src/main/assembly/descriptors/samples.xml</descriptor>
+          <descriptors>
+            <descriptor>${basedir}/src/main/assembly/descriptors/samples.xml</descriptor>
+          </descriptors>
         </configuration>
       </plugin>
     </plugins>

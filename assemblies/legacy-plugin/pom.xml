@@ -266,7 +266,9 @@
           </execution>
         </executions>
         <configuration>
-          <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
+          <descriptors>
+            <descriptor>${basedir}/src/main/assembly/descriptors/plugin.xml</descriptor>
+          </descriptors>
           <appendAssemblyId>false</appendAssemblyId>
         </configuration>
       </plugin>
