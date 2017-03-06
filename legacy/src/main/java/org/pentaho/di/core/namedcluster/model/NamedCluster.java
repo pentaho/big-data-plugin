@@ -164,6 +164,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
+    this.setStorageScheme( nc.getStorageScheme() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );
     this.setHdfsUsername( nc.getHdfsUsername() );
