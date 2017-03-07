@@ -420,7 +420,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       throw new KettleException( "Named cluster was not initialized!" );
     }
     try {
-      HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      HBaseService hBaseService = getService();
       Mapping tempMapping = null;
       if ( mappingDefinition != null ) {
         tempMapping = getMapping( mappingDefinition, hBaseService );
@@ -444,7 +444,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
         ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
         setColumnFilters( createColumnFiltersFromDefinition( columnFilterFactory ) );
       }
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       throw new KettleException( e );
     }
   }
@@ -594,11 +594,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     HBaseService hBaseService = null;
     try {
-      hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
-      serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+      hBaseService = getService();
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
-      this.serviceStatus = ServiceStatus.notOk( e );
     }
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
@@ -693,11 +691,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     HBaseService hBaseService = null;
     try {
-      hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
-      serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+      hBaseService = getService();
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
-      serviceStatus = ServiceStatus.notOk( e );
     }
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
@@ -764,7 +760,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   private void setupCachedMapping( VariableSpace space ) throws KettleStepException {
     HBaseService hBaseService = null;
     try {
-      hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
+      hBaseService = getService();
     } catch ( ClusterInitializationException e ) {
       throw new KettleStepException( e );
     }
@@ -909,7 +905,23 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     this.mappingDefinition = mappingDefinition;
   }
 
+  protected HBaseService getService() throws ClusterInitializationException {
+    HBaseService service = null;
+    try {
+      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      this.serviceStatus = ServiceStatus.OK;
+    } catch ( Exception e ) {
+      this.serviceStatus = ServiceStatus.notOk( e );
+      logError( Messages.getString( "HBaseInput.Error.ServiceStatus" ) );
+      throw e;
+    }
+    return service;
+  }
+
   public ServiceStatus getServiceStatus() {
+    if ( this.serviceStatus == null ) {
+      this.serviceStatus = ServiceStatus.OK;
+    }
     return this.serviceStatus;
   }
 }

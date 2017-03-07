@@ -121,7 +121,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
-  private ServiceStatus serviceStatus;
+  private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public NamedClusterService getNamedClusterService() {
     return namedClusterService;
@@ -231,15 +231,19 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
-    if ( mappingDefinition == null ) {
-      return;
-    }
     try {
-      HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      if ( mappingDefinition == null ) {
+        ServiceStatus serviceStatus = this.getServiceStatus();
+        if ( !serviceStatus.isOk() ) {
+          throw serviceStatus.getException();
+        }
+        return;
+      }
+      HBaseService hBaseService = getService();
       Mapping tempMapping = null;
       tempMapping = getMapping( mappingDefinition, hBaseService );
       setMapping( tempMapping );
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       throw new KettleException( e );
     }
   }
@@ -336,11 +340,9 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     Mapping tempMapping = null;
     try {
       tempMapping =
-        namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
-      serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+        getService().getMappingFactory().createMapping();
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
-      this.serviceStatus = ServiceStatus.notOk( e );
     }
     if ( tempMapping != null && tempMapping.loadXML( stepnode ) ) {
       m_mapping = tempMapping;
@@ -364,11 +366,9 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     Mapping tempMapping = null;
     try {
       tempMapping =
-        namedClusterServiceLocator.getService( namedCluster, HBaseService.class ).getMappingFactory().createMapping();
-      serviceStatus = ServiceStatus.OK;
-    } catch ( ClusterInitializationException e ) {
+        getService().getMappingFactory().createMapping();
+    } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
-      this.serviceStatus = ServiceStatus.notOk( e );
     }
     if ( tempMapping != null && tempMapping.readRep( rep, id_step ) ) {
       m_mapping = tempMapping;
@@ -433,7 +433,23 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     this.mappingDefinition = mappingDefinition;
   }
 
+  protected HBaseService getService() throws ClusterInitializationException {
+    HBaseService service = null;
+    try {
+      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      this.serviceStatus = ServiceStatus.OK;
+    } catch ( Exception e ) {
+      this.serviceStatus = ServiceStatus.notOk( e );
+      logError( Messages.getString( "HBaseOutput.Error.ServiceStatus" ) );
+      throw e;
+    }
+    return service;
+  }
+
   public ServiceStatus getServiceStatus() {
+    if ( this.serviceStatus == null ) {
+      this.serviceStatus = ServiceStatus.OK;
+    }
     return this.serviceStatus;
   }
 }
