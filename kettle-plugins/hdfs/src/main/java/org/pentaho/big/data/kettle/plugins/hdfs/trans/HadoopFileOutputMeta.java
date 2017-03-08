@@ -22,10 +22,12 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
@@ -95,6 +97,18 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   protected String loadSource( Node stepnode, IMetaStore metastore ) {
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
+
+    return getProcessedUrl( metastore, url );
+  }
+
+  protected String getProcessedUrl( IMetaStore metastore, String url ) {
+    if ( url == null ) {
+      return null;
+    }
+    NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metastore );
+    if ( c != null ) {
+      url = c.processURLsubstitution( url, metastore, new Variables() );
+    }
     return url;
   }
 
@@ -103,10 +117,12 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
   }
 
-  protected String loadSourceRep( Repository rep, ObjectId id_step, IMetaStore metastore ) throws KettleException {
+  // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null
+  protected String loadSourceRep( Repository rep, ObjectId id_step,  IMetaStore metaStore ) throws KettleException {
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
-    return url;
+
+    return getProcessedUrl( metaStore, url );
   }
 
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, String fileName )
