@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -135,6 +135,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   private String loggingInterval = "60";
   private String numMapTasks = "1";
   private String numReduceTasks = "1";
+  private static final String KTR_EXT = ".ktr";
   private List<UserDefinedItem> userDefined = new ArrayList<UserDefinedItem>();
   private final RuntimeTester runtimeTester;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -151,30 +152,61 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     combiningSingleThreaded = false;
   }
 
-  private static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,
+  protected static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,
                                                 ObjectId transformationId, String repositoryDir, String repositoryFile )
-    throws KettleException {
+          throws KettleException {
 
     TransMeta transMeta = null;
 
-    if ( !Const.isEmpty( filename ) ) {
-      String realFilename = space.environmentSubstitute( filename );
-      transMeta = new TransMeta( realFilename );
-    } else if ( transformationId != null ) {
-      if ( rep != null ) {
-        transMeta = rep.loadTransformation( transformationId, null );
+    if ( rep == null ) {
+      if ( !Const.isEmpty( filename ) ) {
+        String realFilename = space.environmentSubstitute( filename );
+        transMeta = new TransMeta( realFilename );
       }
-    } else if ( !Const.isEmpty( repositoryDir ) && !Const.isEmpty( repositoryFile ) ) {
-      if ( rep != null ) {
-        String mapRepositoryDirS = space.environmentSubstitute( repositoryDir );
-        String mapRepositoryFileS = space.environmentSubstitute( repositoryFile );
-        RepositoryDirectoryInterface repositoryDirectory =
-          rep.loadRepositoryDirectoryTree().findDirectory( mapRepositoryDirS );
-        transMeta = rep.loadTransformation( mapRepositoryFileS, repositoryDirectory, null, true, null );
+    } else {
+      if ( !Const.isEmpty( filename ) ) {
+        transMeta = getTransMetaFromRepo( filename, rep, space );
+      } else if ( transformationId != null ) {
+        transMeta = rep.loadTransformation( transformationId, null );
+      } else if ( !Const.isEmpty( repositoryDir ) && !Const.isEmpty( repositoryFile ) ) {
+        transMeta = getTransMetaFromRepo( repositoryDir, repositoryFile, rep, space );
       }
     }
 
     return transMeta;
+  }
+
+  public static TransMeta getTransMetaFromRepo( String fullPath, Repository rep, VariableSpace space ) throws KettleException {
+    if ( fullPath == null ) {
+      return null;
+    }
+    String trimPath = fullPath.trim();
+
+    if ( trimPath.isEmpty() || trimPath.endsWith( "/" ) ) {
+      return null;
+    }
+
+    int index = trimPath.lastIndexOf( '/' );
+
+    if ( index == -1 ) {
+      return null;
+    }
+
+    String filename = trimPath.substring( index + 1 );
+    String repDir = trimPath.substring( 0, index );
+
+    return getTransMetaFromRepo( repDir, filename, rep, space );
+  }
+
+  public static TransMeta getTransMetaFromRepo( String repositoryDir, String repositoryFile, Repository rep, VariableSpace space  ) throws KettleException {
+    String repositoryDirS = space.environmentSubstitute( repositoryDir );
+    if ( repositoryDirS.isEmpty() ) {
+      repositoryDirS = "/";
+    }
+    String repositoryFileS = space.environmentSubstitute( repositoryFile );
+    RepositoryDirectoryInterface repositoryDirectory =
+            rep.loadRepositoryDirectoryTree().findDirectory( repositoryDirS );
+    return  rep.loadTransformation( repositoryFileS, repositoryDirectory, null, true, null );
   }
 
   public static String[] splitInputPaths( String inputPath, VariableSpace variableSpace ) {
@@ -936,35 +968,36 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     retval.append( super.getXML() );
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "hadoop_job_name", hadoopJobName ) ); //$NON-NLS-1$ //$NON-NLS-2$
-
     retval.append( "      " )
-      .append( XMLHandler.addTagValue( "map_trans_repo_dir", mapRepositoryDir ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        .append( XMLHandler.addTagValue( "map_trans_repo_dir", mapRepositoryDir ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " )
-      .append( XMLHandler.addTagValue( "map_trans_repo_file", mapRepositoryFile ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        .append( XMLHandler.addTagValue( "map_trans_repo_file", mapRepositoryFile ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval
-      .append( "      " ).append( XMLHandler.addTagValue( "map_trans_repo_reference",
-      mapRepositoryReference == null ? null : mapRepositoryReference.toString() ) ); //$NON-NLS-1$ //$NON-NLS-2$
-    retval.append( "      " ).append( XMLHandler.addTagValue( "map_trans", mapTrans ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        .append( "      " ).append( XMLHandler.addTagValue( "map_trans_repo_reference",
+        mapRepositoryReference == null ? null : mapRepositoryReference.toString() ) ); //$NON-NLS-1$ //$NON-NLS-2$
 
+    retval.append( "      " ).append( XMLHandler.addTagValue( "map_trans", mapTrans ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "combiner_trans_repo_dir", combinerRepositoryDir ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append(
-      XMLHandler.addTagValue( "combiner_trans_repo_file", combinerRepositoryFile ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        XMLHandler.addTagValue( "combiner_trans_repo_file", combinerRepositoryFile ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval
-      .append( "      " ).append( XMLHandler.addTagValue( "combiner_trans_repo_reference",
-      combinerRepositoryReference == null ? null : combinerRepositoryReference.toString() ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        .append( "      " ).append( XMLHandler.addTagValue( "combiner_trans_repo_reference",
+        combinerRepositoryReference == null ? null : combinerRepositoryReference.toString() ) ); //$NON-NLS-1$ //$NON-NLS-2$
+    retval.append( "      " );
+
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "combiner_trans", combinerTrans ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " ).append(
       XMLHandler.addTagValue( "combiner_single_threaded", combiningSingleThreaded ) ); //$NON-NLS-1$ //$NON-NLS-2$
-
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "reduce_trans_repo_dir", reduceRepositoryDir ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " )
-      .append( XMLHandler.addTagValue( "reduce_trans_repo_file", reduceRepositoryFile ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        .append( XMLHandler.addTagValue( "reduce_trans_repo_file", reduceRepositoryFile ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval
-      .append( "      " ).append( XMLHandler.addTagValue( "reduce_trans_repo_reference",
-      reduceRepositoryReference == null ? null : reduceRepositoryReference.toString() ) ); //$NON-NLS-1$ //$NON-NLS-2$
+        .append( "      " ).append( XMLHandler.addTagValue( "reduce_trans_repo_reference",
+        reduceRepositoryReference == null ? null : reduceRepositoryReference.toString() ) ); //$NON-NLS-1$ //$NON-NLS-2$
+
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "reduce_trans", reduceTrans ) ); //$NON-NLS-1$ //$NON-NLS-2$
     retval.append( "      " )
@@ -1120,34 +1153,26 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "map_trans_repo_dir", mapRepositoryDir ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "map_trans_repo_file", mapRepositoryFile ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(),
-        "map_trans_repo_reference",
-        mapRepositoryReference == null ? null : mapRepositoryReference.toString() ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "map_trans_repo_reference",
+          mapRepositoryReference == null ? null : mapRepositoryReference.toString() ); //$NON-NLS-1$
+      mapTrans = mapTrans != null && mapTrans.endsWith( KTR_EXT ) ? mapTrans.replace( KTR_EXT, "" ) : mapTrans;
       rep.saveJobEntryAttribute( id_job, getObjectId(), "map_trans", mapTrans ); //$NON-NLS-1$
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "reduce_trans_repo_dir", reduceRepositoryDir ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "reduce_trans_repo_file", reduceRepositoryFile ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute(
-        id_job,
-        getObjectId(),
-        "reduce_trans_repo_reference",
-        reduceRepositoryReference == null ? null : reduceRepositoryReference.toString() ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "reduce_trans_repo_reference",
+          reduceRepositoryReference == null ? null : reduceRepositoryReference.toString() ); //$NON-NLS-1$
+      reduceTrans = reduceTrans != null && reduceTrans.endsWith( KTR_EXT ) ? reduceTrans.replace( KTR_EXT, "" ) : reduceTrans;
       rep.saveJobEntryAttribute( id_job, getObjectId(), "reduce_trans", reduceTrans ); //$NON-NLS-1$
-      rep
-        .saveJobEntryAttribute( id_job, getObjectId(), "reduce_single_threaded", reducingSingleThreaded ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "reduce_single_threaded", reducingSingleThreaded ); //$NON-NLS-1$
 
-      rep
-        .saveJobEntryAttribute( id_job, getObjectId(), "combiner_trans_repo_dir", combinerRepositoryDir ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_trans_repo_file",
-        combinerRepositoryFile ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute(
-        id_job,
-        getObjectId(),
-        "combiner_trans_repo_reference",
-        combinerRepositoryReference == null ? null : combinerRepositoryReference.toString() ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_trans_repo_dir", combinerRepositoryDir ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_trans_repo_file", combinerRepositoryFile ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_trans_repo_reference",
+          combinerRepositoryReference == null ? null : combinerRepositoryReference.toString() ); //$NON-NLS-1$
+      combinerTrans = combinerTrans != null && combinerTrans.endsWith( KTR_EXT ) ? combinerTrans.replace( KTR_EXT, "" ) : combinerTrans;
       rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_trans", combinerTrans ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_single_threaded",
-        combiningSingleThreaded ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "combiner_single_threaded", combiningSingleThreaded ); //$NON-NLS-1$
 
       rep.saveJobEntryAttribute( id_job, getObjectId(), "map_input_step_name", mapInputStepName ); //$NON-NLS-1$
       rep.saveJobEntryAttribute( id_job, getObjectId(), "map_output_step_name", mapOutputStepName ); //$NON-NLS-1$

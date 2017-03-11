@@ -65,6 +65,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.List;
 
+
 public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHandler {
 
   private static final Class<?> PKG = JobEntryHadoopTransJobExecutor.class;
@@ -110,17 +111,8 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
   public static final String USER_DEFINED = "userDefined"; //$NON-NLS-1$
 
-  public static final String MAPPER_STORAGE_TYPE = "mapperStorageType"; //$NON-NLS-1$
-  public static final String COMBINER_STORAGE_TYPE = "combinerStorageType"; //$NON-NLS-1$
-  public static final String REDUCER_STORAGE_TYPE = "reducerStorageType"; //$NON-NLS-1$
-
   public static final String LOCAL = "local";
   public static final String REPOSITORY = "repository";
-  public static final String REFERENCE = "reference";
-
-  public static final String MAPPER = "mapper";
-  public static final String COMBINER = "combiner";
-  public static final String REDUCER = "reducer";
 
 
   private final NamedClusterService namedClusterService;
@@ -149,20 +141,11 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private boolean blocking;
   private String loggingInterval = "60";
 
-  private String mapRepositoryDir = "";
-  private String mapRepositoryFile = "";
-  private ObjectId mapRepositoryReference;
   private String mapTrans = "";
 
-  private String combinerRepositoryDir = "";
-  private String combinerRepositoryFile = "";
-  private ObjectId combinerRepositoryReference;
   private String combinerTrans = "";
   private boolean combiningSingleThreaded;
 
-  private String reduceRepositoryDir = "";
-  private String reduceRepositoryFile = "";
-  private ObjectId reduceRepositoryReference;
   private String reduceTrans = "";
   private boolean reducingSingleThreaded;
 
@@ -173,9 +156,7 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   private String reduceTransInputStepName = "";
   private String reduceTransOutputStepName = "";
 
-  private String mapperStorageType = LOCAL;
-  private String combinerStorageType = LOCAL;
-  private String reducerStorageType = "";
+  private static String storageType;
   private List<NamedCluster> namedClusters;
 
   protected Shell shell;
@@ -296,85 +277,17 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     jobEntry.setName( jobEntryName );
     jobEntry.setHadoopJobName( hadoopJobName );
 
-    // Save only one method of accessing the transformation
-    if ( mapRepositoryReference != null ) {
-      jobEntry.setMapRepositoryReference( mapRepositoryReference );
-      if ( !StringUtils.isEmpty( mapRepositoryDir ) && !StringUtils.isEmpty( mapRepositoryFile ) ) {
-        jobEntry.setMapRepositoryDir( mapRepositoryDir );
-        jobEntry.setMapRepositoryFile( mapRepositoryFile );
-      } else {
-        jobEntry.setMapRepositoryDir( null );
-        jobEntry.setMapRepositoryFile( null );
-      }
-      jobEntry.setMapTrans( null );
-    } else if ( REPOSITORY.equalsIgnoreCase( getMapperStorageType() ) ) {
-      extractDirFileRepositoryTask( mapTrans, MAPPER );
-      jobEntry.setMapRepositoryDir( mapRepositoryDir );
-      jobEntry.setMapRepositoryFile( mapRepositoryFile );
-      jobEntry.setMapRepositoryReference( null );
-      jobEntry.setMapTrans( null );
-    } else {
-      jobEntry.setMapTrans( mapTrans );
-      jobEntry.setMapRepositoryDir( null );
-      jobEntry.setMapRepositoryFile( null );
-      jobEntry.setMapRepositoryReference( null );
-    }
-
+    jobEntry.setMapTrans( mapTrans );
     jobEntry.setMapInputStepName( mapTransInputStepName );
     jobEntry.setMapOutputStepName( mapTransOutputStepName );
 
-    // Save only one method of accessing the transformation
-    if ( combinerRepositoryReference != null ) {
-      jobEntry.setCombinerRepositoryReference( combinerRepositoryReference );
-      if ( !StringUtils.isEmpty( combinerRepositoryDir ) && !StringUtils.isEmpty( combinerRepositoryFile ) ) {
-        jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
-        jobEntry.setCombinerRepositoryFile( combinerRepositoryFile );
-      } else {
-        jobEntry.setCombinerRepositoryDir( null );
-        jobEntry.setCombinerRepositoryFile( null );
-      }
-      jobEntry.setCombinerTrans( null );
-    } else if ( REPOSITORY.equalsIgnoreCase( getCombinerStorageType() ) ) {
-      extractDirFileRepositoryTask( combinerTrans, COMBINER );
-      jobEntry.setCombinerRepositoryDir( combinerRepositoryDir );
-      jobEntry.setCombinerRepositoryFile( combinerRepositoryFile );
-      jobEntry.setCombinerRepositoryReference( null );
-      jobEntry.setCombinerTrans( null );
-    } else {
-      jobEntry.setCombinerTrans( combinerTrans );
-      jobEntry.setCombinerRepositoryDir( null );
-      jobEntry.setCombinerRepositoryFile( null );
-      jobEntry.setCombinerRepositoryReference( null );
-    }
-
+    jobEntry.setCombinerTrans( combinerTrans );
     jobEntry.setCombinerInputStepName( combinerTransInputStepName );
     jobEntry.setCombinerOutputStepName( combinerTransOutputStepName );
     jobEntry.setCombiningSingleThreaded( combiningSingleThreaded );
 
-    // Save only one method of accessing the transformation
-    if ( reduceRepositoryReference != null ) {
-      jobEntry.setReduceRepositoryReference( reduceRepositoryReference );
-      if ( !StringUtils.isEmpty( reduceRepositoryDir ) && !StringUtils.isEmpty( reduceRepositoryFile ) ) {
-        jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
-        jobEntry.setReduceRepositoryFile( reduceRepositoryFile );
-      } else {
-        jobEntry.setReduceRepositoryDir( null );
-        jobEntry.setReduceRepositoryFile( null );
-      }
-      jobEntry.setReduceTrans( null );
-    } else if ( REPOSITORY.equalsIgnoreCase( getReducerStorageType() ) ) {
-      extractDirFileRepositoryTask( reduceTrans, REDUCER );
-      jobEntry.setReduceRepositoryDir( reduceRepositoryDir );
-      jobEntry.setReduceRepositoryFile( reduceRepositoryFile );
-      jobEntry.setReduceRepositoryReference( null );
-      jobEntry.setReduceTrans( null );
-    } else {
-      jobEntry.setReduceTrans( reduceTrans );
-      jobEntry.setReduceRepositoryDir( null );
-      jobEntry.setReduceRepositoryFile( null );
-      jobEntry.setReduceRepositoryReference( null );
-    }
 
+    jobEntry.setReduceTrans( reduceTrans );
     jobEntry.setReduceInputStepName( reduceTransInputStepName );
     jobEntry.setReduceOutputStepName( reduceTransOutputStepName );
     jobEntry.setReducingSingleThreaded( reducingSingleThreaded );
@@ -458,25 +371,19 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       // Load the map transformation into the UI
       if ( jobEntry.getMapTrans() != null || rep == null ) {
         setMapTrans( jobEntry.getMapTrans() );
-        this.mapperStorageType = LOCAL;
       } else if ( jobEntry.getMapRepositoryReference() != null ) {
-        setMapRepositoryReference( jobEntry.getMapRepositoryReference() );
-        this.mapperStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
         try {
-          TransMeta transMeta = rep.loadTransformation( getMapRepositoryReference(), null );
+          TransMeta transMeta = rep.loadTransformation( jobEntry.getMapRepositoryReference(), null );
           if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
             setMapTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
           }
         } catch ( KettleException e ) {
           // The transformation cannot be loaded from the repository
-          setMapRepositoryReference( null );
+          setMapTrans( null );
         }
       } else {
-        setMapRepositoryDir( jobEntry.getMapRepositoryDir() );
-        setMapRepositoryFile( jobEntry.getMapRepositoryFile() );
-        setMapTrans( buildRepositoryPath( getMapRepositoryDir(), getMapRepositoryFile() ) );
-        this.mapperStorageType = REPOSITORY;
+        setMapTrans( buildRepositoryPath( jobEntry.getMapRepositoryDir(), jobEntry.getMapRepositoryFile() ) );
       }
       setMapTransInputStepName( jobEntry.getMapInputStepName() );
       setMapTransOutputStepName( jobEntry.getMapOutputStepName() );
@@ -484,49 +391,37 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       // Load the combiner transformation into the UI
       if ( jobEntry.getCombinerTrans() != null || rep == null ) {
         setCombinerTrans( jobEntry.getCombinerTrans() );
-        this.combinerStorageType = LOCAL;
       } else if ( jobEntry.getCombinerRepositoryReference() != null ) {
-        setCombinerRepositoryReference( jobEntry.getCombinerRepositoryReference() );
-        this.combinerStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
         try {
-          TransMeta transMeta = rep.loadTransformation( getCombinerRepositoryReference(), null );
+          TransMeta transMeta = rep.loadTransformation( jobEntry.getCombinerRepositoryReference(), null );
           if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
             setCombinerTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
           }
         } catch ( KettleException e ) {
           // The transformation cannot be loaded from the repository
-          setCombinerRepositoryReference( null );
+          setCombinerTrans( null );
         }
       } else {
-        setCombinerRepositoryDir( jobEntry.getCombinerRepositoryDir() );
-        setCombinerRepositoryFile( jobEntry.getCombinerRepositoryFile() );
-        setCombinerTrans( buildRepositoryPath( getCombinerRepositoryDir(), getCombinerRepositoryFile() ) );
-        this.combinerStorageType = REPOSITORY;
+        setCombinerTrans( buildRepositoryPath( jobEntry.getCombinerRepositoryDir(), jobEntry.getCombinerRepositoryFile() ) );
       }
 
       // Load the reduce transformation into the UI
       if ( jobEntry.getReduceTrans() != null || rep == null ) {
         setReduceTrans( jobEntry.getReduceTrans() );
-        this.reducerStorageType = LOCAL;
       } else if ( jobEntry.getReduceRepositoryReference() != null ) {
-        setReduceRepositoryReference( jobEntry.getReduceRepositoryReference() );
-        this.reducerStorageType = REFERENCE;
         // Load the repository directory and file for displaying to the user
         try {
-          TransMeta transMeta = rep.loadTransformation( getReduceRepositoryReference(), null );
+          TransMeta transMeta = rep.loadTransformation( jobEntry.getReduceRepositoryReference(), null );
           if ( transMeta != null && transMeta.getRepositoryDirectory() != null ) {
             setReduceTrans( buildRepositoryPath( transMeta.getRepositoryDirectory().getPath(), transMeta.getName() ) );
           }
         } catch ( KettleException e ) {
           // The transformation cannot be loaded from the repository
-          setReduceRepositoryReference( null );
+          setReduceTrans( null );
         }
       } else {
-        setReduceRepositoryDir( jobEntry.getReduceRepositoryDir() );
-        setReduceRepositoryFile( jobEntry.getReduceRepositoryFile() );
-        setReduceTrans( buildRepositoryPath( getReduceRepositoryDir(), getReduceRepositoryFile() ) );
-        this.reducerStorageType = REPOSITORY;
+        setReduceTrans( buildRepositoryPath( jobEntry.getReduceRepositoryDir(), jobEntry.getReduceRepositoryFile() ) );
       }
 
       setReduceTransInputStepName( jobEntry.getReduceInputStepName() );
@@ -556,8 +451,9 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
       setNumMapTasks( jobEntry.getNumMapTasks() );
       setNumReduceTasks( jobEntry.getNumReduceTasks() );
       if ( Spoon.getInstance().getRepository() != null ) {
-        mapperStorageType = REPOSITORY;
-        combinerStorageType = REPOSITORY;
+        storageType = REPOSITORY;
+      } else {
+        storageType = LOCAL;
       }
     }
   }
@@ -571,72 +467,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     errorDialog.hide();
   }
 
-  /**
-   * This method exists for consistency
-   *
-   * @param dir
-   *          Null is unacceptable input, a blank string will be returned
-   * @param file
-   *          Null is unacceptable input, a blank string will be returned
-   * @return
-   */
-  private String buildRepositoryPath( String dir, String file ) {
-    if ( dir == null || file == null ) {
-      return "";
-    }
-
-    if ( dir.endsWith( "/" ) ) {
-      return dir + file;
-    }
-
-    return dir + "/" + file;
-  }
-
-  /**
-   * This method parses a path which specifies the target location of file on repository. The path
-   * is considered as invalid one when : it is null, it ends by '/' since there is no name of file,
-   * it doesn't contain '/'.
-   *
-   * @param path
-   *          A path to a mapper, combiner or reducer file on a repository
-   * @param taskType
-   *          "mapper", "combiner" or "reducer"
-   */
-  protected void extractDirFileRepositoryTask( String path, String taskType ) {
-
-    if ( path == null ) {
-      return;
-    }
-    String trimPath = path.trim();
-
-    if ( trimPath.isEmpty() || trimPath.endsWith( "/" ) ) {
-      return;
-    }
-
-    int index = trimPath.lastIndexOf( '/' );
-
-    if ( index == -1 ) {
-      return;
-    }
-
-    String filename = trimPath.substring( index + 1 );
-    String repDir = trimPath.substring( 0, index );
-
-    switch ( taskType ) {
-      case MAPPER:
-        setMapRepositoryDir( repDir );
-        setMapRepositoryFile( filename );
-        break;
-      case REDUCER:
-        setReduceRepositoryDir( repDir );
-        setReduceRepositoryFile( filename );
-        break;
-      case COMBINER:
-        setCombinerRepositoryDir( repDir );
-        setCombinerRepositoryFile( filename );
-        break;
-    }
-  }
   public void setRepository( Repository rep ) {
     this.rep = rep;
   }
@@ -666,149 +496,26 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
   }
 
   public void mapTransBrowse() {
-    if ( getMapperStorageType().equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
-      browseLocalFilesystem( new StringResultSetter() {
-        @Override
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( null );
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( null );
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( null );
-        }
-      }, mapTrans );
-    } else if ( getMapperStorageType().equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
-      browseRepository( new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( null );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( val );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( val );
-        }
-      } );
-    } else if ( getMapperStorageType().equalsIgnoreCase( REFERENCE ) ) { //$NON-NLS-1$
-      browseRepository( new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( null );
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( null );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryDir( val );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryFile( val );
-        }
-      }, new ObjectIdResultSetter() {
-        public void set( ObjectId val ) {
-          JobEntryHadoopTransJobExecutorController.this.setMapRepositoryReference( val );
-        }
-      } );
+    if ( storageType.equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
+      browseLocalFilesystem( JobEntryHadoopTransJobExecutorController.this::setMapTrans, mapTrans );
+    } else if ( storageType.equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
+      browseRepository( JobEntryHadoopTransJobExecutorController.this::setMapTrans );
     }
   }
 
   public void combinerTransBrowse() {
-    if ( getCombinerStorageType().equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
-      browseLocalFilesystem( new StringResultSetter() {
-        @Override
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( null );
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( null );
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( null );
-        }
-      }, combinerTrans );
-    } else if ( getCombinerStorageType().equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
-      browseRepository( new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( null );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( val );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( val );
-        }
-      } );
-    } else if ( getCombinerStorageType().equalsIgnoreCase( REFERENCE ) ) { //$NON-NLS-1$
-      browseRepository( new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( null );
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( null );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryDir( val );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryFile( val );
-        }
-      }, new ObjectIdResultSetter() {
-        public void set( ObjectId val ) {
-          JobEntryHadoopTransJobExecutorController.this.setCombinerRepositoryReference( val );
-        }
-      } );
+    if ( storageType.equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
+      browseLocalFilesystem( JobEntryHadoopTransJobExecutorController.this::setCombinerTrans, mapTrans );
+    } else if ( storageType.equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
+      browseRepository( JobEntryHadoopTransJobExecutorController.this::setCombinerTrans );
     }
   }
 
   public void reduceTransBrowse() {
-    if ( getReducerStorageType().equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
-      browseLocalFilesystem( new StringResultSetter() {
-        @Override
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( null );
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( null );
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( null );
-        }
-      }, reduceTrans );
-    } else if ( getReducerStorageType().equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
-      browseRepository( new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( null );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( val );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( val );
-        }
-      } );
-    } else if ( getReducerStorageType().equalsIgnoreCase( REFERENCE ) ) { //$NON-NLS-1$
-      browseRepository( new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceTrans( val );
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( null );
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( null );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryDir( val );
-        }
-      }, new StringResultSetter() {
-        public void set( String val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryFile( val );
-        }
-      }, new ObjectIdResultSetter() {
-        public void set( ObjectId val ) {
-          JobEntryHadoopTransJobExecutorController.this.setReduceRepositoryReference( val );
-        }
-      } );
+    if ( storageType.equalsIgnoreCase( LOCAL ) ) { //$NON-NLS-1$
+      browseLocalFilesystem( JobEntryHadoopTransJobExecutorController.this::setReduceTrans, mapTrans );
+    } else if ( storageType.equalsIgnoreCase( REPOSITORY ) ) { //$NON-NLS-1$
+      browseRepository( JobEntryHadoopTransJobExecutorController.this::setReduceTrans );
     }
   }
 
@@ -864,41 +571,38 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
     }
   }
 
-  public void browseRepository( StringResultSetter transSetter, StringResultSetter repoDirSetter,
-      StringResultSetter repoFileSetter ) {
-    browseRepository( transSetter, repoDirSetter, repoFileSetter, null );
-  }
-
-  public void browseRepository( StringResultSetter transSetter, ObjectIdResultSetter repoReferenceSetter ) {
-    browseRepository( transSetter, null, null, repoReferenceSetter );
-  }
-
-  private void browseRepository( StringResultSetter transSetter, StringResultSetter repoDirSetter,
-      StringResultSetter repoFileSetter, ObjectIdResultSetter repoReferenceSetter ) {
+  private void browseRepository( StringResultSetter transSetter ) {
     if ( rep != null ) {
       Shell shell = getJobEntryDialog();
       SelectObjectDialog sod = new SelectObjectDialog( shell, rep, true, false );
       String transname = sod.open();
       if ( transname != null ) {
-        // Both location and reference should have this for display purposes
         if ( transSetter != null ) {
           transSetter.set( buildRepositoryPath( sod.getDirectory().getPath(), sod.getObjectName() ) );
         }
-
-        // Location should have these set
-        if ( repoDirSetter != null ) {
-          repoDirSetter.set( sod.getDirectory().getPath() );
-        }
-        if ( repoFileSetter != null ) {
-          repoFileSetter.set( transname );
-        }
-
-        // Reference should have this set
-        if ( repoReferenceSetter != null ) {
-          repoReferenceSetter.set( sod.getObjectId() );
-        }
       }
     }
+  }
+
+ /**
+   * This method exists for consistency
+   *
+   * @param dir
+   *          Null is unacceptable input, a blank string will be returned
+   * @param file
+   *          Null is unacceptable input, a blank string will be returned
+   * @return
+   */
+  private String buildRepositoryPath( String dir, String file ) {
+    if ( dir == null || file == null ) {
+      return "";
+    }
+
+    if ( dir.endsWith( "/" ) ) {
+      return dir + file;
+    }
+
+    return dir + "/" + file;
   }
 
   public void newUserDefinedItem() {
@@ -1238,90 +942,6 @@ public class JobEntryHadoopTransJobExecutorController extends AbstractXulEventHa
 
     this.numReduceTasks = numReduceTasks;
     firePropertyChange( NUM_REDUCE_TASKS, previousVal, newVal );
-  }
-
-  public String getMapperStorageType() {
-    return mapperStorageType;
-  }
-
-  public String getCombinerStorageType() {
-    return combinerStorageType;
-  }
-
-  public String getReducerStorageType() {
-    return reducerStorageType;
-  }
-
-  public String getMapRepositoryDir() {
-    return mapRepositoryDir;
-  }
-
-  public void setMapRepositoryDir( String mapRepositoryDir ) {
-    this.mapRepositoryDir = mapRepositoryDir;
-  }
-
-  public String getMapRepositoryFile() {
-    return mapRepositoryFile;
-  }
-
-  public void setMapRepositoryFile( String mapRepositoryFile ) {
-    this.mapRepositoryFile = mapRepositoryFile;
-  }
-
-  public ObjectId getMapRepositoryReference() {
-    return mapRepositoryReference;
-  }
-
-  public void setMapRepositoryReference( ObjectId mapRepositoryReference ) {
-    this.mapRepositoryReference = mapRepositoryReference;
-  }
-
-  public String getCombinerRepositoryDir() {
-    return combinerRepositoryDir;
-  }
-
-  public void setCombinerRepositoryDir( String combinerRepositoryDir ) {
-    this.combinerRepositoryDir = combinerRepositoryDir;
-  }
-
-  public String getCombinerRepositoryFile() {
-    return combinerRepositoryFile;
-  }
-
-  public void setCombinerRepositoryFile( String combinerRepositoryFile ) {
-    this.combinerRepositoryFile = combinerRepositoryFile;
-  }
-
-  public ObjectId getCombinerRepositoryReference() {
-    return combinerRepositoryReference;
-  }
-
-  public void setCombinerRepositoryReference( ObjectId combinerRepositoryReference ) {
-    this.combinerRepositoryReference = combinerRepositoryReference;
-  }
-
-  public String getReduceRepositoryDir() {
-    return reduceRepositoryDir;
-  }
-
-  public void setReduceRepositoryDir( String reduceRepositoryDir ) {
-    this.reduceRepositoryDir = reduceRepositoryDir;
-  }
-
-  public String getReduceRepositoryFile() {
-    return reduceRepositoryFile;
-  }
-
-  public void setReduceRepositoryFile( String reduceRepositoryFile ) {
-    this.reduceRepositoryFile = reduceRepositoryFile;
-  }
-
-  public ObjectId getReduceRepositoryReference() {
-    return reduceRepositoryReference;
-  }
-
-  public void setReduceRepositoryReference( ObjectId reduceRepositoryReference ) {
-    this.reduceRepositoryReference = reduceRepositoryReference;
   }
 
   public List<NamedCluster> getNamedClusters() throws MetaStoreException {
