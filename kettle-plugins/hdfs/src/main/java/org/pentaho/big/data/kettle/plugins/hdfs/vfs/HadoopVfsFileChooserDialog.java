@@ -33,7 +33,9 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.MessageBox;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.impl.cluster.NamedClusterImpl;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -177,9 +179,14 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
   }
 
   public void connect() {
-    HadoopVfsConnection hdfsConnection =
-        new HadoopVfsConnection( getNamedClusterWidget().getSelectedNamedCluster(), getVariableSpace() );
+    NamedCluster nc = getNamedClusterWidget().getSelectedNamedCluster();
+    HadoopVfsConnection hdfsConnection = new HadoopVfsConnection( nc, getVariableSpace() );
     hdfsConnection.setCustomParameters( Props.getInstance() );
+    // The Named Cluster may be hdfs, maprfs or wasb.  We need to detect it here since the named
+    // cluster was just selected.
+    schemeName =
+        NamedClusterImpl.WASB_SCHEME.equals( nc.getStorageScheme() ) ? NamedClusterImpl.WASB_SCHEME
+            : NamedClusterImpl.HDFS_SCHEME;
 
     FileObject root = rootFile;
     try {
