@@ -35,6 +35,7 @@ import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.FilterDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
+import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
@@ -162,6 +163,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   @InjectionDeep
   protected MappingDefinition mappingDefinition;
+
+  private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public HBaseInputMeta( NamedClusterService namedClusterService,
                          NamedClusterServiceLocator namedClusterServiceLocator,
@@ -417,7 +420,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       throw new KettleException( "Named cluster was not initialized!" );
     }
     try {
-      HBaseService hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      HBaseService hBaseService = getService();
       Mapping tempMapping = null;
       if ( mappingDefinition != null ) {
         tempMapping = getMapping( mappingDefinition, hBaseService );
@@ -441,7 +444,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
         ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
         setColumnFilters( createColumnFiltersFromDefinition( columnFilterFactory ) );
       }
-    } catch ( ClusterInitializationException e ) {
+    } catch ( Exception e ) {
       throw new KettleException( e );
     }
   }
@@ -589,15 +592,12 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     this.namedCluster =
       namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
 
-    HBaseService hBaseService;
+    HBaseService hBaseService = null;
     try {
-      hBaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleXMLException( e );
+      hBaseService = getService();
+    } catch ( Exception e ) {
+      getLog().logError( e.getMessage() );
     }
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
-    ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
 
     m_coreConfigURL = XMLHandler.getTagValue( stepnode, "core_config_url" );
     m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
@@ -611,24 +611,30 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       m_matchAnyFilter = m.equalsIgnoreCase( "Y" );
     }
 
-    m_outputFields = valueMetaInterfaceFactory.createListFromNode( stepnode );
+    if ( hBaseService != null ) {
+      HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
+      m_outputFields = valueMetaInterfaceFactory.createListFromNode( stepnode );
 
-    Node filters = XMLHandler.getSubNode( stepnode, "column_filters" );
-    if ( filters != null && XMLHandler.countNodes( filters, "filter" ) > 0 ) {
-      int nrFilters = XMLHandler.countNodes( filters, "filter" );
-      m_filters = new ArrayList<ColumnFilter>();
+      ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
+      MappingFactory mappingFactory = hBaseService.getMappingFactory();
 
-      for ( int i = 0; i < nrFilters; i++ ) {
-        Node filterNode = XMLHandler.getSubNodeByNr( filters, "filter", i );
-        m_filters.add( columnFilterFactory.createFilter( filterNode ) );
+      Node filters = XMLHandler.getSubNode( stepnode, "column_filters" );
+      if ( filters != null && XMLHandler.countNodes( filters, "filter" ) > 0 ) {
+        int nrFilters = XMLHandler.countNodes( filters, "filter" );
+        m_filters = new ArrayList<ColumnFilter>();
+
+        for ( int i = 0; i < nrFilters; i++ ) {
+          Node filterNode = XMLHandler.getSubNodeByNr( filters, "filter", i );
+          m_filters.add( columnFilterFactory.createFilter( filterNode ) );
+        }
       }
-    }
 
-    Mapping tempMapping = mappingFactory.createMapping();
-    if ( tempMapping.loadXML( stepnode ) ) {
-      m_mapping = tempMapping;
-    } else {
-      m_mapping = null;
+      Mapping tempMapping = mappingFactory.createMapping();
+      if ( tempMapping.loadXML( stepnode ) ) {
+        m_mapping = tempMapping;
+      } else {
+        m_mapping = null;
+      }
     }
   }
 
@@ -685,13 +691,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     HBaseService hBaseService = null;
     try {
-      hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
-    } catch ( ClusterInitializationException e ) {
-      throw new KettleException( e );
+      hBaseService = getService();
+    } catch ( Exception e ) {
+      getLog().logError( e.getMessage() );
     }
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
-    ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
 
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
@@ -702,22 +705,28 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_matchAnyFilter = rep.getStepAttributeBoolean( id_step, 0, "match_any_filter" );
     m_scannerCacheSize = rep.getStepAttributeString( id_step, 0, "scanner_cache_size" );
 
-    m_outputFields = valueMetaInterfaceFactory.createListFromRepository( rep, id_step );
+    if ( hBaseService != null ) {
+      HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
+      ColumnFilterFactory columnFilterFactory = hBaseService.getColumnFilterFactory();
+      MappingFactory mappingFactory = hBaseService.getMappingFactory();
 
-    int nrFilters = rep.countNrStepAttributes( id_step, "cf_comparison_opp" );
-    if ( nrFilters > 0 ) {
-      m_filters = new ArrayList<>();
+      m_outputFields = valueMetaInterfaceFactory.createListFromRepository( rep, id_step );
 
-      for ( int i = 0; i < nrFilters; i++ ) {
-        m_filters.add( columnFilterFactory.createFilter( rep, i, id_step ) );
+      int nrFilters = rep.countNrStepAttributes( id_step, "cf_comparison_opp" );
+      if ( nrFilters > 0 ) {
+        m_filters = new ArrayList<>();
+
+        for ( int i = 0; i < nrFilters; i++ ) {
+          m_filters.add( columnFilterFactory.createFilter( rep, i, id_step ) );
+        }
       }
-    }
 
-    Mapping tempMapping = mappingFactory.createMapping();
-    if ( tempMapping.readRep( rep, id_step ) ) {
-      m_mapping = tempMapping;
-    } else {
-      m_mapping = null;
+      Mapping tempMapping = mappingFactory.createMapping();
+      if ( tempMapping.readRep( rep, id_step ) ) {
+        m_mapping = tempMapping;
+      } else {
+        m_mapping = null;
+      }
     }
   }
 
@@ -751,7 +760,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   private void setupCachedMapping( VariableSpace space ) throws KettleStepException {
     HBaseService hBaseService = null;
     try {
-      hBaseService = namedClusterServiceLocator.getService( namedCluster, HBaseService.class );
+      hBaseService = getService();
     } catch ( ClusterInitializationException e ) {
       throw new KettleStepException( e );
     }
@@ -896,4 +905,23 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     this.mappingDefinition = mappingDefinition;
   }
 
+  protected HBaseService getService() throws ClusterInitializationException {
+    HBaseService service = null;
+    try {
+      service = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      this.serviceStatus = ServiceStatus.OK;
+    } catch ( Exception e ) {
+      this.serviceStatus = ServiceStatus.notOk( e );
+      logError( Messages.getString( "HBaseInput.Error.ServiceStatus" ) );
+      throw e;
+    }
+    return service;
+  }
+
+  public ServiceStatus getServiceStatus() {
+    if ( this.serviceStatus == null ) {
+      this.serviceStatus = ServiceStatus.OK;
+    }
+    return this.serviceStatus;
+  }
 }

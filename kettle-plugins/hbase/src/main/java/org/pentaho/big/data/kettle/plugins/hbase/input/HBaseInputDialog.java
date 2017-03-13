@@ -53,6 +53,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.ConfigurationProducer;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingEditor;
@@ -887,6 +888,13 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     setSize();
 
     getData();
+
+    ServiceStatus serviceStatus = m_currentMeta.getServiceStatus();
+    if ( !serviceStatus.isOk() ) {
+      new ErrorDialog( shell, Messages.getString( "Dialog.Error" ),
+              Messages.getString( "HBaseInput.Error.ServiceStatus" ),
+              serviceStatus.getException() );
+    }
 
     shell.open();
     while ( !shell.isDisposed() ) {
