@@ -25,10 +25,10 @@ package org.pentaho.di.core.namedcluster.model;
 import java.util.Comparator;
 import java.util.Map;
 
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
@@ -37,11 +37,12 @@ import org.w3c.dom.Node;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
 public class NamedCluster implements Cloneable, VariableSpace {
+
+  private VariableSpace variables = new Variables();
+
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String WASB_SCHEME = "wasb";
-
-  private VariableSpace variables = new Variables();
 
   @MetaStoreAttribute
   private String name;
@@ -134,9 +135,9 @@ public class NamedCluster implements Cloneable, VariableSpace {
   }
 
   public boolean getBooleanValueOfVariable( String variableName, boolean defaultValue ) {
-    if ( !Const.isEmpty( variableName ) ) {
+    if ( !Utils.isEmpty( variableName ) ) {
       String value = environmentSubstitute( variableName );
-      if ( !Const.isEmpty( value ) ) {
+      if ( !Utils.isEmpty( value ) ) {
         return ValueMeta.convertStringToBoolean( value );
       }
     }
@@ -333,9 +334,6 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.storageScheme = storageScheme;
   }
 
-  public String[] validStorageSchemes() {
-    return new String[] { HDFS_SCHEME, MAPRFS_SCHEME, WASB_SCHEME };
-  }
 
   public String toXmlForEmbed( String rootTag ) {
     // This method should only be called on the real NamedClusterImpl
