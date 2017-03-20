@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,13 +26,11 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by bryan on 6/24/15.
  */
 public interface NamedClusterService {
-
   /**
    * This method returns the named cluster template used to configure new NamedClusters.
    * <p/>
@@ -115,11 +113,4 @@ public interface NamedClusterService {
   boolean contains( String clusterName, IMetaStore metastore ) throws MetaStoreException;
 
   NamedCluster getNamedClusterByName( String namedCluster, IMetaStore metastore );
-
-  /**
-   * This method load the properties for named cluster from /etc/config folder
-   *
-   * @return map with properties for named cluster
-   */
-  Map<String, Object> getProperties();
 }
