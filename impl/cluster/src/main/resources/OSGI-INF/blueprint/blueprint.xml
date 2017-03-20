@@ -2,15 +2,9 @@
 <blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:pen="http://www.pentaho.com/xml/schemas/pentaho-blueprint"
-           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
            xsi:schemaLocation="
             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
             http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
-            
-  <cm:property-placeholder persistent-id="pentaho.big.data.impl.cluster" update-strategy="reload" />
-
-  <bean id="namedClusterManager" class="org.pentaho.big.data.impl.cluster.NamedClusterManager" scope="singleton">
- 	 <property name="bundleContext" ref="blueprintBundleContext" />
-  </bean>
+  <bean id="namedClusterManager" class="org.pentaho.big.data.impl.cluster.NamedClusterManager" scope="singleton"/>
   <service ref="namedClusterManager" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
 </blueprint>
