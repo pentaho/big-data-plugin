@@ -23,11 +23,11 @@ import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.api.IMetaStore;
@@ -38,9 +38,9 @@ import java.util.Map;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
 public class NamedClusterImpl implements NamedCluster {
-  public static final String HDFS_SCHEME = "hdfs";
-  public static final String MAPRFS_SCHEME = "maprfs";
-  public static final String WASB_SCHEME = "wasb";
+
+  private static final String HDFS_SCHEME = "hdfs";
+  private static final String MAPRFS_SCHEME = "maprfs";
 
   private VariableSpace variables = new Variables();
 
@@ -157,9 +157,9 @@ public class NamedClusterImpl implements NamedCluster {
   }
 
   public boolean getBooleanValueOfVariable( String variableName, boolean defaultValue ) {
-    if ( !Const.isEmpty( variableName ) ) {
+    if ( !Utils.isEmpty( variableName ) ) {
       String value = environmentSubstitute( variableName );
-      if ( !Const.isEmpty( value ) ) {
+      if ( !Utils.isEmpty( value ) ) {
         return ValueMeta.convertStringToBoolean( value );
       }
     }
@@ -224,8 +224,11 @@ public class NamedClusterImpl implements NamedCluster {
                                          VariableSpace variableSpace ) {
 
     String outgoingURL = null;
+    String clusterURL = null;
+    if ( !hdfsScheme.equals( MAPRFS_SCHEME ) ) {
+      clusterURL = generateURL( hdfsScheme, metastore, variableSpace );
+    }
     try {
-      String clusterURL = generateURL( hdfsScheme, metastore, variableSpace );
       if ( clusterURL == null || isHdfsHostEmpty( variableSpace ) ) {
         outgoingURL = incomingURL;
       } else if ( incomingURL.equals( "/" ) ) {
@@ -278,11 +281,7 @@ public class NamedClusterImpl implements NamedCluster {
   @VisibleForTesting String generateURL( String scheme, IMetaStore metastore, VariableSpace variableSpace ) {
     String clusterURL = null;
     try {
-      if ( !Const.isEmpty( scheme ) && metastore != null ) {
-        if ( !scheme.equals( HDFS_SCHEME ) && !scheme.equals( WASB_SCHEME ) ) {
-          return null;
-        }
-
+      if ( !Utils.isEmpty( scheme ) && metastore != null ) {
         String ncHostname = getHdfsHost() != null ? getHdfsHost() : "";
         String ncPort = getHdfsPort() != null ? getHdfsPort() : "";
         String ncUsername = getHdfsUsername() != null ? getHdfsUsername() : "";
@@ -290,6 +289,11 @@ public class NamedClusterImpl implements NamedCluster {
 
         if ( variableSpace != null ) {
           variableSpace.initializeVariablesFrom( getParentVariableSpace() );
+          if ( StringUtil.isVariable( scheme ) ) {
+            scheme =
+              variableSpace.getVariable( StringUtil.getVariableName( scheme ) ) != null ? variableSpace
+                .environmentSubstitute( scheme ) : null;
+          }
           if ( StringUtil.isVariable( ncHostname ) ) {
             ncHostname =
               variableSpace.getVariable( StringUtil.getVariableName( ncHostname ) ) != null ? variableSpace
@@ -317,7 +321,7 @@ public class NamedClusterImpl implements NamedCluster {
           ncPort = "-1";
         } else {
           ncPort = ncPort.trim();
-          if ( Const.isEmpty( ncPort ) ) {
+          if ( Utils.isEmpty( ncPort ) ) {
             ncPort = "-1";
           }
         }
@@ -461,11 +465,6 @@ public class NamedClusterImpl implements NamedCluster {
   @Override
   public String toString() {
     return "Named cluster: " + getName();
-  }
-
-  @Override
-  public String[] validStorageSchemes() {
-    return new String[] { HDFS_SCHEME, MAPRFS_SCHEME, WASB_SCHEME };
   }
 
 }
