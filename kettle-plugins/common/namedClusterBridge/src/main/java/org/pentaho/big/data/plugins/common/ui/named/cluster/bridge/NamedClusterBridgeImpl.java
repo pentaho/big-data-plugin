@@ -31,6 +31,7 @@ import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
+import org.w3c.dom.Node;
 
 import java.util.Map;
 
@@ -315,5 +316,15 @@ public class NamedClusterBridgeImpl implements NamedCluster {
 
   public String[] validStorageSchemes() {
     return delegate.validStorageSchemes();
+  }
+
+  @Override
+  public String toXmlForEmbed( String rootTag ) {
+    return delegate.toXmlForEmbed( rootTag );
+  }
+
+  @Override
+  public NamedCluster fromXmlForEmbed( Node node ) {
+    return new NamedClusterBridgeImpl( delegate.fromXmlForEmbed( node ) );
   }
 }

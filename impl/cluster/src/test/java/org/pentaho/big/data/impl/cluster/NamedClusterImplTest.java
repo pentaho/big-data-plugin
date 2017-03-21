@@ -17,20 +17,35 @@
 
 package org.pentaho.big.data.impl.cluster;
 
+import java.io.ByteArrayInputStream;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.w3c.dom.Element;
 
-import java.util.Map;
-
-import static com.google.code.beanmatchers.BeanMatchers.*;
+import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
+import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEqualsFor;
+import static com.google.code.beanmatchers.BeanMatchers.hasValidGettersAndSetters;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 7/14/15.
@@ -39,7 +54,6 @@ public class NamedClusterImplTest {
   private VariableSpace variableSpace;
   private NamedClusterImpl namedCluster;
 
-  private String jobEntryName;
   private String namedClusterName;
   private String namedClusterHdfsHost;
   private String namedClusterHdfsPort;
@@ -328,34 +342,34 @@ public class NamedClusterImplTest {
     //namedCluster.setHdfsHost( "hostname" );
     //namedCluster.setHdfsPort( "12340");
     namedCluster.setHdfsHost( null );
-    namedCluster.setStorageScheme( "hdfs");
+    namedCluster.setStorageScheme( "hdfs" );
     String incomingURL = "${hdfsUrl}/test";
     //incomingURL = "/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
-  
+
   @Test
   public void testProcessURLhdfsFullSubstitution() throws MetaStoreException {
     namedCluster.setHdfsHost( "hostname" );
-    namedCluster.setHdfsPort( "12340");
-    namedCluster.setStorageScheme( "hdfs");
+    namedCluster.setHdfsPort( "12340" );
+    namedCluster.setStorageScheme( "hdfs" );
     String incomingURL = "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
-  
+
   @Test
   public void testProcessURLWASBFullSubstitution() throws MetaStoreException {
     namedCluster.setHdfsHost( "hostname" );
-    namedCluster.setHdfsPort( "12340");
-    namedCluster.setStorageScheme( "wasb");
+    namedCluster.setHdfsPort( "12340" );
+    namedCluster.setStorageScheme( "wasb" );
     String incomingURL = "wasb://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
-  
+
   @Test
   public void testProcessURLHostVariableNull() throws MetaStoreException {
     namedCluster.setHdfsHost( "${hostUrl}" );
-    namedCluster.setStorageScheme( "hdfs");
+    namedCluster.setStorageScheme( "hdfs" );
     String incomingURL = "${hdfsUrl}/test";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
@@ -363,7 +377,7 @@ public class NamedClusterImplTest {
   @Test
   public void testProcessURLHostVariableNotNull() throws MetaStoreException {
     namedCluster.setHdfsHost( "${hostUrl}" );
-    namedCluster.setStorageScheme( "hdfs");
+    namedCluster.setStorageScheme( "hdfs" );
     String hostPort = "1000";
     namedCluster.setHdfsPort( hostPort );
     namedCluster.setHdfsUsername( "" );
@@ -419,5 +433,32 @@ public class NamedClusterImplTest {
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsPassword() ) ).thenReturn( testPassword );
     assertEquals( scheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
       namedCluster.generateURL( scheme, metaStore, variableSpace ) );
+  }
+
+  @Test
+  public void testXMLEmbedding() throws Exception {
+    String clusterXml = namedCluster.toXmlForEmbed( "NamedCluster" );
+    System.out.println( clusterXml );
+
+    Element node =
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            new ByteArrayInputStream( clusterXml.getBytes() ) )
+            .getDocumentElement();
+
+    NamedCluster nc = new NamedClusterImpl();
+    nc = nc.fromXmlForEmbed( node );
+    assertEquals( namedCluster.getHdfsHost(), nc.getHdfsHost() );
+    assertEquals( namedCluster.getHdfsPort(), nc.getHdfsPort() );
+    assertEquals( namedCluster.getHdfsUsername(), nc.getHdfsUsername() );
+    assertEquals( namedCluster.getHdfsPassword(), nc.getHdfsPassword() );
+    assertEquals( namedCluster.getName(), nc.getName() );
+    assertEquals( namedCluster.getShimIdentifier(), nc.getShimIdentifier() );
+    assertEquals( namedCluster.getStorageScheme(), nc.getStorageScheme() );
+    assertEquals( namedCluster.getJobTrackerHost(), nc.getJobTrackerHost() );
+    assertEquals( namedCluster.getJobTrackerPort(), nc.getJobTrackerPort() );
+    assertEquals( namedCluster.getZooKeeperHost(), nc.getZooKeeperHost() );
+    assertEquals( namedCluster.getZooKeeperPort(), nc.getZooKeeperPort() );
+    assertEquals( namedCluster.getOozieUrl(), nc.getOozieUrl() );
+    assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
   }
 }

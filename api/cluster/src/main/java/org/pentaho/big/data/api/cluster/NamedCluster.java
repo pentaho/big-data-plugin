@@ -24,6 +24,7 @@ package org.pentaho.big.data.api.cluster;
 
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
+import org.w3c.dom.Node;
 
 import java.util.Comparator;
 
@@ -90,6 +91,10 @@ public interface NamedCluster extends Cloneable, VariableSpace {
   void setMapr( boolean mapr );
 
   NamedCluster clone();
+
+  String toXmlForEmbed( String rootTag );
+
+  NamedCluster fromXmlForEmbed( Node node );
 
   /**
    * @return Returns an array of defined storage schemes for this cluster.  It is used to populate the combo

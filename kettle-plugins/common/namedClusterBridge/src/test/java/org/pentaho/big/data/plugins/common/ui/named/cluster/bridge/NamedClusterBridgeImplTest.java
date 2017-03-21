@@ -23,6 +23,8 @@
 package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 
 
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,10 +35,17 @@ import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 
-import java.util.Map;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
 
 /**
  * Unit tests for NamedClusterBridgeImpl. This is a bridge class to bridge NamedCluster objects from the legacy plugin
@@ -61,6 +70,7 @@ public class NamedClusterBridgeImplTest {
   private long lastModifiedDate;
   private VariableSpace variableSpace;
   private NamedClusterManager namedClusterManager;
+  private String xmlString;
 
   @Before
   public void setup() {
@@ -77,6 +87,7 @@ public class NamedClusterBridgeImplTest {
     isMapr = true;
     toString = "Named cluster: " + namedClusterName;
     lastModifiedDate = 11L;
+    xmlString = "xmlString";
 
     legacyNamedCluster = mock( org.pentaho.di.core.namedcluster.model.NamedCluster.class );
     namedClusterManager = mock( NamedClusterManager.class );
@@ -139,7 +150,8 @@ public class NamedClusterBridgeImplTest {
     verify( legacyNamedCluster ).setZooKeeperHost( zookeeperHost );
     verify( legacyNamedCluster ).setZooKeeperPort( zookeeperPort );
     verify( legacyNamedCluster ).setOozieUrl( oozieUrl );
-    //verify( legacyNamedCluster ).setMapr( isMapr );  *** Mapr is set by the setStorageScheme variable.  It is being deprecated.
+    // verify( legacyNamedCluster ).setMapr( isMapr );  *** Mapr is set by the setStorageScheme variable.
+    // It is being deprecated.
     ArgumentCaptor<Long> argumentCaptor = ArgumentCaptor.forClass( long.class );
     verify( legacyNamedCluster ).setLastModifiedDate( argumentCaptor.capture() );
     Long modified = argumentCaptor.getValue();
@@ -397,15 +409,15 @@ public class NamedClusterBridgeImplTest {
       testUrlTransformed );
     assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
-  
+
   @Test
   public void testProcessURLsubstitutionMapRQualified() {
     when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
     when( legacyNamedCluster.isMapr() ).thenReturn( true );
     String testUrl = "testUrl";
     String testUrlTransformed = "maprfs://testUrlTransformed";
-    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) ).thenReturn(
-      testUrlTransformed );
+    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) )
+      .thenReturn( testUrlTransformed );
     assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
 
@@ -415,8 +427,15 @@ public class NamedClusterBridgeImplTest {
     when( legacyNamedCluster.isMapr() ).thenReturn( true );
     String testUrl = "testUrl";
     String testUrlTransformed = "testUrlTransformed";
-    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) ).thenReturn(
-      testUrlTransformed );
+    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) )
+      .thenReturn( testUrlTransformed );
     assertEquals( "maprfs://" + testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
+
+  @Test
+  public void testToXmlForEmbed() {
+    when( legacyNamedCluster.toXmlForEmbed( any() ) ).thenReturn( xmlString );
+    assertEquals( xmlString, namedClusterBridge.toXmlForEmbed( "node" ) );
+  }
+
 }

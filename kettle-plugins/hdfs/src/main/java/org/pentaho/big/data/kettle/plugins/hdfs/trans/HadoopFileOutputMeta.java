@@ -24,12 +24,14 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
@@ -56,6 +58,8 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
+  private IMetaStore metaStore;
+  private Node embeddedNamedClusterNode;
 
   public HadoopFileOutputMeta( NamedClusterService namedClusterService,
                                RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
@@ -95,8 +99,10 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   }
 
   protected String loadSource( Node stepnode, IMetaStore metastore ) {
+    this.metaStore = metastore;
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
+    embeddedNamedClusterNode = XMLHandler.getSubNode( stepnode, "NamedCluster" );
 
     return getProcessedUrl( metastore, url );
   }
@@ -105,9 +111,29 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     if ( url == null ) {
       return null;
     }
-    NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metastore );
+    if ( metastore == null ) {
+      // Maybe we can get a metastore from spoon
+      try {
+        metaStore = MetaStoreConst.openLocalPentahoMetaStore( false );
+      } catch ( Exception e ) {
+        // If no local metastore we must ignore and proceed
+      }
+    } else {
+      // if we already have a metastore use it
+      metaStore = metastore;
+    }
+    NamedCluster c = null;
+    if ( metaStore != null ) {
+      // If we have a metastore get the cluster from it.
+      c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
+    } else {
+      // Still no metastore, try to make a named cluster from the embedded xml
+      if ( namedClusterService.getClusterTemplate() != null ) {
+        c = namedClusterService.getClusterTemplate().fromXmlForEmbed( embeddedNamedClusterNode );
+      }
+    }
     if ( c != null ) {
-      url = c.processURLsubstitution( url, metastore, new Variables() );
+      url = c.processURLsubstitution( url, metaStore, new Variables() );
     }
     return url;
   }
@@ -117,8 +143,19 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
   }
 
+  @Override
+  public String getXML() {
+    String xml = super.getXML();
+    NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
+    if ( c != null ) {
+      xml = xml + c.toXmlForEmbed( "NamedCluster" )  + Const.CR;
+    }
+    return xml;
+  }
+
   // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null
   protected String loadSourceRep( Repository rep, ObjectId id_step,  IMetaStore metaStore ) throws KettleException {
+    this.metaStore = metaStore;
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
 
