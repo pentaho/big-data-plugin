@@ -15,7 +15,6 @@
   <url>http://www.pentaho.com</url>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
-    <dependency.osgi.version>4.3.1</dependency.osgi.version>
   </properties>
   <dependencies>
     <dependency>
@@ -62,18 +61,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>${dependency.slf4j.revision}</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.osgi</groupId>
-    	<artifactId>org.osgi.core</artifactId>
-    	<version>${dependency.osgi.version}</version>
-    	<scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.osgi</groupId>
-    	<artifactId>org.osgi.compendium</artifactId>
-    	<version>${dependency.osgi.version}</version>
-    	<scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

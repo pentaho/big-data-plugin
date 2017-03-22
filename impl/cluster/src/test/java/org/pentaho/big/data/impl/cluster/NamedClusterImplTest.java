@@ -64,7 +64,6 @@ public class NamedClusterImplTest {
   private String namedClusterZookeeperHost;
   private String namedClusterZookeeperPort;
   private String namedClusterOozieUrl;
-  private String namedClusterStorageScheme;
   private boolean isMapr;
   private IMetaStore metaStore;
 
@@ -85,7 +84,6 @@ public class NamedClusterImplTest {
     namedClusterZookeeperHost = "namedClusterZookeeperHost";
     namedClusterZookeeperPort = "namedClusterZookeeperPort";
     namedClusterOozieUrl = "namedClusterOozieUrl";
-    namedClusterStorageScheme = "hdfs";
     isMapr = true;
 
     namedCluster.setName( namedClusterName );
@@ -99,7 +97,6 @@ public class NamedClusterImplTest {
     namedCluster.setZooKeeperPort( namedClusterZookeeperPort );
     namedCluster.setOozieUrl( namedClusterOozieUrl );
     namedCluster.setMapr( isMapr );
-    namedCluster.setStorageScheme( namedClusterStorageScheme );
   }
 
   @Test
@@ -113,7 +110,6 @@ public class NamedClusterImplTest {
   public void testClone() {
     long before = System.currentTimeMillis();
     NamedClusterImpl newNamedCluster = namedCluster.clone();
-    assertEquals( namedClusterStorageScheme, newNamedCluster.getStorageScheme() );
     assertEquals( namedClusterName, newNamedCluster.getName() );
     assertEquals( namedClusterHdfsHost, newNamedCluster.getHdfsHost() );
     assertEquals( namedClusterHdfsPort, newNamedCluster.getHdfsPort() );
@@ -239,12 +235,11 @@ public class NamedClusterImplTest {
   @Test
   public void testGenerateURLNullParameters() {
     namedCluster.setName( null );
-    String scheme = "testScheme";
-    assertEquals(
-        scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":" + namedClusterHdfsPort,
-        namedCluster.generateURL( "testScheme", metaStore, null ) );
+    assertNull( namedCluster.generateURL( "testScheme", metaStore, null ) );
+    namedCluster.setName( "testName" );
     assertNull( namedCluster.generateURL( null, metaStore, null ) );
     assertNull( namedCluster.generateURL( "testScheme", null, null ) );
+    assertNull( namedCluster.generateURL( "testScheme", metaStore, null ) );
   }
 
   @Test
@@ -273,6 +268,16 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsPassword( null );
     assertEquals( scheme + "://" + testHost + ":" + testPort,
       namedCluster.generateURL( scheme, metaStore, null ) );
+  }
+
+  @Test
+  public void testGenerateURLMaprFSPort() throws MetaStoreException {
+    String scheme = "maprfs";
+    String testHost = "testHost";
+    String testPort = "9333";
+    namedCluster.setHdfsHost( " " + testHost + " " );
+    namedCluster.setHdfsPort( " " + testPort + " " );
+    assertNull( namedCluster.generateURL( scheme, metaStore, null ) );
   }
 
   @Test
@@ -334,9 +339,12 @@ public class NamedClusterImplTest {
 
   @Test
   public void testProcessURLHostEmpty() throws MetaStoreException {
+    //namedCluster.setHdfsHost( "hostname" );
+    //namedCluster.setHdfsPort( "12340");
     namedCluster.setHdfsHost( null );
     namedCluster.setStorageScheme( "hdfs" );
     String incomingURL = "${hdfsUrl}/test";
+    //incomingURL = "/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
 
@@ -383,17 +391,10 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLsubstitutionMaprFS_startsWithMaprfs() throws MetaStoreException {
-    String incomingURL = "maprfs";
+  public void testGenerateURLMaprFS() throws MetaStoreException {
+    String scheme = "maprfs";
     namedCluster.setMapr( true );
-    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
-  }
-
-  @Test
-  public void testProcessURLsubstitutionMaprFS_startsWithNoMaprfs() throws MetaStoreException {
-    String incomingURL = "path";
-    namedCluster.setMapr( true );
-    assertEquals( "maprfs://" + incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+    assertNull( namedCluster.generateURL( scheme, metaStore, null ) );
   }
 
   @Test
@@ -409,8 +410,7 @@ public class NamedClusterImplTest {
 
   @Test
   public void testGenerateURLHDFSVariableSpace() throws MetaStoreException {
-    String schemeVar = "schemeVar";
-    String testScheme = "hdfs";
+    String scheme = "hdfs";
     String hostVar = "hostVar";
     String testHost = "testHost";
     String portVar = "portVar";
@@ -419,38 +419,20 @@ public class NamedClusterImplTest {
     String testUsername = "testUsername";
     String passwordVar = "passwordVar";
     String testPassword = "testPassword";
-    namedCluster.setStorageScheme( "${" + schemeVar + "}" );
     namedCluster.setHdfsHost( "${" + hostVar + "}" );
     namedCluster.setHdfsPort( "${" + portVar + "}" );
     namedCluster.setHdfsUsername( "${" + usernameVar + "}" );
     namedCluster.setHdfsPassword( "${" + passwordVar + "}" );
-    when( variableSpace.getVariable( schemeVar ) ).thenReturn( testScheme );
     when( variableSpace.getVariable( hostVar ) ).thenReturn( testHost );
     when( variableSpace.getVariable( portVar ) ).thenReturn( testPort );
     when( variableSpace.getVariable( usernameVar ) ).thenReturn( testUsername );
     when( variableSpace.getVariable( passwordVar ) ).thenReturn( testPassword );
-    when( variableSpace.environmentSubstitute( namedCluster.getStorageScheme() ) ).thenReturn( testScheme );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( testHost );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsPort() ) ).thenReturn( testPort );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsUsername() ) ).thenReturn( testUsername );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsPassword() ) ).thenReturn( testPassword );
-    assertEquals( testScheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
-      namedCluster.generateURL( "${" + schemeVar + "}", metaStore, variableSpace ) );
-  }
-
-  @Test
-  public void testGenerateURLHDFSVariableSpace_noVariable() throws MetaStoreException {
-    String scheme = "hdfs";
-    String hostVar = "hostVar";
-    String portVar = "portVar";
-    String usernameVar = "usernameVar";
-    String passwordVar = "passwordVar";
-    namedCluster.setStorageScheme( "${" + scheme + "}" );
-    namedCluster.setHdfsHost( "${" + hostVar + "}" );
-    namedCluster.setHdfsPort( "${" + portVar + "}" );
-    namedCluster.setHdfsUsername( "${" + usernameVar + "}" );
-    namedCluster.setHdfsPassword( "${" + passwordVar + "}" );
-    assertEquals( scheme + ":",      namedCluster.generateURL( scheme, metaStore, variableSpace ) );
+    assertEquals( scheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
+      namedCluster.generateURL( scheme, metaStore, variableSpace ) );
   }
 
   @Test

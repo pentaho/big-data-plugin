@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -97,23 +97,25 @@ public class NamedClusterManagerTest {
   }
 
   @Test
-  public void testProcessURLsubstitutionMaprFS_startsWithMaprfs() throws MetaStoreException {
-    String incomingURL = "maprfs";
+  public void testGenerateURLMaprFSPort() throws MetaStoreException {
+    String scheme = "maprfs";
     String testName = "testName";
+    String testHost = "testHost";
+    String testPort = "9333";
     NamedCluster namedCluster = mock( NamedCluster.class );
-    when( namedCluster.isMapr() ).thenReturn( true );
+    when( namedCluster.getHdfsHost() ).thenReturn( " " + testHost + " " );
+    when( namedCluster.getHdfsPort() ).thenReturn( " " + testPort + " " );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
-    assertEquals( incomingURL, namedClusterManager.processURLsubstitution( testName, incomingURL, incomingURL, metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
   }
 
   @Test
-  public void testProcessURLsubstitutionMaprFS_startsWithNoMaprfs() throws MetaStoreException {
-    String incomingURL = "path";
+  public void testGenerateURLMaprFS() throws MetaStoreException {
+    String scheme = "maprfs";
     String testName = "testName";
     NamedCluster namedCluster = mock( NamedCluster.class );
-    when( namedCluster.isMapr() ).thenReturn( true );
     when( metaStoreFactory.loadElement( testName ) ).thenReturn( namedCluster );
-    assertNull(  namedClusterManager.processURLsubstitution( testName, incomingURL, incomingURL, metaStore, null ) );
+    assertNull( namedClusterManager.generateURL( scheme, testName, metaStore, null ) );
   }
 
   @Test
