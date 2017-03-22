@@ -138,7 +138,7 @@ public class NamedClusterDialogImpl extends Dialog {
     shell.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Title" ) );
     shell.setLayout( formLayout );
 
-    NamedClusterComposite namedClusterComposite = new NamedClusterComposite( shell, namedCluster, props );
+    NamedClusterComposite namedClusterComposite = new NamedClusterComposite( shell, namedCluster, props, namedClusterService );
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
