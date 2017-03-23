@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,6 @@ package org.pentaho.database;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.database.DatabaseMeta;
 
 /**
@@ -53,7 +52,6 @@ public class TestSelectCount {
   @Test
   public void testHiveDatabase() throws Exception {
     try {
-      KettleEnvironment.init();
       String expectedSQL = HiveSelect + TableName;
       DatabaseMeta databaseMeta = new DatabaseMeta( HiveDatabaseXML );
       String sql = databaseMeta.getDatabaseInterface().getSelectCountStatement( TableName );

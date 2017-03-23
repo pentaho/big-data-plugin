@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon.s3;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,6 +44,11 @@ public class S3FileOutputMetaTest {
   @BeforeClass
   public static void setClassUp() throws Exception {
     KettleEnvironment.init();
+  }
+
+  @AfterClass
+  public static void tearDownClass() throws Exception {
+    KettleEnvironment.shutdown();
   }
 
   @Before

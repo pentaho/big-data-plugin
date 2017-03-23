@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,14 +22,10 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.ui.xul.XulEventSource;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -42,10 +38,7 @@ import static org.mockito.Mockito.mock;
  * This is a helper class to dynamically test a class' ability to get, set, and fire property change events for all
  * private fields.
  */
-@RunWith( MockitoJUnitRunner.class )
 public class PropertyFiringObjectTest {
-  private static ImmutableSet<? extends Class<?>> supportedTypes =
-    ImmutableSet.of( String.class, Boolean.class, Boolean.TYPE );
 
   @Test
   public void testSqoopExportConfig() throws Exception {
@@ -58,85 +51,61 @@ public class PropertyFiringObjectTest {
   }
 
   /**
-   * Test that all private fields of the provided object have getter and setter methods, and they work as they should:
-   * the getter returns the value and the setter generates a {@link PropertyChangeEvent} for that property.
-   *
-   * @param o
-   *          Object to test
-   * @throws Exception
-   *           if anything goes wrong
-   */
-  private void testPropertyFiringForAllPrivateFieldsOf( XulEventSource o ) throws Exception {
-    final Method ADD_PROPERTY_CHANGE_LISTENER =
-        o.getClass().getMethod( "addPropertyChangeListener", PropertyChangeListener.class );
-    final Method REMOVE_PROPERTY_CHANGE_LISTENER =
-        o.getClass().getMethod( "removePropertyChangeListener", PropertyChangeListener.class );
-    // Attach our property change listener to the object
-    PersistentPropertyChangeListener l = new PersistentPropertyChangeListener();
-    ADD_PROPERTY_CHANGE_LISTENER.invoke( o, l );
-    try {
-      testPropertyFiringForAllPrivateFieldsOf( o, o.getClass(), l );
-    } finally {
-      // Remove our listener when we're done
-      REMOVE_PROPERTY_CHANGE_LISTENER.invoke( o, l );
-    }
-  }
-
-  /**
    * Test that all private fields have getter and setter methods, and they work as they should: the getter returns the
    * value and the setter generates a {@link PropertyChangeEvent} for that property.
    *
    * @param o
    *          instance of event source to test
-   * @param oClass
-   *          The current class being tested (should be initially called with {@code o.getClass()}
-   * @param l
    * @throws Exception
    */
-  private void testPropertyFiringForAllPrivateFieldsOf( XulEventSource o, Class<?> oClass,
-      PersistentPropertyChangeListener l ) throws Exception {
-    if ( oClass == null ) {
-      return;
-    }
+  private void testPropertyFiringForAllPrivateFieldsOf( XulEventSource object ) throws Exception {
+    // Attach our property change listener to the object
+    PersistentPropertyChangeListener listner = new PersistentPropertyChangeListener();
+    object.addPropertyChangeListener( listner );
+    try {
+      Class<?> oClass = object.getClass();
+      for ( Field f : oClass.getDeclaredFields() ) {
+        if ( !Modifier.isPrivate( f.getModifiers() ) || Modifier.isTransient( f.getModifiers() ) ||
+            Modifier.isFinal( f.getModifiers() )) {
+          // Skip non-private or transient fields or final fields
+          continue;
+        }
 
-    for ( Field f : oClass.getDeclaredFields() ) {
-      if ( !Modifier.isPrivate( f.getModifiers() ) || Modifier.isTransient( f.getModifiers() ) || !supportedTypes.contains( f.getType() ) ) {
-        // Skip non-private or transient fields
-        continue;
+        String fullFieldName = object.getClass().getSimpleName() + "." + f.getName();
+        try {
+          // Clear out the previous run's events if there were any
+          listner.getReceivedEvents().clear();
+
+          String camelcaseFieldName = f.getName().substring( 0, 1 ).toUpperCase() + f.getName().substring( 1 );
+
+          // Grab the getter and setter methods for the field
+          Method getter = SqoopUtils.findMethod( oClass, camelcaseFieldName, null, "get", "is" );
+          Method setter = SqoopUtils.findMethod( oClass, camelcaseFieldName, new Class<?>[] { f.getType() }, "set" );
+
+          // Grab the original value so we can make sure we're changing it so guarantee a PropertyChangeEvent
+          Object originalValue = getter.invoke( object );
+          // Generate a test value to set this property to
+          Object value = getTestValue( f.getType(), originalValue );
+
+          assertFalse( fullFieldName + ": generated value does not differ from original value. Please update "
+              + getClass() + ".getTestValue() to return a different value for " + f.getType() + ".", value.equals(
+                  originalValue ) );
+          setter.invoke( object, value );
+          assertEquals( fullFieldName + ": value not get/set properly", value, getter.invoke( object ) );
+          assertEquals( fullFieldName + ": PropertyChangeEvent not received when changing value", 1, listner
+              .getReceivedEvents().size() );
+          PropertyChangeEvent evt = listner.getReceivedEvents().get( 0 );
+          assertEquals( fullFieldName + ": fired event with wrong property name", f.getName(), evt.getPropertyName() );
+          assertEquals( fullFieldName + ": fired event with incorrect old value", originalValue, evt.getOldValue() );
+          assertEquals( fullFieldName + ": fired event with incorrect new value", value, evt.getNewValue() );
+        } catch ( Exception ex ) {
+          throw new Exception( "Error testing getter/setter for " + fullFieldName, ex );
+        }
       }
-
-      String fullFieldName = o.getClass().getSimpleName() + "." + f.getName();
-      try {
-        // Clear out the previous run's events if there were any
-        l.getReceivedEvents().clear();
-
-        String camelcaseFieldName = f.getName().substring( 0, 1 ).toUpperCase() + f.getName().substring( 1 );
-
-        // Grab the getter and setter methods for the field
-        Method getter = SqoopUtils.findMethod( oClass, camelcaseFieldName, null, "get", "is" );
-        Method setter = SqoopUtils.findMethod( oClass, camelcaseFieldName, new Class<?>[] { f.getType() }, "set" );
-
-        // Grab the original value so we can make sure we're changing it so guarantee a PropertyChangeEvent
-        Object originalValue = getter.invoke( o );
-        // Generate a test value to set this property to
-        Object value = getTestValue( f.getType(), originalValue );
-
-        assertFalse( fullFieldName + ": generated value does not differ from original value. Please update "
-            + getClass() + ".getTestValue() to return a different value for " + f.getType() + ".", value
-            .equals( originalValue ) );
-        setter.invoke( o, value );
-        assertEquals( fullFieldName + ": value not get/set properly", value, getter.invoke( o ) );
-        assertEquals( fullFieldName + ": PropertyChangeEvent not received when changing value", 1, l
-            .getReceivedEvents().size() );
-        PropertyChangeEvent evt = l.getReceivedEvents().get( 0 );
-        assertEquals( fullFieldName + ": fired event with wrong property name", f.getName(), evt.getPropertyName() );
-        assertEquals( fullFieldName + ": fired event with incorrect old value", originalValue, evt.getOldValue() );
-        assertEquals( fullFieldName + ": fired event with incorrect new value", value, evt.getNewValue() );
-      } catch ( Exception ex ) {
-        throw new Exception( "Error testing getter/setter for " + fullFieldName, ex );
-      }
+    } finally {
+      // Remove our listener when we're done
+      object.removePropertyChangeListener( listner );
     }
-    testPropertyFiringForAllPrivateFieldsOf( o, oClass.getSuperclass(), l );
   }
 
   /**
@@ -151,16 +120,13 @@ public class PropertyFiringObjectTest {
 
   private Object getTestValue( Class<?> type, Object originalValue ) {
     if ( String.class.equals( type ) ) {
-      return String.valueOf( System.currentTimeMillis() );
+      return  String.valueOf( System.currentTimeMillis() );
     }
     if ( Boolean.class.equals( type ) ) {
-      if ( originalValue == null ) {
-        return Boolean.TRUE;
-      }
       // Return the opposite
-      return ( ( (Boolean) originalValue ) ? Boolean.FALSE : Boolean.TRUE );
+      return originalValue == null ? Boolean.TRUE : !(Boolean) originalValue;
     }
-    throw new IllegalArgumentException( "Unsupported field type: " + type + ". Please update " + getClass()
-        + ".getTestValue() to support that object type" );
+    //not primitive
+    return mock( type );
   }
 }

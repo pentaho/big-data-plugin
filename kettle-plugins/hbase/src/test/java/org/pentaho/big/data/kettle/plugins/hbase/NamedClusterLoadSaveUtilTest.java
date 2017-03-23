@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,15 +25,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * User: Dzmitry Stsiapanau Date: 02/12/2016 Time: 14:10
@@ -44,79 +46,182 @@ public class NamedClusterLoadSaveUtilTest {
   public static final String ZOOKEEPER_PORT = "2181";
   public static final String ZOOKEEPER_HOSTS_KEY = "zookeeper_hosts";
   public static final String ZOOKEEPER_PORT_KEY = "zookeeper_port";
-  private static String xml1 = "<step><" + ZOOKEEPER_HOSTS_KEY + ">" + ZOOKEPER_HOST + "</" + ZOOKEEPER_HOSTS_KEY
-    + "><" + ZOOKEEPER_PORT_KEY + ">"
-    + ZOOKEEPER_PORT + "</" + ZOOKEEPER_PORT_KEY + "></step>";
+  private static String xml1 =
+      "<step><" + ZOOKEEPER_HOSTS_KEY + ">" + ZOOKEPER_HOST + "</" + ZOOKEEPER_HOSTS_KEY + "><" + ZOOKEEPER_PORT_KEY
+          + ">" + ZOOKEEPER_PORT + "</" + ZOOKEEPER_PORT_KEY + "></step>";
+
   public static final String SOME_CLUSTER_NAME = "someClusterName";
   public static final String CLUSTER_NAME_KEY = "cluster_name";
   private static String xml2 =
-    "<step><" + CLUSTER_NAME_KEY + ">" + SOME_CLUSTER_NAME + "</" + CLUSTER_NAME_KEY + "><" + ZOOKEEPER_HOSTS_KEY + ">"
-      + ZOOKEPER_HOST
-      + "</" + ZOOKEEPER_HOSTS_KEY + "><" + ZOOKEEPER_PORT_KEY + ">"
-      + ZOOKEEPER_PORT + "</" + ZOOKEEPER_PORT_KEY + "></step>";
+      "<step><" + CLUSTER_NAME_KEY + ">" + SOME_CLUSTER_NAME + "</" + CLUSTER_NAME_KEY + "><" + ZOOKEEPER_HOSTS_KEY
+          + ">" + ZOOKEPER_HOST + "</" + ZOOKEEPER_HOSTS_KEY + "><" + ZOOKEEPER_PORT_KEY + ">" + ZOOKEEPER_PORT + "</"
+          + ZOOKEEPER_PORT_KEY + "></step>";
 
-  private NamedClusterService ncs = spy( new NamedClusterManager() );
-  private IMetaStore metaStore = mock( IMetaStore.class );
-  private Repository repository = mock( Repository.class );
-  private ObjectId objectId = mock( ObjectId.class );
+  // mocks
+  private LogChannelInterface log;
+  private NamedClusterService ncs;
+  private IMetaStore metaStore;
+  private Repository repository;
+  private ObjectId jobId;
+  private ObjectId stepId;
+  private ObjectId transId;
+  private NamedCluster namedCluster;
+
+  private NamedClusterLoadSaveUtil util;
+  private DocumentBuilder dBuilder;
 
   @Before
   public void setUp() throws Exception {
-    ncs = spy( new NamedClusterManager() );
+    util = new NamedClusterLoadSaveUtil();
+    dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+    // mocks
+    log = mock( LogChannelInterface.class );
+    namedCluster = mock( NamedCluster.class );
     metaStore = mock( IMetaStore.class );
+    jobId = mock( ObjectId.class );
+    stepId = mock( ObjectId.class );
+    stepId = mock( ObjectId.class );
+    ncs = mock( NamedClusterService.class );
+    doReturn( true ).when( ncs ).contains( SOME_CLUSTER_NAME, metaStore );
+    when( ncs.getClusterTemplate() ).thenReturn( namedCluster );
+
     repository = mock( Repository.class );
-    objectId = mock( ObjectId.class );
+    doReturn( ZOOKEPER_HOST ).when( repository ).getJobEntryAttributeString( jobId, ZOOKEEPER_HOSTS_KEY );
+    doReturn( ZOOKEEPER_PORT ).when( repository ).getJobEntryAttributeString( jobId, ZOOKEEPER_PORT_KEY );
   }
 
   @Test
-  public void testLoadClusterConfigXML() throws Exception {
-    NamedClusterLoadSaveUtil util = new NamedClusterLoadSaveUtil();
-    NamedCluster nc = util.loadClusterConfig( ncs, objectId, repository, metaStore,
-      XMLHandler.loadXMLString( xml1 ).getDocumentElement(),
-      mock( LogChannelInterface.class ) );
-    assertEquals( "", nc.getName() );
-    assertEquals( ZOOKEPER_HOST, nc.getZooKeeperHost() );
-    assertEquals( ZOOKEEPER_PORT, nc.getZooKeeperPort() );
-    nc = util.loadClusterConfig( ncs, mock( ObjectId.class ), mock(
-      Repository.class ), metaStore, XMLHandler.loadXMLString( xml2 ).getDocumentElement(),
-      mock( LogChannelInterface.class ) );
-    assertEquals( SOME_CLUSTER_NAME, nc.getName() );
-    assertEquals( ZOOKEPER_HOST, nc.getZooKeeperHost() );
-    assertEquals( ZOOKEEPER_PORT, nc.getZooKeeperPort() );
+  public void testLoadClusterConfigXML_WithoutClusterName() throws Exception {
+    util.loadClusterConfig( ncs, jobId, repository, metaStore, XMLHandler.loadXMLString( dBuilder, xml1 ).getDocumentElement(), log );
+    verify( ncs ).getClusterTemplate();
+    verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
+    verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
   }
 
   @Test
-  public void testLoadClusterConfigRepo() throws Exception {
-    NamedClusterLoadSaveUtil util = new NamedClusterLoadSaveUtil();
-    NamedCluster nc;
-    NamedCluster returnNC = ncs.getClusterTemplate();
-    returnNC.setName( SOME_CLUSTER_NAME );
-    returnNC.setZooKeeperHost( ZOOKEPER_HOST );
-    returnNC.setZooKeeperPort( ZOOKEEPER_PORT );
+  public void testLoadClusterConfigXML_WithClusterName() throws Exception {
+    util.loadClusterConfig( ncs, jobId, repository, metaStore, XMLHandler.loadXMLString( dBuilder, xml2 ).getDocumentElement(), log );
+    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
+    verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
+  }
 
-    doReturn( true ).when( ncs ).contains( SOME_CLUSTER_NAME, metaStore );
-    doReturn( returnNC ).when( ncs ).read( SOME_CLUSTER_NAME, metaStore );
-    doReturn( null ).when( repository ).getJobEntryAttributeString( objectId, CLUSTER_NAME_KEY );
-    doReturn( ZOOKEPER_HOST ).when( repository ).getJobEntryAttributeString( objectId, ZOOKEEPER_HOSTS_KEY );
-    doReturn( ZOOKEEPER_PORT ).when( repository ).getJobEntryAttributeString( objectId, ZOOKEEPER_PORT_KEY );
+  @Test
+  public void testLoadClusterConfigRepo_WithoutClusterName() throws Exception {
+    doReturn( null ).when( repository ).getJobEntryAttributeString( jobId, CLUSTER_NAME_KEY );
 
-    nc = util.loadClusterConfig( ncs, objectId, repository, metaStore, null, mock( LogChannelInterface.class ) );
-    assertEquals( "", nc.getName() );
-    assertEquals( ZOOKEPER_HOST, nc.getZooKeeperHost() );
-    assertEquals( ZOOKEEPER_PORT, nc.getZooKeeperPort() );
+    util.loadClusterConfig( ncs, jobId, repository, metaStore, null, mock( LogChannelInterface.class ) );
+    verify( ncs ).getClusterTemplate();
+    verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
+    verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
+  }
 
-    returnNC = ncs.getClusterTemplate();
-    returnNC.setName( SOME_CLUSTER_NAME );
-    returnNC.setZooKeeperHost( ZOOKEPER_HOST );
-    returnNC.setZooKeeperPort( ZOOKEEPER_PORT );
+  @Test
+  public void testLoadClusterConfigRepo_WithClusterName() throws Exception {
+    doReturn( SOME_CLUSTER_NAME ).when( repository ).getJobEntryAttributeString( jobId, CLUSTER_NAME_KEY );
 
-    doReturn( true ).when( ncs ).contains( SOME_CLUSTER_NAME, metaStore );
-    doReturn( returnNC ).when( ncs ).read( SOME_CLUSTER_NAME, metaStore );
-    doReturn( SOME_CLUSTER_NAME ).when( repository ).getJobEntryAttributeString( objectId, CLUSTER_NAME_KEY );
+    util.loadClusterConfig( ncs, jobId, repository, metaStore, null, mock( LogChannelInterface.class ) );
+    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
+    verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
+  }
 
-    nc = util.loadClusterConfig( ncs, objectId, repository, metaStore, null, mock( LogChannelInterface.class ) );
-    assertEquals( SOME_CLUSTER_NAME, nc.getName() );
-    assertEquals( ZOOKEPER_HOST, nc.getZooKeeperHost() );
-    assertEquals( ZOOKEEPER_PORT, nc.getZooKeeperPort() );
+  @Test
+  public void testGetXml_WithoutClusterName() throws Exception {
+    when( namedCluster.getZooKeeperHost() ).thenReturn( ZOOKEPER_HOST );
+    when( namedCluster.getZooKeeperPort() ).thenReturn( ZOOKEEPER_PORT );
+
+    StringBuilder retval = new StringBuilder();
+    util.getXml( retval, ncs, namedCluster, metaStore, log );
+    assertTrue( retval.toString().contains( ZOOKEEPER_PORT ) );
+    assertTrue( retval.toString().contains( ZOOKEPER_HOST ) );
+  }
+
+  @Test
+  public void testGetXml_WithClusterName() throws Exception {
+    when( namedCluster.getName() ).thenReturn( SOME_CLUSTER_NAME );
+    when( namedCluster.getZooKeeperHost() ).thenReturn( ZOOKEPER_HOST );
+    when( namedCluster.getZooKeeperPort() ).thenReturn( ZOOKEEPER_PORT );
+
+    StringBuilder retval = new StringBuilder();
+    util.getXml( retval, ncs, namedCluster, metaStore, log );
+    assertTrue( retval.toString().contains( ZOOKEEPER_PORT ) );
+    assertTrue( retval.toString().contains( ZOOKEPER_HOST ) );
+    assertTrue( retval.toString().contains( SOME_CLUSTER_NAME ) );
+  }
+
+  @Test
+  public void testGetXml_WithoutZooKeeper() throws Exception {
+    when( namedCluster.getName() ).thenReturn( SOME_CLUSTER_NAME );
+
+    StringBuilder retval = new StringBuilder();
+    util.getXml( retval, ncs, namedCluster, metaStore, log );
+    assertFalse( retval.toString().contains( ZOOKEEPER_PORT ) );
+    assertFalse( retval.toString().contains( ZOOKEPER_HOST ) );
+    assertTrue( retval.toString().contains( SOME_CLUSTER_NAME ) );
+  }
+
+  @Test
+  public void testGetXml_readFromMetastore() throws Exception {
+    when( namedCluster.getName() ).thenReturn( SOME_CLUSTER_NAME );
+    when( namedCluster.getZooKeeperHost() ).thenReturn( ZOOKEPER_HOST );
+    when( namedCluster.getZooKeeperPort() ).thenReturn( ZOOKEEPER_PORT );
+    when( ncs.read( SOME_CLUSTER_NAME, metaStore ) ).thenReturn( namedCluster );
+
+    StringBuilder retval = new StringBuilder();
+    util.getXml( retval, ncs, namedCluster, metaStore, log );
+
+    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    assertTrue( retval.toString().contains( ZOOKEEPER_PORT ) );
+    assertTrue( retval.toString().contains( ZOOKEPER_HOST ) );
+    assertTrue( retval.toString().contains( SOME_CLUSTER_NAME ) );
+  }
+
+  @Test
+  public void testSaveRep_WithoutClusterName() throws Exception {
+    when( namedCluster.getZooKeeperHost() ).thenReturn( ZOOKEPER_HOST );
+    when( namedCluster.getZooKeeperPort() ).thenReturn( ZOOKEEPER_PORT );
+
+    util.saveRep( repository, metaStore, transId, stepId, ncs, namedCluster, log );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_HOSTS_KEY ), eq( ZOOKEPER_HOST ) );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_PORT_KEY ), eq( ZOOKEEPER_PORT ) );
+  }
+
+  @Test
+  public void testSaveRep_WithClusterName() throws Exception {
+    when( namedCluster.getName() ).thenReturn( SOME_CLUSTER_NAME );
+    when( namedCluster.getZooKeeperHost() ).thenReturn( ZOOKEPER_HOST );
+    when( namedCluster.getZooKeeperPort() ).thenReturn( ZOOKEEPER_PORT );
+    when( ncs.read( SOME_CLUSTER_NAME, metaStore ) ).thenReturn( namedCluster );
+
+    util.saveRep( repository, metaStore, transId, stepId, ncs, namedCluster, log );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_HOSTS_KEY ), eq( ZOOKEPER_HOST ) );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_PORT_KEY ), eq( ZOOKEEPER_PORT ) );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), eq( CLUSTER_NAME_KEY ), eq( SOME_CLUSTER_NAME ) );
+  }
+
+  @Test
+  public void testSaveRep_WithoutZooKeeper() throws Exception {
+    when( namedCluster.getName() ).thenReturn( SOME_CLUSTER_NAME );
+    when( ncs.read( SOME_CLUSTER_NAME, metaStore ) ).thenReturn( namedCluster );
+
+    util.saveRep( repository, metaStore, transId, stepId, ncs, namedCluster, log );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), eq( CLUSTER_NAME_KEY ), eq( SOME_CLUSTER_NAME ) );
+    verify( repository, never() ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_HOSTS_KEY ), eq( ZOOKEPER_HOST ) );
+    verify( repository, never() ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_PORT_KEY ), eq( ZOOKEEPER_PORT ) );
+  }
+
+  @Test
+  public void testSaveRep_readFromMetastore() throws Exception {
+    when( namedCluster.getName() ).thenReturn( SOME_CLUSTER_NAME );
+    when( namedCluster.getZooKeeperHost() ).thenReturn( ZOOKEPER_HOST );
+    when( namedCluster.getZooKeeperPort() ).thenReturn( ZOOKEEPER_PORT );
+    when( ncs.read( SOME_CLUSTER_NAME, metaStore ) ).thenReturn( namedCluster );
+
+    util.saveRep( repository, metaStore, transId, stepId, ncs, namedCluster, log );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_HOSTS_KEY ), eq( ZOOKEPER_HOST ) );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), anyInt(), eq( ZOOKEEPER_PORT_KEY ), eq( ZOOKEEPER_PORT ) );
+    verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), eq( CLUSTER_NAME_KEY ), eq( SOME_CLUSTER_NAME ) );
   }
 }

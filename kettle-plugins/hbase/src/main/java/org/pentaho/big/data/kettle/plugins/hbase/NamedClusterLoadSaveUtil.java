@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,9 +25,9 @@ package org.pentaho.big.data.kettle.plugins.hbase;
 import org.apache.commons.lang.StringUtils;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -112,10 +112,10 @@ public class NamedClusterLoadSaveUtil {
       }
     }
 
-    if ( !Const.isEmpty( m_zookeeperHosts ) ) {
+    if ( !Utils.isEmpty( m_zookeeperHosts ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( ZOOKEEPER_HOSTS, m_zookeeperHosts ) );
     }
-    if ( !Const.isEmpty( m_zookeeperPort ) ) {
+    if ( !Utils.isEmpty( m_zookeeperPort ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( ZOOKEEPER_PORT, m_zookeeperPort ) );
     }
   }
@@ -142,10 +142,10 @@ public class NamedClusterLoadSaveUtil {
       }
     }
 
-    if ( !Const.isEmpty( m_zookeeperHosts ) ) {
+    if ( !Utils.isEmpty( m_zookeeperHosts ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, ZOOKEEPER_HOSTS, m_zookeeperHosts );
     }
-    if ( !Const.isEmpty( m_zookeeperPort ) ) {
+    if ( !Utils.isEmpty( m_zookeeperPort ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, ZOOKEEPER_PORT, m_zookeeperPort );
     }
   }
