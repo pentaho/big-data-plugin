@@ -24,7 +24,6 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
@@ -34,6 +33,7 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.hadoop.PluginPropertiesUtil;
@@ -70,9 +70,8 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   private static final Class<?> PKG = HadoopConfigurationBootstrap.class;
   public static final String PMR_PROPERTIES = "pmr.properties";
   private static final String NOTIFICATIONS_BEFORE_LOADING_SHIM = "notificationsBeforeLoadingShim";
-  private static final String MAX_TIMEOUT_BEFORE_LOADING_SHIM = "maxTimeoutBeforeLoadingShim";
-  private static LogChannelInterface log = new LogChannel( BaseMessages.getString( PKG,
-    "HadoopConfigurationBootstrap.LoggingPrefix" ) );
+  static final String MAX_TIMEOUT_BEFORE_LOADING_SHIM = "maxTimeoutBeforeLoadingShim";
+  private static LogChannelInterface log = new LogChannel( BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.LoggingPrefix" ) );
   private static HadoopConfigurationBootstrap instance = new HadoopConfigurationBootstrap();
   private final Set<HadoopConfigurationListener> hadoopConfigurationListeners =
     Collections.newSetFromMap( new ConcurrentHashMap<HadoopConfigurationListener, Boolean>() );
@@ -113,8 +112,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
       CountDownLatch remainingDependencies = getRemainingDependencies();
       long nrNotifications = remainingDependencies.getCount();
       if ( nrNotifications > 0 ) {
-        log.logDebug(
-            BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.WaitForShimLoad", nrNotifications, timeout ) );
+        log.logDebug( BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.WaitForShimLoad", nrNotifications, timeout ) );
       }
       remainingDependencies.await( timeout, TimeUnit.SECONDS );
     } catch ( InterruptedException e ) {
@@ -137,7 +135,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
   protected synchronized void initProvider() throws ConfigurationException {
     if ( provider == null ) {
       HadoopConfigurationPrompter prompter = this.prompter;
-      if ( Const.isEmpty( getWillBeActiveConfigurationId() ) && prompter != null ) {
+      if ( Utils.isEmpty( getWillBeActiveConfigurationId() ) && prompter != null ) {
         try {
           setActiveShim( prompter.getConfigurationSelection( getHadoopConfigurationInfos() ) );
         } catch ( Exception e ) {
@@ -145,7 +143,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
         }
       }
 
-      if ( Const.isEmpty( getWillBeActiveConfigurationId() ) ) {
+      if ( Utils.isEmpty( getWillBeActiveConfigurationId() ) ) {
         throw new NoShimSpecifiedException(
           BaseMessages.getString( PKG, "HadoopConfigurationBootstrap.HadoopConfiguration.NoShimSet" ) );
       }
