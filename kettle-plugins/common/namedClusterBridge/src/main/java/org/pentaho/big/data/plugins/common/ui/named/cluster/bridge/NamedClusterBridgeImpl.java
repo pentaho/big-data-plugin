@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -86,7 +85,6 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setZooKeeperPort( nc.getZooKeeperPort() );
     delegate.setOozieUrl( nc.getOozieUrl() );
     delegate.setStorageScheme( nc.getStorageScheme() );
-    //delegate.setMapr( nc.isMapr() );
     delegate.setLastModifiedDate( System.currentTimeMillis() );
   }
 
@@ -226,15 +224,13 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
     if ( isMapr() ) {
-      String url = namedClusterManager
-        .processURLsubstitution( getName(), incomingURL, HadoopSpoonPlugin.MAPRFS_SCHEME, metastore, variableSpace );
-      if ( url != null && !url.startsWith( HadoopSpoonPlugin.MAPRFS_SCHEME ) ) {
-        url = HadoopSpoonPlugin.MAPRFS_SCHEME + "://" + url;
+      String url = namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME, metastore, variableSpace );
+      if ( url != null && !url.startsWith( org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME ) ) {
+        url = org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME + "://" + url;
       }
       return url;
     } else {
-      return namedClusterManager
-        .processURLsubstitution( getName(), incomingURL, HadoopSpoonPlugin.HDFS_SCHEME, metastore, variableSpace );
+      return namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.HDFS_SCHEME, metastore, variableSpace );
     }
   }
 
@@ -314,9 +310,6 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     return delegate.toString();
   }
 
-  public String[] validStorageSchemes() {
-    return delegate.validStorageSchemes();
-  }
 
   @Override
   public String toXmlForEmbed( String rootTag ) {

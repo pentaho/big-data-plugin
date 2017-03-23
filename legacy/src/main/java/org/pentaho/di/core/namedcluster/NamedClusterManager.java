@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -30,10 +30,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
-import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -207,13 +206,9 @@ public class NamedClusterManager {
   String generateURL( String scheme, String clusterName, IMetaStore metastore, VariableSpace variableSpace ) {
     String clusterURL = null;
     try {
-      if ( !Const.isEmpty( scheme ) && !Const.isEmpty( clusterName ) && metastore != null ) {
+      if ( !Utils.isEmpty( scheme ) && !Utils.isEmpty( clusterName ) && metastore != null ) {
         NamedCluster namedCluster = read( clusterName, metastore );
         if ( namedCluster != null ) {
-          if ( !scheme.equals( HadoopSpoonPlugin.HDFS_SCHEME ) ) {
-            return null;
-          }
-
           String ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost() : "";
           String ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort() : "";
           String ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
@@ -221,6 +216,11 @@ public class NamedClusterManager {
 
           if ( variableSpace != null ) {
             variableSpace.initializeVariablesFrom( namedCluster.getParentVariableSpace() );
+            if ( StringUtil.isVariable( scheme ) ) {
+              scheme =
+                variableSpace.getVariable( StringUtil.getVariableName( scheme ) ) != null ? variableSpace
+                  .environmentSubstitute( scheme ) : null;
+            }
             if ( StringUtil.isVariable( ncHostname ) ) {
               ncHostname =
                   variableSpace.getVariable( StringUtil.getVariableName( ncHostname ) ) != null ? variableSpace
@@ -248,7 +248,7 @@ public class NamedClusterManager {
             ncPort = "-1";
           } else {
             ncPort = ncPort.trim();
-            if ( Const.isEmpty( ncPort ) ) {
+            if ( Utils.isEmpty( ncPort ) ) {
               ncPort = "-1";
             }
           }
@@ -284,8 +284,11 @@ public class NamedClusterManager {
   public String processURLsubstitution( String clusterName, String incomingURL,
       String scheme, IMetaStore metastore, VariableSpace variableSpace ) {
     String outgoingURL = null;
+    String clusterURL = null;
+    if ( !scheme.equals( NamedCluster.MAPRFS_SCHEME ) ) {
+      clusterURL = generateURL( scheme, clusterName, metastore, variableSpace );
+    }
     try {
-      String clusterURL = generateURL( scheme, clusterName, metastore, variableSpace );
       if ( clusterURL == null ) {
         outgoingURL = incomingURL;
       } else if ( incomingURL.equals( "/" ) ) {
