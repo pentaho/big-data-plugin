@@ -177,7 +177,8 @@ public class NamedClusterComposite extends Composite {
     Map<String, Object> properties = namedClusterService.getProperties();
     for ( String key : properties.keySet() ) {
       if ( key.startsWith( NAMED_CLUSTER_DFS_SCHEME ) ) {
-        schemeValues.add( key.substring( key.lastIndexOf( "." ) ) );
+        // will add 1 because we should use the key without "."
+        schemeValues.add( key.substring( key.lastIndexOf( "." ) + 1  ) );
         schemeNames.add( (String) properties.get( key ) );
       }
     }
