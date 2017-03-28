@@ -107,8 +107,7 @@
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="jobentry-combiner-single-threaded" flex="1" command="jobEntryController.invertCombiningSingleThreaded()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.CombinerSingleThreaded.Label}" />
+                                 <checkbox id="jobentry-combiner-single-threaded" flex="1" command="jobEntryController.invertCombiningSingleThreaded()" label="${JobEntryHadoopTransJobExecutor.CombinerSingleThreaded.Label}" />
                               </hbox>
                               <spacer />
                            </row>
@@ -151,8 +150,7 @@
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="jobentry-reduce-single-threaded" flex="1" command="jobEntryController.invertReducingSingleThreaded()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ReduceSingleThreaded.Label}" />
+                                 <checkbox id="jobentry-reduce-single-threaded" flex="1" command="jobEntryController.invertReducingSingleThreaded()" label="${JobEntryHadoopTransJobExecutor.ReduceSingleThreaded.Label}" />
                               </hbox>
                               <spacer />
                            </row>
@@ -182,8 +180,7 @@
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="clean-output-path" flex="1" command="jobEntryController.invertCleanOutputPath()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.CleanOutputPath.Label}" />
+                                 <checkbox id="clean-output-path" flex="1" command="jobEntryController.invertCleanOutputPath()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.Paths.CleanOutputPath.Label}" />
                               </hbox>
                            </row>
                            <row>
@@ -200,26 +197,22 @@
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="classes-suppress-output-map-key" flex="1" command="jobEntryController.invertSuppressOutputOfMapKey()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressMapOutputKey.Label}" />
+                                 <checkbox id="classes-suppress-output-map-key" flex="1" command="jobEntryController.invertSuppressOutputOfMapKey()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressMapOutputKey.Label}" />
                               </hbox>
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="classes-suppress-output-map-value" flex="1" command="jobEntryController.invertSuppressOutputOfMapValue()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressMapOutputValue.Label}" />
+                                 <checkbox id="classes-suppress-output-map-value" flex="1" command="jobEntryController.invertSuppressOutputOfMapValue()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressMapOutputValue.Label}" />
                               </hbox>
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="classes-suppress-output-key" flex="1" command="jobEntryController.invertSuppressOutputOfKey()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressOutputKey.Label}" />
+                                 <checkbox id="classes-suppress-output-key" flex="1" command="jobEntryController.invertSuppressOutputOfKey()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressOutputKey.Label}" />
                               </hbox>
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="classes-suppress-output-value" flex="1" command="jobEntryController.invertSuppressOutputOfValue()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressOutputValue.Label}" />
+                                 <checkbox id="classes-suppress-output-value" flex="1" command="jobEntryController.invertSuppressOutputOfValue()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Tab.SuppressOutputValue.Label}" />
                               </hbox>
                            </row>
                         </rows>
@@ -272,8 +265,7 @@
                            </row>
                            <row>
                               <hbox>
-                                 <checkbox id="blocking" flex="1" command="jobEntryController.invertBlocking()" />
-                                 <label value="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Blocking.Label}" />
+                                 <checkbox id="blocking" flex="1" command="jobEntryController.invertBlocking()" label="${JobEntryHadoopTransJobExecutor.ModeAdvanced.Blocking.Label}" />
                               </hbox>
                            </row>
                            <row />
