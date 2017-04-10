@@ -49,7 +49,6 @@
         <include>com.lowagie:itext</include>
         <include>com.lowagie:itext-rtf</include>
         <include>commons-beanutils:commons-beanutils</include>
-        <include>commons-beanutils:commons-beanutils-core</include>
         <include>commons-cli:commons-cli</include>
         <include>commons-collections:commons-collections</include>
         <include>commons-dbcp:commons-dbcp</include>
