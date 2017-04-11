@@ -801,11 +801,6 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>simple-jndi</artifactId>
-      <version>${dependency.simple-jndi.revision}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-osgi-utils-api</artifactId>
       <version>${project.version}</version>
     </dependency>
