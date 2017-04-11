@@ -37,12 +37,19 @@ import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.logging.BaseLogTable;
+import org.pentaho.di.core.logging.ChannelLogTable;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.core.logging.MetricsLogTable;
+import org.pentaho.di.core.logging.PerformanceLogTable;
+import org.pentaho.di.core.logging.StepLogTable;
+import org.pentaho.di.core.logging.TransLogTable;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -65,6 +72,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+
+import static org.pentaho.di.core.Const.*;
 
 /**
  * Created by bryan on 1/8/16.
@@ -177,17 +186,8 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
                                                      FileObject vfsPluginDirectory,
                                                      Properties pmrProperties, TransFactory transFactory,
                                                      PMRArchiveGetter pmrArchiveGetter ) {
-    super( namedCluster, hadoopConfiguration.getHadoopShim(), log, variableSpace );
-    this.hadoopConfiguration = hadoopConfiguration;
-    this.hadoopShim = hadoopConfiguration.getHadoopShim();
-    this.log = log;
-    this.pluginInterface = pluginInterface;
-    this.vfsPluginDirectory = vfsPluginDirectory;
-    this.pmrProperties = pmrProperties;
-    this.transFactory = transFactory;
-    this.installId = buildInstallIdBase( hadoopConfiguration );
-    this.pmrArchiveGetter = pmrArchiveGetter;
-    this.visitorServices = new ArrayList<>();
+    this( namedCluster, hadoopConfiguration, log, variableSpace, pluginInterface, vfsPluginDirectory, pmrProperties,
+      transFactory, pmrArchiveGetter, new ArrayList<>() );
   }
 
   public PentahoMapReduceJobBuilderImpl( NamedCluster namedCluster,
@@ -220,8 +220,81 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     this.transFactory = transFactory;
     this.installId = buildInstallIdBase( hadoopConfiguration );
     this.pmrArchiveGetter = pmrArchiveGetter;
-    this.visitorServices = visitorServices;
+    this.visitorServices = addDefaultVisitors( visitorServices ); ;
+
   }
+
+  @VisibleForTesting List<TransformationVisitorService> addDefaultVisitors(
+    List<TransformationVisitorService> visitorServices ) {
+    String ignoreTableLogging =
+      System.getProperty( Const.KETTLE_COMPATIBILITY_IGNORE_TABLE_LOGGING, "Y" );
+    Boolean notIgnore = "N".equalsIgnoreCase( ignoreTableLogging );
+    if ( notIgnore ) {
+      return visitorServices;
+    } else {
+      List<TransformationVisitorService> editableList = new ArrayList<>( visitorServices );
+      editableList.add( new TransformationVisitorService() {
+        @Override public void visit( MapReduceTransformations transformations ) {
+          //Delete logging into tables
+          deleteLogging( transformations.getCombiner() );
+          deleteLogging( transformations.getMapper() );
+          deleteLogging( transformations.getReducer() );
+
+        }
+      } );
+      return editableList;
+    }
+  }
+
+  private void deleteLogging( Optional<TransConfiguration> transConfiguration ) {
+    if ( !transConfiguration.isPresent() ) {
+      return;
+    }
+    TransMeta meta = transConfiguration.get().getTransMeta();
+
+    BaseLogTable table = meta.getStepLogTable();
+    table.setConnectionName( null );
+    meta.setStepLogTable( (StepLogTable) table );
+
+    table = meta.getMetricsLogTable();
+    table.setConnectionName( null );
+    meta.setMetricsLogTable( (MetricsLogTable) table );
+
+    table = meta.getPerformanceLogTable();
+    table.setConnectionName( null );
+    meta.setPerformanceLogTable( (PerformanceLogTable) table );
+
+    table = meta.getTransLogTable();
+    table.setConnectionName( null );
+    meta.setTransLogTable( (TransLogTable) table );
+
+    table = meta.getChannelLogTable();
+    table.setConnectionName( null );
+    meta.setChannelLogTable( (ChannelLogTable) table );
+
+  }
+
+  private VariableSpace removeLogging( VariableSpace variableSpace ) {
+    String ignoreTableLogging =
+      System.getProperty( Const.KETTLE_COMPATIBILITY_IGNORE_TABLE_LOGGING, "Y" );
+    Boolean notIgnore = "N".equalsIgnoreCase( ignoreTableLogging );
+    if ( notIgnore ) {
+      return variableSpace;
+    } else {
+      VariableSpace vs = new Variables();
+      vs.copyVariablesFrom( variableSpace );
+      vs.setVariable( KETTLE_STEP_LOG_DB, null );
+      vs.setVariable( KETTLE_TRANS_LOG_DB, null );
+      vs.setVariable( KETTLE_JOB_LOG_DB, null );
+      vs.setVariable( KETTLE_TRANS_PERFORMANCE_LOG_DB, null );
+      vs.setVariable( KETTLE_JOBENTRY_LOG_DB, null );
+      vs.setVariable( KETTLE_CHANNEL_LOG_DB, null );
+      vs.setVariable( KETTLE_METRICS_LOG_DB, null );
+      vs.setVariable( KETTLE_CHECKPOINT_LOG_DB, null );
+      return vs;
+    }
+  }
+
 
   private static String buildInstallIdBase( HadoopConfiguration hadoopConfiguration ) {
     String pluginVersion = new PluginPropertiesUtil().getVersion();
@@ -495,7 +568,7 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     xStream.alias( VARIABLE_SPACE, VariableSpace.class );
 
     // serialize the variable space to XML
-    String xmlVariableSpace = xStream.toXML( getVariableSpace() );
+    String xmlVariableSpace = xStream.toXML( removeLogging( getVariableSpace() ) );
 
     // set a string in the job configuration as the serialized variablespace
     conf.setStrings( VARIABLE_SPACE, xmlVariableSpace );
