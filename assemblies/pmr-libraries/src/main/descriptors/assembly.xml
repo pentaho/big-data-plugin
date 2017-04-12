@@ -119,6 +119,7 @@
         <include>org.apache.poi:poi</include>
         <include>org.apache.poi:poi-ooxml</include>
         <include>org.apache.poi:poi-ooxml-schemas</include>
+        <include>org.apache.commons:commons-collections4</include>
         <include>org.apache.xmlbeans:xmlbeans</include>
         <include>org.apache.xmlgraphics:batik-anim</include>
         <include>org.apache.xmlgraphics:batik-awt-util</include>
