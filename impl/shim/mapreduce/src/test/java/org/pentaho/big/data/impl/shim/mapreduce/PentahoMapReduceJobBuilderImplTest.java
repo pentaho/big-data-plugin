@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -47,15 +47,22 @@ import org.pentaho.di.core.DBCache;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.logging.ChannelLogTable;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.core.logging.MetricsLogTable;
+import org.pentaho.di.core.logging.PerformanceLogTable;
+import org.pentaho.di.core.logging.StepLogTable;
+import org.pentaho.di.core.logging.TransLogTable;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.HasDatabasesInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransConfiguration;
 import org.pentaho.di.trans.TransExecutionConfiguration;
@@ -98,7 +105,6 @@ public class PentahoMapReduceJobBuilderImplTest {
   @Mock private NamedCluster namedCluster;
   @Mock private HadoopConfiguration hadoopConfiguration;
   @Mock private LogChannelInterface logChannelInterface;
-  @Mock private VariableSpace variableSpace;
   @Mock private HadoopShim hadoopShim;
   @Mock private PluginInterface pluginInterface;
   @Mock private Properties pmrProperties;
@@ -111,6 +117,7 @@ public class PentahoMapReduceJobBuilderImplTest {
   public ExpectedException expectedEx = ExpectedException.none();
 
   private PentahoMapReduceJobBuilderImpl pentahoMapReduceJobBuilder;
+  private VariableSpace variableSpace = new Variables();
   private List<TransformationVisitorService> visitorServices = new ArrayList<>();
   private String transXml;
   // = "<transformation_configuration><transformation><info><log></log></info></transformation
@@ -634,6 +641,60 @@ public class PentahoMapReduceJobBuilderImplTest {
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_REDUCE_OUTPUT_STEPNAME, testROutput );
     verify( configuration ).setReducerClass( Integer.class );
 
+    verify( configuration ).setJarByClass( String.class );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.LOG_LEVEL, LogLevel.BASIC.toString() );
+  }
+
+  @Test
+  public void testDeleteLogging() throws Exception {
+    when( hadoopShim.getPentahoMapReduceMapRunnerClass() ).thenReturn( (Class) String.class );
+    when( hadoopShim.getPentahoMapReduceCombinerClass() ).thenReturn( (Class) Void.class );
+    when( hadoopShim.getPentahoMapReduceReducerClass() ).thenReturn( (Class) Integer.class );
+    pentahoMapReduceJobBuilder.setLogLevel( LogLevel.BASIC );
+    pentahoMapReduceJobBuilder.setInputPaths( new String[ 0 ] );
+    pentahoMapReduceJobBuilder.setOutputPath( "test" );
+    Configuration configuration = mock( Configuration.class );
+    when( hadoopShim.getFileSystem( configuration ) ).thenReturn( mock( FileSystem.class ) );
+    String testMrInput = "testMrInput";
+    String testMrOutput = "testMrOutput";
+    TransMeta meta = new TransMeta();
+    TransConfiguration transConfig = new TransConfiguration( meta, new TransExecutionConfiguration() );
+    String transXmlWOLogging = TransConfiguration.fromXML( transConfig.getXML() ).getXML();
+    meta = transConfig.getTransMeta();
+
+    HasDatabasesInterface dbIf = mock( HasDatabasesInterface.class );
+    VariableSpace vsLogging = variableSpace;
+
+    MetricsLogTable metricsLogTable = MetricsLogTable.getDefault( vsLogging, dbIf );
+    metricsLogTable.setConnectionName( "logging-connection" );
+    meta.setMetricsLogTable( metricsLogTable );
+
+    PerformanceLogTable performanceLogTable = PerformanceLogTable.getDefault( vsLogging, dbIf );
+    performanceLogTable.setConnectionName( "logging-connection" );
+    meta.setPerformanceLogTable( performanceLogTable );
+
+    StepLogTable stepLogTable = StepLogTable.getDefault( vsLogging, dbIf );
+    stepLogTable.setConnectionName( "logging-connection" );
+    meta.setStepLogTable( stepLogTable );
+
+    TransLogTable transLogTable = TransLogTable.getDefault( vsLogging, dbIf, null );
+    transLogTable.setConnectionName( "logging-connection" );
+    meta.setTransLogTable( transLogTable );
+
+    ChannelLogTable channelLogTable = ChannelLogTable.getDefault( vsLogging, mock( HasDatabasesInterface.class ) );
+    channelLogTable.setConnectionName( "logging-connection" );
+    meta.setChannelLogTable( channelLogTable );
+
+    transConfig.setTransMeta( meta );
+    String logTransXml = TransConfiguration.fromXML( transConfig.getXML() ).getXML();
+
+    pentahoMapReduceJobBuilder.setMapperInfo( logTransXml, testMrInput, testMrOutput );
+    pentahoMapReduceJobBuilder.configure( configuration );
+
+    verify( configuration ).setMapRunnerClass( String.class );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_XML, transXmlWOLogging );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_INPUT_STEPNAME, testMrInput );
+    verify( configuration ).set( PentahoMapReduceJobBuilderImpl.TRANSFORMATION_MAP_OUTPUT_STEPNAME, testMrOutput );
     verify( configuration ).setJarByClass( String.class );
     verify( configuration ).set( PentahoMapReduceJobBuilderImpl.LOG_LEVEL, LogLevel.BASIC.toString() );
   }
