@@ -22,44 +22,10 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created by bryan on 11/23/15.
  */
 public class HadoopFileOutputDialogTest {
-  @Test
-  public void testGetUrlPathHdfsPrefix() {
-    String prefixToBeRemoved = "hdfs://myhost:8020";
-    String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
-  }
 
-  @Test
-  public void testGetUrlPathMapRPRefix() {
-    String prefixToBeRemoved = "maprfs://";
-    String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
-  }
-
-  @Test
-  public void testGetUrlPathSpecialPrefix() {
-    String prefixToBeRemoved = "mySpecialPrefix://host";
-    String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
-  }
-
-  @Test
-  public void testGetUrlPathNoPrefix() {
-    String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
-  }
-
-  @Test
-  public void testGetUrlPathVariablePrefix() {
-    String expected = "${myTestVar}";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
-  }
 }

@@ -24,11 +24,9 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.metastore.MetaStoreConst;
@@ -39,6 +37,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Step( id = "HadoopFileOutputPlugin", image = "HDO.svg", name = "HadoopFileOutputPlugin.Name",
     description = "HadoopFileOutputPlugin.Description",
@@ -54,12 +55,12 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   private String sourceConfigurationName;
 
   private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
+  private static final String URL_REGEX = "^.*://.*@?.*:[^/]*/";
+  private static final Pattern URL_ROOT_PATTERN = Pattern.compile( URL_REGEX );
 
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
-  private IMetaStore metaStore;
-  private Node embeddedNamedClusterNode;
 
   public HadoopFileOutputMeta( NamedClusterService namedClusterService,
                                RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
@@ -99,18 +100,22 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   }
 
   protected String loadSource( Node stepnode, IMetaStore metastore ) {
-    this.metaStore = metastore;
     String url = XMLHandler.getTagValue( stepnode, "file", "name" );
     sourceConfigurationName = XMLHandler.getTagValue( stepnode, "file", SOURCE_CONFIGURATION_NAME );
-    embeddedNamedClusterNode = XMLHandler.getSubNode( stepnode, "NamedCluster" );
 
     return getProcessedUrl( metastore, url );
+  }
+
+  protected void saveSource( StringBuilder retVal, String fileName ) {
+    retVal.append( "      " ).append( XMLHandler.addTagValue( "name", fileName ) );
+    retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
   }
 
   protected String getProcessedUrl( IMetaStore metastore, String url ) {
     if ( url == null ) {
       return null;
     }
+    IMetaStore metaStore = null;
     if ( metastore == null ) {
       // Maybe we can get a metastore from spoon
       try {
@@ -126,36 +131,17 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     if ( metaStore != null ) {
       // If we have a metastore get the cluster from it.
       c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
-    } else {
-      // Still no metastore, try to make a named cluster from the embedded xml
-      if ( namedClusterService.getClusterTemplate() != null ) {
-        c = namedClusterService.getClusterTemplate().fromXmlForEmbed( embeddedNamedClusterNode );
-      }
     }
     if ( c != null ) {
-      url = c.processURLsubstitution( url, metaStore, new Variables() );
+      String urlPath = getUrlPath( url );
+      String rootUrl = getRootURL( c );
+      url = urlPath != null && rootUrl != null ? rootUrl + urlPath : url;
     }
     return url;
   }
 
-  protected void saveSource( StringBuilder retVal, String fileName ) {
-    retVal.append( "      " ).append( XMLHandler.addTagValue( "name", fileName ) );
-    retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
-  }
-
-  @Override
-  public String getXML() {
-    String xml = super.getXML();
-    NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
-    if ( c != null ) {
-      xml = xml + c.toXmlForEmbed( "NamedCluster" )  + Const.CR;
-    }
-    return xml;
-  }
-
   // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null
   protected String loadSourceRep( Repository rep, ObjectId id_step,  IMetaStore metaStore ) throws KettleException {
-    this.metaStore = metaStore;
     String url = rep.getStepAttributeString( id_step, "file_name" );
     sourceConfigurationName = rep.getStepAttributeString( id_step, SOURCE_CONFIGURATION_NAME );
 
@@ -178,5 +164,47 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
   public RuntimeTestActionService getRuntimeTestActionService() {
     return runtimeTestActionService;
+  }
+
+  protected static String getUrlPath( String incomingURL ) {
+    String path = null;
+    Matcher matcher = URL_ROOT_PATTERN.matcher( incomingURL );
+    if ( matcher.find() ) {
+      path = incomingURL.substring( matcher.group().length() );
+    }
+    return path != null ? path.startsWith( "/" ) ? path : "/" + path : null;
+  }
+
+  public static String getRootURL( NamedCluster namedCluster ) {
+
+    String rootURL = null;
+
+    if ( namedCluster == null ) {
+      return null;
+    }
+
+    String scheme = namedCluster.getShimIdentifier();
+    String ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost().trim() : "";
+    String ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort().trim() : "";
+    String ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername().trim() : "";
+    String ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword().trim() : "";
+    if ( ncPort.isEmpty() ) {
+      ncPort = "-1";
+    }
+    scheme = scheme != null ? scheme : namedCluster.isMapr() ? "maprfs" : "hdfs";
+
+    StringBuilder rootURLBuilder = new StringBuilder();
+    rootURLBuilder.append( scheme ).append( "://" );
+    if ( !ncUsername.isEmpty() ) {
+      rootURLBuilder.append( ncUsername );
+      if ( !ncPassword.isEmpty() ) {
+        rootURLBuilder.append( ":" ).append( ncPassword );
+      }
+      rootURLBuilder.append( "@" );
+    }
+    rootURLBuilder.append( ncHostname ).append( ":" );
+    rootURLBuilder.append( ncPort );
+
+    return rootURLBuilder.toString();
   }
 }

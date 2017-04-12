@@ -45,7 +45,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.any;
 
 /**
  * Unit tests for NamedClusterBridgeImpl. This is a bridge class to bridge NamedCluster objects from the legacy plugin
@@ -87,7 +86,6 @@ public class NamedClusterBridgeImplTest {
     isMapr = true;
     toString = "Named cluster: " + namedClusterName;
     lastModifiedDate = 11L;
-    xmlString = "xmlString";
 
     legacyNamedCluster = mock( org.pentaho.di.core.namedcluster.model.NamedCluster.class );
     namedClusterManager = mock( NamedClusterManager.class );
@@ -432,10 +430,5 @@ public class NamedClusterBridgeImplTest {
     assertEquals( "maprfs://" + testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
 
-  @Test
-  public void testToXmlForEmbed() {
-    when( legacyNamedCluster.toXmlForEmbed( any() ) ).thenReturn( xmlString );
-    assertEquals( xmlString, namedClusterBridge.toXmlForEmbed( "node" ) );
-  }
 
 }
