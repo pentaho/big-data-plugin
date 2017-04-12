@@ -31,7 +31,6 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
 import org.pentaho.metastore.api.IMetaStore;
@@ -59,8 +58,6 @@ public class HadoopFileOutputMetaTest {
   public static final String TEST_CLUSTER_NAME = "TEST-CLUSTER-NAME";
   public static final String SAMPLE_HADOOP_FILE_OUTPUT_STEP = "sample-hadoop-file-output-step.xml";
   public static final String ENTRY_TAG_NAME = "entry";
-  public static final String EMBEDDED_XML = "embed";
-  public static final String NAMED_CLUSTER_TAG = "NamedCluster";
   private static Logger logger = Logger.getLogger( HadoopFileOutputMetaTest.class );
   // for message resolution
   private static Class<?> MessagePKG = HadoopFileOutputMeta.class;
@@ -74,7 +71,6 @@ public class HadoopFileOutputMetaTest {
     namedClusterService = mock( NamedClusterService.class );
     runtimeTestActionService = mock( RuntimeTestActionService.class );
     runtimeTester = mock( RuntimeTester.class );
-    MetaStoreConst.disableMetaStore = false;
   }
 
   /**
@@ -122,22 +118,6 @@ public class HadoopFileOutputMetaTest {
     assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
   }
 
-  @Test
-  public void testProcessedUrlUsingEmbeddedCluster() throws Exception {
-    String sourceConfigurationName = "scName";
-    String desiredUrl = "desiredUrl";
-    String url = "url";
-    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
-    NamedCluster nc = mock( NamedCluster.class );
-    NamedCluster nc2 = mock( NamedCluster.class );
-    MetaStoreConst.disableMetaStore = true;
-    
-    when( namedClusterService.getClusterTemplate() ).thenReturn( nc );
-    when( nc.fromXmlForEmbed( any() ) ).thenReturn( nc2 );
-    when( nc2.processURLsubstitution( eq( url ), any( ), any() ) ).thenReturn( desiredUrl );
-    assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( null, url ) );
-  }
 
   /**
    * BACKLOG-7972 - Hadoop File Output: Hadoop Clusters dropdown doesn't preserve selected cluster after reopen a
@@ -210,29 +190,6 @@ public class HadoopFileOutputMetaTest {
     when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
 
     assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, mockMetaStore ) );
-  }
-
-  @Test
-  public void testSaveSourceCalledFromGetXmlWithEmbeddedCluster() throws Exception {
-    HadoopFileOutputMeta hadoopFileOutputMeta =
-        new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
-    hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
-    // set required data for step - empty
-    hadoopFileOutputMeta.setOutputFields( new TextFileField[] {} );
-    // create spy to check whether saveSource now is called
-    HadoopFileOutputMeta spy = Mockito.spy( hadoopFileOutputMeta );
-    // getting from structure file node
-    NamedCluster mockNamedCluster = mock( NamedCluster.class );
-    when( namedClusterService.getNamedClusterByName( eq( TEST_CLUSTER_NAME ), any() ) ).thenReturn( mockNamedCluster );
-    when( mockNamedCluster.toXmlForEmbed( NAMED_CLUSTER_TAG ) ).thenReturn(
-        "<" + NAMED_CLUSTER_TAG + ">" + EMBEDDED_XML + "</" + NAMED_CLUSTER_TAG + ">" );
-
-    Document hadoopOutputMetaStep = getDocumentFromString( spy.getXML(), new SAXBuilder() );
-    Element clusterElement = getChildElementByTagName( hadoopOutputMetaStep.getRootElement(), NAMED_CLUSTER_TAG );
-    // getting from file node cluster attribute value
-    assertEquals( EMBEDDED_XML, clusterElement.getValue() );
-    // check that saveSource is called from TextFileOutputMeta
-    verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), any( String.class ) );
   }
 
 

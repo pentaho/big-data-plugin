@@ -17,23 +17,7 @@
 
 package org.pentaho.big.data.impl.cluster;
 
-import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.apache.commons.beanutils.BeanMap;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
@@ -45,17 +29,9 @@ import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
-import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -65,9 +41,6 @@ public class NamedClusterImpl implements NamedCluster {
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String WASB_SCHEME = "wasb";
-  public static final String INDENT = "  ";
-  public static final String ROOT_INDENT = "    ";
-  private static final Logger LOGGER = LoggerFactory.getLogger( NamedClusterImpl.class );
 
   private VariableSpace variables = new Variables();
 
@@ -108,8 +81,6 @@ public class NamedClusterImpl implements NamedCluster {
 
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
-
-  private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   public NamedClusterImpl() {
     initializeVariablesFrom( null );
@@ -184,7 +155,6 @@ public class NamedClusterImpl implements NamedCluster {
     return variables.getVariable( variableName );
   }
 
-  @SuppressWarnings( "deprecation" )
   public boolean getBooleanValueOfVariable( String variableName, boolean defaultValue ) {
     if ( !Utils.isEmpty( variableName ) ) {
       String value = environmentSubstitute( variableName );
@@ -494,94 +464,6 @@ public class NamedClusterImpl implements NamedCluster {
   @Override
   public String toString() {
     return "Named cluster: " + getName();
-  }
-
-  public String toXmlForEmbed( String rootTag ) {
-    BeanMap m = new BeanMap( this );
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    DocumentBuilder builder = null;
-    Document doc = null;
-    try {
-      builder = dbf.newDocumentBuilder();
-      doc = builder.newDocument();
-      Element rootNode = doc.createElement( rootTag );
-      doc.appendChild( rootNode );
-      StringBuilder sb = new StringBuilder();
-      @SuppressWarnings( "unchecked" )
-      Iterator<Map.Entry<Object, Object>> i = m.entryIterator();
-      while ( i.hasNext() ) {
-        Map.Entry<Object, Object> entry = i.next();
-        String elementName = (String) entry.getKey();
-        if ( !"class".equals( elementName ) && !"parentVariableSpace".equals( elementName ) ) {
-          String value = "";
-          String type = "String";
-          Object o = entry.getValue();
-          if ( o != null ) {
-            if ( o instanceof Long ) {
-              value = Long.toString( (Long) o );
-            } else if ( o instanceof Boolean ) {
-              value = Boolean.toString( (Boolean) o );
-            } else {
-              try {
-                value = (String) entry.getValue();
-                if ( elementName.toLowerCase().contains( "password" ) ) {
-                  value = passwordEncoder.encode( value );
-                }
-              } catch ( Exception e ) {
-                e.printStackTrace();
-              }
-            }
-          }
-          rootNode.appendChild( createChildElement( doc, elementName, type, value ) );
-        }
-      }
-      DOMSource domSource = new DOMSource( doc );
-      StringWriter writer = new StringWriter();
-      StreamResult result = new StreamResult( writer );
-      TransformerFactory tf = TransformerFactory.newInstance();
-      Transformer transformer = tf.newTransformer();
-      transformer.transform( domSource, result );
-      String s = writer.toString();
-      // Remove header from the XML
-      s = s.substring( s.indexOf( ">" ) + 1 );
-      return s;
-    } catch ( ParserConfigurationException | TransformerException e1 ) {
-      LOGGER.error( "Could not parse embedded cluster xml" + e1.toString() );
-      return "";
-    }
-  }
-
-  public NamedCluster fromXmlForEmbed( Node node ) {
-    NamedClusterImpl returnCluster = this.clone();
-    List<Node> fields = XMLHandler.getNodes( node, "child" );
-    for ( Node field: fields ) {
-      String fieldName = XMLHandler.getTagValue( field, "id" );
-      System.out.println( fieldName );
-      String fieldValue = XMLHandler.getTagValue(  field, "value" );
-      if ( fieldName.toLowerCase().contains( "password" ) ) {
-        fieldValue = passwordEncoder.decode( fieldValue );
-      }
-      try {
-        BeanUtils.setProperty( returnCluster, fieldName, fieldValue );
-      } catch ( IllegalAccessException | InvocationTargetException e ) {
-        LOGGER.error( "Could not serialize NamedCluster to xml: " + e.toString() );
-      }
-    }
-    return returnCluster;
-  }
-
-  private Node createChildElement( Document doc, String elementName, String elementType, String elementValue ) {
-    Element childNode = doc.createElement( "child" );
-    childNode.appendChild( createTextNode( doc, "id", elementName ) );
-    childNode.appendChild( createTextNode( doc, "value", elementValue ) );
-    childNode.appendChild( createTextNode( doc, "type", elementType ) );
-    return childNode;
-  }
-
-  private Node createTextNode( Document doc, String tagName, String value ) {
-    Node node = doc.createElement( tagName );
-    node.appendChild( doc.createTextNode( value ) );
-    return node;
   }
 
 }

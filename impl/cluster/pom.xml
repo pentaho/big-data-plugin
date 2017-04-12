@@ -59,16 +59,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${dependency.slf4j.revision}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${dependency.slf4j.revision}</version>
-    </dependency>
-    <dependency>
     	<groupId>org.osgi</groupId>
     	<artifactId>org.osgi.core</artifactId>
     	<version>${dependency.osgi.version}</version>

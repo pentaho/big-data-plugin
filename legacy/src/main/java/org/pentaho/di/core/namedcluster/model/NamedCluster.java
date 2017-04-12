@@ -33,7 +33,6 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
-import org.w3c.dom.Node;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
 public class NamedCluster implements Cloneable, VariableSpace {
@@ -334,13 +333,4 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.storageScheme = storageScheme;
   }
 
-
-  public String toXmlForEmbed( String rootTag ) {
-    // This method should only be called on the real NamedClusterImpl
-    return null;
-  }
-  public NamedCluster fromXmlForEmbed( Node node ) {
-    // This method should only be called on the real NamedClusterImpl
-    return null;
-  }
 }

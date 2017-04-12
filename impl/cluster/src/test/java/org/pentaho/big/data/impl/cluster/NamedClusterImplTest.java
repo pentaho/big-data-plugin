@@ -17,20 +17,14 @@
 
 package org.pentaho.big.data.impl.cluster;
 
-import java.io.ByteArrayInputStream;
 import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.w3c.dom.Element;
 
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEqualsFor;
@@ -453,30 +447,4 @@ public class NamedClusterImplTest {
     assertEquals( scheme + ":",      namedCluster.generateURL( scheme, metaStore, variableSpace ) );
   }
 
-  @Test
-  public void testXMLEmbedding() throws Exception {
-    String clusterXml = namedCluster.toXmlForEmbed( "NamedCluster" );
-    System.out.println( clusterXml );
-
-    Element node =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-            new ByteArrayInputStream( clusterXml.getBytes() ) )
-            .getDocumentElement();
-
-    NamedCluster nc = new NamedClusterImpl();
-    nc = nc.fromXmlForEmbed( node );
-    assertEquals( namedCluster.getHdfsHost(), nc.getHdfsHost() );
-    assertEquals( namedCluster.getHdfsPort(), nc.getHdfsPort() );
-    assertEquals( namedCluster.getHdfsUsername(), nc.getHdfsUsername() );
-    assertEquals( namedCluster.getHdfsPassword(), nc.getHdfsPassword() );
-    assertEquals( namedCluster.getName(), nc.getName() );
-    assertEquals( namedCluster.getShimIdentifier(), nc.getShimIdentifier() );
-    assertEquals( namedCluster.getStorageScheme(), nc.getStorageScheme() );
-    assertEquals( namedCluster.getJobTrackerHost(), nc.getJobTrackerHost() );
-    assertEquals( namedCluster.getJobTrackerPort(), nc.getJobTrackerPort() );
-    assertEquals( namedCluster.getZooKeeperHost(), nc.getZooKeeperHost() );
-    assertEquals( namedCluster.getZooKeeperPort(), nc.getZooKeeperPort() );
-    assertEquals( namedCluster.getOozieUrl(), nc.getOozieUrl() );
-    assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
-  }
 }

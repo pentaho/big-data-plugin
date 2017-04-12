@@ -24,7 +24,6 @@ package org.pentaho.big.data.api.cluster;
 
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
-import org.w3c.dom.Node;
 
 import java.util.Comparator;
 
@@ -91,10 +90,6 @@ public interface NamedCluster extends Cloneable, VariableSpace {
   void setMapr( boolean mapr );
 
   NamedCluster clone();
-
-  String toXmlForEmbed( String rootTag );
-
-  NamedCluster fromXmlForEmbed( Node node );
 
   /**
    * This method performs the root URL substitution with the URL of the specified NamedCluster
