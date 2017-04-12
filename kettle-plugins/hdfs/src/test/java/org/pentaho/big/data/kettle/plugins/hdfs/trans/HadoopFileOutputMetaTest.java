@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
@@ -42,13 +41,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by bryan on 11/23/15.
@@ -65,12 +68,16 @@ public class HadoopFileOutputMetaTest {
   private RuntimeTestActionService runtimeTestActionService;
   private RuntimeTester runtimeTester;
 
+  NamedCluster cluster = null;
+  IMetaStore metaStore = null;
 
   @Before
   public void setUp() throws Exception {
     namedClusterService = mock( NamedClusterService.class );
     runtimeTestActionService = mock( RuntimeTestActionService.class );
     runtimeTester = mock( RuntimeTester.class );
+    cluster = mock( NamedCluster.class );
+    metaStore = mock( IMetaStore.class );
   }
 
   /**
@@ -80,7 +87,7 @@ public class HadoopFileOutputMetaTest {
   public void testFileAsCommandOption() {
 
     HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
+            runtimeTester );
 
     // we expect isFileAsCommand to be false
     assertFalse( hadoopFileOutputMeta.isFileAsCommand() );
@@ -91,33 +98,11 @@ public class HadoopFileOutputMetaTest {
     } catch ( Exception e ) {
       // the expected message is "class name":" message from the package that HadoopFileOutputMeta is in
       String expectedMessage =
-        e.getClass().getName() + ": "
-          + BaseMessages.getString( MessagePKG, "HadoopFileOutput.MethodNotSupportedException.Message" );
+              e.getClass().getName() + ": "
+                      + BaseMessages.getString( MessagePKG, "HadoopFileOutput.MethodNotSupportedException.Message" );
       assertTrue( e.getMessage().equals( expectedMessage ) );
     }
   }
-
-  @Test
-  public void testProcessedUrl() throws Exception {
-    String sourceConfigurationName = "scName";
-    String desiredUrl = "desiredUrl";
-    String url = "url";
-    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
-    IMetaStore metaStore = mock( IMetaStore.class );
-    assertTrue( null == hadoopFileOutputMeta.getProcessedUrl( metaStore, null ) );
-    hadoopFileOutputMeta.setSourceConfigurationName( sourceConfigurationName );
-    NamedCluster nc = mock( NamedCluster.class );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
-      .thenReturn( null );
-    assertEquals( url, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
-    when( namedClusterService.getNamedClusterByName( eq( sourceConfigurationName ), (IMetaStore) anyObject() ) )
-      .thenReturn( nc );
-    when( nc.processURLsubstitution( eq( url ), (IMetaStore) anyObject(), (VariableSpace) anyObject() ) )
-      .thenReturn( desiredUrl );
-    assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( metaStore, url ) );
-  }
-
 
   /**
    * BACKLOG-7972 - Hadoop File Output: Hadoop Clusters dropdown doesn't preserve selected cluster after reopen a
@@ -128,7 +113,7 @@ public class HadoopFileOutputMetaTest {
   @Test
   public void testSaveSourceCalledFromGetXml() throws Exception {
     HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
+            runtimeTester );
     hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
     //set required data for step - empty
     hadoopFileOutputMeta.setOutputFields( new TextFileField[] {} );
@@ -143,6 +128,8 @@ public class HadoopFileOutputMetaTest {
     //check that saveSource is called from TextFileOutputMeta
     verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), any( String.class ) );
   }
+
+
 
   public Node getChildElementByTagName( String fileName ) throws Exception {
     URL resource = getClass().getClassLoader().getResource( fileName );
@@ -161,7 +148,7 @@ public class HadoopFileOutputMetaTest {
   @Test
   public void testLoadSourceCalledFromReadData() throws Exception {
     HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
+            runtimeTester );
     hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
     //set required data for step - empty
     hadoopFileOutputMeta.setOutputFields( new TextFileField[] {} );
@@ -176,25 +163,78 @@ public class HadoopFileOutputMetaTest {
   @Test
   public void testLoadSourceRepForUrlRefresh() throws Exception {
     final String URL_FROM_CLUSTER = "urlFromCluster";
-    IMetaStore mockMetaStore = mock( IMetaStore.class );
-    NamedCluster mockNamedCluster = mock( NamedCluster.class );
-    when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
-    when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) )
-      .thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
     when( mockRep.getStepAttributeString( anyObject(), eq( "source_configuration_name" ) ) ).thenReturn(
-        TEST_CLUSTER_NAME );
+            TEST_CLUSTER_NAME );
     HadoopFileOutputMeta hadoopFileOutputMeta =
-        new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
-    hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
-    when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
+            new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+    when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( URL_FROM_CLUSTER );
 
-    assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, mockMetaStore ) );
+    assertEquals( URL_FROM_CLUSTER, hadoopFileOutputMeta.loadSourceRep( mockRep, null, null ) );
   }
 
+  @Test
+  public void testGetHdfsURLRootWithHostnameVariable() {
+    when( cluster.getHdfsHost() ).thenReturn( "${VariableHostname}" );
+    when( cluster.getHdfsPort() ).thenReturn( "7777" );
+    when( cluster.getHdfsUsername() ).thenReturn( "admin" );
+    when( cluster.getHdfsPassword() ).thenReturn( "password" );
+    when( cluster.getShimIdentifier() ).thenReturn( "hdfs" );
+    assertEquals( "hdfs://admin:password@${VariableHostname}:7777", HadoopFileOutputMeta.getRootURL( cluster ) );
+  }
+
+  @Test
+  public void testGetMaprURLRootWithHostnameVariable() {
+    when( cluster.getHdfsHost() ).thenReturn( "${VariableHostname}" );
+    when( cluster.getHdfsPort() ).thenReturn( "${TestPort}" );
+    when( cluster.getShimIdentifier() ).thenReturn( "maprfs" );
+    assertEquals( "maprfs://${VariableHostname}:${TestPort}", HadoopFileOutputMeta.getRootURL( cluster ) );
+  }
+
+  @Test
+  public void testGetRelativePathToHdfsUrlRootWithVariables() {
+    when( cluster.getHdfsHost() ).thenReturn( "${VariableHostname}" );
+    when( cluster.getHdfsPort() ).thenReturn( "7777" );
+    when( cluster.getHdfsUsername() ).thenReturn( "admin" );
+    when( cluster.getHdfsPassword() ).thenReturn( "password" );
+    when( cluster.isMapr() ).thenReturn( false );
+    String relativeUrl = "/some/path/to";
+    assertEquals( relativeUrl, HadoopFileOutputMeta.getUrlPath( "hdfs://admin:password@${VariableHostname}:7777" + relativeUrl ) );
+  }
+
+  @Test
+  public void testGetRelativePathToMaprUrlRootWithVariables() {
+    when( cluster.getHdfsHost() ).thenReturn( "${VariableHostname}" );
+    when( cluster.getHdfsPort() ).thenReturn( "7777" );
+    when( cluster.getHdfsUsername() ).thenReturn( "admin" );
+    when( cluster.getHdfsPassword() ).thenReturn( "password" );
+    when( cluster.isMapr() ).thenReturn( true );
+    String relativeUrl = "/some/path/to";
+    assertEquals( relativeUrl, HadoopFileOutputMeta.getUrlPath( "maprfs://admin:password@${VariableHostname}:7777" + relativeUrl ) );
+  }
+
+  @Test
+  public void testGetRelativePathToUrlRootWithoutVariables() {
+    String noVariableUrl = "hdfs://admin:password@test_hostname_no_variables:7777";
+    String relativeUrl = "/some/path/to";
+    when( cluster.processURLsubstitution( eq( "/" ), any(), any() ) ).thenReturn( noVariableUrl );
+    when( cluster.isMapr() ).thenReturn( false );
+    assertEquals( relativeUrl, HadoopFileOutputMeta.getUrlPath( "hdfs://admin:password@test_hostname_no_variables:7777" + relativeUrl ) );
+  }
+
+  @Test
+  public void testGetRelativePathWithVariables() {
+    when( cluster.getHdfsHost() ).thenReturn( "${VariableHostname}" );
+    when( cluster.getHdfsPort() ).thenReturn( "TestPort" );
+    when( cluster.getHdfsUsername() ).thenReturn( "admin" );
+    when( cluster.getHdfsPassword() ).thenReturn( "password" );
+    when( cluster.isMapr() ).thenReturn( true );
+    String relativeUrl = "/${VariableTestPath}";
+    assertEquals( relativeUrl, HadoopFileOutputMeta.getUrlPath( "maprfs://admin:password@${VariableHostname}:TestPort" + relativeUrl ) );
+  }
 
   public static Document getDocumentFromString( String xmlStep, SAXBuilder jdomBuilder )
-    throws JDOMException, IOException {
+          throws JDOMException, IOException {
     String xml = XMLHandler.openTag( ENTRY_TAG_NAME ) + xmlStep + XMLHandler.closeTag( ENTRY_TAG_NAME );
     return jdomBuilder.build( new ByteArrayInputStream( xml.getBytes() ) );
   }

@@ -22,10 +22,8 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
-import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
@@ -95,6 +93,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta.getRootURL;
+import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta.getUrlPath;
 
 public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> BASE_PKG = TextFileOutputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
@@ -1559,9 +1560,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
     NamedCluster c = getMetaStore() == null ? null
       : namedClusterService.getNamedClusterByName( ncName, getMetaStore() );
-    if ( c != null ) {
-      fileName = c.processURLsubstitution( fileName, getMetaStore(), variables );
-    }
+    String rootClusterUrl = getRootURL( c );
+    fileName = rootClusterUrl != null && fileName != null ? rootClusterUrl + fileName : null;
 
     tfoi.setFileName( fileName );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
@@ -1712,22 +1712,6 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   private void enableParentFolder() {
     wlCreateParentFolder.setEnabled( true );
     wCreateParentFolder.setEnabled( true );
-  }
-
-  public static String getUrlPath( String incomingURL ) {
-    String path = incomingURL;
-    try {
-      String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, noVariablesURL );
-      String root = fileName.getRootURI();
-      if ( noVariablesURL.startsWith( root ) ) {
-        path = incomingURL.substring( root.length() - 1 );
-      }
-    } catch ( FileSystemException e ) {
-      path = null;
-    }
-    return path;
   }
 
   private void showMessageAndLog( String title, String message, String messageToLog ) {

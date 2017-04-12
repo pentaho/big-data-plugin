@@ -27,9 +27,9 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
@@ -37,6 +37,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Step( id = "HadoopFileOutputPlugin", image = "HDO.svg", name = "HadoopFileOutputPlugin.Name",
     description = "HadoopFileOutputPlugin.Description",
@@ -52,6 +55,8 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
   private String sourceConfigurationName;
 
   private static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
+  private static final String URL_REGEX = "^.*://.*@?.*:[^/]*/";
+  private static final Pattern URL_ROOT_PATTERN = Pattern.compile( URL_REGEX );
 
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -101,21 +106,38 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     return getProcessedUrl( metastore, url );
   }
 
+  protected void saveSource( StringBuilder retVal, String fileName ) {
+    retVal.append( "      " ).append( XMLHandler.addTagValue( "name", fileName ) );
+    retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
+  }
+
   protected String getProcessedUrl( IMetaStore metastore, String url ) {
     if ( url == null ) {
       return null;
     }
-    NamedCluster c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metastore );
-
+    IMetaStore metaStore = null;
+    if ( metastore == null ) {
+      // Maybe we can get a metastore from spoon
+      try {
+        metaStore = MetaStoreConst.openLocalPentahoMetaStore( false );
+      } catch ( Exception e ) {
+        // If no local metastore we must ignore and proceed
+      }
+    } else {
+      // if we already have a metastore use it
+      metaStore = metastore;
+    }
+    NamedCluster c = null;
+    if ( metaStore != null ) {
+      // If we have a metastore get the cluster from it.
+      c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
+    }
     if ( c != null ) {
-      url = c.processURLsubstitution( url, metastore, new Variables() );
+      String urlPath = getUrlPath( url );
+      String rootUrl = getRootURL( c );
+      url = urlPath != null && rootUrl != null ? rootUrl + urlPath : url;
     }
     return url;
-  }
-
-  protected void saveSource( StringBuilder retVal, String fileName ) {
-    retVal.append( "      " ).append( XMLHandler.addTagValue( "name", fileName ) );
-    retVal.append( "      " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, sourceConfigurationName ) );
   }
 
   // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null
@@ -142,5 +164,47 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
   public RuntimeTestActionService getRuntimeTestActionService() {
     return runtimeTestActionService;
+  }
+
+  protected static String getUrlPath( String incomingURL ) {
+    String path = null;
+    Matcher matcher = URL_ROOT_PATTERN.matcher( incomingURL );
+    if ( matcher.find() ) {
+      path = incomingURL.substring( matcher.group().length() );
+    }
+    return path != null ? path.startsWith( "/" ) ? path : "/" + path : null;
+  }
+
+  public static String getRootURL( NamedCluster namedCluster ) {
+
+    String rootURL = null;
+
+    if ( namedCluster == null ) {
+      return null;
+    }
+
+    String scheme = namedCluster.getShimIdentifier();
+    String ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost().trim() : "";
+    String ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort().trim() : "";
+    String ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername().trim() : "";
+    String ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword().trim() : "";
+    if ( ncPort.isEmpty() ) {
+      ncPort = "-1";
+    }
+    scheme = scheme != null ? scheme : namedCluster.isMapr() ? "maprfs" : "hdfs";
+
+    StringBuilder rootURLBuilder = new StringBuilder();
+    rootURLBuilder.append( scheme ).append( "://" );
+    if ( !ncUsername.isEmpty() ) {
+      rootURLBuilder.append( ncUsername );
+      if ( !ncPassword.isEmpty() ) {
+        rootURLBuilder.append( ":" ).append( ncPassword );
+      }
+      rootURLBuilder.append( "@" );
+    }
+    rootURLBuilder.append( ncHostname ).append( ":" );
+    rootURLBuilder.append( ncPort );
+
+    return rootURLBuilder.toString();
   }
 }
