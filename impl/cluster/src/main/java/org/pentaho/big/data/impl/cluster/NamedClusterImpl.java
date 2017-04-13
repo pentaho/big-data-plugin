@@ -22,6 +22,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -51,11 +53,11 @@ import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
 import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -276,7 +278,22 @@ public class NamedClusterImpl implements NamedCluster {
         String root = fileName.getRootURI();
         String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
         StringBuffer buffer = new StringBuffer();
-        buffer.append( clusterURL );
+        // Check for a special case where a fully qualified path (one that has the protocol in it).
+        // This can only happen through variable replacement. See BACKLOG-15849. When this scenario
+        // occurs we do not prepend the cluster uri to the url.
+        boolean prependCluster = true;
+        if ( variableSpace != null ) {
+          String filePath = variableSpace.environmentSubstitute( path );
+          StringBuilder pattern = new StringBuilder();
+          pattern.append( "^(" ).append( HDFS_SCHEME ).append( "|" ).append( WASB_SCHEME ).append( "|" ).append(
+              MAPRFS_SCHEME ).append( "):\\/\\/" );
+          Pattern r = Pattern.compile( pattern.toString() );
+          Matcher m = r.matcher( filePath );
+          prependCluster = !m.find();
+        }
+        if ( prependCluster ) {
+          buffer.append( clusterURL );
+        }
         buffer.append( path );
         outgoingURL = buffer.toString();
       }
@@ -506,7 +523,6 @@ public class NamedClusterImpl implements NamedCluster {
       doc = builder.newDocument();
       Element rootNode = doc.createElement( rootTag );
       doc.appendChild( rootNode );
-      StringBuilder sb = new StringBuilder();
       @SuppressWarnings( "unchecked" )
       Iterator<Map.Entry<Object, Object>> i = m.entryIterator();
       while ( i.hasNext() ) {
