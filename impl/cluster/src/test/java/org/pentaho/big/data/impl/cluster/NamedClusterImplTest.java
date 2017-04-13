@@ -378,8 +378,23 @@ public class NamedClusterImplTest {
     String hostName = "test";
     when( variableSpace.getVariable( "hostUrl" ) ).thenReturn( hostName );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( hostName );
+    when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( hostName + "/test" );
     assertEquals( "hdfs://" + hostName + ":" + hostPort + incomingURL,
       namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
+  }
+
+  @Test
+  public void testProcessCompleteClusterVariableReplacement() throws MetaStoreException {
+    // special case to allow legacy fully qualified urls to work
+    namedCluster.setHdfsHost( "hostname" );
+    namedCluster.setStorageScheme( "hdfs" );
+    String hostPort = "1000";
+    namedCluster.setHdfsPort( hostPort );
+    namedCluster.setHdfsUsername( "" );
+    namedCluster.setHdfsPassword( "" );
+    String incomingURL = "${hdfsUrl}/test";
+    when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( "hdfs://FullyQualifiedPath/test" );
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
   }
 
   @Test
