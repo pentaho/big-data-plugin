@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -37,7 +37,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -75,7 +76,7 @@ public class ClusterTestDialog extends Dialog {
   /**
    * The log channel for this dialog.
    */
-  protected LogChannel log;
+  protected LogChannelInterface log;
 
   public static ClusterTestDialog create( Shell parent, NamedCluster namedCluster, RuntimeTester clusterTester )
     throws KettleException {
@@ -87,8 +88,15 @@ public class ClusterTestDialog extends Dialog {
     super( parent );
     this.namedCluster = namedCluster;
     this.runtimeTester = runtimeTester;
-    props = PropsUI.getInstance();
-    this.log = new LogChannel( namedCluster );
+    props = getPropsUIInstance();
+    this.log = KettleLogStore.getLogChannelInterfaceFactory().create( namedCluster );
+  }
+
+  /**
+   * For testing
+   */
+  protected PropsUI getPropsUIInstance() {
+    return PropsUI.getInstance();
   }
 
   public RuntimeTestStatus open() {
@@ -164,70 +172,8 @@ public class ClusterTestDialog extends Dialog {
 
       @Override
       public void onProgress( final RuntimeTestStatus clusterTestStatus ) {
-        display.asyncExec( new Runnable() {
-          @Override
-          public void run() {
-            if ( progressBar.isDisposed() ) {
-              return;
-            }
-
-            // Calculate the number of tests to be run (only the first time!)
-            if ( numTests == -1 ) {
-              numTests = clusterTestStatus.getTestsDone()
-                + clusterTestStatus.getTestsOutstanding()
-                + clusterTestStatus.getTestsRunning();
-
-              progressBar.setMaximum( numTests );
-            }
-
-            progressBar.setSelection( clusterTestStatus.getTestsDone() );
-
-            for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
-              Iterator<RuntimeTest> runningTests = results.getRunningTests().iterator();
-              if ( runningTests.hasNext() ) {
-                testLabel.setText( runningTests.next().getName() );
-              }
-            }
-
-            if ( clusterTestStatus.isDone() ) {
-              runtimeTestStatus = clusterTestStatus;
-              testLabel.setText( BaseMessages.getString( PKG, "ClusterTestDialog.TestsFinished" ) );
-              // Log all the executed tests at the end
-              for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
-                log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.ModuleTest", results.getName() ) );
-                for ( RuntimeTestResult result : results.getRuntimeTestResults() ) {
-                  String clusterTestName = result.getRuntimeTest().getName();
-                  // If there are no entries, that means there was one test and it becomes the summary-level result
-                  if ( result.getRuntimeTestResultEntries().isEmpty() ) {
-                    RuntimeTestResultEntry entry = result.getOverallStatusEntry();
-                    log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
-                      clusterTestName,
-                      entry.getSeverity().toString(),
-                      entry.getDescription() ) );
-                    log.logBasic( "\t" + entry.getMessage() );
-
-                    if ( log.isDetailed() && entry.getException() != null ) {
-                      log.logDetailed( ExceptionUtils.getStackTrace( entry.getException() ) );
-                    }
-                  } else {
-                    for ( RuntimeTestResultEntry entry : result.getRuntimeTestResultEntries() ) {
-                      log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
-                        clusterTestName,
-                        entry.getSeverity().toString(),
-                        entry.getDescription() ) );
-                      log.logBasic( "\t" + entry.getMessage() );
-
-                      if ( log.isDetailed() && entry.getException() != null ) {
-                        log.logDetailed( ExceptionUtils.getStackTrace( entry.getException() ) );
-                      }
-                    }
-                  }
-                }
-              }
-              ClusterTestDialog.this.dispose();
-            }
-          }
-        } );
+        Runnable runnable = getRunnable( progressBar, clusterTestStatus, testLabel );
+        display.asyncExec( runnable );
       }
     } );
 
@@ -248,4 +194,78 @@ public class ClusterTestDialog extends Dialog {
     props.setScreen( new WindowProperty( shell ) );
     shell.dispose();
   }
+
+
+  /**
+   * For testing
+   */
+  Runnable getRunnable( final ProgressBar progressBar, final RuntimeTestStatus clusterTestStatus, final Label testLabel ) {
+    return new Runnable() {
+      private int numTests = -1;
+
+      @Override
+      public void run() {
+        if ( progressBar.isDisposed() ) {
+          return;
+        }
+
+        // Calculate the number of tests to be run (only the first time!)
+        if ( numTests == -1 ) {
+          numTests = clusterTestStatus.getTestsDone()
+                  + clusterTestStatus.getTestsOutstanding()
+                  + clusterTestStatus.getTestsRunning();
+
+          progressBar.setMaximum( numTests );
+        }
+
+        progressBar.setSelection( clusterTestStatus.getTestsDone() );
+
+        for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
+          Iterator<RuntimeTest> runningTests = results.getRunningTests().iterator();
+          if ( runningTests.hasNext() ) {
+            testLabel.setText( runningTests.next().getName() );
+          }
+        }
+
+        if ( clusterTestStatus.isDone() ) {
+          runtimeTestStatus = clusterTestStatus;
+          testLabel.setText( BaseMessages.getString( PKG, "ClusterTestDialog.TestsFinished" ) );
+          // Log all the executed tests at the end
+          for ( RuntimeTestModuleResults results : clusterTestStatus.getModuleResults() ) {
+            log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.ModuleTest", results.getName() ) );
+            for ( RuntimeTestResult result : results.getRuntimeTestResults() ) {
+              String clusterTestName = result.getRuntimeTest().getName();
+              // If there are no entries, that means there was one test and it becomes the summary-level result
+              if ( result.getRuntimeTestResultEntries().isEmpty() ) {
+                RuntimeTestResultEntry entry = result.getOverallStatusEntry();
+                log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
+                        clusterTestName,
+                        entry.getSeverity().toString(),
+                        entry.getDescription() ) );
+                log.logBasic( "\t" + entry.getMessage() );
+
+                if ( entry.getException() != null ) {
+                  log.logBasic( ExceptionUtils.getStackTrace( entry.getException() ) );
+                }
+              } else {
+                for ( RuntimeTestResultEntry entry : result.getRuntimeTestResultEntries() ) {
+                  log.logBasic( BaseMessages.getString( PKG, "ClusterTestDialog.TestResult",
+                          clusterTestName,
+                          entry.getSeverity().toString(),
+                          entry.getDescription() ) );
+                  log.logBasic( "\t" + entry.getMessage() );
+
+                  if ( entry.getException() != null ) {
+                    log.logBasic( ExceptionUtils.getStackTrace( entry.getException() ) );
+                  }
+                }
+              }
+            }
+          }
+          ClusterTestDialog.this.dispose();
+        }
+      }
+    };
+  }
+
 }
