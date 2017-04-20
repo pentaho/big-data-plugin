@@ -50,6 +50,7 @@ import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.CurrentDirectoryResolver;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -199,6 +200,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   }
 
   public static TransMeta getTransMetaFromRepo( String repositoryDir, String repositoryFile, Repository rep, VariableSpace space  ) throws KettleException {
+    if ( space instanceof JobEntryHadoopTransJobExecutor ) {
+      CurrentDirectoryResolver r = new CurrentDirectoryResolver();
+      JobEntryHadoopTransJobExecutor jobEntry = (JobEntryHadoopTransJobExecutor) space;
+      space = r.resolveCurrentDirectory( jobEntry.getParentVariableSpace(), jobEntry.getParentJob().getRepositoryDirectory(), null );
+    }
     String repositoryDirS = space.environmentSubstitute( repositoryDir );
     if ( repositoryDirS.isEmpty() ) {
       repositoryDirS = "/";
