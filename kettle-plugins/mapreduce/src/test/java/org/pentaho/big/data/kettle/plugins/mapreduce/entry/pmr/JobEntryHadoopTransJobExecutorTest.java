@@ -28,6 +28,8 @@ import org.junit.Test;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.job.Job;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
@@ -36,6 +38,7 @@ import org.pentaho.di.trans.TransMeta;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.spy;
 
 public class JobEntryHadoopTransJobExecutorTest {
 
@@ -99,4 +102,21 @@ public class JobEntryHadoopTransJobExecutorTest {
     verify( repository ).loadTransformation( file, directoryInterface, null, true, null );
   }
 
+  @Test
+  public void testProperVariableSpaceWhenLoadTransMetaFromRepo() throws Throwable {
+    JobEntryHadoopTransJobExecutor jobEntry = spy( new JobEntryHadoopTransJobExecutor( null, null, null, null ) );
+    String dir = "repo/path";
+    String file = "testName";
+    String dirVar = "TestVariablePath";
+    String fileVar = "TestVariableName";
+    Variables variables = new Variables();
+    variables.setVariable( dirVar, dir );
+    variables.setVariable( fileVar, file );
+    when( jobEntry.getParentVariableSpace() ).thenReturn( variables );
+    when( jobEntry.getParentJob() ).thenReturn( mock( Job.class ) );
+    when( repository.loadRepositoryDirectoryTree() ).thenReturn( directoryInterface );
+    when( directoryInterface.findDirectory( "/" + dir ) ).thenReturn( directoryInterface );
+    JobEntryHadoopTransJobExecutor.loadTransMeta( jobEntry, repository, null, null, "/${" + dirVar + "}", "${" + fileVar + "}" );
+    verify( repository ).loadTransformation( file, directoryInterface, null, true, null );
+  }
 }
