@@ -572,7 +572,6 @@ public class NamedClusterImpl implements NamedCluster {
     List<Node> fields = XMLHandler.getNodes( node, "child" );
     for ( Node field: fields ) {
       String fieldName = XMLHandler.getTagValue( field, "id" );
-      System.out.println( fieldName );
       String fieldValue = XMLHandler.getTagValue(  field, "value" );
       if ( fieldName.toLowerCase().contains( "password" ) ) {
         fieldValue = passwordEncoder.decode( fieldValue );
