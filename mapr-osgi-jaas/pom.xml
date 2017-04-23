@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>7.0-SNAPSHOT</version>
+    <version>7.0.0.5-89</version>
   </parent>
   <artifactId>pentaho-hadoop-shims-mapr-osgi-jaas</artifactId>
-  <version>7.0-SNAPSHOT</version>
+  <version>7.0.0.5-89</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>Fix for broken mapr jaas configuration inside OSGi environment</description>
