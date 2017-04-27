@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -50,6 +50,7 @@ import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.CurrentDirectoryResolver;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -151,7 +152,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     combiningSingleThreaded = false;
   }
 
-  private static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,
+  protected static final TransMeta loadTransMeta( VariableSpace space, Repository rep, String filename,
                                                 ObjectId transformationId, String repositoryDir, String repositoryFile )
     throws KettleException {
 
@@ -166,6 +167,11 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
       }
     } else if ( !Const.isEmpty( repositoryDir ) && !Const.isEmpty( repositoryFile ) ) {
       if ( rep != null ) {
+        if ( space instanceof JobEntryHadoopTransJobExecutor ) {
+          CurrentDirectoryResolver r = new CurrentDirectoryResolver();
+          JobEntryHadoopTransJobExecutor jobEntry = (JobEntryHadoopTransJobExecutor) space;
+          space = r.resolveCurrentDirectory( jobEntry.getParentVariableSpace(), jobEntry.getParentJob().getRepositoryDirectory(), null );
+        }
         String mapRepositoryDirS = space.environmentSubstitute( repositoryDir );
         String mapRepositoryFileS = space.environmentSubstitute( repositoryFile );
         RepositoryDirectoryInterface repositoryDirectory =
