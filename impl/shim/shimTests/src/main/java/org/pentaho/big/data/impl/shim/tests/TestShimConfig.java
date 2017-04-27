@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -97,7 +97,7 @@ public class TestShimConfig extends BaseRuntimeTest {
       variables.initializeVariablesFrom( null );
 
       // Build up a "defaultFS" property to check against the config
-      StringBuilder ncFS = new StringBuilder( namedCluster.isMapr() ? "maprfs://" : "hdfs://" );
+      StringBuilder ncFS = new StringBuilder( namedCluster.getStorageScheme() + "://" );
       ncFS.append( variables.environmentSubstitute( namedCluster.getHdfsHost() ) );
       String port = variables.environmentSubstitute( namedCluster.getHdfsPort() );
       if ( !Const.isEmpty( port ) ) {
