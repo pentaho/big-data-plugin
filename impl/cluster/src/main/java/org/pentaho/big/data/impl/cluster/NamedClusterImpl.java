@@ -42,7 +42,7 @@ import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -107,6 +107,15 @@ public class NamedClusterImpl implements NamedCluster {
   @MetaStoreAttribute
   @Deprecated
   private boolean mapr;
+
+  @MetaStoreAttribute
+  private String gatewayUrl;
+
+  @MetaStoreAttribute
+  private String gatewayUsername;
+
+  @MetaStoreAttribute ( password = true )
+  private String gatewayPassword;
 
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
@@ -186,12 +195,11 @@ public class NamedClusterImpl implements NamedCluster {
     return variables.getVariable( variableName );
   }
 
-  @SuppressWarnings( "deprecation" )
   public boolean getBooleanValueOfVariable( String variableName, boolean defaultValue ) {
     if ( !Utils.isEmpty( variableName ) ) {
       String value = environmentSubstitute( variableName );
       if ( !Utils.isEmpty( value ) ) {
-        return ValueMeta.convertStringToBoolean( value );
+        return ValueMetaBase.convertStringToBoolean( value );
       }
     }
     return defaultValue;
@@ -230,6 +238,9 @@ public class NamedClusterImpl implements NamedCluster {
     this.setZooKeeperPort( nc.getZooKeeperPort() );
     this.setOozieUrl( nc.getOozieUrl() );
     this.setMapr( nc.isMapr() );
+    this.setGatewayUrl( nc.getGatewayUrl() );
+    this.setGatewayUsername( nc.getGatewayUsername() );
+    this.setGatewayPassword( nc.getGatewayPassword() );
     this.lastModifiedDate = System.currentTimeMillis();
   }
 
@@ -523,7 +534,6 @@ public class NamedClusterImpl implements NamedCluster {
       doc = builder.newDocument();
       Element rootNode = doc.createElement( rootTag );
       doc.appendChild( rootNode );
-      @SuppressWarnings( "unchecked" )
       Iterator<Map.Entry<Object, Object>> i = m.entryIterator();
       while ( i.hasNext() ) {
         Map.Entry<Object, Object> entry = i.next();
@@ -597,6 +607,36 @@ public class NamedClusterImpl implements NamedCluster {
     Node node = doc.createElement( tagName );
     node.appendChild( doc.createTextNode( value ) );
     return node;
+  }
+
+  @Override
+  public String getGatewayUrl() {
+    return gatewayUrl;
+  }
+
+  @Override
+  public void setGatewayUrl( String gatewayUrl ) {
+    this.gatewayUrl = gatewayUrl;
+  }
+
+  @Override
+  public String getGatewayUsername() {
+    return gatewayUsername;
+  }
+
+  @Override
+  public void setGatewayUsername( String gatewayUsername ) {
+    this.gatewayUsername = gatewayUsername;
+  }
+
+  @Override
+  public String getGatewayPassword() {
+    return gatewayPassword;
+  }
+
+  @Override
+  public void setGatewayPassword( String gatewayPassword ) {
+    this.gatewayPassword = gatewayPassword;
   }
 
 }

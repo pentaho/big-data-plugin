@@ -253,6 +253,7 @@ public class NamedClusterComposite extends Composite {
     createJobTrackerGroup( c1, cluster );
     createZooKeeperGroup( c1, cluster );
     createOozieGroup( c1, cluster );
+    createGatewayGroup( c1, cluster );
 
     c1.setSize( c1.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
@@ -497,6 +498,53 @@ public class NamedClusterComposite extends Composite {
       }
     };
     createTextVar( c, container, c.getOozieUrl(), gridData, TEXT_FLAGS, hostCB );
+  }
+
+  private void createGatewayGroup( Composite parentComposite, final NamedCluster c ) {
+    Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Gateway" ) );
+    GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.marginBottom = 5;
+    gridLayout.marginTop = 5;
+    Composite gatewayUrlUIComposite = new Composite( pp, SWT.NONE );
+    props.setLook( gatewayUrlUIComposite );
+    gatewayUrlUIComposite.setLayout( gridLayout );
+
+    createLabel( gatewayUrlUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.GatewayUrl" ), labelGridData );
+    // gateway url input
+    Callback gatewayUrlCB = new Callback() {
+      public void invoke( NamedCluster nc, TextVar textVar, String value ) {
+        nc.setGatewayUrl( value );
+      }
+    };
+    createTextVar( c, gatewayUrlUIComposite, c.getGatewayUrl(), gridData, TEXT_FLAGS, gatewayUrlCB );
+
+    Composite gatewayCredentialsRowComposite = createTwoColumnsContainer( pp );
+
+    Composite usernameUIComposite = new Composite( gatewayCredentialsRowComposite, SWT.NONE );
+    props.setLook( usernameUIComposite );
+    usernameUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+
+    Composite passwordUIComposite = new Composite( gatewayCredentialsRowComposite, SWT.NONE );
+    props.setLook( passwordUIComposite );
+    passwordUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+
+    createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ),  userNameLabelGridData );
+    // gateway user input
+    Callback gatewayUsernameCB = new Callback() {
+      public void invoke( NamedCluster nc, TextVar textVar, String value ) {
+        nc.setGatewayUsername( value );
+      }
+    };
+    createTextVar( c, usernameUIComposite, c.getGatewayUsername(), userNameGridData, TEXT_FLAGS, gatewayUsernameCB );
+
+    createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ), passwordLabelGridData );
+    // gateway password input
+    Callback gatewayPasswordCB = new Callback() {
+      public void invoke( NamedCluster nc, TextVar textVar, String value ) {
+        nc.setGatewayPassword( value );
+      }
+    };
+    createTextVar( c, passwordUIComposite, c.getGatewayPassword(), passwordGridData, PASSWORD_FLAGS, gatewayPasswordCB );
   }
 
   private void setHdfsAndJobTrackerState( NamedCluster cluster ) {
