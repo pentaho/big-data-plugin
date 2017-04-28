@@ -182,8 +182,8 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-emr52-package</artifactId>
-      <version>${dependency.hadoop-shims-emr52.revision}</version>
+      <artifactId>pentaho-hadoop-shims-emr531-package</artifactId>
+      <version>${dependency.hadoop-shims-emr531.revision}</version>
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
@@ -244,7 +244,7 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr52-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-emr531-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
