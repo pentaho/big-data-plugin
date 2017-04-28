@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -105,7 +105,7 @@ public class TestShimConfigTest {
     when( hadoopShim.createConfiguration() ).thenReturn( config );
     when( config.get( HadoopFileSystem.FS_DEFAULT_NAME ) ).thenReturn( "hdfs://success" );
     when( namedCluster.getHdfsHost() ).thenReturn( "success" );
-    when( namedCluster.isMapr() ).thenReturn( false );
+    when( namedCluster.getStorageScheme() ).thenReturn( "hdfs" );
     when( namedCluster.getHdfsPort() ).thenReturn( null );
 
     RuntimeTestResultSummary runtimeTestResultSummary = testShimConfig.runTest( namedCluster );
@@ -128,7 +128,7 @@ public class TestShimConfigTest {
     when( hadoopShim.createConfiguration() ).thenReturn( config );
     when( config.get( HadoopFileSystem.FS_DEFAULT_NAME ) ).thenReturn( "hdfs://success" );
     when( namedCluster.getHdfsHost() ).thenReturn( "success" );
-    when( namedCluster.isMapr() ).thenReturn( true );
+    when( namedCluster.getStorageScheme() ).thenReturn( "maprfs" );
     when( namedCluster.getHdfsPort() ).thenReturn( "8020" );
 
     RuntimeTestResultSummary runtimeTestResultSummary = testShimConfig.runTest( namedCluster );
