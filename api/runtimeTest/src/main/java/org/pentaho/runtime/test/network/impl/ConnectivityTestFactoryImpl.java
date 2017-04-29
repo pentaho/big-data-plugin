@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,8 @@ import org.pentaho.runtime.test.network.ConnectivityTest;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 
+import java.net.URI;
+
 /**
  * Created by bryan on 8/24/15.
  */
@@ -39,5 +41,19 @@ public class ConnectivityTestFactoryImpl implements ConnectivityTestFactory {
   @Override public ConnectivityTest create( MessageGetterFactory messageGetterFactory, String hostname, String port,
                                             boolean haPossible, RuntimeTestEntrySeverity severityOfFailures ) {
     return new ConnectivityTestImpl( messageGetterFactory, hostname, port, haPossible, severityOfFailures );
+  }
+
+  @Override
+  public ConnectivityTest create( MessageGetterFactory messageGetterFactory, String url, String testPath,
+                                  String user, String password ) {
+    return new GatewayConnectivityTestImpl( messageGetterFactory, URI.create( url ), testPath, user, password,
+      RuntimeTestEntrySeverity.FATAL );
+  }
+
+  @Override
+  public ConnectivityTest create( MessageGetterFactory messageGetterFactory, String url, String testPath,
+                                  String user, String password, RuntimeTestEntrySeverity severityOfFailures ) {
+    return new GatewayConnectivityTestImpl( messageGetterFactory, URI.create( url ), testPath, user, password,
+      severityOfFailures );
   }
 }

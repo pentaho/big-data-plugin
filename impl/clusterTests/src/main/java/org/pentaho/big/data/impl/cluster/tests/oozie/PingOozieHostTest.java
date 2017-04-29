@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -48,8 +48,8 @@ public class PingOozieHostTest extends BaseRuntimeTest {
   public static final String PING_OOZIE_HOST_TEST_MALFORMED_URL_DESC = "PingOozieHostTest.MalformedUrl.Desc";
   public static final String PING_OOZIE_HOST_TEST_MALFORMED_URL_MESSAGE = "PingOozieHostTest.MalformedUrl.Message";
   private static final Class<?> PKG = PingOozieHostTest.class;
-  private final MessageGetterFactory messageGetterFactory;
-  private final ConnectivityTestFactory connectivityTestFactory;
+  protected final MessageGetterFactory messageGetterFactory;
+  protected final ConnectivityTestFactory connectivityTestFactory;
   private final MessageGetter messageGetter;
 
   public PingOozieHostTest( MessageGetterFactory messageGetterFactory,

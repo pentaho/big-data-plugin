@@ -20,42 +20,31 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.impl.cluster.tests.mr;
+package org.pentaho.big.data.impl.cluster.tests.zookeeper;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
-import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.Variables;
-import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
-import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
-
-import java.util.HashSet;
 
 /**
- * Created by bryan on 8/14/15.
+ * Created by dstepanov on 27/04/17.
  */
-public class PingJobTrackerTest extends BaseRuntimeTest {
-  public static final String JOB_TRACKER_PING_JOB_TRACKER_TEST =
-    "jobTrackerPingJobTrackerTest";
-  public static final String PING_JOB_TRACKER_TEST_NAME = "PingJobTrackerTest.Name";
-  private static final Class<?> PKG = PingJobTrackerTest.class;
-  protected final MessageGetterFactory messageGetterFactory;
-  private final MessageGetter messageGetter;
-  protected final ConnectivityTestFactory connectivityTestFactory;
+public class GatewayPingZookeeperEnsembleTest extends PingZookeeperEnsembleTest {
 
+  public static final String GATEWAY_PING_ZOOKEEPER_NOT_SUPPORT_DESC =
+    "GatewayPingZookeeperEnsembleTest.ZookeeperNotSupport.Desc";
+  public static final String GATEWAY_PING_ZOOKEEPER_NOT_SUPPORT_MESSAGE =
+    "GatewayPingZookeeperEnsembleTest.ZookeeperNotSupport.Message";
 
-  public PingJobTrackerTest( MessageGetterFactory messageGetterFactory,
-                             ConnectivityTestFactory connectivityTestFactory ) {
-    super( NamedCluster.class, Constants.MAP_REDUCE, JOB_TRACKER_PING_JOB_TRACKER_TEST,
-      messageGetterFactory.create( PKG ).getMessage( PING_JOB_TRACKER_TEST_NAME ), new HashSet<String>() );
-    this.messageGetterFactory = messageGetterFactory;
-    this.messageGetter = messageGetterFactory.create( PKG );
-    this.connectivityTestFactory = connectivityTestFactory;
+  public GatewayPingZookeeperEnsembleTest( MessageGetterFactory messageGetterFactory,
+                                           ConnectivityTestFactory connectivityTestFactory ) {
+    super( messageGetterFactory, connectivityTestFactory );
   }
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
@@ -68,21 +57,15 @@ public class PingJobTrackerTest extends BaseRuntimeTest {
     Variables variables = new Variables();
     variables.initializeVariablesFrom( null );
 
-    // The connectivity test (ping the name node) is not applicable for MapR clusters due to their native client, so
-    // just pass this test and move on
-    if ( namedCluster.isMapr() ) {
+    if ( StringUtil.isEmpty( namedCluster.getGatewayUrl() ) ) {
+      return super.runTest( objectUnderTest );
+    } else {
       return new RuntimeTestResultSummaryImpl(
-        new ClusterRuntimeTestEntry( RuntimeTestEntrySeverity.INFO,
-          messageGetter.getMessage( "PingJobTrackerTest.isMapr.Desc" ),
-          messageGetter.getMessage( "PingJobTrackerTest.isMapr.Message" ), null
+        new ClusterRuntimeTestEntry( RuntimeTestEntrySeverity.SKIPPED,
+          messageGetter.getMessage( GATEWAY_PING_ZOOKEEPER_NOT_SUPPORT_DESC ),
+          messageGetter.getMessage( GATEWAY_PING_ZOOKEEPER_NOT_SUPPORT_MESSAGE ), null
         )
       );
-    } else {
-      return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry( messageGetterFactory, connectivityTestFactory
-        .create( messageGetterFactory,
-          variables.environmentSubstitute( namedCluster.getJobTrackerHost() ),
-          variables.environmentSubstitute( namedCluster.getJobTrackerPort() ), true )
-        .runTest(), ClusterRuntimeTestEntry.DocAnchor.CLUSTER_CONNECT ) );
     }
   }
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -31,7 +31,6 @@ import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import org.pentaho.runtime.test.result.org.pentaho.runtime.test.result.impl.RuntimeTestResultSummaryImpl;
 import org.pentaho.runtime.test.test.impl.BaseRuntimeTest;
-import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
 
 import java.util.HashSet;
 
@@ -43,9 +42,13 @@ public class PingFileSystemEntryPointTest extends BaseRuntimeTest {
     "_hadoopFileSystemPingFileSystemEntryPointTest";
   public static final String PING_FILE_SYSTEM_ENTRY_POINT_TEST_NAME = "PingFileSystemEntryPointTest.Name";
   private static final Class<?> PKG = PingFileSystemEntryPointTest.class;
-  private final MessageGetterFactory messageGetterFactory;
+  public static final String PING_FILE_SYSTEM_ENTRY_POINT_TEST_IS_MAPR_DESC =
+    "PingFileSystemEntryPointTest.isMapr.Desc";
+  public static final String PING_FILE_SYSTEM_ENTRY_POINT_TEST_IS_MAPR_MESSAGE =
+    "PingFileSystemEntryPointTest.isMapr.Message";
+  protected final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
-  private final ConnectivityTestFactory connectivityTestFactory;
+  protected final ConnectivityTestFactory connectivityTestFactory;
 
   public PingFileSystemEntryPointTest( MessageGetterFactory messageGetterFactory,
                                        ConnectivityTestFactory connectivityTestFactory ) {
@@ -71,8 +74,8 @@ public class PingFileSystemEntryPointTest extends BaseRuntimeTest {
     if ( namedCluster.isMapr() ) {
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( RuntimeTestEntrySeverity.INFO,
-          messageGetter.getMessage( "PingFileSystemEntryPointTest.isMapr.Desc" ),
-          messageGetter.getMessage( "PingFileSystemEntryPointTest.isMapr.Message" ), null
+          messageGetter.getMessage( PING_FILE_SYSTEM_ENTRY_POINT_TEST_IS_MAPR_DESC ),
+          messageGetter.getMessage( PING_FILE_SYSTEM_ENTRY_POINT_TEST_IS_MAPR_MESSAGE ), null
         )
       );
     } else {

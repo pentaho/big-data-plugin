@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -68,7 +68,7 @@ public class PingZookeeperEnsembleTest extends BaseRuntimeTest {
     "PingZookeeperEnsembleTest.AllNodesSucceeded.Message";
   private static final Class<?> PKG = PingZookeeperEnsembleTest.class;
   private final MessageGetterFactory messageGetterFactory;
-  private final MessageGetter messageGetter;
+  protected final MessageGetter messageGetter;
   private final ConnectivityTestFactory connectivityTestFactory;
 
   public PingZookeeperEnsembleTest( MessageGetterFactory messageGetterFactory,
