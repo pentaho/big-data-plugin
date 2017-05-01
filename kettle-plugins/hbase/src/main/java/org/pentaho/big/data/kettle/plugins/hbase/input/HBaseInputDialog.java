@@ -1363,6 +1363,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
           // get all the fields from the mapping
           for ( String alias : mappedColumns.keySet() ) {
+            if ( alias.equalsIgnoreCase( m_keyName ) ) {
+              continue;
+            }
             HBaseValueMetaInterface column = mappedColumns.get( alias );
             String aliasS = column.getAlias();
             String family = column.getColumnFamily();
