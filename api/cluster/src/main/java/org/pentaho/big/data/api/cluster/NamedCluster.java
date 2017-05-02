@@ -125,4 +125,9 @@ public interface NamedCluster extends Cloneable, VariableSpace {
       return c1.getName().compareToIgnoreCase( c2.getName() );
     }
   };
+
+  void setUseGateway( boolean selection );
+
+  boolean isUseGateway();
+
 }

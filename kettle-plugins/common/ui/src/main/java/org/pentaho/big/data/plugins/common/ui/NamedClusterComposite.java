@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
@@ -40,7 +41,9 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -59,14 +62,14 @@ public class NamedClusterComposite extends Composite {
 
   private PropsUI props;
 
-  private GridData gridData;
-  private GridData numberGridData;
-  private GridData labelGridData;
-  private GridData userNameLabelGridData;
-  private GridData userNameGridData;
-  private GridData passwordLabelGridData;
-  private GridData passwordGridData;
-  private GridData portLabelGridData;
+  private GridData gridData = new GridData();
+  private GridData numberGridData = new GridData();
+  private GridData labelGridData = new GridData();
+  private GridData userNameLabelGridData = new GridData();
+  private GridData userNameGridData = new GridData();
+  private GridData passwordLabelGridData = new GridData();
+  private GridData passwordGridData = new GridData();
+  private GridData portLabelGridData = new GridData();
 
   private static final int ONE_COLUMN = 1;
   private static final int TWO_COLUMNS = 2;
@@ -74,7 +77,10 @@ public class NamedClusterComposite extends Composite {
   private static final int TEXT_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private static final int PASSWORD_FLAGS = TEXT_FLAGS | SWT.PASSWORD;
 
-  private Text nameValue;
+  private Text nameOfNamedCluster;
+  private Composite compositeSwitcher;
+  private Composite gatewayComposite;
+  private Composite noGatewayComposite;
 
   private Label jtHostLabel;
   private TextVar jtHostNameText;
@@ -89,7 +95,6 @@ public class NamedClusterComposite extends Composite {
   private TextVar hdfsUsernameText;
   private Label hdfsPasswordLabel;
   private TextVar hdfsPasswordText;
-  private Label storageLabel;
 
   private ArrayList<String> schemeValues = new ArrayList<>();
   private ArrayList<String> schemeNames = new ArrayList<>();
@@ -114,174 +119,107 @@ public class NamedClusterComposite extends Composite {
     fd.right = new FormAttachment( 100, 0 );
     setLayoutData( fd );
 
-    gridData = new GridData();
     gridData.widthHint = 270;
-
-    numberGridData = new GridData();
     numberGridData.widthHint = 80;
-
-    labelGridData = new GridData();
     labelGridData.widthHint = 270;
-
-    portLabelGridData = new GridData();
     portLabelGridData.widthHint = 80;
-
-    userNameLabelGridData = new GridData();
     userNameLabelGridData.widthHint = 165;
-
-    userNameGridData = new GridData();
     userNameGridData.widthHint = 165;
-
-    passwordLabelGridData = new GridData();
     passwordLabelGridData.widthHint = 185;
-
-    passwordGridData = new GridData();
     passwordGridData.widthHint = 185;
 
-    processNamedCluster( this, namedCluster, namedClusterService );
-
-    nameValue.forceFocus();
-  }
-
-  private void processNamedCluster( final Composite c, final NamedCluster cluster,
-      final NamedClusterService namedClusterService ) {
-
-    Composite confUI = createConfigurationUI( c, cluster );
+    //create head of form
+    Composite confUI = createHeadOfNamedClusterDialog( this, namedCluster );
 
     // Create a horizontal separator
-    Label topSeparator = new Label( c, SWT.HORIZONTAL | SWT.SEPARATOR );
-    FormData fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( confUI, 10 );
-    topSeparator.setLayoutData( fd );
+    Label topSeparator = new Label( this, SWT.HORIZONTAL | SWT.SEPARATOR );
+    // Attach the separator to the name 
+    topSeparator.setLayoutData( createFormDataAndAttachTopControl( confUI ) );
 
-    // Create a storage type Label
-    storageLabel = new Label( c, SWT.NONE );
-    storageLabel.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Storage" ) );
-    storageLabel.setLayoutData( fd );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.right = new FormAttachment( 100, 0 );
-    fd.top = new FormAttachment( topSeparator, 10 );
-    props.setLook( storageLabel );
-    storageLabel.setLayoutData( fd );
+    // create the composite to hold and switch between two subcomponent
+    compositeSwitcher = new Composite( this, SWT.NONE );
+    // attach to the separator
+    compositeSwitcher.setLayoutData( createFormDataAndAttachTopControl( topSeparator ) );
+    StackLayout compositeLayout = new StackLayout();
+    compositeSwitcher.setLayout( compositeLayout );
 
-    // Create a storage type Drop Down
-    final CCombo storageCombo = new CCombo( c, SWT.BORDER );
-    fd = new FormData();
-    fd.left = new FormAttachment( 0, 0 );
-    fd.right = new FormAttachment( 80, 0 );
-    fd.top = new FormAttachment( storageLabel, 10 );
+    // Create a child composite to hold the gateway controls
+    gatewayComposite = new Composite( compositeSwitcher, SWT.NONE );
+    props.setLook( gatewayComposite );
+    gatewayComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    gatewayComposite.setSize( gatewayComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+    createGatewayGroup( gatewayComposite, namedCluster );
 
-    Map<String, Object> properties = namedClusterService.getProperties();
-    for ( String key : properties.keySet() ) {
-      if ( key.startsWith( NAMED_CLUSTER_DFS_SCHEME ) ) {
-        // will add 1 because we should use the key without "."
-        schemeValues.add( key.substring( key.lastIndexOf( "." ) + 1  ) );
-        schemeNames.add( (String) properties.get( key ) );
-      }
-    }
-
-    // if we have undefined scheme ( set by variable for example) than we should add the new scheme
-    if ( !schemeValues.contains( cluster.getStorageScheme() ) ) {
-      schemeValues.add( cluster.getStorageScheme() );
-      schemeNames.add( cluster.getStorageScheme() );
-    }
-
-    storageCombo.setLayoutData( fd );
-    props.setLook( storageCombo );
-    storageCombo.setItems( schemeNames.toArray( new String[schemeNames.size()] ) );
-    storageCombo.select( schemeValues.indexOf( cluster.getStorageScheme() ) );
-
-    storageCombo.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        super.widgetSelected( e );
-        int index = storageCombo.getSelectionIndex();
-        if ( index == -1 ) {
-          index = 0;
-        }
-        cluster.setStorageScheme( schemeValues.get( index ) );
-        setHdfsAndJobTrackerState( cluster );
-      }
-    } );
-    storageCombo.addFocusListener( new FocusListener() {
-
-      @Override
-      public void focusLost( FocusEvent e ) {
-        String uiInputText = storageCombo.getText();
-        int selectedIndex;
-        if ( schemeNames.contains( uiInputText ) ) {
-          selectedIndex = schemeNames.indexOf( uiInputText );
-          cluster.setStorageScheme( schemeValues.get( selectedIndex ) );
-          storageCombo.select( selectedIndex );
-        } else if ( schemeValues.contains( uiInputText ) ) {
-          selectedIndex = schemeValues.indexOf( uiInputText );
-          cluster.setStorageScheme( schemeValues.get( selectedIndex ) );
-          storageCombo.select( selectedIndex );
-        } else {
-          schemeNames.add( uiInputText );
-          schemeValues.add( uiInputText );
-          storageCombo.setItems( schemeNames.toArray( new String[schemeNames.size()] ) );
-          cluster.setStorageScheme( uiInputText );
-        }
-        setHdfsAndJobTrackerState( cluster );
-      }
-
-      @Override
-      public void focusGained( FocusEvent e ) {
-        // should not do any thing on enter focus
-      }
-    } );
-
-    // Create a child composite to hold the controls
-    final Composite c1 = new Composite( c, SWT.NONE );
-    fd = new FormData();
-    fd.top = new FormAttachment( storageCombo, 10 );
-    fd.left = new FormAttachment( 0, 0 );
-    fd.right = new FormAttachment( 100, 0 );
-    c1.setLayoutData( fd );
-    props.setLook( c1 );
+    // Create a child composite to hold the non gateway controls
+    noGatewayComposite = new Composite( compositeSwitcher, SWT.NONE );
+    props.setLook( noGatewayComposite );
     GridLayout gl = new GridLayout( ONE_COLUMN, false );
-
     gl.marginHeight = 0;
     gl.marginWidth = 0;
+    noGatewayComposite.setLayout( gl );
+    noGatewayComposite.setSize( noGatewayComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
-    c1.setLayout( gl );
+    createStorageGroup( noGatewayComposite, namedCluster, namedClusterService );
+    createHdfsGroup( noGatewayComposite, namedCluster );
+    createJobTrackerGroup( noGatewayComposite, namedCluster );
+    createZooKeeperGroup( noGatewayComposite, namedCluster );
+    createOozieGroup( noGatewayComposite, namedCluster );
+    setHdfsAndJobTrackerState( namedCluster );
 
-    createHdfsGroup( c1, cluster );
-    createJobTrackerGroup( c1, cluster );
-    createZooKeeperGroup( c1, cluster );
-    createOozieGroup( c1, cluster );
-    createGatewayGroup( c1, cluster );
-
-    c1.setSize( c1.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-
-    setHdfsAndJobTrackerState( cluster );
+    //choose the properly composite based on the cluster settings
+    compositeLayout.topControl = namedCluster.isUseGateway() ? gatewayComposite : noGatewayComposite;
+    compositeSwitcher.layout();
+    nameOfNamedCluster.forceFocus();
   }
 
-  private Composite createConfigurationUI( final Composite c, final NamedCluster namedCluster ) {
-    Composite mainParent = new Composite( c, SWT.NONE );
-    props.setLook( mainParent );
-    GridLayout gl = new GridLayout( ONE_COLUMN, false );
-    gl.marginWidth = 0;
-
-    mainParent.setLayout( gl );
+  private FormData createFormDataAndAttachTopControl( Control topControl ) {
     FormData fd = new FormData();
-    mainParent.setLayoutData( fd );
+    fd.left = new FormAttachment( 0, 0 );
+    fd.right = new FormAttachment( 100, 0 );
+    fd.top = new FormAttachment( topControl, 10 );
+    return fd;
+  }
 
-    createLabel( mainParent, BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.Name" ), labelGridData );
+  private Composite createHeadOfNamedClusterDialog( final Composite parentComposite, final NamedCluster namedCluster ) {
 
-    nameValue = new Text( mainParent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    nameValue.setText( String.valueOf( namedCluster.getName() ) );
-    nameValue.setLayoutData( gridData );
-    props.setLook( nameValue );
-    nameValue.addModifyListener( new ModifyListener() {
+    Composite mainRowComposite = createTwoColumnsContainer( parentComposite );
+
+    Composite nameUICluster = new Composite( mainRowComposite, SWT.NONE );
+    props.setLook( nameUICluster );
+    nameUICluster.setLayout( new GridLayout( ONE_COLUMN, false ) );
+
+    createLabel( nameUICluster, BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.Name" ), labelGridData );
+
+    nameOfNamedCluster = new Text( nameUICluster, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    nameOfNamedCluster.setText( String.valueOf( namedCluster.getName() ) );
+    nameOfNamedCluster.setLayoutData( gridData );
+    props.setLook( nameOfNamedCluster );
+    nameOfNamedCluster.addModifyListener( new ModifyListener() {
       public void modifyText( final ModifyEvent modifyEvent ) {
-        namedCluster.setName( nameValue.getText() );
+        namedCluster.setName( nameOfNamedCluster.getText() );
       }
     } );
-    return mainParent;
+
+    // Create gateway composite
+    Composite gatewayUIComposite = new Composite( mainRowComposite, SWT.NONE );
+    props.setLook( gatewayUIComposite );
+    gatewayUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+
+    // Create gateway check box
+    final Button gatewayButton = new Button( gatewayUIComposite, SWT.CHECK );
+    gatewayButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.GatewayCheckBoxTitle" ) );
+    props.setLook( gatewayButton );
+    gatewayButton.setSelection( namedCluster.isUseGateway() );
+    gatewayButton.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        super.widgetSelected( e );
+        namedCluster.setUseGateway( gatewayButton.getSelection() );
+        StackLayout layout = (StackLayout) compositeSwitcher.getLayout();
+        layout.topControl = namedCluster.isUseGateway() ? gatewayComposite : noGatewayComposite;
+        compositeSwitcher.layout();
+      }
+    } );
+    return mainRowComposite;
   }
 
   private Label createLabel( Composite parent, String text, GridData gd ) {
@@ -344,6 +282,78 @@ public class NamedClusterComposite extends Composite {
     return twoColumnsComposite;
   }
 
+  private void createStorageGroup( Composite parentComposite, final NamedCluster cluster, final NamedClusterService namedClusterService ) {
+    Map<String, Object> properties = namedClusterService.getProperties();
+    for ( String key : properties.keySet() ) {
+      if ( key.startsWith( NAMED_CLUSTER_DFS_SCHEME ) ) {
+       // will add 1 because we should use the key without "."
+        schemeValues.add( key.substring( key.lastIndexOf( "." ) + 1  ) );
+        schemeNames.add( (String) properties.get( key ) );
+      }
+    }
+    // if we have undefined scheme ( set by variable for example) than we should add the new scheme
+    if ( !schemeValues.contains( cluster.getStorageScheme() ) ) {
+      schemeValues.add( cluster.getStorageScheme() );
+      schemeNames.add( cluster.getStorageScheme() );
+    }
+
+    Composite container = new Composite( parentComposite, SWT.NONE );
+    props.setLook( container );
+    GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.marginBottom = 5;
+    gridLayout.marginTop = 5;
+    container.setLayout( gridLayout );
+
+    // Create a storage type Label
+    createLabel( container, BaseMessages.getString( PKG, "NamedClusterDialog.Storage" ), labelGridData );
+
+    // Create a storage type Drop Down
+    final CCombo storageCombo = new CCombo( container, SWT.BORDER );
+    storageCombo.setItems( schemeNames.toArray( new String[schemeNames.size()] ) );
+    storageCombo.select( schemeValues.indexOf( cluster.getStorageScheme() ) );
+    props.setLook( storageCombo );
+
+    storageCombo.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        super.widgetSelected( e );
+        int index = storageCombo.getSelectionIndex();
+        if ( index == -1 ) {
+          index = 0;
+        }
+        cluster.setStorageScheme( schemeValues.get( index ) );
+        setHdfsAndJobTrackerState( cluster );
+      }
+    } );
+    storageCombo.addFocusListener( new FocusListener() {
+
+      @Override
+      public void focusLost( FocusEvent e ) {
+        String uiInputText = storageCombo.getText();
+        int selectedIndex;
+        if ( schemeNames.contains( uiInputText ) ) {
+          selectedIndex = schemeNames.indexOf( uiInputText );
+          cluster.setStorageScheme( schemeValues.get( selectedIndex ) );
+          storageCombo.select( selectedIndex );
+        } else if ( schemeValues.contains( uiInputText ) ) {
+          selectedIndex = schemeValues.indexOf( uiInputText );
+          cluster.setStorageScheme( schemeValues.get( selectedIndex ) );
+          storageCombo.select( selectedIndex );
+        } else {
+          schemeNames.add( uiInputText );
+          schemeValues.add( uiInputText );
+          storageCombo.setItems( schemeNames.toArray( new String[schemeNames.size()] ) );
+          cluster.setStorageScheme( uiInputText );
+        }
+        setHdfsAndJobTrackerState( cluster );
+      }
+
+      @Override
+      public void focusGained( FocusEvent e ) {
+        // should not do any thing on enter focus
+      }
+    } );
+  }
+
   private void createHdfsGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.HDFS" ) );
     hdfsGroup = (Group) pp.getParent();
@@ -365,7 +375,7 @@ public class NamedClusterComposite extends Composite {
     };
     hdfsHostText = createTextVar( c, hostUIComposite, c.getHdfsHost(), gridData, TEXT_FLAGS, hdfsHostCB );
 
-    hdfsPortLabel =  createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
+    hdfsPortLabel = createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
     Callback hdfsPortCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -384,37 +394,28 @@ public class NamedClusterComposite extends Composite {
     props.setLook( passwordUIComposite );
     passwordUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
 
-    hdfsUsernameLabel =
-        createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ),
-            userNameLabelGridData );
+    hdfsUsernameLabel = createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ), userNameLabelGridData );
     // hdfs user input
     Callback hdfsUsernameCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsUsername( value );
       }
     };
-    hdfsUsernameText =
-        createTextVar( c, usernameUIComposite, c.getHdfsUsername(), userNameGridData, TEXT_FLAGS, hdfsUsernameCB );
+    hdfsUsernameText = createTextVar( c, usernameUIComposite, c.getHdfsUsername(), userNameGridData, TEXT_FLAGS, hdfsUsernameCB );
 
-    hdfsPasswordLabel =
-        createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ),
-            passwordLabelGridData );
+    hdfsPasswordLabel = createLabel( passwordUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Password" ),  passwordLabelGridData );
     // hdfs password input
     Callback hdfsPasswordCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setHdfsPassword( value );
       }
     };
-    hdfsPasswordText =
-        createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
-
+    hdfsPasswordText = createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
   }
 
   private void createJobTrackerGroup( Composite parentComposite, final NamedCluster c ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.JobTracker" ) );
-
     Composite jobTrackerRowComposite = createTwoColumnsContainer( pp );
-
     Composite hostUIComposite = new Composite( jobTrackerRowComposite, SWT.NONE );
     props.setLook( hostUIComposite );
     hostUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
@@ -423,8 +424,7 @@ public class NamedClusterComposite extends Composite {
     props.setLook( portUIComposite );
     portUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
 
-    jtHostLabel =
-        createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
+    jtHostLabel = createLabel( hostUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Hostname" ), labelGridData );
     // hdfs host input
     Callback hostCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -433,8 +433,7 @@ public class NamedClusterComposite extends Composite {
     };
     jtHostNameText = createTextVar( c, hostUIComposite, c.getJobTrackerHost(), gridData, TEXT_FLAGS, hostCB );
 
-    jtPortLabel =
-        createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
+    jtPortLabel = createLabel( portUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Port" ), portLabelGridData );
     // hdfs port input
     Callback portCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
@@ -478,15 +477,13 @@ public class NamedClusterComposite extends Composite {
     createTextVar( c, portUIComposite, c.getZooKeeperPort(), numberGridData, TEXT_FLAGS, portCB );
   }
 
-  private void createOozieGroup( Composite parentComposite, final NamedCluster c ) {
+  private void createOozieGroup( Composite parentComposite, final NamedCluster namedCluster ) {
     Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Oozie" ) );
-
     Composite container = new Composite( pp, SWT.NONE );
     props.setLook( container );
     GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
     gridLayout.marginBottom = 5;
     gridLayout.marginTop = 5;
-
     container.setLayout( gridLayout );
 
     // oozie label
@@ -497,7 +494,7 @@ public class NamedClusterComposite extends Composite {
         nc.setOozieUrl( value );
       }
     };
-    createTextVar( c, container, c.getOozieUrl(), gridData, TEXT_FLAGS, hostCB );
+    createTextVar( namedCluster, container, namedCluster.getOozieUrl(), gridData, TEXT_FLAGS, hostCB );
   }
 
   private void createGatewayGroup( Composite parentComposite, final NamedCluster c ) {
@@ -548,8 +545,7 @@ public class NamedClusterComposite extends Composite {
   }
 
   private void setHdfsAndJobTrackerState( NamedCluster cluster ) {
-    boolean state = !cluster.isMapr();
-    jtHostLabel.setEnabled( state );
+    boolean state = !cluster.isMapr();    jtHostLabel.setEnabled( state );
     jtHostNameText.setEnabled( state );
     jtPortLabel.setEnabled( state );
     jtPortText.setEnabled( state );

@@ -89,6 +89,7 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setGatewayUrl( nc.getGatewayUrl() );
     delegate.setGatewayUsername( nc.getGatewayUsername() );
     delegate.setGatewayPassword( nc.getGatewayPassword() );
+    delegate.setUseGateway( nc.isUseGateway() );
   }
 
   public String getStorageScheme() {
@@ -352,5 +353,15 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public void setGatewayPassword( String gatewayPassword ) {
     delegate.setGatewayPassword( gatewayPassword );
+  }
+
+  @Override
+  public void setUseGateway( boolean selection ) {
+    delegate.setUseGateway( selection );
+  }
+
+  @Override
+  public boolean isUseGateway() {
+    return delegate.isUseGateway();
   }
 }

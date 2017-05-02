@@ -116,6 +116,9 @@ public class NamedClusterImpl implements NamedCluster {
 
   @MetaStoreAttribute ( password = true )
   private String gatewayPassword;
+  
+  @MetaStoreAttribute
+  private boolean useGateway;
 
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
@@ -241,6 +244,7 @@ public class NamedClusterImpl implements NamedCluster {
     this.setGatewayUrl( nc.getGatewayUrl() );
     this.setGatewayUsername( nc.getGatewayUsername() );
     this.setGatewayPassword( nc.getGatewayPassword() );
+    this.setUseGateway( nc.isUseGateway() );
     this.lastModifiedDate = System.currentTimeMillis();
   }
 
@@ -637,6 +641,16 @@ public class NamedClusterImpl implements NamedCluster {
   @Override
   public void setGatewayPassword( String gatewayPassword ) {
     this.gatewayPassword = gatewayPassword;
+  }
+
+  @Override
+  public boolean isUseGateway() {
+    return useGateway;
+  }
+
+  @Override
+  public void setUseGateway( boolean useGateway ) {
+    this.useGateway = useGateway;
   }
 
 }

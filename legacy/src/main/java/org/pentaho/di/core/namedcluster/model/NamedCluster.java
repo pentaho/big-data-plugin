@@ -89,6 +89,9 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
+  
+  @MetaStoreAttribute
+  private boolean useGateway;
 
   // Comparator for sorting clusters alphabetically by name
   public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
@@ -190,6 +193,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.setGatewayUrl( nc.getGatewayUrl() );
     this.setGatewayUsername( nc.getGatewayUsername() );
     this.setGatewayPassword( nc.getGatewayPassword() );
+    this.setUseGateway( nc.isUseGateway() );
   }
 
   public NamedCluster clone() {
@@ -378,5 +382,13 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void setGatewayPassword( String gatewayPassword ) {
     this.gatewayPassword = gatewayPassword;
+  }
+
+  public boolean isUseGateway() {
+    return useGateway;
+  }
+
+  public void setUseGateway( boolean useGateway ) {
+    this.useGateway = useGateway;
   }
 }
