@@ -40,7 +40,7 @@
     <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
     <dependency.hadoop-shims-mapr520.revision>7.1-SNAPSHOT</dependency.hadoop-shims-mapr520.revision>
     <dependency.json.revision>7.1-SNAPSHOT</dependency.json.revision>
-    <dependency.httpcomponents-client.revision>4.5</dependency.httpcomponents-client.revision>
+    <dependency.httpcomponents-client.revision>4.5.2</dependency.httpcomponents-client.revision>
     <dependency.httpcomponents-core.revision>4.4</dependency.httpcomponents-core.revision>
     <dependency.karaf.revision>3.0.3</dependency.karaf.revision>
     <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5</plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
