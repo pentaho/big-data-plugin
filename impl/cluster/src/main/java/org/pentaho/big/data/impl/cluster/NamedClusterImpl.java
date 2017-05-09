@@ -90,7 +90,6 @@ public class NamedClusterImpl implements NamedCluster {
   private String hdfsUsername;
   @MetaStoreAttribute( password = true )
   private String hdfsPassword;
-
   @MetaStoreAttribute
   private String jobTrackerHost;
   @MetaStoreAttribute
@@ -116,7 +115,6 @@ public class NamedClusterImpl implements NamedCluster {
 
   @MetaStoreAttribute ( password = true )
   private String gatewayPassword;
-  
   @MetaStoreAttribute
   private boolean useGateway;
 
