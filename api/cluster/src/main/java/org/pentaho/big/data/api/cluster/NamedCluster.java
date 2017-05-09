@@ -90,6 +90,18 @@ public interface NamedCluster extends Cloneable, VariableSpace {
 
   void setMapr( boolean mapr );
 
+  String getGatewayUrl();
+
+  void setGatewayUrl( String gatewayUrl );
+
+  String getGatewayUsername();
+
+  void setGatewayUsername( String gatewayUsername );
+
+  String getGatewayPassword();
+
+  void setGatewayPassword( String gatewayPassword );
+
   NamedCluster clone();
 
   String toXmlForEmbed( String rootTag );
@@ -113,4 +125,9 @@ public interface NamedCluster extends Cloneable, VariableSpace {
       return c1.getName().compareToIgnoreCase( c2.getName() );
     }
   };
+
+  void setUseGateway( boolean selection );
+
+  boolean isUseGateway();
+
 }

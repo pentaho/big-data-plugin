@@ -144,7 +144,7 @@ public class NamedClusterDialogImpl extends Dialog {
     fd.right = new FormAttachment( 100, 0 );
     namedClusterComposite.setLayoutData( fd );
 
-    shell.setSize( 450, 685 );
+    shell.setSize( 450, 700 );
 
     // Buttons
     Button wTest = new Button( shell, SWT.PUSH );

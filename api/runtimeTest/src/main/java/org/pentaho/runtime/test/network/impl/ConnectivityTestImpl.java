@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -61,13 +61,13 @@ public class ConnectivityTestImpl implements ConnectivityTest {
   public static final String CONNECT_TEST_UNREACHABLE_DESC = "ConnectTest.Unreachable.Desc";
   public static final String CONNECT_TEST_UNREACHABLE_MESSAGE = "ConnectTest.Unreachable.Message";
   private static final Class<?> PKG = ConnectivityTestImpl.class;
-  private final MessageGetter messageGetter;
-  private final String hostname;
-  private final String port;
+  protected final MessageGetter messageGetter;
+  protected final String hostname;
+  protected final String port;
   private final boolean haPossible;
-  private final RuntimeTestEntrySeverity severityOfFalures;
+  protected final RuntimeTestEntrySeverity severityOfFalures;
   private final SocketFactory socketFactory;
-  private final InetAddressFactory inetAddressFactory;
+  protected final InetAddressFactory inetAddressFactory;
 
   public ConnectivityTestImpl( MessageGetterFactory messageGetterFactory, String hostname, String port,
                                boolean haPossible ) {

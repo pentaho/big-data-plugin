@@ -86,6 +86,10 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setOozieUrl( nc.getOozieUrl() );
     delegate.setStorageScheme( nc.getStorageScheme() );
     delegate.setLastModifiedDate( System.currentTimeMillis() );
+    delegate.setGatewayUrl( nc.getGatewayUrl() );
+    delegate.setGatewayUsername( nc.getGatewayUsername() );
+    delegate.setGatewayPassword( nc.getGatewayPassword() );
+    delegate.setUseGateway( nc.isUseGateway() );
   }
 
   public String getStorageScheme() {
@@ -319,5 +323,45 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public NamedCluster fromXmlForEmbed( Node node ) {
     return new NamedClusterBridgeImpl( delegate.fromXmlForEmbed( node ) );
+  }
+
+  @Override
+  public String getGatewayUrl() {
+    return  delegate.getGatewayUrl();
+  }
+
+  @Override
+  public void setGatewayUrl( String gatewayUrl ) {
+    delegate.setGatewayUrl( gatewayUrl );
+  }
+
+  @Override
+  public String getGatewayUsername() {
+    return delegate.getGatewayUsername();
+  }
+
+  @Override
+  public void setGatewayUsername( String gatewayUsername ) {
+    delegate.setGatewayUsername( gatewayUsername );
+  }
+
+  @Override
+  public String getGatewayPassword() {
+    return delegate.getGatewayPassword();
+  }
+
+  @Override
+  public void setGatewayPassword( String gatewayPassword ) {
+    delegate.setGatewayPassword( gatewayPassword );
+  }
+
+  @Override
+  public void setUseGateway( boolean selection ) {
+    delegate.setUseGateway( selection );
+  }
+
+  @Override
+  public boolean isUseGateway() {
+    return delegate.isUseGateway();
   }
 }

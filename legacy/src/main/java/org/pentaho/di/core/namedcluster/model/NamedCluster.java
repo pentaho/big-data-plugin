@@ -27,7 +27,7 @@ import java.util.Map;
 
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -79,7 +79,19 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private boolean mapr;
 
   @MetaStoreAttribute
+  private String gatewayUrl;
+
+  @MetaStoreAttribute
+  private String gatewayUsername;
+
+  @MetaStoreAttribute ( password = true )
+  private String gatewayPassword;
+
+  @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
+  
+  @MetaStoreAttribute
+  private boolean useGateway;
 
   // Comparator for sorting clusters alphabetically by name
   public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
@@ -138,7 +150,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
     if ( !Utils.isEmpty( variableName ) ) {
       String value = environmentSubstitute( variableName );
       if ( !Utils.isEmpty( value ) ) {
-        return ValueMeta.convertStringToBoolean( value );
+        return ValueMetaBase.convertStringToBoolean( value );
       }
     }
     return defaultValue;
@@ -178,6 +190,10 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.setOozieUrl( nc.getOozieUrl() );
     this.setMapr( nc.isMapr() );
     this.lastModifiedDate = System.currentTimeMillis();
+    this.setGatewayUrl( nc.getGatewayUrl() );
+    this.setGatewayUsername( nc.getGatewayUsername() );
+    this.setGatewayPassword( nc.getGatewayPassword() );
+    this.setUseGateway( nc.isUseGateway() );
   }
 
   public NamedCluster clone() {
@@ -342,5 +358,37 @@ public class NamedCluster implements Cloneable, VariableSpace {
   public NamedCluster fromXmlForEmbed( Node node ) {
     // This method should only be called on the real NamedClusterImpl
     return null;
+  }
+
+  public String getGatewayUrl() {
+    return gatewayUrl;
+  }
+
+  public void setGatewayUrl( String gatewayUrl ) {
+    this.gatewayUrl = gatewayUrl;
+  }
+
+  public String getGatewayUsername() {
+    return gatewayUsername;
+  }
+
+  public void setGatewayUsername( String gatewayUsername ) {
+    this.gatewayUsername = gatewayUsername;
+  }
+
+  public String getGatewayPassword() {
+    return gatewayPassword;
+  }
+
+  public void setGatewayPassword( String gatewayPassword ) {
+    this.gatewayPassword = gatewayPassword;
+  }
+
+  public boolean isUseGateway() {
+    return useGateway;
+  }
+
+  public void setUseGateway( boolean useGateway ) {
+    this.useGateway = useGateway;
   }
 }

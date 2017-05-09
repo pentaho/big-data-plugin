@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -107,6 +107,7 @@ public class ClusterRuntimeTestEntry extends RuntimeTestResultEntryImpl {
     GENERAL( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.General" ),
     SHIM_LOAD( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.ShimLoad" ),
     CLUSTER_CONNECT( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.ClusterConnect" ),
+    CLUSTER_CONNECT_GATEWAY( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.ClusterConnectGateway" ),
     ACCESS_DIRECTORY( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.AccessDirectory" ),
     OOZIE( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.Oozie" ),
     ZOOKEEPER( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.Zookeeper" );

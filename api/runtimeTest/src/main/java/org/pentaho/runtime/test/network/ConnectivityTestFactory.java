@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,4 +34,10 @@ public interface ConnectivityTestFactory {
 
   ConnectivityTest create( MessageGetterFactory messageGetterFactory, String hostname, String port, boolean haPossible,
                            RuntimeTestEntrySeverity severityOfFailures );
+
+  ConnectivityTest create( MessageGetterFactory messageGetterFactory, String url, String testPath,
+                           String user, String password );
+
+  ConnectivityTest create( MessageGetterFactory messageGetterFactory, String url, String testPath,
+                           String user, String password, RuntimeTestEntrySeverity severityOfFailures );
 }
