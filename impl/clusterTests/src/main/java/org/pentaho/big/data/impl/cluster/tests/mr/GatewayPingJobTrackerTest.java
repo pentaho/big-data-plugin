@@ -24,7 +24,6 @@ package org.pentaho.big.data.impl.cluster.tests.mr;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;
@@ -52,7 +51,7 @@ public class GatewayPingJobTrackerTest extends PingJobTrackerTest {
     Variables variables = new Variables();
     variables.initializeVariablesFrom( null );
 
-    if ( StringUtil.isEmpty( namedCluster.getGatewayUrl() ) ) {
+    if ( !namedCluster.isUseGateway() ) {
       return super.runTest( objectUnderTest );
     } else {
       return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry( messageGetterFactory,
