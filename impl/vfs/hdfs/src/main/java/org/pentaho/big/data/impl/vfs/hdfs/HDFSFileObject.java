@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -37,7 +37,7 @@ public class HDFSFileObject extends AbstractFileObject  {
 
   private HadoopFileSystem hdfs;
 
-  protected HDFSFileObject( final AbstractFileName name, final HDFSFileSystem fileSystem ) throws FileSystemException {
+  public HDFSFileObject( final AbstractFileName name, final HDFSFileSystem fileSystem ) throws FileSystemException {
     super( name, fileSystem );
     hdfs = fileSystem.getHDFSFileSystem();
   }

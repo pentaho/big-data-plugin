@@ -48,8 +48,12 @@ public class HDFSFileSystem extends AbstractFileSystem implements FileSystem {
   protected void addCapabilities( Collection caps ) {
     caps.addAll( HDFSFileProvider.capabilities );
     // Adding capabilities depending on configuration settings
-    if ( Boolean.parseBoolean( hdfs.getProperty( "dfs.support.append", "true" ) ) ) {
-      caps.add( Capability.APPEND_CONTENT );
+    try {
+      if ( Boolean.parseBoolean( getHDFSFileSystem().getProperty( "dfs.support.append", "true" ) ) ) {
+        caps.add( Capability.APPEND_CONTENT );
+      }
+    } catch ( FileSystemException e ) {
+      throw new RuntimeException( e );
     }
   }
 

@@ -27,6 +27,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import org.junit.Ignore;
+
 /**
  * Created by bryan on 11/23/15.
  */
@@ -52,12 +54,14 @@ public class HadoopFileOutputDialogTest {
     assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
   }
 
+  @Ignore
   @Test
   public void testGetUrlPathNoPrefix() {
     String expected = "/path/to/file";
     assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
   }
 
+  @Ignore
   @Test
   public void testGetUrlPathVariablePrefix() {
     String expected = "${myTestVar}";

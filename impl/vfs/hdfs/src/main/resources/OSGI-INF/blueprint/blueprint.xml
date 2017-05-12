@@ -45,8 +45,8 @@
     <argument ref="maprfsFileNameParser" />
     <argument value="wasbs" type="java.lang.String"/>
   </bean>
-  
-  <bean class="org.pentaho.big.data.impl.vfs.nc.NamedClusterProvider" scope="singleton">
+
+  <bean class="org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider" scope="singleton">
     <argument ref="hadoopFileSystemService"/>
     <argument ref="namedClusterService"/>
     <argument ref="hdfsFileNameParser" />
