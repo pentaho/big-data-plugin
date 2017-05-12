@@ -25,6 +25,8 @@ package org.pentaho.big.data.impl.shim.mapreduce;
 import com.google.common.annotations.VisibleForTesting;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemConfigBuilder;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.pentaho.big.data.api.cluster.NamedCluster;
@@ -66,8 +68,16 @@ import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.fs.FileSystem;
 import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
+import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.stores.xml.XmlMetaStore;
+import org.pentaho.metastore.stores.xml.XmlUtil;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -535,6 +545,9 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
           log.logBasic( BaseMessages
             .getString( PKG, "JobEntryHadoopTransJobExecutor.InstallationOfKettleSuccessful", kettleEnvInstallDir ) );
         }
+
+        stageMetaStoreForHadoop( conf, fs, installPath );
+
         if ( !hadoopShim.getDistributedCacheUtil().isKettleEnvironmentInstalledAt( fs, kettleEnvInstallDir ) ) {
           throw new KettleException( BaseMessages.getString( PKG,
             JOB_ENTRY_HADOOP_TRANS_JOB_EXECUTOR_KETTLE_INSTALLATION_MISSING_FROM,
@@ -558,6 +571,57 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     JobConf jobConf = conf.getAsDelegateConf( JobConf.class );
     jobConf.getCredentials().addAll( UserGroupInformation.getCurrentUser().getCredentials() );
     return super.submit( conf );
+  }
+
+  protected void stageMetaStoreForHadoop( Configuration conf, FileSystem fs,
+                                          String installPath )
+    throws Exception {
+    Path metaStoreForCurrentJob;
+    FileObject metaStoreSnapshotDir;
+    String metaStoreDirName;
+    do {
+      java.nio.file.Path randomPath = Files.createTempDirectory( "metastore" );
+      metaStoreSnapshotDir = KettleVFS.getFileObject( randomPath.toString() );
+      metaStoreDirName = metaStoreSnapshotDir.getName().getBaseName();
+      metaStoreForCurrentJob = fs.asPath( installPath, metaStoreSnapshotDir.getName().getBaseName() );
+    } while ( fs.exists( metaStoreForCurrentJob ) );
+
+    KettleVFS.getFileObject( metaStoreSnapshotDir.toString() + "/lib" ).createFolder();
+    KettleVFS.getFileObject( metaStoreSnapshotDir.toString() + "/metastore" ).createFolder();
+    snapshotMetaStore( metaStoreSnapshotDir );
+
+    hadoopShim.getDistributedCacheUtil().stageForCache( metaStoreSnapshotDir, fs, metaStoreForCurrentJob, false, true );
+    hadoopShim.getDistributedCacheUtil().addCachedFiles( conf, fs, metaStoreForCurrentJob, null );
+
+    //set( "pentaho.kettle.metastore.dir", metaStoreDirName );
+  }
+
+  private void snapshotMetaStore( FileObject metaStoreSnapshotDir ) throws MetaStoreException {
+    IMetaStore snapshot = createMetaStore( metaStoreSnapshotDir.getName().getPath() );
+    try {
+      FileSystemConfigBuilder nc =
+        KettleVFS.getInstance().getFileSystemManager().getFileSystemConfigBuilder( "namedcluster" );
+      Method snapshotMethod = nc.getClass().getMethod( "snapshotNamedClusterToMetaStore", IMetaStore.class );
+      snapshotMethod.invoke( nc, snapshot );
+    } catch ( FileSystemException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e ) {
+      e.printStackTrace();
+    }
+  }
+
+  private static IMetaStore createMetaStore( String rootFolder ) throws MetaStoreException {
+    File rootFolderFile = new File( rootFolder ); //TODO move to kettle core
+    File metaFolder = new File( rootFolder + File.separator + XmlUtil.META_FOLDER_NAME );
+    if ( !metaFolder.exists() ) {
+      return null;
+    }
+    if ( !rootFolderFile.exists() ) {
+      rootFolderFile.mkdirs();
+    }
+
+    XmlMetaStore metaStore = new XmlMetaStore( rootFolder );
+    metaStore.setName( Const.PENTAHO_METASTORE_NAME );
+
+    return metaStore;
   }
 
   protected void configureVariableSpace( Configuration conf ) {

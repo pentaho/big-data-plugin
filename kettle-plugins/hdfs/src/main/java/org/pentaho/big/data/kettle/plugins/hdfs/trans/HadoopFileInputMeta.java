@@ -106,7 +106,8 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
   public String loadUrl( String url, String ncName, IMetaStore metastore, Map<String, String> mappings ) {
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
     if ( c != null ) {
-      url = c.processURLsubstitution( url, metastore, new Variables() );
+
+      //url = c.processURLsubstitution( url, metastore, new Variables() );
     }
     if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) ) {
       mappings.put( url, ncName );

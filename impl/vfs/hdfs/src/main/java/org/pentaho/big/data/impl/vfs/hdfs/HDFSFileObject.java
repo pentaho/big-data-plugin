@@ -37,7 +37,7 @@ public class HDFSFileObject extends AbstractFileObject  {
 
   private HadoopFileSystem hdfs;
 
-  protected HDFSFileObject( final AbstractFileName name, final HDFSFileSystem fileSystem ) throws FileSystemException {
+  public HDFSFileObject( final AbstractFileName name, final HDFSFileSystem fileSystem ) throws FileSystemException {
     super( name, fileSystem );
     hdfs = fileSystem.getHDFSFileSystem();
   }

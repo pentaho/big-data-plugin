@@ -67,6 +67,9 @@ public class HadoopVfsConnection {
    * @return a String containing the HDFS URL
    */
   public String getConnectionString( String schemeName ) {
+    if ( Schemes.MAPRFS_SCHEME.equals( schemeName ) ){
+      return Schemes.MAPRFS_SCHEME.concat( "://" );
+    }
     StringBuffer urlString =
         new StringBuffer( !Utils.isEmpty( schemeName ) ? schemeName : SCHEME_NAME ).append( "://" );
     if ( !Utils.isEmpty( getUsername() ) ) {
