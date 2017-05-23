@@ -66,7 +66,6 @@ public class NamedClusterBridgeImplTest {
   private String zookeeperPort;
   private String oozieUrl;
   private boolean isMapr;
-  private String toString;
   private long lastModifiedDate;
   private VariableSpace variableSpace;
   private NamedClusterManager namedClusterManager;
@@ -85,7 +84,6 @@ public class NamedClusterBridgeImplTest {
     zookeeperPort = "zookeeperPort";
     oozieUrl = "oozieUrl";
     isMapr = true;
-    toString = "Named cluster: " + namedClusterName;
     lastModifiedDate = 11L;
     xmlString = "xmlString";
 
