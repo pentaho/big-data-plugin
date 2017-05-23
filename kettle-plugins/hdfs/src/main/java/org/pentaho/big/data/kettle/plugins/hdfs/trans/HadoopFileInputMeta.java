@@ -24,7 +24,6 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.annotations.Step;
@@ -33,6 +32,7 @@ import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -130,8 +130,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     String path = null;
     try {
       String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      FileName fileName = KettleVFS.getInstance().getFileSystemManager().resolveURI( noVariablesURL );
       String root = fileName.getRootURI();
       path = incomingURL.substring( root.length() - 1 );
     } catch ( FileSystemException e ) {

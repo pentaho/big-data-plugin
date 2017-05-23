@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
@@ -1718,8 +1717,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     String path = incomingURL;
     try {
       String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      FileName fileName = KettleVFS.getInstance().getFileSystemManager().resolveURI( noVariablesURL );
       String root = fileName.getRootURI();
       if ( noVariablesURL.startsWith( root ) ) {
         path = incomingURL.substring( root.length() - 1 );
