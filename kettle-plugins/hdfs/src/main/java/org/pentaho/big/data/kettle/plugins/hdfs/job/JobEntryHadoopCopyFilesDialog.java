@@ -37,9 +37,9 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
@@ -136,7 +136,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
         if ( jobEntry.wildcard[i] != null ) {
           ti.setText( 3, jobEntry.wildcard[i] );
         }
-        if ( jobEntry.destination_filefolder[i] != null && !Const.isEmpty( jobEntry.destination_filefolder[i] ) ) {
+        if ( jobEntry.destination_filefolder[i] != null && !Utils.isEmpty( jobEntry.destination_filefolder[i] ) ) {
           String destinationURL = jobEntry.destination_filefolder[i];
           String clusterName = jobEntry.getConfigurationBy( destinationURL );
           ti.setText( 4, STATIC_ENVIRONMENT );
@@ -168,7 +168,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
   }
 
   protected void ok() {
-    if ( Const.isEmpty( wName.getText() ) ) {
+    if ( Utils.isEmpty( wName.getText() ) ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( BASE_PKG, "System.StepJobEntryNameMissing.Title" ) );
       mb.setMessage( BaseMessages.getString( BASE_PKG, "System.JobEntryNameMissing.Msg" ) );
@@ -213,7 +213,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
       destNc = destNc.equals( S3_ENVIRONMENT ) ? JobEntryHadoopCopyFiles.S3_DEST_FILE + i : destNc;
       String dest = wFields.getNonEmpty( i ).getText( 5 );
 
-      if ( !Const.isEmpty( source ) && jobEntry.source_filefolder.length > 0 ) {
+      if ( !Utils.isEmpty( source ) && jobEntry.source_filefolder.length > 0 ) {
         jobEntry.source_filefolder[nr] =
             jobEntryHadoopCopyFiles.loadURL( source, sourceNc, getMetaStore(), namedClusterURLMappings );
         jobEntry.destination_filefolder[nr] =
@@ -238,7 +238,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
 
       if ( !clusterName.equals( LOCAL_ENVIRONMENT ) && !clusterName.equals( S3_ENVIRONMENT ) ) {
         NamedCluster namedCluster = namedClusterService.getNamedClusterByName( clusterName, getMetaStore() );
-        if ( Const.isEmpty( path ) ) {
+        if ( Utils.isEmpty( path ) ) {
           path = "/";
         }
         if ( namedCluster == null ) {

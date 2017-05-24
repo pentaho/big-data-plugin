@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.vfs;
 
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -36,7 +37,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
-import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -179,15 +179,13 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
 
   public void connect() {
     NamedCluster nc = getNamedClusterWidget().getSelectedNamedCluster();
-    HadoopVfsConnection hdfsConnection = new HadoopVfsConnection( nc, getVariableSpace() );
-    hdfsConnection.setCustomParameters( Props.getInstance() );
     // The Named Cluster may be hdfs, maprfs or wasb.  We need to detect it here since the named
     // cluster was just selected.
     schemeName = "wasb".equals( nc.getStorageScheme() ) ? "wasb" : "hdfs";
 
     FileObject root = rootFile;
     try {
-      root = KettleVFS.getFileObject( hdfsConnection.getConnectionString( schemeName ) );
+      root = KettleVFS.getFileObject( nc.processURLsubstitution( FileName.ROOT_PATH, Spoon.getInstance().getMetaStore(), getVariableSpace() ) );
     } catch ( KettleFileException exc ) {
       showMessageAndLog( BaseMessages.getString( PKG, "HadoopVfsFileChooserDialog.error" ), BaseMessages.getString( PKG,
         "HadoopVfsFileChooserDialog.Connection.error" ), exc.getMessage() );

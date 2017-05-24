@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
@@ -64,8 +63,9 @@ import org.pentaho.di.core.compress.CompressionProviderFactory;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -1039,7 +1039,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
             ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
     colinf[1] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TypeColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes() );
+            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaBase.getTypes() );
     colinf[2] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FormatColumn.Column" ),
             ColumnInfo.COLUMN_TYPE_CCOMBO, formats );
@@ -1060,7 +1060,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
             ColumnInfo.COLUMN_TYPE_TEXT, false );
     colinf[8] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TrimTypeColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc, true );
+            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaBase.trimTypeDesc, true );
     colinf[9] =
         new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NullColumn.Column" ),
             ColumnInfo.COLUMN_TYPE_TEXT, false );
@@ -1184,7 +1184,6 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
             return;
           }
 
-          String clusterName = namedCluster.getName();
           String path = wFilename.getText();
 
           // Get current file
@@ -1192,7 +1191,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
           FileObject initialFile = null;
           FileObject defaultInitialFile = null;
 
-          if ( Const.isEmpty( path ) ) {
+          if ( Utils.isEmpty( path ) ) {
             path = "/";
           }
           path = namedCluster.processURLsubstitution( path, getMetaStore(), transMeta );
@@ -1611,14 +1610,14 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       field.setCurrencySymbol( item.getText( 6 ) );
       field.setDecimalSymbol( item.getText( 7 ) );
       field.setGroupingSymbol( item.getText( 8 ) );
-      field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 9 ) ) );
+      field.setTrimType( ValueMetaBase.getTrimTypeByDesc( item.getText( 9 ) ) );
       field.setNullString( item.getText( 10 ) );
       ( tfoi.getOutputFields() )[i] = field;
     }
   }
 
   private void ok() {
-    if ( Const.isEmpty( wStepname.getText() ) ) {
+    if ( Utils.isEmpty( wStepname.getText() ) ) {
       return;
     }
     stepname = wStepname.getText(); // return value
@@ -1679,9 +1678,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
       item.setText( 4, "" );
       item.setText( 5, "" );
-      item.setText( 9, ValueMeta.getTrimTypeDesc( ValueMetaInterface.TRIM_TYPE_BOTH ) );
+      item.setText( 9, ValueMetaBase.getTrimTypeDesc( ValueMetaInterface.TRIM_TYPE_BOTH ) );
 
-      int type = ValueMeta.getType( item.getText( 2 ) );
+      int type = ValueMetaBase.getType( item.getText( 2 ) );
       switch ( type ) {
         case ValueMetaInterface.TYPE_STRING:
           item.setText( 3, "" );
@@ -1718,8 +1717,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     String path = incomingURL;
     try {
       String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      FileName fileName = KettleVFS.getInstance().getFileSystemManager().resolveURI( noVariablesURL );
       String root = fileName.getRootURI();
       if ( noVariablesURL.startsWith( root ) ) {
         path = incomingURL.substring( root.length() - 1 );

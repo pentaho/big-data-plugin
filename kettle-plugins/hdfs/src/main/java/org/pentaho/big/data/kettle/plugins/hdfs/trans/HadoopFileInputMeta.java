@@ -24,15 +24,15 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -53,7 +53,11 @@ import java.util.Map;
 @InjectionSupported( localizationPrefix = "HadoopFileInput.Injection.", groups = { "FILENAME_LINES", "FIELDS", "FILTERS" } )
 public class HadoopFileInputMeta extends TextFileInputMeta {
 
+  // is not used. Can we delete it?
   private VariableSpace variableSpace;
+  private final RuntimeTestActionService runtimeTestActionService;
+  private final RuntimeTester runtimeTester;
+
   private Map<String, String> namedClusterURLMapping = null;
 
   public static final String SOURCE_CONFIGURATION_NAME = "source_configuration_name";
@@ -62,8 +66,6 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
   public static final String S3_DEST_FILE = "S3-DEST-FILE-";
   private final NamedClusterService namedClusterService;
-  private final RuntimeTestActionService runtimeTestActionService;
-  private final RuntimeTester runtimeTester;
 
   public HadoopFileInputMeta( NamedClusterService namedClusterService,
                               RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
@@ -106,7 +108,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, new Variables() );
     }
-    if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
+    if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) ) {
       mappings.put( url, ncName );
     }
     return url;
@@ -128,8 +130,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     String path = null;
     try {
       String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-      UrlFileNameParser parser = new UrlFileNameParser();
-      FileName fileName = parser.parseUri( null, null, noVariablesURL );
+      FileName fileName = KettleVFS.getInstance().getFileSystemManager().resolveURI( noVariablesURL );
       String root = fileName.getRootURI();
       path = incomingURL.substring( root.length() - 1 );
     } catch ( FileSystemException e ) {

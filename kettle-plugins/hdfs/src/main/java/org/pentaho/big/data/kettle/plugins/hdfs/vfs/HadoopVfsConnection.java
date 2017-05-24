@@ -23,8 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.hdfs.vfs;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 
 /**
@@ -68,13 +68,13 @@ public class HadoopVfsConnection {
    */
   public String getConnectionString( String schemeName ) {
     StringBuffer urlString =
-        new StringBuffer( !Const.isEmpty( schemeName ) ? schemeName : SCHEME_NAME ).append( "://" );
-    if ( !Const.isEmpty( getUsername() ) ) {
+        new StringBuffer( !Utils.isEmpty( schemeName ) ? schemeName : SCHEME_NAME ).append( "://" );
+    if ( !Utils.isEmpty( getUsername() ) ) {
       urlString.append( getUsername() ).append( COLON ).append( getPassword() ).append( "@" );
     }
 
     urlString.append( getHostname() );
-    if ( !Const.isEmpty( getPort() ) ) {
+    if ( !Utils.isEmpty( getPort() ) ) {
       urlString.append( COLON ).append( getPort() );
     }
     return urlString.toString();
