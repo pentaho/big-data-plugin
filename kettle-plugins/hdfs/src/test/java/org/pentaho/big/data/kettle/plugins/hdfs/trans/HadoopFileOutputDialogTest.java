@@ -54,15 +54,14 @@ public class HadoopFileOutputDialogTest {
 
   @Test
   public void testGetUrlPathNoPrefix() {
-    String testPath = "/path/to/file";
-    //we do not have prefix, vfs does not able to resolve file we expect that we get null!!
-    assertNull( HadoopFileOutputDialog.getUrlPath( testPath ) );
+    String expected = "/path/to/file";
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
   }
 
   @Test
   public void testGetUrlPathVariablePrefix() {
-    String testPath = "${myTestVar}";
-    //we do not have prefix, vfs does not able to resolve file we expect that we get null!!
-    assertNull( HadoopFileOutputDialog.getUrlPath( testPath ) );
+    String expected = "${myTestVar}";
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
   }
+
 }
