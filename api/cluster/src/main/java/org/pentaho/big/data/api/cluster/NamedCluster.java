@@ -32,6 +32,9 @@ import java.util.Comparator;
  * Created by bryan on 6/24/15.
  */
 public interface NamedCluster extends Cloneable, VariableSpace {
+
+  public static final String KNOX_GATEWAY_ROOT = "KnoxGatewayRoot";
+
   String getName();
 
   void setName( String name );

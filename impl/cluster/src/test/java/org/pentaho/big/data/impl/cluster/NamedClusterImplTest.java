@@ -244,7 +244,9 @@ public class NamedClusterImplTest {
         scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":" + namedClusterHdfsPort,
         namedCluster.generateURL( "testScheme", metaStore, null ) );
     assertNull( namedCluster.generateURL( null, metaStore, null ) );
-    assertNull( namedCluster.generateURL( "testScheme", null, null ) );
+    assertEquals(
+        scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":" + namedClusterHdfsPort,
+        namedCluster.generateURL( "testScheme", null, null ) );
   }
 
   @Test
