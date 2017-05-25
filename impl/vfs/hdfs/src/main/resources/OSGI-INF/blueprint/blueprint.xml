@@ -45,6 +45,15 @@
     <argument ref="maprfsFileNameParser" />
     <argument value="wasbs" type="java.lang.String"/>
   </bean>
+   
+  <bean class="org.pentaho.big.data.impl.vfs.knox.KnoxFileProvider" scope="singleton">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="namedClusterService"/>
+    <argument ref="knoxFileNameParser" />
+    <argument value="knox" type="java.lang.String"/>
+  </bean>
+  
+  <bean id="knoxFileNameParser" class="org.pentaho.big.data.impl.vfs.knox.KnoxFileNameParser" scope="singleton" factory-method="getInstance"/>
 
   <reference id="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
   <reference id="namedClusterService"

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
-package org.pentaho.big.data.impl.vfs.hdfs;
+package org.pentaho.big.data.impl.vfs.knox;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -40,15 +40,12 @@ import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.di.core.vfs.KettleVFS;
 
-public class HDFSFileProvider extends AbstractOriginatingFileProvider {
+public class KnoxFileProvider extends AbstractOriginatingFileProvider {
   /**
    * The scheme this provider was designed to support
    */
-  public static final String SCHEME = "hdfs";
-  public static final String MAPRFS = "maprfs";
   public static final String KNOX = "knox";
   public static final String KNOX_ROOT_MARKER = "knoxRoot";
-
 
   /**
    * User Information.
@@ -57,42 +54,26 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
   /**
    * Authentication types.
    */
-  public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES =
-    new UserAuthenticationData.Type[] { UserAuthenticationData.USERNAME,
-      UserAuthenticationData.PASSWORD };
+  public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES = new UserAuthenticationData.Type[] {
+    UserAuthenticationData.USERNAME, UserAuthenticationData.PASSWORD };
   /**
    * The provider's capabilities.
    */
-  protected static final Collection<Capability> capabilities =
-    Collections.unmodifiableCollection( Arrays.asList( new Capability[] { Capability.CREATE, Capability.DELETE,
-      Capability.RENAME, Capability.GET_TYPE, Capability.LIST_CHILDREN, Capability.READ_CONTENT, Capability.URI,
-      Capability.WRITE_CONTENT, Capability.GET_LAST_MODIFIED, Capability.SET_LAST_MODIFIED_FILE,
-      Capability.RANDOM_ACCESS_READ } ) );
+  protected static final Collection<Capability> capabilities = Collections.unmodifiableCollection( Arrays
+      .asList( new Capability[] { Capability.CREATE, Capability.DELETE, Capability.RENAME, Capability.GET_TYPE,
+        Capability.LIST_CHILDREN, Capability.READ_CONTENT, Capability.URI, Capability.WRITE_CONTENT,
+        Capability.GET_LAST_MODIFIED, Capability.SET_LAST_MODIFIED_FILE, Capability.RANDOM_ACCESS_READ } ) );
   private final HadoopFileSystemLocator hadoopFileSystemLocator;
   private final NamedClusterService namedClusterService;
-  @Deprecated
-  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
-                           NamedClusterService namedClusterService ) throws FileSystemException {
-    this( hadoopFileSystemLocator, namedClusterService,
-      (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager() );
+
+  public KnoxFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
+      FileNameParser fileNameParser, String schema ) throws FileSystemException {
+    this( hadoopFileSystemLocator, namedClusterService, (DefaultFileSystemManager) KettleVFS.getInstance()
+        .getFileSystemManager(), fileNameParser, new String[] { schema } );
   }
 
-  @Deprecated
-  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           DefaultFileSystemManager fileSystemManager ) throws FileSystemException {
-    this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(),
-      new String[] { SCHEME, MAPRFS } );
-  }
-
-  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           FileNameParser fileNameParser, String schema ) throws FileSystemException {
-    this( hadoopFileSystemLocator, namedClusterService,
-      (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
-      fileNameParser, new String[] { schema } );
-  }
-
-  public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           DefaultFileSystemManager fileSystemManager, FileNameParser fileNameParser, String[] schemes )
+  public KnoxFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
+      DefaultFileSystemManager fileSystemManager, FileNameParser fileNameParser, String[] schemes )
     throws FileSystemException {
     super();
     this.hadoopFileSystemLocator = hadoopFileSystemLocator;
@@ -101,7 +82,8 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
     fileSystemManager.addProvider( schemes, this );
   }
 
-  @Override protected FileSystem doCreateFileSystem( final FileName name, final FileSystemOptions fileSystemOptions )
+  @Override
+  protected FileSystem doCreateFileSystem( final FileName name, final FileSystemOptions fileSystemOptions )
     throws FileSystemException {
     GenericFileName genericFileName = (GenericFileName) name.getRoot();
     String hostName = genericFileName.getHostName();
@@ -109,41 +91,37 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
     // TODO: load from metastore
     NamedCluster namedCluster = namedClusterService.getClusterTemplate();
     namedCluster.setHdfsPort( "" );
-    if ( KNOX.equals( genericFileName.getScheme() ) ) {
-      namedCluster.setUseGateway( true );
-      if ( port > 0 ) {
-        namedCluster.setHdfsPort( String.valueOf( port ) );
-      }
-    }
-    namedCluster.setHdfsHost( hostName );
-    if ( port > 0 ) {
-      namedCluster.setHdfsPort( String.valueOf( port ) );
-    }
-    namedCluster.setMapr( MAPRFS.equals( name.getScheme() ) );
+    namedCluster.setUseGateway( true );
     try {
-      HadoopFileSystem thdfs = hadoopFileSystemLocator.getHadoopFilesystem( namedCluster,
-          URI.create( name.getURI() == null ? "" : name.getURI() ) );
-      return new HDFSFileSystem( name, fileSystemOptions, thdfs );
+      URI uri = URI.create( name.getURI() == null ? "" : name.getURI() );
+      HadoopFileSystem thdfs =
+          hadoopFileSystemLocator.getHadoopFilesystem( namedCluster, uri );
+      FileSystem knoxFileSystem = new KnoxFileSystem( name, fileSystemOptions, thdfs );
+      return knoxFileSystem;
     } catch ( ClusterInitializationException e ) {
       throw new FileSystemException( e );
     }
   }
 
-  @Override public Collection<Capability> getCapabilities() {
+  @Override
+  public Collection<Capability> getCapabilities() {
     return capabilities;
   }
 
   /**
    * Locates a file from its parsed URI.
-   * @param name The file name.
-   * @param fileSystemOptions FileSystem options.
+   *
+   * @param name
+   *          The file name.
+   * @param fileSystemOptions
+   *          FileSystem options.
    * @return A FileObject associated with the file.
-   * @throws FileSystemException if an error occurs.
+   * @throws FileSystemException
+   *           if an error occurs.
    */
   @Override
-  protected FileObject findFile(final FileName name, final FileSystemOptions fileSystemOptions)
-      throws FileSystemException
-  {
+  protected FileObject findFile( final FileName name, final FileSystemOptions fileSystemOptions )
+    throws FileSystemException {
     GenericFileName genericFileName = (GenericFileName) name.getRoot();
     final FileName rootName;
     if ( KNOX.equals( genericFileName.getScheme() ) ) {
@@ -162,7 +140,7 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
       rootName = getContext().getFileSystemManager().resolveName( name, FileName.ROOT_PATH );
     }
 
-    //final FileName rootName = new FileName(calcName);
+    // final FileName rootName = new FileName(calcName);
     final FileSystem fs = getFileSystem( rootName, fileSystemOptions );
 
     // Locate the file
