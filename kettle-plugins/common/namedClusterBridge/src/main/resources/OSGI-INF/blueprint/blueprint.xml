@@ -30,7 +30,17 @@
     </argument>
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
-
+  <bean id="metaStoreService" class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader" factory-method="create" scope="singleton">
+    <argument ref="blueprintBundleContext"/>
+    <argument>
+      <value type="java.lang.String">org.pentaho.big.data.plugins.common.ui.named.cluster.bridge.MetaStoreServiceImpl</value>
+    </argument>
+    <argument>
+      <list>
+      </list>
+    </argument>
+  </bean>
+  <service ref="metaStoreService" interface="org.pentaho.big.data.api.cluster.MetaStoreService"/>
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>

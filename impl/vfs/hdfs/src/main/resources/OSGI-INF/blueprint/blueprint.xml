@@ -46,6 +46,15 @@
     <argument value="wasbs" type="java.lang.String"/>
   </bean>
 
+  <bean class="org.pentaho.big.data.impl.vfs.hdfs.namedcluster.NamedClusterProvider" scope="singleton">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="namedClusterService"/>
+    <argument ref="hdfsFileNameParser" />
+    <argument value="namedcluster" type="java.lang.String"/>
+    <argument ref="metaStoreService" />
+  </bean>
+
+  <reference id="metaStoreService" interface="org.pentaho.big.data.api.cluster.MetaStoreService"/>
   <reference id="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
   <reference id="namedClusterService"
              interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>

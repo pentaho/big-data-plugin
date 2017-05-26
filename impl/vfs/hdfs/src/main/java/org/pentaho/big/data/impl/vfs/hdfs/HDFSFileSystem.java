@@ -37,7 +37,7 @@ import java.util.Collection;
 public class HDFSFileSystem extends AbstractFileSystem implements FileSystem {
   private final HadoopFileSystem hdfs;
 
-  protected HDFSFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,
+  public HDFSFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,
                             HadoopFileSystem hdfs ) {
     super( rootName, null, fileSystemOptions );
     this.hdfs = hdfs;
@@ -48,8 +48,12 @@ public class HDFSFileSystem extends AbstractFileSystem implements FileSystem {
   protected void addCapabilities( Collection caps ) {
     caps.addAll( HDFSFileProvider.capabilities );
     // Adding capabilities depending on configuration settings
-    if ( Boolean.parseBoolean( hdfs.getProperty( "dfs.support.append", "true" ) ) ) {
-      caps.add( Capability.APPEND_CONTENT );
+    try {
+      if ( Boolean.parseBoolean( getHDFSFileSystem().getProperty( "dfs.support.append", "true" ) ) ) {
+        caps.add( Capability.APPEND_CONTENT );
+      }
+    } catch ( FileSystemException e ) {
+      throw new RuntimeException( e );
     }
   }
 

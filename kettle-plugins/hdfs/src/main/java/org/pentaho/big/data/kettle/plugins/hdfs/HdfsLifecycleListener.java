@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.MapRFSFileChooserDialog;
+import org.pentaho.big.data.kettle.plugins.hdfs.vfs.NamedClusterVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
@@ -45,6 +46,7 @@ public class HdfsLifecycleListener implements LifecycleListener {
   private final RuntimeTester runtimeTester;
   private HadoopVfsFileChooserDialog hadoopVfsFileChooserDialog;
   private MapRFSFileChooserDialog mapRFSFileChooserDialog;
+  private NamedClusterVfsFileChooserDialog namedClusterVfsFileChooserDialog;
 
   public HdfsLifecycleListener( NamedClusterService namedClusterService,
                                 RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
@@ -65,9 +67,14 @@ public class HdfsLifecycleListener implements LifecycleListener {
             dialog,
             null, null, namedClusterService, runtimeTestActionService, runtimeTester );
         dialog.addVFSUIPanel( hadoopVfsFileChooserDialog );
-        mapRFSFileChooserDialog = new MapRFSFileChooserDialog( Schemes.MAPRFS_SCHEME, Schemes.MAPRFS_SCHEME_DISPLAY_NAME,
-          dialog );
+        mapRFSFileChooserDialog =
+          new MapRFSFileChooserDialog( Schemes.MAPRFS_SCHEME, Schemes.MAPRFS_SCHEME_DISPLAY_NAME,
+            dialog );
         dialog.addVFSUIPanel( mapRFSFileChooserDialog );
+        namedClusterVfsFileChooserDialog =
+          new NamedClusterVfsFileChooserDialog( Schemes.NAMED_CLUSTER_SCHEME, Schemes.NAMED_CLUSTER_SCHEME_DISPLAY_NAME,
+            dialog, null, null, namedClusterService, runtimeTestActionService, runtimeTester );
+        dialog.addVFSUIPanel( namedClusterVfsFileChooserDialog );
       }
     } );
   }

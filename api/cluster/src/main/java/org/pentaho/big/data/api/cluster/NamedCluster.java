@@ -33,6 +33,12 @@ import java.util.Comparator;
  */
 public interface NamedCluster extends Cloneable, VariableSpace {
 
+  public static final String NAMED_CLUSTERS_FS_OPTION = "namedClustersFSOption";
+
+  public static final String NAMED_CLUSTER_FS_OPTION = "namedClusterFSOption";
+
+  public static final String NAMED_CLUSTER_XML_TAG = "namedClusterTag";
+
   public static final String KNOX_GATEWAY_ROOT = "KnoxGatewayRoot";
 
   String getName();

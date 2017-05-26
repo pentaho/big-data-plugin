@@ -30,5 +30,7 @@ public class Schemes {
   public static final String HDFS_SCHEME_DISPLAY_NAME = "HDFS";
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String MAPRFS_SCHEME_DISPLAY_NAME = "MapRFS";
+  public static final String NAMED_CLUSTER_SCHEME = "namedcluster";
+  public static final String NAMED_CLUSTER_SCHEME_DISPLAY_NAME = "Named Cluster";
   public static final String S3_SCHEME = "s3";
 }
