@@ -37,12 +37,28 @@ import org.w3c.dom.Node;
 
 /**
  * Created by bryan on 1/19/16.
+ * 
  */
 public class NamedClusterLoadSaveUtil {
+
+  /**
+   * specific for step namedclustertree
+   */
+  private static final String NAMED_CLUSTER_ENTRY = "NamedCluster";
+
   public static final String CLUSTER_NAME = "cluster_name";
   public static final String ZOOKEEPER_HOSTS = "zookeeper_hosts";
   public static final String ZOOKEEPER_PORT = "zookeeper_port";
 
+  /**
+   *  This method attempts to create named cluster based on parameters  in follow order:
+   *  <ol> 
+   *  <li> Load from metastore based on the name of namedCluster, if it is not possible than try next. 
+   *  <li> Load from embedded in the step entry. 
+   *  <li> Create a cluster template and populate only the zookeper information from step entry 
+   * </ol>
+   * @return named cluster which was created based on the logic above
+   */
   public NamedCluster loadClusterConfig( NamedClusterService namedClusterService, ObjectId id_jobentry, Repository rep,
                                          IMetaStore metaStore, Node entrynode,
                                          LogChannelInterface logChannelInterface ) {
@@ -64,6 +80,10 @@ public class NamedClusterLoadSaveUtil {
     } catch ( Throwable t ) {
       logChannelInterface.logDebug( t.getMessage(), t );
     }
+    //attemp to load from embeded in step cluster information
+    if ( XMLHandler.getTagValue( entrynode, NAMED_CLUSTER_ENTRY ) != null ) {
+      return namedClusterService.getClusterTemplate().fromXmlForEmbed( entrynode );
+    }
 
     // create cluster template and fill from step ( legacy fallback )
     nc = namedClusterService.getClusterTemplate();
@@ -84,6 +104,24 @@ public class NamedClusterLoadSaveUtil {
     return nc;
   }
 
+  /**
+   * The method applies to the retval follow fields with follow order
+   * 
+   * <ul>
+   * <li> {@code <cluster_name> name of cluster </cluster_name> }
+   * <li> {@code <zookeeper_hosts> host of zookeper </zookeeper_hosts> }
+   * <li> {@code <zookeeper_port> port of zookeper </zookeeper_port> }
+   * <li> <pre>{@code  <NamedCluster>
+     <child>
+        <id>  </id>
+        <value> <value/>
+        <type> </type>
+      </child>
+      ...
+    </NamedCluster> }
+    </pre>
+   * </ul>
+   */
   public void getXml( StringBuilder retval, NamedClusterService namedClusterService, NamedCluster namedCluster,
                       IMetaStore metaStore, LogChannelInterface logChannelInterface ) {
     String namedClusterName = namedCluster.getName();
@@ -104,15 +142,33 @@ public class NamedClusterLoadSaveUtil {
         logChannelInterface.logDebug( e.getMessage(), e );
       }
     }
-
     if ( !Utils.isEmpty( m_zookeeperHosts ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( ZOOKEEPER_HOSTS, m_zookeeperHosts ) );
     }
     if ( !Utils.isEmpty( m_zookeeperPort ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( ZOOKEEPER_PORT, m_zookeeperPort ) );
     }
+    //add full named cluster to use when metastore does not available
+    retval.append(  namedCluster.toXmlForEmbed( NAMED_CLUSTER_ENTRY ) );
   }
 
+  /**
+   * The method save to the rep follow fields with follow order
+   * <ul>
+   * <li> {@code <cluster_name> name of cluster </cluster_name> }
+   * <li> {@code <zookeeper_hosts> host of zookeper </zookeeper_hosts> }
+   * <li> {@code <zookeeper_port> port of zookeper </zookeeper_port> }
+   * <li> <pre>{@code  <NamedCluster>
+     <child>
+        <id>  </id>
+        <value> <value/>
+        <type> </type>
+      </child>
+      ...
+    </NamedCluster> }
+    </pre>
+   * </ul>
+   */
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step,
                        NamedClusterService namedClusterService, NamedCluster namedCluster,
                        LogChannelInterface logChannelInterface )
@@ -140,5 +196,6 @@ public class NamedClusterLoadSaveUtil {
     if ( !Utils.isEmpty( m_zookeeperPort ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, ZOOKEEPER_PORT, m_zookeeperPort );
     }
+    rep.saveStepAttribute( id_transformation, id_step, NAMED_CLUSTER_ENTRY, namedCluster.toXmlForEmbed( NAMED_CLUSTER_ENTRY ) );
   }
 }
