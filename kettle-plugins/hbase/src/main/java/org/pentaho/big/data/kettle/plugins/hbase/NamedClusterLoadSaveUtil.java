@@ -46,20 +46,16 @@ public class NamedClusterLoadSaveUtil {
   public NamedCluster loadClusterConfig( NamedClusterService namedClusterService, ObjectId id_jobentry, Repository rep,
                                          IMetaStore metaStore, Node entrynode,
                                          LogChannelInterface logChannelInterface ) {
-    // load from system first, then fall back to copy stored with job (AbstractMeta)
+    // Attempt to load from metastore
     NamedCluster nc = null;
     String clusterName = null;
     try {
-      // attempt to load from named cluster
       if ( entrynode != null ) {
         clusterName = XMLHandler.getTagValue( entrynode, CLUSTER_NAME ); //$NON-NLS-1$
       } else if ( rep != null ) {
         clusterName = rep.getJobEntryAttributeString( id_jobentry, CLUSTER_NAME ); //$NON-NLS-1$ //$NON-NLS-2$
       }
-
-      if ( metaStore != null && !StringUtils.isEmpty( clusterName ) && namedClusterService
-        .contains( clusterName, metaStore ) ) {
-        // pull config from NamedCluster
+      if ( metaStore != null && !StringUtils.isEmpty( clusterName ) && namedClusterService.contains( clusterName, metaStore ) ) {
         nc = namedClusterService.read( clusterName, metaStore );
       }
       if ( nc != null ) {
@@ -69,16 +65,15 @@ public class NamedClusterLoadSaveUtil {
       logChannelInterface.logDebug( t.getMessage(), t );
     }
 
+    // create cluster template and fill from step ( legacy fallback )
     nc = namedClusterService.getClusterTemplate();
     if ( !StringUtils.isEmpty( clusterName ) ) {
       nc.setName( clusterName );
     }
     if ( entrynode != null ) {
-      // load default values for cluster & legacy fallback
       nc.setZooKeeperHost( XMLHandler.getTagValue( entrynode, ZOOKEEPER_HOSTS ) ); //$NON-NLS-1$
       nc.setZooKeeperPort( XMLHandler.getTagValue( entrynode, ZOOKEEPER_PORT ) ); //$NON-NLS-1$
     } else if ( rep != null ) {
-      // load default values for cluster & legacy fallback
       try {
         nc.setZooKeeperHost( rep.getJobEntryAttributeString( id_jobentry, ZOOKEEPER_HOSTS ) );
         nc.setZooKeeperPort( rep.getJobEntryAttributeString( id_jobentry, ZOOKEEPER_PORT ) ); //$NON-NLS-1$
@@ -96,11 +91,9 @@ public class NamedClusterLoadSaveUtil {
     String m_zookeeperPort = namedCluster.getZooKeeperPort();
 
     if ( !StringUtils.isEmpty( namedClusterName ) ) {
-      retval.append( "\n    " )
-        .append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
       try {
         if ( metaStore != null && namedClusterService.contains( namedClusterName, metaStore ) ) {
-          // pull config from NamedCluster
           NamedCluster nc = namedClusterService.read( namedClusterName, metaStore );
           if ( nc != null ) {
             m_zookeeperHosts = nc.getZooKeeperHost();
@@ -132,7 +125,6 @@ public class NamedClusterLoadSaveUtil {
       rep.saveStepAttribute( id_transformation, id_step, CLUSTER_NAME, namedClusterName ); //$NON-NLS-1$
       try {
         if ( namedClusterService.contains( namedClusterName, metaStore ) ) {
-          // pull config from NamedCluster
           NamedCluster nc = namedClusterService.read( namedClusterName, metaStore );
           m_zookeeperHosts = nc.getZooKeeperHost();
           m_zookeeperPort = nc.getZooKeeperPort();
