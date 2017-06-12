@@ -57,7 +57,7 @@
                 <include>net.java.dev.jets3t:jets3t</include>
                 <include>jline:jline</include>
                 <include>com.googlecode.json-simple:json-simple</include>
-                <include>pentaho-kettle:kettle5-log4j-plugin</include>
+                <include>org.pentaho.di.plugins:kettle-log4j-core</include>
                 <include>libthrift:libthrift</include>
                 <include>org.apache.oozie:oozie-client</include>
                 <include>org.apache.oozie:oozie-core</include>

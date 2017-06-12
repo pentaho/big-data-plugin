@@ -68,8 +68,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle5-log4j-plugin</artifactId>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>kettle-log4j-core</artifactId>
       <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
