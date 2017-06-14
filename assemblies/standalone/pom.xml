@@ -20,7 +20,7 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>pentaho-kettle</groupId>
+      <groupId>org.pentaho.di</groupId>
       <artifactId>pdi-ce</artifactId>
       <version>${dependency.kettle.revision}</version>
       <type>zip</type>
@@ -46,7 +46,7 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>pentaho-kettle</groupId>
+                  <groupId>org.pentaho.di</groupId>
                   <artifactId>pdi-ce</artifactId>
                   <type>zip</type>
                   <outputDirectory>target/dependencies</outputDirectory>
