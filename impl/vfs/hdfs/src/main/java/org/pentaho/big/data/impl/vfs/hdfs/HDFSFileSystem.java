@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -37,7 +37,7 @@ import java.util.Collection;
 public class HDFSFileSystem extends AbstractFileSystem implements FileSystem {
   private final HadoopFileSystem hdfs;
 
-  protected HDFSFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,
+  public HDFSFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions,
                             HadoopFileSystem hdfs ) {
     super( rootName, null, fileSystemOptions );
     this.hdfs = hdfs;
