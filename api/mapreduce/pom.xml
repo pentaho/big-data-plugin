@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-api</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.15-363</version>
   </parent>
   <artifactId>pentaho-big-data-api-mapreduce</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.15-363</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -68,7 +68,6 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <!--<Export-Package>org.pentaho.bigdata.api.pig,org.pentaho.bigdata.api.pig.impl</Export-Package>-->
           </instructions>
         </configuration>
       </plugin>

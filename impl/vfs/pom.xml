@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-impl</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.1.0.15-363</version>
   </parent>
   <artifactId>pentaho-big-data-impl-vfs</artifactId>
-  <version>6.1-SNAPSHOT</version>
+  <version>6.1.0.15-363</version>
   <packaging>pom</packaging>
   <modules>
     <module>hdfs</module>
