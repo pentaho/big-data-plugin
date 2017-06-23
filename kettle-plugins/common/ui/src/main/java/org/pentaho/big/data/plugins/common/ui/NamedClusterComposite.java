@@ -77,6 +77,8 @@ public class NamedClusterComposite extends Composite {
   private static final int TEXT_FLAGS = SWT.SINGLE | SWT.LEFT | SWT.BORDER;
   private static final int PASSWORD_FLAGS = TEXT_FLAGS | SWT.PASSWORD;
 
+  private static final String KETTLE_HADOOP_CLUSTER_GATEWAY_CONNECTION = "KETTLE_HADOOP_CLUSTER_GATEWAY_CONNECTION";
+
   private Text nameOfNamedCluster;
   private Composite compositeSwitcher;
   private Composite gatewayComposite;
@@ -99,12 +101,14 @@ public class NamedClusterComposite extends Composite {
   private ArrayList<String> schemeValues = new ArrayList<>();
   private ArrayList<String> schemeNames = new ArrayList<>();
 
+  private StateChangeListener stateChangeListener;
+
   private interface Callback {
     public void invoke( NamedCluster nc, TextVar textVar, String value );
   }
 
   public NamedClusterComposite( Composite parent, NamedCluster namedCluster, PropsUI props,
-      NamedClusterService namedClusterService ) {
+                                NamedClusterService namedClusterService ) {
     super( parent, SWT.NONE );
     props.setLook( this );
     this.props = props;
@@ -172,6 +176,10 @@ public class NamedClusterComposite extends Composite {
     nameOfNamedCluster.forceFocus();
   }
 
+  public void setStateChangeListener( StateChangeListener stateChangeListener ) {
+    this.stateChangeListener = stateChangeListener;
+  }
+
   private FormData createFormDataAndAttachTopControl( Control topControl ) {
     FormData fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -181,8 +189,9 @@ public class NamedClusterComposite extends Composite {
   }
 
   private Composite createHeadOfNamedClusterDialog( final Composite parentComposite, final NamedCluster namedCluster ) {
-
-    Composite mainRowComposite = createTwoColumnsContainer( parentComposite );
+    Composite mainRowComposite = new Composite( parentComposite, SWT.NONE );
+    mainRowComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    props.setLook( mainRowComposite );
 
     Composite nameUICluster = new Composite( mainRowComposite, SWT.NONE );
     props.setLook( nameUICluster );
@@ -197,28 +206,34 @@ public class NamedClusterComposite extends Composite {
     nameOfNamedCluster.addModifyListener( new ModifyListener() {
       public void modifyText( final ModifyEvent modifyEvent ) {
         namedCluster.setName( nameOfNamedCluster.getText() );
+        stateChanged();
       }
     } );
 
-    // Create gateway composite
-    Composite gatewayUIComposite = new Composite( mainRowComposite, SWT.NONE );
-    props.setLook( gatewayUIComposite );
-    gatewayUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    if ( shouldRenderGatewayCheckbox( namedCluster ) ) {
+      // Create gateway composite
+      Composite gatewayUIComposite = new Composite( mainRowComposite, SWT.NONE );
+      GridLayout layout = new GridLayout( ONE_COLUMN, false );
+      layout.marginHeight = 0;
+      gatewayUIComposite.setLayout( layout );
+      props.setLook( gatewayUIComposite );
 
-    // Create gateway check box
-    final Button gatewayButton = new Button( gatewayUIComposite, SWT.CHECK );
-    gatewayButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.GatewayCheckBoxTitle" ) );
-    props.setLook( gatewayButton );
-    gatewayButton.setSelection( namedCluster.isUseGateway() );
-    gatewayButton.addSelectionListener( new SelectionAdapter() {
-      public void widgetSelected( SelectionEvent e ) {
-        super.widgetSelected( e );
-        namedCluster.setUseGateway( gatewayButton.getSelection() );
-        StackLayout layout = (StackLayout) compositeSwitcher.getLayout();
-        layout.topControl = namedCluster.isUseGateway() ? gatewayComposite : noGatewayComposite;
-        compositeSwitcher.layout();
-      }
-    } );
+      // Create gateway check box
+      final Button gatewayButton = new Button( gatewayUIComposite, SWT.CHECK );
+      gatewayButton.setText( BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.GatewayCheckBoxTitle" ) );
+      props.setLook( gatewayButton );
+      gatewayButton.setSelection( namedCluster.isUseGateway() );
+      gatewayButton.addSelectionListener( new SelectionAdapter() {
+        public void widgetSelected( SelectionEvent e ) {
+          super.widgetSelected( e );
+          namedCluster.setUseGateway( gatewayButton.getSelection() );
+          StackLayout layout = (StackLayout) compositeSwitcher.getLayout();
+          layout.topControl = namedCluster.isUseGateway() ? gatewayComposite : noGatewayComposite;
+          compositeSwitcher.layout();
+          stateChanged();
+        }
+      } );
+    }
     return mainRowComposite;
   }
 
@@ -511,6 +526,7 @@ public class NamedClusterComposite extends Composite {
     Callback gatewayUrlCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setGatewayUrl( value );
+        stateChanged();
       }
     };
     createTextVar( c, gatewayUrlUIComposite, c.getGatewayUrl(), gridData, TEXT_FLAGS, gatewayUrlCB );
@@ -530,6 +546,7 @@ public class NamedClusterComposite extends Composite {
     Callback gatewayUsernameCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setGatewayUsername( value );
+        stateChanged();
       }
     };
     createTextVar( c, usernameUIComposite, c.getGatewayUsername(), userNameGridData, TEXT_FLAGS, gatewayUsernameCB );
@@ -539,13 +556,15 @@ public class NamedClusterComposite extends Composite {
     Callback gatewayPasswordCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
         nc.setGatewayPassword( value );
+        stateChanged();
       }
     };
     createTextVar( c, passwordUIComposite, c.getGatewayPassword(), passwordGridData, PASSWORD_FLAGS, gatewayPasswordCB );
   }
 
   private void setHdfsAndJobTrackerState( NamedCluster cluster ) {
-    boolean state = !cluster.isMapr();    jtHostLabel.setEnabled( state );
+    boolean state = !cluster.isMapr();
+    jtHostLabel.setEnabled( state );
     jtHostNameText.setEnabled( state );
     jtPortLabel.setEnabled( state );
     jtPortText.setEnabled( state );
@@ -564,4 +583,15 @@ public class NamedClusterComposite extends Composite {
     }
     hdfsGroup.setText( storageName );
   }
+
+  private boolean shouldRenderGatewayCheckbox( final NamedCluster namedCluster ) {
+    return Boolean.valueOf( namedCluster.getVariable( KETTLE_HADOOP_CLUSTER_GATEWAY_CONNECTION ) );
+  }
+
+  private void stateChanged() {
+    if ( stateChangeListener != null ) {
+      stateChangeListener.stateModified();
+    }
+  }
+
 }

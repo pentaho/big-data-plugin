@@ -153,6 +153,18 @@ public class NamedClusterDialogImpl extends Dialog {
     Button wOK = new Button( shell, SWT.PUSH );
     wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
 
+    namedClusterComposite.setStateChangeListener( () -> {
+      boolean enabled = !namedCluster.isUseGateway()
+        || ( StringUtils.isNotBlank( namedCluster.getName() )
+             && StringUtils.isNotBlank( namedCluster.getGatewayUrl() )
+             && StringUtils.isNotBlank( namedCluster.getGatewayUsername() )
+             && StringUtils.isNotBlank( namedCluster.getGatewayPassword() ) );
+
+      if ( wOK.isEnabled() != enabled ) {
+        wOK.setEnabled( enabled );
+      }
+    } );
+
     Button wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
 
