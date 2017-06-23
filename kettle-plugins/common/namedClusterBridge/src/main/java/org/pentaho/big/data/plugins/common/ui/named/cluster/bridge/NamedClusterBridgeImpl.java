@@ -22,22 +22,24 @@
 
 package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 
+import static org.pentaho.di.core.namedcluster.model.NamedCluster.*;
+
 import com.google.common.annotations.VisibleForTesting;
 
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -236,37 +238,30 @@ public class NamedClusterBridgeImpl implements NamedCluster {
 
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
-    //the last conditional is just to show that we have such protocol, can be deleted
-    if ( incomingURL.startsWith( "knox" )  || incomingURL.startsWith( "knoxs" ) ) {
-      return incomingURL;
+    StringBuilder outgoingUrl = new StringBuilder();
+    //if we have some of variable inside the incoming url will substitute it with value
+    if( variableSpace != null ) {
+      variableSpace.initializeVariablesFrom( getParentVariableSpace() );
+      HashMap<String, String> varaibles = new HashMap<>();
+      List<String> varName = new ArrayList<String>();
+      StringUtil.getUsedVariables( incomingURL, varName, true );
+      varName.stream().forEach(  item -> varaibles.put( item, variableSpace.getVariable( item ) )  );
+      incomingURL = StringUtil.environmentSubstitute( incomingURL, varaibles );
     }
-    if ( isUseGateway() ) {
-      return processURLsubstitutionGateway( incomingURL, metastore, variableSpace );
-    } else {
-      if ( isMapr() ) {
-        String url = namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME, metastore, variableSpace );
-        if ( url != null && !url.startsWith( org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME ) ) {
-          url = org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME + "://" + url;
-        }
-        return url;
-      } else {
-        return namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.HDFS_SCHEME, metastore, variableSpace );
-      }
+    //if we do not get something like nc://clusterName or hdfs|wasb|maprfs://hostname  or at first place we found open variable tag
+    //we need to add /
+    if ( !incomingURL.startsWith( HDFS_SCHEME )
+        & !incomingURL.startsWith( WASB_SCHEME )
+        & !incomingURL.startsWith( MAPRFS_SCHEME )
+        & !incomingURL.startsWith( "nc" )
+        & !incomingURL.startsWith( StringUtil.FIELD_OPEN )
+        & !incomingURL.startsWith( StringUtil.HEX_OPEN )
+        & !incomingURL.startsWith( StringUtil.WINDOWS_OPEN ) 
+        & !incomingURL.startsWith( StringUtil.UNIX_OPEN ) ) {
+      incomingURL = incomingURL.startsWith( "/" ) ? incomingURL : "/" + incomingURL;
     }
-  }
-
-  private String processURLsubstitutionGateway( String incomingURL, IMetaStore metastore,  VariableSpace variableSpace ) {
-    URL gateUrl;
-    try {
-      gateUrl = new URL( getGatewayUrl() );
-      String scheme = gateUrl.getProtocol().equalsIgnoreCase( "http" ) ? "knox" : gateUrl.getProtocol().equalsIgnoreCase( "https" ) ? "knoxs" : "";
-      UrlFileName file =  new UrlFileName( scheme, gateUrl.getHost(), gateUrl.getPort(), -1, getGatewayUsername(),
-          getGatewayPassword(), gateUrl.getPath() + FileName.SEPARATOR + KNOX_GATEWAY_ROOT + incomingURL, null, null );
-      return file.getURI();
-    } catch ( MalformedURLException e ) {
-      LOGGER.error( "Could not process url with gateway " + e.toString() );
-    }
-    return incomingURL;
+    // we will return nc://path1/path2 or nc://${variableName} or nc://hdfs:// which allow to use expected file providers
+    return outgoingUrl.append( "nc" ).append( "://" ).append( getName() ).append( incomingURL ).toString();
   }
 
   @Override
