@@ -22,10 +22,13 @@
 
 package org.pentaho.runtime.test.network.impl;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.params.HttpClientParams;
-import org.junit.After;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.protocol.HttpContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -37,15 +40,11 @@ import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
@@ -84,12 +83,12 @@ public class GatewayConnectivityTestImplTest {
     uri = URI.create( HTTPS + hostname + ":" + port + topology );
     severityOfFailures = RuntimeTestEntrySeverity.WARNING;
     httpClient = mock( HttpClient.class, Mockito.CALLS_REAL_METHODS );
-    HttpClientParams httpClientParams = spy( new HttpClientParams() );
-    HttpState httpState = spy( new HttpState() );
-    doReturn( 200 ).when( httpClient ).executeMethod( anyObject() );
-    doReturn( httpClientParams ).when( httpClient ).getParams();
-    doReturn( httpState ).when( httpClient ).getState();
-    //when( httpClient.executeMethod( anyObject() ) ).thenReturn( 200 );
+    HttpResponse httpResponseMock = mock(HttpResponse.class);
+    StatusLine statusLineMock = mock(StatusLine.class);
+    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
+    doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class) );
+    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
+    doReturn( 200 ).when( statusLineMock ).getStatusCode();
     init();
     System.setProperty( KETTLE_KNOX_IGNORE_SSL, "false" );
   }
@@ -97,8 +96,9 @@ public class GatewayConnectivityTestImplTest {
   private void init() {
     connectTest =
       new GatewayConnectivityTestImpl( messageGetterFactory, uri, path, user, password, severityOfFailures ) {
-        @Override HttpClient getHttpClient() {
-          return super.getHttpClient();
+        @Override
+        HttpClient getHttpClient() {
+          return HttpClients.createDefault();
         }
       };
   }
@@ -106,7 +106,12 @@ public class GatewayConnectivityTestImplTest {
   private void initMock() {
     connectTest =
       new GatewayConnectivityTestImpl( messageGetterFactory, uri, path, user, password, severityOfFailures ) {
-        @Override HttpClient getHttpClient() {
+        @Override
+        HttpClient getHttpClient() {
+          return httpClient;
+        }
+        @Override
+        HttpClient getHttpClient( String user, String password ) {
           return httpClient;
         }
       };
@@ -140,7 +145,8 @@ public class GatewayConnectivityTestImplTest {
 
   @Test
   public void testIOException() throws IOException {
-    when( httpClient.executeMethod( anyObject() ) ).thenThrow( new IOException() );
+    doThrow( new IOException() ).when( httpClient )
+      .execute( any( HttpUriRequest.class ), any( HttpContext.class ) );
     initMock();
     verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( GatewayConnectivityTestImpl.GATEWAY_CONNECT_EXECUTION_FAILED_DESC ),
@@ -151,7 +157,8 @@ public class GatewayConnectivityTestImplTest {
 
   @Test
   public void testSSLException() throws IOException {
-    when( httpClient.executeMethod( anyObject() ) ).thenThrow( new SSLException( "errorMessage" ) );
+    doThrow( new SSLException( "errorMessage" ) ).when( httpClient )
+      .execute( any( HttpUriRequest.class ), any( HttpContext.class ) );
     initMock();
     verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( GatewayConnectivityTestImpl.GATEWAY_CONNECT_SSLEXCEPTION_DESC ),
@@ -204,7 +211,11 @@ public class GatewayConnectivityTestImplTest {
 
   @Test
   public void test401() throws IOException {
-    doReturn( 401 ).when( httpClient ).executeMethod( anyObject() );
+    HttpResponse httpResponseMock = mock(HttpResponse.class);
+    StatusLine statusLineMock = mock(StatusLine.class);
+    doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class) );
+    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
+    doReturn( 401 ).when( statusLineMock ).getStatusCode();
     initMock();
     verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( GatewayConnectivityTestImpl.GATEWAY_CONNECT_TEST_UNAUTHORIZED_DESC ),
@@ -215,7 +226,11 @@ public class GatewayConnectivityTestImplTest {
 
   @Test
   public void test403() throws IOException {
-    doReturn( 403 ).when( httpClient ).executeMethod( anyObject() );
+    HttpResponse httpResponseMock = mock(HttpResponse.class);
+    StatusLine statusLineMock = mock(StatusLine.class);
+    doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class) );
+    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
+    doReturn( 403 ).when( statusLineMock ).getStatusCode();
     initMock();
     verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( GatewayConnectivityTestImpl.GATEWAY_CONNECT_TEST_FORBIDDEN_DESC ),
@@ -225,7 +240,11 @@ public class GatewayConnectivityTestImplTest {
 
   @Test
   public void test404() throws IOException {
-    doReturn( 404 ).when( httpClient ).executeMethod( anyObject() );
+    HttpResponse httpResponseMock = mock(HttpResponse.class);
+    StatusLine statusLineMock = mock(StatusLine.class);
+    doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class) );
+    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
+    doReturn( 404 ).when( statusLineMock ).getStatusCode();
     initMock();
     verifyRuntimeTestResultEntry( connectTest.runTest(), severityOfFailures,
       messageGetter.getMessage( GatewayConnectivityTestImpl.GATEWAY_CONNECT_TEST_SERVICE_NOT_FOUND_DESC ),
@@ -236,7 +255,11 @@ public class GatewayConnectivityTestImplTest {
   @Test
   public void testUnknownCode() throws IOException {
     Integer returnCode = 0;
-    doReturn( returnCode ).when( httpClient ).executeMethod( anyObject() );
+    HttpResponse httpResponseMock = mock(HttpResponse.class);
+    StatusLine statusLineMock = mock(StatusLine.class);
+    doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class ) );
+    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
+    doReturn( returnCode ).when( statusLineMock ).getStatusCode();
 
     initMock();
     verifyRuntimeTestResultEntry( connectTest.runTest(), RuntimeTestEntrySeverity.WARNING,
