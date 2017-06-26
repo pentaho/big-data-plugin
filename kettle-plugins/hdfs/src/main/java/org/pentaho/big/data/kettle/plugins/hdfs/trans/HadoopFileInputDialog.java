@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,6 +21,19 @@
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Vector;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -89,9 +102,9 @@ import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
+import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
 import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
-import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
@@ -108,23 +121,9 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileCSVImportProgressDialog;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage1;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage2;
-
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Vector;
 
 public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> BASE_PKG = TextFileInputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
@@ -403,6 +402,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     firstClickOnDateLocale = true;
   }
 
+  @Override
   public String open() {
     Shell parent = getParent();
     Display display = parent.getDisplay();
@@ -412,6 +412,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     setShellImage( shell, input );
 
     lsMod = new ModifyListener() {
+      @Override
       public void modifyText( ModifyEvent e ) {
         input.setChanged();
       }
@@ -477,31 +478,37 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Add listeners
     lsOK = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         ok();
       }
     };
     lsFirst = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         first( false );
       }
     };
     lsFirstHeader = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         first( true );
       }
     };
     lsGet = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         get();
       }
     };
     lsPreview = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         preview();
       }
     };
     lsCancel = new Listener() {
+      @Override
       public void handleEvent( Event e ) {
         cancel();
       }
@@ -515,6 +522,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wCancel.addListener( SWT.Selection, lsCancel );
 
     lsDef = new SelectionAdapter() {
+      @Override
       public void widgetDefaultSelected( SelectionEvent e ) {
         ok();
       }
@@ -539,6 +547,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Show the files that are selected at this time...
     wbShowFiles.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         showFiles();
       }
@@ -546,12 +555,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Allow the insertion of tabs as separator...
     wbSeparator.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent se ) {
         wSeparator.getTextWidget().insert( "\t" );
       }
     } );
 
     SelectionAdapter lsFlags = new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         setFlags();
       }
@@ -570,6 +581,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
+      @Override
       public void shellClosed( ShellEvent e ) {
         cancel();
       }
@@ -646,6 +658,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     deleteToolItem.setImage( GUIResource.getInstance().getImageDelete() );
     deleteToolItem.setToolTipText( BaseMessages.getString( PKG, "JobCopyFiles.FilenameDelete.Tooltip" ) );
     deleteToolItem.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent arg0 ) {
 
         int[] idx = wFilenameList.getSelectionIndices();
@@ -1262,9 +1275,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     fdEncoding.right = new FormAttachment( 100, 0 );
     wEncoding.setLayoutData( fdEncoding );
     wEncoding.addFocusListener( new FocusListener() {
+      @Override
       public void focusLost( org.eclipse.swt.events.FocusEvent e ) {
       }
 
+      @Override
       public void focusGained( org.eclipse.swt.events.FocusEvent e ) {
         Cursor busy = new Cursor( shell.getDisplay(), SWT.CURSOR_WAIT );
         shell.setCursor( busy );
@@ -1326,9 +1341,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     fdDateLocale.right = new FormAttachment( 100, 0 );
     wDateLocale.setLayoutData( fdDateLocale );
     wDateLocale.addFocusListener( new FocusListener() {
+      @Override
       public void focusLost( org.eclipse.swt.events.FocusEvent e ) {
       }
 
+      @Override
       public void focusGained( org.eclipse.swt.events.FocusEvent e ) {
         Cursor busy = new Cursor( shell.getDisplay(), SWT.CURSOR_WAIT );
         shell.setCursor( busy );
@@ -1426,6 +1443,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       this.widget = widget;
     }
 
+    @Override
     public void widgetSelected( SelectionEvent e ) {
       try {
         // Get current file
@@ -2231,7 +2249,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       wEncoding.removeAll();
       List<Charset> values = new ArrayList<Charset>( Charset.availableCharsets().values() );
       for ( int i = 0; i < values.size(); i++ ) {
-        Charset charSet = (Charset) values.get( i );
+        Charset charSet = values.get( i );
         wEncoding.add( charSet.displayName() );
       }
 
@@ -2647,7 +2665,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           if ( linesList != null && linesList.size() > 0 ) {
             String firstlines = "";
             for ( int i = 0; i < linesList.size(); i++ ) {
-              firstlines += (String) linesList.get( i ) + Const.CR;
+              firstlines += linesList.get( i ) + Const.CR;
             }
             EnterTextDialog etd =
                 new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
@@ -2768,6 +2786,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       page2.createControl( sh );
 
       Wizard wizard = new Wizard() {
+        @Override
         public boolean performFinish() {
           wFields.clearAll( false );
 
@@ -2827,7 +2846,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     int maxsize = 0;
     for ( int i = 0; i < rows.size(); i++ ) {
-      int len = ( (String) rows.get( i ) ).length();
+      int len = rows.get( i ).length();
       if ( len > maxsize ) {
         maxsize = len;
       }
@@ -2888,6 +2907,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return fields;
   }
 
+  @Override
   public String toString() {
     return this.getClass().getName();
   }
@@ -2895,6 +2915,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private SelectionAdapter getFileDirectoryListener() {
 
     return new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         try {
           // Setup file type filtering

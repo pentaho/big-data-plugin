@@ -42,18 +42,12 @@ import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.di.core.vfs.configuration.KettleGenericFileSystemConfigBuilder;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
-
-import java.io.IOException;
-
-import static org.pentaho.big.data.api.cluster.NamedCluster.NAMED_CLUSTER_FS_OPTION;
-import static org.pentaho.big.data.api.cluster.NamedCluster.NAMED_CLUSTER_XML_TAG;
 
 public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
 
@@ -124,6 +118,7 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
       new NamedClusterWidgetImpl( connectionGroup, true, namedClusterService, runtimeTestActionService,
         runtimeTester ) );
     getNamedClusterWidget().addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent evt ) {
         try {
           connect();
@@ -179,6 +174,7 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
     this.namedCluster = namedCluster;
   }
 
+  @Override
   public void activate() {
     vfsFileChooserDialog.setRootFile( null );
     vfsFileChooserDialog.setInitialFile( null );
@@ -213,6 +209,7 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
   /**
    * resolve file with <b>new</b> File SystemOptions.
    */
+  @Override
   public FileObject resolveFile( String fileUri ) throws FileSystemException {
     try {
       //should we use new instance of FileSystemOptions? should it be depdrecated?
@@ -222,6 +219,7 @@ public class NamedClusterVfsFileChooserDialog extends CustomVfsUiPanel {
     }
   }
 
+  @Override
   public FileObject resolveFile( String fileUri, FileSystemOptions opts ) throws FileSystemException {
     try {
       return KettleVFS.getFileObject( fileUri, getVariableSpace(), opts );
