@@ -22,6 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.big.data.api.cluster.NamedCluster;
@@ -31,7 +34,6 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -41,9 +43,6 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
     description = "HadoopFileInputPlugin.Description",
@@ -75,6 +74,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     namedClusterURLMapping = new HashMap<String, String>();
   }
 
+  @Override
   protected String loadSource( Node filenode, Node filenamenode, int i, IMetaStore metaStore ) {
     String source_filefolder = XMLHandler.getNodeValue( filenamenode );
     Node sourceNode = XMLHandler.getSubNodeByNr( filenode, SOURCE_CONFIGURATION_NAME, i );
@@ -82,13 +82,15 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     return loadUrl( source_filefolder, source, metaStore, namedClusterURLMapping );
   }
 
+  @Override
   protected void saveSource( StringBuilder retVal, String source ) {
     String namedCluster = namedClusterURLMapping.get( source );
     retVal.append( "      " ).append( XMLHandler.addTagValue( "name", source ) );
     retVal.append( "          " ).append( XMLHandler.addTagValue( SOURCE_CONFIGURATION_NAME, namedCluster ) );
   }
 
-  // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null 
+  // Receiving metaStore because RepositoryProxy.getMetaStore() returns a hard-coded null
+  @Override
   protected String loadSourceRep( Repository rep, ObjectId id_step, int i, IMetaStore metaStore )
     throws KettleException {
     String source_filefolder = rep.getStepAttributeString( id_step, i, "file_name" );
@@ -96,6 +98,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     return loadUrl( source_filefolder, ncName, metaStore, namedClusterURLMapping );
   }
 
+  @Override
   protected void saveSourceRep( Repository rep, ObjectId id_transformation, ObjectId id_step, int i, String fileName )
     throws KettleException {
     String namedCluster = namedClusterURLMapping.get( fileName );
@@ -105,10 +108,9 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
 
   public String loadUrl( String url, String ncName, IMetaStore metastore, Map<String, String> mappings ) {
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
-    if ( c != null ) {
-
+    //if ( c != null ) {
       //url = c.processURLsubstitution( url, metastore, new Variables() );
-    }
+    //}
     if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) ) {
       mappings.put( url, ncName );
     }
