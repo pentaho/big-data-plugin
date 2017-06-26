@@ -19,13 +19,11 @@ package org.pentaho.big.data.impl.cluster;
 
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,9 +36,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.provider.url.UrlFileName;
-import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -60,8 +55,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import com.google.common.annotations.VisibleForTesting;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
 public class NamedClusterImpl implements NamedCluster {
@@ -254,95 +247,30 @@ public class NamedClusterImpl implements NamedCluster {
 
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
-    if ( isUseGateway() ) {
-      return processURLsubstitutionGateway( incomingURL, metastore, variableSpace );
-    } else {
-      if ( isMapr() ) {
-        String url =
-          processURLsubstitution( incomingURL, MAPRFS_SCHEME, metastore, variableSpace );
-        if ( url != null && !url.startsWith( MAPRFS_SCHEME ) ) {
-          url = MAPRFS_SCHEME + "://" + url;
-        }
-        return url;
-      } else {
-        return processURLsubstitution( incomingURL, getStorageScheme(), metastore, variableSpace );
-      }
+    StringBuilder outgoingUrl = new StringBuilder();
+    //if we have some of variable inside the incoming url will substitute it with value
+    if( variableSpace != null ) {
+      variableSpace.initializeVariablesFrom( getParentVariableSpace() );
+      HashMap<String, String> varaibles = new HashMap<>();
+      List<String> varName = new ArrayList<String>();
+      StringUtil.getUsedVariables( incomingURL, varName, true );
+      varName.stream().forEach(  item -> varaibles.put( item, variableSpace.getVariable( item ) )  );
+      incomingURL = StringUtil.environmentSubstitute( incomingURL, varaibles );
     }
-  }
-
-  private String processURLsubstitutionGateway( String incomingURL, IMetaStore metastore,  VariableSpace variableSpace ) {
-    //the last conditional is just to show that we have such protocol, can be deleted
-    if ( incomingURL.startsWith( "knox" )  || incomingURL.startsWith( "knoxs" ) ) {
-      return incomingURL;
+    //if we do not get something like nc://clusterName or hdfs|wasb|maprfs://hostname  or at first place we found open variable tag
+    //we need to add /
+    if ( !incomingURL.startsWith( HDFS_SCHEME )
+        & !incomingURL.startsWith( WASB_SCHEME )
+        & !incomingURL.startsWith( MAPRFS_SCHEME )
+        & !incomingURL.startsWith( "nc" )
+        & !incomingURL.startsWith( StringUtil.FIELD_OPEN )
+        & !incomingURL.startsWith( StringUtil.HEX_OPEN )
+        & !incomingURL.startsWith( StringUtil.WINDOWS_OPEN ) 
+        & !incomingURL.startsWith( StringUtil.UNIX_OPEN ) ) {
+      incomingURL = incomingURL.startsWith( "/" ) ? incomingURL : "/" + incomingURL;
     }
-    URL gateUrl;
-    try {
-      gateUrl = new URL( getGatewayUrl() );
-      String scheme = gateUrl.getProtocol().equalsIgnoreCase( "http" ) ? "knox" : gateUrl.getProtocol().equalsIgnoreCase( "https" ) ? "knoxs" : "";
-      UrlFileName file =  new UrlFileName( scheme, gateUrl.getHost(), gateUrl.getPort(), -1, getGatewayUsername(),
-          getGatewayPassword(), gateUrl.getPath() + FileName.SEPARATOR + KNOX_GATEWAY_ROOT + incomingURL, null, null );
-      return file.getURI();
-    } catch ( MalformedURLException e ) {
-      LOGGER.error( "Could not process url with gateway " + e.toString() );
-    }
-    return incomingURL;
-  }
-
-  private String processURLsubstitution( String incomingURL, String hdfsScheme, IMetaStore metastore,
-                                         VariableSpace variableSpace ) {
-
-    String outgoingURL = null;
-    String clusterURL = null;
-    if ( !hdfsScheme.equals( MAPRFS_SCHEME ) ) {
-      clusterURL = generateURL( hdfsScheme, metastore, variableSpace );
-    }
-    try {
-      if ( clusterURL == null || isHdfsHostEmpty( variableSpace ) ) {
-        outgoingURL = incomingURL;
-      } else if ( incomingURL.equals( "/" ) ) {
-        outgoingURL = clusterURL;
-      } else if ( clusterURL != null ) {
-        String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-
-        String fullyQualifiedIncomingURL = incomingURL;
-        if ( !incomingURL.startsWith( hdfsScheme ) ) {
-          fullyQualifiedIncomingURL = clusterURL + incomingURL;
-          noVariablesURL = clusterURL + incomingURL.replaceAll( "[${}]", "/" );
-        }
-
-        UrlFileNameParser parser = new UrlFileNameParser();
-        FileName fileName = parser.parseUri( null, null, noVariablesURL );
-        String root = fileName.getRootURI();
-        String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
-        StringBuffer buffer = new StringBuffer();
-        // Check for a special case where a fully qualified path (one that has the protocol in it).
-        // This can only happen through variable replacement. See BACKLOG-15849. When this scenario
-        // occurs we do not prepend the cluster uri to the url.
-        boolean prependCluster = true;
-        if ( variableSpace != null ) {
-          String filePath = variableSpace.environmentSubstitute( path );
-          StringBuilder pattern = new StringBuilder();
-          pattern.append( "^(" ).append( HDFS_SCHEME ).append( "|" ).append( WASB_SCHEME ).append( "|" ).append(
-              MAPRFS_SCHEME ).append( "):\\/\\/" );
-          Pattern r = Pattern.compile( pattern.toString() );
-          Matcher m = r.matcher( filePath );
-          prependCluster = !m.find();
-        }
-        if ( prependCluster ) {
-          buffer.append( clusterURL );
-        }
-        buffer.append( path );
-        outgoingURL = buffer.toString();
-      }
-    } catch ( Exception e ) {
-      outgoingURL = null;
-    }
-    return outgoingURL;
-  }
-
-  @VisibleForTesting boolean isHdfsHostEmpty( VariableSpace variableSpace ) {
-    String hostNameParsed = getHostNameParsed( variableSpace );
-    return hostNameParsed == null || hostNameParsed.trim().isEmpty();
+    // we will return nc://path1/path2 or nc://${variableName} or nc://hdfs:// which allow to use expected file providers
+    return outgoingUrl.append( "nc" ).append( "://" ).append( getName() ).append( incomingURL ).toString();
   }
 
   public String getHostNameParsed( VariableSpace variableSpace ) {
@@ -353,76 +281,6 @@ public class NamedClusterImpl implements NamedCluster {
       return variableSpace.getVariable( StringUtil.getVariableName( getHdfsHost() ) );
     }
     return hdfsHost != null ? hdfsHost.trim() : null;
-  }
-
-  /**
-   * This method generates the URL from the specific NamedCluster using the specified scheme.
-   *
-   * @param scheme the name of the scheme to use to create the URL
-   * @return the generated URL from the specific NamedCluster or null if an error occurs
-   */
-  @VisibleForTesting String generateURL( String scheme, IMetaStore metastore, VariableSpace variableSpace ) {
-    String clusterURL = null;
-    try {
-      if ( !Utils.isEmpty( scheme ) ) {
-        String ncHostname = getHdfsHost() != null ? getHdfsHost() : "";
-        String ncPort = getHdfsPort() != null ? getHdfsPort() : "";
-        String ncUsername = getHdfsUsername() != null ? getHdfsUsername() : "";
-        String ncPassword = getHdfsPassword() != null ? getHdfsPassword() : "";
-
-        if ( variableSpace != null ) {
-          variableSpace.initializeVariablesFrom( getParentVariableSpace() );
-          if ( StringUtil.isVariable( scheme ) ) {
-            scheme =
-              variableSpace.getVariable( StringUtil.getVariableName( scheme ) ) != null ? variableSpace
-                .environmentSubstitute( scheme ) : null;
-          }
-          if ( StringUtil.isVariable( ncHostname ) ) {
-            ncHostname =
-              variableSpace.getVariable( StringUtil.getVariableName( ncHostname ) ) != null ? variableSpace
-                .environmentSubstitute( ncHostname ) : null;
-          }
-          if ( StringUtil.isVariable( ncPort ) ) {
-            ncPort =
-              variableSpace.getVariable( StringUtil.getVariableName( ncPort ) ) != null ? variableSpace
-                .environmentSubstitute( ncPort ) : null;
-          }
-          if ( StringUtil.isVariable( ncUsername ) ) {
-            ncUsername =
-              variableSpace.getVariable( StringUtil.getVariableName( ncUsername ) ) != null ? variableSpace
-                .environmentSubstitute( ncUsername ) : null;
-          }
-          if ( StringUtil.isVariable( ncPassword ) ) {
-            ncPassword =
-              variableSpace.getVariable( StringUtil.getVariableName( ncPassword ) ) != null ? variableSpace
-                .environmentSubstitute( ncPassword ) : null;
-          }
-        }
-
-        ncHostname = ncHostname != null ? ncHostname.trim() : "";
-        if ( ncPort == null ) {
-          ncPort = "-1";
-        } else {
-          ncPort = ncPort.trim();
-          if ( Utils.isEmpty( ncPort ) ) {
-            ncPort = "-1";
-          }
-        }
-        ncUsername = ncUsername != null ? ncUsername.trim() : "";
-        ncPassword = ncPassword != null ? ncPassword.trim() : "";
-
-        UrlFileName file =
-          new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername, ncPassword, null, null,
-            null );
-        clusterURL = file.getURI();
-        if ( clusterURL.endsWith( "/" ) ) {
-          clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
-        }
-      }
-    } catch ( Exception e ) {
-      clusterURL = null;
-    }
-    return clusterURL;
   }
 
   /* (non-Javadoc)

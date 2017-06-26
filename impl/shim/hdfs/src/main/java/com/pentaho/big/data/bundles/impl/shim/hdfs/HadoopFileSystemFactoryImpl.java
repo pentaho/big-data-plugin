@@ -22,8 +22,6 @@ import org.apache.hadoop.fs.LocalFileSystem;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemFactory;
-import org.pentaho.di.core.Const;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -42,19 +40,17 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger( HadoopFileSystemFactoryImpl.class );
   private final boolean isActiveConfiguration;
   private final HadoopConfiguration hadoopConfiguration;
-  private final String scheme;
 
   public HadoopFileSystemFactoryImpl( boolean isActiveConfiguration, HadoopConfiguration hadoopConfiguration,
                                       String scheme ) {
     this.isActiveConfiguration = isActiveConfiguration;
     this.hadoopConfiguration = hadoopConfiguration;
-    this.scheme = scheme;
   }
 
   @Override public boolean canHandle( NamedCluster namedCluster ) {
     String shimIdentifier = namedCluster.getShimIdentifier();
-    return ( shimIdentifier == null && isActiveConfiguration ) || hadoopConfiguration.getIdentifier()
-      .equals( shimIdentifier );
+    return ( shimIdentifier == null && isActiveConfiguration && !namedCluster.isUseGateway() )
+        || ( hadoopConfiguration.getIdentifier().equals( shimIdentifier ) && !namedCluster.isUseGateway() );
   }
 
   @Override
@@ -66,33 +62,9 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
   public HadoopFileSystem create( NamedCluster namedCluster, URI uri ) throws IOException {
     final HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
     final Configuration configuration = hadoopShim.createConfiguration();
-    String fsDefault;
-    //TODO: AUTH
-    if ( namedCluster.isMapr() ) {
-      fsDefault = "maprfs:///";
-    } else {
-      // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
-      // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
-      // Here we try to resolve the parameters if we can:
-      Variables variables = new Variables();
-      variables.initializeVariablesFrom( null );
-
-      if ( scheme.contains( "://" ) ) {
-        fsDefault = scheme;
-      } else {
-        fsDefault = scheme + "://" + variables.environmentSubstitute( namedCluster.getHdfsHost() );
-        String port = variables.environmentSubstitute( namedCluster.getHdfsPort() );
-        if ( !Const.isEmpty( port ) ) {
-          fsDefault = fsDefault + ":" + port;
-        }
-      }
-      if ( fsDefault.endsWith( "//" ) ) {
-        fsDefault += "/";
-      }
-    }
-    //configuration.set( HadoopFileSystem.FS_DEFAULT_NAME, fsDefault );
     FileSystem fileSystem = (FileSystem) hadoopShim.getFileSystem( configuration ).getDelegate();
     if ( fileSystem instanceof LocalFileSystem ) {
+      LOGGER.error(  "Got a local filesystem, was expecting an hdfs connection" );
       throw new IOException( "Got a local filesystem, was expecting an hdfs connection" );
     }
 

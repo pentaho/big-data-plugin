@@ -35,12 +35,14 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
+import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
-import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -49,47 +51,25 @@ import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 public class NamedClusterProvider extends AbstractOriginatingFileProvider {
 
   protected static final Collection<Capability> capabilities =
-      Collections.unmodifiableCollection(
-          Arrays.asList(
-              new Capability[] {
-                Capability.CREATE,
-                Capability.DELETE,
-                Capability.RENAME,
-                Capability.GET_TYPE,
-                Capability.LIST_CHILDREN,
-                Capability.READ_CONTENT,
-                Capability.URI,
-                Capability.WRITE_CONTENT,
-                Capability.GET_LAST_MODIFIED,
-                Capability.SET_LAST_MODIFIED_FILE,
-                Capability.RANDOM_ACCESS_READ } ) );
+      Collections.unmodifiableCollection( Arrays.asList( new Capability[] { Capability.CREATE, Capability.DELETE,
+        Capability.RENAME, Capability.GET_TYPE, Capability.LIST_CHILDREN, Capability.READ_CONTENT, Capability.URI,
+        Capability.WRITE_CONTENT, Capability.GET_LAST_MODIFIED, Capability.SET_LAST_MODIFIED_FILE,
+        Capability.RANDOM_ACCESS_READ } ) );
 
   private final HadoopFileSystemLocator hadoopFileSystemLocator;
   private final NamedClusterService namedClusterService;
   private final MetastoreLocator metastoreLocator;
 
-  public NamedClusterProvider(
-      MetastoreLocator locator,
-      HadoopFileSystemLocator hadoopFileSystemLocator,
-      NamedClusterService namedClusterService,
-      FileNameParser fileNameParser,
-      String schema ) throws FileSystemException {
-     this(
-         locator,
-         hadoopFileSystemLocator,
-         namedClusterService,
-         (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
-         fileNameParser,
-         new String[] { schema } );
+  public NamedClusterProvider( MetastoreLocator locator, HadoopFileSystemLocator hadoopFileSystemLocator,
+      NamedClusterService namedClusterService, FileNameParser fileNameParser, String schema )
+    throws FileSystemException {
+    this( locator, hadoopFileSystemLocator, namedClusterService, (DefaultFileSystemManager) KettleVFS.getInstance()
+        .getFileSystemManager(), fileNameParser, new String[] { schema } );
   }
 
-  public NamedClusterProvider(
-      MetastoreLocator locator,
-      HadoopFileSystemLocator hadoopFileSystemLocator,
-      NamedClusterService namedClusterService,
-      DefaultFileSystemManager fileSystemManager,
-      FileNameParser fileNameParser,
-      String[] schemes )  throws FileSystemException {
+  public NamedClusterProvider( MetastoreLocator locator, HadoopFileSystemLocator hadoopFileSystemLocator,
+      NamedClusterService namedClusterService, DefaultFileSystemManager fileSystemManager,
+      FileNameParser fileNameParser, String[] schemes ) throws FileSystemException {
     super();
     this.metastoreLocator = locator;
     this.hadoopFileSystemLocator = hadoopFileSystemLocator;
@@ -106,18 +86,24 @@ public class NamedClusterProvider extends AbstractOriginatingFileProvider {
   @Override
   protected FileSystem doCreateFileSystem( FileName name, FileSystemOptions fileSystemOptions )
     throws FileSystemException {
-    GenericFileName genericFileName = (GenericFileName) name.getRoot();
-    String clusterName = genericFileName.getHostName();
-    String path = genericFileName.getPath();
-    NamedCluster namedCluster = getNamedClusterByName( clusterName );
+    GenericFileName root = (GenericFileName) name.getRoot();
+    String clusterName = root.getHostName();
+    NamedCluster nc = getNamedClusterByName( clusterName );
     try {
-      if ( namedCluster == null ) {
-        namedCluster = namedClusterService.getClusterTemplate();
+      if ( nc == null ) {
+        nc = namedClusterService.getClusterTemplate();
       }
-      String generatedUrl = namedCluster.processURLsubstitution( path == null ? "" : path, metastoreLocator.getMetastore(), new Variables() );
-      URI uri = URI.create( generatedUrl );
-
-      return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( namedCluster, uri ) );
+      if ( !nc.isUseGateway() ) {
+        String scheme = replaceVarValEx( nc.getParentVariableSpace(), nc.getStorageScheme(), "Named cluster does not contain storage scheme" );
+        String ncHost = replaceVarValEx( nc.getParentVariableSpace(), nc.getHdfsHost(), "Named cluster does not contain hdfs host" );
+        String ncPort = replaceVarValEmp( nc.getParentVariableSpace(), nc.getHdfsPort(), "-1" );
+        String ncUser = replaceVarValEmp( nc.getParentVariableSpace(), nc.getHdfsUsername(), "" );
+        String ncPass = replaceVarValEmp( nc.getParentVariableSpace(), nc.getHdfsPassword(), "" );
+        UrlFileName file =  new UrlFileName( scheme, ncHost, Integer.parseInt( ncPort ), -1, ncUser, ncPass, root.getPath(), null, null );
+        return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( nc, URI.create(  file.getURI() ) ) );
+      } else {
+        return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( nc, URI.create(  root.getURI() ) ) );
+      }
     } catch ( ClusterInitializationException e ) {
       throw new FileSystemException( e );
     }
@@ -134,6 +120,20 @@ public class NamedClusterProvider extends AbstractOriginatingFileProvider {
       throw new FileSystemException( e );
     }
     return namedCluster;
+  }
+
+  private String replaceVarValEx( VariableSpace vs, String value, String errorMessage ) throws FileSystemException {
+    if ( StringUtil.isEmpty( value ) ) {
+      throw new FileSystemException( "Named cluster does not contin storage scheme" );
+    }
+    return StringUtil.isVariable( value ) ? vs.environmentSubstitute( value ) : value;
+  }
+
+  private String replaceVarValEmp( VariableSpace vs, String value, String defaultVal ) throws FileSystemException {
+    if ( StringUtil.isEmpty( value ) ) {
+      return defaultVal;
+    }
+    return StringUtil.isVariable( value ) ? vs.environmentSubstitute( value ) : value;
   }
 
 }

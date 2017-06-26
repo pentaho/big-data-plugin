@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
-import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -65,6 +64,10 @@ public class NamedClusterBridgeImplTest {
   private String zookeeperHost;
   private String zookeeperPort;
   private String oozieUrl;
+  private String gatewayURL;
+  private String gatewayUsername;
+  private String gatewayPassword;
+  private boolean useGateway;
   private boolean isMapr;
   private long lastModifiedDate;
   private VariableSpace variableSpace;
@@ -82,7 +85,11 @@ public class NamedClusterBridgeImplTest {
     jobTrackerPort = "jobTrackerPort";
     zookeeperHost = "zookeeperHost";
     zookeeperPort = "zookeeperPort";
-    oozieUrl = "oozieUrl";
+    oozieUrl = "oozieUrl"; 
+    gatewayURL = "http://gateHost:gatePort/";
+    gatewayUsername = "gatewayUsername";
+    gatewayPassword = "gatewayPassword";
+    useGateway = true;
     isMapr = true;
     lastModifiedDate = 11L;
     xmlString = "xmlString";
@@ -133,6 +140,10 @@ public class NamedClusterBridgeImplTest {
     when( namedCluster.getZooKeeperPort() ).thenReturn( zookeeperPort );
     when( namedCluster.getOozieUrl() ).thenReturn( oozieUrl );
     when( namedCluster.isMapr() ).thenReturn( isMapr );
+    when( namedCluster.getGatewayUrl() ).thenReturn( gatewayURL );
+    when( namedCluster.getGatewayUsername() ).thenReturn( gatewayUsername );
+    when( namedCluster.getGatewayPassword() ).thenReturn( gatewayPassword );
+    when( namedCluster.isUseGateway() ).thenReturn( useGateway );
 
     long before = System.currentTimeMillis();
     namedClusterBridge.replaceMeta( namedCluster );
@@ -148,6 +159,10 @@ public class NamedClusterBridgeImplTest {
     verify( legacyNamedCluster ).setZooKeeperHost( zookeeperHost );
     verify( legacyNamedCluster ).setZooKeeperPort( zookeeperPort );
     verify( legacyNamedCluster ).setOozieUrl( oozieUrl );
+    verify( legacyNamedCluster ).setGatewayUrl( gatewayURL );
+    verify( legacyNamedCluster ).setGatewayUsername( gatewayUsername );
+    verify( legacyNamedCluster ).setGatewayPassword( gatewayPassword );
+    verify( legacyNamedCluster ).setUseGateway( useGateway );
     // verify( legacyNamedCluster ).setMapr( isMapr );  *** Mapr is set by the setStorageScheme variable.
     // It is being deprecated.
     ArgumentCaptor<Long> argumentCaptor = ArgumentCaptor.forClass( long.class );
@@ -156,7 +171,7 @@ public class NamedClusterBridgeImplTest {
     assertTrue( "Expected lastModified to be between start and end timestamps",
       modified >= before && modified <= after );
   }
-
+  
   @Test
   public void testGetHdfsHost() {
     when( legacyNamedCluster.getHdfsHost() ).thenReturn( hdfsHost );
@@ -396,38 +411,6 @@ public class NamedClusterBridgeImplTest {
     String namedClusterName = "namedClusterName";
     when( legacyNamedCluster.toString() ).thenReturn( "Named cluster: " + namedClusterName );
     assertEquals( "Named cluster: " + namedClusterName, namedClusterBridge.toString() );
-  }
-
-  @Test
-  public void testProcessURLsubstitutionNotMapR() {
-    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
-    String testUrl = "testUrl";
-    String testUrlTransformed = "testUrlTransformed";
-    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.HDFS_SCHEME, null, null ) ).thenReturn(
-      testUrlTransformed );
-    assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
-  }
-
-  @Test
-  public void testProcessURLsubstitutionMapRQualified() {
-    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
-    when( legacyNamedCluster.isMapr() ).thenReturn( true );
-    String testUrl = "testUrl";
-    String testUrlTransformed = "maprfs://testUrlTransformed";
-    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) )
-      .thenReturn( testUrlTransformed );
-    assertEquals( testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
-  }
-
-  @Test
-  public void testProcessURLsubstitutionMapRNotQualified() {
-    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
-    when( legacyNamedCluster.isMapr() ).thenReturn( true );
-    String testUrl = "testUrl";
-    String testUrlTransformed = "testUrlTransformed";
-    when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) )
-      .thenReturn( testUrlTransformed );
-    assertEquals( "maprfs://" + testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
   }
 
   @Test
