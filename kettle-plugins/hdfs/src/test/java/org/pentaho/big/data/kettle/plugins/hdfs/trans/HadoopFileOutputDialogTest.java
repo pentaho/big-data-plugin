@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * Created by bryan on 11/23/15.

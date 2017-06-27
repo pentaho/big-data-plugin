@@ -32,6 +32,8 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -39,6 +41,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class HDFSFileProvider extends AbstractOriginatingFileProvider {
+
+  protected static Logger logger = LoggerFactory.getLogger( HDFSFileProvider.class );
   /**
    * The scheme this provider was designed to support
    */
@@ -57,13 +61,13 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
   /**
    * The provider's capabilities.
    */
-  protected static final Collection<Capability> capabilities =
+  public static final Collection<Capability> capabilities =
     Collections.unmodifiableCollection( Arrays.asList( new Capability[] { Capability.CREATE, Capability.DELETE,
       Capability.RENAME, Capability.GET_TYPE, Capability.LIST_CHILDREN, Capability.READ_CONTENT, Capability.URI,
       Capability.WRITE_CONTENT, Capability.GET_LAST_MODIFIED, Capability.SET_LAST_MODIFIED_FILE,
       Capability.RANDOM_ACCESS_READ } ) );
-  private final HadoopFileSystemLocator hadoopFileSystemLocator;
-  private final NamedClusterService namedClusterService;
+  protected final HadoopFileSystemLocator hadoopFileSystemLocator;
+  protected final NamedClusterService namedClusterService;
 
   @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
@@ -121,4 +125,5 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
   @Override public Collection<Capability> getCapabilities() {
     return capabilities;
   }
+
 }

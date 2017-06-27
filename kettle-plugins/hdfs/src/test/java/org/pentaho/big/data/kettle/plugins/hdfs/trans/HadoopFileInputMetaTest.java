@@ -131,7 +131,7 @@ public class HadoopFileInputMetaTest {
     IMetaStore metaStore = mock( IMetaStore.class );
     spy.loadXML( node, Collections.emptyList(), metaStore );
     assertEquals( TEST_CLUSTER_NAME, hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
-    verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( Node.class ), anyInt(), any( IMetaStore.class) );
+    verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( Node.class ), anyInt(), any( IMetaStore.class ) );
   }
 
   @Test
@@ -140,14 +140,11 @@ public class HadoopFileInputMetaTest {
     IMetaStore mockMetaStore = mock( IMetaStore.class );
     NamedCluster mockNamedCluster = mock( NamedCluster.class );
     when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
-    when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) )
-      .thenReturn( mockNamedCluster );
+    when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) ).thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
-    when( mockRep.getJobEntryAttributeString( anyObject(), eq( 0 ), eq( "source_configuration_name" ) ) ).thenReturn(
-        TEST_CLUSTER_NAME );
-    HadoopFileInputMeta hadoopFileInputMeta =
-        new HadoopFileInputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
-    when( mockRep.getStepAttributeString( anyObject(), eq( 0 ), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
+    when( mockRep.getJobEntryAttributeString( anyObject(), eq( 0 ), eq( "source_configuration_name" ) ) ).thenReturn( TEST_CLUSTER_NAME );
+    HadoopFileInputMeta hadoopFileInputMeta =  new HadoopFileInputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+    when( mockRep.getStepAttributeString( anyObject(), eq( 0 ), eq( "file_name" ) ) ).thenReturn( URL_FROM_CLUSTER );
 
     assertEquals( URL_FROM_CLUSTER, hadoopFileInputMeta.loadSourceRep( mockRep, null, 0, mockMetaStore ) );
   }
