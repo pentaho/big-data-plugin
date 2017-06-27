@@ -27,6 +27,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -134,6 +135,9 @@ public class NamedClusterDialogImpl extends Dialog {
     FormLayout formLayout = new FormLayout();
     formLayout.marginWidth = margin;
     formLayout.marginHeight = margin;
+    formLayout.marginBottom = 15;
+    formLayout.marginLeft = 15;
+    formLayout.marginRight = 15;
 
     shell.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Title" ) );
     shell.setLayout( formLayout );
@@ -143,8 +147,6 @@ public class NamedClusterDialogImpl extends Dialog {
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     namedClusterComposite.setLayoutData( fd );
-
-    shell.setSize( 450, 700 );
 
     // Buttons
     Button wTest = new Button( shell, SWT.PUSH );
@@ -168,19 +170,17 @@ public class NamedClusterDialogImpl extends Dialog {
     Button wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
 
-    Button[] buttons = new Button[]{ wTest, wOK, wCancel };
-    BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, null );
-
     // Create a horizontal separator
     Label bottomSeparator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
 
-    int bottomSeparatorOffset = ( wOK.getBounds().height + Const.FORM_MARGIN );
     fd = new FormData();
-    fd.bottom = new FormAttachment( 100, -bottomSeparatorOffset );
+    fd.top = new FormAttachment( namedClusterComposite, 15 );
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
     bottomSeparator.setLayoutData( fd );
 
+    Button[] buttons = new Button[]{ wTest, wOK, wCancel };
+    BaseStepDialog.positionBottomRightButtons( shell, buttons, margin, bottomSeparator );
     // Add listeners
     wTest.addListener( SWT.Selection, new Listener() {
       @Override
@@ -222,6 +222,9 @@ public class NamedClusterDialogImpl extends Dialog {
     } );
 
     //BaseStepDialog.setSize( shell );
+    shell.pack();
+    Point size = shell.getSize();
+    shell.setSize( 450, size.y );
     shell.open();
     while ( !shell.isDisposed() ) {
       if ( !display.readAndDispatch() ) {

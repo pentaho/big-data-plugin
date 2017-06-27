@@ -114,7 +114,7 @@ public class NamedClusterComposite extends Composite {
     this.props = props;
 
     FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = 10;
+    formLayout.marginWidth = 0;
     formLayout.marginHeight = 0;
     setLayout( formLayout );
 
@@ -150,7 +150,10 @@ public class NamedClusterComposite extends Composite {
     // Create a child composite to hold the gateway controls
     gatewayComposite = new Composite( compositeSwitcher, SWT.NONE );
     props.setLook( gatewayComposite );
-    gatewayComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    GridLayout gatewayCompositeLayout = new GridLayout( ONE_COLUMN, false );
+    gatewayCompositeLayout.marginHeight = 0;
+    gatewayCompositeLayout.marginWidth = 0;
+    gatewayComposite.setLayout( gatewayCompositeLayout );
     gatewayComposite.setSize( gatewayComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
     createGatewayGroup( gatewayComposite, namedCluster );
 
@@ -190,12 +193,16 @@ public class NamedClusterComposite extends Composite {
 
   private Composite createHeadOfNamedClusterDialog( final Composite parentComposite, final NamedCluster namedCluster ) {
     Composite mainRowComposite = new Composite( parentComposite, SWT.NONE );
-    mainRowComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    GridLayout mainRowLayout = new GridLayout( ONE_COLUMN, false );
+    mainRowLayout.marginWidth = 0;
+    mainRowComposite.setLayout( mainRowLayout );
     props.setLook( mainRowComposite );
 
     Composite nameUICluster = new Composite( mainRowComposite, SWT.NONE );
     props.setLook( nameUICluster );
-    nameUICluster.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    GridLayout nameUILayout = new GridLayout( ONE_COLUMN, false );
+    nameUILayout.marginWidth = 0;
+    nameUICluster.setLayout( nameUILayout );
 
     createLabel( nameUICluster, BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.Name" ), labelGridData );
 
@@ -215,6 +222,7 @@ public class NamedClusterComposite extends Composite {
       Composite gatewayUIComposite = new Composite( mainRowComposite, SWT.NONE );
       GridLayout layout = new GridLayout( ONE_COLUMN, false );
       layout.marginHeight = 0;
+      layout.marginWidth = 0;
       gatewayUIComposite.setLayout( layout );
       props.setLook( gatewayUIComposite );
 
@@ -315,8 +323,8 @@ public class NamedClusterComposite extends Composite {
     Composite container = new Composite( parentComposite, SWT.NONE );
     props.setLook( container );
     GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.marginWidth = 0;
     gridLayout.marginBottom = 5;
-    gridLayout.marginTop = 5;
     container.setLayout( gridLayout );
 
     // Create a storage type Label
@@ -529,17 +537,22 @@ public class NamedClusterComposite extends Composite {
         stateChanged();
       }
     };
-    createTextVar( c, gatewayUrlUIComposite, c.getGatewayUrl(), gridData, TEXT_FLAGS, gatewayUrlCB );
+
+    GridData gd = new GridData();
+    gd.widthHint = 365;
+    createTextVar( c, gatewayUrlUIComposite, c.getGatewayUrl(), gd, TEXT_FLAGS, gatewayUrlCB );
 
     Composite gatewayCredentialsRowComposite = createTwoColumnsContainer( pp );
 
     Composite usernameUIComposite = new Composite( gatewayCredentialsRowComposite, SWT.NONE );
     props.setLook( usernameUIComposite );
-    usernameUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    GridLayout userNamelayout = new GridLayout( ONE_COLUMN, false );
+    usernameUIComposite.setLayout( userNamelayout );
 
     Composite passwordUIComposite = new Composite( gatewayCredentialsRowComposite, SWT.NONE );
     props.setLook( passwordUIComposite );
-    passwordUIComposite.setLayout( new GridLayout( ONE_COLUMN, false ) );
+    GridLayout passwordLayout = new GridLayout( ONE_COLUMN, false );
+    passwordUIComposite.setLayout( passwordLayout );
 
     createLabel( usernameUIComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Username" ),  userNameLabelGridData );
     // gateway user input
