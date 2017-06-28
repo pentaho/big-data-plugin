@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -57,8 +57,22 @@ public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   public String loadURL( String url, String ncName, IMetaStore metastore, Map mappings ) {
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
+    String origUrl;
+    String pref = null;
+    if ( url != null && url.indexOf( SOURCE_URL ) > -1 ) {
+      origUrl = url;
+      url = origUrl.substring( origUrl.indexOf( "-", origUrl.indexOf( SOURCE_URL ) + SOURCE_URL.length() ) + 1 );
+      pref = origUrl.substring( 0, origUrl.indexOf( "-", origUrl.indexOf( SOURCE_URL ) + SOURCE_URL.length() ) + 1 );
+    } else if ( url != null && url.indexOf( DEST_URL ) > -1 ) {
+      origUrl = url;
+      url = origUrl.substring( origUrl.indexOf( "-", origUrl.indexOf( DEST_URL ) + DEST_URL.length() ) + 1 );
+      pref = origUrl.substring( 0, origUrl.indexOf( "-", origUrl.indexOf( DEST_URL ) + DEST_URL.length() ) + 1 );
+    }
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, getVariables() );
+    }
+    if ( pref != null ) {
+      url = pref + url;
     }
     if ( !Const.isEmpty( ncName ) && !Const.isEmpty( url ) ) {
       mappings.put( url, ncName );
