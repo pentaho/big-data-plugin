@@ -34,6 +34,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -108,9 +109,9 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
 
   public String loadUrl( String url, String ncName, IMetaStore metastore, Map<String, String> mappings ) {
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
-    //if ( c != null ) {
-      //url = c.processURLsubstitution( url, metastore, new Variables() );
-    //}
+    if ( c != null ) {
+      url = c.processURLsubstitution( url, metastore, new Variables() );
+    }
     if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) ) {
       mappings.put( url, ncName );
     }
