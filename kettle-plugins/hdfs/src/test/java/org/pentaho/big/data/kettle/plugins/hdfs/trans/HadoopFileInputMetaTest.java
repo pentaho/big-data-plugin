@@ -28,7 +28,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
+import org.pentaho.di.trans.steps.file.BaseFileField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
@@ -102,7 +102,7 @@ public class HadoopFileInputMetaTest {
     when( spy.getFileName() ).thenReturn( new String[] {} );
     spy.setFileName( new String[] { TEST_FILE_NAME } );
     spy.setFilter( new TextFileFilter[] {} );
-    spy.inputFiles.inputFields = new BaseFileInputField[] {};
+    spy.inputFields = new BaseFileField[] {};
     spy.inputFiles.fileMask = new String[] { TEST_FILE_NAME };
     spy.inputFiles.fileRequired = new String[] { TEST_FILE_NAME };
     spy.inputFiles.includeSubFolders = new String[] { TEST_FOLDER_NAME };
