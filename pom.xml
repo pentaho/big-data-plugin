@@ -57,7 +57,6 @@
     <dependency.simple-jndi.revision>1.0.0</dependency.simple-jndi.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
     <dependency.slf4j.revision>1.7.7</dependency.slf4j.revision>
-    <dependency.hadoop-shims-cdh510.revision>8.0-SNAPSHOT</dependency.hadoop-shims-cdh510.revision>
     <dependency.hadoop-shims-cdh511.revision>8.0-SNAPSHOT</dependency.hadoop-shims-cdh511.revision>
     <dependency.jets3t.revision>0.9.3</dependency.jets3t.revision>
     <dependency.xstream.revision>1.4.9</dependency.xstream.revision>
