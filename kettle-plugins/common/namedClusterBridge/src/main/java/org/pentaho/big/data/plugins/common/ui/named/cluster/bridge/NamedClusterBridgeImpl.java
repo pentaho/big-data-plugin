@@ -24,8 +24,6 @@ package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
@@ -36,8 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Map;
 
 /**
@@ -236,37 +232,23 @@ public class NamedClusterBridgeImpl implements NamedCluster {
 
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
-    //the last conditional is just to show that we have such protocol, can be deleted
-    if ( incomingURL.startsWith( "knox" )  || incomingURL.startsWith( "knoxs" ) ) {
-      return incomingURL;
-    }
     if ( isUseGateway() ) {
-      return processURLsubstitutionGateway( incomingURL, metastore, variableSpace );
-    } else {
-      if ( isMapr() ) {
-        String url = namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME, metastore, variableSpace );
-        if ( url != null && !url.startsWith( org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME ) ) {
-          url = org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME + "://" + url;
-        }
-        return url;
-      } else {
-        return namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.HDFS_SCHEME, metastore, variableSpace );
+      if ( incomingURL.startsWith( "nc" ) ) {
+        return incomingURL;
       }
+      StringBuilder builder = new StringBuilder( "nc://" );
+      builder.append( getName() );
+      builder.append( incomingURL.startsWith( "/" ) ? incomingURL : "/" + incomingURL );
+      return builder.toString();
+    } else if ( isMapr() ) {
+      String url = namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME, metastore, variableSpace );
+      if ( url != null && !url.startsWith( org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME ) ) {
+        url = org.pentaho.di.core.namedcluster.model.NamedCluster.MAPRFS_SCHEME + "://" + url;
+      }
+      return url;
+    } else {
+      return namedClusterManager.processURLsubstitution( getName(), incomingURL, org.pentaho.di.core.namedcluster.model.NamedCluster.HDFS_SCHEME, metastore, variableSpace );
     }
-  }
-
-  private String processURLsubstitutionGateway( String incomingURL, IMetaStore metastore,  VariableSpace variableSpace ) {
-    URL gateUrl;
-    try {
-      gateUrl = new URL( getGatewayUrl() );
-      String scheme = gateUrl.getProtocol().equalsIgnoreCase( "http" ) ? "knox" : gateUrl.getProtocol().equalsIgnoreCase( "https" ) ? "knoxs" : "";
-      UrlFileName file =  new UrlFileName( scheme, gateUrl.getHost(), gateUrl.getPort(), -1, getGatewayUsername(),
-          getGatewayPassword(), gateUrl.getPath() + FileName.SEPARATOR + KNOX_GATEWAY_ROOT + incomingURL, null, null );
-      return file.getURI();
-    } catch ( MalformedURLException e ) {
-      LOGGER.error( "Could not process url with gateway " + e.toString() );
-    }
-    return incomingURL;
   }
 
   @Override

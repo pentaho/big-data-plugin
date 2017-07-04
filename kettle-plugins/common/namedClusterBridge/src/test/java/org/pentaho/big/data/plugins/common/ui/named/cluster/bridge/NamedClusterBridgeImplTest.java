@@ -34,6 +34,7 @@ import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -428,6 +429,16 @@ public class NamedClusterBridgeImplTest {
     when( namedClusterManager.processURLsubstitution( namedClusterName, testUrl, HadoopSpoonPlugin.MAPRFS_SCHEME, null, null ) )
       .thenReturn( testUrlTransformed );
     assertEquals( "maprfs://" + testUrlTransformed, namedClusterBridge.processURLsubstitution( testUrl, null, null ) );
+  }
+
+  @Test
+  public void testProcessURLSubstitution_Gateway() throws MetaStoreException {
+    when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
+    when( legacyNamedCluster.isUseGateway() ).thenReturn( true );
+    String incomingURL = "/path";
+    String expected = "nc://" + legacyNamedCluster.getName() + incomingURL;
+    String actual = namedClusterBridge.processURLsubstitution( incomingURL, null, null );
+    assertTrue( "Expected " + expected + " actual " + actual, expected.equalsIgnoreCase( actual ) );
   }
 
   @Test

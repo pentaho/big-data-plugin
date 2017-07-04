@@ -350,6 +350,15 @@ public class NamedClusterImplTest {
     String incomingURL = "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
+  
+  @Test
+  public void testProcessURLSubstitution_Gateway() throws MetaStoreException {
+    namedCluster.setUseGateway( true );
+    String incomingURL = "/path";
+    String expected = "nc://" + namedCluster.getName() + incomingURL;
+    String actual = namedCluster.processURLsubstitution( incomingURL, metaStore, null );
+    assertTrue( "Expected " + expected + " actual " + actual, expected.equalsIgnoreCase( actual ) );
+  }
 
   @Test
   public void testProcessURLWASBFullSubstitution() throws MetaStoreException {

@@ -19,8 +19,6 @@ package org.pentaho.big.data.impl.cluster;
 
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -255,37 +253,22 @@ public class NamedClusterImpl implements NamedCluster {
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
     if ( isUseGateway() ) {
-      return processURLsubstitutionGateway( incomingURL, metastore, variableSpace );
-    } else {
-      if ( isMapr() ) {
-        String url =
-          processURLsubstitution( incomingURL, MAPRFS_SCHEME, metastore, variableSpace );
-        if ( url != null && !url.startsWith( MAPRFS_SCHEME ) ) {
-          url = MAPRFS_SCHEME + "://" + url;
-        }
-        return url;
-      } else {
-        return processURLsubstitution( incomingURL, getStorageScheme(), metastore, variableSpace );
+      if ( incomingURL.startsWith( "nc" ) ) {
+        return incomingURL;
       }
+      StringBuilder builder = new StringBuilder( "nc://" );
+      builder.append( getName() );
+      builder.append( incomingURL.startsWith( "/" ) ? incomingURL : "/" + incomingURL );
+      return builder.toString();
+    } else if ( isMapr() ) {
+      String url = processURLsubstitution( incomingURL, MAPRFS_SCHEME, metastore, variableSpace );
+      if ( url != null && !url.startsWith( MAPRFS_SCHEME ) ) {
+        url = MAPRFS_SCHEME + "://" + url;
+      }
+      return url;
+    } else {
+      return processURLsubstitution( incomingURL, getStorageScheme(), metastore, variableSpace );
     }
-  }
-
-  private String processURLsubstitutionGateway( String incomingURL, IMetaStore metastore,  VariableSpace variableSpace ) {
-    //the last conditional is just to show that we have such protocol, can be deleted
-    if ( incomingURL.startsWith( "knox" )  || incomingURL.startsWith( "knoxs" ) ) {
-      return incomingURL;
-    }
-    URL gateUrl;
-    try {
-      gateUrl = new URL( getGatewayUrl() );
-      String scheme = gateUrl.getProtocol().equalsIgnoreCase( "http" ) ? "knox" : gateUrl.getProtocol().equalsIgnoreCase( "https" ) ? "knoxs" : "";
-      UrlFileName file =  new UrlFileName( scheme, gateUrl.getHost(), gateUrl.getPort(), -1, getGatewayUsername(),
-          getGatewayPassword(), gateUrl.getPath() + FileName.SEPARATOR + KNOX_GATEWAY_ROOT + incomingURL, null, null );
-      return file.getURI();
-    } catch ( MalformedURLException e ) {
-      LOGGER.error( "Could not process url with gateway " + e.toString() );
-    }
-    return incomingURL;
   }
 
   private String processURLsubstitution( String incomingURL, String hdfsScheme, IMetaStore metastore,
