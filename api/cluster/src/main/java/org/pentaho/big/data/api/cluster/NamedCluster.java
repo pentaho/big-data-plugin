@@ -39,8 +39,6 @@ public interface NamedCluster extends Cloneable, VariableSpace {
 
   public static final String NAMED_CLUSTER_XML_TAG = "namedClusterTag";
 
-  public static final String KNOX_GATEWAY_ROOT = "KnoxGatewayRoot";
-
   String getName();
 
   void setName( String name );
