@@ -100,7 +100,7 @@ import org.pentaho.di.trans.TransPreviewFactory;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
+import org.pentaho.di.trans.steps.file.BaseFileField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
@@ -1890,7 +1890,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     fdGet.bottom = new FormAttachment( 100, 0 );
     wGet.setLayoutData( fdGet );
 
-    final int FieldsRows = input.inputFiles.inputFields.length;
+    final int FieldsRows = input.inputFields.length;
 
     ColumnInfo[] colinf =
         new ColumnInfo[] {
@@ -2170,8 +2170,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private void getFieldsData( TextFileInputMeta in, boolean insertAtTop ) {
-    for ( int i = 0; i < in.inputFiles.inputFields.length; i++ ) {
-      BaseFileInputField field = in.inputFiles.inputFields[i];
+    for ( int i = 0; i < in.inputFields.length; i++ ) {
+      BaseFileField field = in.inputFields[i];
 
       TableItem item;
 
@@ -2343,7 +2343,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     hadoopFileInputMeta.setNamedClusterURLMapping( namedClusterURLMappings );
 
     for ( int i = 0; i < nrfields; i++ ) {
-      BaseFileInputField field = new BaseFileInputField();
+      BaseFileField field = new BaseFileField();
 
       TableItem item = wFields.getNonEmpty( i );
       field.setName( item.getText( 1 ) );
@@ -2360,7 +2360,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 12 ) ) );
       field.setRepeated( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase( item.getText( 13 ) ) );
 
-      ( meta.inputFiles.inputFields )[i] = field;
+      ( meta.inputFields )[i] = field;
     }
 
     for ( int i = 0; i < nrfilters; i++ ) {
@@ -2421,7 +2421,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     if ( textFileList.nrOfFiles() > 0 ) {
       int clearFields = meta.content.header ? SWT.YES : SWT.NO;
-      int nrInputFields = meta.inputFiles.inputFields.length;
+      int nrInputFields = meta.inputFields.length;
 
       if ( meta.content.header && nrInputFields > 0 ) {
         MessageBox mb = new MessageBox( shell, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION );
@@ -2455,7 +2455,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           // Scan the header-line, determine fields...
           String line = null;
 
-          if ( meta.content.header || meta.inputFiles.inputFields.length == 0 ) {
+          if ( meta.content.header || meta.inputFields.length == 0 ) {
             line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
             if ( line != null ) {
               // Estimate the number of input fields...
@@ -2510,7 +2510,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               //
               if ( clearFields == SWT.NO ) {
                 getFieldsData( previousMeta, true );
-                wFields.table.setSelection( previousMeta.inputFiles.inputFields.length, wFields.table.getItemCount() - 1 );
+                wFields.table.setSelection( previousMeta.inputFields.length, wFields.table.getItemCount() - 1 );
               }
 
               wFields.removeEmptyRows();
@@ -2855,8 +2855,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     int prevEnd = 0;
     int dummynr = 1;
 
-    for ( int i = 0; i < info.inputFiles.inputFields.length; i++ ) {
-      BaseFileInputField f = info.inputFiles.inputFields[i];
+    for ( int i = 0; i < info.inputFields.length; i++ ) {
+      BaseFileField f = info.inputFields[i];
 
       // See if positions are skipped, if this is the case, add dummy fields...
       if ( f.getPosition() != prevEnd ) {
@@ -2884,12 +2884,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       prevEnd = field.getPosition() + field.getLength();
     }
 
-    if ( info.inputFiles.inputFields.length == 0 ) {
+    if ( info.inputFields.length == 0 ) {
       TextFileInputField field = new TextFileInputField( "Field1", 0, maxsize );
       fields.add( field );
     } else {
       // Take the last field and see if it reached until the maximum...
-      BaseFileInputField f = info.inputFiles.inputFields[info.inputFiles.inputFields.length - 1];
+      BaseFileField f = info.inputFields[info.inputFields.length - 1];
 
       int pos = f.getPosition();
       int len = f.getLength();
