@@ -29,7 +29,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 
-@Step( id = "ParquetInput", image = "HBO.svg", name = "ParquetInput.Name", description = "ParquetInput.Description",
+@Step( id = "ParquetInput", image = "PI.svg", name = "ParquetInput.Name", description = "ParquetInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
     i18nPackageName = "org.pentaho.di.trans.steps.parquet", isSeparateClassLoaderNeeded = true )

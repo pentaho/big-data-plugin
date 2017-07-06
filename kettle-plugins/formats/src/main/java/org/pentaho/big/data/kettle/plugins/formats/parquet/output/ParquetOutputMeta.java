@@ -29,7 +29,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 
-@Step( id = "ParquetOutput", image = "HBO.svg", name = "ParquetOutput.Name", description = "ParquetOutput.Description",
+@Step( id = "ParquetOutput", image = "PI.svg", name = "ParquetOutput.Name", description = "ParquetOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
     i18nPackageName = "org.pentaho.di.trans.steps.parquet", isSeparateClassLoaderNeeded = true )
@@ -45,5 +45,4 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   public StepDataInterface getStepData() {
     return new ParquetOutputData();
   }
-
 }
