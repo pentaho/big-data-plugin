@@ -67,6 +67,7 @@ public class NamedClusterImpl implements NamedCluster {
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String WASB_SCHEME = "wasb";
+  public static final String NC_SCHEME = "nc";
   public static final String INDENT = "  ";
   public static final String ROOT_INDENT = "    ";
   private static final Logger LOGGER = LoggerFactory.getLogger( NamedClusterImpl.class );
@@ -253,10 +254,10 @@ public class NamedClusterImpl implements NamedCluster {
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
     if ( isUseGateway() ) {
-      if ( incomingURL.startsWith( "nc" ) ) {
+      if ( incomingURL.startsWith( NC_SCHEME ) ) {
         return incomingURL;
       }
-      StringBuilder builder = new StringBuilder( "nc://" );
+      StringBuilder builder = new StringBuilder( NC_SCHEME + "://" );
       builder.append( getName() );
       builder.append( incomingURL.startsWith( "/" ) ? incomingURL : "/" + incomingURL );
       return builder.toString();
@@ -288,7 +289,7 @@ public class NamedClusterImpl implements NamedCluster {
         String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
 
         String fullyQualifiedIncomingURL = incomingURL;
-        if ( !incomingURL.startsWith( hdfsScheme ) ) {
+        if ( !incomingURL.startsWith( hdfsScheme ) && !incomingURL.startsWith( NC_SCHEME ) ) {
           fullyQualifiedIncomingURL = clusterURL + incomingURL;
           noVariablesURL = clusterURL + incomingURL.replaceAll( "[${}]", "/" );
         }
@@ -306,7 +307,7 @@ public class NamedClusterImpl implements NamedCluster {
           String filePath = variableSpace.environmentSubstitute( path );
           StringBuilder pattern = new StringBuilder();
           pattern.append( "^(" ).append( HDFS_SCHEME ).append( "|" ).append( WASB_SCHEME ).append( "|" ).append(
-              MAPRFS_SCHEME ).append( "):\\/\\/" );
+              MAPRFS_SCHEME ).append( "|" ).append( NC_SCHEME ).append( "):\\/\\/" );
           Pattern r = Pattern.compile( pattern.toString() );
           Matcher m = r.matcher( filePath );
           prependCluster = !m.find();
