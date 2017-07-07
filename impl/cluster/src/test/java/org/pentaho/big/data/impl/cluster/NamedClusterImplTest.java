@@ -423,6 +423,19 @@ public class NamedClusterImplTest {
   }
 
   @Test
+  public void testProcessURLsubstitutionNC() throws Exception {
+    assertEquals("hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@namedClusterHdfsHost:12345/input/file.txt",
+      namedCluster.processURLsubstitution( "nc://cluster/input/file.txt", metaStore, null ) );
+  }
+
+  @Test
+  public void testProcessURLSubstitutionNC_variable() throws Exception {
+    String incomingURL = "${ncUrl}/test";
+    when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( "nc://cluster/test" );
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
+  }
+
+  @Test
   public void testGenerateURLHDFSNoPort() throws MetaStoreException {
     String scheme = "hdfs";
     String testHost = "testHost";
