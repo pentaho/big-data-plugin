@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,15 +22,12 @@
 
 package org.pentaho.di.trans.steps.couchdbinput;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,7 +38,6 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LoggingObjectInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
-import org.pentaho.di.core.util.HttpClientManager;
 import org.pentaho.di.trans.steps.mock.StepMockHelper;
 
 import java.io.ByteArrayInputStream;
@@ -53,7 +49,9 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 10/28/15.
@@ -77,8 +75,8 @@ public class CouchDbInputTest {
     httpClientFactory = mock( CouchDbInput.HttpClientFactory.class );
     getMethodFactory = mock( CouchDbInput.GetMethodFactory.class );
     couchDbInput =
-      spy( new CouchDbInput( stepMockHelper.stepMeta, stepMockHelper.stepDataInterface, 0, stepMockHelper.transMeta,
-        stepMockHelper.trans ) );
+      new CouchDbInput( stepMockHelper.stepMeta, stepMockHelper.stepDataInterface, 0, stepMockHelper.transMeta,
+        stepMockHelper.trans, httpClientFactory, getMethodFactory );
   }
 
   @Test
@@ -101,7 +99,7 @@ public class CouchDbInputTest {
     CouchDbInput.HttpClientFactory httpClientFactory = mock( CouchDbInput.HttpClientFactory.class );
     CouchDbInput.GetMethodFactory getMethodFactory = mock( CouchDbInput.GetMethodFactory.class );
 
-    HttpGet getMethod = mock( HttpGet.class );
+    GetMethod getMethod = mock( GetMethod.class );
     when( getMethodFactory.create( CouchDbInput
       .buildUrl( testHostname, Const.toInt( testPort, 5984 ), testDbName, testDoc, testView ) ) ).thenReturn(
       getMethod );
@@ -131,24 +129,27 @@ public class CouchDbInputTest {
     when( couchDbInputMeta.getAuthenticationUser() ).thenReturn( testUser );
     when( couchDbInputMeta.getAuthenticationPassword() ).thenReturn( testPassword );
 
-    HttpGet getMethod = mock( HttpGet.class );
+    GetMethod getMethod = mock( GetMethod.class );
     when( getMethodFactory.create( CouchDbInput
       .buildUrl( testHostname, Const.toInt( testPort, 5984 ), testDbName, testDoc, testView ) ) ).thenReturn(
       getMethod );
 
     HttpClient httpClient = mock( HttpClient.class );
-    doReturn( httpClient ).when( couchDbInput ).createHttpClient( anyString(), anyString() );
-    HttpResponse httpResponseMock = mock(HttpResponse.class);
-    HttpEntity httpEntity = mock(HttpEntity.class);
-    doReturn( httpEntity ).when( httpResponseMock ).getEntity();
-    StatusLine statusLineMock = mock(StatusLine.class);
-    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
-    doReturn( httpResponseMock ).when( httpClient ).execute( any( HttpUriRequest.class ), any( HttpContext.class ) );
-    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
-    doReturn( 200 ).when( statusLineMock ).getStatusCode();
+    HttpState httpState = mock( HttpState.class );
+    HttpClientParams httpClientParams = mock( HttpClientParams.class );
+    when( httpClient.getState() ).thenReturn( httpState );
+    when( httpClient.getParams() ).thenReturn( httpClientParams );
+    when( httpClientFactory.createHttpClient() ).thenReturn( httpClient );
+    when( httpClient.executeMethod( getMethod ) ).thenReturn( 200 );
+
     assertTrue( couchDbInput.init( couchDbInputMeta, couchDbInputData ) );
-    verify( couchDbInput ).createHttpClient( "testUser", "testPassword" );
-    verify( couchDbInput ).getHttpClientContext( "testHostname", Integer.parseInt( testPort ) );
+    ArgumentCaptor<UsernamePasswordCredentials> argumentCaptor =
+      ArgumentCaptor.forClass( UsernamePasswordCredentials.class );
+    verify( httpState ).setCredentials( eq( AuthScope.ANY ), argumentCaptor.capture() );
+    UsernamePasswordCredentials usernamePasswordCredentials = argumentCaptor.getValue();
+    assertEquals( testUser, usernamePasswordCredentials.getUserName() );
+    assertEquals( testPassword, usernamePasswordCredentials.getPassword() );
+    verify( httpClientParams ).setAuthenticationPreemptive( true );
   }
 
   @Test
@@ -168,18 +169,14 @@ public class CouchDbInputTest {
     when( couchDbInputMeta.getDesignDocument() ).thenReturn( testDoc );
     when( couchDbInputMeta.getViewName() ).thenReturn( testView );
 
-    HttpGet getMethod = mock( HttpGet.class );
+    GetMethod getMethod = mock( GetMethod.class );
     when( getMethodFactory.create( CouchDbInput
       .buildUrl( testHostname, Const.toInt( testPort, 5984 ), testDbName, testDoc, testView ) ) ).thenReturn(
       getMethod );
 
     HttpClient httpClient = mock( HttpClient.class );
-    doReturn( httpClient ).when( couchDbInput ).createHttpClient( anyString(), anyString() );
-    HttpResponse httpResponseMock = mock(HttpResponse.class);
-    StatusLine statusLineMock = mock(StatusLine.class);
-    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
-    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
-    doReturn( 200 ).when( statusLineMock ).getStatusCode();
+    when( httpClientFactory.createHttpClient() ).thenReturn( httpClient );
+    when( httpClient.executeMethod( getMethod ) ).thenReturn( 200 );
 
     assertFalse( couchDbInput.init( couchDbInputMeta, couchDbInputData ) );
   }
@@ -201,18 +198,14 @@ public class CouchDbInputTest {
     when( couchDbInputMeta.getDesignDocument() ).thenReturn( testDoc );
     when( couchDbInputMeta.getViewName() ).thenReturn( testView );
 
-    HttpGet getMethod = mock( HttpGet.class );
+    GetMethod getMethod = mock( GetMethod.class );
     when( getMethodFactory.create( CouchDbInput
       .buildUrl( testHostname, Const.toInt( testPort, 5984 ), testDbName, testDoc, testView ) ) ).thenReturn(
       getMethod );
 
     HttpClient httpClient = mock( HttpClient.class );
-    doReturn( httpClient ).when( couchDbInput ).createHttpClient( anyString(), anyString() );
-    HttpResponse httpResponseMock = mock(HttpResponse.class);
-    StatusLine statusLineMock = mock(StatusLine.class);
-    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
-    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
-    doReturn( 200 ).when( statusLineMock ).getStatusCode();
+    when( httpClientFactory.createHttpClient() ).thenReturn( httpClient );
+    when( httpClient.executeMethod( getMethod ) ).thenReturn( 200 );
 
     assertFalse( couchDbInput.init( couchDbInputMeta, couchDbInputData ) );
   }
@@ -238,20 +231,19 @@ public class CouchDbInputTest {
     when( couchDbInputMeta.getAuthenticationUser() ).thenReturn( testUser );
     when( couchDbInputMeta.getAuthenticationPassword() ).thenReturn( testPassword );
 
-    HttpGet getMethod = mock( HttpGet.class );
+    GetMethod getMethod = mock( GetMethod.class );
     when( getMethodFactory.create( CouchDbInput
       .buildUrl( testHostname, Const.toInt( testPort, 5984 ), testDbName, testDoc, testView ) ) ).thenReturn(
       getMethod );
 
     HttpClient httpClient = mock( HttpClient.class );
-    doReturn( httpClient ).when( couchDbInput ).createHttpClient( anyString(), anyString() );
-    HttpResponse httpResponseMock = mock(HttpResponse.class);
-    StatusLine statusLineMock = mock(StatusLine.class);
-    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
-    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
-    doReturn( 199 ).when( statusLineMock ).getStatusCode();
-
-    //when( getMethod.getResponseBodyAsStream() ).thenReturn( new ByteArrayInputStream( "fail".getBytes() ) );
+    HttpState httpState = mock( HttpState.class );
+    HttpClientParams httpClientParams = mock( HttpClientParams.class );
+    when( httpClient.getState() ).thenReturn( httpState );
+    when( httpClient.getParams() ).thenReturn( httpClientParams );
+    when( httpClientFactory.createHttpClient() ).thenReturn( httpClient );
+    when( httpClient.executeMethod( getMethod ) ).thenReturn( 199 );
+    when( getMethod.getResponseBodyAsStream() ).thenReturn( new ByteArrayInputStream( "fail".getBytes() ) );
 
     assertFalse( couchDbInput.init( couchDbInputMeta, couchDbInputData ) );
   }
@@ -277,18 +269,18 @@ public class CouchDbInputTest {
     when( couchDbInputMeta.getAuthenticationUser() ).thenReturn( testUser );
     when( couchDbInputMeta.getAuthenticationPassword() ).thenReturn( testPassword );
 
-    HttpGet getMethod = mock( HttpGet.class );
+    GetMethod getMethod = mock( GetMethod.class );
     when( getMethodFactory.create( CouchDbInput
       .buildUrl( testHostname, Const.toInt( testPort, 5984 ), testDbName, testDoc, testView ) ) ).thenReturn(
       getMethod );
 
     HttpClient httpClient = mock( HttpClient.class );
-    doReturn( httpClient ).when( couchDbInput ).createHttpClient( anyString(), anyString() );
-    HttpResponse httpResponseMock = mock(HttpResponse.class);
-    StatusLine statusLineMock = mock(StatusLine.class);
-    doReturn( httpResponseMock ).when( httpClient ).execute( anyObject() );
-    doReturn( statusLineMock ).when( httpResponseMock ).getStatusLine();
-    doReturn( 199 ).when( statusLineMock ).getStatusCode();
+    HttpState httpState = mock( HttpState.class );
+    HttpClientParams httpClientParams = mock( HttpClientParams.class );
+    when( httpClient.getState() ).thenReturn( httpState );
+    when( httpClient.getParams() ).thenReturn( httpClientParams );
+    when( httpClientFactory.createHttpClient() ).thenReturn( httpClient );
+    when( httpClient.executeMethod( getMethod ) ).thenReturn( 199 );
 
     assertFalse( couchDbInput.init( couchDbInputMeta, couchDbInputData ) );
   }

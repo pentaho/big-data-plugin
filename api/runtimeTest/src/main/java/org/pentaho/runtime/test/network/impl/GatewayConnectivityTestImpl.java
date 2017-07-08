@@ -23,13 +23,14 @@
 package org.pentaho.runtime.test.network.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.pentaho.di.core.util.HttpClientManager;
-import org.pentaho.di.core.util.HttpClientUtil;
+import org.apache.commons.httpclient.Credentials;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
@@ -98,7 +99,6 @@ public class GatewayConnectivityTestImpl extends ConnectivityTestImpl {
   private final String user;
   private final String password;
   private final Variables variables;
-  private HttpClientManager httpClientManager = HttpClientManager.getInstance();
 
   public GatewayConnectivityTestImpl( MessageGetterFactory messageGetterFactory, URI uri, String testPath,
                                       String user, String password, RuntimeTestEntrySeverity severity ) {
@@ -116,10 +116,9 @@ public class GatewayConnectivityTestImpl extends ConnectivityTestImpl {
     this.uri = uri.resolve( uri.getPath() + path );
   }
 
-  @Override
-  public RuntimeTestResultEntry runTest() {
+  @Override public RuntimeTestResultEntry runTest() {
 
-    if ( StringUtils.isBlank( hostname ) ) {
+    if ( Const.isEmpty( hostname ) ) {
       return new RuntimeTestResultEntryImpl( severityOfFalures,
         messageGetter.getMessage( CONNECT_TEST_HOST_BLANK_DESC ),
         messageGetter.getMessage( CONNECT_TEST_HOST_BLANK_MESSAGE ) );
@@ -133,22 +132,20 @@ public class GatewayConnectivityTestImpl extends ConnectivityTestImpl {
           initContextWithTrustAll( ctx );
           SSLContext.setDefault( ctx );
         }
-        String userString = "";
-        HttpClientContext context = null;
-        HttpGet method = new HttpGet( uri.toString() );
-        HttpClient httpClient;
-
-        if ( StringUtils.isNotBlank( user ) ) {
+        String userString;
+        HttpMethod method = new GetMethod( uri.toString() );
+        HttpClient httpClient = getHttpClient();
+        if ( !StringUtil.isEmpty( user ) ) {
+          httpClient.getParams().setAuthenticationPreemptive( true );
+          Credentials creds = new UsernamePasswordCredentials( user, password );
+          httpClient.getState()
+            .setCredentials( new AuthScope( uri.getHost(), portInt, AuthScope.ANY_REALM ),
+              creds );
           userString = user;
-          httpClient = getHttpClient( user, password );
-          context = HttpClientUtil.createPreemptiveBasicAuthentication( uri.getHost(), portInt, user, password );
         } else {
-          httpClient = getHttpClient();
+          userString = "";
         }
-
-        HttpResponse httpResponse =
-          context != null ? httpClient.execute( method, context ) : httpClient.execute( method );
-        Integer returnCode = httpResponse.getStatusLine().getStatusCode();
+        Integer returnCode = httpClient.executeMethod( method );
 
         switch ( returnCode ) {
           case 200: {
@@ -230,14 +227,6 @@ public class GatewayConnectivityTestImpl extends ConnectivityTestImpl {
 
   @VisibleForTesting
   HttpClient getHttpClient() {
-    return httpClientManager.createDefaultClient();
+    return new HttpClient();
   }
-
-  @VisibleForTesting
-  HttpClient getHttpClient( String user, String password ) {
-    HttpClientManager.HttpClientBuilderFacade clientBuilder = httpClientManager.createBuilder();
-    clientBuilder.setCredentials( user, password );
-    return clientBuilder.build();
-  }
-
 }
