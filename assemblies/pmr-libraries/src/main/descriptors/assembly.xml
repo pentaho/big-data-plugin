@@ -59,7 +59,7 @@
         <include>commons-digester:commons-digester</include>
         <include>commons-discovery:commons-discovery</include>
         <include>commons-fileupload:commons-fileupload</include>
-        <include>commons-httpclient:commons-httpclient</include>
+        <include>org.apache.httpcomponents:httpclient</include>
         <include>commons-io:commons-io</include>
         <include>commons-lang:commons-lang</include>
         <include>commons-logging:commons-logging</include>
