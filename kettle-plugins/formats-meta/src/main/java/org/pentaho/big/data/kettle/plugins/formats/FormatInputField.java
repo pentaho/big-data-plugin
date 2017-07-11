@@ -32,7 +32,7 @@ import org.pentaho.di.trans.steps.file.BaseFileField;
  */
 public class FormatInputField extends BaseFileField {
   @Injection( name = "FIELD_PATH", group = "FIELDS" )
-  private String path;
+  protected String path;
 
   public String getPath() {
     return path;

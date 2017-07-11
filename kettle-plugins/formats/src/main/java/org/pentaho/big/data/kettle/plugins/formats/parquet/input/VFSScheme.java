@@ -20,17 +20,25 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats;
+package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
-import org.pentaho.di.core.injection.Injection;
-import org.pentaho.di.trans.steps.file.BaseFileInputFiles;
+public class VFSScheme {
 
-/**
- * Base class for format's input file - env added.
- * 
- * @author <alexander_buloichik@epam.com>
- */
-public class FormatInputFile extends BaseFileInputFiles {
-  @Injection( name = "ENVIRONMENT", group = "FILENAME_LINES" )
-  public String[] environment = {};
+  private final String scheme;
+
+  private final String schemeName;
+
+  public VFSScheme( String scheme, String schemeName ) {
+    this.scheme = scheme;
+    this.schemeName = schemeName;
+  }
+
+  public String getScheme() {
+    return scheme;
+  }
+
+  public String getSchemeName() {
+    return schemeName;
+  }
+
 }
