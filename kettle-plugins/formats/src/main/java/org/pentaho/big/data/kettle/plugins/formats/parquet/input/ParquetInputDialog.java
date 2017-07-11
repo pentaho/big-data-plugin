@@ -22,6 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.graphics.Image;
@@ -32,15 +37,20 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
-import org.pentaho.di.core.Const;
+import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseFileStepDialog;
 import org.pentaho.di.ui.util.SwtSvgImageUtil;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase> {
 
@@ -50,13 +60,23 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
 
   private static final int MARGIN = 15;
 
-  private TableView wInputFields;
+  private static final String[] FILES_FILTERS = { "*.*" };
 
-  private Label wlPath;
+  private static final int AVRO_PATH_COLUMN_INDEX = 1;
+
+  private static final int FIELD_NAME_COLUMN_INDEX = 2;
+
+  private static final int FIELD_TYPE_COLUMN_INDEX = 3;
+
+  private final String[] fileFilterNames = new String[] { BaseMessages.getString( PKG, "System.FileType.AllFiles" ) };
+
+  private TableView wInputFields;
 
   private TextVar wPath;
 
   private Button wbBrowse;
+
+  private VFSScheme selectedVFSScheme;
 
   public ParquetInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (ParquetInputMetaBase) in, transMeta, sname );
@@ -101,7 +121,22 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
     new FD( wlLocation ).left( 0, 0 ).top( spacer, MARGIN ).apply();
 
     CCombo wLocation = new CCombo( shell, SWT.BORDER );
-    wLocation.setText( stepname );
+    try {
+      List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
+      availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
+      wLocation.addListener( SWT.Selection, event -> {
+        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
+      } );
+      if ( !availableVFSSchemes.isEmpty() ) {
+        wLocation.select( 0 );
+        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
+      }
+      //FIXME add some UI message for these exceptions 
+    } catch ( KettleFileException ex ) {
+      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.KettleFileException" ) );
+    } catch ( FileSystemException ex ) {
+      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.FileSystemException" ) );
+    }
     props.setLook( wLocation );
     wLocation.addModifyListener( lsMod );
     new FD( wLocation ).left( 0, 0 ).top( wlLocation, 5 ).width( 150 ).apply();
@@ -118,6 +153,7 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
     wbBrowse = new Button( shell, SWT.PUSH );
     props.setLook( wbBrowse );
     wbBrowse.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
+    wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
     new FD( wbBrowse ).left( wPath, 5 ).top( wlPath, 5 ).apply();
 
     Label wlFields = new Label( shell, SWT.RIGHT );
@@ -134,30 +170,15 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
 
     ColumnInfo[] parameterColumns =
         new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.AvroPath" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false, false ), new ColumnInfo( BaseMessages.getString( PKG,
-                "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false ), new ColumnInfo(
-                    BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
-                    ColumnInfo.COLUMN_TYPE_CCOMBO, Const.getDateFormats() ) };
-    // parameterColumns[1].setUsingVariables( true );
+            ColumnInfo.COLUMN_TYPE_TEXT, false, false, 248 ), new ColumnInfo( BaseMessages.getString( PKG,
+                "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false, 119 ),
+          new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
+              ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
 
-    // JobExecutorParameters parameters = input.getParameters();
     wInputFields =
         new TableView( transMeta, shell, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, parameterColumns, 0, lsMod,
             props );
     props.setLook( wInputFields );
-
-    // Label bottomSpacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    // new FD( bottomSpacer ).height( 1 ).left( 0, 0 ).bottom( wOK, 15 ).right( 100, 0 ).apply();
-
-    // new FD( wComp ).left( 0, 0 ).top( 0, 0 ).right( 100, 0 ).bottom( 100, 0 ).apply();
-
-    /*
-     * CTabFolder wTabFolder = new CTabFolder( shell, SWT.BORDER ); props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
-     * wTabFolder.setSimple( false );
-     */
-
-    // addFilesTab( wTabFolder );
-    // addFieldsTabs( wTabFolder );
 
     wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
@@ -175,99 +196,72 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
     wPreview.addListener( SWT.Selection, event -> {
       throw new RuntimeException( "Requires Shim API changes" );
     } );
-    new FD( wPreview ).right( wOK, -50 ).bottom( 100, 0 ).apply();
+    new FD( wPreview ).right( 50, 0 ).bottom( 100, 0 ).apply();
 
     Label hSpacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
     new FD( hSpacer ).height( 1 ).left( 0, 0 ).bottom( wCancel, -15 ).right( 100, 0 ).apply();
 
     new FD( wGetFields ).bottom( hSpacer, -15 ).right( 100, 0 ).apply();
     new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wlFields, 5 ).bottom( wGetFields, -10 ).apply();
-    // new FD( wTabFolder ).left( 0, 0 ).top( spacer, 15 ).right( 100, 0 ).bottom( hSpacer, -15 ).apply();
-    // wTabFolder.setSelection( 0 );
 
   }
 
-  /*
-   * private void addFilesTab( CTabFolder wTabFolder ) { CTabItem wTab = new CTabItem( wTabFolder, SWT.NONE );
-   * wTab.setText( BaseMessages.getString( PKG, "ParquetInputDialog.FileTab.TabTitle" ) );
-   * 
-   * ScrolledComposite wSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL ); wSComp.setLayout( new
-   * FillLayout() );
-   * 
-   * Composite wComp = new Composite( wSComp, SWT.NONE ); props.setLook( wComp );
-   * 
-   * FormLayout layout = new FormLayout(); layout.marginWidth = 15; layout.marginHeight = 15; wComp.setLayout( layout );
-   * 
-   * wlPath = new Label( wComp, SWT.LEFT ); props.setLook( wlPath ); wlPath.setText( BaseMessages.getString( PKG,
-   * "ParquetInputDialog.Filename.Label" ) ); new FD( wlPath ).left( 0, 0 ).right( 50, 0 ).top( 0, 0 ).apply();
-   * 
-   * wbBrowse = new Button( wComp, SWT.PUSH ); props.setLook( wbBrowse ); wbBrowse.setText( BaseMessages.getString( PKG,
-   * "System.Button.Browse" ) ); new FD( wbBrowse ).top( wlPath, 5 ).right( 100, 0 ).apply();
-   * 
-   * wPath = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER ); props.setLook( wPath ); new FD( wPath
-   * ).left( 0, 0 ).top( wlPath, 5 ).right( wbBrowse, -10 ).apply();
-   * 
-   * new FD( wComp ).left( 0, 0 ).top( 0, 0 ).right( 100, 0 ).bottom( 100, 0 ).apply(); wComp.pack();
-   * 
-   * Rectangle bounds = wComp.getBounds(); wSComp.setContent( wComp ); wSComp.setExpandHorizontal( true );
-   * wSComp.setExpandVertical( true ); wSComp.setMinWidth( bounds.width ); wSComp.setMinHeight( bounds.height );
-   * 
-   * wTab.setControl( wSComp );
-   * 
-   * wbBrowse.addSelectionListener( new SelectionAdapter() { public void widgetSelected( SelectionEvent e ) {
-   * DirectoryDialog dialog = new DirectoryDialog( shell, SWT.OPEN ); if ( wPath.getText() != null ) { String fpath =
-   * transMeta.environmentSubstitute( wPath.getText() ); dialog.setFilterPath( fpath ); }
-   * 
-   * if ( dialog.open() != null ) { String str = dialog.getFilterPath(); wPath.setText( str ); } } } ); }
-   */
+  protected void browseForFileInputPath() {
+    try {
+      FileObject initialFile = getInitialFile();
+      FileObject rootFile = initialFile.getFileSystem().getRoot();
+      VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
+      FileObject selectedFile =
+          fileChooserDialog.open( shell, new String[] {}, selectedVFSScheme.getScheme(), true, null, FILES_FILTERS,
+              fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, true );
+      if ( selectedFile != null ) {
+        wPath.setText( selectedFile.getURL().toString() );
+      }
+    } catch ( KettleFileException ex ) {
+      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.KettleFileException" ) );
+    } catch ( FileSystemException ex ) {
+      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.FileSystemException" ) );
+    }
+  }
 
-  /*
-   * private void addFieldsTabs( CTabFolder wTabFolder ) { CTabItem wTab = new CTabItem( wTabFolder, SWT.NONE );
-   * wTab.setText( BaseMessages.getString( PKG, "ParquetInputDialog.FieldsTab.TabTitle" ) );
-   * 
-   * ScrolledComposite wSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL ); wSComp.setLayout( new
-   * FillLayout() );
-   * 
-   * Composite wComp = new Composite( wSComp, SWT.NONE ); props.setLook( wComp );
-   * 
-   * FormLayout layout = new FormLayout(); layout.marginWidth = 15; layout.marginHeight = 15; wComp.setLayout( layout );
-   * 
-   * Button wIgnore = new Button( wComp, SWT.CHECK ); wIgnore.setText( BaseMessages.getString( PKG,
-   * "ParquetInputDialog.Fields.Ignore" ) ); props.setLook( wIgnore ); new FD( wIgnore ).left( 0, 0 ).top( 0, 0
-   * ).apply(); // wIgnore.setSelection( jobExecutorMeta.getParameters().isInheritingAllVariables() );
-   * 
-   * Button wGetFields = new Button( wComp, SWT.PUSH ); wGetFields.setText( BaseMessages.getString( PKG,
-   * "ParquetInputDialog.Fields.Get" ) ); props.setLook( wGetFields ); new FD( wGetFields ).bottom( 100, 0 ).right( 100,
-   * 0 ).apply(); ; // wGetParameters.setSelection( jobExecutorMeta.getParameters().isInheritingAllVariables() ); //
-   * wGetParameters.addSelectionListener( new SelectionAdapter() { // public void widgetSelected( SelectionEvent e ) {
-   * // getParametersFromJob( null ); // null : reload file // } // } );
-   * 
-   * ColumnInfo[] parameterColumns = new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG,
-   * "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false ), new ColumnInfo(
-   * BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_CCOMBO, new String[]
-   * {}, false ), new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
-   * ColumnInfo.COLUMN_TYPE_TEXT, false, false ), new ColumnInfo( BaseMessages.getString( PKG,
-   * "ParquetInputDialog.Fields.column.Indexed" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false ), };
-   * parameterColumns[1].setUsingVariables( true );
-   * 
-   * // JobExecutorParameters parameters = input.getParameters(); wInputFields = new TableView( transMeta, wComp,
-   * SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, parameterColumns, 3, lsMod, props ); props.setLook( wInputFields );
-   * new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wIgnore, 10 ).bottom( wGetFields, -10 ).apply();
-   * 
-   * // for ( int i = 0; i < parameters.getVariable().length; i++ ) { // TableItem tableItem =
-   * wJobExecutorParameters.table.getItem( i ); // tableItem.setText( 1, Const.NVL( parameters.getVariable()[ i ], "" )
-   * ); // tableItem.setText( 2, Const.NVL( parameters.getField()[ i ], "" ) ); // tableItem.setText( 3, Const.NVL(
-   * parameters.getInput()[ i ], "" ) ); // } wInputFields.setRowNums(); wInputFields.optWidth( true );
-   * 
-   * new FD( wComp ).left( 0, 0 ).top( 0, 0 ).right( 100, 0 ).bottom( 100, 0 ).apply(); wComp.pack();
-   * 
-   * Rectangle bounds = wComp.getBounds(); wSComp.setContent( wComp ); wSComp.setExpandHorizontal( true );
-   * wSComp.setExpandVertical( true ); wSComp.setMinWidth( bounds.width ); wSComp.setMinHeight( bounds.height );
-   * 
-   * wTab.setControl( wSComp );
-   * 
-   * }
-   */
+  List<VFSScheme> getAvailableVFSSchemes() throws KettleFileException, FileSystemException {
+    VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog();
+    List<CustomVfsUiPanel> customVfsUiPanels = fileChooserDialog.getCustomVfsUiPanels();
+    List<VFSScheme> vfsSchemes = new ArrayList<>();
+    customVfsUiPanels.forEach( vfsPanel -> {
+      VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
+      vfsSchemes.add( scheme );
+    } );
+    return vfsSchemes;
+  }
+
+  FileObject getInitialFile() throws KettleFileException {
+    FileObject initialFile = null;
+    String filePath = wPath.getText();
+    if ( filePath != null && !filePath.isEmpty() ) {
+      String fileName = transMeta.environmentSubstitute( filePath );
+      if ( fileName != null && !fileName.isEmpty() ) {
+        initialFile = KettleVFS.getFileObject( fileName );
+      }
+    }
+    if ( initialFile == null ) {
+      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+    }
+    return initialFile;
+  }
+
+  VfsFileChooserDialog getVfsFileChooserDialog() throws KettleFileException, FileSystemException {
+    return getVfsFileChooserDialog( null, null );
+  }
+
+  VfsFileChooserDialog getVfsFileChooserDialog( FileObject rootFile, FileObject initialFile )
+    throws KettleFileException, FileSystemException {
+    return getSpoon().getVfsFileChooserDialog( rootFile, initialFile );
+  }
+
+  Spoon getSpoon() {
+    return Spoon.getInstance();
+  }
 
   protected Image getImage() {
     return SwtSvgImageUtil.getImage( shell.getDisplay(), getClass().getClassLoader(), "PI.svg", ConstUI.ICON_SIZE,
@@ -279,18 +273,26 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
    */
   @Override
   protected void getData( ParquetInputMetaBase meta ) {
-    if ( meta.dir != null ) {
-      wPath.setText( meta.dir );
+    if ( meta.inputFiles.fileName.length > 0 ) {
+      wPath.setText( meta.inputFiles.fileName[0] );
     }
-
     int nrFields = meta.inputFields.length;
     for ( int i = 0; i < nrFields; i++ ) {
-      FormatInputField outputField = meta.inputFields[i];
-      TableItem item = wInputFields.table.getItem( i );
-      if ( outputField.getName() != null ) {
-        item.setText( 1, outputField.getName() );
+      TableItem item = null;
+      if ( i >= wInputFields.table.getItemCount() ) {
+        item = wInputFields.table.getItem( i );
+      } else {
+        item = new TableItem( wInputFields.table, SWT.NONE );
       }
-      item.setText( 3, outputField.getTypeDesc() );
+
+      FormatInputField inputField = meta.inputFields[i];
+      if ( inputField.getPath() != null ) {
+        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getPath() );
+      }
+      if ( inputField.getName() != null ) {
+        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
+      }
+      item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
     }
   }
 
@@ -299,17 +301,20 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
    */
   @Override
   protected void getInfo( ParquetInputMetaBase meta, boolean preview ) {
-    meta.dir = wPath.getText();
+    String filePath = wPath.getText();
+    if ( filePath != null && !filePath.isEmpty() ) {
+      meta.allocateFiles( 1 );
+      meta.inputFiles.fileName[0] = wPath.getText();
+    }
     int nrFields = wInputFields.nrNonEmpty();
-
-    FormatInputField[] inputFields = new FormatInputField[nrFields];
+    meta.inputFields = new FormatInputField[nrFields];
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
-
-      inputFields[i] = new FormatInputField();
-      inputFields[i].setName( item.getText( 1 ) );
-      inputFields[i].setType( item.getText( 3 ) );
+      FormatInputField field = new FormatInputField();
+      field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
+      field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
+      field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      meta.inputFields[i] = field;
     }
-    meta.inputFields = inputFields;
   }
 }
