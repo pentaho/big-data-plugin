@@ -231,6 +231,7 @@ public abstract class ParquetInputMetaBase extends
   }
 
   public void allocateFiles( int nrFiles ) {
+    inputFiles.environment = new String[nrFiles];
     inputFiles.fileName = new String[nrFiles];
     inputFiles.fileMask = new String[nrFiles];
     inputFiles.excludeFileMask = new String[nrFiles];
