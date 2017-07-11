@@ -20,9 +20,13 @@
   <dependencies>
     <dependency>
       <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${dependency.kettle.revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
       <version>${dependency.kettle.revision}</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
   <build>
