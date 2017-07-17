@@ -95,6 +95,7 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setGatewayUsername( nc.getGatewayUsername() );
     delegate.setGatewayPassword( nc.getGatewayPassword() );
     delegate.setUseGateway( nc.isUseGateway() );
+    delegate.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
   }
 
   public String getStorageScheme() {
@@ -376,5 +377,15 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public boolean isUseGateway() {
     return delegate.isUseGateway();
+  }
+
+  @Override
+  public String getKafkaBootstrapServers() {
+    return delegate.getKafkaBootstrapServers();
+  }
+
+  @Override
+  public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
+    delegate.setKafkaBootstrapServers( kafkaBootstrapServers );
   }
 }

@@ -171,6 +171,7 @@ public class NamedClusterComposite extends Composite {
     createJobTrackerGroup( noGatewayComposite, namedCluster );
     createZooKeeperGroup( noGatewayComposite, namedCluster );
     createOozieGroup( noGatewayComposite, namedCluster );
+    createKafkaGroup( noGatewayComposite, namedCluster );
     setHdfsAndJobTrackerState( namedCluster );
 
     //choose the properly composite based on the cluster settings
@@ -195,6 +196,7 @@ public class NamedClusterComposite extends Composite {
     Composite mainRowComposite = new Composite( parentComposite, SWT.NONE );
     GridLayout mainRowLayout = new GridLayout( ONE_COLUMN, false );
     mainRowLayout.marginWidth = 0;
+    mainRowLayout.marginTop = -10;
     mainRowComposite.setLayout( mainRowLayout );
     props.setLook( mainRowComposite );
 
@@ -202,6 +204,7 @@ public class NamedClusterComposite extends Composite {
     props.setLook( nameUICluster );
     GridLayout nameUILayout = new GridLayout( ONE_COLUMN, false );
     nameUILayout.marginWidth = 0;
+    nameUILayout.marginTop = 0;
     nameUICluster.setLayout( nameUILayout );
 
     createLabel( nameUICluster, BaseMessages.getString( PKG, "NamedClusterDialog.NamedCluster.Name" ), labelGridData );
@@ -573,6 +576,26 @@ public class NamedClusterComposite extends Composite {
       }
     };
     createTextVar( c, passwordUIComposite, c.getGatewayPassword(), passwordGridData, PASSWORD_FLAGS, gatewayPasswordCB );
+  }
+
+  private void createKafkaGroup( Composite parentComposite, final NamedCluster namedCluster ) {
+    Composite pp = createGroup( parentComposite, BaseMessages.getString( PKG, "NamedClusterDialog.Kafka.GroupTitle" ) );
+    Composite container = new Composite( pp, SWT.NONE );
+    props.setLook( container );
+    GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.marginBottom = 5;
+    gridLayout.marginTop = 5;
+    container.setLayout( gridLayout );
+
+    // kafka label
+    createLabel( container, BaseMessages.getString( PKG, "NamedClusterDialog.Kafka.BootstrapServers.Label" ), labelGridData );
+    // kafka bootstrap servers
+    Callback bootstrapServersCB = new Callback() {
+      public void invoke( NamedCluster nc, TextVar textVar, String value ) {
+        nc.setKafkaBootstrapServers( value );
+      }
+    };
+    createTextVar( namedCluster, container, namedCluster.getKafkaBootstrapServers(), gridData, TEXT_FLAGS, bootstrapServersCB );
   }
 
   private void setHdfsAndJobTrackerState( NamedCluster cluster ) {

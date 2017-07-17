@@ -120,6 +120,9 @@ public class NamedClusterImpl implements NamedCluster {
   private boolean useGateway;
 
   @MetaStoreAttribute
+  private String kafkaBootstrapServers;
+
+  @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
 
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
@@ -244,6 +247,7 @@ public class NamedClusterImpl implements NamedCluster {
     this.setGatewayUsername( nc.getGatewayUsername() );
     this.setGatewayPassword( nc.getGatewayPassword() );
     this.setUseGateway( nc.isUseGateway() );
+    this.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
     this.lastModifiedDate = System.currentTimeMillis();
   }
 
@@ -659,4 +663,11 @@ public class NamedClusterImpl implements NamedCluster {
     this.useGateway = useGateway;
   }
 
+  @Override public String getKafkaBootstrapServers() {
+    return kafkaBootstrapServers;
+  }
+
+  @Override public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
+    this.kafkaBootstrapServers = kafkaBootstrapServers;
+  }
 }
