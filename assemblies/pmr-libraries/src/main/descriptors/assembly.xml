@@ -222,7 +222,7 @@
         <include>pentaho:pentaho-service-coordinator</include>
         <include>rhino:js</include>
         <include>rome:rome</include>
-        <include>secondstring:secondstring</include>
+        <include>com.wcohen:com.wcohen.secondstring</include>
         <include>stax:stax</include>
         <include>stax:stax-api</include>
         <include>sun:jlfgr</include>
