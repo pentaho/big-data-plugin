@@ -65,6 +65,7 @@ public class NamedClusterImplTest {
   private String namedClusterZookeeperPort;
   private String namedClusterOozieUrl;
   private String namedClusterStorageScheme;
+  private String namedClusterKafkaBootstrapServers;
   private boolean isMapr;
   private IMetaStore metaStore;
 
@@ -86,6 +87,7 @@ public class NamedClusterImplTest {
     namedClusterZookeeperPort = "namedClusterZookeeperPort";
     namedClusterOozieUrl = "namedClusterOozieUrl";
     namedClusterStorageScheme = "hdfs";
+    namedClusterKafkaBootstrapServers = "kafkaBootstrapServers";
     isMapr = true;
 
     namedCluster.setName( namedClusterName );
@@ -100,6 +102,7 @@ public class NamedClusterImplTest {
     namedCluster.setOozieUrl( namedClusterOozieUrl );
     namedCluster.setMapr( isMapr );
     namedCluster.setStorageScheme( namedClusterStorageScheme );
+    namedCluster.setKafkaBootstrapServers( namedClusterKafkaBootstrapServers );
   }
 
   @Test
@@ -124,6 +127,7 @@ public class NamedClusterImplTest {
     assertEquals( namedClusterZookeeperHost, newNamedCluster.getZooKeeperHost() );
     assertEquals( namedClusterZookeeperPort, newNamedCluster.getZooKeeperPort() );
     assertEquals( namedClusterOozieUrl, newNamedCluster.getOozieUrl() );
+    assertEquals( namedClusterKafkaBootstrapServers, newNamedCluster.getKafkaBootstrapServers() );
     assertTrue( before <= newNamedCluster.getLastModifiedDate() );
     assertTrue( newNamedCluster.getLastModifiedDate() <= System.currentTimeMillis() );
   }
@@ -516,6 +520,7 @@ public class NamedClusterImplTest {
     assertEquals( namedCluster.getZooKeeperHost(), nc.getZooKeeperHost() );
     assertEquals( namedCluster.getZooKeeperPort(), nc.getZooKeeperPort() );
     assertEquals( namedCluster.getOozieUrl(), nc.getOozieUrl() );
+    assertEquals( namedCluster.getKafkaBootstrapServers(), nc.getKafkaBootstrapServers() );
     assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
   }
 }

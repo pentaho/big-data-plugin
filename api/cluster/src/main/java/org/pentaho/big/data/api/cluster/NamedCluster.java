@@ -109,6 +109,14 @@ public interface NamedCluster extends Cloneable, VariableSpace {
 
   void setGatewayPassword( String gatewayPassword );
 
+  String getKafkaBootstrapServers();
+
+  void setKafkaBootstrapServers( String kafkaBootstrapServers );
+
+  void setUseGateway( boolean selection );
+
+  boolean isUseGateway();
+
   NamedCluster clone();
 
   String toXmlForEmbed( String rootTag );
@@ -132,9 +140,4 @@ public interface NamedCluster extends Cloneable, VariableSpace {
       return c1.getName().compareToIgnoreCase( c2.getName() );
     }
   };
-
-  void setUseGateway( boolean selection );
-
-  boolean isUseGateway();
-
 }
