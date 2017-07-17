@@ -88,10 +88,13 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private String gatewayPassword;
 
   @MetaStoreAttribute
-  private long lastModifiedDate = System.currentTimeMillis();
-  
-  @MetaStoreAttribute
   private boolean useGateway;
+
+  @MetaStoreAttribute
+  private String kafkaBootstrapServers;
+
+  @MetaStoreAttribute
+  private long lastModifiedDate = System.currentTimeMillis();
 
   // Comparator for sorting clusters alphabetically by name
   public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
@@ -194,6 +197,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.setGatewayUsername( nc.getGatewayUsername() );
     this.setGatewayPassword( nc.getGatewayPassword() );
     this.setUseGateway( nc.isUseGateway() );
+    this.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
   }
 
   public NamedCluster clone() {
@@ -390,5 +394,13 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void setUseGateway( boolean useGateway ) {
     this.useGateway = useGateway;
+  }
+
+  public String getKafkaBootstrapServers() {
+    return kafkaBootstrapServers;
+  }
+
+  public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
+    this.kafkaBootstrapServers = kafkaBootstrapServers;
   }
 }

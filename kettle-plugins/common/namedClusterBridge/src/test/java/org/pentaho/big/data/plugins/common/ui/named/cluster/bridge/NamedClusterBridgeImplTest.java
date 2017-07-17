@@ -66,6 +66,7 @@ public class NamedClusterBridgeImplTest {
   private String zookeeperHost;
   private String zookeeperPort;
   private String oozieUrl;
+  private String kafkaBootstrapServers;
   private boolean isMapr;
   private long lastModifiedDate;
   private VariableSpace variableSpace;
@@ -84,6 +85,7 @@ public class NamedClusterBridgeImplTest {
     zookeeperHost = "zookeeperHost";
     zookeeperPort = "zookeeperPort";
     oozieUrl = "oozieUrl";
+    kafkaBootstrapServers = "kafkaBootstrapServers";
     isMapr = true;
     lastModifiedDate = 11L;
     xmlString = "xmlString";
@@ -133,6 +135,7 @@ public class NamedClusterBridgeImplTest {
     when( namedCluster.getZooKeeperHost() ).thenReturn( zookeeperHost );
     when( namedCluster.getZooKeeperPort() ).thenReturn( zookeeperPort );
     when( namedCluster.getOozieUrl() ).thenReturn( oozieUrl );
+    when( namedCluster.getKafkaBootstrapServers() ).thenReturn( kafkaBootstrapServers );
     when( namedCluster.isMapr() ).thenReturn( isMapr );
 
     long before = System.currentTimeMillis();
@@ -149,6 +152,7 @@ public class NamedClusterBridgeImplTest {
     verify( legacyNamedCluster ).setZooKeeperHost( zookeeperHost );
     verify( legacyNamedCluster ).setZooKeeperPort( zookeeperPort );
     verify( legacyNamedCluster ).setOozieUrl( oozieUrl );
+    verify( legacyNamedCluster ).setKafkaBootstrapServers( kafkaBootstrapServers );
     // verify( legacyNamedCluster ).setMapr( isMapr );  *** Mapr is set by the setStorageScheme variable.
     // It is being deprecated.
     ArgumentCaptor<Long> argumentCaptor = ArgumentCaptor.forClass( long.class );
@@ -264,6 +268,18 @@ public class NamedClusterBridgeImplTest {
   public void testSetOozieUrl() {
     namedClusterBridge.setOozieUrl( oozieUrl );
     verify( legacyNamedCluster ).setOozieUrl( oozieUrl );
+  }
+
+  @Test
+  public void testSetKafkaBootstrapServers() {
+    namedClusterBridge.setKafkaBootstrapServers( kafkaBootstrapServers );
+    verify( legacyNamedCluster ).setKafkaBootstrapServers( kafkaBootstrapServers );
+  }
+
+  @Test
+  public void testGetKafkaBootstrapServers() {
+    when( legacyNamedCluster.getKafkaBootstrapServers() ).thenReturn( kafkaBootstrapServers );
+    assertEquals( kafkaBootstrapServers, namedClusterBridge.getKafkaBootstrapServers() );
   }
 
   @Test
