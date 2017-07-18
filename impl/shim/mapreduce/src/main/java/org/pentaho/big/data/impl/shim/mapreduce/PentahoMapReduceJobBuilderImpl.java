@@ -327,7 +327,38 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
   public static String getProperty( Configuration conf, Properties properties, String propertyName,
                                     String defaultValue ) {
     String fromConf = conf.get( propertyName );
-    return !Utils.isEmpty( fromConf ) ? fromConf : properties.getProperty( propertyName, defaultValue );
+    if ( Utils.isEmpty( fromConf ) ) {
+      Object objectValue = properties.getOrDefault( propertyName, null );
+      if ( objectValue != null ) {
+        if ( objectValue instanceof String ) {
+          return objectValue.toString();
+        } else if ( objectValue instanceof List ) {
+          // it should contain strings only
+          ArrayList<String> values = new ArrayList<String>( (List) objectValue );
+          StringBuilder stringBuilder = new StringBuilder( "" );
+          for ( int i = 0; i < values.size(); i++ ) {
+            String value = values.get( i );
+            if ( value != null && !value.isEmpty() ) {
+              if ( i != 0 ) {
+                stringBuilder.append( "," );
+              }
+              stringBuilder.append( value );
+            }
+          }
+          if ( stringBuilder.toString().equals( "" ) ) {
+            return defaultValue;
+          } else {
+            return stringBuilder.toString();
+          }
+        } else {
+          // shouldn't happen
+          return defaultValue;
+        }
+      } else {
+        return defaultValue;
+      }
+    }
+    return fromConf;
   }
 
   @Override

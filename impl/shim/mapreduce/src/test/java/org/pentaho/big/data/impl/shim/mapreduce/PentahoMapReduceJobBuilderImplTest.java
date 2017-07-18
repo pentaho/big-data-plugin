@@ -37,7 +37,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.bigdata.api.mapreduce.MapReduceTransformations;
 import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceOutputStepMetaInterface;
 import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.di.core.CheckResult;
@@ -56,7 +55,6 @@ import org.pentaho.di.core.logging.PerformanceLogTable;
 import org.pentaho.di.core.logging.StepLogTable;
 import org.pentaho.di.core.logging.TransLogTable;
 import org.pentaho.di.core.plugins.PluginInterface;
-import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -79,7 +77,6 @@ import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -562,10 +559,15 @@ public class PentahoMapReduceJobBuilderImplTest {
   public void testGetPropertyFromProperties() {
     Configuration configuration = mock( Configuration.class );
     Properties properties = mock( Properties.class );
-    String property = "property";
-    String value = "value";
-    when( properties.getProperty( property, value ) ).thenReturn( value );
-    assertEquals( value, pentahoMapReduceJobBuilder.getProperty( configuration, properties, property, value ) );
+
+    ArrayList<String> values = new ArrayList<>();
+    values.add( "value1" );
+    values.add( "value2" );
+    when( properties.getOrDefault( "property1", null ) ).thenReturn( values );
+    assertEquals( "value1,value2", pentahoMapReduceJobBuilder.getProperty( configuration, properties, "property1", null ) );
+
+    when( properties.getOrDefault( "property2", null ) ).thenReturn( "value" );
+    assertEquals( "value", pentahoMapReduceJobBuilder.getProperty( configuration, properties, "property2", null ) );
   }
 
   @Test
@@ -723,8 +725,8 @@ public class PentahoMapReduceJobBuilderImplTest {
         TransConfiguration transConfig = mock( TransConfiguration.class );
         when( transConfig.getXML() ).thenThrow( new IOException( "Some error" ) );
         transformations.setMapper( Optional.of( transConfig ) );
-      }catch(Exception e){
-        throw new RuntimeException(e);
+      } catch ( Exception e ) {
+        throw new RuntimeException( e );
       }
     } );
 
@@ -740,6 +742,8 @@ public class PentahoMapReduceJobBuilderImplTest {
     JobConf jobConf = mock( JobConf.class );
     when( jobConf.getCredentials() ).thenReturn( new Credentials() );
     when( conf.getAsDelegateConf( any() ) ).thenReturn( jobConf );
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
+        .thenReturn( Boolean.toString( false ) );
     pentahoMapReduceJobBuilder.submit( conf );
     verify( hadoopShim ).submitJob( conf );
   }
