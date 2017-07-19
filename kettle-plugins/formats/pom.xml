@@ -23,6 +23,19 @@
       <artifactId>pentaho-big-data-kettle-plugins-formats-meta</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${dependency.kettle.revision}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+      <version>${dependency.kettle.revision}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>

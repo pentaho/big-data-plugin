@@ -32,7 +32,7 @@ import org.pentaho.di.trans.step.StepMeta;
 @Step( id = "ParquetInput", image = "PI.svg", name = "ParquetInput.Name", description = "ParquetInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
-    i18nPackageName = "org.pentaho.di.trans.steps.parquet", isSeparateClassLoaderNeeded = true )
+    i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
 public class ParquetInputMeta extends ParquetInputMetaBase {
 
   @Override
