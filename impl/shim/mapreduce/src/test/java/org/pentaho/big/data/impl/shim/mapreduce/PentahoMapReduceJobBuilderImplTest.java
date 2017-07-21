@@ -811,7 +811,8 @@ public class PentahoMapReduceJobBuilderImplTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( true );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
 
     pentahoMapReduceJobBuilder.submit( conf );
     verify( logChannelInterface ).logBasic( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
@@ -845,7 +846,8 @@ public class PentahoMapReduceJobBuilderImplTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
     String archiveName = "archiveName";
     when( pmrArchiveGetter.getVfsFilename( conf ) ).thenReturn( archiveName );
 
@@ -887,7 +889,8 @@ public class PentahoMapReduceJobBuilderImplTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
     when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
 
     try {
@@ -932,7 +935,8 @@ public class PentahoMapReduceJobBuilderImplTest {
       .thenReturn( true );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
+      mapreduceClasspath );
     when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
 
     pentahoMapReduceJobBuilder.submit( conf );
