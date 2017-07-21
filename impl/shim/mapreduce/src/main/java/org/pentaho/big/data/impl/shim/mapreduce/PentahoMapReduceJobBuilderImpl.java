@@ -165,36 +165,6 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
   private String reducerInputStep;
   private String reducerOutputStep;
 
-  /**
-   * Remove after nightly builds have completed.  Other dependencies depend on this.
-   */
-  @Deprecated
-  public PentahoMapReduceJobBuilderImpl( NamedCluster namedCluster,
-                                         HadoopConfiguration hadoopConfiguration,
-                                         LogChannelInterface log,
-                                         VariableSpace variableSpace, PluginInterface pluginInterface,
-                                         Properties pmrProperties )
-    throws KettleFileException {
-    this( namedCluster, hadoopConfiguration, log, variableSpace, pluginInterface,
-      KettleVFS.getFileObject( pluginInterface.getPluginDirectory().getPath() ), pmrProperties,
-      new TransFactory(), new PMRArchiveGetter( pluginInterface, pmrProperties ) );
-  }
-
-  /**
-   * Remove after nightly builds have completed.  Other dependencies depend on this.
-   */
-  @Deprecated
-  @VisibleForTesting PentahoMapReduceJobBuilderImpl( NamedCluster namedCluster,
-                                                     HadoopConfiguration hadoopConfiguration,
-                                                     LogChannelInterface log,
-                                                     VariableSpace variableSpace, PluginInterface pluginInterface,
-                                                     FileObject vfsPluginDirectory,
-                                                     Properties pmrProperties, TransFactory transFactory,
-                                                     PMRArchiveGetter pmrArchiveGetter ) {
-    this( namedCluster, hadoopConfiguration, log, variableSpace, pluginInterface, vfsPluginDirectory, pmrProperties,
-      transFactory, pmrArchiveGetter, new ArrayList<>() );
-  }
-
   public PentahoMapReduceJobBuilderImpl( NamedCluster namedCluster,
                                          HadoopConfiguration hadoopConfiguration,
                                          LogChannelInterface log,
@@ -224,7 +194,6 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     this.installId = buildInstallIdBase( hadoopConfiguration );
     this.pmrArchiveGetter = pmrArchiveGetter;
     this.visitorServices = addDefaultVisitors( visitorServices );
-
   }
 
   @VisibleForTesting List<TransformationVisitorService> addDefaultVisitors(
@@ -242,7 +211,6 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
           deleteLogging( transformations.getCombiner() );
           deleteLogging( transformations.getMapper() );
           deleteLogging( transformations.getReducer() );
-
         }
       } );
       return editableList;

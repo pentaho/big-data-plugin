@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,8 +24,16 @@ package org.pentaho.big.data.impl.shim.mapreduce;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.bigdata.api.mapreduce.*;
+import org.pentaho.bigdata.api.mapreduce.MapReduceExecutionException;
+import org.pentaho.bigdata.api.mapreduce.MapReduceJarInfo;
+import org.pentaho.bigdata.api.mapreduce.MapReduceJobBuilder;
+import org.pentaho.bigdata.api.mapreduce.MapReduceJobSimple;
+import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceJobBuilder;
+import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -57,28 +65,23 @@ import static org.mockito.Mockito.when;
 /**
  * Created by bryan on 12/8/15.
  */
+@RunWith( MockitoJUnitRunner.class )
 public class MapReduceServiceImplTest {
-  private NamedCluster namedCluster;
-  private HadoopShim hadoopShim;
-  private ExecutorService executorService;
-  private JarUtility jarUtility;
+  @Mock NamedCluster namedCluster;
+  @Mock HadoopConfiguration hadoopConfiguration;
+  @Mock HadoopShim hadoopShim;
+  @Mock ExecutorService executorService;
+  @Mock JarUtility jarUtility;
   private MapReduceServiceImpl mapReduceService;
   private URL resolvedJarUrl;
-  private HadoopConfiguration hadoopConfiguration;
-  private PluginPropertiesUtil pluginPropertiesUtil;
-  private PluginRegistry pluginRegistry;
+
+  @Mock PluginPropertiesUtil pluginPropertiesUtil;
+  @Mock PluginRegistry pluginRegistry;
 
   @Before
-  public void setup() throws MalformedURLException {
-    namedCluster = mock( NamedCluster.class );
-    hadoopConfiguration = mock( HadoopConfiguration.class );
-    hadoopShim = mock( HadoopShim.class );
+  public void setUp() throws MalformedURLException {
     when( hadoopConfiguration.getHadoopShim() ).thenReturn( hadoopShim );
-    executorService = mock( ExecutorService.class );
-    jarUtility = mock( JarUtility.class );
     resolvedJarUrl = new URL( "http://jar.net/jar" );
-    pluginPropertiesUtil = mock( PluginPropertiesUtil.class );
-    pluginRegistry = mock( PluginRegistry.class );
     List<TransformationVisitorService> visitorServices = new ArrayList<>();
     mapReduceService =
       new MapReduceServiceImpl( namedCluster, hadoopConfiguration, executorService, jarUtility, pluginPropertiesUtil,
@@ -94,9 +97,7 @@ public class MapReduceServiceImplTest {
     try {
       mapReduceService.locateDriverClass( null, resolvedJarUrl, hadoopShim );
     } catch ( MapReduceExecutionException e ) {
-      assertEquals(
-        BaseMessages.getString( MapReduceServiceImpl.PKG, MapReduceServiceImpl.ERROR_DRIVER_CLASS_NOT_SPECIFIED ),
-        e.getMessage() );
+      assertEquals( BaseMessages.getString( MapReduceServiceImpl.PKG, "MapReduceServiceImpl.DriverClassNotSpecified" ), e.getMessage() );
       throw e;
     }
   }
@@ -109,9 +110,7 @@ public class MapReduceServiceImplTest {
     try {
       mapReduceService.locateDriverClass( null, resolvedJarUrl, hadoopShim );
     } catch ( MapReduceExecutionException e ) {
-      assertEquals(
-        BaseMessages.getString( MapReduceServiceImpl.PKG, MapReduceServiceImpl.ERROR_MULTIPLE_DRIVER_CLASSES ),
-        e.getMessage() );
+      assertEquals( BaseMessages.getString( MapReduceServiceImpl.PKG, "MapReduceServiceImpl.MultipleDriverClasses" ),  e.getMessage() );
       throw e;
     }
   }
@@ -128,16 +127,14 @@ public class MapReduceServiceImplTest {
   @Test
   public void testLocateDriverClassEmptyManifestSuccess()
     throws IOException, MapReduceExecutionException, ClassNotFoundException {
-    when( jarUtility.getMainClassFromManifest( resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) )
-      .thenReturn( (Class) String.class );
+    when( jarUtility.getMainClassFromManifest( resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) ).thenReturn( (Class) String.class );
     assertEquals( String.class, mapReduceService.locateDriverClass( null, resolvedJarUrl, hadoopShim ) );
   }
 
   @Test
   public void testLocateDriverClass() throws MapReduceExecutionException, IOException, ClassNotFoundException {
     String name = "name";
-    when( jarUtility.getClassByName( name, resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) )
-      .thenReturn( (Class) String.class );
+    when( jarUtility.getClassByName( name, resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) ).thenReturn( (Class) String.class );
     assertEquals( String.class, mapReduceService.locateDriverClass( name, resolvedJarUrl, hadoopShim ) );
   }
 
@@ -159,8 +156,7 @@ public class MapReduceServiceImplTest {
   @Test
   public void testExecuteSimple() throws MapReduceExecutionException, IOException, ClassNotFoundException {
     String name = "name";
-    when( jarUtility.getClassByName( name, resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) )
-      .thenReturn( (Class) String.class );
+    when( jarUtility.getClassByName( name, resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) ).thenReturn( (Class) String.class );
     MapReduceJobSimple mapReduceJobSimple = mapReduceService.executeSimple( resolvedJarUrl, name, "cli" );
     assertNotNull( mapReduceJobSimple );
     assertEquals( String.class.getCanonicalName(), mapReduceJobSimple.getMainClass() );
@@ -206,9 +202,7 @@ public class MapReduceServiceImplTest {
 
   @Test
   public void testGetJarInfoMain() throws IOException, ClassNotFoundException {
-    when(
-      jarUtility.getMainClassFromManifest( resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) )
-      .thenReturn( (Class) String.class );
+    when( jarUtility.getMainClassFromManifest( resolvedJarUrl, hadoopShim.getClass().getClassLoader() ) ).thenReturn( (Class) String.class );
     MapReduceJarInfo jarInfo = mapReduceService.getJarInfo( resolvedJarUrl );
     assertEquals( new ArrayList<>(), jarInfo.getClassesWithMain() );
     assertEquals( String.class.getCanonicalName(), jarInfo.getMainClass() );

@@ -37,7 +37,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.bigdata.api.mapreduce.MapReduceTransformations;
 import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceOutputStepMetaInterface;
 import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.di.core.CheckResult;
@@ -56,7 +55,6 @@ import org.pentaho.di.core.logging.PerformanceLogTable;
 import org.pentaho.di.core.logging.StepLogTable;
 import org.pentaho.di.core.logging.TransLogTable;
 import org.pentaho.di.core.plugins.PluginInterface;
-import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -79,7 +77,6 @@ import org.pentaho.hadoop.shim.api.fs.Path;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -723,8 +720,8 @@ public class PentahoMapReduceJobBuilderImplTest {
         TransConfiguration transConfig = mock( TransConfiguration.class );
         when( transConfig.getXML() ).thenThrow( new IOException( "Some error" ) );
         transformations.setMapper( Optional.of( transConfig ) );
-      }catch(Exception e){
-        throw new RuntimeException(e);
+      } catch ( Exception e ) {
+        throw new RuntimeException( e );
       }
     } );
 
@@ -807,8 +804,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( true );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
 
     pentahoMapReduceJobBuilder.submit( conf );
     verify( logChannelInterface ).logBasic( BaseMessages.getString( PentahoMapReduceJobBuilderImpl.PKG,
@@ -842,8 +838,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
     String archiveName = "archiveName";
     when( pmrArchiveGetter.getVfsFilename( conf ) ).thenReturn( archiveName );
 
@@ -885,8 +880,7 @@ public class PentahoMapReduceJobBuilderImplTest {
     when( distributedCacheUtil.isKettleEnvironmentInstalledAt( fileSystem, kettleEnvInstallDir ) ).thenReturn( false );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
     when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
 
     try {
@@ -931,8 +925,7 @@ public class PentahoMapReduceJobBuilderImplTest {
       .thenReturn( true );
     String mapreduceClasspath = "mapreduceClasspath";
     when( conf.get( PentahoMapReduceJobBuilderImpl.MAPREDUCE_APPLICATION_CLASSPATH,
-      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn(
-      mapreduceClasspath );
+      PentahoMapReduceJobBuilderImpl.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH ) ).thenReturn( mapreduceClasspath );
     when( pmrArchiveGetter.getPmrArchive( conf ) ).thenReturn( mock( FileObject.class ) );
 
     pentahoMapReduceJobBuilder.submit( conf );
