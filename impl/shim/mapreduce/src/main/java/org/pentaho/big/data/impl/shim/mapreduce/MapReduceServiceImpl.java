@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,13 +31,13 @@ import org.pentaho.bigdata.api.mapreduce.MapReduceJobSimple;
 import org.pentaho.bigdata.api.mapreduce.MapReduceService;
 import org.pentaho.bigdata.api.mapreduce.PentahoMapReduceJobBuilder;
 import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JarUtility;
@@ -58,6 +58,8 @@ import java.util.concurrent.ExecutorService;
  */
 public class MapReduceServiceImpl implements MapReduceService {
   public static final Class<?> PKG = MapReduceServiceImpl.class;
+  public static final String ERROR_DRIVER_CLASS_NOT_SPECIFIED = "ErrorDriverClassNotSpecified";
+  public static final String ERROR_MULTIPLE_DRIVER_CLASSES = "ErrorMultipleDriverClasses";
   private final NamedCluster namedCluster;
   private final HadoopShim hadoopShim;
   private final HadoopConfiguration hadoopConfiguration;
@@ -66,6 +68,33 @@ public class MapReduceServiceImpl implements MapReduceService {
   private final JarUtility jarUtility;
   private final PluginPropertiesUtil pluginPropertiesUtil;
   private final PluginRegistry pluginRegistry;
+
+  /**
+   * Remove after nightly builds have completed.  Other dependencies depend on this.
+   */
+  @Deprecated
+  public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration,
+                               ExecutorService executorService ) {
+    this( namedCluster, hadoopConfiguration, executorService, new JarUtility(), new PluginPropertiesUtil(),
+      PluginRegistry.getInstance() );
+  }
+
+  /**
+   * Remove after nightly builds have completed.  Other dependencies depend on this.
+   */
+  @Deprecated
+  public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration,
+                               ExecutorService executorService, JarUtility jarUtility,
+                               PluginPropertiesUtil pluginPropertiesUtil, PluginRegistry pluginRegistry ) {
+    this.namedCluster = namedCluster;
+    this.hadoopConfiguration = hadoopConfiguration;
+    this.hadoopShim = hadoopConfiguration.getHadoopShim();
+    this.executorService = executorService;
+    this.jarUtility = jarUtility;
+    this.pluginPropertiesUtil = pluginPropertiesUtil;
+    this.pluginRegistry = pluginRegistry;
+    this.visitorServices = new ArrayList<>();
+  }
 
   public MapReduceServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration,
                                ExecutorService executorService, List<TransformationVisitorService> visitorServices ) {
@@ -118,13 +147,15 @@ public class MapReduceServiceImpl implements MapReduceService {
   @Override
   public MapReduceJarInfo getJarInfo( URL resolvedJarUrl ) throws IOException, ClassNotFoundException {
     ClassLoader classLoader = getClass().getClassLoader();
-    List<Class<?>> classesInJarWithMain = jarUtility.getClassesInJarWithMain( resolvedJarUrl.toExternalForm(), classLoader );
+    List<Class<?>> classesInJarWithMain =
+      jarUtility.getClassesInJarWithMain( resolvedJarUrl.toExternalForm(), classLoader );
     List<String> classNamesInJarWithMain = new ArrayList<>( classesInJarWithMain.size() );
     for ( Class<?> aClass : classesInJarWithMain ) {
       classNamesInJarWithMain.add( aClass.getCanonicalName() );
     }
+    classNamesInJarWithMain = Collections.unmodifiableList( classNamesInJarWithMain );
 
-    final List<String> finalClassNamesInJarWithMain = Collections.unmodifiableList( classNamesInJarWithMain );
+    final List<String> finalClassNamesInJarWithMain = classNamesInJarWithMain;
 
     Class<?> mainClassFromManifest = null;
     try {
@@ -152,7 +183,7 @@ public class MapReduceServiceImpl implements MapReduceService {
   Class<?> locateDriverClass( String driverClass, final URL resolvedJarUrl, final HadoopShim shim )
     throws MapReduceExecutionException {
     try {
-      if ( Utils.isEmpty( driverClass ) ) {
+      if ( Const.isEmpty( driverClass ) ) {
         Class<?> mainClass = jarUtility.getMainClassFromManifest( resolvedJarUrl, shim.getClass().getClassLoader() );
         if ( mainClass == null ) {
           List<Class<?>> mainClasses =
@@ -160,9 +191,9 @@ public class MapReduceServiceImpl implements MapReduceService {
           if ( mainClasses.size() == 1 ) {
             return mainClasses.get( 0 );
           } else if ( mainClasses.isEmpty() ) {
-            throw new MapReduceExecutionException( BaseMessages.getString( PKG, "MapReduceServiceImpl.DriverClassNotSpecified" ) );
+            throw new MapReduceExecutionException( BaseMessages.getString( PKG, ERROR_DRIVER_CLASS_NOT_SPECIFIED ) );
           } else {
-            throw new MapReduceExecutionException( BaseMessages.getString( PKG, "MapReduceServiceImpl.MultipleDriverClasses" ) );
+            throw new MapReduceExecutionException( BaseMessages.getString( PKG, ERROR_MULTIPLE_DRIVER_CLASSES ) );
           }
         }
         return mainClass;

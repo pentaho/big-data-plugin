@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -38,15 +38,10 @@ import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Utility class for working with Jar files in the context of configuring MapReduce jobs.
  */
 public class JarUtility {
-
-  private static final Logger logger = LoggerFactory.getLogger( JarUtility.class );
 
   /**
    * Get the Main-Class declaration from a Jar's manifest.
@@ -102,13 +97,7 @@ public class JarUtility {
     throws ClassNotFoundException {
     if ( className != null ) {
       URLClassLoader cl = new URLClassLoader( new URL[] { jarUrl }, parentClassLoader );
-      Class<?> clazz = cl.loadClass( className.replaceAll( "/", "." ) );
-      try {
-        cl.close();
-      } catch ( IOException e ) {
-        logger.debug( " Classloader was not close, possible resource leak.", e );
-      }
-      return clazz;
+      return cl.loadClass( className.replaceAll( "/", "." ) );
     } else {
       return null;
     }
@@ -148,27 +137,30 @@ public class JarUtility {
 
   public static List<Class<?>> getClassesInJar( String jarUrl, ClassLoader parentClassloader )
     throws MalformedURLException {
-    ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+
     URL url = new URL( jarUrl );
     URL[] urls = new URL[] { url };
-    try ( URLClassLoader loader = new URLClassLoader( urls, parentClassloader );
-          JarInputStream jarFile = new JarInputStream( new FileInputStream( new File( url.toURI() ) ) ) ) {
+    URLClassLoader loader = new URLClassLoader( urls, parentClassloader );
+
+    ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+
+    try {
+      JarInputStream jarFile = new JarInputStream( new FileInputStream( new File( url.toURI() ) ) );
+      JarEntry jarEntry;
+
       while ( true ) {
-        JarEntry jarEntry = jarFile.getNextJarEntry();
+        jarEntry = jarFile.getNextJarEntry();
         if ( jarEntry == null ) {
           break;
         }
         if ( jarEntry.getName().endsWith( ".class" ) ) {
-          String className = jarEntry.getName().substring( 0, jarEntry.getName().indexOf( ".class" ) ).replaceAll( "/", "\\." );
+          String className =
+              jarEntry.getName().substring( 0, jarEntry.getName().indexOf( ".class" ) ).replaceAll( "/", "\\." );
           classes.add( loader.loadClass( className ) );
         }
       }
-    } catch ( IOException e ) {
-      logger.debug( " Unable to read next entry form jar " + jarUrl, e );
-    } catch ( ClassNotFoundException e ) {
-      logger.debug( " Class was not loaded ", e );
-    } catch ( URISyntaxException e ) {
-      logger.debug( " Unable to read jar  ", e );
+    } catch ( Throwable e ) {
+      e.printStackTrace();
     }
     return classes;
   }
