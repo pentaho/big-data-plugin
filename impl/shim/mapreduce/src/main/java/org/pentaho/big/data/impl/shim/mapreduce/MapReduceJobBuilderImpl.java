@@ -67,8 +67,7 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
   private String mapOutputValueClass;
   private String mapRunnerClass;
 
-  public MapReduceJobBuilderImpl( NamedCluster namedCluster, HadoopShim hadoopShim, LogChannelInterface log,
-                                  VariableSpace variableSpace ) {
+  public MapReduceJobBuilderImpl( NamedCluster namedCluster, HadoopShim hadoopShim, LogChannelInterface log, VariableSpace variableSpace ) {
     this.namedCluster = namedCluster;
     this.hadoopShim = hadoopShim;
     this.log = log;
@@ -76,7 +75,8 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     this.userDefined = new HashMap<>();
   }
 
-  @Override public void setResolvedJarUrl( URL resolvedJarUrl ) {
+  @Override
+  public void setResolvedJarUrl( URL resolvedJarUrl ) {
     this.resolvedJarUrl = resolvedJarUrl;
   }
 
@@ -85,67 +85,83 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     this.jarUrl = jarUrl;
   }
 
-  @Override public void setHadoopJobName( String hadoopJobName ) {
+  @Override
+  public void setHadoopJobName( String hadoopJobName ) {
     this.hadoopJobName = hadoopJobName;
   }
 
-  @Override public void setOutputKeyClass( String outputKeyClass ) {
+  @Override
+  public void setOutputKeyClass( String outputKeyClass ) {
     this.outputKeyClass = outputKeyClass;
   }
 
-  @Override public void setMapOutputKeyClass( String mapOutputKeyClass ) {
+  @Override
+  public void setMapOutputKeyClass( String mapOutputKeyClass ) {
     this.mapOutputKeyClass = mapOutputKeyClass;
   }
 
-  @Override public void setMapOutputValueClass( String mapOutputValueClass ) {
+  @Override
+  public void setMapOutputValueClass( String mapOutputValueClass ) {
     this.mapOutputValueClass = mapOutputValueClass;
   }
 
-  @Override public void setMapRunnerClass( String mapRunnerClass ) {
+  @Override
+  public void setMapRunnerClass( String mapRunnerClass ) {
     this.mapRunnerClass = mapRunnerClass;
   }
 
-  @Override public void setOutputValueClass( String outputValueClass ) {
+  @Override
+  public void setOutputValueClass( String outputValueClass ) {
     this.outputValueClass = outputValueClass;
   }
 
-  @Override public void setMapperClass( String mapperClass ) {
+  @Override
+  public void setMapperClass( String mapperClass ) {
     this.mapperClass = mapperClass;
   }
 
-  @Override public void setCombinerClass( String combinerClass ) {
+  @Override
+  public void setCombinerClass( String combinerClass ) {
     this.combinerClass = combinerClass;
   }
 
-  @Override public void setReducerClass( String reducerClass ) {
+  @Override
+  public void setReducerClass( String reducerClass ) {
     this.reducerClass = reducerClass;
   }
 
-  @Override public void setInputFormatClass( String inputFormatClass ) {
+  @Override
+  public void setInputFormatClass( String inputFormatClass ) {
     this.inputFormatClass = inputFormatClass;
   }
 
-  @Override public void setOutputFormatClass( String outputFormatClass ) {
+  @Override
+  public void setOutputFormatClass( String outputFormatClass ) {
     this.outputFormatClass = outputFormatClass;
   }
 
-  @Override public void setInputPaths( String[] inputPaths ) {
+  @Override
+  public void setInputPaths( String[] inputPaths ) {
     this.inputPaths = inputPaths;
   }
 
-  @Override public void setNumMapTasks( int numMapTasks ) {
+  @Override
+  public void setNumMapTasks( int numMapTasks ) {
     this.numMapTasks = numMapTasks;
   }
 
-  @Override public void setNumReduceTasks( int numReduceTasks ) {
+  @Override
+  public void setNumReduceTasks( int numReduceTasks ) {
     this.numReduceTasks = numReduceTasks;
   }
 
-  @Override public void setOutputPath( String outputPath ) {
+  @Override
+  public void setOutputPath( String outputPath ) {
     this.outputPath = outputPath;
   }
 
-  @Override public void set( String key, String value ) {
+  @Override
+  public void set( String key, String value ) {
     userDefined.put( key, value );
   }
 
@@ -189,7 +205,6 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
       conf.setReducerClass( reducer );
     }
 
-
     if ( inputFormatClass != null ) {
       Class<?> inputFormat = loader.loadClass( inputFormatClass );
       conf.setInputFormat( inputFormat );
@@ -203,12 +218,11 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     String hdfsPortS = variableSpace.environmentSubstitute( namedCluster.getHdfsPort() );
     String jobTrackerHostnameS = variableSpace.environmentSubstitute( namedCluster.getJobTrackerHost() );
     String jobTrackerPortS = variableSpace.environmentSubstitute( namedCluster.getJobTrackerPort() );
-    //String defaultFsName = variableSpace.environmentSubstitute( namedCluster.getDefaultFS() );
-//    conf.set( "pentaho.runtime.fs.default.name", conf.get( "fs.defaultFS" ) );
+    // String defaultFsName = variableSpace.environmentSubstitute( namedCluster.getDefaultFS() );
+    // conf.set( "pentaho.runtime.fs.default.name", conf.get( "fs.defaultFS" ) );
 
     List<String> configMessages = new ArrayList<String>();
-    hadoopShim.configureConnectionInformation( hdfsHostnameS, hdfsPortS, jobTrackerHostnameS, jobTrackerPortS, conf,
-      configMessages );
+    hadoopShim.configureConnectionInformation( hdfsHostnameS, hdfsPortS, jobTrackerHostnameS, jobTrackerPortS, conf, configMessages );
     for ( String m : configMessages ) {
       log.logBasic( m );
     }
@@ -217,7 +231,7 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     for ( String path : inputPaths ) {
       paths.add( getPath( conf, fs, path ) );
     }
-    Path[] finalPaths = paths.toArray( new Path[ paths.size() ] );
+    Path[] finalPaths = paths.toArray( new Path[paths.size()] );
 
     conf.setInputPaths( finalPaths );
     conf.setOutputPath( getOutputPath( conf, fs ) );
@@ -237,6 +251,7 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
 
     conf.setNumMapTasks( numMapTasks );
     conf.setNumReduceTasks( numReduceTasks );
+    loader.close();
   }
 
   public VariableSpace getVariableSpace() {
@@ -255,7 +270,8 @@ public class MapReduceJobBuilderImpl implements MapReduceJobBuilder {
     return new RunningJobMapReduceJobAdvancedImpl( hadoopShim.submitJob( conf ) );
   }
 
-  @Override public final MapReduceJobAdvanced submit() throws Exception {
+  @Override
+  public final MapReduceJobAdvanced submit() throws Exception {
     Configuration conf = hadoopShim.createConfiguration();
     configure( conf );
     return submit( conf );

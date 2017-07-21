@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,7 +33,6 @@ import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -46,33 +45,6 @@ public class MapReduceServiceFactoryLoader implements HadoopConfigurationListene
   private final ShimBridgingServiceTracker shimBridgingServiceTracker;
   private final ExecutorService executorService;
   private final List<TransformationVisitorService> visitorServices;
-
-  /**
-   * Remove after nightly builds have completed.  Other dependencies depend on this.
-   */
-  @Deprecated
-  public MapReduceServiceFactoryLoader( BundleContext bundleContext,
-                                        ShimBridgingServiceTracker shimBridgingServiceTracker,
-                                        ExecutorService executorService )
-    throws ConfigurationException {
-    this( bundleContext, shimBridgingServiceTracker, HadoopConfigurationBootstrap.getInstance(), executorService );
-  }
-
-  /**
-   * Remove after nightly builds have completed.  Other dependencies depend on this.
-   */
-  @Deprecated
-  public MapReduceServiceFactoryLoader( BundleContext bundleContext,
-                                        ShimBridgingServiceTracker shimBridgingServiceTracker,
-                                        HadoopConfigurationBootstrap hadoopConfigurationBootstrap,
-                                        ExecutorService executorService )
-    throws ConfigurationException {
-    this.bundleContext = bundleContext;
-    this.shimBridgingServiceTracker = shimBridgingServiceTracker;
-    this.executorService = executorService;
-    this.visitorServices = new ArrayList<>();
-    hadoopConfigurationBootstrap.registerHadoopConfigurationListener( this );
-  }
 
   public MapReduceServiceFactoryLoader( BundleContext bundleContext,
                                         ShimBridgingServiceTracker shimBridgingServiceTracker,
