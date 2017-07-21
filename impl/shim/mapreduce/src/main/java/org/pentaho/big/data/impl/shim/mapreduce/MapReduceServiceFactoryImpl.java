@@ -56,7 +56,7 @@ public class MapReduceServiceFactoryImpl implements NamedClusterServiceFactory<M
 
   @Override
   public boolean canHandle( NamedCluster namedCluster ) {
-    return isActiveConfiguration;
+    return isActiveConfiguration && !namedCluster.isUseGateway();
   }
 
   @Override
