@@ -214,7 +214,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-emr56-package</artifactId>
-      <version>${hadoop-shims-emr56.revision}</version>
+      <version>${hadoop-shims-emr56.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
