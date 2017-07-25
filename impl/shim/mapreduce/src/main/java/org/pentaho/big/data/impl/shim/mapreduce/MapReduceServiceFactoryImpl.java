@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,7 +28,6 @@ import org.pentaho.bigdata.api.mapreduce.MapReduceService;
 import org.pentaho.bigdata.api.mapreduce.TransformationVisitorService;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -40,22 +39,6 @@ public class MapReduceServiceFactoryImpl implements NamedClusterServiceFactory<M
   private final HadoopConfiguration hadoopConfiguration;
   private final ExecutorService executorService;
   private final List<TransformationVisitorService> visitorServices;
-
-  /**
-   * Remove after nightly builds have completed.  Other dependencies depend on this.
-   *
-   * @param isActiveConfiguration
-   * @param hadoopConfiguration
-   * @param executorService
-   */
-  @Deprecated
-  public MapReduceServiceFactoryImpl( boolean isActiveConfiguration,
-                                      HadoopConfiguration hadoopConfiguration, ExecutorService executorService ) {
-    this.isActiveConfiguration = isActiveConfiguration;
-    this.hadoopConfiguration = hadoopConfiguration;
-    this.executorService = executorService;
-    this.visitorServices = new ArrayList<>();
-  }
 
   public MapReduceServiceFactoryImpl( boolean isActiveConfiguration,
                                       HadoopConfiguration hadoopConfiguration, ExecutorService executorService,
@@ -73,8 +56,8 @@ public class MapReduceServiceFactoryImpl implements NamedClusterServiceFactory<M
 
   @Override
   public boolean canHandle( NamedCluster namedCluster ) {
-    // String shimIdentifier = null; TODO: Specify shim
-    return isActiveConfiguration;
+    boolean ncState = namedCluster == null ? true : !namedCluster.isUseGateway();
+    return isActiveConfiguration && ncState;
   }
 
   @Override
