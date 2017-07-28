@@ -15,7 +15,6 @@
     <package.features>true</package.features>
     <dependency.karaf.revision>2.3.5</dependency.karaf.revision>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <pentaho-karaf-ee-assembly.version>${project.version}</pentaho-karaf-ee-assembly.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <dependencies>
