@@ -861,11 +861,6 @@
       <version>1.0</version>
     </dependency>
     <dependency>
-      <groupId>secondstring</groupId>
-      <artifactId>secondstring</artifactId>
-      <version>20060615</version>
-    </dependency>
-    <dependency>
       <groupId>stax</groupId>
       <artifactId>stax</artifactId>
       <version>1.2.0</version>
