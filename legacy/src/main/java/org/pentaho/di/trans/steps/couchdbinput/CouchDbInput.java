@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,12 +22,16 @@
 
 package org.pentaho.di.trans.steps.couchdbinput;
 
-import org.apache.commons.httpclient.Credentials;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.GetMethod;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.AuthCache;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.pentaho.di.cluster.SlaveConnectionManager;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
@@ -35,6 +39,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.util.HttpClientManager;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -50,7 +55,9 @@ import java.io.IOException;
 public class CouchDbInput extends BaseStep implements StepInterface {
   private static Class<?> PKG = CouchDbInputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
 
-  private final HttpClientFactory httpClientFactory;
+  private final HttpClientFactory httpClientFactory = new HttpClientFactory();
+  private final HttpClientManager httpClientManager = createHttpClientManager();
+
   private final GetMethodFactory getMethodFactory;
 
   private CouchDbInputMeta meta;
@@ -58,14 +65,15 @@ public class CouchDbInput extends BaseStep implements StepInterface {
 
   public CouchDbInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                        Trans trans ) {
-    this( stepMeta, stepDataInterface, copyNr, transMeta, trans, new HttpClientFactory(), new GetMethodFactory() );
+    super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
+    this.getMethodFactory = new GetMethodFactory();
   }
 
+  @Deprecated
   public CouchDbInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                        Trans trans, HttpClientFactory httpClientFactory,
                        GetMethodFactory getMethodFactory ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
-    this.httpClientFactory = httpClientFactory;
     this.getMethodFactory = getMethodFactory;
   }
 
@@ -99,7 +107,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
         while ( c >= 0 && cont && !isStopped() ) {
           data.buffer.append( (char) c );
 
-          switch( (char) c ) {
+          switch ( (char) c ) {
             case '{':
               data.open++;
 
@@ -145,7 +153,7 @@ public class CouchDbInput extends BaseStep implements StepInterface {
       while ( c >= 0 && cont && !isStopped() ) {
         data.buffer.append( (char) c );
 
-        switch( (char) c ) {
+        switch ( (char) c ) {
           case '{':
             data.open++;
 
@@ -238,12 +246,12 @@ public class CouchDbInput extends BaseStep implements StepInterface {
       String design = environmentSubstitute( meta.getDesignDocument() );
       String view = environmentSubstitute( meta.getViewName() );
 
-      if ( Const.isEmpty( design ) ) {
+      if ( StringUtils.isEmpty( design ) ) {
         log.logError( "Please provide a design document to use" );
         return false;
       }
 
-      if ( Const.isEmpty( view ) ) {
+      if ( StringUtils.isEmpty( view ) ) {
         log.logError( "Please provide a view name to look at" );
         return false;
       }
@@ -257,29 +265,26 @@ public class CouchDbInput extends BaseStep implements StepInterface {
       logBasic( "Querying CouchDB view on URL: " + url );
 
       try {
+        HttpClient client = createHttpClient( realUser, realPass );
 
-        HttpClient client = httpClientFactory.createHttpClient();
-        // client.setTimeout(10000);
-        // client.setConnectionTimeout(10000);
-
-        if ( !Const.isEmpty( realUser ) ) {
-          Credentials credentials = new UsernamePasswordCredentials( realUser, realPass );
-          client.getState().setCredentials( AuthScope.ANY, credentials );
-          client.getParams().setAuthenticationPreemptive( true );
-        }
-
-        HttpMethod method = getMethodFactory.create( url );
+        HttpGet method = getMethodFactory.create( url );
 
         // Execute request
-        //
         data.inputStream = null;
         data.bufferedInputStream = null;
 
-        int result = client.executeMethod( method );
+        //Client Preemptive Basic Authentication
+        HttpClientContext context = null;
+        if ( StringUtils.isNotBlank( hostname ) ) {
+          context = getHttpClientContext( hostname, port );
+        }
+
+        HttpResponse httpResponse =
+          context != null ? client.execute( method, context ) : client.execute( method );
+        int result = httpResponse.getStatusLine().getStatusCode();
 
         // the response
-        //
-        data.inputStream = method.getResponseBodyAsStream();
+        data.inputStream = httpResponse.getEntity().getContent();
         data.bufferedInputStream = new BufferedInputStream( data.inputStream, 1000 );
 
         if ( result < 200 || result >= 300 ) {
@@ -319,15 +324,50 @@ public class CouchDbInput extends BaseStep implements StepInterface {
     super.dispose( smi, sdi );
   }
 
+  @Deprecated
   static class HttpClientFactory {
     public HttpClient createHttpClient() {
       return SlaveConnectionManager.getInstance().createHttpClient();
     }
   }
 
-  static class GetMethodFactory {
-    public HttpMethod create( String url ) {
-      return new GetMethod( url );
+  @VisibleForTesting
+  HttpClient createHttpClient( String user, String password ) {
+    HttpClientManager.HttpClientBuilderFacade httpClientBuilder = httpClientManager.createBuilder();
+    // client.setTimeout(10000);
+    // client.setConnectionTimeout(10000);
+
+    if ( StringUtils.isNotBlank( user ) ) {
+      httpClientBuilder.setCredentials( user, password );
     }
+    return httpClientBuilder.build();
+  }
+
+  static class GetMethodFactory {
+    public HttpGet create( String url ) {
+      return new HttpGet( url );
+    }
+  }
+
+  @VisibleForTesting
+  HttpClientManager createHttpClientManager() {
+    return HttpClientManager.getInstance();
+  }
+
+  @VisibleForTesting
+  HttpClientContext getHttpClientContext( String hostname, int port ) {
+    HttpClientContext context;
+    HttpHost target = new HttpHost( hostname, port, "http" );
+    // Create AuthCache instance
+    AuthCache authCache = new BasicAuthCache();
+    // Generate BASIC scheme object and add it to the local
+    // auth cache
+    BasicScheme basicAuth = new BasicScheme();
+    authCache.put( target, basicAuth );
+
+    // Add AuthCache to the execution context
+    context = HttpClientContext.create();
+    context.setAuthCache( authCache );
+    return context;
   }
 }

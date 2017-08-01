@@ -57,7 +57,7 @@
   </provider>
   <provider class-name="org.apache.commons.vfs2.provider.http.HttpFileProvider">
     <scheme name="http"/>
-    <if-available class-name="org.apache.commons.httpclient.HttpClient"/>
+    <if-available class-name="org.apache.http.client.HttpClient"/>
   </provider>
   <provider class-name="org.apache.commons.vfs2.provider.https.HttpsFileProvider">
     <scheme name="https"/>
