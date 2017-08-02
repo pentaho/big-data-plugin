@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -67,6 +67,12 @@ public class OozieServiceFactoryImplTest {
       new OozieServiceFactoryImpl( false, configuration );
     assertThat( serviceFactoryImpl.canHandle( cluster ),
       is( false ) );
+  }
+
+  @Test
+  public void testCannotHandleGateway() throws Exception {
+    when( cluster.isUseGateway() ).thenReturn( true );
+    assertThat( serviceFactory.canHandle( cluster ), is( false ) );
   }
 
   @Test
