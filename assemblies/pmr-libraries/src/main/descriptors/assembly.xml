@@ -230,7 +230,6 @@
         <include>woodstox:wstx-asl</include>
         <include>wsdl4j:wsdl4j</include>
         <include>wsdl4j:wsdl4j-qname</include>
-        <include>xerces:xercesImpl</include>
         <include>xml-apis:xml-apis</include>
         <include>xml-apis:xml-apis-ext</include>
         <include>xmlpull:xmlpull</include>
