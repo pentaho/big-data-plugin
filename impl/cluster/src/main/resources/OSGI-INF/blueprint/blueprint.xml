@@ -13,4 +13,19 @@
  	 <property name="bundleContext" ref="blueprintBundleContext" />
   </bean>
   <service ref="namedClusterManager" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+
+  <bean id="NamedClusterServiceMetaLoadExtensionPoint" scope="singleton" class="org.pentaho.big.data.impl.cluster.NamedClusterServiceExtensionPoint">
+    <argument ref="namedClusterManager" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="NamedClusterServiceNewTransExtensionPoint" scope="singleton" class="org.pentaho.big.data.impl.cluster.NamedClusterServiceNewTransExtensionPoint">
+    <argument ref="namedClusterManager" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="NamedClusterServicePrepareTransExtensionPoint" scope="singleton" class="org.pentaho.big.data.impl.cluster.NamedClusterServicePrepareTransExtensionPoint">
+    <argument ref="namedClusterManager" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
 </blueprint>

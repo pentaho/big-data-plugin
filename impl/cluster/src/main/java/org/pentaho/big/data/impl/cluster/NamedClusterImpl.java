@@ -41,6 +41,7 @@ import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
@@ -62,7 +63,7 @@ import org.w3c.dom.Node;
 import com.google.common.annotations.VisibleForTesting;
 
 @MetaStoreElementType( name = "NamedCluster", description = "A NamedCluster" )
-public class NamedClusterImpl implements NamedCluster {
+public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
@@ -669,5 +670,9 @@ public class NamedClusterImpl implements NamedCluster {
 
   @Override public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
     this.kafkaBootstrapServers = kafkaBootstrapServers;
+  }
+
+  @Override public NamedClusterOsgi nonOsgiFromXmlForEmbed( Node node ) {
+    return (NamedClusterOsgi) fromXmlForEmbed( node );
   }
 }
