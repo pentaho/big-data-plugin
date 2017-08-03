@@ -73,7 +73,6 @@ public class NamedClusterProvider extends HDFSFileProvider {
         metaStore );
   }
 
-
   public NamedClusterProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
                                NamedClusterService namedClusterService,
                                DefaultFileSystemManager fileSystemManager,
@@ -83,7 +82,6 @@ public class NamedClusterProvider extends HDFSFileProvider {
     super( hadoopFileSystemLocator, namedClusterService, fileSystemManager, fileNameParser, schemes );
     this.metaStoreService = metaStore;
   }
-
 
   @Override
   protected FileSystem doCreateFileSystem( FileName name, FileSystemOptions fileSystemOptions )
@@ -96,25 +94,26 @@ public class NamedClusterProvider extends HDFSFileProvider {
       if ( namedCluster == null ) {
         namedCluster = namedClusterService.getClusterTemplate();
       }
-      String generatedUrl = namedCluster
-        .processURLsubstitution( path == null ? "" : path, metaStoreService.getMetastore(), new Variables() );
+      String generatedUrl = namedCluster.processURLsubstitution( path == null ? "" : path, metaStoreService.getMetastore(), new Variables() );
       URI uri = URI.create( generatedUrl );
-
-      return new HDFSFileSystem( name, fileSystemOptions,
-        hadoopFileSystemLocator.getHadoopFilesystem( namedCluster, uri ) );
+      return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( namedCluster, uri ) );
     } catch ( ClusterInitializationException e ) {
       throw new FileSystemException( e );
     }
   }
-
 
   @Override
   public FileSystemConfigBuilder getConfigBuilder() {
     return NamedClusterConfigBuilder.getInstance( metaStoreService, namedClusterService );
   }
 
-
-  private NamedCluster getNamedClusterByName( String clusterNameToResolve ) throws FileSystemException {
+  /**
+   * package visibility for test purpose only
+   * @param clusterNameToResolve - name of namedcluster for resolve namedcluster
+   * @return named cluster from metastore or null
+   * @throws FileSystemException
+   */
+  NamedCluster getNamedClusterByName( String clusterNameToResolve ) throws FileSystemException {
     IMetaStore metaStore = metaStoreService.getMetastore();
     NamedCluster namedCluster = null;
     try {
@@ -126,7 +125,5 @@ public class NamedClusterProvider extends HDFSFileProvider {
     }
     return namedCluster;
   }
-
-
 
 }
