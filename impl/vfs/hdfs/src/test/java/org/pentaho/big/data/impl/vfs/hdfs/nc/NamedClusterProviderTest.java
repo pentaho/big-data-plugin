@@ -23,16 +23,14 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.net.URI;
 
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
@@ -44,6 +42,7 @@ import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -53,7 +52,7 @@ public class NamedClusterProviderTest {
 
   private NamedClusterService ncService = mock( NamedClusterService.class );
 
-  private MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
+  private MetastoreLocatorOsgi metastoreLocator = mock( MetastoreLocatorOsgi.class );
 
   private IMetaStore metastore = mock( IMetaStore.class );
 
@@ -88,8 +87,8 @@ public class NamedClusterProviderTest {
     when( metastoreLocator.getMetastore() ).thenReturn( metastore );
     String ncName = "ncName";
     NamedClusterProvider provider = new  NamedClusterProvider( hdfsLocator, ncService, fileSystemManager, fileNameParser, scheme, metastoreLocator );
-    assertEquals( nc,  provider.getNamedClusterByName( ncName ) );
-    verify( ncService ).read( eq( ncName ), eq( metastore ) );
+    assertEquals( nc,  provider.getNamedClusterByName( ncName, null ) );
+    verify( ncService, times( 2 ) ).read( eq( ncName ), eq( metastore ) );
   }
 
   @Test
@@ -97,7 +96,7 @@ public class NamedClusterProviderTest {
     String ncName = "ncName";
     NamedClusterProvider provider = new  NamedClusterProvider( hdfsLocator, ncService, fileSystemManager, fileNameParser, scheme, metastoreLocator );
     //should be null because we do not have metastore
-    assertNull( provider.getNamedClusterByName( ncName ) );
+    assertNull( provider.getNamedClusterByName( ncName, null ) );
     verify( ncService, never() ).read( eq( ncName ), eq( metastore ) );
   }
 

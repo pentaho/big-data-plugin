@@ -19,27 +19,29 @@ package org.pentaho.big.data.impl.vfs.hdfs.nc;
 
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
+import org.apache.commons.vfs2.FileSystemOptions;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.vfs.configuration.KettleGenericFileSystemConfigBuilder;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 import java.util.List;
 
 public class NamedClusterConfigBuilder extends KettleGenericFileSystemConfigBuilder {
 
   private static final NamedClusterConfigBuilder BUILDER = new NamedClusterConfigBuilder();
-  private final MetastoreLocator metastoreLocator;
+  private static final String EMBEDDED_METASTORE_KEY_PROPERTY = "embeddedMetaStoreKey";
+  private final MetastoreLocatorOsgi metastoreLocator;
   private final NamedClusterService namedClusterService;
 
   public NamedClusterConfigBuilder() {
     this( null, null );
   }
 
-  public NamedClusterConfigBuilder( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService ) {
+  public NamedClusterConfigBuilder( MetastoreLocatorOsgi metastoreLocator, NamedClusterService namedClusterService ) {
     this.metastoreLocator = metastoreLocator;
     this.namedClusterService = namedClusterService;
   }
@@ -51,7 +53,7 @@ public class NamedClusterConfigBuilder extends KettleGenericFileSystemConfigBuil
     return BUILDER;
   }
 
-  public static FileSystemConfigBuilder getInstance( MetastoreLocator metastoreLocator,  NamedClusterService namedClusterService ) {
+  public static FileSystemConfigBuilder getInstance( MetastoreLocatorOsgi metastoreLocator,  NamedClusterService namedClusterService ) {
     return new NamedClusterConfigBuilder( metastoreLocator, namedClusterService );
   }
 
@@ -71,5 +73,13 @@ public class NamedClusterConfigBuilder extends KettleGenericFileSystemConfigBuil
         namedClusterService.create( nc, snapshotMetaStore );
       }
     }
+  }
+
+  public void setEmbeddedMetastoreKey( final FileSystemOptions opts, final String embeddedMetaStoreKey ) {
+    setParam( opts, EMBEDDED_METASTORE_KEY_PROPERTY, embeddedMetaStoreKey );
+  }
+
+  public String getEmbeddedMetastoreKey( final FileSystemOptions opts ) {
+    return (String) getParam( opts, EMBEDDED_METASTORE_KEY_PROPERTY );
   }
 }

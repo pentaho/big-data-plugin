@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
@@ -40,7 +41,7 @@ public class NamedClusterConfigBuilderTest {
 
   private NamedClusterService namedClusterService = mock( NamedClusterService.class );
 
-  private MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
+  private MetastoreLocatorOsgi metastoreLocator = mock( MetastoreLocatorOsgi.class );
 
   private IMetaStore metastore = mock( IMetaStore.class );
 

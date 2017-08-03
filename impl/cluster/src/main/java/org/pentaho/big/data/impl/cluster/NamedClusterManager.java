@@ -30,6 +30,8 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
@@ -81,7 +83,13 @@ public class NamedClusterManager implements NamedClusterService {
   private MetaStoreFactory<NamedClusterImpl> getMetaStoreFactory( IMetaStore metastore ) {
     MetaStoreFactory<NamedClusterImpl> namedClusterMetaStoreFactory = factoryMap.get( metastore );
     if ( namedClusterMetaStoreFactory == null ) {
-      namedClusterMetaStoreFactory = new MetaStoreFactory<>( NamedClusterImpl.class, metastore, PentahoDefaults.NAMESPACE );
+      if ( metastore instanceof EmbeddedMetaStore ) {
+        namedClusterMetaStoreFactory =
+          new MetaStoreFactory<>( NamedClusterImpl.class, metastore, NamedClusterEmbedManager.NAMESPACE );
+      } else {
+        namedClusterMetaStoreFactory =
+          new MetaStoreFactory<>( NamedClusterImpl.class, metastore, PentahoDefaults.NAMESPACE );
+      }
       factoryMap.put( metastore, namedClusterMetaStoreFactory );
     }
     return namedClusterMetaStoreFactory;
@@ -90,6 +98,10 @@ public class NamedClusterManager implements NamedClusterService {
   @VisibleForTesting
   void putMetaStoreFactory( IMetaStore metastore, MetaStoreFactory<NamedClusterImpl> metaStoreFactory ) {
     factoryMap.put( metastore, metaStoreFactory );
+  }
+
+  @Override public void close( IMetaStore metastore ) {
+    factoryMap.remove( metastore );
   }
 
   @Override
