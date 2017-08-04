@@ -16,6 +16,7 @@
     <publish-sonar-phase>site</publish-sonar-phase>
     <easymock.versin>3.0</easymock.versin>
     <xstream.version>1.4.9</xstream.version>
+    <jface.version>3.3.0-I20070606-0010</jface.version>
   </properties>
   <dependencies>
     <dependency>
@@ -42,6 +43,18 @@
       <version>${dependency.kettle.revision}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse</groupId>
+      <artifactId>jface</artifactId>
+      <version>${jface.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
   </dependencies>
   <build>
     <plugins>

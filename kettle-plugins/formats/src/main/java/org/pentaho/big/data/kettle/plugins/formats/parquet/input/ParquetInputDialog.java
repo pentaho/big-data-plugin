@@ -22,45 +22,31 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
-import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.BaseParquetStepDialog;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
-import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
+import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
-import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.trans.step.BaseFileStepDialog;
-import org.pentaho.di.ui.util.SwtSvgImageUtil;
-import org.pentaho.vfs.ui.CustomVfsUiPanel;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
-public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase> {
+public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBase> {
 
   private static final int DIALOG_WIDTH = 526;
 
   private static final int DIALOG_HEIGHT = 506;
-
-  private static final int MARGIN = 15;
-
-  private static final String[] FILES_FILTERS = { "*.*" };
 
   private static final int AVRO_PATH_COLUMN_INDEX = 1;
 
@@ -68,204 +54,57 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
-  private final String[] fileFilterNames = new String[] { BaseMessages.getString( PKG, "System.FileType.AllFiles" ) };
-
   private TableView wInputFields;
-
-  private TextVar wPath;
-
-  private Button wbBrowse;
-
-  private VFSScheme selectedVFSScheme;
 
   public ParquetInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (ParquetInputMetaBase) in, transMeta, sname );
   }
 
   @Override
-  protected void createUI() {
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginWidth = MARGIN;
-    formLayout.marginHeight = MARGIN;
-
-    shell.setSize( DIALOG_WIDTH, DIALOG_HEIGHT );
-    shell.setLayout( formLayout );
-    shell.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Shell.Title" ) );
-
-    lsOK = event -> ok();
-    lsCancel = event -> cancel();
-
-    Label wicon = new Label( shell, SWT.RIGHT );
-    wicon.setImage( getImage() );
-    props.setLook( wicon );
-    new FD( wicon ).top( 0, 0 ).right( 100, 0 ).apply();
-
-    // Stepname line
-    wlStepname = new Label( shell, SWT.RIGHT );
-    wlStepname.setText( BaseMessages.getString( PKG, "ParquetInputDialog.StepName.Label" ) );
-    props.setLook( wlStepname );
-    new FD( wlStepname ).left( 0, 0 ).top( 0, 0 ).apply();
-
-    wStepname = new Text( shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wStepname.setText( stepname );
-    props.setLook( wStepname );
-    wStepname.addModifyListener( lsMod );
-    new FD( wStepname ).left( 0, 0 ).top( wlStepname, 5 ).width( 250 ).apply();
-
-    Label spacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    new FD( spacer ).height( 1 ).left( 0, 0 ).top( wStepname, 15 ).right( 100, 0 ).apply();
-
-    Label wlLocation = new Label( shell, SWT.RIGHT );
-    wlLocation.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Location.Label" ) );
-    props.setLook( wlLocation );
-    new FD( wlLocation ).left( 0, 0 ).top( spacer, MARGIN ).apply();
-
-    CCombo wLocation = new CCombo( shell, SWT.BORDER );
-    try {
-      List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
-      availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
-      wLocation.addListener( SWT.Selection, event -> {
-        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
-      } );
-      if ( !availableVFSSchemes.isEmpty() ) {
-        wLocation.select( 0 );
-        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
-      }
-      //FIXME add some UI message for these exceptions 
-    } catch ( KettleFileException ex ) {
-      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.FileSystemException" ) );
-    }
-    props.setLook( wLocation );
-    wLocation.addModifyListener( lsMod );
-    new FD( wLocation ).left( 0, 0 ).top( wlLocation, 5 ).width( 150 ).apply();
-
-    Label wlPath = new Label( shell, SWT.RIGHT );
-    wlPath.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Filename.Label" ) );
-    props.setLook( wlPath );
-    new FD( wlPath ).left( 0, 0 ).top( wLocation, 10 ).apply();
-
-    wPath = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wPath );
-    new FD( wPath ).left( 0, 0 ).top( wlPath, 5 ).width( 350 ).apply();
-
-    wbBrowse = new Button( shell, SWT.PUSH );
-    props.setLook( wbBrowse );
-    wbBrowse.setText( BaseMessages.getString( PKG, "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
-    new FD( wbBrowse ).left( wPath, 5 ).top( wlPath, 5 ).apply();
-
-    Label wlFields = new Label( shell, SWT.RIGHT );
-    wlFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
-    props.setLook( wlFields );
-    new FD( wlFields ).left( 0, 0 ).top( wPath, 10 ).apply();
+  protected Control createAfterFile( Composite shell ) {
 
     Button wGetFields = new Button( shell, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Get" ) );
     wGetFields.addListener( SWT.Selection, event -> {
-      throw new RuntimeException( "Requires Shim API changes" );
+      // TODO
+      throw new UnsupportedOperationException();
     } );
     props.setLook( wGetFields );
+    new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
 
-    ColumnInfo[] parameterColumns =
-        new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.AvroPath" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false, false, 248 ), new ColumnInfo( BaseMessages.getString( PKG,
-                "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false, 119 ),
-          new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
-
+    Label wlFields = new Label( shell, SWT.RIGHT );
+    wlFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
+    props.setLook( wlFields );
+    new FD( wlFields ).left( 0, 0 ).top( 0, FIELDS_SEP ).apply();
+    ColumnInfo[] parameterColumns = new ColumnInfo[] {
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.AvroPath" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Name" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
     wInputFields =
-        new TableView( transMeta, shell, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, parameterColumns, 0, lsMod,
-            props );
+        new TableView( transMeta, shell, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
+            parameterColumns, 7, lsMod, props );
     props.setLook( wInputFields );
+    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wlFields, FIELD_LABEL_SEP )
+      .bottom( wGetFields, -FIELDS_SEP ).apply();
 
-    wCancel = new Button( shell, SWT.PUSH );
-    wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
-    wCancel.addListener( SWT.Selection, lsCancel );
-    new FD( wCancel ).right( 100, 0 ).bottom( 100, 0 ).apply();
-
-    // Some buttons
-    wOK = new Button( shell, SWT.PUSH );
-    wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
-    wOK.addListener( SWT.Selection, lsOK );
-    new FD( wOK ).right( wCancel, -5 ).bottom( 100, 0 ).apply();
-
-    wPreview = new Button( shell, SWT.PUSH );
-    wPreview.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Preview.Button" ) );
-    wPreview.addListener( SWT.Selection, event -> {
-      throw new RuntimeException( "Requires Shim API changes" );
-    } );
-    new FD( wPreview ).right( 50, 0 ).bottom( 100, 0 ).apply();
-
-    Label hSpacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    new FD( hSpacer ).height( 1 ).left( 0, 0 ).bottom( wCancel, -15 ).right( 100, 0 ).apply();
-
-    new FD( wGetFields ).bottom( hSpacer, -15 ).right( 100, 0 ).apply();
-    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wlFields, 5 ).bottom( wGetFields, -10 ).apply();
-
-  }
-
-  protected void browseForFileInputPath() {
-    try {
-      FileObject initialFile = getInitialFile();
-      FileObject rootFile = initialFile.getFileSystem().getRoot();
-      VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
-      FileObject selectedFile =
-          fileChooserDialog.open( shell, new String[] {}, selectedVFSScheme.getScheme(), true, null, FILES_FILTERS,
-              fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, true );
-      if ( selectedFile != null ) {
-        wPath.setText( selectedFile.getURL().toString() );
-      }
-    } catch ( KettleFileException ex ) {
-      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( BaseMessages.getString( PKG, "ParquetInputDialog.FileBrowser.FileSystemException" ) );
+    for ( ColumnInfo col : parameterColumns ) {
+      col.setAutoResize( false );
     }
-  }
-
-  List<VFSScheme> getAvailableVFSSchemes() throws KettleFileException, FileSystemException {
-    VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog();
-    List<CustomVfsUiPanel> customVfsUiPanels = fileChooserDialog.getCustomVfsUiPanels();
-    List<VFSScheme> vfsSchemes = new ArrayList<>();
-    customVfsUiPanels.forEach( vfsPanel -> {
-      VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
-      vfsSchemes.add( scheme );
-    } );
-    return vfsSchemes;
-  }
-
-  FileObject getInitialFile() throws KettleFileException {
-    FileObject initialFile = null;
-    String filePath = wPath.getText();
-    if ( filePath != null && !filePath.isEmpty() ) {
-      String fileName = transMeta.environmentSubstitute( filePath );
-      if ( fileName != null && !fileName.isEmpty() ) {
-        initialFile = KettleVFS.getFileObject( fileName );
-      }
+    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25 );
+    wInputFields.getTable().addListener( SWT.Resize, resizer );
+    resizer.addColumnResizeListeners( wInputFields.getTable() );
+    setTruncatedColumn( wInputFields.getTable(), 1 );
+    if ( !Const.isWindows() ) {
+      addColumnTooltip( wInputFields.getTable(), 1 );
     }
-    if ( initialFile == null ) {
-      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
-    }
-    return initialFile;
-  }
-
-  VfsFileChooserDialog getVfsFileChooserDialog() throws KettleFileException, FileSystemException {
-    return getVfsFileChooserDialog( null, null );
-  }
-
-  VfsFileChooserDialog getVfsFileChooserDialog( FileObject rootFile, FileObject initialFile )
-    throws KettleFileException, FileSystemException {
-    return getSpoon().getVfsFileChooserDialog( rootFile, initialFile );
+    return wGetFields;
   }
 
   Spoon getSpoon() {
     return Spoon.getInstance();
-  }
-
-  protected Image getImage() {
-    return SwtSvgImageUtil.getImage( shell.getDisplay(), getClass().getClassLoader(), "PI.svg", ConstUI.ICON_SIZE,
-        ConstUI.ICON_SIZE );
   }
 
   /**
@@ -316,5 +155,26 @@ public class ParquetInputDialog extends BaseFileStepDialog<ParquetInputMetaBase>
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
       meta.inputFields[i] = field;
     }
+  }
+
+  @Override
+  protected int getWidth() {
+    return DIALOG_WIDTH;
+  }
+
+  @Override
+  protected int getHeight() {
+    return DIALOG_HEIGHT;
+  }
+
+  @Override
+  protected String getStepTitle() {
+    return BaseMessages.getString( PKG, "ParquetInputDialog.Shell.Title" );
+  }
+
+  @Override
+  protected Listener getPreview() {
+    // TODO
+    return event -> { };
   }
 }
