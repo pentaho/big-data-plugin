@@ -165,7 +165,6 @@ public class NamedClusterDialogImpl extends Dialog {
     bottomSeparator.setLayoutData( fd );
 
     ScrolledComposite scrolledComposite = new ScrolledComposite( shell, SWT.V_SCROLL );
-    scrolledComposite.setAlwaysShowScrollBars( true );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
