@@ -28,8 +28,11 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
@@ -86,6 +89,12 @@ public class HadoopFileInputMetaTest {
     HashMap<String, String> mappings = new HashMap<>();
     mappings.put( TEST_FILE_NAME, HadoopFileOutputMetaTest.TEST_CLUSTER_NAME );
     spy.setNamedClusterURLMapping( mappings );
+    StepMeta parentStepMeta = mock( StepMeta.class );
+    TransMeta parentTransMeta = mock( TransMeta.class );
+    when( parentStepMeta.getParentTransMeta() ).thenReturn( parentTransMeta );
+    NamedClusterEmbedManager embedManager = mock( NamedClusterEmbedManager.class );
+    when( parentTransMeta.getNamedClusterEmbedManager() ).thenReturn( embedManager );
+    spy.setParentStepMeta( parentStepMeta );
     String xml = spy.getXML();
     Document hadoopOutputMetaStep = HadoopFileOutputMetaTest.getDocumentFromString( xml, new SAXBuilder() );
     Element fileElement = HadoopFileOutputMetaTest.getChildElementByTagName( hadoopOutputMetaStep.getRootElement(), "file" );
@@ -95,6 +104,7 @@ public class HadoopFileInputMetaTest {
     assertEquals( TEST_CLUSTER_NAME, clusterNameElement.getValue() );
     //check that saveSource is called from TextFileOutputMeta
     verify( spy, times( 1 ) ).saveSource( any( StringBuilder.class ), any( String.class ) );
+    verify( embedManager ).registerUrl( "test-file-name" );
   }
 
   private HadoopFileInputMeta initHadoopMetaInput( HadoopFileInputMeta hadoopFileInputMeta ) {
