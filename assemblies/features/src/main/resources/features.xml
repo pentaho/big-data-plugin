@@ -38,6 +38,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-api-pig/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-oozie/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-sqoop/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-api-jaas/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-jdbc/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
@@ -54,6 +55,7 @@
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-pig/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-oozie/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-sqoop/${project.version}</bundle>
+            <bundle>mvn:pentaho/pentaho-big-data-impl-shim-jaas/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-hive/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
 	    <bundle>mvn:pentaho/pentaho-hadoop-shims-osgi-jaas/${project.version}</bundle>
