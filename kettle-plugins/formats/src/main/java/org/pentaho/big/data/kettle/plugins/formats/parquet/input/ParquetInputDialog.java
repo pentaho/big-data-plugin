@@ -40,7 +40,6 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
-import org.pentaho.di.ui.spoon.Spoon;
 
 public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBase> {
 
@@ -103,10 +102,6 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
     return wGetFields;
   }
 
-  Spoon getSpoon() {
-    return Spoon.getInstance();
-  }
-
   /**
    * Read the data from the meta object and show it in this dialog.
    */
@@ -118,7 +113,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
     int nrFields = meta.inputFields.length;
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = null;
-      if ( i >= wInputFields.table.getItemCount() ) {
+      if ( i < wInputFields.table.getItemCount() ) {
         item = wInputFields.table.getItem( i );
       } else {
         item = new TableItem( wInputFields.table, SWT.NONE );
