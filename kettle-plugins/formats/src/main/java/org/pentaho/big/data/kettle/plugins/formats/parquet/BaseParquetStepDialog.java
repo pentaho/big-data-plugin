@@ -30,6 +30,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
@@ -45,7 +46,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -162,7 +162,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     Label hSpacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
     new FD( hSpacer ).height( 1 ).left( 0, 0 ).bottom( wCancel, -MARGIN ).right( 100, 0 ).apply();
 
-    new FD( afterFile ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( hSpacer, 0 ).apply();
+    new FD( afterFile ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( hSpacer, -MARGIN ).apply();
 
     createAfterFile( afterFile );
   }
@@ -296,7 +296,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     wlLocation.setText( getBaseMsg( "ParquetDialog.Location.Label" ) );
     props.setLook( wlLocation );
     new FD( wlLocation ).left( 0, 0 ).top( prev, MARGIN ).apply();
-    Combo wLocation = new Combo( shell, SWT.BORDER  | SWT.READ_ONLY  );
+    CCombo wLocation = new CCombo( shell, SWT.BORDER  | SWT.READ_ONLY  );
     try {
       List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
       availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
@@ -463,7 +463,6 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     return getSpoon().getVfsFileChooserDialog( rootFile, initialFile );
   }
 
-  // TODO: maybe avoid this?
   private Spoon getSpoon() {
     return Spoon.getInstance();
   }

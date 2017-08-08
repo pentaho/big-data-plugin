@@ -28,6 +28,10 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -44,6 +48,7 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
@@ -72,7 +77,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   private TextVar wRowSize;
   private TextVar wPageSize;
   private ComboVar wEncoding;
-  private ComboVar wDict;
+  private TextVar wDictPageSize;
 
 
   public ParquetOutputDialog( Shell parent, Object parquetOutputMeta, TransMeta transMeta, String sname ) {
@@ -93,7 +98,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     addFieldsTab( wTabFolder );
     addOptionsTab( wTabFolder );
 
-    new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, -MARGIN ).apply();
+    new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
     return wTabFolder;
   }
@@ -179,12 +184,12 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
 
     Label lCompression = createLabel( wComp, "ParquetOutputDialog.Options.Compression" );
     new FD( lCompression ).left( 0, 0 ).top( wComp, 0 ).apply();
-    wCompression = createComboVar( wComp );
+    wCompression = createComboVar( wComp, meta.getCompressionTypes() );
     new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
 
     Label lVersion = createLabel( wComp, "ParquetOutputDialog.Options.Version" );
     new FD( lVersion ).left( 0, 0 ).top( wCompression, FIELDS_SEP ).apply();
-    wVersion = createComboVar( wComp );
+    wVersion = createComboVar( wComp, meta.getVersionTypes() );
     new FD( wVersion ).left( 0, 0 ).top( lVersion, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
 
     Label lRowSize = createLabel( wComp, "ParquetOutputDialog.Options.RowSize" );
@@ -202,21 +207,34 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     Label lEncoding = new Label( wComp, SWT.NONE );
     lEncoding.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.Encoding" ) );
     new FD( lEncoding ).left( leftRef, COLUMNS_SEP ).top( wComp, 0 ).apply();
-    wEncoding = createComboVar( wComp );
+    wEncoding = createComboVar( wComp, meta.getEncodingTypes() );
     new FD( wEncoding ).left( leftRef, COLUMNS_SEP ).top( lEncoding, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-    for ( String enc : meta.getEncodingTypes() ) {
-      wEncoding.add( enc );
-    }
 
     Label lDict = new Label( wComp, SWT.NONE );
     lDict.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.DictPageSize" ) );
     new FD( lDict ).left( leftRef, COLUMNS_SEP ).top( wEncoding, FIELDS_SEP ).apply();
-    wDict = createComboVar( wComp );
-    new FD( wDict ).left( leftRef, COLUMNS_SEP ).top( lDict, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    wDictPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    new FD( wDictPageSize ).left( leftRef, COLUMNS_SEP ).top( lDict, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    wDictPageSize.getTextWidget().addVerifyListener( new VerifyListener() {
+      @Override
+      public void verifyText( VerifyEvent e ) {
+        if ( !StringUtil.isEmpty( e.text ) && !StringUtil.isVariable( e.text ) && !StringUtil.IsInteger( e.text ) ) {
+          e.doit = false;
+        }
+      }
+    } );
+    wEncoding.addModifyListener( new ModifyListener() {
+      @Override
+      public void modifyText( ModifyEvent e ) {
+        wDictPageSize.setEnabled( wEncoding.getText().equals( ParquetOutputMeta.EncodingType.DICTIONARY.toString() ) );
+      }
+    } );
   }
 
-  private ComboVar createComboVar( Composite container ) {
-    return new ComboVar( transMeta, container, SWT.LEFT | SWT.BORDER );
+  protected ComboVar createComboVar( Composite container, String[] options ) {
+    ComboVar combo = new ComboVar( transMeta, container, SWT.LEFT | SWT.BORDER );
+    combo.setItems( options );
+    return combo;
   }
 
   private Label createLabel( Composite container, String labelRef ) {
@@ -234,6 +252,9 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       wPath.setText( meta.getFilename() );
     }
     populateFieldsUI( meta, wOutputFields );
+    wCompression.setText( meta.getCompression() );
+    wEncoding.setText( meta.getEncoding() );
+    wVersion.setText( meta.getParquetVersion() );
   }
 
   // ui -> meta
