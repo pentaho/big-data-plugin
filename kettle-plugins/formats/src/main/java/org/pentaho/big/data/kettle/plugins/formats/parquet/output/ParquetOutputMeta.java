@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -37,7 +38,11 @@ import org.pentaho.di.trans.step.StepMeta;
     i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
 public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
+  private static final Class<?> PKG = ParquetOutputMeta.class;
+
   private EncodingType encodingType;
+  private CompressionType compressionType;
+  private ParquetVersion parquetVersion;
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
@@ -52,48 +57,110 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   public String getEncoding() {
-    return encodingType == null ? null : encodingType.toString();
+    return encodingType == null ? EncodingType.PLAIN.toString() : encodingType.toString();
   }
 
   public void setEncoding( String encoding ) {
-    encodingType = EncodingType.parse( encoding );
+    encodingType = parseFromToString( encoding, EncodingType.values(), null );
   }
+
+  public String getCompression() {
+    return compressionType == null ? CompressionType.NONE.toString() : compressionType.toString();
+  }
+
+  public void setCompression( String compression ) {
+    compressionType = parseFromToString( compression, CompressionType.values(), null );
+  }
+
+  public String getParquetVersion() {
+    return parquetVersion == null ? ParquetVersion.PARQUET_1.toString() : parquetVersion.toString();
+  }
+
+  public void setParquetVersion( String version ) {
+    this.parquetVersion = parseFromToString( version, ParquetVersion.values(), null );
+  }
+
 
   public String[] getEncodingTypes() {
-    String[] types = new String[EncodingType.values().length];
-    int i = 0;
-    for ( EncodingType et : EncodingType.values() ) {
-      types[i++] = et.toString();
-    }
-    return types;
+    return getStrings( EncodingType.values() );
   }
 
-  // TODO cf
-  public static enum EncodingType {
-    PLAIN( "Plain" ),
-    DICTIONARY( "Dictionary" ),
-    BIT_PACKED( "Bit packed" ),
-    RLE( "RLE" );
+  public String[] getCompressionTypes() {
+    return getStrings( CompressionType.values() );
+  }
+  public String[] getVersionTypes() {
+    return getStrings( ParquetVersion.values() );
+  }
+
+  public static enum CompressionType {
+    NONE( getMsg( "ParquetOutput.CompressionType.NONE" ) ),
+    SNAPPY( "Snappy" ),
+    GZIP( "GZIP" ),
+    LZO( "LZO" );
 
     private final String name;
-    private EncodingType( String name ) {
+    private CompressionType( String name ) {
       this.name = name;
-    }
-
-    public static EncodingType parse( String str ) {
-      if ( !Utils.isEmpty( str ) ) {
-        for ( EncodingType type : EncodingType.values() ) {
-          if ( str.equalsIgnoreCase( type.name ) ) {
-            return type;
-          }
-        }
-      }
-      return null;
     }
 
     @Override
     public String toString() {
       return name;
     }
+  }
+
+  public static enum EncodingType {
+    PLAIN( getMsg( "ParquetOutput.EncodingType.PLAIN" ) ),
+    DICTIONARY( getMsg( "ParquetOutput.EncodingType.DICTIONARY" ) ),
+    BIT_PACKED( getMsg( "ParquetOutput.EncodingType.BIT_PACKED" ) ),
+    RLE( getMsg( "ParquetOutput.EncodingType.RLE" ) );
+
+    private final String name;
+    private EncodingType( String name ) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  public static enum ParquetVersion {
+    PARQUET_1( "Parquet 1.0" ),
+    PARQUET_2( "Parquet 2.0" );
+
+    private final String name;
+    private ParquetVersion( String name ) {
+      this.name = name;
+    }
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  protected static <T> String[] getStrings( T[] objects ) {
+    String[] names = new String[objects.length];
+    int i = 0;
+    for ( T obj : objects ) {
+      names[i++] = obj.toString();
+    }
+    return names;
+  }
+
+  protected static <T> T parseFromToString( String str, T[] values, T defaultValue ) {
+    if ( !Utils.isEmpty( str ) ) {
+      for ( T type : values ) {
+        if ( str.equalsIgnoreCase( type.toString() ) ) {
+          return type;
+        }
+      }
+    }
+    return defaultValue;
+  }
+
+  private static String getMsg( String key ) {
+    return BaseMessages.getString( PKG, key );
   }
 }
