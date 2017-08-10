@@ -21,6 +21,7 @@
     <module>sqoop</module>
     <module>hive</module>
     <module>spark</module>
+    <module>kafka</module>
     <module>formats-meta</module>
     <module>formats</module>
   </modules>
