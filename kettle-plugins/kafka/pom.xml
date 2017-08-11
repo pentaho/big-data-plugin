@@ -16,7 +16,6 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
-    <kafka.version>0.10.2.1</kafka.version>
     <pentaho-metaverse.version>8.0-SNAPSHOT</pentaho-metaverse.version>
   </properties>
   <dependencies>
