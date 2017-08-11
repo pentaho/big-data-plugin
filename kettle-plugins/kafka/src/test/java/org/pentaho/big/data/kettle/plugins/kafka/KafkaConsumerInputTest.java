@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +125,7 @@ public class KafkaConsumerInputTest {
     MetastoreLocator metastoreLocator = mock( MetastoreLocator.class );
 
     meta = new KafkaConsumerInputMeta();
-    topicList = new ArrayList<String>();
+    topicList = new ArrayList<>();
     topicList.add( topic.topic() );
     meta.setTopics( topicList );
     meta.setConsumerGroup( "" );
@@ -161,7 +162,7 @@ public class KafkaConsumerInputTest {
     when( factory.consumer( eq( meta ), any(), eq( meta.getKeyField().getOutputType() ),
       eq( meta.getMessageField().getOutputType() ) ) ).thenReturn( consumer );
 
-    topicList = new ArrayList<String>();
+    topicList = new ArrayList<>();
     topicList.add( topics.iterator().next() );
     meta.setTopics( topicList );
 
@@ -205,9 +206,13 @@ public class KafkaConsumerInputTest {
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
-    when( consumer.poll( anyLong() ) ).thenReturn( records );
+    CountDownLatch latch = new CountDownLatch( 1 );
+    when( consumer.poll( anyLong() ) ).thenReturn( records ).then( invocationOnMock -> {
+      latch.countDown();
+      return Collections.emptyList();
+    } );
 
-    topicList = new ArrayList<String>();
+    topicList = new ArrayList<>();
     topicList.add( topics.iterator().next() );
     meta.setTopics( topicList );
     step.init( meta, data );
@@ -222,7 +227,7 @@ public class KafkaConsumerInputTest {
 
     ExecutorService service = Executors.newSingleThreadExecutor();
     service.submit( processRowRunnable );
-    Thread.sleep( 100 );
+    latch.await();
     step.stopRunning( meta, data );
     service.shutdown();
 
