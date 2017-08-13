@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,7 @@ package org.pentaho.di.job.entries.spark;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.StreamTokenizer;
@@ -33,6 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.sun.jna.Platform;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -64,19 +67,18 @@ import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlank
 /**
  * This job entry submits a JAR to Spark and executes a class. It uses the spark-submit script to submit a command like
  * this: spark-submit --class org.pentaho.spark.SparkExecTest --master yarn-cluster my-spark-job.jar arg1 arg2
- *
+ * <p>
  * More information on the options is here: http://spark.apache.org/docs/1.2.0/submitting-applications.html
  *
  * @author jdixon
  * @since Dec 3 2014
- *
  */
 
 @JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/spark.svg", id = "SparkSubmit",
-    name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
-    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    i18nPackageName = "org.pentaho.di.job.entries.spark",
-    documentationUrl = "0L0/0Y0/0L0/Spark_Submit" )
+  name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  i18nPackageName = "org.pentaho.di.job.entries.spark",
+  documentationUrl = "0L0/0Y0/0L0/Spark_Submit" )
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
   public static final String JOB_TYPE_JAVA_SCALA = "Java or Scala";
   public static final String JOB_TYPE_PYTHON = "Python";
@@ -148,10 +150,9 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
   /**
    * Parses XML and recreates the state
-   *
    */
   public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers, Repository rep,
-      IMetaStore metaStore ) throws KettleXMLException {
+                       IMetaStore metaStore ) throws KettleXMLException {
     try {
       super.loadXML( entrynode, databases, slaveServers );
 
@@ -190,7 +191,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
    * Reads the state from the repository
    */
   public void loadRep( Repository rep, IMetaStore metaStore, ObjectId id_jobentry, List<DatabaseMeta> databases,
-      List<SlaveServer> slaveServers ) throws KettleException {
+                       List<SlaveServer> slaveServers ) throws KettleException {
     try {
       scriptPath = rep.getJobEntryAttributeString( id_jobentry, "scriptPath" );
       master = rep.getJobEntryAttributeString( id_jobentry, "master" );
@@ -207,14 +208,14 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       }
       for ( int i = 0; i < rep.countNrJobEntryAttributes( id_jobentry, "libsEnv" ); i++ ) {
         libs.put( rep.getJobEntryAttributeString( id_jobentry, i, "libsPath" ),
-            rep.getJobEntryAttributeString( id_jobentry, i, "libsEnv" ) );
+          rep.getJobEntryAttributeString( id_jobentry, i, "libsEnv" ) );
       }
       driverMemory = rep.getJobEntryAttributeString( id_jobentry, "driverMemory" );
       executorMemory = rep.getJobEntryAttributeString( id_jobentry, "executorMemory" );
       blockExecution = rep.getJobEntryAttributeBoolean( id_jobentry, "blockExecution" );
     } catch ( KettleException dbe ) {
       throw new KettleException( "Unable to load job entry of type 'SparkSubmit' from the repository for id_jobentry="
-          + id_jobentry, dbe );
+        + id_jobentry, dbe );
     }
   }
 
@@ -244,7 +245,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       rep.saveJobEntryAttribute( id_job, getObjectId(), "blockExecution", blockExecution );
     } catch ( KettleDatabaseException dbe ) {
       throw new KettleException( "Unable to save job entry of type 'SparkSubmit' to the repository for id_job="
-          + id_job, dbe );
+        + id_job, dbe );
     }
   }
 
@@ -260,8 +261,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets the path for the spark-submit utility
    *
-   * @param scriptPath
-   *          path to spark-submit utility
+   * @param scriptPath path to spark-submit utility
    */
   public void setScriptPath( String scriptPath ) {
     this.scriptPath = scriptPath;
@@ -279,8 +279,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets the URL for the Spark master node
    *
-   * @param master
-   *          URL for the Spark master node
+   * @param master URL for the Spark master node
    */
   public void setMaster( String master ) {
     this.master = master;
@@ -330,8 +329,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets the path for the jar containing the Spark code to execute
    *
-   * @param jar
-   *          path for the jar
+   * @param jar path for the jar
    */
   public void setJar( String jar ) {
     this.jar = jar;
@@ -349,8 +347,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets the name of the class containing the Spark code to execute
    *
-   * @param className
-   *          name of the class
+   * @param className name of the class
    */
   public void setClassName( String className ) {
     this.className = className;
@@ -368,8 +365,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets the arguments for the Spark class. This is a space-separated list of strings, e.g. "http.log 1000"
    *
-   * @param args
-   *          arguments
+   * @param args arguments
    */
   public void setArgs( String args ) {
     this.args = args;
@@ -387,8 +383,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets executor memory config param's value
    *
-   * @param executorMemory
-   *          amount of memory executor process is allowed to consume
+   * @param executorMemory amount of memory executor process is allowed to consume
    */
   public void setExecutorMemory( String executorMemory ) {
     this.executorMemory = executorMemory;
@@ -406,8 +401,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets driver memory config param's value
    *
-   * @param driverMemory
-   *          amount of memory driver process is allowed to consume
+   * @param driverMemory amount of memory driver process is allowed to consume
    */
   public void setDriverMemory( String driverMemory ) {
     this.driverMemory = driverMemory;
@@ -425,8 +419,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Sets if the job entry will wait for job execution to complete
    *
-   * @param blockExecution
-   *          blocking mode
+   * @param blockExecution blocking mode
    */
   public void setBlockExecution( boolean blockExecution ) {
     this.blockExecution = blockExecution;
@@ -537,7 +530,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   }
 
   @VisibleForTesting
-  protected boolean validate( ) {
+  protected boolean validate() {
     boolean valid = true;
     if ( Const.isEmpty( scriptPath ) || !new File( environmentSubstitute( scriptPath ) ).exists() ) {
       logError( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.SparkSubmitPathInvalid" ) );
@@ -563,6 +556,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
     return valid;
   }
+
 
   /**
    * Executes the spark-submit command and returns a Result
@@ -599,11 +593,11 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
       // any error message?
       PatternMatchingStreamLogger errorLogger =
-          new PatternMatchingStreamLogger( log, proc.getErrorStream(), jobSubmittedPatterns, jobSubmitted );
+        new PatternMatchingStreamLogger( log, proc.getErrorStream(), jobSubmittedPatterns, jobSubmitted );
 
       // any output?
       PatternMatchingStreamLogger outputLogger =
-          new PatternMatchingStreamLogger( log, proc.getInputStream(), jobSubmittedPatterns, jobSubmitted );
+        new PatternMatchingStreamLogger( log, proc.getInputStream(), jobSubmittedPatterns, jobSubmitted );
 
       if ( !blockExecution ) {
         PatternMatchingStreamLogger.PatternMatchedListener cb =
@@ -642,20 +636,14 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       } ).start();
 
       proc.waitFor();
+
       processFinished.set( true );
+
+      prepareProcessThreadsToStop( proc, errorLoggerThread, outputLoggerThread );
 
       if ( log.isDetailed() ) {
         logDetailed( "Spark submit finished" );
       }
-
-      // wait until loggers read all data from stdout and stderr
-      errorLoggerThread.join();
-      outputLoggerThread.join();
-
-      // close the streams
-      // otherwise you get "Too many open files, java.io.IOException" after a lot of iterations
-      proc.getErrorStream().close();
-      proc.getOutputStream().close();
 
       // What's the exit status?
       int exitCode;
@@ -685,6 +673,41 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
     return result;
   }
 
+  private void waitForThreadsFinishToRead( Thread errorLoggerThread, Thread outputLoggerThread )
+    throws InterruptedException {
+    // wait until loggers read all data from stdout and stderr
+    errorLoggerThread.join();
+    outputLoggerThread.join();
+  }
+
+  private void prepareProcessThreadsToStop( Process proc, Thread errorLoggerThread, Thread outputLoggerThread )
+    throws Exception {
+    if ( blockExecution ) {
+      waitForThreadsFinishToRead( errorLoggerThread, outputLoggerThread );
+    } else {
+      killChildProcesses();
+    }
+    // close the streams
+    // otherwise you get "Too many open files, java.io.IOException" after a lot of iterations
+    proc.getErrorStream().close();
+    proc.getOutputStream().close();
+  }
+
+  @VisibleForTesting
+  void killChildProcesses() {
+    if ( Platform.isWindows() ) {
+      try {
+        WinProcess process = new WinProcess( WinProcess.getPID( proc ) );
+        process.killChildProcesses();
+      } catch ( IOException e ) {
+        if ( log.isDetailed() ) {
+          logDetailed(
+            ( BaseMessages.getString( PKG, "JobEntrySparkSubmit.Error.KillWindowsChildProcess", e.getMessage() ) ) );
+        }
+      }
+    }
+  }
+
   public boolean evaluates() {
     return true;
   }
@@ -694,7 +717,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
    */
   @Override
   public void check( List<CheckResultInterface> remarks, JobMeta jobMeta, VariableSpace space, Repository repository,
-      IMetaStore metaStore ) {
+                     IMetaStore metaStore ) {
     andValidator().validate( this, "scriptPath", remarks, putValidators( notBlankValidator() ) );
     andValidator().validate( this, "scriptPath", remarks, putValidators( fileExistsValidator() ) );
     andValidator().validate( this, "master", remarks, putValidators( notBlankValidator() ) );
@@ -708,11 +731,9 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   /**
    * Parse a string into arguments as if it were provided on the command line.
    *
-   * @param commandLineString
-   *          A command line string.
+   * @param commandLineString A command line string.
    * @return List of parsed arguments
-   * @throws IOException
-   *           when the command line could not be parsed
+   * @throws IOException when the command line could not be parsed
    */
   public List<String> parseCommandLine( String commandLineString ) throws IOException {
     List<String> args = new ArrayList<String>();
