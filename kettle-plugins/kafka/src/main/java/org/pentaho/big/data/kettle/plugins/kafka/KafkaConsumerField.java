@@ -30,6 +30,7 @@ import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 
@@ -40,14 +41,16 @@ public class KafkaConsumerField {
   private static Class<?> PKG = KafkaConsumerField.class;
 
   private Name kafkaName;
+  @Injection( name = "OUTPUT_NAME" )
   private String outputName;
-  private Type outputType = Type.STRING;
+  @Injection( name = "TYPE" )
+  private Type outputType = Type.String;
 
   public KafkaConsumerField() {
   }
 
   public KafkaConsumerField( Name kafkaName, String outputName ) {
-    this( kafkaName, outputName, Type.STRING );
+    this( kafkaName, outputName, Type.String );
   }
 
   public KafkaConsumerField( Name kafkaName, String outputName, Type outputType ) {
@@ -81,10 +84,10 @@ public class KafkaConsumerField {
   }
 
   public enum Type {
-    STRING( "String", ValueMetaInterface.TYPE_STRING, StringSerializer.class, StringDeserializer.class ),
-    INTEGER( "Integer", ValueMetaInterface.TYPE_INTEGER, LongSerializer.class, LongDeserializer.class ),
-    BINARY( "Binary", ValueMetaInterface.TYPE_BINARY, ByteArraySerializer.class, ByteArrayDeserializer.class ),
-    NUMBER( "Number", ValueMetaInterface.TYPE_NUMBER, DoubleSerializer.class, DoubleDeserializer.class );
+    String( "String", ValueMetaInterface.TYPE_STRING, StringSerializer.class, StringDeserializer.class ),
+    Integer( "Integer", ValueMetaInterface.TYPE_INTEGER, LongSerializer.class, LongDeserializer.class ),
+    Binary( "Binary", ValueMetaInterface.TYPE_BINARY, ByteArraySerializer.class, ByteArrayDeserializer.class ),
+    Number( "Number", ValueMetaInterface.TYPE_NUMBER, DoubleSerializer.class, DoubleDeserializer.class );
 
     private final String value;
     private final int valueMetaInterfaceType;
@@ -128,7 +131,7 @@ public class KafkaConsumerField {
           "KafkaConsumerField.Type.ERROR.NoValueMetaInterfaceMapping", vmi.getName(), vmi.getType() ) );
       }
       // if it's null, just default to string
-      return STRING;
+      return String;
     }
   }
 

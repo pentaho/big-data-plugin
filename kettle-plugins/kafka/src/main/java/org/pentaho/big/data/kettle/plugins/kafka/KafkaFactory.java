@@ -54,7 +54,7 @@ public class KafkaFactory {
   }
 
   public Consumer consumer( KafkaConsumerInputMeta meta, Function<String, String> variablesFunction ) {
-    return consumer( meta, variablesFunction, KafkaConsumerField.Type.STRING, KafkaConsumerField.Type.STRING );
+    return consumer( meta, variablesFunction, KafkaConsumerField.Type.String, KafkaConsumerField.Type.String );
   }
 
   public Consumer consumer( KafkaConsumerInputMeta meta, Function<String, String> variablesFunction,
@@ -79,7 +79,7 @@ public class KafkaFactory {
 
   public Producer<Object, Object> producer(
     KafkaProducerOutputMeta meta, Function<String, String> variablesFunction ) {
-    return producer( meta, variablesFunction, KafkaConsumerField.Type.STRING, KafkaConsumerField.Type.STRING );
+    return producer( meta, variablesFunction, KafkaConsumerField.Type.String, KafkaConsumerField.Type.String );
   }
 
   public Producer<Object, Object> producer(

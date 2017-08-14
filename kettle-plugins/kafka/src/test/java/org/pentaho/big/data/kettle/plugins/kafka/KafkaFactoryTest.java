@@ -112,8 +112,8 @@ public class KafkaFactoryTest {
     inputMeta.setTopics( topicList );
     inputMeta.setConsumerGroup( "cg" );
 
-    inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key", KafkaConsumerField.Type.INTEGER ) );
-    inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg", KafkaConsumerField.Type.NUMBER ) );
+    inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key", KafkaConsumerField.Type.Integer ) );
+    inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg", KafkaConsumerField.Type.Number ) );
     inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
@@ -173,7 +173,7 @@ public class KafkaFactoryTest {
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).producer( outputMeta, Function.identity(),
-      KafkaConsumerField.Type.INTEGER, KafkaConsumerField.Type.NUMBER );
+      KafkaConsumerField.Type.Integer, KafkaConsumerField.Type.Number );
     Map<String, Object> expectedMap = new HashMap<>();
     expectedMap.put( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "server:1234" );
     expectedMap.put( ProducerConfig.CLIENT_ID_CONFIG, "client" );
