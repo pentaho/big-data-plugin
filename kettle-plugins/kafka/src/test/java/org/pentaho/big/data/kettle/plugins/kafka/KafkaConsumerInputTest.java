@@ -63,7 +63,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.STRING;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.String;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -285,7 +285,7 @@ public class KafkaConsumerInputTest {
         trans.stopAll();
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
-    when( factory.consumer( eq( kafkaMeta ), any(), eq( STRING ), eq( STRING ) ) )
+    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
     trans.prepareExecution( new String[]{} );
     trans.startThreads();
@@ -319,7 +319,7 @@ public class KafkaConsumerInputTest {
         Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
-    when( factory.consumer( eq( kafkaMeta ), any(), eq( STRING ), eq( STRING ) ) )
+    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
     trans.prepareExecution( new String[]{} );
     trans.startThreads();

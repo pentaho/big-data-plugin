@@ -112,27 +112,27 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( 999, meta.getBatchDuration() );
 
     assertEquals( "three", meta.getKeyField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, meta.getKeyField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, meta.getKeyField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.KEY, meta.getKeyField().getKafkaName() );
 
     assertEquals( "four", meta.getMessageField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, meta.getMessageField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, meta.getMessageField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.MESSAGE, meta.getMessageField().getKafkaName() );
 
     assertEquals( "five", meta.getTopicField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, meta.getTopicField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, meta.getTopicField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.TOPIC, meta.getTopicField().getKafkaName() );
 
     assertEquals( "six", meta.getPartitionField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, meta.getPartitionField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, meta.getPartitionField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.PARTITION, meta.getPartitionField().getKafkaName() );
 
     assertEquals( "seven", meta.getOffsetField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, meta.getOffsetField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, meta.getOffsetField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.OFFSET, meta.getOffsetField().getKafkaName() );
 
     assertEquals( "eight", meta.getTimestampField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, meta.getTimestampField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, meta.getTimestampField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.TIMESTAMP, meta.getTimestampField().getKafkaName() );
   }
 
@@ -151,11 +151,11 @@ public class KafkaConsumerInputMetaTest {
     meta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "kafkaMessage" ) );
     meta.setTopicField( new KafkaConsumerField( KafkaConsumerField.Name.TOPIC, "topic" ) );
     meta.setPartitionField( new KafkaConsumerField( KafkaConsumerField.Name.PARTITION, "part",
-      KafkaConsumerField.Type.INTEGER ) );
+      KafkaConsumerField.Type.Integer ) );
     meta.setOffsetField( new KafkaConsumerField( KafkaConsumerField.Name.OFFSET, "off",
-      KafkaConsumerField.Type.INTEGER ) );
+      KafkaConsumerField.Type.Integer ) );
     meta.setTimestampField( new KafkaConsumerField( KafkaConsumerField.Name.TIMESTAMP, "time",
-      KafkaConsumerField.Type.INTEGER ) );
+      KafkaConsumerField.Type.Integer ) );
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
     meta.setBatchSize( 54321 );
     meta.setBatchDuration( 987 );
@@ -218,27 +218,27 @@ public class KafkaConsumerInputMetaTest {
 
     assertEquals( KafkaConsumerField.Name.KEY, meta.getKeyField().getKafkaName() );
     assertEquals( "machineId", meta.getKeyField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, meta.getKeyField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, meta.getKeyField().getOutputType() );
 
     assertEquals( KafkaConsumerField.Name.MESSAGE, meta.getMessageField().getKafkaName() );
     assertEquals( "reading", meta.getMessageField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, meta.getMessageField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, meta.getMessageField().getOutputType() );
 
     assertEquals( KafkaConsumerField.Name.TOPIC, meta.getTopicField().getKafkaName() );
     assertEquals( "readings", meta.getTopicField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, meta.getTopicField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, meta.getTopicField().getOutputType() );
 
     assertEquals( KafkaConsumerField.Name.PARTITION, meta.getPartitionField().getKafkaName() );
     assertEquals( "0", meta.getPartitionField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, meta.getPartitionField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, meta.getPartitionField().getOutputType() );
 
     assertEquals( KafkaConsumerField.Name.OFFSET, meta.getOffsetField().getKafkaName() );
     assertEquals( "999", meta.getOffsetField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, meta.getOffsetField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, meta.getOffsetField().getOutputType() );
 
     assertEquals( KafkaConsumerField.Name.TIMESTAMP, meta.getTimestampField().getKafkaName() );
     assertEquals( String.valueOf( now.getTime() ), meta.getTimestampField().getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, meta.getTimestampField().getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, meta.getTimestampField().getOutputType() );
 
   }
 

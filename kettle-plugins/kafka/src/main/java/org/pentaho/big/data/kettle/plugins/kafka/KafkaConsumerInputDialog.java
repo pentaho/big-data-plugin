@@ -540,7 +540,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   }
 
   private void populateTopicsData() {
-    ArrayList<String> topics = meta.getTopics();
+    List<String> topics = meta.getTopics();
     int rowIndex = 0;
     for ( String topic : topics ) {
       TableItem key = topicsTable.getTable().getItem( rowIndex++ );

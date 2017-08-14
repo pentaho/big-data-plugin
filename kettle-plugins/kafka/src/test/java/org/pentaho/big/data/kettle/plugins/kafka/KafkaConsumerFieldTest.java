@@ -46,7 +46,7 @@ public class KafkaConsumerFieldTest {
 
     assertNull( field.getKafkaName() );
     assertNull( field.getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, field.getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, field.getOutputType() );
   }
 
   @Test
@@ -54,11 +54,11 @@ public class KafkaConsumerFieldTest {
     field = new KafkaConsumerField();
     field.setKafkaName( KafkaConsumerField.Name.MESSAGE );
     field.setOutputName( "MSG" );
-    field.setOutputType( KafkaConsumerField.Type.INTEGER );
+    field.setOutputType( KafkaConsumerField.Type.Integer );
 
     assertEquals( KafkaConsumerField.Name.MESSAGE, field.getKafkaName() );
     assertEquals( "MSG", field.getOutputName() );
-    assertEquals( KafkaConsumerField.Type.INTEGER, field.getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Integer, field.getOutputType() );
   }
 
   @Test
@@ -67,16 +67,16 @@ public class KafkaConsumerFieldTest {
 
     assertEquals( KafkaConsumerField.Name.KEY, field.getKafkaName() );
     assertEquals( "Test Name", field.getOutputName() );
-    assertEquals( KafkaConsumerField.Type.STRING, field.getOutputType() );
+    assertEquals( KafkaConsumerField.Type.String, field.getOutputType() );
   }
 
   @Test
   public void testConstructor_allProps() throws Exception {
-    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.BINARY );
+    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.Binary );
 
     assertEquals( KafkaConsumerField.Name.KEY, field.getKafkaName() );
     assertEquals( "Test Name", field.getOutputName() );
-    assertEquals( KafkaConsumerField.Type.BINARY, field.getOutputType() );
+    assertEquals( KafkaConsumerField.Type.Binary, field.getOutputType() );
   }
 
   @Test
@@ -85,15 +85,15 @@ public class KafkaConsumerFieldTest {
     assertEquals( "class org.apache.kafka.common.serialization.StringSerializer", field.getOutputType().getKafkaSerializerClass().toString() );
     assertEquals( "class org.apache.kafka.common.serialization.StringDeserializer", field.getOutputType().getKafkaDeserializerClass().toString() );
 
-    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.INTEGER );
+    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.Integer );
     assertEquals( "class org.apache.kafka.common.serialization.LongSerializer", field.getOutputType().getKafkaSerializerClass().toString() );
     assertEquals( "class org.apache.kafka.common.serialization.LongDeserializer", field.getOutputType().getKafkaDeserializerClass().toString() );
 
-    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.BINARY );
+    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.Binary );
     assertEquals( "class org.apache.kafka.common.serialization.ByteArraySerializer", field.getOutputType().getKafkaSerializerClass().toString() );
     assertEquals( "class org.apache.kafka.common.serialization.ByteArrayDeserializer", field.getOutputType().getKafkaDeserializerClass().toString() );
 
-    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.NUMBER );
+    field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.Number );
     assertEquals( "class org.apache.kafka.common.serialization.DoubleSerializer", field.getOutputType().getKafkaSerializerClass().toString() );
     assertEquals( "class org.apache.kafka.common.serialization.DoubleDeserializer", field.getOutputType().getKafkaDeserializerClass().toString() );
   }

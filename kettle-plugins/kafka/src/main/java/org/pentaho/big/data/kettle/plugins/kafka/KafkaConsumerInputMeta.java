@@ -39,6 +39,9 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionDeep;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
@@ -64,6 +67,7 @@ import org.w3c.dom.Node;
  */
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg", name = "Kafka Consumer",
   description = "Consume messages from a Kafka topic", categoryDescription = "Input" )
+@InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection." )
 public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {
 
   public static final String CLUSTER_NAME = "clusterName";
@@ -83,19 +87,32 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public static final String TYPE_ATTRIBUTE = "type";
 
   private static Class<?> PKG = KafkaConsumerInput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+
+  @Injection( name = "TRANSFORMATION_PATH" )
+  private String transformationPath;
+
+  @Injection( name = "CLUSTER_NAME" )
   private String clusterName;
-  private ArrayList<String> topics = new ArrayList<String>();
+
+  @Injection( name = "TOPICS" )
+  private List<String> topics = new ArrayList<>();
+
+  @Injection( name = "CONSUMER_GROUP" )
   private String consumerGroup;
 
-  private KafkaConsumerField keyField;
-  private KafkaConsumerField messageField;
+  @Injection( name = "NUM_MESSAGES" )
+  private long batchSize;
+
+  @Injection( name = "DURATION" )
+  private long batchDuration;
+
+  @InjectionDeep( prefix = "KEY" ) private KafkaConsumerField keyField;
+  @InjectionDeep( prefix = "MESSAGE" ) private KafkaConsumerField messageField;
   private KafkaConsumerField topicField;
   private KafkaConsumerField offsetField;
   private KafkaConsumerField partitionField;
   private KafkaConsumerField timestampField;
-  private String transformationPath;
-  private long batchSize;
-  private long batchDuration;
+
   private transient KafkaFactory kafkaFactory;
   private NamedClusterService namedClusterService;
   private MetastoreLocator metastoreLocator;
@@ -122,19 +139,19 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     partitionField = new KafkaConsumerField(
       KafkaConsumerField.Name.PARTITION,
       BaseMessages.getString( PKG, "KafkaConsumerInputDialog.PartitionField" ),
-      KafkaConsumerField.Type.INTEGER
+      KafkaConsumerField.Type.Integer
     );
 
     offsetField = new KafkaConsumerField(
       KafkaConsumerField.Name.OFFSET,
       BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OffsetField" ),
-      KafkaConsumerField.Type.INTEGER
+      KafkaConsumerField.Type.Integer
     );
 
     timestampField = new KafkaConsumerField(
       KafkaConsumerField.Name.TIMESTAMP,
       BaseMessages.getString( PKG, "KafkaConsumerInputDialog.TimestampField" ),
-      KafkaConsumerField.Type.INTEGER
+      KafkaConsumerField.Type.Integer
     );
     setSpecificationMethod( ObjectLocationSpecificationMethod.FILENAME );
   }
@@ -170,7 +187,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       KafkaConsumerField field = new KafkaConsumerField(
         KafkaConsumerField.Name.valueOf( kafkaName.toUpperCase() ),
         displayName,
-        KafkaConsumerField.Type.valueOf( type.toUpperCase() ) );
+        KafkaConsumerField.Type.valueOf( type ) );
 
       setField( field );
     } );
@@ -204,7 +221,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       String value = rep.getStepAttributeString( id_step, prefix );
       String type = rep.getStepAttributeString( id_step, prefix + "_" + TYPE_ATTRIBUTE );
       if ( value != null ) {
-        setField( new KafkaConsumerField( name, value, KafkaConsumerField.Type.valueOf( type.toUpperCase() ) ) );
+        setField( new KafkaConsumerField( name, value, KafkaConsumerField.Type.valueOf( type ) ) );
       }
     }
   }
@@ -320,7 +337,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
         .map( nc -> nc.getKafkaBootstrapServers() ).orElse( "" );
   }
 
-  public ArrayList<String> getTopics() {
+  public List<String> getTopics() {
     return topics;
   }
 
