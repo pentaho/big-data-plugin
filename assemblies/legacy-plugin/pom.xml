@@ -33,11 +33,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${dependency.hadoop-shims-api.revision}</version>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
       <version>${dependency.pentaho-s3-vfs.revision}</version>
