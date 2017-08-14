@@ -32,6 +32,8 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -50,6 +52,7 @@ import org.w3c.dom.Node;
 
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg", name = "Kafka Producer",
   description = "Produce messages to a Kafka topic", categoryDescription = "Output" )
+@InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection." )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public static final String CLUSTER_NAME = "clusterName";
@@ -60,10 +63,15 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   private static Class<?> PKG = KafkaProducerOutput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
+  @Injection( name = "CLUSTER_NAME" )
   private String clusterName;
+  @Injection( name = "CLIENT_ID" )
   private String clientId;
+  @Injection( name = "TOPIC" )
   private String topic;
+  @Injection( name = "KEY_FIELD" )
   private String keyField;
+  @Injection( name = "MESSAGE_FIELD" )
   private String messageField;
 
   private NamedClusterService namedClusterService;
