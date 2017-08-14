@@ -20,8 +20,9 @@ import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
-import org.pentaho.di.trans.Trans;
-import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.job.Job;
+import org.pentaho.di.job.JobExecutionExtension;
+import org.pentaho.di.job.JobMeta;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -29,34 +30,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by tkafalas on 7/25/2017.
+ * Created by tkafalas on 8/11/2017.
  */
-public class NamedClusterServiceExtensionPointTest {
+public class NamedClusterServiceBeforeJobSaveExtensionPointTest {
 
   @Test
-  public void testCallExtensionPointWithTransMeta() throws Exception {
+  public void testCallExtensionPoint() throws Exception {
     NamedClusterService mockNamedClusterService = mock( NamedClusterService.class );
     LogChannelInterface logChannelInterface = mock( LogChannelInterface.class );
-    TransMeta mockTransMeta = mock( TransMeta.class );
-    NamedClusterServiceExtensionPoint namedClusterServiceExtensionPoint =
-      new NamedClusterServiceExtensionPoint( mockNamedClusterService );
+    JobExecutionExtension mockJobExecutionExtension = mock( JobExecutionExtension.class );
+    Job mockJob = mock( Job.class );
+    JobMeta mockJobMeta = mock( JobMeta.class );
+    mockJobExecutionExtension.job = mockJob;
+    when( mockJob.getJobMeta() ).thenReturn( mockJobMeta );
 
-    namedClusterServiceExtensionPoint.callExtensionPoint( logChannelInterface, mockTransMeta );
-    verify( mockTransMeta ).setNamedClusterServiceOsgi( any( NamedClusterServiceOsgi.class ) );
-  }
+    NamedClusterServiceBeforeJobSaveExtensionPoint namedClusterServiceExtensionPoint =
+      new NamedClusterServiceBeforeJobSaveExtensionPoint( mockNamedClusterService );
 
-  @Test
-  public void testCallExtensionPointWithTrans() throws Exception {
-    NamedClusterService mockNamedClusterService = mock( NamedClusterService.class );
-    LogChannelInterface logChannelInterface = mock( LogChannelInterface.class );
-    TransMeta mockTransMeta = mock( TransMeta.class );
-    Trans mockTrans = mock( Trans.class );
-    when( mockTrans.getTransMeta() ).thenReturn( mockTransMeta );
-    NamedClusterServiceExtensionPoint namedClusterServiceExtensionPoint =
-      new NamedClusterServiceExtensionPoint( mockNamedClusterService );
-
-    namedClusterServiceExtensionPoint.callExtensionPoint( logChannelInterface, mockTrans );
-    verify( mockTransMeta ).setNamedClusterServiceOsgi( any( NamedClusterServiceOsgi.class ) );
+    namedClusterServiceExtensionPoint.callExtensionPoint( logChannelInterface, mockJobExecutionExtension );
+    verify( mockJobMeta ).setNamedClusterServiceOsgi( any( NamedClusterServiceOsgi.class ) );
   }
 
 }
