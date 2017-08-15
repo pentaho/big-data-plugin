@@ -509,8 +509,8 @@
       <method>none</method>
       <schema_name />
     </partitioning>
-    <bootstrapServers>localhost:9092</bootstrapServers>
-    <topic>kurt</topic>
+    <clusterName />
+    <topic>${topic}</topic>
     <clientId>test</clientId>
     <keyField>${keyField}</keyField>
     <messageField>${messageField}</messageField>

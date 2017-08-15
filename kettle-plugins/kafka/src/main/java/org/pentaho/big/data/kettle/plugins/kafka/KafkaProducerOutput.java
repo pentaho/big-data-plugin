@@ -94,9 +94,9 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
     ProducerRecord<Object, Object> producerRecord;
     // allow for null keys
     if ( data.keyFieldIndex < 0 || r[ data.keyFieldIndex ] == null || StringUtil.isEmpty( r[ data.keyFieldIndex ].toString() ) ) {
-      producerRecord = new ProducerRecord<>( meta.getTopic(), r[ data.messageFieldIndex ] );
+      producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.messageFieldIndex ] );
     } else {
-      producerRecord = new ProducerRecord<>( meta.getTopic(), r[ data.keyFieldIndex ], r[ data.messageFieldIndex ] );
+      producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.keyFieldIndex ], r[ data.messageFieldIndex ] );
     }
 
     data.kafkaProducer.send( producerRecord );
