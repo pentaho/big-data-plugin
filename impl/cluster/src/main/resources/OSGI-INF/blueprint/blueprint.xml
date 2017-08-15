@@ -28,4 +28,14 @@
     <argument ref="namedClusterManager" />
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
+
+  <bean id="NamedClusterServiceBeforeJobExtensionPoint" scope="singleton" class="org.pentaho.big.data.impl.cluster.NamedClusterServiceBeforeJobExtensionPoint">
+    <argument ref="namedClusterManager" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
+  <bean id="NamedClusterServiceBeforeJobSaveExtensionPoint" scope="singleton" class="org.pentaho.big.data.impl.cluster.NamedClusterServiceBeforeJobSaveExtensionPoint">
+    <argument ref="namedClusterManager" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
 </blueprint>

@@ -17,36 +17,21 @@
 package org.pentaho.big.data.impl.cluster;
 
 import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.di.base.AbstractMeta;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
-import org.pentaho.di.core.extension.ExtensionPointInterface;
-import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
-import org.pentaho.di.job.JobExecutionExtension;
-import org.pentaho.di.trans.Trans;
+
 
 /**
- * Created by tkafalas on 7/14/2017.
+ * Created by tkafalas on 8/9/2017.
+ *  * <p>
+ * This class exists because two ExtensionPoint annotations are not allowed on the same class
  */
-@ExtensionPoint( id = "NamedClusterServiceMetaLoadExtensionPoint", extensionPointId = "TransformationMetaLoaded",
+@ExtensionPoint( id = "NamedClusterServiceBeforeJobSaveExtensionPoint", extensionPointId = "JobBeforeSave",
   description = "" )
-public class NamedClusterServiceExtensionPoint implements ExtensionPointInterface {
+public class NamedClusterServiceBeforeJobSaveExtensionPoint extends NamedClusterServiceExtensionPoint {
   NamedClusterServiceOsgi namedClusterServiceOsgi;
 
-  public NamedClusterServiceExtensionPoint( NamedClusterService namedClusterService ) {
-    namedClusterServiceOsgi = new NamedClusterServiceOsgiImpl( namedClusterService );
-  }
-
-  @Override public void callExtensionPoint( LogChannelInterface log, Object object ) throws KettleException {
-    AbstractMeta meta;
-    if ( object instanceof Trans ) {
-      meta = ( (Trans) object ).getTransMeta();
-    } else if ( object instanceof JobExecutionExtension ) {
-      meta = ( (JobExecutionExtension) object ).job.getJobMeta();
-    } else {
-      meta = (AbstractMeta) object;
-    }
-    meta.setNamedClusterServiceOsgi( namedClusterServiceOsgi );
+  public NamedClusterServiceBeforeJobSaveExtensionPoint( NamedClusterService namedClusterService ) {
+    super( namedClusterService );
   }
 }
