@@ -69,6 +69,7 @@ public class KafkaProducerOutputTest {
     Trans trans = new Trans( transMeta );
     trans.setVariable( "keyField", "key" );
     trans.setVariable( "messageField", "message" );
+    trans.setVariable( "topic", "kurt" );
     trans.prepareExecution( new String[]{} );
 
     StepMetaDataCombi combi = trans.getSteps().get( 1 );
