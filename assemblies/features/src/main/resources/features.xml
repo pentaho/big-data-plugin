@@ -44,7 +44,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-api-jdbc/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
   </feature>
-  
+
   <feature name="pentaho-big-data-plugin-shim-impl" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-format/${project.version}</bundle>
@@ -70,7 +70,6 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hdfs/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-format/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-mapreduce/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-pig/${project.version}</bundle>
