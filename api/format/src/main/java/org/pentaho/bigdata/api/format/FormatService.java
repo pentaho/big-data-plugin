@@ -1,8 +1,8 @@
 /*! ******************************************************************************
  *
- * Pentaho Data Integration
+ * Pentaho Big Data
  *
- * Copyright (C) 2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,24 +19,18 @@
  * limitations under the License.
  *
  ******************************************************************************/
+package org.pentaho.bigdata.api.format;
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
-
-import java.util.Iterator;
-import java.util.List;
-
-import org.pentaho.di.core.RowMetaAndData;
-import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.trans.steps.file.BaseFileInputStepData;
+import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.format.PentahoInputFormat;
-import org.pentaho.hadoop.shim.api.format.PentahoInputSplit;
-import org.pentaho.hadoop.shim.api.format.RecordReader;
+import org.pentaho.hadoop.shim.api.format.PentahoOutputFormat;
+import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
-public class ParquetInputData extends BaseFileInputStepData {
-  PentahoInputFormat input;
-  List<PentahoInputSplit> splits;
-  int currentSplit;
-  RecordReader reader;
-  Iterator<RowMetaAndData> rowIterator;
-  RowMetaInterface outputRowMeta;
+public interface FormatService {
+
+  PentahoInputFormat getInputFormat( Configuration configuration, SchemaDescription schemaDescription);
+
+  PentahoOutputFormat getOutputFormat( Configuration configuration, SchemaDescription schemaDescription );
+
+  Configuration createConfiguration();
 }
