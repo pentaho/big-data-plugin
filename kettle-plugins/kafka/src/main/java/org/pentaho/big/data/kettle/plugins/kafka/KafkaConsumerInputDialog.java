@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -104,6 +107,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private ModifyListener lsMod;
   private TableView fieldsTable;
   private TableView topicsTable;
+  private TableView propertiesTable;
   private Label wlBatchSize;
   private TextVar wBatchSize;
   private Label wlBatchDuration;
@@ -113,10 +117,12 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private CTabItem wSetupTab;
   private CTabItem wBatchTab;
   private CTabItem wFieldsTab;
+  private CTabItem wPropertiesTab;
 
   private Composite wSetupComp;
   private Composite wFieldsComp;
   private Composite wBatchComp;
+  private Composite wPropertiesComp;
 
   public KafkaConsumerInputDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, (BaseStepMeta) in, tr, sname );
@@ -252,6 +258,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     buildSetupTab();
     buildBatchTab();
     buildFieldsTab();
+    buildPropertiesTab();
 
     lsCancel = e -> cancel();
     lsOK = e -> ok();
@@ -418,7 +425,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
   private void buildFieldsTab() {
     wFieldsTab = new CTabItem( wTabFolder, SWT.NONE );
-    wFieldsTab.setText( "Fields" );
+    wFieldsTab.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.FieldsTab" ) );
 
     wFieldsComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wFieldsComp );
@@ -447,6 +454,39 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
     wFieldsComp.layout();
     wFieldsTab.setControl( wFieldsComp );
+  }
+
+  private void buildPropertiesTab() {
+    wPropertiesTab = new CTabItem( wTabFolder, SWT.NONE );
+    wPropertiesTab.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.PropertiesTab" ) );
+
+    wPropertiesComp = new Composite( wTabFolder, SWT.NONE );
+    props.setLook( wPropertiesComp );
+    FormLayout fieldsLayout = new FormLayout();
+    fieldsLayout.marginHeight = 15;
+    fieldsLayout.marginWidth = 15;
+    wPropertiesComp.setLayout( fieldsLayout );
+
+    Label propertiesLabel = new Label( wPropertiesComp, SWT.LEFT );
+    props.setLook( propertiesLabel );
+    propertiesLabel.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.PropertiesLabel" ) );
+    FormData fdlTopic = new FormData();
+    fdlTopic.left = new FormAttachment( 0, 0 );
+    fdlTopic.top = new FormAttachment( 0, 0 );
+    fdlTopic.right = new FormAttachment( 50, 0 );
+    propertiesLabel.setLayoutData( fdlTopic );
+
+    FormData fieldsFormData = new FormData();
+    fieldsFormData.left = new FormAttachment( 0, 0 );
+    fieldsFormData.top = new FormAttachment( wPropertiesComp, 0 );
+    fieldsFormData.right = new FormAttachment( 100, 0 );
+    fieldsFormData.bottom = new FormAttachment( 100, 0 );
+    wPropertiesComp.setLayoutData( fieldsFormData );
+
+    buildPropertiesTable( wPropertiesComp, propertiesLabel );
+
+    wPropertiesComp.layout();
+    wPropertiesTab.setControl( wPropertiesComp );
   }
 
   private void buildFieldTable( Composite parentWidget, Control relativePosition ) {
@@ -495,6 +535,51 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fieldsTable.setLayoutData( fdData );
   }
 
+  private void buildPropertiesTable( Composite parentWidget, Control relativePosition ) {
+    ColumnInfo[] columns = getPropertiesColumns();
+
+    int fieldCount = KafkaDialogHelper.getConsumerConfigOptionNames().size();
+
+    propertiesTable = new TableView(
+      transMeta,
+      parentWidget,
+      SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI,
+      columns,
+      fieldCount,
+      true,
+      lsMod,
+      props,
+      false
+    );
+
+    propertiesTable.setSortable( false );
+    propertiesTable.getTable().addListener( SWT.Resize, event -> {
+      Table table = (Table) event.widget;
+      table.getColumn( 1 ).setWidth( 230 );
+      table.getColumn( 2 ).setWidth( 147 );
+    } );
+
+    populatePropertiesData();
+
+    FormData fdData = new FormData();
+    fdData.left = new FormAttachment( 0, 0 );
+    fdData.top = new FormAttachment( relativePosition, 5 );
+    fdData.right = new FormAttachment( 0, 400 );
+    fdData.bottom = new FormAttachment( 0, 400 );
+
+    // resize the columns to fit the data in them
+    Arrays.stream( propertiesTable.getTable().getColumns() ).forEach( column -> {
+      if ( column.getWidth() > 0 ) {
+        // don't pack anything with a 0 width, it will resize it to make it visible (like the index column)
+        column.setWidth( 120 );
+      }
+    } );
+
+    // don't let any rows get deleted or added (this does not affect the read-only state of the cells)
+    propertiesTable.setReadonly( true );
+    propertiesTable.setLayoutData( fdData );
+  }
+
   private ColumnInfo[] getFieldColumns() {
     KafkaConsumerField.Type[] values = KafkaConsumerField.Type.values();
     String[] supportedTypes = Arrays.stream( values ).map( v -> v.toString() ).toArray( String[]::new );
@@ -519,6 +604,17 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     return new ColumnInfo[]{ referenceName, name, type };
   }
 
+  private ColumnInfo[] getPropertiesColumns() {
+
+    ColumnInfo propertyName = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Ref" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+
+    ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Column.Value" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+
+    return new ColumnInfo[]{ propertyName, value };
+  }
+
   private void populateFieldData() {
     List<KafkaConsumerField> fieldDefinitions = meta.getFieldDefinitions();
     int rowIndex = 0;
@@ -535,6 +631,23 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
       if ( field.getOutputType() != null ) {
         key.setText( 3, field.getOutputType().toString() );
+      }
+    }
+  }
+
+  private void populatePropertiesData() {
+    List<String> fieldDefinitions = KafkaDialogHelper.getConsumerConfigOptionNames();
+    Map<String, String> configs = meta.getAdvancedConfig();
+    int rowIndex = 0;
+    for ( String field : fieldDefinitions ) {
+      TableItem key = propertiesTable.getTable().getItem( rowIndex++ );
+
+      if ( field != null ) {
+        key.setText( 1, field );
+      }
+
+      if ( configs.containsKey( field ) ) {
+        key.setText( 2, configs.get( field ) );
       }
     }
   }
@@ -666,6 +779,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
     setFieldsFromTable();
 
+    setPropertiesFromTable();
+
     dispose();
   }
 
@@ -703,6 +818,21 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
       }
     }
     meta.setTopics( tableTopics );
+  }
+
+  private void setPropertiesFromTable() {
+    int itemCount = propertiesTable.getItemCount();
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+
+    for ( int rowIndex = 0; rowIndex < itemCount; rowIndex++ ) {
+      TableItem row = propertiesTable.getTable().getItem( rowIndex );
+      String config = row.getText( 1 );
+      String value = row.getText( 2 );
+      if ( !"".equals( value ) && !advancedConfig.containsValue( value ) ) {
+        advancedConfig.put( config, value );
+      }
+    }
+    meta.setAdvancedConfig( advancedConfig );
   }
 
   private void selectRepositoryTrans() {

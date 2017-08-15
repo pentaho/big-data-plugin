@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
-      <version>${kafka.version}</version>
+      <version>${dependency.kafka.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -89,6 +89,12 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>${dependency.mockito.revision}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>${dependency.hamcrest.revision}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

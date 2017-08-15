@@ -22,12 +22,22 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.SaslConfigs;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -94,5 +104,45 @@ public class KafkaDialogHelper {
       }
     }
   }
-}
 
+  public static List<String> getConsumerConfigOptionNames() {
+    List<String> optionNames = getConfigOptionNames( ConsumerConfig.class );
+    Stream.of( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConsumerConfig.GROUP_ID_CONFIG,
+        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, SaslConfigs.SASL_JAAS_CONFIG,
+        CommonClientConfigs.SECURITY_PROTOCOL_CONFIG ).forEach( optionNames::remove );
+    return optionNames;
+  }
+
+  public static List<String> getProducerConfigOptionNames() {
+    List<String> optionNames = getConfigOptionNames( ProducerConfig.class );
+    Stream.of( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, ProducerConfig.CLIENT_ID_CONFIG,
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+        SaslConfigs.SASL_JAAS_CONFIG,
+        CommonClientConfigs.SECURITY_PROTOCOL_CONFIG ).forEach( optionNames::remove );
+    return optionNames;
+  }
+
+  private static List<String> getConfigOptionNames( Class cl ) {
+    return getStaticField( cl, "CONFIG" ).map( config ->
+        ( (ConfigDef) config ).configKeys().keySet().stream().sorted().collect( Collectors.toList() )
+    ).orElse( new ArrayList<>() );
+  }
+
+  private static Optional<Object> getStaticField( Class cl, String fieldName ) {
+    Field field = null;
+    boolean isAccessible = false;
+    try {
+      field = cl.getDeclaredField( fieldName );
+      isAccessible = field.isAccessible();
+      field.setAccessible( true );
+      return Optional.ofNullable( field.get( null ) );
+    } catch ( NoSuchFieldException | IllegalAccessException e ) {
+      return Optional.empty();
+    } finally {
+      if ( field != null ) {
+        field.setAccessible( isAccessible );
+      }
+    }
+  }
+}

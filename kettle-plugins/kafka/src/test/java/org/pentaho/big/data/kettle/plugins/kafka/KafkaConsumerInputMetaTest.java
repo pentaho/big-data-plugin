@@ -25,6 +25,9 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -41,20 +44,22 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_DURATION;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_SIZE;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CLUSTER_NAME;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CONSUMER_GROUP;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TOPIC;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TRANSFORMATION_PATH;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class KafkaConsumerInputMetaTest {
@@ -89,6 +94,10 @@ public class KafkaConsumerInputMetaTest {
         + "    <OutputField kafkaName=\"partition\" type=\"Integer\">six</OutputField>\n"
         + "    <OutputField kafkaName=\"offset\" type=\"Integer\">seven</OutputField>\n"
         + "    <OutputField kafkaName=\"timestamp\" type=\"Integer\">eight</OutputField>\n"
+        + "    <advancedConfig>\n"
+        + "        <advanced.property1>advancedPropertyValue1</advanced.property1>\n"
+        + "        <advanced.property2>advancedPropertyValue2</advanced.property2>\n"
+        + "    </advancedConfig>\n"
         + "    <cluster_schema />\n"
         + "    <remotesteps>\n"
         + "      <input>\n"
@@ -134,6 +143,12 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "eight", meta.getTimestampField().getOutputName() );
     assertEquals( KafkaConsumerField.Type.Integer, meta.getTimestampField().getOutputType() );
     assertEquals( KafkaConsumerField.Name.TIMESTAMP, meta.getTimestampField().getKafkaName() );
+
+    assertEquals( 2, meta.getAdvancedConfig().size() );
+    assertTrue( meta.getAdvancedConfig().containsKey( "advanced.property1" ) );
+    assertEquals( "advancedPropertyValue1", meta.getAdvancedConfig().get( "advanced.property1" ) );
+    assertTrue( meta.getAdvancedConfig().containsKey( "advanced.property2" ) );
+    assertEquals( "advancedPropertyValue2", meta.getAdvancedConfig().get( "advanced.property2" ) );
   }
 
   @Test
@@ -160,6 +175,11 @@ public class KafkaConsumerInputMetaTest {
     meta.setBatchSize( 54321 );
     meta.setBatchDuration( 987 );
 
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+    advancedConfig.put( "advanced.property1", "advancedPropertyValue1" );
+    advancedConfig.put( "advanced.property2", "advancedPropertyValue2" );
+    meta.setAdvancedConfig( advancedConfig );
+
     assertEquals(
         "    <clusterName>some_cluster</clusterName>" + Const.CR
       + "    <topic>temperature</topic>" + Const.CR
@@ -172,7 +192,11 @@ public class KafkaConsumerInputMetaTest {
       + "    <OutputField kafkaName=\"topic\"  type=\"String\" >topic</OutputField>" + Const.CR
       + "    <OutputField kafkaName=\"partition\"  type=\"Integer\" >part</OutputField>" + Const.CR
       + "    <OutputField kafkaName=\"offset\"  type=\"Integer\" >off</OutputField>" + Const.CR
-      + "    <OutputField kafkaName=\"timestamp\"  type=\"Integer\" >time</OutputField>" + Const.CR,
+      + "    <OutputField kafkaName=\"timestamp\"  type=\"Integer\" >time</OutputField>" + Const.CR
+      + "    <advancedConfig>" + Const.CR
+      + "        <advanced.property1>advancedPropertyValue1</advanced.property1>" + Const.CR
+      + "        <advanced.property2>advancedPropertyValue2</advanced.property2>" + Const.CR
+      + "    </advancedConfig>" + Const.CR,
       meta.getXML() );
 
   }
@@ -208,6 +232,12 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, "OutputField_timestamp" ) ).thenReturn( String.valueOf( now.getTime() ) );
     when( rep.getStepAttributeString( stepId, "OutputField_timestamp_type" ) ).thenReturn( "Integer" );
 
+    when( rep.getStepAttributeInteger( stepId, meta.ADVANCED_CONFIG + "_COUNT" ) ).thenReturn( 2L );
+    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config1" );
+    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue1" );
+    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config2" );
+    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue2" );
+
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
     assertEquals( "some_cluster", meta.getClusterName() );
     assertEquals( "readings", meta.getTopics().get( 0 ) );
@@ -240,6 +270,9 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( String.valueOf( now.getTime() ), meta.getTimestampField().getOutputName() );
     assertEquals( KafkaConsumerField.Type.Integer, meta.getTimestampField().getOutputType() );
 
+    assertThat( meta.getAdvancedConfig().size(), is( 2 ) );
+    assertThat( meta.getAdvancedConfig(), Matchers.hasEntry( "advanced.config1", "advancedPropertyValue1" ) );
+    assertThat( meta.getAdvancedConfig(), Matchers.hasEntry( "advanced.config2", "advancedPropertyValue2" ) );
   }
 
   @Test
@@ -248,7 +281,7 @@ public class KafkaConsumerInputMetaTest {
     StringObjectId stepId = new StringObjectId( "step1" );
     StringObjectId transId = new StringObjectId( "trans1" );
     meta.setClusterName( "some_cluster" );
-    ArrayList<String> topicList = new ArrayList<String>();
+    ArrayList<String> topicList = new ArrayList<>();
     topicList.add( "temperature" );
     meta.setTopics( topicList );
     meta.setConsumerGroup( "alert" );
@@ -258,6 +291,11 @@ public class KafkaConsumerInputMetaTest {
 
     meta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "kafkaKey" ) );
     meta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "kafkaMessage" ) );
+
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+    advancedConfig.put( "advanced.property1", "advancedPropertyValue1" );
+    advancedConfig.put( "advanced.property2", "advancedPropertyValue2" );
+    meta.setAdvancedConfig( advancedConfig );
 
     meta.saveRep( rep, metastore, transId, stepId );
     verify( rep ).saveStepAttribute( transId, stepId, CLUSTER_NAME, "some_cluster" );
@@ -284,6 +322,12 @@ public class KafkaConsumerInputMetaTest {
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_timestamp", meta.getTimestampField().getOutputName() );
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_timestamp_type", meta.getTimestampField().getOutputType().toString() );
+
+    verify( rep, times( 1 ) ).saveStepAttribute( transId, stepId, meta.ADVANCED_CONFIG + "_COUNT", 2 );
+    verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_NAME", "advanced.property1" );
+    verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue1" );
+    verify( rep ).saveStepAttribute( transId, stepId, 1, meta.ADVANCED_CONFIG + "_NAME", "advanced.property2" );
+    verify( rep ).saveStepAttribute( transId, stepId, 1, meta.ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue2" );
   }
 
   @Test
