@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.verification.VerificationMode;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.di.core.KettleClientEnvironment;
@@ -63,6 +64,8 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.String;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
@@ -290,10 +293,10 @@ public class KafkaConsumerInputTest {
     trans.prepareExecution( new String[]{} );
     trans.startThreads();
     trans.waitUntilFinished();
-    verifyRow( "key_0", "value_0", "0", "1" );
-    verifyRow( "key_1", "value_1", "1", "2" );
-    verifyRow( "key_2", "value_2", "2", "1" );
-    verifyRow( "key_3", "value_3", "3", "2" );
+    verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
+    verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
+    verifyRow( "key_2", "value_2", "2", "1", times( 1 ) );
+    verifyRow( "key_3", "value_3", "3", "2", times( 1 ) );
   }
 
   @Test
@@ -324,14 +327,57 @@ public class KafkaConsumerInputTest {
     trans.prepareExecution( new String[]{} );
     trans.startThreads();
     trans.waitUntilFinished();
-    verifyRow( "key_0", "value_0", "0", "1" );
-    verifyRow( "key_1", "value_1", "1", "2" );
-    verifyRow( "key_2", "value_2", "2", "3" );
-    verifyRow( "key_3", "value_3", "3", "4" );
+    verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
+    verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
+    verifyRow( "key_2", "value_2", "2", "3", times( 1 ) );
+    verifyRow( "key_3", "value_3", "3", "4", times( 1 ) );
   }
 
-  public void verifyRow( String key, String message, String offset, String lineNr ) {
-    verify( logChannel ).logBasic(
+  @Test
+  public void testStopsPollingWhenPaused() throws Exception {
+    String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
+    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    Trans trans = new Trans( consumerParent );
+    KafkaConsumerInputMeta kafkaMeta =
+      (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
+    kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
+    kafkaMeta.setBatchSize( 4 );
+    kafkaMeta.setBatchDuration( 0 );
+    kafkaMeta.setKafkaFactory( factory );
+    int messageCount = 4;
+    messages.put( topic, createRecords( topic.topic(), messageCount ) );
+    records = new ConsumerRecords<>( messages );
+    CountDownLatch latch = new CountDownLatch( 1 );
+    // provide some data when we try to poll for kafka messages
+    when( consumer.poll( 1000 ) )
+      .then( invocationOnMock -> {
+        trans.pauseRunning();
+        latch.countDown();
+        return records;
+      } )
+      .then( invocationOnMock -> {
+        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
+          continue;  //here to fool checkstyle
+        }
+        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
+        return new ConsumerRecords<>( Collections.emptyMap() );
+      } );
+    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
+      .thenReturn( consumer );
+    trans.prepareExecution( new String[]{} );
+    trans.startThreads();
+    latch.await();
+    verifyRow( "key_0", "value_0", "0", "1", never() );
+    trans.resumeRunning();
+    trans.waitUntilFinished();
+    verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
+    verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
+    verifyRow( "key_2", "value_2", "2", "3", times( 1 ) );
+    verifyRow( "key_3", "value_3", "3", "4", times( 1 ) );
+  }
+
+  public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
+    verify( logChannel, mode ).logBasic(
       "\n"
       + "------------> Linenr " + lineNr + "------------------------------\n"
       + "Key = " + key + "\n"

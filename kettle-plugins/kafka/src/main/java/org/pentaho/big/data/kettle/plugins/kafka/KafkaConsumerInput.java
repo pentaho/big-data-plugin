@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -246,6 +247,7 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
   class KafkaConsumerCallable implements Callable<Void> {
     private final AtomicBoolean closed = new AtomicBoolean( false );
     private final Consumer consumer;
+    private CountDownLatch pauseLatch = new CountDownLatch( 0 );
 
     public KafkaConsumerCallable( Consumer consumer ) {
       this.consumer = consumer;
@@ -254,8 +256,10 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
     public Void call() {
       try {
         while ( !closed.get() ) {
+          waitIfPaused();
           ConsumerRecords<String, String> records = consumer.poll( 1000 );
 
+          waitIfPaused();
           records.forEach( record -> {
             try {
               processMessageAsRow( record );
@@ -279,6 +283,14 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
       }
     }
 
+    public void waitIfPaused() {
+      try {
+        pauseLatch.await();
+      } catch ( InterruptedException e ) {
+        logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.Polling" ), e );
+      }
+    }
+
     // Shutdown hook which can be called from a separate thread
     public void shutdown() {
       closed.set( true );
@@ -292,5 +304,15 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
 
     callable.shutdown();
     kafkaConsumerInputData.timer.cancel();
+  }
+
+  @Override public void resumeRunning() {
+    callable.pauseLatch.countDown();
+    super.resumeRunning();
+  }
+
+  @Override public void pauseRunning() {
+    callable.pauseLatch = new CountDownLatch( 1 );
+    super.pauseRunning();
   }
 }
