@@ -21,6 +21,7 @@
     <module>hbase</module>
     <module>sqoop</module>
     <module>jaas</module>
+    <module>format</module>
     <module>shimTests</module>
   </modules>
 </project>
