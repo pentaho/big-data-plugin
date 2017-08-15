@@ -57,24 +57,24 @@ public class KafkaDialogHelper {
 
   public void clusterNameChanged( @SuppressWarnings( "unused" ) Event event ) {
     String current = wTopic.getText();
-    wTopic.getCComboWidget().removeAll();
-    wTopic.setText( current );
     if ( StringUtil.isEmpty( wClusterName.getText() ) ) {
       return;
     }
     String clusterName = wClusterName.getText();
     CompletableFuture
       .supplyAsync( () -> listTopics( clusterName ) )
-      .thenAccept( ( topicMap ) -> Display.getDefault().syncExec( () -> populateTopics( topicMap ) ) );
+      .thenAccept( ( topicMap ) -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
   }
 
-  private void populateTopics( Map<String, List<PartitionInfo>> topicMap ) {
+  private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
+    wTopic.getCComboWidget().removeAll();
     topicMap.keySet().stream()
       .filter( key -> !"__consumer_offsets".equals( key ) ).sorted().forEach( key -> {
         if ( !wTopic.isDisposed() ) {
           wTopic.add( key );
         }
       } );
+    wTopic.getCComboWidget().setText( current );
   }
 
   private Map<String, List<PartitionInfo>> listTopics( String clusterName ) {
