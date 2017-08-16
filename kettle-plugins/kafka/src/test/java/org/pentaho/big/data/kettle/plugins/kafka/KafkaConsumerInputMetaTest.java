@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -40,6 +41,10 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
+import org.pentaho.di.resource.ResourceEntry;
+import org.pentaho.di.resource.ResourceReference;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -362,5 +367,23 @@ public class KafkaConsumerInputMetaTest {
     inputMeta.setClusterName( "kurtsCluster" );
     inputMeta.setMetastoreLocator( metastoreLocator );
     assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
+  }
+
+  @Test
+  public void testGetResourceDependencies() {
+    String stepId = "KafkConsumerInput";
+    String path = "/home/bgroves/fake.ktr";
+
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setStepID( stepId );
+    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
+    List<ResourceReference> resourceDependencies = inputMeta.getResourceDependencies( new TransMeta(), stepMeta );
+    assertEquals( 0, resourceDependencies.get( 0 ).getEntries().size() );
+
+    inputMeta.setTransformationPath( path );
+    resourceDependencies = inputMeta.getResourceDependencies( new TransMeta(), stepMeta );
+    assertEquals( 1, resourceDependencies.get( 0 ).getEntries().size() );
+    assertEquals( path, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResource() );
+    assertEquals( ResourceEntry.ResourceType.ACTIONFILE, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResourcetype() );
   }
 }
