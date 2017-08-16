@@ -735,7 +735,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     }
 
     if ( meta.getClusterName() != null ) {
-      wClusterName.select( Arrays.binarySearch( wClusterName.getItems(), meta.getClusterName() ) );
+      wClusterName.setText( meta.getClusterName() );
     }
 
     populateTopicsData();

@@ -316,10 +316,7 @@ public class KafkaConsumerInputTest {
     // provide some data when we try to poll for kafka messages
     when( consumer.poll( 1000 ) ).thenReturn( records )
       .then( invocationOnMock -> {
-        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
-          continue;  //here to fool checkstyle
-        }
-        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
+        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 500L, TimeUnit.MILLISECONDS );
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )

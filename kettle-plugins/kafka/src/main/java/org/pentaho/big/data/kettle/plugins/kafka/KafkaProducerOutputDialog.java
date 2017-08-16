@@ -22,7 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import java.util.Arrays;
 import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
@@ -321,7 +320,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     }
 
     if ( meta.getClusterName() != null ) {
-      wClusterName.select( Arrays.binarySearch( wClusterName.getItems(), meta.getClusterName()  ) );
+      wClusterName.setText( meta.getClusterName() );
     }
 
     if ( meta.getClientId() != null ) {
