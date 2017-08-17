@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,15 +43,19 @@ public class SqoopServiceFactoryImpl implements NamedClusterServiceFactory<Sqoop
     this.hadoopConfiguration = hadoopConfiguration;
   }
 
-  @Override public Class<SqoopService> getServiceClass() {
+  @Override
+  public Class<SqoopService> getServiceClass() {
     return SqoopService.class;
   }
 
-  @Override public boolean canHandle( NamedCluster namedCluster ) {
-    return isActiveConfiguration;
+  @Override
+  public boolean canHandle( NamedCluster namedCluster ) {
+    boolean ncState = namedCluster == null ? true : !namedCluster.isUseGateway();
+    return isActiveConfiguration && ncState;
   }
 
-  @Override public SqoopService create( NamedCluster namedCluster ) {
+  @Override
+  public SqoopService create( NamedCluster namedCluster ) {
     try {
       HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
       SqoopShim sqoopShim = hadoopConfiguration.getSqoopShim();
