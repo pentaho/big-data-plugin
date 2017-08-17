@@ -54,6 +54,8 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.resource.ResourceEntry;
+import org.pentaho.di.resource.ResourceReference;
 import org.pentaho.di.trans.StepWithMappingMeta;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -538,5 +540,22 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   public Map<String, String> getAdvancedConfig() {
     return advancedConfig;
+  }
+
+  @Override
+  public List<ResourceReference> getResourceDependencies( TransMeta transMeta, StepMeta stepInfo ) {
+    List<ResourceReference> references = new ArrayList<ResourceReference>( 5 );
+    String realFilename = transMeta.environmentSubstitute( transformationPath );
+    ResourceReference reference = new ResourceReference( stepInfo );
+    references.add( reference );
+
+    if ( !Utils.isEmpty( realFilename ) ) {
+      // Add the filename to the references, including a reference to this step
+      // meta data.
+      //
+      reference.getEntries().add( new ResourceEntry( realFilename, ResourceEntry.ResourceType.ACTIONFILE ) );
+    }
+
+    return references;
   }
 }
