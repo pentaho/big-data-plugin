@@ -209,10 +209,6 @@ public class NamedClusterDialogImpl extends Dialog {
       }
     } );
 
-    // Disable horizontal resize
-    shell.addListener( SWT.Resize, e -> {
-      shell.setSize( DIALOG_WIDTH, shell.getSize().y );
-    } );
 
     namedClusterComposite.setStateChangeListener( () -> {
       boolean enabled = !namedCluster.isUseGateway()
