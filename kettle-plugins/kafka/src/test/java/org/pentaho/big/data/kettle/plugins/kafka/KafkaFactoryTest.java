@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -94,6 +95,12 @@ public class KafkaFactoryTest {
     inputMeta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key" ) );
     inputMeta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg" ) );
     inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+    advancedConfig.put( "advanced.config1", "advancedPropertyValue1" );
+    advancedConfig.put( "advanced.config2", "advancedPropertyValue2" );
+    inputMeta.setAdvancedConfig( advancedConfig );
+
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).consumer( inputMeta, Function.identity() );
@@ -102,6 +109,9 @@ public class KafkaFactoryTest {
     expectedMap.put( ConsumerConfig.GROUP_ID_CONFIG, "cg" );
     expectedMap.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
     expectedMap.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
+    expectedMap.put( "advanced.config1", "advancedPropertyValue1" );
+    expectedMap.put( "advanced.config2", "advancedPropertyValue2" );
+
     Mockito.verify( consumerFun ).apply( expectedMap  );
   }
 

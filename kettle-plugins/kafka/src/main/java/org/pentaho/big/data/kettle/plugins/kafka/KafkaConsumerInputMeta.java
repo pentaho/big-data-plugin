@@ -24,14 +24,17 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
+import java.util.stream.IntStream;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -76,6 +79,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public static final String TRANSFORMATION_PATH = "transformationPath";
   public static final String BATCH_SIZE = "batchSize";
   public static final String BATCH_DURATION = "batchDuration";
+  public static final String ADVANCED_CONFIG = "advancedConfig";
 
   public static final String TOPIC_FIELD_NAME = TOPIC;
   public static final String OFFSET_FIELD_NAME = "offset";
@@ -105,6 +109,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   @Injection( name = "DURATION" )
   private long batchDuration;
+
+  private Map<String, String> advancedConfig = new LinkedHashMap<>();
 
   @InjectionDeep( prefix = "KEY" ) private KafkaConsumerField keyField;
   @InjectionDeep( prefix = "MESSAGE" ) private KafkaConsumerField messageField;
@@ -191,6 +197,13 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
       setField( field );
     } );
+
+    advancedConfig = new LinkedHashMap<>();
+
+    Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
+        .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
+            .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
+            .forEach( node -> advancedConfig.put( node.getNodeName(), node.getTextContent() ) ) );
   }
 
   protected void setField( KafkaConsumerField field ) {
@@ -224,6 +237,13 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
         setField( new KafkaConsumerField( name, value, KafkaConsumerField.Type.valueOf( type ) ) );
       }
     }
+
+    advancedConfig = new LinkedHashMap<>();
+
+    for ( int i = 0; i < rep.getStepAttributeInteger( id_step, ADVANCED_CONFIG + "_COUNT" ); i++ ) {
+      advancedConfig.put( rep.getStepAttributeString( id_step, i, ADVANCED_CONFIG + "_NAME" ),
+          rep.getStepAttributeString( id_step, i, ADVANCED_CONFIG + "_VALUE" ) );
+    }
   }
 
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transId, ObjectId stepId )
@@ -245,6 +265,14 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       String prefix = OUTPUT_FIELD_TAG_NAME + "_" + field.getKafkaName().toString();
       rep.saveStepAttribute( transId, stepId, prefix, field.getOutputName() );
       rep.saveStepAttribute( transId, stepId, prefix + "_" + TYPE_ATTRIBUTE, field.getOutputType().toString() );
+    }
+
+    rep.saveStepAttribute( transId, stepId, ADVANCED_CONFIG + "_COUNT", getAdvancedConfig().size() );
+
+    i = 0;
+    for ( String propName : getAdvancedConfig().keySet() ) {
+      rep.saveStepAttribute( transId, stepId, i, ADVANCED_CONFIG + "_NAME", propName );
+      rep.saveStepAttribute( transId, stepId, i++, ADVANCED_CONFIG + "_VALUE", getAdvancedConfig().get( propName ) );
     }
   }
 
@@ -435,6 +463,11 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
           KAFKA_NAME_ATTRIBUTE, field.getKafkaName().toString(),
           TYPE_ATTRIBUTE, field.getOutputType().toString() ) ) );
 
+    retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
+    getAdvancedConfig().forEach( ( key, value ) -> retval.append( "        " )
+        .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
+    retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
+
     return retval.toString();
   }
 
@@ -497,5 +530,13 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   public void setMetastoreLocator( MetastoreLocator metastoreLocator ) {
     this.metastoreLocator = metastoreLocator;
+  }
+
+  public void setAdvancedConfig( Map<String, String> config ) {
+    advancedConfig = config;
+  }
+
+  public Map<String, String> getAdvancedConfig() {
+    return advancedConfig;
   }
 }

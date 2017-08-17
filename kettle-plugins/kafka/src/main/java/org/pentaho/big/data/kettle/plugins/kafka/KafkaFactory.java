@@ -22,6 +22,10 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -30,10 +34,6 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Created by rfellows on 6/2/17.
@@ -67,13 +67,16 @@ public class KafkaFactory {
     kafkaConfig.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, msgDeserializerType.getKafkaDeserializerClass() );
     kafkaConfig.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerType.getKafkaDeserializerClass() );
     meta.getJaasConfigService().ifPresent( jaasConfigService -> putKerberosConfig( kafkaConfig, jaasConfigService ) );
+    meta.getAdvancedConfig().entrySet()
+        .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
+            (String) entry.getValue() ) ) ) );
     return consumerFunction.apply( kafkaConfig );
   }
 
   public void putKerberosConfig( HashMap<String, Object> kafkaConfig, JaasConfigService jaasConfigService ) {
     if ( jaasConfigService.isKerberos() ) {
       kafkaConfig.put( SaslConfigs.SASL_JAAS_CONFIG, jaasConfigService.getJaasConfig() );
-      kafkaConfig.put( "security.protocol", "SASL_PLAINTEXT" );
+      kafkaConfig.put( CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT" );
     }
   }
 
