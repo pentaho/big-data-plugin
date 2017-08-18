@@ -122,8 +122,8 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "one", meta.getTopics().get( 0 ) );
     assertEquals( "two", meta.getConsumerGroup() );
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getTransformationPath() );
-    assertEquals( 12345, meta.getBatchSize() );
-    assertEquals( 999, meta.getBatchDuration() );
+    assertEquals( "12345", meta.getBatchSize() );
+    assertEquals( "999", meta.getBatchDuration() );
 
     assertEquals( "three", meta.getKeyField().getOutputName() );
     assertEquals( KafkaConsumerField.Type.String, meta.getKeyField().getOutputType() );
@@ -177,8 +177,8 @@ public class KafkaConsumerInputMetaTest {
     meta.setTimestampField( new KafkaConsumerField( KafkaConsumerField.Name.TIMESTAMP, "time",
       KafkaConsumerField.Type.Integer ) );
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
-    meta.setBatchSize( 54321 );
-    meta.setBatchDuration( 987 );
+    meta.setBatchSize( "54321" );
+    meta.setBatchDuration( "987" );
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.property1", "advancedPropertyValue1" );
@@ -215,8 +215,8 @@ public class KafkaConsumerInputMetaTest {
     when( rep.countNrStepAttributes( stepId, TOPIC ) ).thenReturn( 1 );
     when( rep.getStepAttributeString( stepId, CONSUMER_GROUP ) ).thenReturn( "hooligans" );
     when( rep.getStepAttributeString( stepId, TRANSFORMATION_PATH ) ).thenReturn( "/home/pentaho/atrans.ktr" );
-    when( rep.getStepAttributeInteger( stepId, BATCH_SIZE ) ).thenReturn( 999L );
-    when( rep.getStepAttributeInteger( stepId, BATCH_DURATION ) ).thenReturn( 111L );
+    when( rep.getStepAttributeString( stepId, BATCH_SIZE ) ).thenReturn( "999" );
+    when( rep.getStepAttributeString( stepId, BATCH_DURATION ) ).thenReturn( "111" );
 
     when( rep.getStepAttributeString( stepId, "OutputField_key" ) ).thenReturn( "machineId" );
     when( rep.getStepAttributeString( stepId, "OutputField_key_type" ) ).thenReturn( "String" );
@@ -248,8 +248,8 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "readings", meta.getTopics().get( 0 ) );
     assertEquals( "hooligans", meta.getConsumerGroup() );
     assertEquals( "/home/pentaho/atrans.ktr", meta.getTransformationPath() );
-    assertEquals( 999, meta.getBatchSize() );
-    assertEquals( 111, meta.getBatchDuration() );
+    assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
+    assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
 
     assertEquals( KafkaConsumerField.Name.KEY, meta.getKeyField().getKafkaName() );
     assertEquals( "machineId", meta.getKeyField().getOutputName() );
@@ -291,8 +291,8 @@ public class KafkaConsumerInputMetaTest {
     meta.setTopics( topicList );
     meta.setConsumerGroup( "alert" );
     meta.setTransformationPath( "/home/Pentaho/btrans.ktr" );
-    meta.setBatchSize( 33L );
-    meta.setBatchDuration( 10000L );
+    meta.setBatchSize( "33" );
+    meta.setBatchDuration( "10000" );
 
     meta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "kafkaKey" ) );
     meta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "kafkaMessage" ) );
@@ -307,8 +307,8 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, 0, TOPIC, "temperature" );
     verify( rep ).saveStepAttribute( transId, stepId, CONSUMER_GROUP, "alert" );
     verify( rep ).saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, "/home/Pentaho/btrans.ktr" );
-    verify( rep ).saveStepAttribute( transId, stepId, BATCH_SIZE, 33L );
-    verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, 10000L );
+    verify( rep ).saveStepAttribute( transId, stepId, BATCH_SIZE, "33" );
+    verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, "10000" );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key", meta.getKeyField().getOutputName() );
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key_type", meta.getKeyField().getOutputType().toString() );

@@ -133,7 +133,7 @@ public class KafkaConsumerInputTest {
     meta.setTopics( topicList );
     meta.setConsumerGroup( "" );
     meta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    meta.setBatchSize( 10 );
+    meta.setBatchSize( "10" );
     meta.setNamedClusterService( namedClusterService );
     meta.setNamedClusterServiceLocator( namedClusterServiceLocator );
     meta.setMetastoreLocator( metastoreLocator );
@@ -156,6 +156,7 @@ public class KafkaConsumerInputTest {
   public void testInit_happyPath() throws Exception {
     meta.setConsumerGroup( "testGroup" );
     meta.setKafkaFactory( factory );
+    meta.setBatchDuration( "0" );
 
     Collection<String> topics = new HashSet<>();
     topics.add( topic.topic() );
@@ -192,6 +193,8 @@ public class KafkaConsumerInputTest {
 
     // set the topic output field name to not include it in the output fields
     meta.setTopicField( new KafkaConsumerField( KafkaConsumerField.Name.TOPIC, null ) );
+
+    meta.setBatchDuration( "0" );
 
     meta.setKafkaFactory( factory );
     Collection<String> topics = Sets.newHashSet( topic.topic() );
@@ -274,7 +277,7 @@ public class KafkaConsumerInputTest {
     KafkaConsumerInputMeta kafkaMeta =
       (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
     kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    kafkaMeta.setBatchSize( 2 );
+    kafkaMeta.setBatchSize( "2" );
     kafkaMeta.setKafkaFactory( factory );
     int messageCount = 4;
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
@@ -307,8 +310,8 @@ public class KafkaConsumerInputTest {
     KafkaConsumerInputMeta kafkaMeta =
       (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
     kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    kafkaMeta.setBatchSize( 200 );
-    kafkaMeta.setBatchDuration( 50 );
+    kafkaMeta.setBatchSize( "200" );
+    kafkaMeta.setBatchDuration( "50" );
     kafkaMeta.setKafkaFactory( factory );
     int messageCount = 4;
     messages.put( topic, createRecords( topic.topic(), messageCount ) );

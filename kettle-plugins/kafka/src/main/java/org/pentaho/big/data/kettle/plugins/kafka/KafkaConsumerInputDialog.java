@@ -744,8 +744,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
       wConsumerGroup.setText( meta.getConsumerGroup() );
     }
 
-    wBatchSize.setText( String.valueOf( meta.getBatchSize() ) );
-    wBatchDuration.setText( String.valueOf( meta.getBatchDuration() ) );
+    wBatchSize.setText( meta.getBatchSize() );
+    wBatchDuration.setText( meta.getBatchDuration() );
 
     populateFieldData();
   }
@@ -774,8 +774,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     setTopicsFromTable();
 
     meta.setConsumerGroup( wConsumerGroup.getText() );
-    meta.setBatchSize( Long.parseLong( wBatchSize.getText() ) );
-    meta.setBatchDuration( Long.parseLong( wBatchDuration.getText() ) );
+    meta.setBatchSize( wBatchSize.getText() );
+    meta.setBatchDuration( wBatchDuration.getText() );
 
     setFieldsFromTable();
 
