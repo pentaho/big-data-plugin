@@ -341,8 +341,8 @@ public class KafkaConsumerInputTest {
     KafkaConsumerInputMeta kafkaMeta =
       (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
     kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    kafkaMeta.setBatchSize( 4 );
-    kafkaMeta.setBatchDuration( 0 );
+    kafkaMeta.setBatchSize( "4" );
+    kafkaMeta.setBatchDuration( "0" );
     kafkaMeta.setKafkaFactory( factory );
     int messageCount = 4;
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
