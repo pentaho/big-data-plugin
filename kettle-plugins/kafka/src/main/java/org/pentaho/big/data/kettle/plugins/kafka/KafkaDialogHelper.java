@@ -31,13 +31,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.config.ConfigDef;
-import org.apache.kafka.common.config.SaslConfigs;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -109,17 +107,15 @@ public class KafkaDialogHelper {
     List<String> optionNames = getConfigOptionNames( ConsumerConfig.class );
     Stream.of( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConsumerConfig.GROUP_ID_CONFIG,
         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, SaslConfigs.SASL_JAAS_CONFIG,
-        CommonClientConfigs.SECURITY_PROTOCOL_CONFIG ).forEach( optionNames::remove );
+        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG ).forEach( optionNames::remove );
     return optionNames;
   }
 
   public static List<String> getProducerConfigOptionNames() {
     List<String> optionNames = getConfigOptionNames( ProducerConfig.class );
     Stream.of( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, ProducerConfig.CLIENT_ID_CONFIG,
-        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-        SaslConfigs.SASL_JAAS_CONFIG,
-        CommonClientConfigs.SECURITY_PROTOCOL_CONFIG ).forEach( optionNames::remove );
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG )
+        .forEach( optionNames::remove );
     return optionNames;
   }
 
