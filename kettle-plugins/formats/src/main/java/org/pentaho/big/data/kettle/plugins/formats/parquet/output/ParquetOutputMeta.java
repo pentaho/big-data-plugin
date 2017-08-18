@@ -34,36 +34,38 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 
-
 @Step( id = "ParquetOutput", image = "PO.svg", name = "ParquetOutput.Name", description = "ParquetOutput.Description",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
-  i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
+    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
+    i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
 public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   private static final Class<?> PKG = ParquetOutputMeta.class;
+
+  private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
 
   private EncodingType encodingType;
   private CompressionType compressionType;
   private ParquetVersion parquetVersion;
-  protected NamedCluster namedCluster;
 
-  private NamedClusterServiceLocator namedClusterServiceLocator;
-  //private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
+  // private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
 
-  public ParquetOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator, NamedClusterService namedClusterService ) {
+  public ParquetOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
+      NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
-
   }
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                                Trans trans ) {
+      Trans trans ) {
     return new ParquetOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
   }
 
+  public NamedCluster getNamedCluster() {
+    return namedClusterService.getClusterTemplate();
+  }
 
   @Override
   public StepDataInterface getStepData() {
@@ -94,7 +96,6 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
     this.parquetVersion = parseFromToString( version, ParquetVersion.values(), null );
   }
 
-
   public String[] getEncodingTypes() {
     return getStrings( EncodingType.values() );
   }
@@ -108,10 +109,7 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   public static enum CompressionType {
-    NONE( getMsg( "ParquetOutput.CompressionType.NONE" ) ),
-    SNAPPY( "Snappy" ),
-    GZIP( "GZIP" ),
-    LZO( "LZO" );
+    NONE( getMsg( "ParquetOutput.CompressionType.NONE" ) ), SNAPPY( "Snappy" ), GZIP( "GZIP" ), LZO( "LZO" );
 
     private final String name;
 
@@ -126,10 +124,9 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   public static enum EncodingType {
-    PLAIN( getMsg( "ParquetOutput.EncodingType.PLAIN" ) ),
-    DICTIONARY( getMsg( "ParquetOutput.EncodingType.DICTIONARY" ) ),
-    BIT_PACKED( getMsg( "ParquetOutput.EncodingType.BIT_PACKED" ) ),
-    RLE( getMsg( "ParquetOutput.EncodingType.RLE" ) );
+    PLAIN( getMsg( "ParquetOutput.EncodingType.PLAIN" ) ), DICTIONARY( getMsg(
+        "ParquetOutput.EncodingType.DICTIONARY" ) ), BIT_PACKED( getMsg(
+            "ParquetOutput.EncodingType.BIT_PACKED" ) ), RLE( getMsg( "ParquetOutput.EncodingType.RLE" ) );
 
     private final String name;
 
@@ -144,8 +141,7 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   public static enum ParquetVersion {
-    PARQUET_1( "Parquet 1.0" ),
-    PARQUET_2( "Parquet 2.0" );
+    PARQUET_1( "Parquet 1.0" ), PARQUET_2( "Parquet 2.0" );
 
     private final String name;
 
@@ -160,10 +156,10 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   protected static <T> String[] getStrings( T[] objects ) {
-    String[] names = new String[ objects.length ];
+    String[] names = new String[objects.length];
     int i = 0;
     for ( T obj : objects ) {
-      names[ i++ ] = obj.toString();
+      names[i++] = obj.toString();
     }
     return names;
   }
@@ -181,9 +177,5 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   private static String getMsg( String key ) {
     return BaseMessages.getString( PKG, key );
-  }
-
-  public NamedCluster getNamedCluster() {
-    return namedClusterService.getClusterTemplate();
   }
 }

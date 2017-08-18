@@ -24,13 +24,12 @@ package org.pentaho.bigdata.api.format;
 import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.format.PentahoInputFormat;
 import org.pentaho.hadoop.shim.api.format.PentahoOutputFormat;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
 public interface FormatService {
 
-  PentahoInputFormat getInputFormat( Configuration configuration, SchemaDescription schemaDescription );
+  PentahoInputFormat getInputFormat();
 
-  PentahoOutputFormat getOutputFormat( Configuration configuration, SchemaDescription schemaDescription );
+  PentahoOutputFormat getOutputFormat();
 
-  Configuration createConfiguration();
+  Configuration createConfiguration(); // TODO remove conf ?
 }
