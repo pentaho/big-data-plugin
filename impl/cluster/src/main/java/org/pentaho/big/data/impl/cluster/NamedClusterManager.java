@@ -80,18 +80,33 @@ public class NamedClusterManager implements NamedClusterService {
     }
   }
 
-  private MetaStoreFactory<NamedClusterImpl> getMetaStoreFactory( IMetaStore metastore ) {
-    MetaStoreFactory<NamedClusterImpl> namedClusterMetaStoreFactory = factoryMap.get( metastore );
+  /**
+   * returns a NamedClusterMetaStoreFactory for a given MetaStore instance.
+   * NOTE:  This method caches and returns a factory for Embedded MetaStores.  For all other
+   * MetaStores, a new instance of MetaStoreFactory will always be returned.
+   *
+   * @param  metastore - the MetaStore for which to to get a MetaStoreFactory.
+   * @return a MetaStoreFactory for the given MetaStore.
+   */
+  @VisibleForTesting
+  MetaStoreFactory<NamedClusterImpl> getMetaStoreFactory( IMetaStore metastore ) {
+    MetaStoreFactory<NamedClusterImpl> namedClusterMetaStoreFactory = null;
+
+    // Only MetaStoreFactories for EmbeddedMetaStores are cached.  For all other MetaStore types, create a new MetaStoreFactory
+    if ( !( metastore instanceof EmbeddedMetaStore ) ) {
+      return new MetaStoreFactory<>( NamedClusterImpl.class, metastore, PentahoDefaults.NAMESPACE );
+    }
+
+    // cache MetaStoreFactories for Embedded MetaStores
+    namedClusterMetaStoreFactory = factoryMap.get( metastore );
+
     if ( namedClusterMetaStoreFactory == null ) {
-      if ( metastore instanceof EmbeddedMetaStore ) {
-        namedClusterMetaStoreFactory =
-          new MetaStoreFactory<>( NamedClusterImpl.class, metastore, NamedClusterEmbedManager.NAMESPACE );
-      } else {
-        namedClusterMetaStoreFactory =
-          new MetaStoreFactory<>( NamedClusterImpl.class, metastore, PentahoDefaults.NAMESPACE );
-      }
+      namedClusterMetaStoreFactory =
+              new MetaStoreFactory<>( NamedClusterImpl.class, metastore, NamedClusterEmbedManager.NAMESPACE );
+
       factoryMap.put( metastore, namedClusterMetaStoreFactory );
     }
+
     return namedClusterMetaStoreFactory;
   }
 
