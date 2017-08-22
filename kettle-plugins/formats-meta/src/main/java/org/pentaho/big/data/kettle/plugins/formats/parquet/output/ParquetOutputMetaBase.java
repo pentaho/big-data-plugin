@@ -90,8 +90,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
         FormatInputField outputField = new FormatInputField();
+        outputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
         outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
         outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
+        outputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
+        outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" )  );
         parquetOutputFields.add( outputField );
       }
       this.outputFields = parquetOutputFields;
@@ -112,8 +115,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
       if ( field.getName() != null && field.getName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getNullString() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -134,8 +140,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       for ( int i = 0; i < nrfields; i++ ) {
         FormatInputField outputField = new FormatInputField();
 
+        outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
         outputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
+        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "nullable" ) );
+        outputField.setNullString( rep.getStepAttributeString( id_step, i, "default" ) );
 
         parquetOutputFields.add( outputField );
       }
@@ -153,8 +162,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       for ( int i = 0; i < outputFields.size(); i++ ) {
         FormatInputField field = outputFields.get( i );
 
+        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
       }
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
