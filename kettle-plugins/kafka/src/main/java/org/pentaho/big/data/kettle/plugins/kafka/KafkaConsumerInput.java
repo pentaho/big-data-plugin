@@ -93,6 +93,7 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
   public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
     kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
     kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
+
     try {
       kafkaConsumerInputMeta.setParentStepMeta( getStepMeta() );
       kafkaConsumerInputMeta.setFileName( kafkaConsumerInputMeta.getTransformationPath() );
