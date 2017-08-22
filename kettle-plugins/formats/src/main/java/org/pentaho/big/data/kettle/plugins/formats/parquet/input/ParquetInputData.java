@@ -30,13 +30,13 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.steps.file.BaseFileInputStepData;
 import org.pentaho.hadoop.shim.api.format.PentahoInputFormat;
 import org.pentaho.hadoop.shim.api.format.PentahoInputSplit;
-import org.pentaho.hadoop.shim.api.format.RecordReader;
+import org.pentaho.hadoop.shim.api.format.PentahoRecordReader;
 
 public class ParquetInputData extends BaseFileInputStepData {
   PentahoInputFormat input;
   List<PentahoInputSplit> splits;
   int currentSplit;
-  RecordReader reader;
+  PentahoRecordReader reader;
   Iterator<RowMetaAndData> rowIterator;
   RowMetaInterface outputRowMeta;
 }

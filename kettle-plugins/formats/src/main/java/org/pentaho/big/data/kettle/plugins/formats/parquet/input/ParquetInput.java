@@ -24,7 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutput;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -35,10 +35,11 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.BaseFileInputStep;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
-import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.api.format.PentahoInputSplit;
+import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
 public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInputData> {
+  public static long SPLIT_SIZE = 128 * 1024 * 1024;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
@@ -74,6 +75,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       } else {
         data.reader.close();
         data.reader = null;
+        logDebug( "Close split {0}", data.currentSplit );
         data.currentSplit++;
         return true;
       }
@@ -84,29 +86,29 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
 
   void initSplits() throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
-    Configuration configuration = formatService.createConfiguration();
-    // configuration.set( FileInputFormat.INPUT_DIR, meta.dir );
-    // configuration.set( ParquetInputFormat.SPLIT_MAXSIZE, "10000000" );
-    // configuration.set( ParquetInputFormat.TASK_SIDE_METADATA, "false" );
-    data.input = formatService.getInputFormat( configuration, ParquetOutput.makeScheme() );
+    if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
+      throw new KettleException( "No input files defined" );
+    }
+    SchemaDescription schema = new SchemaDescription();
+    for ( FormatInputField f : meta.inputFields ) {
+      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), true );
+      schema.addField( field );
+    }
+
+    data.input = formatService.getInputFormat();
+    data.input.setSchema( schema );
+    data.input.setInputFile( meta.inputFiles.fileName[0] );
+    data.input.setSplitSize( SPLIT_SIZE );
 
     data.splits = data.input.getSplits();
+    logDebug( "Input split count: {0}", data.splits.size() );
     data.currentSplit = 0;
-
-    // HadoopConfiguration hc=null;
-    // hc.getFormatShim();
-    // throw new KettleException( "Requires Shim API changes" );
-
-    // data.outputRowMeta = new RowMeta();
-    // for ( Type t : PentahoParquetReadSupport.schema.getFields() ) {
-    // ValueMetaInterface v = ValueMetaFactory.createValueMeta( t.getName(), ValueMetaInterface.TYPE_STRING );
-    // data.outputRowMeta.addValueMeta( v );
-    // }
   }
 
   void openReader( ParquetInputData data ) throws Exception {
+    logDebug( "Open split {0}", data.currentSplit );
     PentahoInputSplit sp = data.splits.get( data.currentSplit );
-    data.reader = data.input.getRecordReader( sp );
+    data.reader = data.input.createRecordReader( sp );
     data.rowIterator = data.reader.iterator();
   }
 
