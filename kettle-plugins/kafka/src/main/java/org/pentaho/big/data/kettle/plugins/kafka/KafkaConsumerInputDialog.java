@@ -553,18 +553,18 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     Label optionsLabel = new Label( wOptionsComp, SWT.LEFT );
     props.setLook( optionsLabel );
     optionsLabel.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OptionsLabel" ) );
-    FormData fdlTopic = new FormData();
-    fdlTopic.left = new FormAttachment( 0, 0 );
-    fdlTopic.top = new FormAttachment( 0, 0 );
-    fdlTopic.right = new FormAttachment( 50, 0 );
-    optionsLabel.setLayoutData( fdlTopic );
+    FormData fdlOptions = new FormData();
+    fdlOptions.left = new FormAttachment( 0, 0 );
+    fdlOptions.top = new FormAttachment( 0, 0 );
+    fdlOptions.right = new FormAttachment( 50, 0 );
+    optionsLabel.setLayoutData( fdlOptions );
 
-    FormData fieldsFormData = new FormData();
-    fieldsFormData.left = new FormAttachment( 0, 0 );
-    fieldsFormData.top = new FormAttachment( wOptionsComp, 0 );
-    fieldsFormData.right = new FormAttachment( 100, 0 );
-    fieldsFormData.bottom = new FormAttachment( 100, 0 );
-    wOptionsComp.setLayoutData( fieldsFormData );
+    FormData optionsFormData = new FormData();
+    optionsFormData.left = new FormAttachment( 0, 0 );
+    optionsFormData.top = new FormAttachment( wOptionsComp, 0 );
+    optionsFormData.right = new FormAttachment( 100, 0 );
+    optionsFormData.bottom = new FormAttachment( 100, 0 );
+    wOptionsComp.setLayoutData( optionsFormData );
 
     buildOptionsTable( wOptionsComp, optionsLabel );
 

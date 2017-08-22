@@ -70,6 +70,7 @@ public class KafkaFactory {
     meta.getAdvancedConfig().entrySet()
         .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
             (String) entry.getValue() ) ) ) );
+
     return consumerFunction.apply( kafkaConfig );
   }
 
@@ -96,6 +97,10 @@ public class KafkaFactory {
     kafkaConfig.put( ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, msgSerializerType.getKafkaSerializerClass() );
     kafkaConfig.put( ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerType.getKafkaSerializerClass() );
     meta.getJaasConfigService().ifPresent( jaasConfigService -> putKerberosConfig( kafkaConfig, jaasConfigService ) );
+    meta.getAdvancedConfig().entrySet()
+        .forEach( ( entry -> kafkaConfig.put( entry.getKey(), variableNonNull.apply(
+            (String) entry.getValue() ) ) ) );
+
     return producerFunction.apply( kafkaConfig );
   }
 
