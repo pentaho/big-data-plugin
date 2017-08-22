@@ -94,7 +94,6 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
     }
     ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
-    resizer.addColumnResizeListeners( wInputFields.getTable() );
     setTruncatedColumn( wInputFields.getTable(), 1 );
     if ( !Const.isWindows() ) {
       addColumnTooltip( wInputFields.getTable(), 1 );

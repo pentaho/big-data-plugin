@@ -30,8 +30,6 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -48,7 +46,6 @@ import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
@@ -196,11 +193,13 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     new FD( lRowSize ).left( 0, 0 ).top( wVersion, FIELDS_SEP ).apply();
     wRowSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     new FD( wRowSize ).left( 0, 0 ).top( lRowSize, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    setIntegerOnly( wRowSize );
 
     Label lDataPageSize = createLabel( wComp, "ParquetOutputDialog.Options.PageSize" );
     new FD( lDataPageSize ).left( 0, 0 ).top( wRowSize, FIELDS_SEP ).apply();
     wPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     new FD( wPageSize ).left( 0, 0 ).top( lDataPageSize, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    setIntegerOnly( wPageSize );
 
     Control leftRef = wCompression;
     // 2nd column
@@ -215,14 +214,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     new FD( lDict ).left( leftRef, COLUMNS_SEP ).top( wEncoding, FIELDS_SEP ).apply();
     wDictPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     new FD( wDictPageSize ).left( leftRef, COLUMNS_SEP ).top( lDict, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-    wDictPageSize.getTextWidget().addVerifyListener( new VerifyListener() {
-      @Override
-      public void verifyText( VerifyEvent e ) {
-        if ( !StringUtil.isEmpty( e.text ) && !StringUtil.isVariable( e.text ) && !StringUtil.IsInteger( e.text ) ) {
-          e.doit = false;
-        }
-      }
-    } );
+    setIntegerOnly( wDictPageSize );
     wEncoding.addModifyListener( new ModifyListener() {
       @Override
       public void modifyText( ModifyEvent e ) {
@@ -261,8 +253,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   @Override
   protected void getInfo( ParquetOutputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
-    // TODO 
-
+    // TODO
     saveOutputFields( wOutputFields, meta );
   }
 

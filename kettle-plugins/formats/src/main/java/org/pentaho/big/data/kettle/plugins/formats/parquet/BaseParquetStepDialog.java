@@ -37,6 +37,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -58,6 +60,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.VFSScheme;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -318,16 +321,19 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     Label wlPath = new Label( shell, SWT.RIGHT );
     wlPath.setText( getBaseMsg( "ParquetDialog.Filename.Label" ) );
     props.setLook( wlPath );
-    new FD( wlPath ).left( 0, 0 ).top( wLocation, 10 ).apply();
+    new FD( wlPath ).left( 0, 0 ).top( wLocation, FIELDS_SEP ).apply();
     wPath = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wPath );
     new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
+
 
     wbBrowse = new Button( shell, SWT.PUSH );
     props.setLook( wbBrowse );
     wbBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
-    new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP ).apply();
+    int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
+      - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
+    new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
     return wPath;
   }
 
@@ -569,5 +575,15 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     return extraWidth;
   }
 
+  protected void setIntegerOnly( TextVar textVar ) {
+    textVar.getTextWidget().addVerifyListener( new VerifyListener() {
+      @Override
+      public void verifyText( VerifyEvent e ) {
+        if ( !StringUtil.isEmpty( e.text ) && !StringUtil.isVariable( e.text ) && !StringUtil.IsInteger( e.text ) ) {
+          e.doit = false;
+        }
+      }
+    } );
+  }
 
 }
