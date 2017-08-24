@@ -110,7 +110,8 @@ public class ClusterRuntimeTestEntry extends RuntimeTestResultEntryImpl {
     CLUSTER_CONNECT_GATEWAY( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.ClusterConnectGateway" ),
     ACCESS_DIRECTORY( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.AccessDirectory" ),
     OOZIE( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.Oozie" ),
-    ZOOKEEPER( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.Zookeeper" );
+    ZOOKEEPER( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.Zookeeper" ),
+    KAFKA( "RuntimeTestResultEntryWithDefaultShimHelp.Shell.Doc.Anchor.Kafka" );
     private final String anchorTextKey;
 
     DocAnchor( String anchorTextKey ) {
