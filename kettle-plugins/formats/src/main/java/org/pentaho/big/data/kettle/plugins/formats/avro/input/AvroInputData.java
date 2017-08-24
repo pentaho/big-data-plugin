@@ -19,15 +19,24 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
-import org.pentaho.di.trans.step.BaseStepData;
-import org.pentaho.di.trans.step.StepDataInterface;
-import org.pentaho.hadoop.shim.api.format.IPentahoOutputFormat.IPentahoRecordWriter;
-import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
+package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
-public class ParquetOutputData extends BaseStepData implements StepDataInterface {
+import java.util.Iterator;
+import java.util.List;
 
-  public IPentahoParquetOutputFormat output;
-  public IPentahoRecordWriter writer;
+import org.pentaho.di.core.RowMetaAndData;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.trans.steps.file.BaseFileInputStepData;
+import org.pentaho.hadoop.shim.api.format.IPentahoInputFormat.IPentahoRecordReader;
+import org.pentaho.hadoop.shim.api.format.IPentahoInputFormat.IPentahoInputSplit;
+import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
+
+public class AvroInputData extends BaseFileInputStepData {
+  IPentahoAvroInputFormat input;
+  List<IPentahoInputSplit> splits;
+  int currentSplit;
+  IPentahoRecordReader reader;
+  Iterator<RowMetaAndData> rowIterator;
+  RowMetaInterface outputRowMeta;
 }

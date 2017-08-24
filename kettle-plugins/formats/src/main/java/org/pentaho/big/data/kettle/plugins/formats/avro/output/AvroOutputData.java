@@ -1,4 +1,4 @@
-/*! ******************************************************************************
+/*******************************************************************************
  *
  * Pentaho Data Integration
  *
@@ -19,15 +19,15 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
+package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.hadoop.shim.api.format.IPentahoOutputFormat.IPentahoRecordWriter;
-import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
+import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
 
-public class ParquetOutputData extends BaseStepData implements StepDataInterface {
+public class AvroOutputData extends BaseStepData implements StepDataInterface {
 
-  public IPentahoParquetOutputFormat output;
+  public IPentahoAvroOutputFormat output;
   public IPentahoRecordWriter writer;
 }
