@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
+package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -36,15 +36,15 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.BaseFileInputStep;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IPentahoInputFormat.IPentahoInputSplit;
-import org.pentaho.hadoop.shim.api.format.IPentahoParquetInputFormat;
+import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
-public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInputData> {
+public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   public static long SPLIT_SIZE = 128 * 1024 * 1024;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
-  public ParquetInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
+  public AvroInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
@@ -52,8 +52,8 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
 
   @Override
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
-    meta = (ParquetInputMeta) smi;
-    data = (ParquetInputData) sdi;
+    meta = (AvroInputMeta) smi;
+    data = (AvroInputData) sdi;
 
     try {
       if ( data.splits == null ) {
@@ -98,7 +98,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       schema.addField( field );
     }
 
-    data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class );
+    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
     data.input.setSchema( schema );
     data.input.setInputFile( meta.inputFiles.fileName[0] );
     data.input.setSplitSize( SPLIT_SIZE );
@@ -108,7 +108,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     data.currentSplit = 0;
   }
 
-  void openReader( ParquetInputData data ) throws Exception {
+  void openReader( AvroInputData data ) throws Exception {
     logDebug( "Open split {0}", data.currentSplit );
     IPentahoInputSplit sp = data.splits.get( data.currentSplit );
     data.reader = data.input.createRecordReader( sp );
@@ -121,7 +121,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   @Override
-  protected IBaseFileInputReader createReader( ParquetInputMeta meta, ParquetInputData data, FileObject file )
+  protected IBaseFileInputReader createReader( AvroInputMeta meta, AvroInputData data, FileObject file )
     throws Exception {
     return null;
   }

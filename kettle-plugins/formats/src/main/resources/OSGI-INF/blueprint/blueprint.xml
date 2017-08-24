@@ -15,6 +15,16 @@
     <argument ref="namedClusterService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
+  <bean id="avroOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMeta" scope="prototype">
+    <argument ref="namedClusterServiceLocator"/>
+    <argument ref="namedClusterService"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
+  <!--bean id="avroInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMeta" scope="prototype">
+    <argument ref="namedClusterServiceLocator"/>
+    <argument ref="namedClusterService"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean-->
 
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
   <reference id="namedClusterServiceLocator" interface="org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator"/>

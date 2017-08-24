@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
+package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
 import java.io.IOException;
 
@@ -37,18 +37,18 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
+import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
-public class ParquetOutput extends BaseStep implements StepInterface {
+public class AvroOutput extends BaseStep implements StepInterface {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
-  private ParquetOutputMeta meta;
+  private AvroOutputMeta meta;
 
-  private ParquetOutputData data;
+  private AvroOutputData data;
 
-  public ParquetOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
+  public AvroOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
@@ -97,11 +97,9 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       schema.addField( field );
     }
 
-    data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
     data.output.setOutputFile( meta.getFilename() );
     data.output.setSchema( schema );
-    data.output.setVersion( IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
-    data.output.setEncoding( IPentahoParquetOutputFormat.ENCODING.PLAIN );
     data.writer = data.output.createRecordWriter();
   }
 
@@ -115,8 +113,8 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   }
 
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
-    meta = (ParquetOutputMeta) smi;
-    data = (ParquetOutputData) sdi;
+    meta = (AvroOutputMeta) smi;
+    data = (AvroOutputData) sdi;
     if ( super.init( smi, sdi ) ) {
       return true;
     }
