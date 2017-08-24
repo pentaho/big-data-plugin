@@ -51,7 +51,8 @@ import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg", name = "Kafka Producer",
-  description = "Produce messages to a Kafka topic", categoryDescription = "Output" )
+  description = "Produce messages to a Kafka topic",
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection." )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
 

@@ -71,7 +71,8 @@ import org.w3c.dom.Node;
  * Skeleton for PDI Step plugin.
  */
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg", name = "Kafka Consumer",
-  description = "Consume messages from a Kafka topic", categoryDescription = "Input" )
+  description = "Consume messages from a Kafka topic",
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection." )
 public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {
 
