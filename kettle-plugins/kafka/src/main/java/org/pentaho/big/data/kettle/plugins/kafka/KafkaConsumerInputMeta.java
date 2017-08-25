@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
+
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
@@ -67,6 +69,8 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
+
 /**
  * Skeleton for PDI Step plugin.
  */
@@ -82,6 +86,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public static final String TRANSFORMATION_PATH = "transformationPath";
   public static final String BATCH_SIZE = "batchSize";
   public static final String BATCH_DURATION = "batchDuration";
+  public static final String CONNECTION_TYPE = "connectionType";
+  public static final String DIRECT_BOOTSTRAP_SERVERS = "directBootstrapServers";
   public static final String ADVANCED_CONFIG = "advancedConfig";
 
   public static final String TOPIC_FIELD_NAME = TOPIC;
@@ -112,6 +118,24 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   @Injection( name = "DURATION" )
   private String batchDuration;
+
+  @Injection( name = "CONNECTION_TYPE" )
+  private ConnectionType connectionType;
+  private String directBootstrapServers;
+
+  public void setDirectBootstrapServers( final String directBootstrapServers ) {
+    this.directBootstrapServers = directBootstrapServers;
+  }
+
+  public String getDirectBootstrapServers() {
+    return directBootstrapServers;
+  }
+
+
+  public enum ConnectionType {
+    DIRECT,
+    CLUSTER
+  }
 
   private Map<String, String> advancedConfig = new LinkedHashMap<>();
 
@@ -187,6 +211,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     setTransformationPath( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
     setBatchSize( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) );
     setBatchDuration( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) );
+    setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
+    setDirectBootstrapServers( XMLHandler.getTagValue( stepnode, DIRECT_BOOTSTRAP_SERVERS ) );
     List<Node> ofNode = XMLHandler.getNodes( stepnode, OUTPUT_FIELD_TAG_NAME );
 
     ofNode.forEach( node -> {
@@ -231,6 +257,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     setTransformationPath( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
     setBatchSize( rep.getStepAttributeString( id_step, BATCH_SIZE ) );
     setBatchDuration( rep.getStepAttributeString( id_step, BATCH_DURATION ) );
+    setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( id_step, CONNECTION_TYPE ) ) );
+    setDirectBootstrapServers( rep.getStepAttributeString( id_step, DIRECT_BOOTSTRAP_SERVERS ) );
 
     for ( KafkaConsumerField.Name name : KafkaConsumerField.Name.values() ) {
       String prefix = OUTPUT_FIELD_TAG_NAME + "_" + name;
@@ -262,6 +290,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     rep.saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, transformationPath );
     rep.saveStepAttribute( transId, stepId, BATCH_SIZE, batchSize );
     rep.saveStepAttribute( transId, stepId, BATCH_DURATION, batchDuration );
+    rep.saveStepAttribute( transId, stepId, CONNECTION_TYPE, connectionType.name() );
+    rep.saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
 
     List<KafkaConsumerField> fields = getFieldDefinitions();
     for ( KafkaConsumerField field : fields ) {
@@ -363,9 +393,12 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   }
 
   public String getBootstrapServers() {
+    if ( DIRECT.equals( getConnectionType() ) ) {
+      return getDirectBootstrapServers();
+    }
     return Optional
         .ofNullable( namedClusterService.getNamedClusterByName( clusterName, metastoreLocator.getMetastore() ) )
-        .map( nc -> nc.getKafkaBootstrapServers() ).orElse( "" );
+        .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
   public List<String> getTopics() {
@@ -448,6 +481,14 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     this.batchDuration = batchDuration;
   }
 
+  public ConnectionType getConnectionType() {
+    return connectionType;
+  }
+
+  public void setConnectionType( final ConnectionType connectionType ) {
+    this.connectionType = connectionType;
+  }
+
   @Override public String getXML() throws KettleException {
     StringBuilder retval = new StringBuilder();
     retval.append( "    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, clusterName ) );
@@ -459,6 +500,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     retval.append( "    " ).append( XMLHandler.addTagValue( TRANSFORMATION_PATH, transformationPath ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_SIZE, batchSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_DURATION, batchDuration ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );
 
     getFieldDefinitions().forEach( field ->
       retval.append( "    " ).append(
@@ -513,6 +556,9 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   }
 
   public Optional<JaasConfigService> getJaasConfigService() {
+    if ( DIRECT.equals( getConnectionType() ) ) {
+      return Optional.empty();
+    }
     try {
       return Optional.ofNullable( namedClusterServiceLocator.getService(
         namedClusterService.getNamedClusterByName( getClusterName(), getMetastoreLocator().getMetastore() ),

@@ -37,6 +37,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Image;
@@ -48,6 +49,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -80,6 +82,9 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 @SuppressWarnings( { "FieldCanBeLocal", "unused" } )
 public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDialogInterface {
@@ -123,6 +128,10 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private Composite wFieldsComp;
   private Composite wBatchComp;
   private Composite wPropertiesComp;
+  private Button wbDirect;
+  private Button wbCluster;
+  private Label wlBootstrapServers;
+  private TextVar wBootstrapServers;
 
   public KafkaConsumerInputDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, (BaseStepMeta) in, tr, sname );
@@ -308,30 +317,105 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     setupLayout.marginWidth = 15;
     wSetupComp.setLayout( setupLayout );
 
-    wlClusterName = new Label( wSetupComp, SWT.LEFT );
+    Group wConnectionGroup = new Group( wSetupComp, SWT.SHADOW_ETCHED_IN );
+    wConnectionGroup.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Connection" ) );
+    FormLayout flConnection = new FormLayout();
+    flConnection.marginHeight = 15;
+    flConnection.marginWidth = 15;
+    wConnectionGroup.setLayout( flConnection );
+
+    FormData fdConnectionGroup = new FormData();
+    fdConnectionGroup.left = new FormAttachment( 0, 0 );
+    fdConnectionGroup.top = new FormAttachment( 0, 0 );
+    fdConnectionGroup.right = new FormAttachment( 100, 0 );
+    fdConnectionGroup.width = INPUT_WIDTH;
+    wConnectionGroup.setLayoutData( fdConnectionGroup );
+
+    props.setLook( wConnectionGroup );
+
+    wbDirect = new Button( wConnectionGroup, SWT.RADIO );
+    wbDirect.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Direct" ) );
+    FormData fdbDirect = new FormData();
+    fdbDirect.left = new FormAttachment( 0, 0 );
+    fdbDirect.top = new FormAttachment( 0, 0 );
+    wbDirect.setLayoutData( fdbDirect );
+    wbDirect.addSelectionListener( new SelectionListener() {
+      @Override public void widgetSelected( final SelectionEvent selectionEvent ) {
+        lsMod.modifyText( null );
+        toggleVisibility( true );
+      }
+      @Override public void widgetDefaultSelected( final SelectionEvent selectionEvent ) {
+        toggleVisibility( true );
+      }
+    } );
+    props.setLook( wbDirect );
+
+    wbCluster = new Button( wConnectionGroup, SWT.RADIO );
+    wbCluster.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Cluster" ) );
+    FormData fdbCluster = new FormData();
+    fdbCluster.left = new FormAttachment( 0, 0 );
+    fdbCluster.top = new FormAttachment( wbDirect, 10 );
+    wbCluster.setLayoutData( fdbCluster );
+    wbCluster.addSelectionListener( new SelectionListener() {
+      @Override public void widgetSelected( final SelectionEvent selectionEvent ) {
+        lsMod.modifyText( null );
+        toggleVisibility( false );
+      }
+      @Override public void widgetDefaultSelected( final SelectionEvent selectionEvent ) {
+        toggleVisibility( false );
+      }
+    } );
+    props.setLook( wbCluster );
+
+    Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
+    FormData fdenvironmentSeparator = new FormData();
+    fdenvironmentSeparator.top = new FormAttachment( 0, 0 );
+    fdenvironmentSeparator.left = new FormAttachment( wbCluster, 15 );
+    fdenvironmentSeparator.bottom = new FormAttachment( 100, 0 );
+    environmentSeparator.setLayoutData( fdenvironmentSeparator );
+
+    wlClusterName = new Label( wConnectionGroup, SWT.LEFT );
     props.setLook( wlClusterName );
     wlClusterName.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.HadoopCluster" ) );
-    FormData fdlServer = new FormData();
-    fdlServer.left = new FormAttachment( 0, 0 );
-    fdlServer.top = new FormAttachment( 0, 0 );
-    fdlServer.right = new FormAttachment( 50, 0 );
-    wlClusterName.setLayoutData( fdlServer );
+    FormData fdlClusterName = new FormData();
+    fdlClusterName.left = new FormAttachment( environmentSeparator, 15 );
+    fdlClusterName.top = new FormAttachment( 0, 0 );
+    fdlClusterName.right = new FormAttachment( 78, 0 );
+    wlClusterName.setLayoutData( fdlClusterName );
 
-    wClusterName = new ComboVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wClusterName = new ComboVar( transMeta, wConnectionGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wClusterName );
     wClusterName.addModifyListener( lsMod );
-    FormData fdServer = new FormData();
-    fdServer.left = new FormAttachment( 0, 0 );
-    fdServer.top = new FormAttachment( wlClusterName, 5 );
-    fdServer.width = INPUT_WIDTH;
-    wClusterName.setLayoutData( fdServer );
+    FormData fdClusterName = new FormData();
+    fdClusterName.left = new FormAttachment( wlClusterName, 0, SWT.LEFT );
+    fdClusterName.top = new FormAttachment( wlClusterName, 5 );
+    fdClusterName.right = new FormAttachment( 78, 0 );
+    wClusterName.setLayoutData( fdClusterName );
+
+    wlBootstrapServers = new Label( wConnectionGroup, SWT.LEFT );
+    props.setLook( wlBootstrapServers );
+    wlBootstrapServers.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.BootstrapServers" ) );
+    FormData fdlBootstrapServers = new FormData();
+    fdlBootstrapServers.left = new FormAttachment( environmentSeparator, 15 );
+    fdlBootstrapServers.top = new FormAttachment( 0, 0 );
+    fdlBootstrapServers.right = new FormAttachment( 78, 0 );
+    wlBootstrapServers.setLayoutData( fdlBootstrapServers );
+
+    wBootstrapServers = new TextVar( transMeta, wConnectionGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wBootstrapServers );
+    wBootstrapServers.addModifyListener( lsMod );
+    FormData fdBootstrapServers = new FormData();
+    fdBootstrapServers.left = new FormAttachment( wlBootstrapServers, 0, SWT.LEFT );
+    fdBootstrapServers.top = new FormAttachment( wlBootstrapServers, 5 );
+    fdBootstrapServers.right = new FormAttachment( 78, 0 );
+    wBootstrapServers.setLayoutData( fdBootstrapServers );
 
     wlTopic = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlTopic );
     wlTopic.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.Topics" ) );
     FormData fdlTopic = new FormData();
     fdlTopic.left = new FormAttachment( 0, 0 );
-    fdlTopic.top = new FormAttachment( wClusterName, 10 );
+    fdlTopic.top = new FormAttachment( wConnectionGroup, 10 );
     fdlTopic.right = new FormAttachment( 50, 0 );
     wlTopic.setLayoutData( fdlTopic );
 
@@ -363,6 +447,13 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     wSetupComp.setLayoutData( fdSetupComp );
     wSetupComp.layout();
     wSetupTab.setControl( wSetupComp );
+  }
+
+  public void toggleVisibility( final boolean isDirect ) {
+    wlBootstrapServers.setVisible( isDirect );
+    wlBootstrapServers.setVisible( isDirect );
+    wlClusterName.setVisible( !isDirect );
+    wClusterName.setVisible( !isDirect );
   }
 
   private void buildBatchTab() {
@@ -709,7 +800,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( relativePosition, 5 );
     fdData.right = new FormAttachment( 0, 337 );
-    fdData.bottom = new FormAttachment( 0, 165 );
+    fdData.bottom = new FormAttachment( 0, 240 );
 
     // resize the columns to fit the data in them
     Arrays.stream( topicsTable.getTable().getColumns() ).forEach( column -> {
@@ -738,6 +829,10 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
       wClusterName.setText( meta.getClusterName() );
     }
 
+    if ( meta.getDirectBootstrapServers() != null ) {
+      wBootstrapServers.setText( meta.getDirectBootstrapServers() );
+    }
+
     populateTopicsData();
 
     if ( meta.getConsumerGroup() != null ) {
@@ -746,8 +841,20 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
     wBatchSize.setText( meta.getBatchSize() );
     wBatchDuration.setText( meta.getBatchDuration() );
+    if ( isDirect() ) {
+      wbCluster.setSelection( false );
+      wbDirect.setSelection( true );
+    } else {
+      wbCluster.setSelection( true );
+      wbDirect.setSelection( false );
+    }
+    toggleVisibility( isDirect() );
 
     populateFieldData();
+  }
+
+  private boolean isDirect() {
+    return DIRECT.equals( meta.getConnectionType() );
   }
 
   private Image getImage() {
@@ -776,6 +883,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     meta.setConsumerGroup( wConsumerGroup.getText() );
     meta.setBatchSize( wBatchSize.getText() );
     meta.setBatchDuration( wBatchDuration.getText() );
+    meta.setConnectionType( wbDirect.getSelection() ? DIRECT : CLUSTER );
+    meta.setDirectBootstrapServers( wBootstrapServers.getText() );
 
     setFieldsFromTable();
 

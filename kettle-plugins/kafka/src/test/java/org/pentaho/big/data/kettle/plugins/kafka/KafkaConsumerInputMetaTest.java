@@ -51,6 +51,7 @@ import org.w3c.dom.Node;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -62,7 +63,11 @@ import static org.mockito.Mockito.when;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_DURATION;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_SIZE;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CLUSTER_NAME;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CONNECTION_TYPE;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CONSUMER_GROUP;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.DIRECT_BOOTSTRAP_SERVERS;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TOPIC;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TRANSFORMATION_PATH;
 
@@ -87,7 +92,9 @@ public class KafkaConsumerInputMetaTest {
         + "      <method>none</method>\n"
         + "      <schema_name />\n"
         + "    </partitioning>\n"
-          + "    <clusterName>some_cluster</clusterName>\n"
+        + "    <clusterName>some_cluster</clusterName>\n"
+        + "    <directBootstrapServers>some_host:123,some_other_host:456</directBootstrapServers>\n"
+        + "    <connectionType>CLUSTER</connectionType>\n"
         + "    <topic>one</topic>\n"
         + "    <consumerGroup>two</consumerGroup>\n"
         + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>\n"
@@ -124,6 +131,8 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getTransformationPath() );
     assertEquals( "12345", meta.getBatchSize() );
     assertEquals( "999", meta.getBatchDuration() );
+    assertEquals( CLUSTER, meta.getConnectionType() );
+    assertEquals( "some_host:123,some_other_host:456", meta.getDirectBootstrapServers() );
 
     assertEquals( "three", meta.getKeyField().getOutputName() );
     assertEquals( KafkaConsumerField.Type.String, meta.getKeyField().getOutputType() );
@@ -179,6 +188,8 @@ public class KafkaConsumerInputMetaTest {
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
     meta.setBatchSize( "54321" );
     meta.setBatchDuration( "987" );
+    meta.setConnectionType( DIRECT );
+    meta.setDirectBootstrapServers( "localhost:888" );
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.property1", "advancedPropertyValue1" );
@@ -192,6 +203,8 @@ public class KafkaConsumerInputMetaTest {
       + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>" + Const.CR
       + "    <batchSize>54321</batchSize>" + Const.CR
       + "    <batchDuration>987</batchDuration>" + Const.CR
+      + "    <connectionType>DIRECT</connectionType>" + Const.CR
+      + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
       + "    <OutputField kafkaName=\"key\"  type=\"String\" >kafkaKey</OutputField>" + Const.CR
       + "    <OutputField kafkaName=\"message\"  type=\"String\" >kafkaMessage</OutputField>" + Const.CR
       + "    <OutputField kafkaName=\"topic\"  type=\"String\" >topic</OutputField>" + Const.CR
@@ -217,6 +230,8 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, TRANSFORMATION_PATH ) ).thenReturn( "/home/pentaho/atrans.ktr" );
     when( rep.getStepAttributeString( stepId, BATCH_SIZE ) ).thenReturn( "999" );
     when( rep.getStepAttributeString( stepId, BATCH_DURATION ) ).thenReturn( "111" );
+    when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "CLUSTER" );
+    when( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) ).thenReturn( "unused" );
 
     when( rep.getStepAttributeString( stepId, "OutputField_key" ) ).thenReturn( "machineId" );
     when( rep.getStepAttributeString( stepId, "OutputField_key_type" ) ).thenReturn( "String" );
@@ -250,6 +265,8 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "/home/pentaho/atrans.ktr", meta.getTransformationPath() );
     assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
+    assertEquals( CLUSTER, meta.getConnectionType() );
+    assertEquals( "unused", meta.getDirectBootstrapServers() );
 
     assertEquals( KafkaConsumerField.Name.KEY, meta.getKeyField().getKafkaName() );
     assertEquals( "machineId", meta.getKeyField().getOutputName() );
@@ -293,6 +310,8 @@ public class KafkaConsumerInputMetaTest {
     meta.setTransformationPath( "/home/Pentaho/btrans.ktr" );
     meta.setBatchSize( "33" );
     meta.setBatchDuration( "10000" );
+    meta.setConnectionType( DIRECT );
+    meta.setDirectBootstrapServers( "kafkaServer:9092" );
 
     meta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "kafkaKey" ) );
     meta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "kafkaMessage" ) );
@@ -309,6 +328,8 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, "/home/Pentaho/btrans.ktr" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_SIZE, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, "10000" );
+    verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
+    verify( rep ).saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, "kafkaServer:9092" );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key", meta.getKeyField().getOutputName() );
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key_type", meta.getKeyField().getOutputType().toString() );
@@ -348,8 +369,12 @@ public class KafkaConsumerInputMetaTest {
     meta.setNamedClusterService( namedClusterService );
     meta.setMetastoreLocator( metastoreLocator );
     meta.setClusterName( "my_cluster" );
+    meta.setConnectionType( CLUSTER );
+    meta.setDirectBootstrapServers( "directHost:123" );
 
-    assertThat( meta.getBootstrapServers(), is( "server:11111" ) );
+    assertEquals( "server:11111", meta.getBootstrapServers() );
+    meta.setConnectionType( DIRECT );
+    assertEquals( "directHost:123", meta.getBootstrapServers() );
   }
 
   @Test
@@ -366,7 +391,10 @@ public class KafkaConsumerInputMetaTest {
     inputMeta.setNamedClusterService( namedClusterService );
     inputMeta.setClusterName( "kurtsCluster" );
     inputMeta.setMetastoreLocator( metastoreLocator );
+    inputMeta.setConnectionType( CLUSTER );
     assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
+    inputMeta.setConnectionType( DIRECT );
+    assertFalse( inputMeta.getJaasConfigService().isPresent() );
   }
 
   @Test
