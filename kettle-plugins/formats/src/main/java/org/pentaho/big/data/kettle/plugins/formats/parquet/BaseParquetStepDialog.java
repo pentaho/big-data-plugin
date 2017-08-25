@@ -139,6 +139,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
       }
     } );
     getData( meta );
+    meta.setChanged( changed );
     int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
@@ -334,6 +335,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
       - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
+    wPath.addModifyListener( lsMod );
     return wPath;
   }
 

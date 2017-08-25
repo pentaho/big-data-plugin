@@ -86,7 +86,6 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     this.meta = parquetOutputMeta;
   }
 
-  // TODO name
   protected Control createAfterFile( Composite afterFile ) {
     CTabFolder wTabFolder = new CTabFolder( afterFile, SWT.BORDER );
     props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
@@ -226,7 +225,14 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   protected ComboVar createComboVar( Composite container, String[] options ) {
     ComboVar combo = new ComboVar( transMeta, container, SWT.LEFT | SWT.BORDER );
     combo.setItems( options );
+    combo.addModifyListener( lsMod );
     return combo;
+  }
+
+  protected String getComboVarValue( ComboVar combo ) {
+    String text = combo.getText();
+    String data = (String) combo.getData( text );
+    return data != null ? data : text;
   }
 
   private Label createLabel( Composite container, String labelRef ) {
@@ -244,17 +250,29 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       wPath.setText( meta.getFilename() );
     }
     populateFieldsUI( meta, wOutputFields );
-    wCompression.setText( meta.getCompression() );
-    wEncoding.setText( meta.getEncoding() );
-    wVersion.setText( meta.getParquetVersion() );
+    wCompression.setText( coalesce( meta.getCompressionType() ) );
+    wEncoding.setText( coalesce( meta.getEncodingType() ) );
+    wVersion.setText( coalesce( meta.getParquetVersion() ) );
+    wDictPageSize.setText( coalesce( meta.getDictPageSize() ) );
+    wRowSize.setText( coalesce( meta.getRowGroupSize() ) );
+    wPageSize.setText( coalesce( meta.getDataPageSize() ) );
+  }
+
+  private String coalesce( String value ) {
+    return value == null ? "" : value;
   }
 
   // ui -> meta
   @Override
   protected void getInfo( ParquetOutputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
-    // TODO
     saveOutputFields( wOutputFields, meta );
+    meta.setCompressionType( wCompression.getText() );
+    meta.setParquetVersion( wVersion.getText() );
+    meta.setEncodingType( wEncoding.getText() );
+    meta.setDictPageSize( wDictPageSize.getText() );
+    meta.setRowGroupSize( wRowSize.getText() );
+    meta.setDataPageSize( wPageSize.getText() );
   }
 
   private void saveOutputFields( TableView wFields, ParquetOutputMeta meta ) {
@@ -314,6 +332,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
 
   @Override
   protected Listener getPreview() {
+    // no preview
     return null;
   }
 }
