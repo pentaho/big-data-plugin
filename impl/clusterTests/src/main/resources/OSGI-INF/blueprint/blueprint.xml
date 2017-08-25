@@ -37,6 +37,10 @@
     <argument ref="messageGetterFactory"/>
     <argument ref="hadoopFileSystemLocator"/>
   </bean>
+  <bean id="kafkaConnectTest" class="org.pentaho.big.data.impl.cluster.tests.kafka.KafkaConnectTest"
+        scope="singleton">
+    <argument ref="messageGetterFactory"/>
+  </bean>
 
   <reference id="hadoopFileSystemLocator" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
   <reference id="connectivityTestFactory" interface="org.pentaho.runtime.test.network.ConnectivityTestFactory"/>
@@ -49,4 +53,5 @@
   <service ref="listRootDirectoryTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <service ref="listHomeDirectoryTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <service ref="writeToAndDeleteFromUsersHomeFolderTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
+  <service ref="kafkaConnectTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
 </blueprint>
