@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.sqoop;
 import org.apache.commons.lang.StringUtils;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -460,6 +461,9 @@ public class SqoopUtils {
     if ( variableSpace != null ) {
       value = variableSpace.environmentSubstitute( value );
     }
+    if ( arg.getName().equals( "password" ) ) {
+      value = Encr.decryptPasswordOptionallyEncrypted( value );
+    }
     if ( arg.isFlag() && Boolean.parseBoolean( value ) ) {
       args.add( arg.getPrefix() + arg.getName() );
     } else if ( !arg.isFlag() && value != null ) {
@@ -470,7 +474,7 @@ public class SqoopUtils {
     }
   }
 
-  private static void appendCustomArguments( List<String> args , SqoopConfig config, VariableSpace variableSpace ) {
+  private static void appendCustomArguments( List<String> args, SqoopConfig config, VariableSpace variableSpace ) {
     for ( PropertyEntry entry : config.getCustomArguments() ) {
       appendCustomArgument( args, entry, variableSpace, false );
     }
