@@ -142,9 +142,10 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     Shell parent = getParent();
     Display display = parent.getDisplay();
 
-    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.MIN | SWT.MAX );
+    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.MIN | SWT.MAX | SWT.RESIZE );
     props.setLook( shell );
     setShellImage( shell, meta );
+    shell.setMinimumSize( 527, 622 );
 
     lsMod = e -> meta.setChanged();
     changed = meta.hasChanged();
@@ -206,8 +207,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     wTransPath.addModifyListener( lsMod );
     FormData fdTransPath = new FormData();
     fdTransPath.left = new FormAttachment( 0, 0 );
+    fdTransPath.right = new FormAttachment( 75, 0 );
     fdTransPath.top = new FormAttachment( wlTransPath, 5 );
-    fdTransPath.width = INPUT_WIDTH;
     wTransPath.setLayoutData( fdTransPath );
 
     wbBrowseTrans = new Button( shell, SWT.PUSH );
@@ -252,7 +253,6 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     props.setLook( hSpacer );
     FormData fdhSpacer = new FormData();
     fdhSpacer.height = 2;
-    fdhSpacer.top = new FormAttachment( wTabFolder, 15 );
     fdhSpacer.left = new FormAttachment( 0, 0 );
     fdhSpacer.bottom = new FormAttachment( wCancel, -15 );
     fdhSpacer.right = new FormAttachment( 100, 0 );
@@ -261,6 +261,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     FormData fdTabFolder = new FormData();
     fdTabFolder.left = new FormAttachment( 0, 0 );
     fdTabFolder.top = new FormAttachment( wTransPath, 15 );
+    fdTabFolder.bottom = new FormAttachment( hSpacer, -15 );
     fdTabFolder.right = new FormAttachment( 100, 0 );
     wTabFolder.setLayoutData( fdTabFolder );
 
@@ -602,7 +603,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( relativePosition, 5 );
     fdData.right = new FormAttachment( 100, 0 );
-    fdData.bottom = new FormAttachment( 0, 147 );
+    fdData.bottom = new FormAttachment( 100, 0 );
 
     // resize the columns to fit the data in them
     Arrays.stream( fieldsTable.getTable().getColumns() ).forEach( column -> {
@@ -660,7 +661,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( relativePosition, 5 );
     fdData.right = new FormAttachment( 100, 0 );
-    fdData.bottom = new FormAttachment( 0, 250 );
+    fdData.bottom = new FormAttachment( 100, 0 );
 
     // resize the columns to fit the data in them
     Arrays.stream( optionsTable.getTable().getColumns() ).forEach( column -> {
