@@ -451,7 +451,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
   public void toggleVisibility( final boolean isDirect ) {
     wlBootstrapServers.setVisible( isDirect );
-    wlBootstrapServers.setVisible( isDirect );
+    wBootstrapServers.setVisible( isDirect );
     wlClusterName.setVisible( !isDirect );
     wClusterName.setVisible( !isDirect );
   }
