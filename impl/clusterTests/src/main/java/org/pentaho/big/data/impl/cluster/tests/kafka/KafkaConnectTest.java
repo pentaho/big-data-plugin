@@ -22,13 +22,18 @@
 package org.pentaho.big.data.impl.cluster.tests.kafka;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
+import org.pentaho.bigdata.api.jaas.JaasConfigService;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
@@ -56,16 +61,18 @@ public class KafkaConnectTest extends BaseRuntimeTest {
   Function<Map<String, Object>, Consumer> consumerFunction;
   static final Class<?> PKG = KafkaConnectTest.class;
   protected final MessageGetterFactory messageGetterFactory;
+  private NamedClusterServiceLocator namedClusterServiceLocator;
 
-  @SuppressWarnings( "unused" )
-  public KafkaConnectTest( MessageGetterFactory messageGetterFactory ) {
-    this( messageGetterFactory, KafkaConsumer::new );
+  public KafkaConnectTest( MessageGetterFactory messageGetterFactory, NamedClusterServiceLocator namedClusterServiceLocator ) {
+    this( messageGetterFactory, KafkaConsumer::new, namedClusterServiceLocator );
   }
 
-  KafkaConnectTest( MessageGetterFactory messageGetterFactory, Function<Map<String, Object>, Consumer> consumerFunction ) {
+  KafkaConnectTest( MessageGetterFactory messageGetterFactory, Function<Map<String, Object>, Consumer> consumerFunction,
+                    final NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( NamedCluster.class, Constants.KAFKA, KAFKA_CONNECT_TEST,
       messageGetterFactory.create( PKG ).getMessage( KAFKA_CONNECT_TEST_NAME ), Collections.emptySet() );
     this.messageGetterFactory = messageGetterFactory;
+    this.namedClusterServiceLocator = namedClusterServiceLocator;
     messageGetter = messageGetterFactory.create( PKG );
     this.consumerFunction = consumerFunction;
   }
@@ -93,6 +100,17 @@ public class KafkaConnectTest extends BaseRuntimeTest {
     configs.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
     configs.put( ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG, 10000 );
     configs.put( ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 9000 );
+    try {
+      JaasConfigService jaasConfigService = namedClusterServiceLocator.getService( namedCluster, JaasConfigService.class );
+      if ( jaasConfigService != null ) {
+        if ( jaasConfigService.isKerberos() ) {
+          configs.put( SaslConfigs.SASL_JAAS_CONFIG, jaasConfigService.getJaasConfig() );
+          configs.put( CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT" );
+        }
+      }
+    } catch ( ClusterInitializationException e ) {
+      //ok, try and connect anyway.  If kafka requires kerberos we'll still get an error
+    }
     try ( Consumer consumer = consumerFunction.apply( configs ) ) {
       consumer.listTopics();
       return new RuntimeTestResultSummaryImpl( new ClusterRuntimeTestEntry(
