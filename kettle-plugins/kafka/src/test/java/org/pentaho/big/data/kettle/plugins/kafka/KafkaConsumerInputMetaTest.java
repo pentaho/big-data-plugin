@@ -45,6 +45,7 @@ import org.pentaho.di.resource.ResourceEntry;
 import org.pentaho.di.resource.ResourceReference;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -167,8 +168,9 @@ public class KafkaConsumerInputMetaTest {
 
   @Test
   public void testXmlHasAllFields() throws Exception {
+    String clusterName = "some_cluster";
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
-    meta.setClusterName( "some_cluster" );
+    meta.setClusterName( clusterName );
 
     ArrayList<String> topicList = new ArrayList<String>();
     topicList.add( "temperature" );
@@ -196,6 +198,13 @@ public class KafkaConsumerInputMetaTest {
     advancedConfig.put( "advanced.property2", "advancedPropertyValue2" );
     meta.setAdvancedConfig( advancedConfig );
 
+    NamedClusterEmbedManager namedClusterEmbedManager = mock( NamedClusterEmbedManager.class );
+    TransMeta transMeta = mock( TransMeta.class );
+    when( transMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    meta.setParentStepMeta( stepMeta );
+
     assertEquals(
         "    <clusterName>some_cluster</clusterName>" + Const.CR
       + "    <topic>temperature</topic>" + Const.CR
@@ -217,6 +226,7 @@ public class KafkaConsumerInputMetaTest {
       + "    </advancedConfig>" + Const.CR,
       meta.getXML() );
 
+    verify( namedClusterEmbedManager ).addClusterToMeta( clusterName );
   }
 
   @Test
