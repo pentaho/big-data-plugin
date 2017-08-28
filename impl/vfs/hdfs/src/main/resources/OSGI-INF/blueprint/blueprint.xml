@@ -51,7 +51,7 @@
     <argument ref="hadoopFileSystemService"/>
     <argument ref="namedClusterService"/>
     <argument ref="hdfsFileNameParser" />
-    <argument value="nc" type="java.lang.String"/>
+    <argument value="hc" type="java.lang.String"/>
     <argument ref="metastoreLocatorOsgi" />
   </bean>
 
