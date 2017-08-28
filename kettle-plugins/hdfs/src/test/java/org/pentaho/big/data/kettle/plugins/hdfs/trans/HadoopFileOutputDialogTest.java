@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by bryan on 11/23/15.
@@ -54,13 +55,13 @@ public class HadoopFileOutputDialogTest {
   @Test
   public void testGetUrlPathNoPrefix() {
     String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
+    assertNull( HadoopFileOutputDialog.getUrlPath( expected ) );
   }
 
   @Test
   public void testGetUrlPathVariablePrefix() {
     String expected = "${myTestVar}";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
+    assertNull( HadoopFileOutputDialog.getUrlPath( expected ) );
   }
 
 }

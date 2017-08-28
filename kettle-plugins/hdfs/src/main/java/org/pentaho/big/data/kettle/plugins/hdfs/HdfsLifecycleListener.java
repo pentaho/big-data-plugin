@@ -41,18 +41,23 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
  */
 @LifecyclePlugin( id = "HdfsLifecycleListener", name = "HdfsLifecycleListener" )
 public class HdfsLifecycleListener implements LifecycleListener {
-  private final NamedClusterService namedClusterService;
-  private final RuntimeTestActionService runtimeTestActionService;
-  private final RuntimeTester runtimeTester;
-  private HadoopVfsFileChooserDialog hadoopVfsFileChooserDialog;
+
+  private final int hdfsPriority = 150;
+  private final int maprPriority = 160;
+  private final int ncPriority = 110;
+
+  private final NamedClusterService ncService;
+  private final RuntimeTestActionService rtTestActServ;
+  private final RuntimeTester rtTester;
+  private HadoopVfsFileChooserDialog hdfsFileChooserDialog;
   private MapRFSFileChooserDialog mapRFSFileChooserDialog;
-  private NamedClusterVfsFileChooserDialog namedClusterVfsFileChooserDialog;
+  private NamedClusterVfsFileChooserDialog ncFileChooserDialog;
 
   public HdfsLifecycleListener( NamedClusterService namedClusterService,
                                 RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
-    this.namedClusterService = namedClusterService;
-    this.runtimeTestActionService = runtimeTestActionService;
-    this.runtimeTester = runtimeTester;
+    this.ncService = namedClusterService;
+    this.rtTestActServ = runtimeTestActionService;
+    this.rtTester = runtimeTester;
   }
 
   @Override public void onStart( LifeEventHandler lifeEventHandler ) throws LifecycleException {
@@ -62,19 +67,12 @@ public class HdfsLifecycleListener implements LifecycleListener {
     spoon.getDisplay().asyncExec( new Runnable() {
       @Override public void run() {
         VfsFileChooserDialog dialog = spoon.getVfsFileChooserDialog( null, null );
-        hadoopVfsFileChooserDialog =
-          new HadoopVfsFileChooserDialog( Schemes.HDFS_SCHEME, Schemes.HDFS_SCHEME_DISPLAY_NAME,
-            dialog,
-            null, null, namedClusterService, runtimeTestActionService, runtimeTester );
-        dialog.addVFSUIPanel( hadoopVfsFileChooserDialog );
-        mapRFSFileChooserDialog =
-          new MapRFSFileChooserDialog( Schemes.MAPRFS_SCHEME, Schemes.MAPRFS_SCHEME_DISPLAY_NAME,
-            dialog );
-        dialog.addVFSUIPanel( mapRFSFileChooserDialog );
-        namedClusterVfsFileChooserDialog =
-          new NamedClusterVfsFileChooserDialog( Schemes.NAMED_CLUSTER_SCHEME, Schemes.NAMED_CLUSTER_SCHEME_DISPLAY_NAME,
-            dialog, null, null, namedClusterService, runtimeTestActionService, runtimeTester );
-        dialog.addVFSUIPanel( namedClusterVfsFileChooserDialog );
+        hdfsFileChooserDialog = new HadoopVfsFileChooserDialog( Schemes.HDFS_SCHEME, Schemes.HDFS_SCHEME_DISPLAY_NAME, dialog, null, null, ncService, rtTestActServ, rtTester );
+        dialog.addVFSUIPanel( hdfsPriority, hdfsFileChooserDialog );
+        mapRFSFileChooserDialog = new MapRFSFileChooserDialog( Schemes.MAPRFS_SCHEME, Schemes.MAPRFS_SCHEME_DISPLAY_NAME, dialog );
+        dialog.addVFSUIPanel( maprPriority, mapRFSFileChooserDialog );
+        ncFileChooserDialog = new NamedClusterVfsFileChooserDialog( Schemes.NAMED_CLUSTER_SCHEME, Schemes.NAMED_CLUSTER_SCHEME_DISPLAY_NAME, dialog, null, null, ncService, rtTestActServ, rtTester );
+        dialog.addVFSUIPanel( ncPriority, ncFileChooserDialog );
       }
     } );
   }
