@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -198,7 +198,38 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
   public static String getProperty( Configuration conf, Properties properties, String propertyName,
                                     String defaultValue ) {
     String fromConf = conf.get( propertyName );
-    return !Const.isEmpty( fromConf ) ? fromConf : properties.getProperty( propertyName, defaultValue );
+    if ( Const.isEmpty( fromConf ) ) {
+      Object objectValue = properties.get( propertyName );
+      if ( objectValue != null ) {
+        if ( objectValue instanceof String ) {
+          return objectValue.toString();
+        } else if ( objectValue instanceof List ) {
+          // it should contain strings only
+          ArrayList<String> values = new ArrayList<String>( (List) objectValue );
+          StringBuilder stringBuilder = new StringBuilder( "" );
+          for ( int i = 0; i < values.size(); i++ ) {
+            String value = values.get( i );
+            if ( value != null && !value.isEmpty() ) {
+              if ( i != 0 ) {
+                stringBuilder.append( "," );
+              }
+              stringBuilder.append( value );
+            }
+          }
+          if ( stringBuilder.toString().equals( "" ) ) {
+            return defaultValue;
+          } else {
+            return stringBuilder.toString();
+          }
+        } else {
+          // shouldn't happen
+          return defaultValue;
+        }
+      } else {
+        return defaultValue;
+      }
+    }
+    return fromConf;
   }
 
   @Override public String getHadoopWritableCompatibleClassName( ValueMetaInterface valueMetaInterface ) {

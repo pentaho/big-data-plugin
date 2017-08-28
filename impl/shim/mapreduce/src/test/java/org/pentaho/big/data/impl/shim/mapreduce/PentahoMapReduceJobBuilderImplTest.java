@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -57,6 +57,7 @@ import org.pentaho.hadoop.shim.spi.HadoopShim;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -527,10 +528,15 @@ public class PentahoMapReduceJobBuilderImplTest {
   public void testGetPropertyFromProperties() {
     Configuration configuration = mock( Configuration.class );
     Properties properties = mock( Properties.class );
-    String property = "property";
-    String value = "value";
-    when( properties.getProperty( property, value ) ).thenReturn( value );
-    assertEquals( value, pentahoMapReduceJobBuilder.getProperty( configuration, properties, property, value ) );
+
+    ArrayList<String> values = new ArrayList<>();
+    values.add( "value1" );
+    values.add( "value2" );
+    when( properties.get( "property1" ) ).thenReturn( values );
+    assertEquals( "value1,value2", pentahoMapReduceJobBuilder.getProperty( configuration, properties, "property1", null ) );
+
+    when( properties.get( "property2" ) ).thenReturn( "value" );
+    assertEquals( "value", pentahoMapReduceJobBuilder.getProperty( configuration, properties, "property2", null ) );
   }
 
   @Test
@@ -617,6 +623,8 @@ public class PentahoMapReduceJobBuilderImplTest {
   @Test
   public void testSubmitNoDistributedCache() throws IOException {
     Configuration conf = mock( Configuration.class );
+    when( conf.get( PentahoMapReduceJobBuilderImpl.PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE ) )
+            .thenReturn( Boolean.toString( false ) );
     pentahoMapReduceJobBuilder.submit( conf );
     verify( hadoopShim ).submitJob( conf );
   }
