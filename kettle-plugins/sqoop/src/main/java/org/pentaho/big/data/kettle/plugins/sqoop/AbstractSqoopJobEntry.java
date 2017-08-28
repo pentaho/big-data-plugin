@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -40,6 +40,7 @@ import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.DatabaseInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -336,10 +337,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
     // if databaseMeta == null we assume "USE_ADVANCED_MODE" is selected on QUICK_SETUP
     if ( sqoopConfig.getModeAsEnum() == JobEntryMode.QUICK_SETUP && databaseMeta != null ) {
       sqoopConfig.setConnectionInfo(
-          databaseMeta.getName(),
-          databaseMeta.getURL(),
-          databaseMeta.getUsername(),
-          databaseMeta.getPassword() );
+          databaseMeta.environmentSubstitute( databaseMeta.getName() ),
+          databaseMeta.environmentSubstitute( databaseMeta.getURL() ),
+          databaseMeta.environmentSubstitute( databaseMeta.getUsername() ),
+          Encr.decryptPasswordOptionallyEncrypted( databaseMeta.environmentSubstitute( databaseMeta.getPassword() ) ) );
     }
   }
 
