@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +37,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.SslConfigs;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -75,14 +77,18 @@ public class KafkaDialogHelper {
   }
 
   private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
-    wTopic.getCComboWidget().removeAll();
+    if ( !wTopic.getCComboWidget().isDisposed() ) {
+      wTopic.getCComboWidget().removeAll();
+    }
     topicMap.keySet().stream()
       .filter( key -> !"__consumer_offsets".equals( key ) ).sorted().forEach( key -> {
         if ( !wTopic.isDisposed() ) {
           wTopic.add( key );
         }
       } );
-    wTopic.getCComboWidget().setText( current );
+    if ( !wTopic.getCComboWidget().isDisposed() ) {
+      wTopic.getCComboWidget().setText( current );
+    }
   }
 
   private Map<String, List<PartitionInfo>> listTopics( String clusterName ) {
@@ -117,6 +123,18 @@ public class KafkaDialogHelper {
         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG )
         .forEach( optionNames::remove );
     return optionNames;
+  }
+
+  public static List<String> getConsumerAdvancedConfigOptionNames() {
+    return Arrays.asList( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, SslConfigs.SSL_KEY_PASSWORD_CONFIG,
+        SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG,
+        SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
+  }
+
+  public static List<String> getProducerAdvancedConfigOptionNames() {
+    return Arrays.asList( ProducerConfig.COMPRESSION_TYPE_CONFIG, SslConfigs.SSL_KEY_PASSWORD_CONFIG,
+        SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG,
+        SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
   }
 
   private static List<String> getConfigOptionNames( Class cl ) {
