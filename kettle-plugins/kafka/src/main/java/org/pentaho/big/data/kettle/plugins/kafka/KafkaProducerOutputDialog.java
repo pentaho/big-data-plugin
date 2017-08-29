@@ -278,7 +278,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wOK.addListener( SWT.Selection, lsOK );
     wCancel.addListener( SWT.Selection, lsCancel );
     wTopic.getCComboWidget().addListener(
-      SWT.FocusIn, new KafkaDialogHelper( wClusterName, wTopic, kafkaFactory, meta.getNamedClusterService(),
+      SWT.FocusIn, new KafkaDialogHelper( wClusterName, wTopic, null, null, kafkaFactory, meta.getNamedClusterService(),
         meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator()
       )::clusterNameChanged );
 
