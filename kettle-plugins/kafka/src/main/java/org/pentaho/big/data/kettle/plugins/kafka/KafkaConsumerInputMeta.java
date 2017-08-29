@@ -69,6 +69,7 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 /**
@@ -104,6 +105,12 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   @Injection( name = "TRANSFORMATION_PATH" )
   private String transformationPath;
 
+  @Injection( name = "CONNECTION_TYPE" )
+  private ConnectionType connectionType = CLUSTER;
+
+  @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
+  private String directBootstrapServers;
+
   @Injection( name = "CLUSTER_NAME" )
   private String clusterName;
 
@@ -118,12 +125,6 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   @Injection( name = "DURATION" )
   private String batchDuration;
-
-  @Injection( name = "CONNECTION_TYPE" )
-  private ConnectionType connectionType;
-
-  @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
-  private String directBootstrapServers;
 
   public enum ConnectionType {
     DIRECT,

@@ -535,7 +535,9 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <bootstrapServers>localhost:9092</bootstrapServers>
+    <connectionType>DIRECT</connectionType>
+    <directBootstrapServers>localhost:9092</directBootstrapServers>
+    <clusterName>clusterName</clusterName>
     <topic>kurt</topic>
     <clientId>test</clientId>
     <keyField/>

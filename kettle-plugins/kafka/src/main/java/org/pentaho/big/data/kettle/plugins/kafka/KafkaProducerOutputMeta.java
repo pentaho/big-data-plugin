@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
@@ -54,6 +55,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.CLUSTER;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
+
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg", name = "Kafka Producer",
   description = "Produce messages to a Kafka topic",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
@@ -61,6 +65,8 @@ import org.w3c.dom.Node;
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public static final String CLUSTER_NAME = "clusterName";
+  public static final String CONNECTION_TYPE = "connectionType";
+  public static final String DIRECT_BOOTSTRAP_SERVERS = "directBootstrapServers";
   public static final String CLIENT_ID = "clientId";
   public static final String TOPIC = "topic";
   public static final String KEY_FIELD = "keyField";
@@ -69,6 +75,10 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   private static Class<?> PKG = KafkaProducerOutput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
+  @Injection( name = "CONNECTION_TYPE" )
+  private ConnectionType connectionType = CLUSTER;
+  @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
+  private String directBootstrapServers;
   @Injection( name = "CLUSTER_NAME" )
   private String clusterName;
   @Injection( name = "CLIENT_ID" )
@@ -79,6 +89,11 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   private String keyField;
   @Injection( name = "MESSAGE_FIELD" )
   private String messageField;
+
+  public enum ConnectionType {
+    DIRECT,
+    CLUSTER
+  }
 
   private Map<String, String> advancedConfig = new LinkedHashMap<>();
 
@@ -100,6 +115,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   }
 
   private void readData( Node stepnode ) {
+    setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
+    setDirectBootstrapServers( XMLHandler.getTagValue( stepnode, DIRECT_BOOTSTRAP_SERVERS ) );
     setClusterName( XMLHandler.getTagValue( stepnode, CLUSTER_NAME ) );
     setClientId( XMLHandler.getTagValue( stepnode, CLIENT_ID ) );
     setTopic( XMLHandler.getTagValue( stepnode, TOPIC ) );
@@ -119,6 +136,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta> databases )
     throws KettleException {
+    setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ) );
+    setDirectBootstrapServers( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) );
     setClusterName( rep.getStepAttributeString( stepId, CLUSTER_NAME ) );
     setClientId( rep.getStepAttributeString( stepId, CLIENT_ID ) );
     setTopic( rep.getStepAttributeString( stepId, TOPIC ) );
@@ -135,6 +154,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transformationId, ObjectId stepId )
     throws KettleException {
+    rep.saveStepAttribute( transformationId, stepId, CONNECTION_TYPE, connectionType.name() );
+    rep.saveStepAttribute( transformationId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
     rep.saveStepAttribute( transformationId, stepId, CLUSTER_NAME, clusterName );
     rep.saveStepAttribute( transformationId, stepId, CLIENT_ID, clientId );
     rep.saveStepAttribute( transformationId, stepId, TOPIC, topic );
@@ -170,9 +191,13 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   }
 
   public String getBootstrapServers() {
+    if ( DIRECT.equals( getConnectionType() ) ) {
+      return getDirectBootstrapServers();
+    }
+
     return Optional
         .ofNullable( namedClusterService.getNamedClusterByName( clusterName, metastoreLocator.getMetastore() ) )
-        .map( nc -> nc.getKafkaBootstrapServers() ).orElse( "" );
+        .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
   public String getClientId() {
@@ -207,14 +232,23 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     this.messageField = messageField;
   }
 
+  public ConnectionType getConnectionType() {
+    return connectionType;
+  }
+
+  public void setConnectionType( final ConnectionType connectionType ) {
+    this.connectionType = connectionType;
+  }
+
   @Override public String getXML() throws KettleException {
     StringBuilder retval = new StringBuilder();
+    retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, clusterName ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topic ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CLIENT_ID, clientId ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( KEY_FIELD, keyField ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
-
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getAdvancedConfig().forEach( ( key, value ) -> retval.append( "        " )
         .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
@@ -237,6 +271,14 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
+  }
+
+  public void setDirectBootstrapServers( final String directBootstrapServers ) {
+    this.directBootstrapServers = directBootstrapServers;
+  }
+
+  public String getDirectBootstrapServers() {
+    return directBootstrapServers;
   }
 
   public void setAdvancedConfig( Map<String, String> config ) {
