@@ -22,11 +22,15 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -61,6 +65,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   public static final String TOPIC = "topic";
   public static final String KEY_FIELD = "keyField";
   public static final String MESSAGE_FIELD = "messageField";
+  public static final String ADVANCED_CONFIG = "advancedConfig";
 
   private static Class<?> PKG = KafkaProducerOutput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -74,6 +79,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   private String keyField;
   @Injection( name = "MESSAGE_FIELD" )
   private String messageField;
+
+  private Map<String, String> advancedConfig = new LinkedHashMap<>();
 
   private NamedClusterService namedClusterService;
   private NamedClusterServiceLocator namedClusterServiceLocator;
@@ -98,6 +105,13 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     setTopic( XMLHandler.getTagValue( stepnode, TOPIC ) );
     setKeyField( XMLHandler.getTagValue( stepnode, KEY_FIELD ) );
     setMessageField( XMLHandler.getTagValue( stepnode, MESSAGE_FIELD ) );
+
+    advancedConfig = new LinkedHashMap<>();
+
+    Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
+        .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
+            .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
+            .forEach( node -> advancedConfig.put( node.getNodeName(), node.getTextContent() ) ) );
   }
 
   @Override public void setDefault() {
@@ -110,6 +124,13 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     setTopic( rep.getStepAttributeString( stepId, TOPIC ) );
     setKeyField( rep.getStepAttributeString( stepId, KEY_FIELD ) );
     setMessageField( rep.getStepAttributeString( stepId, MESSAGE_FIELD ) );
+
+    advancedConfig = new LinkedHashMap<>();
+
+    for ( int i = 0; i < rep.getStepAttributeInteger( stepId, ADVANCED_CONFIG + "_COUNT" ); i++ ) {
+      advancedConfig.put( rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_NAME" ),
+          rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_VALUE" ) );
+    }
   }
 
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transformationId, ObjectId stepId )
@@ -119,6 +140,14 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     rep.saveStepAttribute( transformationId, stepId, TOPIC, topic );
     rep.saveStepAttribute( transformationId, stepId, KEY_FIELD, keyField );
     rep.saveStepAttribute( transformationId, stepId, MESSAGE_FIELD, messageField );
+
+    rep.saveStepAttribute( transformationId, stepId, ADVANCED_CONFIG + "_COUNT", getAdvancedConfig().size() );
+
+    int i = 0;
+    for ( String propName : getAdvancedConfig().keySet() ) {
+      rep.saveStepAttribute( transformationId, stepId, i, ADVANCED_CONFIG + "_NAME", propName );
+      rep.saveStepAttribute( transformationId, stepId, i++, ADVANCED_CONFIG + "_VALUE", getAdvancedConfig().get( propName ) );
+    }
   }
 
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
@@ -185,6 +214,12 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( CLIENT_ID, clientId ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( KEY_FIELD, keyField ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
+
+    retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
+    getAdvancedConfig().forEach( ( key, value ) -> retval.append( "        " )
+        .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
+    retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
+
     return retval.toString();
   }
 
@@ -202,6 +237,14 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   public void setClusterName( String clusterName ) {
     this.clusterName = clusterName;
+  }
+
+  public void setAdvancedConfig( Map<String, String> config ) {
+    advancedConfig = config;
+  }
+
+  public Map<String, String> getAdvancedConfig() {
+    return advancedConfig;
   }
 
   public void setNamedClusterService( NamedClusterService namedClusterService ) {

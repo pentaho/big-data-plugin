@@ -141,17 +141,24 @@ public class KafkaFactoryTest {
   public void testMapsConsumersWithVariables() throws Exception {
     inputMeta.setConsumerGroup( "${consumerGroup}" );
     inputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+    advancedConfig.put( "advanced.variable", "${advanced.var}" );
+    inputMeta.setAdvancedConfig( advancedConfig );
+
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     Variables variables = new Variables();
     variables.setVariable( "server", "server:1234" );
     variables.setVariable( "consumerGroup", "cg" );
+    variables.setVariable( "advanced.var", "advancedVarValue" );
     new KafkaFactory( consumerFun, producerFun ).consumer( inputMeta, variables::environmentSubstitute );
     Map<String, Object> expectedMap = new HashMap<>();
     expectedMap.put( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "server:1234" );
     expectedMap.put( ConsumerConfig.GROUP_ID_CONFIG, "cg" );
     expectedMap.put( ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
     expectedMap.put( ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class );
+    expectedMap.put( "advanced.variable", "advancedVarValue" );
     Mockito.verify( consumerFun ).apply( expectedMap  );
   }
 
@@ -162,6 +169,12 @@ public class KafkaFactoryTest {
     outputMeta.setKeyField( "key" );
     outputMeta.setMessageField( "msg" );
     outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+    advancedConfig.put( "advanced.config1", "advancedPropertyValue1" );
+    advancedConfig.put( "advanced.config2", "advancedPropertyValue2" );
+    outputMeta.setAdvancedConfig( advancedConfig );
+
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
     new KafkaFactory( consumerFun, producerFun ).producer( outputMeta, Function.identity() );
@@ -170,6 +183,9 @@ public class KafkaFactoryTest {
     expectedMap.put( ProducerConfig.CLIENT_ID_CONFIG, "client" );
     expectedMap.put( ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class );
     expectedMap.put( ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class );
+    expectedMap.put( "advanced.config1", "advancedPropertyValue1" );
+    expectedMap.put( "advanced.config2", "advancedPropertyValue2" );
+
     Mockito.verify( producerFun ).apply( expectedMap  );
   }
 
@@ -196,10 +212,17 @@ public class KafkaFactoryTest {
   public void testMapsProducersWithVariables() throws Exception {
     outputMeta.setClientId( "${client}" );
     outputMeta.setNamedClusterServiceLocator( namedClusterServiceLocator );
+
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+    advancedConfig.put( "advanced.variable", "${advanced.var}" );
+    outputMeta.setAdvancedConfig( advancedConfig );
+
     when( jaasConfigService.isKerberos() ).thenReturn( false );
+
     Variables variables = new Variables();
     variables.setVariable( "server", "server:1234" );
     variables.setVariable( "client", "myclient" );
+    variables.setVariable( "advanced.var", "advancedVarValue" );
 
     new KafkaFactory( consumerFun, producerFun ).producer( outputMeta, variables::environmentSubstitute );
     Map<String, Object> expectedMap = new HashMap<>();
@@ -207,6 +230,8 @@ public class KafkaFactoryTest {
     expectedMap.put( ProducerConfig.CLIENT_ID_CONFIG, "myclient" );
     expectedMap.put( ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class );
     expectedMap.put( ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class );
+    expectedMap.put( "advanced.variable", "advancedVarValue" );
+
     Mockito.verify( producerFun ).apply( expectedMap  );
   }
 
