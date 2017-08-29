@@ -121,36 +121,28 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   @Injection( name = "CONNECTION_TYPE" )
   private ConnectionType connectionType;
+
+  @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
   private String directBootstrapServers;
-
-  public void setDirectBootstrapServers( final String directBootstrapServers ) {
-    this.directBootstrapServers = directBootstrapServers;
-  }
-
-  public String getDirectBootstrapServers() {
-    return directBootstrapServers;
-  }
-
 
   public enum ConnectionType {
     DIRECT,
     CLUSTER
   }
-
   private Map<String, String> advancedConfig = new LinkedHashMap<>();
 
   @InjectionDeep( prefix = "KEY" ) private KafkaConsumerField keyField;
+
   @InjectionDeep( prefix = "MESSAGE" ) private KafkaConsumerField messageField;
   private KafkaConsumerField topicField;
   private KafkaConsumerField offsetField;
   private KafkaConsumerField partitionField;
   private KafkaConsumerField timestampField;
-
   private transient KafkaFactory kafkaFactory;
+
   private NamedClusterService namedClusterService;
   private MetastoreLocator metastoreLocator;
   private NamedClusterServiceLocator namedClusterServiceLocator;
-
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
     kafkaFactory = KafkaFactory.defaultFactory();
@@ -445,6 +437,10 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     return batchDuration;
   }
 
+  public String getDirectBootstrapServers() {
+    return directBootstrapServers;
+  }
+
   public void setKeyField( KafkaConsumerField keyField ) {
     this.keyField = keyField;
   }
@@ -479,6 +475,10 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   public void setBatchDuration( String batchDuration ) {
     this.batchDuration = batchDuration;
+  }
+
+  public void setDirectBootstrapServers( final String directBootstrapServers ) {
+    this.directBootstrapServers = directBootstrapServers;
   }
 
   public ConnectionType getConnectionType() {
