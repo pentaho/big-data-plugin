@@ -579,7 +579,7 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
   private void snapshotMetaStore( String metaStoreSnapshotDir ) throws Exception {
     IMetaStore snapshot = new XmlMetaStore( metaStoreSnapshotDir );
     try {
-      FileSystemConfigBuilder nc = KettleVFS.getInstance().getFileSystemManager().getFileSystemConfigBuilder( "nc" );
+      FileSystemConfigBuilder nc = KettleVFS.getInstance().getFileSystemManager().getFileSystemConfigBuilder( "hc" );
       Method snapshotMethod = nc.getClass().getMethod( "snapshotNamedClusterToMetaStore", IMetaStore.class );
       snapshotMethod.invoke( nc, snapshot );
     } catch ( FileSystemException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e ) {

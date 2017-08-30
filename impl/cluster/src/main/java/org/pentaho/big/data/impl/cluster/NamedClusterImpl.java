@@ -68,7 +68,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String WASB_SCHEME = "wasb";
-  public static final String NC_SCHEME = "nc";
+  public static final String NC_SCHEME = "hc";
   public static final String INDENT = "  ";
   public static final String ROOT_INDENT = "    ";
   private static final Logger LOGGER = LoggerFactory.getLogger( NamedClusterImpl.class );

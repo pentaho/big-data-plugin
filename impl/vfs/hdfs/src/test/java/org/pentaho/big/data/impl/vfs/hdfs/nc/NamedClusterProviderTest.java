@@ -112,7 +112,7 @@ public class NamedClusterProviderTest {
   public void testDoCreateFileSystem() throws FileSystemException, MetaStoreException, ClusterInitializationException {
     when( metastoreLocator.getMetastore() ).thenReturn( metastore );
 
-    UrlFileName name = new UrlFileName( "nc", ncName, 0, 0, null, null, path, null, null );
+    UrlFileName name = new UrlFileName( "hc", ncName, 0, 0, null, null, path, null, null );
     NamedClusterProvider provider = new  NamedClusterProvider( hdfsLocator, ncService, fileSystemManager, fileNameParser, scheme, metastoreLocator );
     FileSystem fs = provider.doCreateFileSystem( name, null );
     assertTrue( fs instanceof HDFSFileSystem );
@@ -126,7 +126,7 @@ public class NamedClusterProviderTest {
 
   @Test
   public void testDoCreateFileSystem_NCTemplate() throws FileSystemException, MetaStoreException, ClusterInitializationException {
-    UrlFileName name = new UrlFileName( "nc", ncName, 0, 0, null, null, path, null, null );
+    UrlFileName name = new UrlFileName( "hc", ncName, 0, 0, null, null, path, null, null );
     NamedClusterProvider provider = new  NamedClusterProvider( hdfsLocator, ncService, fileSystemManager, fileNameParser, scheme, metastoreLocator );
     FileSystem fs = provider.doCreateFileSystem( name, null );
     assertTrue( fs instanceof HDFSFileSystem );

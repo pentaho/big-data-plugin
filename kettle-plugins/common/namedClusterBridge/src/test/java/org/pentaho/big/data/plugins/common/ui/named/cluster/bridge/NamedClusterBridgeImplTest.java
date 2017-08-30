@@ -452,7 +452,7 @@ public class NamedClusterBridgeImplTest {
     when( legacyNamedCluster.getName() ).thenReturn( namedClusterName );
     when( legacyNamedCluster.isUseGateway() ).thenReturn( true );
     String incomingURL = "/path";
-    String expected = "nc://" + legacyNamedCluster.getName() + incomingURL;
+    String expected = "hc://" + legacyNamedCluster.getName() + incomingURL;
     String actual = namedClusterBridge.processURLsubstitution( incomingURL, null, null );
     assertTrue( "Expected " + expected + " actual " + actual, expected.equalsIgnoreCase( actual ) );
   }

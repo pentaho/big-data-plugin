@@ -234,10 +234,10 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public String processURLsubstitution( String incomingURL, IMetaStore metastore, VariableSpace variableSpace ) {
     if ( isUseGateway() ) {
-      if ( incomingURL.startsWith( "nc" ) ) {
+      if ( incomingURL.startsWith( "hc" ) ) {
         return incomingURL;
       }
-      StringBuilder builder = new StringBuilder( "nc://" );
+      StringBuilder builder = new StringBuilder( "hc://" );
       builder.append( getName() );
       builder.append( incomingURL.startsWith( "/" ) ? incomingURL : "/" + incomingURL );
       return builder.toString();
