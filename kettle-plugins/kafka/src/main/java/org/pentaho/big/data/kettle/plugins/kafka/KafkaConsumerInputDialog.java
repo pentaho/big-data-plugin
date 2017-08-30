@@ -420,25 +420,25 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdlTopic.right = new FormAttachment( 50, 0 );
     wlTopic.setLayoutData( fdlTopic );
 
-    buildTopicsTable( wSetupComp, wlTopic );
+    wConsumerGroup = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wConsumerGroup );
+    wConsumerGroup.addModifyListener( lsMod );
+    FormData fdConsumerGroup = new FormData();
+    fdConsumerGroup.left = new FormAttachment( 0, 0 );
+    fdConsumerGroup.bottom = new FormAttachment( 100, 0 );
+    fdConsumerGroup.width = INPUT_WIDTH;
+    wConsumerGroup.setLayoutData( fdConsumerGroup );
 
     wlConsumerGroup = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlConsumerGroup );
     wlConsumerGroup.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.ConsumerGroup" ) );
     FormData fdlConsumerGroup = new FormData();
     fdlConsumerGroup.left = new FormAttachment( 0, 0 );
-    fdlConsumerGroup.top = new FormAttachment( topicsTable, 10 );
+    fdlConsumerGroup.bottom = new FormAttachment( wConsumerGroup, -5, SWT.TOP );
     fdlConsumerGroup.right = new FormAttachment( 50, 0 );
     wlConsumerGroup.setLayoutData( fdlConsumerGroup );
 
-    wConsumerGroup = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wConsumerGroup );
-    wConsumerGroup.addModifyListener( lsMod );
-    FormData fdConsumerGroup = new FormData();
-    fdConsumerGroup.left = new FormAttachment( 0, 0 );
-    fdConsumerGroup.top = new FormAttachment( wlConsumerGroup, 5 );
-    fdConsumerGroup.width = INPUT_WIDTH;
-    wConsumerGroup.setLayoutData( fdConsumerGroup );
+    buildTopicsTable( wSetupComp, wlTopic, wlConsumerGroup );
 
     FormData fdSetupComp = new FormData();
     fdSetupComp.left = new FormAttachment( 0, 0 );
@@ -603,7 +603,6 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( relativePosition, 5 );
     fdData.right = new FormAttachment( 100, 0 );
-    fdData.bottom = new FormAttachment( 100, 0 );
 
     // resize the columns to fit the data in them
     Arrays.stream( fieldsTable.getTable().getColumns() ).forEach( column -> {
@@ -750,7 +749,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     }
   }
 
-  private void buildTopicsTable( Composite parentWidget, Control relativePosition ) {
+  private void buildTopicsTable( Composite parentWidget, Control controlAbove, Control controlBelow ) {
     ColumnInfo[] columns = new ColumnInfo[]{ new ColumnInfo( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.NameField" ),
       ColumnInfo.COLUMN_TYPE_CCOMBO, new String[1], false ) };
 
@@ -794,9 +793,9 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
     FormData fdData = new FormData();
     fdData.left = new FormAttachment( 0, 0 );
-    fdData.top = new FormAttachment( relativePosition, 5 );
+    fdData.top = new FormAttachment( controlAbove, 5 );
     fdData.right = new FormAttachment( 0, 337 );
-    fdData.bottom = new FormAttachment( 0, 240 );
+    fdData.bottom = new FormAttachment( controlBelow, -10, SWT.TOP );
 
     // resize the columns to fit the data in them
     Arrays.stream( topicsTable.getTable().getColumns() ).forEach( column -> {
