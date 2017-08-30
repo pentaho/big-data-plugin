@@ -77,7 +77,8 @@ public class KafkaDialogHelper {
 
   public void clusterNameChanged( @SuppressWarnings( "unused" ) Event event ) {
     String current = wTopic.getText();
-    if ( StringUtil.isEmpty( wClusterName.getText() ) ) {
+    if ( ( wbCluster.getSelection() && StringUtil.isEmpty( wClusterName.getText() ) )
+      || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
       return;
     }
     String clusterName = wClusterName.getText();
