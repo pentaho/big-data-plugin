@@ -54,6 +54,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CLIENT_ID;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CLUSTER_NAME;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CONNECTION_TYPE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.DIRECT_BOOTSTRAP_SERVERS;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.KEY_FIELD;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.MESSAGE_FIELD;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.TOPIC;
@@ -80,6 +83,8 @@ public class KafkaProducerOutputMetaTest {
         + "      <method>none</method>\n"
         + "      <schema_name />\n"
         + "    </partitioning>\n"
+        + "    <connectionType>DIRECT</connectionType>\n"
+        + "    <directBootstrapServers>localhost:9092</directBootstrapServers>\n"
         + "    <clusterName>some_cluster</clusterName>\n"
         + "    <clientId>clientid01</clientId>\n"
         + "    <topic>one</topic>\n"
@@ -120,6 +125,8 @@ public class KafkaProducerOutputMetaTest {
   @Test
   public void testXmlHasAllFields() throws Exception {
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
+    meta.setConnectionType( DIRECT );
+    meta.setDirectBootstrapServers( "localhost:9092" );
     meta.setClusterName( "some_cluster" );
     meta.setClientId( "id1" );
     meta.setTopic( "myTopic" );
@@ -132,7 +139,9 @@ public class KafkaProducerOutputMetaTest {
     meta.setAdvancedConfig( advancedConfig );
 
     assertEquals(
-      "    <clusterName>some_cluster</clusterName>" + Const.CR
+        "    <connectionType>DIRECT</connectionType>" + Const.CR
+        + "    <directBootstrapServers>localhost:9092</directBootstrapServers>" + Const.CR
+        + "    <clusterName>some_cluster</clusterName>" + Const.CR
         + "    <topic>myTopic</topic>" + Const.CR
         + "    <clientId>id1</clientId>" + Const.CR
         + "    <keyField>fieldOne</keyField>" + Const.CR
@@ -148,6 +157,8 @@ public class KafkaProducerOutputMetaTest {
   public void testReadsFromRepository() throws Exception {
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
     StringObjectId stepId = new StringObjectId( "stepId" );
+    when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "DIRECT" );
+    when( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) ).thenReturn( "localhost:9092" );
     when( rep.getStepAttributeString( stepId, CLUSTER_NAME ) ).thenReturn( "some_cluster" );
     when( rep.getStepAttributeString( stepId, CLIENT_ID ) ).thenReturn( "client01" );
     when( rep.getStepAttributeString( stepId, TOPIC ) ).thenReturn( "readings" );
@@ -161,6 +172,9 @@ public class KafkaProducerOutputMetaTest {
     when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue2" );
 
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
+    assertThat( meta.getConnectionType(), is( DIRECT ) );
+    assertThat( meta.getBootstrapServers(), is( "localhost:9092" ) );
+    assertThat( meta.getDirectBootstrapServers(), is( "localhost:9092" ) );
     assertEquals( "some_cluster", meta.getClusterName() );
     assertEquals( "client01", meta.getClientId() );
     assertEquals( "readings", meta.getTopic() );
@@ -177,6 +191,8 @@ public class KafkaProducerOutputMetaTest {
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
     StringObjectId stepId = new StringObjectId( "step1" );
     StringObjectId transId = new StringObjectId( "trans1" );
+    meta.setConnectionType( DIRECT );
+    meta.setDirectBootstrapServers( "localhost:9092" );
     meta.setClusterName( "some_cluster" );
     meta.setClientId( "client01" );
     meta.setTopic( "temperature" );
@@ -189,6 +205,8 @@ public class KafkaProducerOutputMetaTest {
     meta.setAdvancedConfig( advancedConfig );
 
     meta.saveRep( rep, metastore, transId, stepId );
+    verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
+    verify( rep ).saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, "localhost:9092" );
     verify( rep ).saveStepAttribute( transId, stepId, CLUSTER_NAME, "some_cluster" );
     verify( rep ).saveStepAttribute( transId, stepId, CLIENT_ID, "client01" );
     verify( rep ).saveStepAttribute( transId, stepId, TOPIC, "temperature" );

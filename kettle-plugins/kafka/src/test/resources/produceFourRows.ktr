@@ -509,7 +509,9 @@
       <method>none</method>
       <schema_name />
     </partitioning>
-    <clusterName />
+    <connectionType>DIRECT</connectionType>
+    <directBootstrapServers>${bootstrapServers}</directBootstrapServers>
+    <clusterName>${clusterName}</clusterName>
     <topic>${topic}</topic>
     <clientId>test</clientId>
     <keyField>${keyField}</keyField>
