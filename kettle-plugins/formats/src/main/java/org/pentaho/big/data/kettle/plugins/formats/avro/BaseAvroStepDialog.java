@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.UriParser;
 import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
@@ -108,6 +109,9 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   protected TextVar wPath;
   protected Button wbBrowse;
   protected VFSScheme selectedVFSScheme;
+  protected CCombo wLocation;
+
+  private static final String HDFS_SCHEME = "hdfs";
 
   public BaseAvroStepDialog( Shell parent, T in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
@@ -139,6 +143,8 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       }
     } );
     getData( meta );
+    updateLocation();
+
     int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
@@ -299,7 +305,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     wlLocation.setText( getBaseMsg( "AvroDialog.Location.Label" ) );
     props.setLook( wlLocation );
     new FD( wlLocation ).left( 0, 0 ).top( prev, MARGIN ).apply();
-    CCombo wLocation = new CCombo( shell, SWT.BORDER  | SWT.READ_ONLY  );
+    wLocation = new CCombo( shell, SWT.BORDER  | SWT.READ_ONLY  );
     try {
       List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
       availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
@@ -339,19 +345,51 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected void browseForFileInputPath() {
     try {
-      FileObject initialFile = getInitialFile( wPath.getText() );
-      FileObject rootFile = initialFile.getFileSystem().getRoot();
-      VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
+      String path = transMeta.environmentSubstitute( wPath.getText() );
+      VfsFileChooserDialog fileChooserDialog;
+      String fileName;
+      if ( Utils.isEmpty( path ) ) {
+        fileChooserDialog = getVfsFileChooserDialog( null, null );
+        fileName = selectedVFSScheme.getScheme() + "://";
+      } else {
+        FileObject initialFile = getInitialFile( wPath.getText() );
+        FileObject rootFile = initialFile.getFileSystem().getRoot();
+        fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
+        fileName = null;
+      }
+
       FileObject selectedFile =
-          fileChooserDialog.open( shell, new String[] {}, selectedVFSScheme.getScheme(), true, null, FILES_FILTERS,
-              fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, true );
+          fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
+              fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
         wPath.setText( selectedFile.getURL().toString() );
+        updateLocation();
       }
     } catch ( KettleFileException ex ) {
       log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
     } catch ( FileSystemException ex ) {
       log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
+    }
+  }
+
+  private void updateLocation() {
+    String pathText = wPath.getText();
+    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
+    if ( scheme != null ) {
+      try {
+        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
+        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
+          VFSScheme s = availableVFSSchemes.get( i );
+          if ( scheme.equals( s.getScheme() ) ) {
+            wLocation.select( i );
+            selectedVFSScheme = s;
+          }
+        }
+      } catch ( KettleFileException ex ) {
+        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
+      } catch ( FileSystemException ex ) {
+        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
+      }
     }
   }
 
