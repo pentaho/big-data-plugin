@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
 import org.pentaho.bigdata.api.format.FormatService;
@@ -124,5 +125,12 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   protected IBaseFileInputReader createReader( ParquetInputMeta meta, ParquetInputData data, FileObject file )
     throws Exception {
     return null;
+  }
+
+  public static SchemaDescription retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
+      NamedCluster namedCluster, String path ) throws Exception {
+    FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
+    IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class );
+    return in.readSchema( path );
   }
 }
