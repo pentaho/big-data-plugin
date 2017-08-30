@@ -311,7 +311,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
             return true;
           }
         };
-        BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1 }, new int[] { 3 }, -1, -1,
+        BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1,
             listener );
       }
     } catch ( KettleException ke ) {

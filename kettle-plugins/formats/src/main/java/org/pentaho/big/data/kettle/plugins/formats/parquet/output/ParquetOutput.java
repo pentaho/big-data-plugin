@@ -100,8 +100,27 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
     data.output.setOutputFile( meta.getFilename() );
     data.output.setSchema( schema );
-    data.output.setVersion( IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
-    data.output.setEncoding( IPentahoParquetOutputFormat.ENCODING.PLAIN );
+
+    IPentahoParquetOutputFormat.COMPRESSION compression;
+    try {
+      compression = IPentahoParquetOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+    } catch ( Exception ex ) {
+      compression = IPentahoParquetOutputFormat.COMPRESSION.UNCOMPRESSED;
+    }
+    data.output.setCompression( compression );
+    data.output.setVersion( "Parquet 1.0".equals( meta.getParquetVersion() )
+        ? IPentahoParquetOutputFormat.VERSION.VERSION_1_0 : IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
+    if ( meta.getRowGroupSize( variables ) > 0 ) {
+      data.output.setRowGroupSize( meta.getRowGroupSize( variables ) * 1024 * 1024 );
+    }
+    if ( meta.getDataPageSize( variables ) > 0 ) {
+      data.output.setDataPageSize( meta.getDataPageSize( variables ) * 1024 );
+    }
+    data.output.enableDictionary( meta.getEncodingType().startsWith( "D" ) );
+    if ( meta.getDictPageSize( variables ) > 0 ) {
+      data.output.setDictionaryPageSize( meta.getDictPageSize( variables ) * 1024 );
+    }
+
     data.writer = data.output.createRecordWriter();
   }
 

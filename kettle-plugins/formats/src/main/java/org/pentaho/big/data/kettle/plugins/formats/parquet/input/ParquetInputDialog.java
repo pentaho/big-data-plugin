@@ -40,8 +40,9 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
+import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
-public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBase> {
+public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> {
 
   private static final int DIALOG_WIDTH = 526;
 
@@ -56,7 +57,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
   private TableView wInputFields;
 
   public ParquetInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
-    super( parent, (ParquetInputMetaBase) in, transMeta, sname );
+    super( parent, (ParquetInputMeta) in, transMeta, sname );
   }
 
   @Override
@@ -65,8 +66,12 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
     Button wGetFields = new Button( shell, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Get" ) );
     wGetFields.addListener( SWT.Selection, event -> {
-      // TODO
-      throw new UnsupportedOperationException();
+      try {
+        setFields( ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), wPath.getText()
+            .trim() ) );
+      } catch ( Exception ex ) {
+        throw new RuntimeException( ex );
+      }
     } );
     props.setLook( wGetFields );
     new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
@@ -105,7 +110,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
    * Read the data from the meta object and show it in this dialog.
    */
   @Override
-  protected void getData( ParquetInputMetaBase meta ) {
+  protected void getData( ParquetInputMeta meta ) {
     if ( meta.inputFiles.fileName.length > 0 ) {
       wPath.setText( meta.inputFiles.fileName[0] );
     }
@@ -129,15 +134,26 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMetaBa
     }
   }
 
+  protected void setFields( SchemaDescription schema ) {
+    wInputFields.table.removeAll();
+    for ( SchemaDescription.Field f : schema ) {
+      TableItem item = new TableItem( wInputFields.table, SWT.NONE );
+
+      item.setText( AVRO_PATH_COLUMN_INDEX, f.formatFieldName );
+      item.setText( FIELD_NAME_COLUMN_INDEX, f.formatFieldName );
+      item.setText( FIELD_TYPE_COLUMN_INDEX, ValueMetaFactory.getValueMetaName( f.pentahoValueMetaType ) );
+    }
+  }
+
   /**
    * Fill meta object from UI options.
    */
   @Override
-  protected void getInfo( ParquetInputMetaBase meta, boolean preview ) {
+  protected void getInfo( ParquetInputMeta meta, boolean preview ) {
     String filePath = wPath.getText();
     if ( filePath != null && !filePath.isEmpty() ) {
       meta.allocateFiles( 1 );
-      meta.inputFiles.fileName[0] = wPath.getText();
+      meta.inputFiles.fileName[0] = wPath.getText().trim();
     }
     int nrFields = wInputFields.nrNonEmpty();
     meta.inputFields = new FormatInputField[nrFields];

@@ -38,7 +38,7 @@ import org.pentaho.di.trans.step.StepMeta;
     i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
 public class ParquetInputMeta extends ParquetInputMetaBase {
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
+  protected final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
 
   public ParquetInputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
