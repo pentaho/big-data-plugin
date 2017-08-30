@@ -359,7 +359,7 @@ public class NamedClusterImplTest {
   public void testProcessURLSubstitution_Gateway() throws MetaStoreException {
     namedCluster.setUseGateway( true );
     String incomingURL = "/path";
-    String expected = "nc://" + namedCluster.getName() + incomingURL;
+    String expected = "hc://" + namedCluster.getName() + incomingURL;
     String actual = namedCluster.processURLsubstitution( incomingURL, metaStore, null );
     assertTrue( "Expected " + expected + " actual " + actual, expected.equalsIgnoreCase( actual ) );
   }
@@ -429,13 +429,13 @@ public class NamedClusterImplTest {
   @Test
   public void testProcessURLsubstitutionNC() throws Exception {
     assertEquals("hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@namedClusterHdfsHost:12345/input/file.txt",
-      namedCluster.processURLsubstitution( "nc://cluster/input/file.txt", metaStore, null ) );
+      namedCluster.processURLsubstitution( "hc://cluster/input/file.txt", metaStore, null ) );
   }
 
   @Test
   public void testProcessURLSubstitutionNC_variable() throws Exception {
     String incomingURL = "${ncUrl}/test";
-    when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( "nc://cluster/test" );
+    when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( "hc://cluster/test" );
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
   }
 
