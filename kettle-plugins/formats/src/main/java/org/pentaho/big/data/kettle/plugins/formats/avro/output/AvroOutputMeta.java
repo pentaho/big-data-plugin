@@ -48,7 +48,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
-@Step( id = "AvroOutput", image = "PO.svg", name = "AvroOutput.Name", description = "AvroOutput.Description",
+@Step( id = "AvroOutput", image = "AO.svg", name = "AvroOutput.Name", description = "AvroOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+output",
     i18nPackageName = "org.pentaho.di.trans.steps.avro" )
@@ -60,7 +60,9 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
   private final NamedClusterService namedClusterService;
 
   @Injection( name = FieldNames.COMPRESSION )
-  private String compressionType;
+  private CompressionType compressionType;
+
+  // private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
 
   public AvroOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator,  NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
@@ -104,6 +106,7 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
     super.readRep( rep, metaStore, id_step, databases );
     compressionType = rep.getStepAttributeString( id_step, FieldNames.COMPRESSION );
   }
+
 
   public NamedCluster getNamedCluster() {
     return namedClusterService.getClusterTemplate();
