@@ -904,7 +904,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
         KafkaConsumerField field = new KafkaConsumerField(
           ref,
           outputName,
-          KafkaConsumerField.Type.valueOf( outputType.toUpperCase() )
+          KafkaConsumerField.Type.valueOf( outputType )
         );
         meta.setField( field );
       } catch ( IllegalArgumentException e ) {
