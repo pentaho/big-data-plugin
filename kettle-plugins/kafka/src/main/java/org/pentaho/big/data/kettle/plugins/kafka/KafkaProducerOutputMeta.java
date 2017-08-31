@@ -76,7 +76,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   private static Class<?> PKG = KafkaProducerOutput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   @Injection( name = "CONNECTION_TYPE" )
-  private ConnectionType connectionType = CLUSTER;
+  private ConnectionType connectionType = DIRECT;
   @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
   private String directBootstrapServers;
   @Injection( name = "CLUSTER_NAME" )
