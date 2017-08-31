@@ -34,7 +34,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 
-@Step( id = "AvroOutput", image = "PO.svg", name = "AvroOutput.Name", description = "AvroOutput.Description",
+@Step( id = "AvroOutput", image = "AO.svg", name = "AvroOutput.Name", description = "AvroOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+output",
     i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
@@ -45,9 +45,7 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
 
-  private EncodingType encodingType;
   private CompressionType compressionType;
-  private AvroVersion parquetVersion;
 
   // private final NamedClusterLoadSaveUtil namedClusterLoadSaveUtil;
 
@@ -72,13 +70,6 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
     return new AvroOutputData();
   }
 
-  public String getEncoding() {
-    return encodingType == null ? EncodingType.PLAIN.toString() : encodingType.toString();
-  }
-
-  public void setEncoding( String encoding ) {
-    encodingType = parseFromToString( encoding, EncodingType.values(), null );
-  }
 
   public String getCompression() {
     return compressionType == null ? CompressionType.NONE.toString() : compressionType.toString();
@@ -86,14 +77,6 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
 
   public void setCompression( String compression ) {
     compressionType = parseFromToString( compression, CompressionType.values(), null );
-  }
-
-  public String getAvroVersion() {
-    return parquetVersion == null ? AvroVersion.PARQUET_1.toString() : parquetVersion.toString();
-  }
-
-  public void setAvroVersion( String version ) {
-    this.parquetVersion = parseFromToString( version, AvroVersion.values(), null );
   }
 
   public String[] getEncodingTypes() {
