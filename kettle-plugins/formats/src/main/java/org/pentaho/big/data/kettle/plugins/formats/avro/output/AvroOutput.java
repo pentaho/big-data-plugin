@@ -91,8 +91,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
     }
     SchemaDescription schema = new SchemaDescription();
     for ( FormatInputField f : meta.getOutputFields() ) {
-      SchemaDescription.Field field =
-          schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
+      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
       field.defaultValue = f.getIfNullValue();
       schema.addField( field );
     }
