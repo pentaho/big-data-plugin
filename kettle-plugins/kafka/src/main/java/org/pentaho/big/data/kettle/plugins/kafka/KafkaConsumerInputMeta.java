@@ -106,7 +106,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   private String transformationPath;
 
   @Injection( name = "CONNECTION_TYPE" )
-  private ConnectionType connectionType = CLUSTER;
+  private ConnectionType connectionType = DIRECT;
 
   @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
   private String directBootstrapServers;
