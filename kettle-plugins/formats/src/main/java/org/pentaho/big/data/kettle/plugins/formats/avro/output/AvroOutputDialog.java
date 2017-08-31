@@ -28,8 +28,6 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -54,7 +52,6 @@ import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
-import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 
@@ -65,17 +62,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
 
-  private static final int COLUMNS_SEP = 5 * MARGIN;
-
   private TableView wOutputFields;
 
   private ComboVar wCompression;
-  private ComboVar wVersion;
-  private TextVar wRowSize;
-  private TextVar wPageSize;
-  private ComboVar wEncoding;
-  private TextVar wDictPageSize;
-
 
   public AvroOutputDialog( Shell parent, Object parquetOutputMeta, TransMeta transMeta, String sname ) {
     this( parent, (AvroOutputMeta) parquetOutputMeta, transMeta, sname );
@@ -183,44 +172,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     new FD( lCompression ).left( 0, 0 ).top( wComp, 0 ).apply();
     wCompression = createComboVar( wComp, meta.getCompressionTypes() );
     new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-
-    Label lVersion = createLabel( wComp, "AvroOutputDialog.Options.Version" );
-    new FD( lVersion ).left( 0, 0 ).top( wCompression, FIELDS_SEP ).apply();
-    wVersion = createComboVar( wComp, meta.getVersionTypes() );
-    new FD( wVersion ).left( 0, 0 ).top( lVersion, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-
-    Label lRowSize = createLabel( wComp, "AvroOutputDialog.Options.RowSize" );
-    new FD( lRowSize ).left( 0, 0 ).top( wVersion, FIELDS_SEP ).apply();
-    wRowSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wRowSize ).left( 0, 0 ).top( lRowSize, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-    setIntegerOnly( wRowSize );
-
-    Label lDataPageSize = createLabel( wComp, "AvroOutputDialog.Options.PageSize" );
-    new FD( lDataPageSize ).left( 0, 0 ).top( wRowSize, FIELDS_SEP ).apply();
-    wPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wPageSize ).left( 0, 0 ).top( lDataPageSize, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-    setIntegerOnly( wPageSize );
-
-    Control leftRef = wCompression;
-    // 2nd column
-    Label lEncoding = new Label( wComp, SWT.NONE );
-    lEncoding.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.Encoding" ) );
-    new FD( lEncoding ).left( leftRef, COLUMNS_SEP ).top( wComp, 0 ).apply();
-    wEncoding = createComboVar( wComp, meta.getEncodingTypes() );
-    new FD( wEncoding ).left( leftRef, COLUMNS_SEP ).top( lEncoding, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-
-    Label lDict = new Label( wComp, SWT.NONE );
-    lDict.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.DictPageSize" ) );
-    new FD( lDict ).left( leftRef, COLUMNS_SEP ).top( wEncoding, FIELDS_SEP ).apply();
-    wDictPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wDictPageSize ).left( leftRef, COLUMNS_SEP ).top( lDict, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
-    setIntegerOnly( wDictPageSize );
-    wEncoding.addModifyListener( new ModifyListener() {
-      @Override
-      public void modifyText( ModifyEvent e ) {
-        wDictPageSize.setEnabled( wEncoding.getText().equals( AvroOutputMeta.EncodingType.DICTIONARY.toString() ) );
-      }
-    } );
   }
 
   protected ComboVar createComboVar( Composite container, String[] options ) {
@@ -245,8 +196,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     }
     populateFieldsUI( meta, wOutputFields );
     wCompression.setText( meta.getCompression() );
-    wEncoding.setText( meta.getEncoding() );
-    wVersion.setText( meta.getAvroVersion() );
   }
 
   // ui -> meta
