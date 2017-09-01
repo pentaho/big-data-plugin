@@ -22,14 +22,15 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -69,7 +70,6 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 /**
@@ -78,8 +78,12 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg", name = "Kafka Consumer",
   description = "Consume messages from a Kafka topic",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
-@InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection." )
+@InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "OPTIONS" } )
 public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {
+  public enum ConnectionType {
+    DIRECT,
+    CLUSTER
+  }
 
   public static final String CLUSTER_NAME = "clusterName";
   public static final String TOPIC = "topic";
@@ -90,11 +94,9 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public static final String CONNECTION_TYPE = "connectionType";
   public static final String DIRECT_BOOTSTRAP_SERVERS = "directBootstrapServers";
   public static final String ADVANCED_CONFIG = "advancedConfig";
-
   public static final String TOPIC_FIELD_NAME = TOPIC;
   public static final String OFFSET_FIELD_NAME = "offset";
   public static final String PARTITION_FIELD_NAME = "partition";
-
   public static final String TIMESTAMP_FIELD_NAME = "timestamp";
   public static final String OUTPUT_FIELD_TAG_NAME = "OutputField";
   public static final String KAFKA_NAME_ATTRIBUTE = "kafkaName";
@@ -126,24 +128,36 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   @Injection( name = "DURATION" )
   private String batchDuration;
 
-  public enum ConnectionType {
-    DIRECT,
-    CLUSTER
-  }
-  private Map<String, String> advancedConfig = new LinkedHashMap<>();
+  @InjectionDeep( prefix = "KEY" )
+  private KafkaConsumerField keyField;
 
-  @InjectionDeep( prefix = "KEY" ) private KafkaConsumerField keyField;
+  @InjectionDeep( prefix = "MESSAGE" )
+  private KafkaConsumerField messageField;
 
-  @InjectionDeep( prefix = "MESSAGE" ) private KafkaConsumerField messageField;
+  @Injection( name = "NAMES", group = "OPTIONS" )
+  protected transient List<String> injectedConfigNames;
+
+  @Injection( name = "VALUES", group = "OPTIONS" )
+  protected transient List<String> injectedConfigValues;
+
+  private Map<String, String> config = new LinkedHashMap<>();
+
   private KafkaConsumerField topicField;
+
   private KafkaConsumerField offsetField;
+
   private KafkaConsumerField partitionField;
+
   private KafkaConsumerField timestampField;
+
   private transient KafkaFactory kafkaFactory;
 
   private NamedClusterService namedClusterService;
+
   private MetastoreLocator metastoreLocator;
+
   private NamedClusterServiceLocator namedClusterServiceLocator;
+
   public KafkaConsumerInputMeta() {
     super(); // allocate BaseStepMeta
     kafkaFactory = KafkaFactory.defaultFactory();
@@ -220,12 +234,12 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       setField( field );
     } );
 
-    advancedConfig = new LinkedHashMap<>();
+    config = new LinkedHashMap<>();
 
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
         .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
             .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> advancedConfig.put( node.getNodeName(), node.getTextContent() ) ) );
+            .forEach( node -> config.put( node.getNodeName(), node.getTextContent() ) ) );
   }
 
   protected void setField( KafkaConsumerField field ) {
@@ -262,10 +276,10 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       }
     }
 
-    advancedConfig = new LinkedHashMap<>();
+    config = new LinkedHashMap<>();
 
     for ( int i = 0; i < rep.getStepAttributeInteger( id_step, ADVANCED_CONFIG + "_COUNT" ); i++ ) {
-      advancedConfig.put( rep.getStepAttributeString( id_step, i, ADVANCED_CONFIG + "_NAME" ),
+      config.put( rep.getStepAttributeString( id_step, i, ADVANCED_CONFIG + "_NAME" ),
           rep.getStepAttributeString( id_step, i, ADVANCED_CONFIG + "_VALUE" ) );
     }
   }
@@ -293,12 +307,12 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       rep.saveStepAttribute( transId, stepId, prefix + "_" + TYPE_ATTRIBUTE, field.getOutputType().toString() );
     }
 
-    rep.saveStepAttribute( transId, stepId, ADVANCED_CONFIG + "_COUNT", getAdvancedConfig().size() );
+    rep.saveStepAttribute( transId, stepId, ADVANCED_CONFIG + "_COUNT", getConfig().size() );
 
     i = 0;
-    for ( String propName : getAdvancedConfig().keySet() ) {
+    for ( String propName : getConfig().keySet() ) {
       rep.saveStepAttribute( transId, stepId, i, ADVANCED_CONFIG + "_NAME", propName );
-      rep.saveStepAttribute( transId, stepId, i++, ADVANCED_CONFIG + "_VALUE", getAdvancedConfig().get( propName ) );
+      rep.saveStepAttribute( transId, stepId, i++, ADVANCED_CONFIG + "_VALUE", getConfig().get( propName ) );
     }
   }
 
@@ -512,7 +526,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
           TYPE_ATTRIBUTE, field.getOutputType().toString() ) ) );
 
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
-    getAdvancedConfig().forEach( ( key, value ) -> retval.append( "        " )
+    getConfig().forEach( ( key, value ) -> retval.append( "        " )
         .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
@@ -583,12 +597,13 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     this.metastoreLocator = metastoreLocator;
   }
 
-  public void setAdvancedConfig( Map<String, String> config ) {
-    advancedConfig = config;
+  public void setConfig( Map<String, String> config ) {
+    this.config = config;
   }
 
-  public Map<String, String> getAdvancedConfig() {
-    return advancedConfig;
+  public Map<String, String> getConfig() {
+    applyInjectedProperties();
+    return config;
   }
 
   @Override
@@ -606,5 +621,21 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     }
 
     return references;
+  }
+
+  protected void applyInjectedProperties() {
+    if ( injectedConfigNames != null || injectedConfigValues != null ) {
+      Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
+      Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
+      Preconditions.checkState( injectedConfigNames.size() == injectedConfigValues.size(),
+          "Injected different number of options names and value" );
+
+      setConfig( IntStream.range( 0, injectedConfigNames.size() ).boxed().collect( Collectors
+          .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
+              LinkedHashMap::new ) ) );
+
+      injectedConfigNames = null;
+      injectedConfigValues = null;
+    }
   }
 }
