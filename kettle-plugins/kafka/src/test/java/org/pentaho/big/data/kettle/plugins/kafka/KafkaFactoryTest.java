@@ -79,12 +79,10 @@ public class KafkaFactoryTest {
     inputMeta.setNamedClusterService( namedClusterService );
     inputMeta.setMetastoreLocator( metastoreLocator );
     inputMeta.setClusterName( "some_cluster" );
-    inputMeta.setConnectionType( KafkaConsumerInputMeta.ConnectionType.CLUSTER );
     outputMeta = new KafkaProducerOutputMeta();
     outputMeta.setNamedClusterService( namedClusterService );
     outputMeta.setMetastoreLocator( metastoreLocator );
     outputMeta.setClusterName( "some_cluster" );
-    outputMeta.setConnectionType( KafkaProducerOutputMeta.ConnectionType.CLUSTER );
   }
 
   @Test

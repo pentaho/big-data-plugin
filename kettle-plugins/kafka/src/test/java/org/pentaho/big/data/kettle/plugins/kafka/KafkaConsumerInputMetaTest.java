@@ -424,9 +424,4 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( path, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResource() );
     assertEquals( ResourceEntry.ResourceType.ACTIONFILE, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResourcetype() );
   }
-
-  @Test
-  public void testDirecIsDefault() throws Exception {
-    assertEquals( DIRECT, new KafkaConsumerInputMeta().getConnectionType() );
-  }
 }

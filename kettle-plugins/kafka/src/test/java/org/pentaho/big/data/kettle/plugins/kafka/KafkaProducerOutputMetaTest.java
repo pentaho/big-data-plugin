@@ -55,7 +55,6 @@ import static org.mockito.Mockito.when;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CLIENT_ID;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CLUSTER_NAME;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CONNECTION_TYPE;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.DIRECT_BOOTSTRAP_SERVERS;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.KEY_FIELD;
@@ -231,7 +230,6 @@ public class KafkaProducerOutputMetaTest {
         .thenReturn( namedCluster );
 
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
-    meta.setConnectionType( CLUSTER );
     meta.setNamedClusterService( namedClusterService );
     meta.setMetastoreLocator( metastoreLocator );
     meta.setClusterName( "my_cluster" );
@@ -254,10 +252,5 @@ public class KafkaProducerOutputMetaTest {
     inputMeta.setClusterName( "kurtsCluster" );
     inputMeta.setMetastoreLocator( metastoreLocator );
     assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
-  }
-
-  @Test
-  public void testDirectIsDefault() throws Exception {
-    assertEquals( DIRECT, new KafkaProducerOutputMeta().getConnectionType() );
   }
 }

@@ -370,9 +370,9 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
     Label environmentSeparator = new Label( wConnectionGroup, SWT.SEPARATOR | SWT.VERTICAL );
     FormData fdenvironmentSeparator = new FormData();
-    fdenvironmentSeparator.top = new FormAttachment( wbDirect, 0, SWT.TOP );
+    fdenvironmentSeparator.top = new FormAttachment( 0, 0 );
     fdenvironmentSeparator.left = new FormAttachment( wbCluster, 15 );
-    fdenvironmentSeparator.bottom = new FormAttachment( wbCluster, 0, SWT.BOTTOM );
+    fdenvironmentSeparator.bottom = new FormAttachment( 100, 0 );
     environmentSeparator.setLayoutData( fdenvironmentSeparator );
 
     wlClusterName = new Label( wConnectionGroup, SWT.LEFT );
