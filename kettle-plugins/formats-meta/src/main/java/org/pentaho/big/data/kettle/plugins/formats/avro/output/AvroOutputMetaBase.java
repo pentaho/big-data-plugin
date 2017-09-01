@@ -45,12 +45,6 @@ import org.w3c.dom.Node;
  */
 public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
 
-  private String writerVersion;
-  private int rowGroupSize;
-  private int pageSize;
-  private boolean enableDictionary;
-  private int dictionaryPageSize;
-
   private String filename;
 
   private List<FormatInputField> outputFields = new ArrayList<FormatInputField>();

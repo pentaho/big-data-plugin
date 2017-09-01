@@ -100,6 +100,13 @@ public class AvroOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
     data.output.setOutputFile( meta.getFilename() );
     data.output.setSchema( schema );
+    IPentahoAvroOutputFormat.COMPRESSION compression;
+    try {
+      compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+    } catch ( Exception ex ) {
+      compression = IPentahoAvroOutputFormat.COMPRESSION.UNCOMPRESSED;
+    }
+    data.output.setCompression( compression );
     data.writer = data.output.createRecordWriter();
   }
 

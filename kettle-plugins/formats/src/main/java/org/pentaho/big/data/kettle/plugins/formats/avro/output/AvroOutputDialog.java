@@ -84,13 +84,13 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   Composite fromFileComposite = null;
   Composite fromFieldComposite = null;
 
-  public AvroOutputDialog( Shell parent, Object parquetOutputMeta, TransMeta transMeta, String sname ) {
-    this( parent, (AvroOutputMeta) parquetOutputMeta, transMeta, sname );
+  public AvroOutputDialog( Shell parent, Object avroOutputMeta, TransMeta transMeta, String sname ) {
+    this( parent, (AvroOutputMeta) avroOutputMeta, transMeta, sname );
   }
 
-  public AvroOutputDialog( Shell parent, AvroOutputMeta parquetOutputMeta, TransMeta transMeta, String sname ) {
-    super( parent, parquetOutputMeta, transMeta, sname );
-    this.meta = parquetOutputMeta;
+  public AvroOutputDialog( Shell parent, AvroOutputMeta avroOutputMeta, TransMeta transMeta, String sname ) {
+    super( parent, avroOutputMeta, transMeta, sname );
+    this.meta = avroOutputMeta;
   }
 
   // TODO name
@@ -411,7 +411,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       wPath.setText( meta.getFilename() );
     }
     populateFieldsUI( meta, wOutputFields );
-    wCompression.setText( meta.getCompression() );
+    wCompression.setText( meta.getCompressionType() );
   }
 
   // ui -> meta
