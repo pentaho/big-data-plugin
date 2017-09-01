@@ -43,8 +43,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -91,9 +93,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private Label wlTopic;
   private ComboVar wTopic;
   private Label wlKeyField;
-  private TextVar wKeyField;
+  private ComboVar wKeyField;
   private Label wlMessageField;
-  private TextVar wMessageField;
+  private ComboVar wMessageField;
   private TableView optionsTable;
   private CTabFolder wTabFolder;
   private CTabItem wSetupTab;
@@ -389,7 +391,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdlKeyField.right = new FormAttachment( 50, 0 );
     wlKeyField.setLayoutData( fdlKeyField );
 
-    wKeyField = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wKeyField = new ComboVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wKeyField );
     wKeyField.addModifyListener( lsMod );
     FormData fdKeyField = new FormData();
@@ -397,6 +399,13 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdKeyField.top = new FormAttachment( wlKeyField, 5 );
     fdKeyField.right = new FormAttachment( 0, INPUT_WIDTH );
     wKeyField.setLayoutData( fdKeyField );
+    Listener lsKeyFocus = new Listener() {
+      @Override
+      public void handleEvent( Event e ) {
+        KafkaDialogHelper.populateFieldsList( transMeta, wKeyField, "Kafka Producer" );
+      }
+    };
+    wKeyField.getCComboWidget().addListener( SWT.FocusIn, lsKeyFocus );
 
     wlMessageField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlMessageField );
@@ -407,7 +416,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdlMessageField.right = new FormAttachment( 50, 0 );
     wlMessageField.setLayoutData( fdlMessageField );
 
-    wMessageField = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wMessageField = new ComboVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wMessageField );
     wMessageField.addModifyListener( lsMod );
     FormData fdMessageField = new FormData();
@@ -415,6 +424,13 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdMessageField.top = new FormAttachment( wlMessageField, 5 );
     fdMessageField.right = new FormAttachment( 0, INPUT_WIDTH );
     wMessageField.setLayoutData( fdMessageField );
+    Listener lsMessageFocus = new Listener() {
+      @Override
+      public void handleEvent( Event e ) {
+        KafkaDialogHelper.populateFieldsList( transMeta, wMessageField, "Kafka Producer" );
+      }
+    };
+    wMessageField.getCComboWidget().addListener( SWT.FocusIn, lsMessageFocus );
 
     FormData fdSetupComp = new FormData();
     fdSetupComp.left = new FormAttachment( 0, 0 );

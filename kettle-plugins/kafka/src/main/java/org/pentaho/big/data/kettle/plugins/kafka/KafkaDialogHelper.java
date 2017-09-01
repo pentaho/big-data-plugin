@@ -43,7 +43,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
@@ -122,6 +126,22 @@ public class KafkaDialogHelper {
       if ( kafkaConsumer != null ) {
         kafkaConsumer.close();
       }
+    }
+  }
+
+  public static void populateFieldsList( TransMeta transMeta, ComboVar comboVar, String stepName ) {
+    String current = comboVar.getText();
+    comboVar.getCComboWidget().removeAll();
+    comboVar.setText( current );
+    try {
+      RowMetaInterface rmi = transMeta.getPrevStepFields( stepName );
+      List ls = rmi.getValueMetaList();
+      for ( int i = 0; i < ls.size(); i++ ) {
+        ValueMetaBase vmb = (ValueMetaBase) ls.get( i );
+        comboVar.add( vmb.getName() );
+      }
+    } catch ( KettleStepException ex ) {
+      // do nothing
     }
   }
 
