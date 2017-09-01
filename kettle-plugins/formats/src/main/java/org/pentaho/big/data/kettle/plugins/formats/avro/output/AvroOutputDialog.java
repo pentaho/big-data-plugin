@@ -54,6 +54,7 @@ import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
+import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 
@@ -66,6 +67,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
+
+  private static final int COLUMNS_SEP = 5 * MARGIN;
 
   private TableView wOutputFields;
 
@@ -384,6 +387,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     new FD( lCompression ).left( 0, 0 ).top( wComp, 0 ).apply();
     wCompression = createComboVar( wComp, meta.getCompressionTypes() );
     new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+
   }
 
   protected ComboVar createComboVar( Composite container, String[] options ) {
