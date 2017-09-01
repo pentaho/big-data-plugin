@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,6 +44,7 @@ import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -116,11 +118,11 @@ public class KafkaProducerOutputMetaTest {
     assertEquals( "three", meta.getKeyField() );
     assertEquals( "four", meta.getMessageField() );
 
-    assertEquals( 2, meta.getAdvancedConfig().size() );
-    assertTrue( meta.getAdvancedConfig().containsKey( "advanced.property1" ) );
-    assertEquals( "advancedPropertyValue1", meta.getAdvancedConfig().get( "advanced.property1" ) );
-    assertTrue( meta.getAdvancedConfig().containsKey( "advanced.property2" ) );
-    assertEquals( "advancedPropertyValue2", meta.getAdvancedConfig().get( "advanced.property2" ) );
+    assertEquals( 2, meta.getConfig().size() );
+    assertTrue( meta.getConfig().containsKey( "advanced.property1" ) );
+    assertEquals( "advancedPropertyValue1", meta.getConfig().get( "advanced.property1" ) );
+    assertTrue( meta.getConfig().containsKey( "advanced.property2" ) );
+    assertEquals( "advancedPropertyValue2", meta.getConfig().get( "advanced.property2" ) );
   }
 
   @Test
@@ -137,7 +139,7 @@ public class KafkaProducerOutputMetaTest {
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.property1", "advancedPropertyValue1" );
     advancedConfig.put( "advanced.property2", "advancedPropertyValue2" );
-    meta.setAdvancedConfig( advancedConfig );
+    meta.setConfig( advancedConfig );
 
     assertEquals(
         "    <connectionType>DIRECT</connectionType>" + Const.CR
@@ -182,9 +184,9 @@ public class KafkaProducerOutputMetaTest {
     assertEquals( "machineId", meta.getKeyField() );
     assertEquals( "reading", meta.getMessageField() );
 
-    assertThat( meta.getAdvancedConfig().size(), is( 2 ) );
-    assertThat( meta.getAdvancedConfig(), Matchers.hasEntry( "advanced.config1", "advancedPropertyValue1" ) );
-    assertThat( meta.getAdvancedConfig(), Matchers.hasEntry( "advanced.config2", "advancedPropertyValue2" ) );
+    assertThat( meta.getConfig().size(), is( 2 ) );
+    assertThat( meta.getConfig(), Matchers.hasEntry( "advanced.config1", "advancedPropertyValue1" ) );
+    assertThat( meta.getConfig(), Matchers.hasEntry( "advanced.config2", "advancedPropertyValue2" ) );
   }
 
   @Test
@@ -203,7 +205,7 @@ public class KafkaProducerOutputMetaTest {
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.property1", "advancedPropertyValue1" );
     advancedConfig.put( "advanced.property2", "advancedPropertyValue2" );
-    meta.setAdvancedConfig( advancedConfig );
+    meta.setConfig( advancedConfig );
 
     meta.saveRep( rep, metastore, transId, stepId );
     verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
@@ -259,5 +261,15 @@ public class KafkaProducerOutputMetaTest {
   @Test
   public void testDirectIsDefault() throws Exception {
     assertEquals( DIRECT, new KafkaProducerOutputMeta().getConnectionType() );
+  }
+
+  @Test
+  public void testMDI() {
+    KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
+    meta.injectedConfigNames = Arrays.asList( "injectedName" );
+    meta.injectedConfigValues = Arrays.asList( "injectedValue" );
+    meta.applyInjectedProperties();
+    assertThat( meta.getConfig().size(), Matchers.is( 1 ) );
+    assertThat( meta.getConfig(), hasEntry( "injectedName", "injectedValue" ) );
   }
 }

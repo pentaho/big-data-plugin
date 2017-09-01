@@ -620,7 +620,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private void buildOptionsTable( Composite parentWidget, Control relativePosition ) {
     ColumnInfo[] columns = getOptionsColumns();
 
-    if ( meta.getAdvancedConfig().size() == 0 ) {
+    if ( meta.getConfig().size() == 0 ) {
       // inital call
       List<String> list = KafkaDialogHelper.getConsumerAdvancedConfigOptionNames();
       Map<String, String> advancedConfig = new LinkedHashMap<>();
@@ -631,9 +631,9 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
           advancedConfig.put( item, "" );
         }
       }
-      meta.setAdvancedConfig( advancedConfig );
+      meta.setConfig( advancedConfig );
     }
-    int fieldCount = meta.getAdvancedConfig().size();
+    int fieldCount = meta.getConfig().size();
 
     optionsTable = new TableView(
       transMeta,
@@ -731,7 +731,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
   private void populateOptionsData() {
     int rowIndex = 0;
-    for ( Map.Entry<String, String> entry : meta.getAdvancedConfig().entrySet() ) {
+    for ( Map.Entry<String, String> entry : meta.getConfig().entrySet() ) {
       TableItem key = optionsTable.getTable().getItem( rowIndex++ );
       key.setText( 1, entry.getKey() );
       key.setText( 2, entry.getValue() );
@@ -940,7 +940,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
         advancedConfig.put( config, value );
       }
     }
-    meta.setAdvancedConfig( advancedConfig );
+    meta.setConfig( advancedConfig );
   }
 
   private void selectRepositoryTrans() {

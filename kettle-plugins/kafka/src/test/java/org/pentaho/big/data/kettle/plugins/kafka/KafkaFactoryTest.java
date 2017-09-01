@@ -101,7 +101,7 @@ public class KafkaFactoryTest {
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.config1", "advancedPropertyValue1" );
     advancedConfig.put( "advanced.config2", "advancedPropertyValue2" );
-    inputMeta.setAdvancedConfig( advancedConfig );
+    inputMeta.setConfig( advancedConfig );
 
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
@@ -146,7 +146,7 @@ public class KafkaFactoryTest {
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.variable", "${advanced.var}" );
-    inputMeta.setAdvancedConfig( advancedConfig );
+    inputMeta.setConfig( advancedConfig );
 
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
@@ -175,7 +175,7 @@ public class KafkaFactoryTest {
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.config1", "advancedPropertyValue1" );
     advancedConfig.put( "advanced.config2", "advancedPropertyValue2" );
-    outputMeta.setAdvancedConfig( advancedConfig );
+    outputMeta.setConfig( advancedConfig );
 
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 
@@ -217,7 +217,7 @@ public class KafkaFactoryTest {
 
     Map<String, String> advancedConfig = new LinkedHashMap<>();
     advancedConfig.put( "advanced.variable", "${advanced.var}" );
-    outputMeta.setAdvancedConfig( advancedConfig );
+    outputMeta.setConfig( advancedConfig );
 
     when( jaasConfigService.isKerberos() ).thenReturn( false );
 

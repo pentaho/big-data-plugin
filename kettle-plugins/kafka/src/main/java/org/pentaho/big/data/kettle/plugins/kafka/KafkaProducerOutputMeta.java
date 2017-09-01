@@ -22,10 +22,12 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import com.google.common.base.Preconditions;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -55,14 +57,17 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
 
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg", name = "Kafka Producer",
   description = "Produce messages to a Kafka topic",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
-@InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection." )
+@InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "OPTIONS" } )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
+  public enum ConnectionType {
+    DIRECT,
+    CLUSTER
+  }
 
   public static final String CLUSTER_NAME = "clusterName";
   public static final String CONNECTION_TYPE = "connectionType";
@@ -77,28 +82,37 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
   @Injection( name = "CONNECTION_TYPE" )
   private ConnectionType connectionType = DIRECT;
+
   @Injection( name = "DIRECT_BOOTSTRAP_SERVERS" )
   private String directBootstrapServers;
+
   @Injection( name = "CLUSTER_NAME" )
   private String clusterName;
+
   @Injection( name = "CLIENT_ID" )
   private String clientId;
+
   @Injection( name = "TOPIC" )
   private String topic;
+
   @Injection( name = "KEY_FIELD" )
   private String keyField;
+
   @Injection( name = "MESSAGE_FIELD" )
   private String messageField;
 
-  public enum ConnectionType {
-    DIRECT,
-    CLUSTER
-  }
+  @Injection( name = "NAMES", group = "OPTIONS" )
+  protected transient List<String> injectedConfigNames;
 
-  private Map<String, String> advancedConfig = new LinkedHashMap<>();
+  @Injection( name = "VALUES", group = "OPTIONS" )
+  protected transient List<String> injectedConfigValues;
+
+  private Map<String, String> config = new LinkedHashMap<>();
 
   private NamedClusterService namedClusterService;
+
   private NamedClusterServiceLocator namedClusterServiceLocator;
+
   private MetastoreLocator metastoreLocator;
 
   public KafkaProducerOutputMeta() {
@@ -123,12 +137,12 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     setKeyField( XMLHandler.getTagValue( stepnode, KEY_FIELD ) );
     setMessageField( XMLHandler.getTagValue( stepnode, MESSAGE_FIELD ) );
 
-    advancedConfig = new LinkedHashMap<>();
+    config = new LinkedHashMap<>();
 
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
         .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
             .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> advancedConfig.put( node.getNodeName(), node.getTextContent() ) ) );
+            .forEach( node -> config.put( node.getNodeName(), node.getTextContent() ) ) );
   }
 
   @Override public void setDefault() {
@@ -144,10 +158,10 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     setKeyField( rep.getStepAttributeString( stepId, KEY_FIELD ) );
     setMessageField( rep.getStepAttributeString( stepId, MESSAGE_FIELD ) );
 
-    advancedConfig = new LinkedHashMap<>();
+    config = new LinkedHashMap<>();
 
     for ( int i = 0; i < rep.getStepAttributeInteger( stepId, ADVANCED_CONFIG + "_COUNT" ); i++ ) {
-      advancedConfig.put( rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_NAME" ),
+      config.put( rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_NAME" ),
           rep.getStepAttributeString( stepId, i, ADVANCED_CONFIG + "_VALUE" ) );
     }
   }
@@ -162,12 +176,12 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     rep.saveStepAttribute( transformationId, stepId, KEY_FIELD, keyField );
     rep.saveStepAttribute( transformationId, stepId, MESSAGE_FIELD, messageField );
 
-    rep.saveStepAttribute( transformationId, stepId, ADVANCED_CONFIG + "_COUNT", getAdvancedConfig().size() );
+    rep.saveStepAttribute( transformationId, stepId, ADVANCED_CONFIG + "_COUNT", getConfig().size() );
 
     int i = 0;
-    for ( String propName : getAdvancedConfig().keySet() ) {
+    for ( String propName : getConfig().keySet() ) {
       rep.saveStepAttribute( transformationId, stepId, i, ADVANCED_CONFIG + "_NAME", propName );
-      rep.saveStepAttribute( transformationId, stepId, i++, ADVANCED_CONFIG + "_VALUE", getAdvancedConfig().get( propName ) );
+      rep.saveStepAttribute( transformationId, stepId, i++, ADVANCED_CONFIG + "_VALUE", getConfig().get( propName ) );
     }
   }
 
@@ -250,7 +264,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( KEY_FIELD, keyField ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
-    getAdvancedConfig().forEach( ( key, value ) -> retval.append( "        " )
+    getConfig().forEach( ( key, value ) -> retval.append( "        " )
         .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
@@ -281,12 +295,13 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     return directBootstrapServers;
   }
 
-  public void setAdvancedConfig( Map<String, String> config ) {
-    advancedConfig = config;
+  public void setConfig( Map<String, String> config ) {
+    this.config = config;
   }
 
-  public Map<String, String> getAdvancedConfig() {
-    return advancedConfig;
+  public Map<String, String> getConfig() {
+    applyInjectedProperties();
+    return config;
   }
 
   public void setNamedClusterService( NamedClusterService namedClusterService ) {
@@ -314,6 +329,22 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     } catch ( Exception e ) {
       log.logDebug( "problem getting jaas config", e );
       return Optional.empty();
+    }
+  }
+
+  protected void applyInjectedProperties() {
+    if ( injectedConfigNames != null || injectedConfigValues != null ) {
+      Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
+      Preconditions.checkState( injectedConfigValues != null, "Options values were not injected" );
+      Preconditions.checkState( injectedConfigNames.size() == injectedConfigValues.size(),
+          "Injected different number of options names and value" );
+
+      setConfig( IntStream.range( 0, injectedConfigNames.size() ).boxed().collect( Collectors
+          .toMap( injectedConfigNames::get, injectedConfigValues::get, ( v1, v2 ) -> v1,
+              LinkedHashMap::new ) ) );
+
+      injectedConfigNames = null;
+      injectedConfigValues = null;
     }
   }
 }
