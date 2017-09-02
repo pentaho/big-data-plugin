@@ -22,10 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -43,9 +44,11 @@ import org.pentaho.big.data.kettle.plugins.formats.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
@@ -57,9 +60,11 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> implements StepDialogInterface {
 
@@ -70,19 +75,16 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
   private static final int COLUMNS_SEP = 5 * MARGIN;
 
+  private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
+
   private TableView wOutputFields;
 
-  private ComboVar wCompression;
-  private ComboVar wVersion;
-  private TextVar wRowSize;
-  private TextVar wPageSize;
-  private ComboVar wEncoding;
-  private TextVar wDictPageSize;
-
-  Composite stackedLayoutComposite = null;
-  StackLayout stackedLayout = null;
-  Composite fromFileComposite = null;
-  Composite fromFieldComposite = null;
+  protected ComboVar wCompression;
+  protected TextVar wRecordName;
+  protected TextVar wDocValue;
+  protected TextVar wNameSpace;
+  protected TextVar wSchemaPath;
+  protected Button wbSchemaBrowse;
 
   public AvroOutputDialog( Shell parent, Object avroOutputMeta, TransMeta transMeta, String sname ) {
     this( parent, (AvroOutputMeta) avroOutputMeta, transMeta, sname );
@@ -204,23 +206,23 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
     wSourceGroup.setLayoutData( fdSource );
 
+    Label wlSchemaPath = new Label( wSourceGroup, SWT.RIGHT );
+    wlSchemaPath.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FileName" ) );
+    props.setLook( wlSchemaPath );
+    new FD( wlSchemaPath ).left( 0, 0 ).top( 0, 0 ).apply();
+    wSchemaPath = new TextVar( transMeta, wSourceGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wSchemaPath );
+    new FD( wSchemaPath ).left( 0, 0 ).top( wlSchemaPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH )
+        .rright().apply();
 
-    Label wlPath = new Label( wSourceGroup, SWT.RIGHT );
-    wlPath.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FileName" ) );
-    props.setLook( wlPath );
-    new FD( wlPath ).left( 0, 0 ).top( 0, 0 ).apply();
-    wPath = new TextVar( transMeta, wSourceGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wPath );
-    new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
-
-
-    wbBrowse = new Button( wSourceGroup, SWT.PUSH );
+    wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
     props.setLook( wbBrowse );
-    wbBrowse.setText( getMsg( "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
-    int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
-            - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
-    new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
+    wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
+    wbSchemaBrowse.addListener( SWT.Selection, event -> browseForFileInputPathForSchema() );
+    int bOffset = ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.
+        computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
+    new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
+        .apply();
 
 //      http://jira.pentaho.com/browse/BACKLOG-18706 - Tech Debt - Remove commented Code in AvroOutputDialog when new requirements come in
 //        The code below is commented out because the radio buttons were descoped for this release.  They will be
@@ -310,13 +312,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     fdAvroDetailsGroup.left = new FormAttachment( 0, 15 );
 
     wAvroDetailsGroup.setLayoutData( fdAvroDetailsGroup );
-
     // Set up the Namespace Text Box
     Label wlNameSpace = new Label( wAvroDetailsGroup, SWT.RIGHT );
     wlNameSpace.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.Namespace" ) );
     props.setLook( wlNameSpace );
     new FD( wlNameSpace ).left( 0, 0 ).top( 0, 0 ).apply();
-    TextVar wNameSpace = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wNameSpace = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wNameSpace );
     new FD( wNameSpace ).left( 0, 0 ).top( wlNameSpace, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
 
@@ -325,7 +326,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     wlRecordName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.RecordName" ) );
     props.setLook( wlRecordName );
     new FD( wlRecordName ).left( 0, 0 ).top( wNameSpace, FIELDS_SEP ).apply();
-    TextVar wRecordName = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wRecordName = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wRecordName );
     new FD( wRecordName ).left( 0, 0 ).top( wlRecordName, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
 
@@ -334,43 +335,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     wlDocValue.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.DocValue" ) );
     props.setLook( wlDocValue );
     new FD( wlDocValue ).left( 0, 0 ).top( wRecordName, FIELDS_SEP ).apply();
-    TextVar wDocValue = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wDocValue = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wDocValue );
     new FD( wDocValue ).left( 0, 0 ).top( wlDocValue, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
-  }
-
-  protected Control addSchemaFileWidgets( Composite parent, Control prev ) {
-
-    Label wlPath = new Label( parent, SWT.RIGHT );
-    wlPath.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FileName" ) );
-    props.setLook( wlPath );
-    new FD( wlPath ).left( 0, 0 ).top( prev, FIELDS_SEP ).apply();
-    wPath = new TextVar( transMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wPath );
-    new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
-
-
-    wbBrowse = new Button( parent, SWT.PUSH );
-    props.setLook( wbBrowse );
-    wbBrowse.setText( getMsg( "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
-    int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
-            - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
-    new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
-    return wPath;
-  }
-
-  protected Control addSchemaFieldWidgets( Composite parent, Control prev ) {
-
-    Label wlFieldName = new Label( parent, SWT.RIGHT );
-    wlFieldName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FieldName" ) );
-    props.setLook( wlFieldName );
-    new FD( wlFieldName ).left( 0, 0 ).top( prev, FIELDS_SEP ).apply();
-    TextVar wFieldName = new TextVar( transMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wFieldName );
-    new FD( wFieldName ).left( 0, 0 ).top( wlFieldName, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
-
-    return wFieldName;
   }
 
   private void addOptionsTab( CTabFolder wTabFolder ) {
@@ -393,7 +360,14 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   protected ComboVar createComboVar( Composite container, String[] options ) {
     ComboVar combo = new ComboVar( transMeta, container, SWT.LEFT | SWT.BORDER );
     combo.setItems( options );
+    combo.addModifyListener( lsMod );
     return combo;
+  }
+
+  protected String getComboVarValue( ComboVar combo ) {
+    String text = combo.getText();
+    String data = (String) combo.getData( text );
+    return data != null ? data : text;
   }
 
   private Label createLabel( Composite container, String labelRef ) {
@@ -410,6 +384,18 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     if ( meta.getFilename() != null ) {
       wPath.setText( meta.getFilename() );
     }
+    if ( meta.getSchemaFilename() != null ) {
+      wSchemaPath.setText( meta.getSchemaFilename() );
+    }
+    if ( meta.getDocValue() != null ) {
+      wDocValue.setText( meta.getDocValue() );
+    }
+    if ( meta.getNamespace() != null ) {
+      wNameSpace.setText( meta.getNamespace() );
+    }
+    if ( meta.getRecordName() != null ) {
+      wRecordName.setText( meta.getRecordName() );
+    }
     populateFieldsUI( meta, wOutputFields );
     wCompression.setText( meta.getCompressionType() );
   }
@@ -418,6 +404,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   @Override
   protected void getInfo( AvroOutputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
+    meta.setDocValue( wDocValue.getText() );
+    meta.setNamespace( wNameSpace.getText() );
+    meta.setRecordName( wRecordName.getText() );
+    meta.setSchemaFilename( wSchemaPath.getText() );
+    meta.setCompressionType( wCompression.getText() );
+
     // TODO
     saveOutputFields( wOutputFields, meta );
   }
@@ -442,10 +434,31 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   }
 
   private void populateFieldsUI( AvroOutputMeta meta, TableView wOutputFields ) {
-    // path / name / type / default / null
-    wOutputFields.getTable().removeAll();
-    for ( FormatInputField field : meta.getOutputFields() ) {
-      wOutputFields.add( field.getPath(), field.getName(), field.getTypeDesc(), field.getIfNullValue(), field.getNullString() );
+    populateFieldsUI( meta.getOutputFields(), wOutputFields, ( field, item ) -> {
+      int i = 1;
+      item.setText( i++, coalesce( field.getPath() ) );
+      item.setText( i++, coalesce( field.getName() ) );
+      item.setText( i++, coalesce( field.getTypeDesc() ) );
+      item.setText( i++, coalesce( field.getIfNullValue() ) );
+      item.setText( i++, coalesce( field.getNullString() ) );
+    } );
+  }
+
+  private String coalesce( String value ) {
+    return value == null ? "" : value;
+  }
+
+  private void populateFieldsUI( List<FormatInputField> fields, TableView wFields,
+      BiConsumer<FormatInputField, TableItem> converter ) {
+    int nrFields = fields.size();
+    for ( int i = 0; i < nrFields; i++ ) {
+      TableItem item = null;
+      if ( i < wFields.table.getItemCount() ) {
+        item = wFields.table.getItem( i );
+      } else {
+        item = new TableItem( wFields.table, SWT.NONE );
+      }
+      converter.accept( fields.get( i ), item );
     }
   }
 
@@ -467,6 +480,35 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     }
   }
 
+  private void browseForFileInputPathForSchema() {
+    try {
+      String path = transMeta.environmentSubstitute( wSchemaPath.getText() );
+      VfsFileChooserDialog fileChooserDialog;
+      String fileName;
+      if ( Utils.isEmpty( path ) ) {
+        fileChooserDialog = getVfsFileChooserDialog( null, null );
+        fileName = SCHEMA_SCHEME_DEFAULT + "://";
+      } else {
+        FileObject initialFile = getInitialFile( wSchemaPath.getText() );
+        FileObject rootFile = initialFile.getFileSystem().getRoot();
+        fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
+        fileName = null;
+      }
+
+      FileObject
+          selectedFile =
+          fileChooserDialog
+              .open( shell, null, SCHEMA_SCHEME_DEFAULT, true, fileName, FILES_FILTERS, fileFilterNames, true,
+                  VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
+      if ( selectedFile != null ) {
+        wSchemaPath.setText( selectedFile.getURL().toString() );
+      }
+    } catch ( KettleFileException ex ) {
+      log.logError( getBaseMsg( "AvroInputDialog.SchemaFileBrowser.KettleFileException" ) );
+    } catch ( FileSystemException ex ) {
+      log.logError( getBaseMsg( "AvroInputDialog.SchemaFileBrowser.FileSystemException" ) );
+    }
+  }
   @Override
   protected int getWidth() {
     return SHELL_WIDTH;

@@ -22,9 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
-import java.util.List;
-import java.util.function.Function;
-
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -48,6 +45,9 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.util.List;
+import java.util.function.Function;
+
 @Step( id = "AvroOutput", image = "AO.svg", name = "AvroOutput.Name", description = "AvroOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+output",
@@ -61,6 +61,10 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
 
   @Injection( name = FieldNames.COMPRESSION )
   private String compressionType;
+  @Injection( name = FieldNames.SCHEMA_FILENAME ) private String schemaFilename;
+  @Injection( name = FieldNames.NAMESPACE ) private String namespace;
+  @Injection( name = FieldNames.RECORD_NAME ) private String recordName;
+  @Injection( name = FieldNames.DOC_VALUE ) private String docValue;
 
   public AvroOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator, NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
@@ -82,6 +86,10 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
   public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
     super.loadXML( stepnode, databases, metaStore );
     compressionType = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESSION );
+    schemaFilename = XMLHandler.getTagValue( stepnode, FieldNames.SCHEMA_FILENAME );
+    namespace = XMLHandler.getTagValue( stepnode, FieldNames.NAMESPACE );
+    docValue = XMLHandler.getTagValue( stepnode, FieldNames.DOC_VALUE );
+    recordName = XMLHandler.getTagValue( stepnode, FieldNames.RECORD_NAME );
   }
 
   @Override
@@ -89,6 +97,10 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
     StringBuffer retval = new StringBuffer( super.getXML() );
     final String INDENT = "    ";
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.COMPRESSION, compressionType ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.SCHEMA_FILENAME, schemaFilename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.NAMESPACE, namespace ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DOC_VALUE, docValue ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.RECORD_NAME, recordName ) );
     return retval.toString();
   }
 
@@ -97,13 +109,54 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
     throws KettleException {
     super.saveRep( rep, metaStore, id_transformation, id_step );
     rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESSION, compressionType );
+    rep.saveStepAttribute( id_transformation, id_step, FieldNames.SCHEMA_FILENAME, schemaFilename );
+    rep.saveStepAttribute( id_transformation, id_step, FieldNames.NAMESPACE, namespace );
+    rep.saveStepAttribute( id_transformation, id_step, FieldNames.DOC_VALUE, docValue );
+    rep.saveStepAttribute( id_transformation, id_step, FieldNames.RECORD_NAME, recordName );
   }
+
 
   @Override
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-    throws KettleException {
+      throws KettleException {
     super.readRep( rep, metaStore, id_step, databases );
     compressionType = rep.getStepAttributeString( id_step, FieldNames.COMPRESSION );
+    schemaFilename = rep.getStepAttributeString( id_step, FieldNames.SCHEMA_FILENAME );
+    namespace = rep.getStepAttributeString( id_step, FieldNames.NAMESPACE );
+    docValue = rep.getStepAttributeString( id_step, FieldNames.DOC_VALUE );
+    recordName = rep.getStepAttributeString( id_step, FieldNames.RECORD_NAME );
+  }
+
+  public String getSchemaFilename() {
+    return schemaFilename;
+  }
+
+  public void setSchemaFilename( String schemaFilename ) {
+    this.schemaFilename = schemaFilename;
+  }
+
+  public String getNamespace() {
+    return namespace;
+  }
+
+  public void setNamespace( String namespace ) {
+    this.namespace = namespace;
+  }
+
+  public String getRecordName() {
+    return recordName;
+  }
+
+  public void setRecordName( String recordName ) {
+    this.recordName = recordName;
+  }
+
+  public String getDocValue() {
+    return docValue;
+  }
+
+  public void setDocValue( String docValue ) {
+    this.docValue = docValue;
   }
 
   public NamedCluster getNamedCluster() {
@@ -128,6 +181,10 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
 
   private static class FieldNames {
     public static final String COMPRESSION = "compression";
+    public static final String SCHEMA_FILENAME = "schemaFilename";
+    public static final String RECORD_NAME = "recordName";
+    public static final String DOC_VALUE = "docValue";
+    public static final String NAMESPACE = "namespace";
   }
 
   public static enum CompressionType {
