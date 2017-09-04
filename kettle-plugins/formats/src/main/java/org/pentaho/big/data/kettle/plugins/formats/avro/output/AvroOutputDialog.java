@@ -480,6 +480,18 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     }
   }
 
+  private String getSchemeFromPath( String path ) {
+    if ( Utils.isEmpty( path ) ) {
+      return SCHEMA_SCHEME_DEFAULT;
+    }
+    int endIndex = path.indexOf( ':' );
+    if ( endIndex > 0 ) {
+      return path.substring( 0, endIndex );
+    } else {
+      return SCHEMA_SCHEME_DEFAULT;
+    }
+  }
+
   private void browseForFileInputPathForSchema() {
     try {
       String path = transMeta.environmentSubstitute( wSchemaPath.getText() );
@@ -498,7 +510,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       FileObject
           selectedFile =
           fileChooserDialog
-              .open( shell, null, SCHEMA_SCHEME_DEFAULT, true, fileName, FILES_FILTERS, fileFilterNames, true,
+              .open( shell, null, getSchemeFromPath( path ), true, fileName, FILES_FILTERS, fileFilterNames, true,
                   VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
         wSchemaPath.setText( selectedFile.getURL().toString() );
