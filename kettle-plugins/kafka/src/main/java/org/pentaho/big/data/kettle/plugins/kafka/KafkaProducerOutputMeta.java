@@ -62,7 +62,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg", name = "Kafka Producer",
   description = "Produce messages to a Kafka topic",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
-@InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "OPTIONS" } )
+@InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public enum ConnectionType {
     DIRECT,
@@ -101,10 +101,10 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   @Injection( name = "MESSAGE_FIELD" )
   private String messageField;
 
-  @Injection( name = "NAMES", group = "OPTIONS" )
+  @Injection( name = "NAMES", group = "CONFIGURATION_PROPERTIES" )
   protected transient List<String> injectedConfigNames;
 
-  @Injection( name = "VALUES", group = "OPTIONS" )
+  @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
   protected transient List<String> injectedConfigValues;
 
   private Map<String, String> config = new LinkedHashMap<>();
