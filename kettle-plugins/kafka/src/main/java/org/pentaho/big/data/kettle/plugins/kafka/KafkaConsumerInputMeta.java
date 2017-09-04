@@ -404,7 +404,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       return getDirectBootstrapServers();
     }
     return Optional
-        .ofNullable( namedClusterService.getNamedClusterByName( clusterName, metastoreLocator.getMetastore() ) )
+        .ofNullable( namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastoreLocator.getMetastore() ) )
         .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
@@ -577,7 +577,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     }
     try {
       return Optional.ofNullable( namedClusterServiceLocator.getService(
-        namedClusterService.getNamedClusterByName( getClusterName(), getMetastoreLocator().getMetastore() ),
+        namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( getClusterName() ), getMetastoreLocator().getMetastore() ),
         JaasConfigService.class ) );
     } catch ( Exception e ) {
       log.logDebug( "problem getting jaas config", e );

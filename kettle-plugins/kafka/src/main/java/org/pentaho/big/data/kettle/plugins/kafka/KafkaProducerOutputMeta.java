@@ -210,7 +210,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     }
 
     return Optional
-        .ofNullable( namedClusterService.getNamedClusterByName( clusterName, metastoreLocator.getMetastore() ) )
+        .ofNullable( namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastoreLocator.getMetastore() ) )
         .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
