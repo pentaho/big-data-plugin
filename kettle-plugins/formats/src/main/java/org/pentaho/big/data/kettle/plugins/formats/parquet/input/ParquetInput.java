@@ -93,11 +93,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
       throw new KettleException( "No input files defined" );
     }
-    SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputField f : meta.inputFields ) {
-      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), true );
-      schema.addField( field );
-    }
+    SchemaDescription schema = createSchemaFromMeta( meta );
 
     data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class );
     data.input.setSchema( schema );
@@ -132,5 +128,15 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class );
     return in.readSchema( path );
+  }
+
+  public static SchemaDescription createSchemaFromMeta( ParquetInputMetaBase meta ) {
+    SchemaDescription schema = new SchemaDescription();
+    for ( FormatInputField f : meta.inputFields ) {
+      SchemaDescription.Field field =
+          schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
+      schema.addField( field );
+    }
+    return schema;
   }
 }
