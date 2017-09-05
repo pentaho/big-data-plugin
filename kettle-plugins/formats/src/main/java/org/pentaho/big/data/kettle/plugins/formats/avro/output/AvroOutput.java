@@ -89,17 +89,16 @@ public class AvroOutput extends BaseStep implements StepInterface {
     if ( meta.getFilename() == null ) {
       throw new KettleException( "No output files defined" );
     }
-    SchemaDescription schema = new SchemaDescription();
+    SchemaDescription schemaDescription = new SchemaDescription();
     for ( FormatInputField f : meta.getOutputFields() ) {
-      SchemaDescription.Field field =
-          schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
+      SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
       field.defaultValue = f.getIfNullValue();
-      schema.addField( field );
+      schemaDescription.addField( field );
     }
 
     data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
     data.output.setOutputFile( meta.getFilename() );
-    data.output.setSchema( schema );
+    data.output.setSchemaDescription( schemaDescription );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
       compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
@@ -107,6 +106,10 @@ public class AvroOutput extends BaseStep implements StepInterface {
       compression = IPentahoAvroOutputFormat.COMPRESSION.UNCOMPRESSED;
     }
     data.output.setCompression( compression );
+    data.output.setNameSpace( meta.getNamespace() );
+    data.output.setRecordName( meta.getRecordName() );
+    data.output.setDocValue( meta.getDocValue() );
+    data.output.setSchemaFilename( meta.getSchemaFilename() );
     data.writer = data.output.createRecordWriter();
   }
 
