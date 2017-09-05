@@ -50,10 +50,13 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @RunWith( MockitoJUnitRunner.class )
 public class KafkaFactoryTest {
@@ -65,8 +68,10 @@ public class KafkaFactoryTest {
   @Mock MetastoreLocator metastoreLocator;
   @Mock IMetaStore metastore;
   @Mock NamedCluster namedCluster;
+  @Mock TransMeta transMeta;
   KafkaConsumerInputMeta inputMeta;
   KafkaProducerOutputMeta outputMeta;
+  StepMeta stepMeta;
 
   @Before
   public void setUp() throws ClusterInitializationException {
@@ -75,16 +80,23 @@ public class KafkaFactoryTest {
     when( namedClusterService.getNamedClusterByName( "some_cluster", metastore ) ).thenReturn( namedCluster );
     when( namedClusterServiceLocator.getService( namedCluster, JaasConfigService.class ) )
       .thenReturn( jaasConfigService );
+    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "some_cluster" );
+
     inputMeta = new KafkaConsumerInputMeta();
     inputMeta.setNamedClusterService( namedClusterService );
     inputMeta.setMetastoreLocator( metastoreLocator );
-    inputMeta.setClusterName( "some_cluster" );
+    inputMeta.setClusterName( "${clusterName}" );
     inputMeta.setConnectionType( KafkaConsumerInputMeta.ConnectionType.CLUSTER );
     outputMeta = new KafkaProducerOutputMeta();
     outputMeta.setNamedClusterService( namedClusterService );
     outputMeta.setMetastoreLocator( metastoreLocator );
-    outputMeta.setClusterName( "some_cluster" );
+    outputMeta.setClusterName( "${clusterName}" );
     outputMeta.setConnectionType( KafkaProducerOutputMeta.ConnectionType.CLUSTER );
+
+    stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    inputMeta.setParentStepMeta( stepMeta );
+    outputMeta.setParentStepMeta( stepMeta );
   }
 
   @Test
