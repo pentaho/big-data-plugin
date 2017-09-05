@@ -22,14 +22,17 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
-
 import org.apache.commons.vfs2.FileObject;
+import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.protocol.SecurityProtocol;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
@@ -92,6 +95,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private static Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
+  private static final Map<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest",
+      CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.PLAINTEXT.name );
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta meta;
@@ -644,11 +649,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
       List<String> list = KafkaDialogHelper.getConsumerAdvancedConfigOptionNames();
       Map<String, String> advancedConfig = new LinkedHashMap<>();
       for ( String item : list ) {
-        if ( "auto.offset.reset".equals( item ) ) {
-          advancedConfig.put( item, "latest" );
-        } else {
-          advancedConfig.put( item, "" );
-        }
+        advancedConfig.put( item, DEFAULT_OPTION_VALUES.getOrDefault( item, "" ) );
       }
       meta.setConfig( advancedConfig );
     }
