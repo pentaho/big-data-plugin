@@ -98,7 +98,7 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
       kafkaConsumerInputMeta.setParentStepMeta( getStepMeta() );
       kafkaConsumerInputMeta.setFileName( kafkaConsumerInputMeta.getTransformationPath() );
       TransMeta transMeta = TransExecutorMeta
-        .loadMappingMeta( kafkaConsumerInputMeta, getRepository(), getMetaStore(), getParentVariableSpace() );
+        .loadMappingMeta( kafkaConsumerInputMeta, getTransMeta().getRepository(), getTransMeta().getMetaStore(), getParentVariableSpace() );
       kafkaConsumerInputData.subtransExecutor =
         new SubtransExecutor( getTrans(), transMeta, true, kafkaConsumerInputData, new TransExecutorParameters() );
     } catch ( KettleException e ) {
