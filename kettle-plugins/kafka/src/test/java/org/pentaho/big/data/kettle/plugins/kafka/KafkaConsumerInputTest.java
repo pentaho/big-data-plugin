@@ -60,6 +60,7 @@ import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
@@ -174,6 +175,32 @@ public class KafkaConsumerInputTest {
     step.init( meta, data );
 
     verify( consumer ).subscribe( topics );
+  }
+
+  @Test
+  public void testInitWithRepository() throws Exception {
+    final Repository repository = mock( Repository.class );
+    transMeta.setRepository( repository );
+    meta.setConsumerGroup( "testGroup" );
+    meta.setKafkaFactory( factory );
+    meta.setBatchDuration( "0" );
+
+    Collection<String> topics = new HashSet<>();
+    topics.add( topic.topic() );
+
+    step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
+
+    when( factory.consumer( eq( meta ), any(), eq( meta.getKeyField().getOutputType() ),
+      eq( meta.getMessageField().getOutputType() ) ) ).thenReturn( consumer );
+
+    topicList = new ArrayList<>();
+    topicList.add( topics.iterator().next() );
+    meta.setTopics( topicList );
+
+    step.init( meta, data );
+
+    verify( consumer ).subscribe( topics );
+    verify( repository ).loadTransformation( "consumerSub.ktr", null, null, true, null );
   }
 
   @Test
