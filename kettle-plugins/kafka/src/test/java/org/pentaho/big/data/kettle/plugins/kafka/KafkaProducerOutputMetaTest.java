@@ -39,6 +39,8 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -236,7 +238,13 @@ public class KafkaProducerOutputMetaTest {
     meta.setConnectionType( CLUSTER );
     meta.setNamedClusterService( namedClusterService );
     meta.setMetastoreLocator( metastoreLocator );
-    meta.setClusterName( "my_cluster" );
+    meta.setClusterName( "${clusterName}" );
+
+    TransMeta transMeta = mock( TransMeta.class );
+    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "my_cluster" );
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    meta.setParentStepMeta( stepMeta );
 
     assertThat( meta.getBootstrapServers(), is( "server:11111" ) );
   }

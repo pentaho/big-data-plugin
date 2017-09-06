@@ -189,9 +189,8 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
 
   public static enum CompressionType {
     NONE( getMsg( "AvroOutput.CompressionType.NONE" ) ),
-    SNAPPY( "Snappy" ),
-    GZIP( "GZIP" ),
-    LZO( "LZO" );
+    DEFLATE( "Deflate" ),
+    SNAPPY( "Snappy" );
 
     private final String name;
 

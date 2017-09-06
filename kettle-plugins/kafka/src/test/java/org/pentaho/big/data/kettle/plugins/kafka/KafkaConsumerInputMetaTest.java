@@ -380,9 +380,15 @@ public class KafkaConsumerInputMetaTest {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     meta.setNamedClusterService( namedClusterService );
     meta.setMetastoreLocator( metastoreLocator );
-    meta.setClusterName( "my_cluster" );
+    meta.setClusterName( "${clusterName}" );
     meta.setConnectionType( CLUSTER );
     meta.setDirectBootstrapServers( "directHost:123" );
+
+    TransMeta transMeta = mock( TransMeta.class );
+    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "my_cluster" );
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    meta.setParentStepMeta( stepMeta );
 
     assertEquals( "server:11111", meta.getBootstrapServers() );
     meta.setConnectionType( DIRECT );
@@ -401,9 +407,16 @@ public class KafkaConsumerInputMetaTest {
     KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
     inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
     inputMeta.setNamedClusterService( namedClusterService );
-    inputMeta.setClusterName( "kurtsCluster" );
+    inputMeta.setClusterName( "${clusterName}" );
     inputMeta.setMetastoreLocator( metastoreLocator );
     inputMeta.setConnectionType( CLUSTER );
+
+    TransMeta transMeta = mock( TransMeta.class );
+    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "kurtsCluster" );
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    inputMeta.setParentStepMeta( stepMeta );
+
     assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
     inputMeta.setConnectionType( DIRECT );
     assertFalse( inputMeta.getJaasConfigService().isPresent() );

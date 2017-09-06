@@ -78,7 +78,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg", name = "Kafka Consumer",
   description = "Consume messages from a Kafka topic",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
-@InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "OPTIONS" } )
+@InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {
   public enum ConnectionType {
     DIRECT,
@@ -134,10 +134,10 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   @InjectionDeep( prefix = "MESSAGE" )
   private KafkaConsumerField messageField;
 
-  @Injection( name = "NAMES", group = "OPTIONS" )
+  @Injection( name = "NAMES", group = "CONFIGURATION_PROPERTIES" )
   protected transient List<String> injectedConfigNames;
 
-  @Injection( name = "VALUES", group = "OPTIONS" )
+  @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
   protected transient List<String> injectedConfigValues;
 
   private Map<String, String> config = new LinkedHashMap<>();
@@ -404,7 +404,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
       return getDirectBootstrapServers();
     }
     return Optional
-        .ofNullable( namedClusterService.getNamedClusterByName( clusterName, metastoreLocator.getMetastore() ) )
+        .ofNullable( namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastoreLocator.getMetastore() ) )
         .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
@@ -577,7 +577,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     }
     try {
       return Optional.ofNullable( namedClusterServiceLocator.getService(
-        namedClusterService.getNamedClusterByName( getClusterName(), getMetastoreLocator().getMetastore() ),
+        namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( getClusterName() ), getMetastoreLocator().getMetastore() ),
         JaasConfigService.class ) );
     } catch ( Exception e ) {
       log.logDebug( "problem getting jaas config", e );
