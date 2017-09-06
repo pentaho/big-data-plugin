@@ -311,6 +311,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
       wLocation.addListener( SWT.Selection, event -> {
         this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
+        this.wPath.setText( "" );
       } );
       if ( !availableVFSSchemes.isEmpty() ) {
         wLocation.select( 0 );
