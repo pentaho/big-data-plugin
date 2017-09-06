@@ -327,7 +327,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
         namedClusterService.getNamedClusterByName( getClusterName(), getMetastoreLocator().getMetastore() ),
         JaasConfigService.class ) );
     } catch ( Exception e ) {
-      log.logDebug( "problem getting jaas config", e );
+      getLog().logDebug( "problem getting jaas config", e );
       return Optional.empty();
     }
   }
