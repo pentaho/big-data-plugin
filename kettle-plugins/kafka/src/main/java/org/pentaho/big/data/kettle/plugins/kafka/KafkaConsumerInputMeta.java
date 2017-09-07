@@ -580,7 +580,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
         namedClusterService.getNamedClusterByName( parentStepMeta.getParentTransMeta().environmentSubstitute( getClusterName() ), getMetastoreLocator().getMetastore() ),
         JaasConfigService.class ) );
     } catch ( Exception e ) {
-      log.logDebug( "problem getting jaas config", e );
+      getLog().logDebug( "problem getting jaas config", e );
       return Optional.empty();
     }
   }
