@@ -59,8 +59,10 @@ import org.w3c.dom.Node;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
 
-@Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg", name = "Kafka Producer",
-  description = "Produce messages to a Kafka topic",
+@Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg",
+  i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
+  name = "KafkaProducer.TypeLongDesc",
+  description = "KafkaProducer.TypeTooltipDesc",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {

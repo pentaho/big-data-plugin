@@ -75,8 +75,10 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 /**
  * Skeleton for PDI Step plugin.
  */
-@Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg", name = "Kafka Consumer",
-  description = "Consume messages from a Kafka topic",
+@Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg",
+  i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
+  name = "KafkaConsumer.TypeLongDesc",
+  description = "KafkaConsumer.TypeTooltipDesc",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {

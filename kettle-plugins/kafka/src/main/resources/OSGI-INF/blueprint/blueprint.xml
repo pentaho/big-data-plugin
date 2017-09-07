@@ -20,6 +20,10 @@
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
 
+  <bean id="RecordsFromStreamMeta" class="org.pentaho.big.data.kettle.plugins.recordsfromstream.RecordsFromStreamMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
+
   <!-- Define a bean for our new step analyzer -->
   <bean id="KafkaConsumerInputStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputStepAnalyzer" />
 
