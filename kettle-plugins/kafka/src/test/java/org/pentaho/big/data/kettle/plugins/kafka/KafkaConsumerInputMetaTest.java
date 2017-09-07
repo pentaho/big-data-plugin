@@ -37,6 +37,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -419,6 +420,24 @@ public class KafkaConsumerInputMetaTest {
 
     assertEquals( jaasConfigService, inputMeta.getJaasConfigService().get() );
     inputMeta.setConnectionType( DIRECT );
+    assertFalse( inputMeta.getJaasConfigService().isPresent() );
+  }
+
+  @Test
+  public void testGetJaasConfigException() throws Exception {
+    NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    NamedCluster namedCluster =  mock( NamedCluster.class );
+    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
+    when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
+    when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) )
+      .thenThrow( new ClusterInitializationException( new Exception( "oops" ) ) );
+    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
+    inputMeta.setNamedClusterServiceLocator( namedClusterLocator );
+    inputMeta.setNamedClusterService( namedClusterService );
+    inputMeta.setClusterName( "kurtsCluster" );
+    inputMeta.setMetastoreLocator( metastoreLocator );
+    inputMeta.setConnectionType( CLUSTER );
     assertFalse( inputMeta.getJaasConfigService().isPresent() );
   }
 
