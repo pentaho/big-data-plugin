@@ -117,6 +117,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private TextVar wBatchSize;
   private Label wlBatchDuration;
   private TextVar wBatchDuration;
+  private Label wlStreamingDuration;
+  private TextVar wStreamingDuration;
 
   private CTabFolder wTabFolder;
   private CTabItem wSetupTab;
@@ -420,12 +422,30 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdlTopic.right = new FormAttachment( 50, 0 );
     wlTopic.setLayoutData( fdlTopic );
 
+    wStreamingDuration = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wStreamingDuration );
+    wStreamingDuration.addModifyListener( lsMod );
+    FormData fdStreamingDuration = new FormData();
+    fdStreamingDuration.left = new FormAttachment( 0, 0 );
+    fdStreamingDuration.bottom = new FormAttachment( 100, 0 );
+    fdStreamingDuration.width = INPUT_WIDTH;
+    wStreamingDuration.setLayoutData( fdStreamingDuration );
+
+    wlStreamingDuration = new Label( wSetupComp, SWT.LEFT );
+    props.setLook( wlStreamingDuration );
+    wlStreamingDuration.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.StreamingDuration" ) );
+    FormData fdlStreamingDuration = new FormData();
+    fdlStreamingDuration.left = new FormAttachment( 0, 0 );
+    fdlStreamingDuration.bottom = new FormAttachment( wStreamingDuration, -5, SWT.TOP );
+    fdlStreamingDuration.width = INPUT_WIDTH;
+    wlStreamingDuration.setLayoutData( fdlStreamingDuration );
+
     wConsumerGroup = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wConsumerGroup );
     wConsumerGroup.addModifyListener( lsMod );
     FormData fdConsumerGroup = new FormData();
     fdConsumerGroup.left = new FormAttachment( 0, 0 );
-    fdConsumerGroup.bottom = new FormAttachment( 100, 0 );
+    fdConsumerGroup.bottom = new FormAttachment( wlStreamingDuration, -5, SWT.TOP );
     fdConsumerGroup.width = INPUT_WIDTH;
     wConsumerGroup.setLayoutData( fdConsumerGroup );
 
@@ -834,6 +854,10 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
       wConsumerGroup.setText( meta.getConsumerGroup() );
     }
 
+    if ( meta.getStreamingDuration() != null ) {
+      wStreamingDuration.setText( meta.getStreamingDuration() );
+    }
+
     if ( meta.getBatchSize() != null ) {
       wBatchSize.setText( meta.getBatchSize() );
     }
@@ -880,6 +904,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     setTopicsFromTable();
 
     meta.setConsumerGroup( wConsumerGroup.getText() );
+    meta.setStreamingDuration( wStreamingDuration.getText() );
     meta.setBatchSize( wBatchSize.getText() );
     meta.setBatchDuration( wBatchDuration.getText() );
     meta.setConnectionType( wbDirect.getSelection() ? DIRECT : CLUSTER );

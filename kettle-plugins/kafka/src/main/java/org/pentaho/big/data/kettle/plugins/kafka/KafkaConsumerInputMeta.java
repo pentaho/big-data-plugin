@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -103,6 +104,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public static final String OUTPUT_FIELD_TAG_NAME = "OutputField";
   public static final String KAFKA_NAME_ATTRIBUTE = "kafkaName";
   public static final String TYPE_ATTRIBUTE = "type";
+  public static final String STREAMING_DURATION = "streamingDuration";
 
   private static Class<?> PKG = KafkaConsumerInput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -141,6 +143,9 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
   protected transient List<String> injectedConfigValues;
+
+  @Injection( name = "STREAMING_DURATION" )
+  protected String streamingDuration;
 
   private Map<String, String> config = new LinkedHashMap<>();
 
@@ -220,6 +225,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     setTransformationPath( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
     setBatchSize( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) );
     setBatchDuration( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) );
+    setStreamingDuration( XMLHandler.getTagValue( stepnode, STREAMING_DURATION ) );
     setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( XMLHandler.getTagValue( stepnode, DIRECT_BOOTSTRAP_SERVERS ) );
     List<Node> ofNode = XMLHandler.getNodes( stepnode, OUTPUT_FIELD_TAG_NAME );
@@ -251,6 +257,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public void setDefault() {
     batchSize = "1000";
     batchDuration = "0";
+    streamingDuration = "0";
   }
 
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
@@ -266,6 +273,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     setTransformationPath( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
     setBatchSize( rep.getStepAttributeString( id_step, BATCH_SIZE ) );
     setBatchDuration( rep.getStepAttributeString( id_step, BATCH_DURATION ) );
+    setStreamingDuration( rep.getStepAttributeString( id_step, STREAMING_DURATION ) );
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( id_step, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( id_step, DIRECT_BOOTSTRAP_SERVERS ) );
 
@@ -299,6 +307,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     rep.saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, transformationPath );
     rep.saveStepAttribute( transId, stepId, BATCH_SIZE, batchSize );
     rep.saveStepAttribute( transId, stepId, BATCH_DURATION, batchDuration );
+    rep.saveStepAttribute( transId, stepId, STREAMING_DURATION, streamingDuration );
     rep.saveStepAttribute( transId, stepId, CONNECTION_TYPE, connectionType.name() );
     rep.saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
 
@@ -506,6 +515,14 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     this.connectionType = connectionType;
   }
 
+  public String getStreamingDuration() {
+    return streamingDuration;
+  }
+
+  public void setStreamingDuration( String streamingDuration ) {
+    this.streamingDuration = streamingDuration;
+  }
+
   @Override public String getXML() throws KettleException {
     StringBuilder retval = new StringBuilder();
     retval.append( "    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, clusterName ) );
@@ -518,6 +535,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     retval.append( "    " ).append( XMLHandler.addTagValue( TRANSFORMATION_PATH, transformationPath ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_SIZE, batchSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_DURATION, batchDuration ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( STREAMING_DURATION, streamingDuration ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );
 
