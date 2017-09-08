@@ -150,7 +150,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Default" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Null" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ) };
+          ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     wOutputFields =
@@ -158,7 +158,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
             parameterColumns, 7, lsMod, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 20, 20, 10 );
     wOutputFields.getTable().addListener( SWT.Resize, resizer );
-
 
     props.setLook( wOutputFields );
     new FD( wOutputFields ).left( 0, 0 ).right( 100, 0 ).top( wComp, 0 ).bottom( wGetFields, -FIELDS_SEP ).apply();
@@ -176,6 +175,42 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     setTruncatedColumn( wOutputFields.getTable(), 1 );
     if ( !Const.isWindows() ) {
       addColumnTooltip( wOutputFields.getTable(), 1 );
+    }
+  }
+
+  /**
+   * Enum with valid list of Nullable values - used for the Nullable combo box
+   *
+   * Also contains convience methods to get the default value and return a list of values as string to populate combo box
+    */
+  protected enum NullableValuesEnum {
+    YES( "Yes" ),
+    NO( "No" );
+
+    private String value;
+
+    NullableValuesEnum( String value ) {
+      this.value = value;
+    }
+
+    public String getValue() {
+      return value;
+    }
+
+    public static NullableValuesEnum getDefaultValue() {
+      return NullableValuesEnum.YES;
+    }
+
+    public static String[] getValuesArr() {
+      String[] valueArr = new String[NullableValuesEnum.values().length];
+
+      int i = 0;
+
+      for ( NullableValuesEnum nullValueEnum : NullableValuesEnum.values() ) {
+        valueArr[i++] = nullValueEnum.getValue();
+      }
+
+      return valueArr;
     }
   }
 
@@ -427,10 +462,14 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       field.setName( item.getText( j++ ) );
       field.setType( item.getText( j++ ) );
       field.setIfNullValue( item.getText( j++ ) );
-      field.setNullString( item.getText( j++ ) );
+      field.setNullString( getNullableValue( item.getText( j++ ) ) );
       outputFields.add( field );
     }
     meta.setOutputFields( outputFields );
+  }
+
+  private String getNullableValue( String nullString ) {
+    return ( nullString != null && !nullString.isEmpty() ) ? nullString : NullableValuesEnum.getDefaultValue().getValue();
   }
 
   private void populateFieldsUI( AvroOutputMeta meta, TableView wOutputFields ) {
