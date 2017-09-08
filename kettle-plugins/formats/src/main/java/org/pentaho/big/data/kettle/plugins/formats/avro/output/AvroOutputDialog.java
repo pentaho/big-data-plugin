@@ -445,7 +445,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     meta.setSchemaFilename( wSchemaPath.getText() );
     meta.setCompressionType( wCompression.getText() );
 
-    // TODO
     saveOutputFields( wOutputFields, meta );
   }
 
@@ -510,8 +509,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
             return true;
           }
         };
-        BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1,
-            listener );
+        BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1, listener );
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
