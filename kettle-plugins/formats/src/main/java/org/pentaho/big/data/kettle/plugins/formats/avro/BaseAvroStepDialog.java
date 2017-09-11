@@ -97,6 +97,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   private static final int TABLE_ITEM_MARGIN = 2;
   private static final int TOOLTIP_SHOW_DELAY = 350;
   private static final int TOOLTIP_HIDE_DELAY = 2000;
+  private static final String DEFAULT_LOCAL_PATH = "file:///C:/";
   // width of the icon in a varfield
   protected static final int VAR_EXTRA_WIDTH = GUIResource.getInstance().getImageVariable().getBounds().width;
 
@@ -363,8 +364,11 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
           fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
               fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
-        wPath.setText( selectedFile.getURL().toString() );
-        updateLocation();
+        String filePath = selectedFile.getURL().toString();
+        if ( !DEFAULT_LOCAL_PATH.equals( filePath ) ) {
+          wPath.setText( filePath );
+          updateLocation();
+        }
       }
     } catch ( KettleFileException ex ) {
       log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
