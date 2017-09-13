@@ -20,7 +20,7 @@
   *
   ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet;
+package org.pentaho.big.data.kettle.plugins.formats.impl.parquet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.input.VFSScheme;
+import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;

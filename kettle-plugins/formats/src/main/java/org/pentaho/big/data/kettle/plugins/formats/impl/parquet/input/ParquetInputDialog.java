@@ -19,7 +19,9 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.pentaho.big.data.kettle.plugins.formats.avro.input;
+
+package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
+
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -30,7 +32,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
-import org.pentaho.big.data.kettle.plugins.formats.avro.BaseAvroStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.i18n.BaseMessages;
@@ -38,8 +40,9 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
+import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
-public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMetaBase> {
+public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> {
 
   private static final int DIALOG_WIDTH = 526;
 
@@ -53,32 +56,36 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMetaBase> {
 
   private TableView wInputFields;
 
-  public AvroInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
-    super( parent, (AvroInputMetaBase) in, transMeta, sname );
+  public ParquetInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
+    super( parent, (ParquetInputMeta) in, transMeta, sname );
   }
 
   @Override
   protected Control createAfterFile( Composite shell ) {
 
     Button wGetFields = new Button( shell, SWT.PUSH );
-    wGetFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.Fields.Get" ) );
+    wGetFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Get" ) );
     wGetFields.addListener( SWT.Selection, event -> {
-      // TODO
-      throw new UnsupportedOperationException();
+      try {
+        setFields( ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), wPath.getText()
+            .trim() ) );
+      } catch ( Exception ex ) {
+        throw new RuntimeException( ex );
+      }
     } );
     props.setLook( wGetFields );
     new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
 
     Label wlFields = new Label( shell, SWT.RIGHT );
-    wlFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.Fields.Label" ) );
+    wlFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
     props.setLook( wlFields );
     new FD( wlFields ).left( 0, 0 ).top( 0, FIELDS_SEP ).apply();
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.AvroPath" ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.AvroPath" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Name" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Type" ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
           ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
     wInputFields =
         new TableView( transMeta, shell, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
@@ -103,7 +110,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMetaBase> {
    * Read the data from the meta object and show it in this dialog.
    */
   @Override
-  protected void getData( AvroInputMetaBase meta ) {
+  protected void getData( ParquetInputMeta meta ) {
     if ( meta.inputFiles.fileName.length > 0 ) {
       wPath.setText( meta.inputFiles.fileName[0] );
     }
@@ -127,15 +134,26 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMetaBase> {
     }
   }
 
+  protected void setFields( SchemaDescription schema ) {
+    wInputFields.table.removeAll();
+    for ( SchemaDescription.Field f : schema ) {
+      TableItem item = new TableItem( wInputFields.table, SWT.NONE );
+
+      item.setText( AVRO_PATH_COLUMN_INDEX, f.formatFieldName );
+      item.setText( FIELD_NAME_COLUMN_INDEX, f.formatFieldName );
+      item.setText( FIELD_TYPE_COLUMN_INDEX, ValueMetaFactory.getValueMetaName( f.pentahoValueMetaType ) );
+    }
+  }
+
   /**
    * Fill meta object from UI options.
    */
   @Override
-  protected void getInfo( AvroInputMetaBase meta, boolean preview ) {
+  protected void getInfo( ParquetInputMeta meta, boolean preview ) {
     String filePath = wPath.getText();
     if ( filePath != null && !filePath.isEmpty() ) {
       meta.allocateFiles( 1 );
-      meta.inputFiles.fileName[0] = wPath.getText();
+      meta.inputFiles.fileName[0] = wPath.getText().trim();
     }
     int nrFields = wInputFields.nrNonEmpty();
     meta.inputFields = new FormatInputField[nrFields];
@@ -161,7 +179,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMetaBase> {
 
   @Override
   protected String getStepTitle() {
-    return BaseMessages.getString( PKG, "AvroInputDialog.Shell.Title" );
+    return BaseMessages.getString( PKG, "ParquetInputDialog.Shell.Title" );
   }
 
   @Override

@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.avro.output;
+package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -40,7 +40,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
-import org.pentaho.big.data.kettle.plugins.formats.avro.BaseAvroStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;

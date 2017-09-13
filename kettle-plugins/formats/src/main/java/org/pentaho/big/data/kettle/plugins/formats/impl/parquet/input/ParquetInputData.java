@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
+package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
 import java.util.Iterator;
 import java.util.List;

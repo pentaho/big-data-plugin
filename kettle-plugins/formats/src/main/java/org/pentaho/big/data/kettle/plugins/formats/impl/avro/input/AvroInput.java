@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.avro.input;
+package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;

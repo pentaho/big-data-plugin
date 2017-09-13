@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
+package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
 import java.io.IOException;
 
@@ -30,8 +30,6 @@ import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -39,18 +37,18 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
+import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
-public class ParquetOutput extends BaseStep implements StepInterface {
+public class AvroOutput extends BaseStep implements StepInterface {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
-  private ParquetOutputMeta meta;
+  private AvroOutputMeta meta;
 
-  private ParquetOutputData data;
+  private AvroOutputData data;
 
-  public ParquetOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
+  public AvroOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
@@ -59,15 +57,11 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   @Override
   public synchronized boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     try {
-      Object[] currentRow = getRow();
       if ( data.output == null ) {
-        if ( currentRow == null ) {
-          setOutputDone();
-          return true;
-        }
-        init( getInputRowMeta() );
+        init();
       }
 
+      Object[] currentRow = getRow();
       if ( currentRow != null ) {
         RowMetaAndData row = new RowMetaAndData( getInputRowMeta(), currentRow );
         data.writer.write( row );
@@ -85,7 +79,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     }
   }
 
-  public void init( RowMetaInterface rowMeta ) throws Exception {
+  public void init() throws Exception {
     FormatService formatService;
     try {
       formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
@@ -95,54 +89,28 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     if ( meta.getFilename() == null ) {
       throw new KettleException( "No output files defined" );
     }
+    SchemaDescription schemaDescription = new SchemaDescription();
+    for ( FormatInputField f : meta.getOutputFields() ) {
+      SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
+      field.defaultValue = f.getIfNullValue();
+      schemaDescription.addField( field );
+    }
 
-    data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
     data.output.setOutputFile( meta.getFilename() );
-    data.output.setSchema( createSchema( rowMeta ) );
-
-    IPentahoParquetOutputFormat.COMPRESSION compression;
+    data.output.setSchemaDescription( schemaDescription );
+    IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
-      compression = IPentahoParquetOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+      compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
     } catch ( Exception ex ) {
-      compression = IPentahoParquetOutputFormat.COMPRESSION.UNCOMPRESSED;
+      compression = IPentahoAvroOutputFormat.COMPRESSION.UNCOMPRESSED;
     }
     data.output.setCompression( compression );
-    data.output.setVersion( "Parquet 1.0".equals( meta.getParquetVersion() )
-        ? IPentahoParquetOutputFormat.VERSION.VERSION_1_0 : IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
-    if ( meta.getRowGroupSize( variables ) > 0 ) {
-      data.output.setRowGroupSize( meta.getRowGroupSize( variables ) * 1024 * 1024 );
-    }
-    if ( meta.getDataPageSize( variables ) > 0 ) {
-      data.output.setDataPageSize( meta.getDataPageSize( variables ) * 1024 );
-    }
-    data.output.enableDictionary( meta.getEncodingType().startsWith( "D" ) );
-    if ( meta.getDictPageSize( variables ) > 0 ) {
-      data.output.setDictionaryPageSize( meta.getDictPageSize( variables ) * 1024 );
-    }
-
+    data.output.setNameSpace( meta.getNamespace() );
+    data.output.setRecordName( meta.getRecordName() );
+    data.output.setDocValue( meta.getDocValue() );
+    data.output.setSchemaFilename( meta.getSchemaFilename() );
     data.writer = data.output.createRecordWriter();
-  }
-
-  private SchemaDescription createSchema( RowMetaInterface rowMeta ) {
-    SchemaDescription schema = createSchemaFromMeta( meta );
-    if ( schema.isEmpty() ) {
-      for ( ValueMetaInterface v : rowMeta.getValueMetaList() ) {
-        SchemaDescription.Field field = schema.new Field( v.getName(), v.getName(), v.getType(), true );
-        switch ( v.getType() ) {
-          case ValueMetaInterface.TYPE_STRING:
-            field.defaultValue = "";
-            break;
-          case ValueMetaInterface.TYPE_NUMBER:
-          case ValueMetaInterface.TYPE_BOOLEAN:
-          case ValueMetaInterface.TYPE_INTEGER:
-          case ValueMetaInterface.TYPE_BIGNUMBER:
-            field.defaultValue = "0";
-            break;
-        }
-        schema.addField( field );
-      }
-    }
-    return schema;
   }
 
   public void closeWriter() throws KettleException {
@@ -155,21 +123,11 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   }
 
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
-    meta = (ParquetOutputMeta) smi;
-    data = (ParquetOutputData) sdi;
+    meta = (AvroOutputMeta) smi;
+    data = (AvroOutputData) sdi;
     if ( super.init( smi, sdi ) ) {
       return true;
     }
     return false;
-  }
-
-  public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
-    SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputField f : meta.getOutputFields() ) {
-      SchemaDescription.Field field =
-          schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
-      schema.addField( field );
-    }
-    return schema;
   }
 }

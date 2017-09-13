@@ -19,11 +19,12 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.pentaho.big.data.kettle.plugins.formats.avro.input;
+package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
