@@ -19,26 +19,15 @@
  * limitations under the License.
  *
  ******************************************************************************/
+package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
+import org.pentaho.di.trans.step.BaseStepData;
+import org.pentaho.di.trans.step.StepDataInterface;
+import org.pentaho.hadoop.shim.api.format.IPentahoOutputFormat.IPentahoRecordWriter;
+import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
 
-public class VFSScheme {
+public class ParquetOutputData extends BaseStepData implements StepDataInterface {
 
-  private final String scheme;
-
-  private final String schemeName;
-
-  public VFSScheme( String scheme, String schemeName ) {
-    this.scheme = scheme;
-    this.schemeName = schemeName;
-  }
-
-  public String getScheme() {
-    return scheme;
-  }
-
-  public String getSchemeName() {
-    return schemeName;
-  }
-
+  public IPentahoParquetOutputFormat output;
+  public IPentahoRecordWriter writer;
 }

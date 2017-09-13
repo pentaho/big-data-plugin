@@ -5,22 +5,22 @@
            xsi:schemaLocation="
             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
             http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
-  <bean id="parquetOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMeta" scope="prototype">
+  <bean id="parquetOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output.ParquetOutputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
-  <bean id="parquetInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMeta" scope="prototype">
+  <bean id="parquetInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.ParquetInputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
-  <bean id="avroOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMeta" scope="prototype">
+  <bean id="avroOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.avro.output.AvroOutputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
-  <!--bean id="avroInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMeta" scope="prototype">
+  <!--bean id="avroInputMeta" class="AvroInputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>

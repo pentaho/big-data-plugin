@@ -20,11 +20,12 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.avro.output;
+package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;

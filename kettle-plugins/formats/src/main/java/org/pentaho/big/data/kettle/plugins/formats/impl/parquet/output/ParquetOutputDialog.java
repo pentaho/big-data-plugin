@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
+package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.BaseParquetStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -62,7 +62,7 @@ import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 
 public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta> implements StepDialogInterface {
 
-  private static final Class<?> PKG = ParquetOutputMetaBase.class;
+  private static final Class<?> PKG = ParquetOutputMeta.class;
 
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
