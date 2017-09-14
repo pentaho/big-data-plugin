@@ -109,10 +109,8 @@ public class JobEntryHadoopTransJobExecutorTest {
     String file = "testName";
     String dirVar = "TestVariablePath";
     String fileVar = "TestVariableName";
-    Variables variables = new Variables();
-    variables.setVariable( dirVar, dir );
-    variables.setVariable( fileVar, file );
-    when( jobEntry.getParentVariableSpace() ).thenReturn( variables );
+    jobEntry.setVariable( dirVar, dir );
+    jobEntry.setVariable( fileVar, file );
     when( jobEntry.getParentJob() ).thenReturn( mock( Job.class ) );
     when( repository.loadRepositoryDirectoryTree() ).thenReturn( directoryInterface );
     when( directoryInterface.findDirectory( "/" + dir ) ).thenReturn( directoryInterface );
