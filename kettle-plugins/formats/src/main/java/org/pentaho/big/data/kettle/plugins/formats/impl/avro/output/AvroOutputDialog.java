@@ -41,7 +41,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
-import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -69,7 +68,7 @@ import java.util.function.BiConsumer;
 
 public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> implements StepDialogInterface {
 
-  private static final Class<?> PKG = AvroOutputMetaBase.class;
+  private static final Class<?> PKG = AvroOutputMeta.class;
 
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
