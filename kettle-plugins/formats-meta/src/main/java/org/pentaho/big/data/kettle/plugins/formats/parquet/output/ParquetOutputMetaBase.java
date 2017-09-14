@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
 import org.pentaho.di.core.Const;
@@ -40,7 +41,7 @@ import org.w3c.dom.Node;
 
 /**
  * Parquet output meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
- * 
+ *
  * @author <alexander_buloichik@epam.com>
  */
 public abstract class ParquetOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
@@ -59,6 +60,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public void setDefault() {
     // TODO Auto-generated method stub
   }
+
+  public abstract Map<String, String> getFilledOptions();
 
   public String getFilename() {
     return filename;
@@ -94,7 +97,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
         outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
         outputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
-        outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" )  );
+        outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" ) );
         parquetOutputFields.add( outputField );
       }
       this.outputFields = parquetOutputFields;
