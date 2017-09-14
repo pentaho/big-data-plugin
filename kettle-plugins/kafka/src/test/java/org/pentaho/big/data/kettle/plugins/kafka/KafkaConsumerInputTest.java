@@ -299,17 +299,7 @@ public class KafkaConsumerInputTest {
 
   @Test
   public void testRunsSubtransWhenPresent() throws Exception {
-    String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
-    TransMeta consumerParent = new TransMeta( path, new Variables() );
-    Trans trans = new Trans( consumerParent );
-    KafkaConsumerInputMeta kafkaMeta =
-      (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
-    kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    kafkaMeta.setBatchSize( "2" );
-    kafkaMeta.setKafkaFactory( factory );
-    int messageCount = 4;
-    messages.put( topic, createRecords( topic.topic(), messageCount ) );
-    records = new ConsumerRecords<>( messages );
+    Trans trans = prepareSubTrans( "0" );
     // provide some data when we try to poll for kafka messages
     when( consumer.poll( 1000 ) ).thenReturn( records )
       .then( invocationOnMock -> {
@@ -319,15 +309,42 @@ public class KafkaConsumerInputTest {
         trans.stopAll();
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
-    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
-      .thenReturn( consumer );
-    trans.prepareExecution( new String[]{} );
     trans.startThreads();
     trans.waitUntilFinished();
     verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
     verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
     verifyRow( "key_2", "value_2", "2", "1", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "2", times( 1 ) );
+  }
+
+  @Test
+  public void testRunningDuration() throws Exception {
+    Trans trans = prepareSubTrans( "1000" );
+    // provide some data when we try to poll for kafka messages
+    when( consumer.poll( 1000 ) ).thenReturn( records )
+      .then( invocationOnMock -> {
+        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
+          continue;  //here to fool checkstyle
+        }
+        return new ConsumerRecords<>( Collections.emptyMap() );
+      } );
+
+    trans.startThreads();
+    trans.waitUntilFinished();
+    verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
+    verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
+    verifyRow( "key_2", "value_2", "2", "1", times( 1 ) );
+    verifyRow( "key_3", "value_3", "3", "2", times( 1 ) );
+  }
+
+  @Test
+  public void testInvalidStreamingDuration() throws Exception {
+    try {
+      Trans trans = prepareSubTrans( "asdf" );
+      fail( "Streaming Duration value is not valid and should of thrown and exception" );
+    } catch ( KettleException e ) {
+      // passed :)
+    }
   }
 
   //todo: this periodically fails on wingman.  got better when I increased the wait time to a full second, but still
@@ -375,6 +392,7 @@ public class KafkaConsumerInputTest {
     kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
     kafkaMeta.setBatchSize( "4" );
     kafkaMeta.setBatchDuration( "0" );
+    kafkaMeta.setStreamingDuration( "0" );
     kafkaMeta.setKafkaFactory( factory );
     int messageCount = 4;
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
@@ -406,6 +424,25 @@ public class KafkaConsumerInputTest {
     verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
     verifyRow( "key_2", "value_2", "2", "3", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "4", times( 1 ) );
+  }
+
+  public Trans prepareSubTrans( String runningDuration ) throws KettleException {
+    String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
+    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    Trans trans = new Trans( consumerParent );
+    KafkaConsumerInputMeta kafkaMeta =
+      (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
+    kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
+    kafkaMeta.setBatchSize( "2" );
+    kafkaMeta.setKafkaFactory( factory );
+    kafkaMeta.setStreamingDuration( runningDuration );
+    int messageCount = 4;
+    messages.put( topic, createRecords( topic.topic(), messageCount ) );
+    records = new ConsumerRecords<>( messages );
+    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
+      .thenReturn( consumer );
+    trans.prepareExecution( new String[]{} );
+    return trans;
   }
 
   public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
