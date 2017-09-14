@@ -22,8 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -50,9 +53,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 @Step( id = "ParquetOutput", image = "PO.svg", name = "ParquetOutput.Name", description = "ParquetOutput.Description",
-    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
-    i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
+  i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
 public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   private static final Class<?> PKG = ParquetOutputMeta.class;
@@ -75,14 +78,14 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
 
   public ParquetOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
-      NamedClusterService namedClusterService ) {
+                            NamedClusterService namedClusterService ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
   }
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans ) {
+                                Trans trans ) {
     return new ParquetOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
   }
 
@@ -101,7 +104,7 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   public void setEncodingType( String encoding ) {
     encodingType = StringUtil.isVariable( encoding ) ? encoding
-        : parseFromToString( encoding, EncodingType.values(), EncodingType.PLAIN ).name();
+      : parseFromToString( encoding, EncodingType.values(), EncodingType.PLAIN ).name();
   }
 
   public String getEncodingType() {
@@ -123,10 +126,12 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   public String getCompressionType() {
     return StringUtil.isVariable( compressionType ) ? compressionType : getCompressionType( null ).toString();
   }
+
   public void setCompressionType( String value ) {
     compressionType = StringUtil.isVariable( value ) ? value
-        : parseFromToString( value, CompressionType.values(), null ).name();
+      : parseFromToString( value, CompressionType.values(), null ).name();
   }
+
   public CompressionType getCompressionType( VariableSpace vspace ) {
     return parseReplace( compressionType, vspace, str -> CompressionType.valueOf( str ), CompressionType.NONE );
   }
@@ -137,7 +142,7 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   public void setParquetVersion( String value ) {
     parquetVersion = StringUtil.isVariable( value ) ? value
-        : parseFromToString( value, ParquetVersion.values(), null ).name();
+      : parseFromToString( value, ParquetVersion.values(), null ).name();
   }
 
   public ParquetVersion getParquetVersion( VariableSpace vspace ) {
@@ -158,8 +163,8 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   public int getDictPageSize( VariableSpace vspace ) {
     return getEncodingType( vspace ).equals( EncodingType.DICTIONARY )
-        ? parseReplace( dictPageSize, vspace, s -> Integer.parseInt( s ), 0 )
-        : 0;
+      ? parseReplace( dictPageSize, vspace, s -> Integer.parseInt( s ), 0 )
+      : 0;
   }
 
   public String getDictPageSize() {
@@ -180,6 +185,29 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   }
 
+  private Map<String, String> getOptions() {
+
+    Map<String, String> options = new HashMap<>();
+
+    options.put( FieldNames.ENCODING, encodingType );
+    options.put( FieldNames.COMPRESSION, compressionType );
+    options.put( FieldNames.VERSION, parquetVersion );
+    options.put( FieldNames.ROW_GROUP_SIZE, rowGroupSize );
+    options.put( FieldNames.DATA_PAGE_SIZE, dataPageSize );
+    options.put( FieldNames.DICT_PAGE_SIZE, dictPageSize );
+
+    return options;
+  }
+
+
+  @Override
+  public Map<String, String> getFilledOptions() {
+
+    return getOptions().entrySet().stream().filter( map -> map.getValue() != null && !map.getValue().trim().isEmpty() )
+      .collect(
+        Collectors.toMap( Map.Entry::getKey, element -> element.getValue() ) );
+  }
+
   @Override
   public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
     super.loadXML( stepnode, databases, metaStore );
@@ -188,10 +216,10 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
     parquetVersion = XMLHandler.getTagValue( stepnode, FieldNames.VERSION );
     rowGroupSize = XMLHandler.getTagValue( stepnode, FieldNames.ROW_GROUP_SIZE );
     dataPageSize = XMLHandler.getTagValue( stepnode, FieldNames.DATA_PAGE_SIZE );
-    dictPageSize = XMLHandler.getTagValue(  stepnode,  FieldNames.DICT_PAGE_SIZE );
+    dictPageSize = XMLHandler.getTagValue( stepnode, FieldNames.DICT_PAGE_SIZE );
   }
 
-  private  <T> T parseReplace( String value, VariableSpace vspace, Function<String, T> parser, T defaultValue ) {
+  private <T> T parseReplace( String value, VariableSpace vspace, Function<String, T> parser, T defaultValue ) {
     String replaced = vspace != null ? vspace.environmentSubstitute( value ) : value;
     if ( !Utils.isEmpty( replaced ) ) {
       try {
@@ -305,10 +333,10 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   protected static <T> String[] getStrings( T[] objects ) {
-    String[] names = new String[objects.length];
+    String[] names = new String[ objects.length ];
     int i = 0;
     for ( T obj : objects ) {
-      names[i++] = obj.toString();
+      names[ i++ ] = obj.toString();
     }
     return names;
   }
