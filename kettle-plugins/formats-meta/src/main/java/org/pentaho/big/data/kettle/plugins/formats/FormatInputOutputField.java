@@ -26,11 +26,11 @@ import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.trans.steps.file.BaseFileField;
 
 /**
- * Base class for format's input field - path added.
+ * Base class for format's input/output field - path added.
  * 
  * @author <alexander_buloichik@epam.com>
  */
-public class FormatInputField extends BaseFileField {
+public class FormatInputOutputField extends BaseFileField {
   @Injection( name = "FIELD_PATH", group = "FIELDS" )
   protected String path;
 

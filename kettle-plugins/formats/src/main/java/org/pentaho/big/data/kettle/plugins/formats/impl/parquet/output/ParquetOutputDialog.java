@@ -22,8 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiConsumer;
 
 import org.eclipse.swt.SWT;
@@ -40,7 +38,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -280,24 +278,24 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   private void saveOutputFields( TableView wFields, ParquetOutputMeta meta ) {
     int nrFields = wFields.nrNonEmpty();
 
-    List<FormatInputField> outputFields = new ArrayList<>();
+    FormatInputOutputField[] outputFields = new FormatInputOutputField[nrFields];
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wFields.getNonEmpty( i );
 
       int j = 1;
-      FormatInputField field = new FormatInputField();
+      FormatInputOutputField field = new FormatInputOutputField();
       field.setPath( item.getText( j++ ) );
       field.setName( item.getText( j++ ) );
       field.setType( item.getText( j++ ) );
       field.setIfNullValue( item.getText( j++ ) );
       field.setNullString( item.getText( j++ ) );
-      outputFields.add( field );
+      outputFields[i] = field;
     }
-    meta.setOutputFields( outputFields );
+    meta.outputFields = outputFields;
   }
 
   private void populateFieldsUI( ParquetOutputMeta meta, TableView wOutputFields ) {
-    populateFieldsUI( meta.getOutputFields(), wOutputFields, ( field, item ) -> {
+    populateFieldsUI( meta.outputFields, wOutputFields, ( field, item ) -> {
       int i = 1;
       item.setText( i++, coalesce( field.getPath() ) );
       item.setText( i++, coalesce( field.getName() ) );
@@ -307,17 +305,16 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     } );
   }
 
-  private void populateFieldsUI( List<FormatInputField> fields, TableView wFields,
-      BiConsumer<FormatInputField, TableItem> converter ) {
-    int nrFields = fields.size();
-    for ( int i = 0; i < nrFields; i++ ) {
+  private void populateFieldsUI( FormatInputOutputField[] fields, TableView wFields,
+      BiConsumer<FormatInputOutputField, TableItem> converter ) {
+    for ( int i = 0; i < fields.length; i++ ) {
       TableItem item = null;
       if ( i < wFields.table.getItemCount() ) {
         item = wFields.table.getItem( i );
       } else {
         item = new TableItem( wFields.table, SWT.NONE );
       }
-      converter.accept( fields.get( i ), item );
+      converter.accept( fields[i], item );
     }
   }
 

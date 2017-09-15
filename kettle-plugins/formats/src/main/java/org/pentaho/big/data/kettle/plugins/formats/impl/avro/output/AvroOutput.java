@@ -26,7 +26,7 @@ import java.io.IOException;
 
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -90,7 +90,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
       throw new KettleException( "No output files defined" );
     }
     SchemaDescription schemaDescription = new SchemaDescription();
-    for ( FormatInputField f : meta.getOutputFields() ) {
+    for ( FormatInputOutputField f : meta.getOutputFields() ) {
       SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
       field.defaultValue = f.getIfNullValue();
       schemaDescription.addField( field );

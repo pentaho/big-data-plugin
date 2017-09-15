@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
@@ -123,7 +123,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
         item = new TableItem( wInputFields.table, SWT.NONE );
       }
 
-      FormatInputField inputField = meta.inputFields[i];
+      FormatInputOutputField inputField = meta.inputFields[i];
       if ( inputField.getPath() != null ) {
         item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getPath() );
       }
@@ -156,10 +156,10 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       meta.inputFiles.fileName[0] = wPath.getText().trim();
     }
     int nrFields = wInputFields.nrNonEmpty();
-    meta.inputFields = new FormatInputField[nrFields];
+    meta.inputFields = new FormatInputOutputField[nrFields];
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
-      FormatInputField field = new FormatInputField();
+      FormatInputOutputField field = new FormatInputOutputField();
       field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );

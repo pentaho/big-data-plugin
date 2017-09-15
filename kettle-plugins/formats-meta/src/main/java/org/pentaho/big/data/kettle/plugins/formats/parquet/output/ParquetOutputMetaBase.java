@@ -24,13 +24,13 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -46,22 +46,27 @@ import org.w3c.dom.Node;
  */
 public abstract class ParquetOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
 
-  private String writerVersion;
-  private int rowGroupSize;
-  private int pageSize;
-  private boolean enableDictionary;
-  private int dictionaryPageSize;
+  @Injection( name = "COMPRESSION" )
+  public String compressionType;
+  @Injection( name = "PARQUET_VERSION" )
+  public String parquetVersion;
+  @Injection( name = "ROW_GROUP_SIZE" )
+  public String rowGroupSize;
+  @Injection( name = "DATA_PAGE_SIZE" )
+  public String dataPageSize;
+  @Injection( name = "ENABLE_DICTIONARY" )
+  public boolean enableDictionary;
+  @Injection( name = "DICT_PAGE_SIZE" )
+  public String dictPageSize;
 
-  private String filename;
+  public String filename;
 
-  private List<FormatInputField> outputFields = new ArrayList<FormatInputField>();
+  public FormatInputOutputField[] outputFields = new FormatInputOutputField[0];
 
   @Override
   public void setDefault() {
-    // TODO Auto-generated method stub
+    outputFields = new FormatInputOutputField[0];
   }
-
-  public abstract Map<String, String> getFilledOptions();
 
   public String getFilename() {
     return filename;
@@ -69,14 +74,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setFilename( String filename ) {
     this.filename = filename;
-  }
-
-  public List<FormatInputField> getOutputFields() {
-    return outputFields;
-  }
-
-  public void setOutputFields( List<FormatInputField> outputFields ) {
-    this.outputFields = outputFields;
   }
 
   @Override
@@ -87,12 +84,18 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
       filename = XMLHandler.getTagValue( stepnode, "filename" );
+      enableDictionary = Boolean.parseBoolean( XMLHandler.getTagValue( stepnode, "enableDictionary" ) );
+      compressionType = XMLHandler.getTagValue( stepnode, "compression" );
+      parquetVersion = XMLHandler.getTagValue( stepnode, "parquetVersion" );
+      rowGroupSize = XMLHandler.getTagValue( stepnode, "rowGroupSize" );
+      dataPageSize = XMLHandler.getTagValue( stepnode, "dataPageSize" );
+      dictPageSize = XMLHandler.getTagValue( stepnode, "dictPageSize" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      List<FormatInputField> parquetOutputFields = new ArrayList<>();
+      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-        FormatInputField outputField = new FormatInputField();
+        FormatInputOutputField outputField = new FormatInputOutputField();
         outputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
         outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
         outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
@@ -100,7 +103,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" ) );
         parquetOutputFields.add( outputField );
       }
-      this.outputFields = parquetOutputFields;
+      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[0] );
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
     }
@@ -110,11 +113,17 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public String getXML() {
     StringBuffer retval = new StringBuffer( 800 );
 
-    retval.append( "    " + XMLHandler.addTagValue( "filename", filename ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "filename", filename ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "compression", compressionType ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "parquetVersion", parquetVersion ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "enableDictionary", enableDictionary ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "dictPageSize", dictPageSize ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "rowGroupSize", rowGroupSize ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "dataPageSize", dataPageSize ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
-    for ( int i = 0; i < outputFields.size(); i++ ) {
-      FormatInputField field = outputFields.get( i );
+    for ( int i = 0; i < outputFields.length; i++ ) {
+      FormatInputOutputField field = outputFields[i];
 
       if ( field.getName() != null && field.getName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
@@ -136,12 +145,18 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     throws KettleException {
     try {
       filename = rep.getStepAttributeString( id_step, "filename" );
+      compressionType = rep.getStepAttributeString( id_step, "compression" );
+      parquetVersion = rep.getStepAttributeString( id_step, "parquetVersion" );
+      enableDictionary = rep.getStepAttributeBoolean( id_step, "enableDictionary" );
+      dictPageSize = rep.getStepAttributeString( id_step, "dictPageSize" );
+      rowGroupSize = rep.getStepAttributeString( id_step, "rowGroupSize" );
+      dataPageSize = rep.getStepAttributeString( id_step, "dataPageSize" );
 
       int nrfields = rep.countNrStepAttributes( id_step, "field" );
 
-      List<FormatInputField> parquetOutputFields = new ArrayList<>();
+      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputField outputField = new FormatInputField();
+        FormatInputOutputField outputField = new FormatInputOutputField();
 
         outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
@@ -151,7 +166,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
         parquetOutputFields.add( outputField );
       }
-      this.outputFields = parquetOutputFields;
+      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[0] );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
@@ -162,8 +177,14 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     throws KettleException {
     try {
       rep.saveStepAttribute( id_transformation, id_step, "filename", filename );
-      for ( int i = 0; i < outputFields.size(); i++ ) {
-        FormatInputField field = outputFields.get( i );
+      rep.saveStepAttribute( id_transformation, id_step, "compression", compressionType );
+      rep.saveStepAttribute( id_transformation, id_step, "parquetVersion", parquetVersion );
+      rep.saveStepAttribute( id_transformation, id_step, "enableDictionary", enableDictionary );
+      rep.saveStepAttribute( id_transformation, id_step, "dictPageSize", dictPageSize );
+      rep.saveStepAttribute( id_transformation, id_step, "rowGroupSize", rowGroupSize );
+      rep.saveStepAttribute( id_transformation, id_step, "dataPageSize", dataPageSize );
+      for ( int i = 0; i < outputFields.length; i++ ) {
+        FormatInputOutputField field = outputFields[i];
 
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
@@ -175,5 +196,4 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
   }
-
 }

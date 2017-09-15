@@ -26,7 +26,7 @@ import java.io.IOException;
 
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
@@ -116,7 +116,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     if ( meta.getDataPageSize( variables ) > 0 ) {
       data.output.setDataPageSize( meta.getDataPageSize( variables ) * 1024 );
     }
-    data.output.enableDictionary( meta.getEncodingType().startsWith( "D" ) );
+    data.output.enableDictionary( meta.enableDictionary );
     if ( meta.getDictPageSize( variables ) > 0 ) {
       data.output.setDictionaryPageSize( meta.getDictPageSize( variables ) * 1024 );
     }
@@ -166,7 +166,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
 
   public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
     SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputField f : meta.getOutputFields() ) {
+    for ( FormatInputOutputField f : meta.outputFields ) {
       SchemaDescription.Field field =
           schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
       field.defaultValue = f.getIfNullValue();

@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -47,7 +47,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
   private String filename;
 
-  private List<FormatInputField> outputFields = new ArrayList<FormatInputField>();
+  private List<FormatInputOutputField> outputFields = new ArrayList<FormatInputOutputField>();
 
   @Override
   public void setDefault() {
@@ -62,11 +62,11 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     this.filename = filename;
   }
 
-  public List<FormatInputField> getOutputFields() {
+  public List<FormatInputOutputField> getOutputFields() {
     return outputFields;
   }
 
-  public void setOutputFields( List<FormatInputField> outputFields ) {
+  public void setOutputFields( List<FormatInputOutputField> outputFields ) {
     this.outputFields = outputFields;
   }
 
@@ -80,10 +80,10 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       filename = XMLHandler.getTagValue( stepnode, "filename" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      List<FormatInputField> parquetOutputFields = new ArrayList<>();
+      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-        FormatInputField outputField = new FormatInputField();
+        FormatInputOutputField outputField = new FormatInputOutputField();
         outputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
         outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
         outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
@@ -105,7 +105,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < outputFields.size(); i++ ) {
-      FormatInputField field = outputFields.get( i );
+      FormatInputOutputField field = outputFields.get( i );
 
       if ( field.getName() != null && field.getName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
@@ -130,9 +130,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
       int nrfields = rep.countNrStepAttributes( id_step, "field" );
 
-      List<FormatInputField> parquetOutputFields = new ArrayList<>();
+      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputField outputField = new FormatInputField();
+        FormatInputOutputField outputField = new FormatInputOutputField();
 
         outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
@@ -154,7 +154,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     try {
       rep.saveStepAttribute( id_transformation, id_step, "filename", filename );
       for ( int i = 0; i < outputFields.size(); i++ ) {
-        FormatInputField field = outputFields.get( i );
+        FormatInputOutputField field = outputFields.get( i );
 
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
