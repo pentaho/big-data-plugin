@@ -24,7 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import java.util.List;
 
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -46,12 +46,12 @@ import org.w3c.dom.Node;
  * @author Alexander Buloichik
  */
 public abstract class AvroInputMetaBase extends
-    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputField> {
+    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> {
 
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
-    inputFields = new FormatInputField[0];
+    inputFields = new FormatInputOutputField[0];
   }
 
   @Override
@@ -72,7 +72,7 @@ public abstract class AvroInputMetaBase extends
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < inputFields.length; i++ ) {
-      FormatInputField field = inputFields[i];
+      FormatInputOutputField field = inputFields[i];
       retval.append( "      <field>" ).append( Const.CR );
       retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
@@ -109,7 +109,7 @@ public abstract class AvroInputMetaBase extends
       }
 
       for ( int i = 0; i < inputFields.length; i++ ) {
-        FormatInputField field = inputFields[i];
+        FormatInputOutputField field = inputFields[i];
 
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field.getName() );
@@ -154,10 +154,10 @@ public abstract class AvroInputMetaBase extends
       inputFiles.includeSubFolders[i] = XMLHandler.getNodeValue( includeSubFoldersnode );
     }
 
-    inputFields = new FormatInputField[nrfields];
+    inputFields = new FormatInputOutputField[nrfields];
     for ( int i = 0; i < nrfields; i++ ) {
       Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-      FormatInputField field = new FormatInputField();
+      FormatInputOutputField field = new FormatInputOutputField();
 
       field.setPath( XMLHandler.getTagValue( fnode, "path" ) );
       field.setName( XMLHandler.getTagValue( fnode, "name" ) );
@@ -202,9 +202,9 @@ public abstract class AvroInputMetaBase extends
       }
 
       int nrfields = rep.countNrStepAttributes( id_step, "field_name" );
-      inputFields = new FormatInputField[nrfields];
+      inputFields = new FormatInputOutputField[nrfields];
       for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputField field = new FormatInputField();
+        FormatInputOutputField field = new FormatInputOutputField();
 
         field.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
         field.setName( rep.getStepAttributeString( id_step, i, "field_name" ) );
@@ -250,6 +250,6 @@ public abstract class AvroInputMetaBase extends
   @Override
   public void setDefault() {
     allocateFiles( 0 );
-    inputFields = new FormatInputField[0];
+    inputFields = new FormatInputOutputField[0];
   }
 }

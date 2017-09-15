@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
@@ -133,7 +133,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
 
   public static SchemaDescription createSchemaFromMeta( ParquetInputMetaBase meta ) {
     SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputField f : meta.inputFields ) {
+    for ( FormatInputOutputField f : meta.inputFields ) {
       SchemaDescription.Field field =
           schema.new Field( f.getPath(), f.getName(), f.getType(), true );
       schema.addField( field );

@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettlePluginException;
@@ -77,7 +77,7 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
     KettleStepException {
     try {
       for ( int i = 0; i < inputFields.length; i++ ) {
-        FormatInputField field = inputFields[ i ];
+        FormatInputOutputField field = inputFields[ i ];
         String value = space.environmentSubstitute( field.getName() );
         ValueMetaInterface v = ValueMetaFactory.createValueMeta( value,
           field.getType() );

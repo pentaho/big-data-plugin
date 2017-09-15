@@ -24,7 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputField;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -93,7 +93,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
       throw new KettleException( "No input files defined" );
     }
     SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputField f : meta.inputFields ) {
+    for ( FormatInputOutputField f : meta.inputFields ) {
       SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), true );
       schema.addField( field );
     }
