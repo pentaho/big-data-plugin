@@ -22,10 +22,17 @@
 package org.pentaho.big.data.kettle.plugins.recordsfromstream;
 
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.trans.steps.rowsfromresult.RowsFromResultDialog;
 
 public class RecordsFromStreamDialog extends RowsFromResultDialog {
+  private static Class<?> PKG = RecordsFromStreamMeta.class; // for i18n purposes, needed by Translator2!!
+
+  @Override public String getTitle() {
+    return BaseMessages.getString( PKG, "RecordsFromStreamDialog.Shell.Title" );
+  }
+
   public RecordsFromStreamDialog( final Shell parent, final Object in,
                                   final TransMeta transMeta,
                                   final String sname ) {
