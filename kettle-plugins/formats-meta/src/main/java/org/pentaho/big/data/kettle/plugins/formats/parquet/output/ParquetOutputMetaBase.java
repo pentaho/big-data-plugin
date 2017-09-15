@@ -152,7 +152,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       rowGroupSize = rep.getStepAttributeString( id_step, "rowGroupSize" );
       dataPageSize = rep.getStepAttributeString( id_step, "dataPageSize" );
 
-      int nrfields = rep.countNrStepAttributes( id_step, "field" );
+      // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
+      int nrfields = rep.countNrStepAttributes( id_step, "type" );
 
       List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
