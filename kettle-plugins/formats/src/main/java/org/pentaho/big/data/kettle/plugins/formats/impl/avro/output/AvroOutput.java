@@ -76,13 +76,13 @@ public class AvroOutput extends BaseStep implements StepInterface {
         //create data equals with output fileds
         Object[] outputData = new Object[meta.getOutputFields().size()];
         for ( int i = 0; i < meta.getOutputFields().size(); i++ ) {
-          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getName() );
+          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getPath() );
           if ( inputRowIndex == -1 ) {
-            throw new KettleException( "Field [" + meta.getOutputFields().get( i ).getName() + "] couldn't be found in the input stream!" );
+            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getName() + " ] and path [ " + meta.getOutputFields().get( i ).getPath() + " ] couldn't be found in the input stream!" );
           } else {
             ValueMetaInterface vmi = ValueMetaFactory.cloneValueMeta( getInputRowMeta().getValueMeta( inputRowIndex ) );
             //change the name for the output field according the mapping in step
-            vmi.setName( meta.getOutputFields().get( i ).getPath() );
+            vmi.setName( meta.getOutputFields().get( i ).getName() );
             //add output value meta according output fields
             outputRMI.addValueMeta( i,  vmi );
             //add output data according output fields
