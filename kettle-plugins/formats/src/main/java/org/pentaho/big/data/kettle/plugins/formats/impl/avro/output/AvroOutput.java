@@ -30,6 +30,11 @@ import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -57,14 +62,34 @@ public class AvroOutput extends BaseStep implements StepInterface {
   @Override
   public synchronized boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     try {
+      meta = (AvroOutputMeta) smi;
+      data = (AvroOutputData) sdi;
+
       if ( data.output == null ) {
         init();
       }
 
       Object[] currentRow = getRow();
       if ( currentRow != null ) {
-        RowMetaAndData row = new RowMetaAndData( getInputRowMeta(), currentRow );
-        data.writer.write( row );
+        //create new outputMeta
+        RowMetaInterface outputRMI = new RowMeta();
+        //create data equals with output fileds
+        Object[] outputData = new Object[meta.getOutputFields().size()];
+        for ( int i = 0; i < meta.getOutputFields().size(); i++ ) {
+          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getPath() );
+          if ( inputRowIndex == -1 ) {
+            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getName() + " ] and path [ " + meta.getOutputFields().get( i ).getPath() + " ] couldn't be found in the input stream!" );
+          } else {
+            ValueMetaInterface vmi = ValueMetaFactory.cloneValueMeta( getInputRowMeta().getValueMeta( inputRowIndex ) );
+            //change the name for the output field according the mapping in step
+            vmi.setName( meta.getOutputFields().get( i ).getName() );
+            //add output value meta according output fields
+            outputRMI.addValueMeta( i,  vmi );
+            //add output data according output fields
+            outputData[i] = currentRow[inputRowIndex];
+          }
+        }
+        data.writer.write( new RowMetaAndData( outputRMI, outputData ) );
         return true;
       } else {
         // no more input to be expected...
@@ -91,7 +116,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
     }
     SchemaDescription schemaDescription = new SchemaDescription();
     for ( FormatInputOutputField f : meta.getOutputFields() ) {
-      SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
+      SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), ValueMetaBase.convertStringToBoolean( f.getNullString() ) );
       field.defaultValue = f.getIfNullValue();
       schemaDescription.addField( field );
     }
