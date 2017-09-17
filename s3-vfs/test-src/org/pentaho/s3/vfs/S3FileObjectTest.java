@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2013 Pentaho Corporation.  All rights reserved.
+* Copyright 2010 - 2017 Pentaho Corporation.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -40,13 +40,14 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * created by: dzmitry_bahdanovich date:       10/18/13
+ * created by: dzmitry_bahdanovich date: 10/18/13
  */
 
 public class S3FileObjectTest {
 
-  public static final String awsAccessKey = "ABC123456DEF7890";             // fake out a key
-  public static final String awsSecretKey = "A+123456BCD99/99999999ZZZ+B";   // fake out a secret key
+  private static final String S3OBJECT_NAME = "TEST_NAME";
+  public static final String awsAccessKey = "ABC123456DEF7890"; // fake out a key
+  public static final String awsSecretKey = "A+123456BCD99/99999999ZZZ+B"; // fake out a secret key
   public static final String HOST = "S3";
   public static final String SCHEME = "s3";
   public static final int PORT = 843;
@@ -58,6 +59,8 @@ public class S3FileObjectTest {
   private S3FileSystem fileSystemSpy;
   private S3FileObject s3FileObjectSpy;
   private S3Service s3ServiceMock;
+  private static final String S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA = "s3.vfs.useTempFileOnUploadData";
+  private S3DataContent s3DataContent;
 
   @Before
   public void setUp() throws Exception {
@@ -66,11 +69,8 @@ public class S3FileObjectTest {
     S3Bucket testBucket = new S3Bucket( BUCKET_NAME );
     S3Object s3Object = new S3Object( OBJECT_NAME );
 
-    filename =
-      new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME + "/" + OBJECT_NAME,
-        FileType.FILE, null );
-    S3FileName rootFileName =
-      new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME, FileType.FILE, null );
+    filename = new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME + "/" + OBJECT_NAME, FileType.FILE, null );
+    S3FileName rootFileName = new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME, FileType.FILE, null );
     S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions() );
     fileSystemSpy = spy( fileSystem );
     VfsComponentContext context = mock( VfsComponentContext.class );
@@ -84,12 +84,12 @@ public class S3FileObjectTest {
     S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
     s3FileObjectSpy = spy( s3FileObject );
 
-    //specify the behaviour of S3 Service
+    // specify the behaviour of S3 Service
     when( s3ServiceMock.getBucket( BUCKET_NAME ) ).thenReturn( testBucket );
     when( s3ServiceMock.getObject( testBucket, OBJECT_NAME ) ).thenReturn( s3Object );
     when( s3ServiceMock.getObject( BUCKET_NAME, OBJECT_NAME ) ).thenReturn( s3Object );
-    when( s3ServiceMock.createBucket( BUCKET_NAME ) )
-      .thenThrow( new S3ServiceException() ); // throw exception if bucket exists
+    when( s3ServiceMock.createBucket( BUCKET_NAME ) ).thenThrow( new S3ServiceException() ); // throw exception if
+                                                                                             // bucket exists
     when( fileSystemSpy.getS3Service() ).thenReturn( s3ServiceMock );
     when( s3FileObjectSpy.getS3Bucket() ).thenReturn( testBucket );
 
@@ -97,7 +97,7 @@ public class S3FileObjectTest {
 
   @After
   public void tearDown() throws Exception {
-
+    s3DataContent = null;
   }
 
   @Test
@@ -112,9 +112,7 @@ public class S3FileObjectTest {
 
   @Test
   public void testGetS3BucketName() {
-    filename =
-      new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME,
-        FileType.FOLDER, null );
+    filename = new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME, FileType.FOLDER, null );
     when( s3FileObjectSpy.getName() ).thenReturn( filename );
     s3FileObjectSpy.getS3BucketName();
   }
@@ -235,7 +233,7 @@ public class S3FileObjectTest {
     when( mockFile.getPath() ).thenReturn( S3FileObject.DELIMITER );
     when( s3FileObjectSpy.getS3Bucket() ).thenReturn( null );
     S3Bucket bucket = mock( S3Bucket.class );
-    S3Bucket[] buckets = new S3Bucket[]{ bucket };
+    S3Bucket[] buckets = new S3Bucket[] { bucket };
     when( s3ServiceMock.listAllBuckets() ).thenReturn( buckets );
     String[] children = s3FileObjectSpy.doListChildren();
     assertNotNull( children );
@@ -243,7 +241,7 @@ public class S3FileObjectTest {
     when( mockFile.getPath() ).thenReturn( "/path/to/myFile.txt" );
     S3Object object = mock( S3Object.class );
     when( object.getKey() ).thenReturn( "/path/to/myFile.txt@S3/" );
-    S3Object[] objects = new S3Object[]{ object };
+    S3Object[] objects = new S3Object[] { object };
     when( s3ServiceMock.listObjects( anyString(), anyString(), anyString() ) ).thenReturn( objects );
     children = s3FileObjectSpy.doListChildren();
     assertNotNull( children );
@@ -263,6 +261,41 @@ public class S3FileObjectTest {
     S3FileObject s3FileObject = new S3FileObject( filename, fileSystemSpy );
     S3Object s3Object = s3FileObject.getS3Object( deleteIfExists, false );
     assertNotNull( s3Object );
+  }
+
+  @Test
+  public void testGetS3ObjectWithS3DataContent_AsFile() throws Exception {
+    turnOnUseTemporaryFileOnUploadData();
+    s3DataContent = new S3DataContent();
+    s3DataContent.load();
+    S3Object s3Object = S3FileObject.getS3Object( S3OBJECT_NAME, s3DataContent );
+    assertNotNull( s3Object );
+    assertEquals( S3OBJECT_NAME, s3Object.getName() );
+    assertEquals( s3DataContent.asFile().length(), s3Object.getContentLength() );
+    assertEquals( s3DataContent.asFile(), s3Object.getDataInputFile() );
+  }
+
+  @Test
+  public void testGetS3ObjectWithS3DataContent_AsStream() throws Exception {
+    String testData = "1, 2, 3";
+    turnOffUseTemporaryFileOnUploadData();
+    s3DataContent = new S3DataContent();
+    s3DataContent.load();
+    s3DataContent.asByteArrayStream().write( testData.getBytes() );
+    S3Object s3Object = S3FileObject.getS3Object( S3OBJECT_NAME, s3DataContent );
+    assertNotNull( s3Object );
+    assertEquals( S3OBJECT_NAME, s3Object.getName() );
+    assertEquals( s3DataContent.asByteArrayStream().size(), s3Object.getContentLength() );
+    assertNull( s3Object.getDataInputFile() );
+    assertNotNull( s3Object.getDataInputStream() );
+  }
+
+  private static void turnOnUseTemporaryFileOnUploadData() {
+    System.getProperties().put( S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA, "Y" );
+  }
+
+  private static void turnOffUseTemporaryFileOnUploadData() {
+    System.getProperties().put( S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA, "N" );
   }
 
 }

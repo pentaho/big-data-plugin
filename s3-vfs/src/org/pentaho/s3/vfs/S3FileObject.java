@@ -17,6 +17,17 @@
 
 package org.pentaho.s3.vfs;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -28,21 +39,10 @@ import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 public class S3FileObject extends AbstractFileObject {
 
   public static final String DELIMITER = "/";
+
   //  private S3Service service = null;
   private S3Bucket bucket = null;
   private S3FileSystem fileSystem = null;
@@ -87,6 +87,10 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   S3Object getS3Object( boolean deleteIfAlreadyExists, boolean needContent ) throws Exception {
+    return getS3Object( deleteIfAlreadyExists, needContent, null );
+  }
+
+  S3Object getS3Object( boolean deleteIfAlreadyExists, boolean needContent, S3DataContent s3DataContent ) throws Exception {
     try {
       if ( getName().getPath().indexOf( DELIMITER, 1 ) == -1 ) {
         return null;
@@ -104,11 +108,11 @@ public class S3FileObject extends AbstractFileObject {
           S3Object object = getObjectFromS3( name, needContent );
           if ( deleteIfAlreadyExists ) {
             fileSystem.getS3Service().deleteObject( getS3BucketName(), name );
-            object = new S3Object( name );
+            object = getS3Object( name, s3DataContent );
           }
           return object;
         } catch ( Exception e ) {
-          S3Object object = new S3Object( name );
+          S3Object object = getS3Object( name, s3DataContent );
           if ( deleteIfAlreadyExists ) {
             fileSystem.getS3Service().deleteObject( getS3Bucket(), name );
           }
@@ -119,6 +123,19 @@ public class S3FileObject extends AbstractFileObject {
       //ignored
     }
     return null;
+  }
+
+  static S3Object getS3Object( String name, S3DataContent s3DataContent ) throws NoSuchAlgorithmException, IOException {
+    S3Object object = new S3Object( name );
+    if ( s3DataContent != null ) {
+      if ( s3DataContent.isUseTempFileOnUploadData() ) {
+        object = new S3Object( s3DataContent.asFile() );
+        object.setName( name );
+      } else {
+        object = new S3Object( name, s3DataContent.asByteArrayStream().toByteArray() );
+      }
+    }
+    return object;
   }
 
   private S3Object getObjectFromS3( String name, Boolean needContent ) throws S3ServiceException, IOException {
@@ -134,7 +151,9 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   protected OutputStream doGetOutputStream( final boolean append ) throws Exception {
-    final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    S3DataContent s3DataContent = new S3DataContent();
+    s3DataContent.load();
+    final OutputStream output = s3DataContent.getDataToUpload();
     final PipedInputStream pis = new PipedInputStream();
 
     final Thread t = new Thread( new Runnable() {
@@ -154,13 +173,13 @@ public class S3FileObject extends AbstractFileObject {
         try {
           // wait for reader to finish
           t.join();
-          S3Object s3Object = getS3Object( true, false );
-          byte[] bytes = output.toByteArray();
-          s3Object.setContentLength( bytes.length );
-          s3Object.setDataInputStream( new ByteArrayInputStream( bytes ) );
+          // get the s3 object to put it into S3 storage
+          S3Object s3Object = getS3Object( true, false, s3DataContent );
           fileSystem.getS3Service().putObject( getS3Bucket(), s3Object );
         } catch ( Exception e ) {
           e.printStackTrace();
+        } finally {
+          output.close();
         }
       }
     };
