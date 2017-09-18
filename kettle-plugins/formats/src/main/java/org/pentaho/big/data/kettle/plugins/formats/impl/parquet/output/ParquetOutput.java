@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
 import java.io.IOException;
 
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
@@ -33,6 +34,8 @@ import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -98,7 +101,14 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     }
 
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
-    data.output.setOutputFile( meta.getFilename() );
+
+    String outputFileName = meta.getFilename();
+    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
+    if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
+      outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
+    }
+
+    data.output.setOutputFile( outputFileName );
     data.output.setSchema( createSchema( rowMeta ) );
 
     IPentahoParquetOutputFormat.COMPRESSION compression;
