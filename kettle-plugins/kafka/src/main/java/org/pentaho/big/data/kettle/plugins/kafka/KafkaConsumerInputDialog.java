@@ -48,7 +48,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -777,16 +776,13 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
 
     int topicsCount = meta.getTopics().size();
 
-    Listener lsFocusInTopic = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        CCombo ccom = (CCombo) e.widget;
-        ComboVar cvar = (ComboVar) ccom.getParent();
+    Listener lsFocusInTopic = e -> {
+      CCombo ccom = (CCombo) e.widget;
+      ComboVar cvar = (ComboVar) ccom.getParent();
 
-        KafkaDialogHelper kdh = new KafkaDialogHelper( wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-          meta.getNamedClusterService(), meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator() );
-        kdh.clusterNameChanged( e );
-      }
+      KafkaDialogHelper kdh = new KafkaDialogHelper( wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
+        meta.getNamedClusterService(), meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable );
+      kdh.clusterNameChanged( e );
     };
 
     topicsTable = new TableView(
@@ -954,18 +950,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   }
 
   private void setOptionsFromTable() {
-    int itemCount = optionsTable.getItemCount();
-    Map<String, String> advancedConfig = new LinkedHashMap<>();
-
-    for ( int rowIndex = 0; rowIndex < itemCount; rowIndex++ ) {
-      TableItem row = optionsTable.getTable().getItem( rowIndex );
-      String config = row.getText( 1 );
-      String value = row.getText( 2 );
-      if ( !"".equals( config ) && !advancedConfig.containsKey( config ) ) {
-        advancedConfig.put( config, value );
-      }
-    }
-    meta.setConfig( advancedConfig );
+    meta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
 
   private void selectRepositoryTrans() {

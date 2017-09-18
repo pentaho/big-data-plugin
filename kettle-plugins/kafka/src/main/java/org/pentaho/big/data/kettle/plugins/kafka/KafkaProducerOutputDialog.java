@@ -378,9 +378,13 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdTopic.right = new FormAttachment( 0, INPUT_WIDTH );
     wTopic.setLayoutData( fdTopic );
     wTopic.getCComboWidget().addListener(
-        SWT.FocusIn, new KafkaDialogHelper( wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-            meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator()
-        )::clusterNameChanged );
+      SWT.FocusIn,
+      event -> {
+        KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
+          wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
+          meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable );
+        kafkaDialogHelper.clusterNameChanged( event );
+      } );
 
     wlKeyField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlKeyField );
@@ -559,18 +563,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   }
 
   private void setOptionsFromTable() {
-    int itemCount = optionsTable.getItemCount();
-    Map<String, String> advancedConfig = new LinkedHashMap<>();
-
-    for ( int rowIndex = 0; rowIndex < itemCount; rowIndex++ ) {
-      TableItem row = optionsTable.getTable().getItem( rowIndex );
-      String config = row.getText( 1 );
-      String value = row.getText( 2 );
-      if ( !"".equals( config ) && !advancedConfig.containsKey( config ) ) {
-        advancedConfig.put( config, value );
-      }
-    }
-    meta.setConfig( advancedConfig );
+    meta.setConfig( KafkaDialogHelper.getConfig( optionsTable ) );
   }
 
   private void getData() {
