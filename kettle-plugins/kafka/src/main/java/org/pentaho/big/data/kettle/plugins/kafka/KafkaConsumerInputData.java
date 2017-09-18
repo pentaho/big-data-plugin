@@ -38,7 +38,6 @@ public class KafkaConsumerInputData extends TransExecutorData implements StepDat
   RowMetaInterface outputRowMeta;
   List<RowMetaAndData> buffer = new ArrayList<>();
   Timer timer;
-  Timer completionTimer;
 
   /**
    *

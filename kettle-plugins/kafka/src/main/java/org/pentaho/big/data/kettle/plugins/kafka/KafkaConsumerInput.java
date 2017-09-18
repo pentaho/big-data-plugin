@@ -122,7 +122,7 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
     consumer.subscribe( Sets.newHashSet( topicList ) );
     callable = new KafkaConsumerCallable( consumer );
     startBatchDurationTimer();
-    return startCompletionDuration();
+    return true;
   }
 
   public void startBatchDurationTimer() {
@@ -244,27 +244,6 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
     kafkaConsumerInputData.buffer.add( new RowMetaAndData( rowMeta, rowData ) );
   }
 
-  private boolean startCompletionDuration() {
-    boolean isValid = true;
-    try {
-      long delay = Long.parseLong( environmentSubstitute( kafkaConsumerInputMeta.getStreamingDuration() ) );
-      if ( delay > 0 ) {
-        kafkaConsumerInputData.completionTimer = new Timer();
-        kafkaConsumerInputData.completionTimer.schedule( new TimerTask() {
-          @Override
-          public void run() {
-            getTrans().stopAll();
-          }
-        }, delay );
-      }
-    } catch ( NumberFormatException e ) {
-      logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.StreamingDurationNotANumber",
-                                        environmentSubstitute( kafkaConsumerInputMeta.getStreamingDuration() ) ) );
-      isValid = false;
-    }
-
-    return isValid;
-  }
 
   class KafkaConsumerCallable implements Callable<Void> {
     private final AtomicBoolean closed = new AtomicBoolean( false );
@@ -326,9 +305,6 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
 
     callable.shutdown();
     kafkaConsumerInputData.timer.cancel();
-    if ( null != kafkaConsumerInputData.completionTimer ) {
-      kafkaConsumerInputData.completionTimer.cancel();
-    }
   }
 
   @Override public void resumeRunning() {

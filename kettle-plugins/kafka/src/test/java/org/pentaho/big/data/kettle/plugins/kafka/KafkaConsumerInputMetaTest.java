@@ -72,7 +72,6 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.DIRECT_BOOTSTRAP_SERVERS;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.STREAMING_DURATION;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TOPIC;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TRANSFORMATION_PATH;
 
@@ -105,7 +104,6 @@ public class KafkaConsumerInputMetaTest {
         + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>\n"
         + "    <batchSize>12345</batchSize>\n"
         + "    <batchDuration>999</batchDuration>\n"
-        + "    <streamingDuration>123</streamingDuration>\n"
         + "    <OutputField kafkaName=\"key\" type=\"String\">three</OutputField>\n"
         + "    <OutputField kafkaName=\"message\" type=\"String\">four</OutputField>\n"
         + "    <OutputField kafkaName=\"topic\" type=\"String\">five</OutputField>\n"
@@ -137,7 +135,6 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getTransformationPath() );
     assertEquals( "12345", meta.getBatchSize() );
     assertEquals( "999", meta.getBatchDuration() );
-    assertEquals( "123", meta.getStreamingDuration() );
     assertEquals( CLUSTER, meta.getConnectionType() );
     assertEquals( "some_host:123,some_other_host:456", meta.getDirectBootstrapServers() );
 
@@ -194,7 +191,6 @@ public class KafkaConsumerInputMetaTest {
     meta.setTimestampField( new KafkaConsumerField( KafkaConsumerField.Name.TIMESTAMP, "time",
       KafkaConsumerField.Type.Integer ) );
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
-    meta.setStreamingDuration( "12345" );
     meta.setBatchSize( "54321" );
     meta.setBatchDuration( "987" );
     meta.setConnectionType( DIRECT );
@@ -219,7 +215,6 @@ public class KafkaConsumerInputMetaTest {
       + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>" + Const.CR
       + "    <batchSize>54321</batchSize>" + Const.CR
       + "    <batchDuration>987</batchDuration>" + Const.CR
-      + "    <streamingDuration>12345</streamingDuration>" + Const.CR
       + "    <connectionType>DIRECT</connectionType>" + Const.CR
       + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
       + "    <OutputField kafkaName=\"key\"  type=\"String\" >kafkaKey</OutputField>" + Const.CR
@@ -248,7 +243,6 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, TRANSFORMATION_PATH ) ).thenReturn( "/home/pentaho/atrans.ktr" );
     when( rep.getStepAttributeString( stepId, BATCH_SIZE ) ).thenReturn( "999" );
     when( rep.getStepAttributeString( stepId, BATCH_DURATION ) ).thenReturn( "111" );
-    when( rep.getStepAttributeString( stepId, STREAMING_DURATION ) ).thenReturn( "234" );
     when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "CLUSTER" );
     when( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) ).thenReturn( "unused" );
 
@@ -284,7 +278,6 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "/home/pentaho/atrans.ktr", meta.getTransformationPath() );
     assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
-    assertEquals( 234L, Long.parseLong( meta.getStreamingDuration() ) );
     assertEquals( CLUSTER, meta.getConnectionType() );
     assertEquals( "unused", meta.getDirectBootstrapServers() );
 
@@ -330,7 +323,6 @@ public class KafkaConsumerInputMetaTest {
     meta.setTransformationPath( "/home/Pentaho/btrans.ktr" );
     meta.setBatchSize( "33" );
     meta.setBatchDuration( "10000" );
-    meta.setStreamingDuration( "33344" );
     meta.setConnectionType( DIRECT );
     meta.setDirectBootstrapServers( "kafkaServer:9092" );
 
@@ -349,7 +341,6 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, "/home/Pentaho/btrans.ktr" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_SIZE, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, "10000" );
-    verify( rep ).saveStepAttribute( transId, stepId, STREAMING_DURATION, "33344" );
     verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
     verify( rep ).saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, "kafkaServer:9092" );
 
@@ -469,7 +460,7 @@ public class KafkaConsumerInputMetaTest {
   }
 
   @Test
-  public void testDirectIsDefault() throws Exception {
+  public void testDirecIsDefault() throws Exception {
     assertEquals( DIRECT, new KafkaConsumerInputMeta().getConnectionType() );
   }
 
