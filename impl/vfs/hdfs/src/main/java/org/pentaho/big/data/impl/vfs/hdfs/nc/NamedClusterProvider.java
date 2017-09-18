@@ -35,7 +35,6 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider;
-import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.osgi.api.VfsEmbeddedFileSystemCloser;
@@ -109,7 +108,7 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
           getMetastore( clusterName, fileSystemOptions ), new Variables() );
       URI uri = URI.create( generatedUrl );
 
-      return new HDFSFileSystem( name, fileSystemOptions,
+      return new NamedClusterFileSystem( name, uri, fileSystemOptions,
         hadoopFileSystemLocator.getHadoopFilesystem( namedCluster, uri ) );
     } catch ( ClusterInitializationException e ) {
       throw new FileSystemException( e );
