@@ -25,6 +25,8 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +34,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -41,6 +45,7 @@ import org.apache.kafka.common.config.SslConfigs;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -49,6 +54,7 @@ import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.widget.ComboVar;
+import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
@@ -64,11 +70,12 @@ public class KafkaDialogHelper {
   private NamedClusterService namedClusterService;
   private MetastoreLocator metastoreLocator;
   private NamedClusterServiceLocator namedClusterServiceLocator;
+  private TableView optionsTable;
 
-  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, final Button wbCluster,
-                            final TextVar wBootstrapServers, KafkaFactory kafkaFactory,
-                            NamedClusterService namedClusterService,
-                            NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator ) {
+  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+                            KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
+                            NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
+                            TableView optionsTable ) {
     this.wClusterName = wClusterName;
     this.wTopic = wTopic;
     this.wbCluster = wbCluster;
@@ -77,6 +84,7 @@ public class KafkaDialogHelper {
     this.namedClusterService = namedClusterService;
     this.metastoreLocator = metastoreLocator;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
+    this.optionsTable = optionsTable;
   }
 
   public void clusterNameChanged( @SuppressWarnings( "unused" ) Event event ) {
@@ -88,8 +96,9 @@ public class KafkaDialogHelper {
     String clusterName = wClusterName.getText();
     boolean isCluster = wbCluster == null || wbCluster.getSelection();
     String directBootstrapServers = wBootstrapServers == null ? "" : wBootstrapServers.getText();
+    Map<String, String> config = getConfig( optionsTable );
     CompletableFuture
-      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers ) )
+      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
       .thenAccept( ( topicMap ) -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
   }
 
@@ -109,7 +118,7 @@ public class KafkaDialogHelper {
   }
 
   private Map<String, List<PartitionInfo>> listTopics(
-    final String clusterName, final boolean isCluster, final String directBootstrapServers ) {
+    final String clusterName, final boolean isCluster, final String directBootstrapServers, Map<String, String> config ) {
     Consumer kafkaConsumer = null;
     try {
       KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();
@@ -119,9 +128,12 @@ public class KafkaDialogHelper {
       localMeta.setConnectionType( isCluster ? CLUSTER : DIRECT );
       localMeta.setClusterName( clusterName );
       localMeta.setDirectBootstrapServers( directBootstrapServers );
+      localMeta.setConfig( config );
       kafkaConsumer = kafkaFactory.consumer( localMeta, Function.identity() );
       @SuppressWarnings( "unchecked" ) Map<String, List<PartitionInfo>> topicMap = kafkaConsumer.listTopics();
       return topicMap;
+    } catch ( Exception e ) {
+      return Collections.emptyMap();
     } finally {
       if ( kafkaConsumer != null ) {
         kafkaConsumer.close();
@@ -194,5 +206,20 @@ public class KafkaDialogHelper {
         field.setAccessible( isAccessible );
       }
     }
+  }
+
+  public static Map<String, String> getConfig( TableView optionsTable ) {
+    int itemCount = optionsTable.getItemCount();
+    Map<String, String> advancedConfig = new LinkedHashMap<>();
+
+    for ( int rowIndex = 0; rowIndex < itemCount; rowIndex++ ) {
+      TableItem row = optionsTable.getTable().getItem( rowIndex );
+      String config = row.getText( 1 );
+      String value = row.getText( 2 );
+      if ( !StringUtils.isBlank( config ) && !StringUtils.isBlank( value ) && !advancedConfig.containsKey( config ) ) {
+        advancedConfig.put( config, value );
+      }
+    }
+    return advancedConfig;
   }
 }
