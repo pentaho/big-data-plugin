@@ -22,10 +22,14 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.protocol.SecurityProtocol;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -77,6 +81,10 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
 
   private static Class<?> PKG = KafkaProducerOutputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+
+  private static final Map<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of(
+      ProducerConfig.COMPRESSION_TYPE_CONFIG, "none", CommonClientConfigs.SECURITY_PROTOCOL_CONFIG,
+      SecurityProtocol.PLAINTEXT.name );
 
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
@@ -493,11 +501,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       List<String> list = KafkaDialogHelper.getProducerAdvancedConfigOptionNames();
       Map<String, String> advancedConfig = new LinkedHashMap<>();
       for ( String item : list ) {
-        if ( "compression.type".equals( item ) ) {
-          advancedConfig.put( item, "none" );
-        } else {
-          advancedConfig.put( item, "" );
-        }
+        advancedConfig.put( item, DEFAULT_OPTION_VALUES.getOrDefault( item, "" ) );
       }
       meta.setConfig( advancedConfig );
     }
