@@ -24,19 +24,24 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
 import java.util.List;
 
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
+import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -46,7 +51,8 @@ import org.w3c.dom.Node;
  * @author <alexander_buloichik@epam.com>
  */
 public abstract class ParquetInputMetaBase extends
-    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> {
+    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements
+  ResolvableResource {
 
   public ParquetInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
@@ -251,5 +257,21 @@ public abstract class ParquetInputMetaBase extends
   public void setDefault() {
     allocateFiles( 0 );
     inputFields = new FormatInputOutputField[0];
+  }
+
+  @Override
+  public void resolve() {
+    if ( inputFiles != null && inputFiles.fileName != null ) {
+      for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
+        try {
+          FileObject fileObject = KettleVFS.getFileObject( inputFiles.fileName[ i ] );
+          if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
+            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          }
+        } catch ( KettleFileException e ) {
+          throw new RuntimeException( e );
+        }
+      }
+    }
   }
 }

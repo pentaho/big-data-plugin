@@ -25,17 +25,22 @@ package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -44,7 +49,7 @@ import org.w3c.dom.Node;
  *
  * @author <alexander_buloichik@epam.com>
  */
-public abstract class ParquetOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
+public abstract class ParquetOutputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
   @Injection( name = "COMPRESSION" )
   public String compressionType;
@@ -195,6 +200,20 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       }
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
+    }
+  }
+
+  @Override
+  public void resolve() {
+    if ( filename != null && !filename.isEmpty() ) {
+      try {
+        FileObject fileObject = KettleVFS.getFileObject( filename );
+        if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
+          filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+        }
+      } catch ( KettleFileException e ) {
+        throw new RuntimeException( e );
+      }
     }
   }
 }
