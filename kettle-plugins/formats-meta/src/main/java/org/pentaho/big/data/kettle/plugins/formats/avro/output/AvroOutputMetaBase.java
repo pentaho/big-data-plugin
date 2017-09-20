@@ -24,13 +24,19 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
@@ -45,9 +51,17 @@ import org.w3c.dom.Node;
  */
 public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
 
+  private static final Class<?> PKG = AvroOutputMetaBase.class;
+
   private String filename;
 
   private List<FormatInputOutputField> outputFields = new ArrayList<FormatInputOutputField>();
+  @Injection( name = FieldNames.COMPRESSION )
+  protected String compressionType;
+  @Injection( name = FieldNames.SCHEMA_FILENAME ) protected String schemaFilename;
+  @Injection( name = FieldNames.NAMESPACE ) protected String namespace;
+  @Injection( name = FieldNames.RECORD_NAME ) protected String recordName;
+  @Injection( name = FieldNames.DOC_VALUE ) protected String docValue;
 
   @Override
   public void setDefault() {
@@ -92,6 +106,13 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         parquetOutputFields.add( outputField );
       }
       this.outputFields = parquetOutputFields;
+
+      compressionType = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESSION );
+      schemaFilename = XMLHandler.getTagValue( stepnode, FieldNames.SCHEMA_FILENAME );
+      namespace = XMLHandler.getTagValue( stepnode, FieldNames.NAMESPACE );
+      docValue = XMLHandler.getTagValue( stepnode, FieldNames.DOC_VALUE );
+      recordName = XMLHandler.getTagValue( stepnode, FieldNames.RECORD_NAME );
+
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
     }
@@ -100,8 +121,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
   @Override
   public String getXML() {
     StringBuffer retval = new StringBuffer( 800 );
+    final String INDENT = "    ";
 
-    retval.append( "    " + XMLHandler.addTagValue( "filename", filename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", filename ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < outputFields.size(); i++ ) {
@@ -118,6 +140,12 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       }
     }
     retval.append( "    </fields>" ).append( Const.CR );
+
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.COMPRESSION, compressionType ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.SCHEMA_FILENAME, schemaFilename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.NAMESPACE, namespace ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DOC_VALUE, docValue ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.RECORD_NAME, recordName ) );
 
     return retval.toString();
   }
@@ -144,6 +172,11 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         parquetOutputFields.add( outputField );
       }
       this.outputFields = parquetOutputFields;
+      compressionType = rep.getStepAttributeString( id_step, FieldNames.COMPRESSION );
+      schemaFilename = rep.getStepAttributeString( id_step, FieldNames.SCHEMA_FILENAME );
+      namespace = rep.getStepAttributeString( id_step, FieldNames.NAMESPACE );
+      docValue = rep.getStepAttributeString( id_step, FieldNames.DOC_VALUE );
+      recordName = rep.getStepAttributeString( id_step, FieldNames.RECORD_NAME );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
@@ -163,9 +196,125 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
         rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
       }
+      super.saveRep( rep, metaStore, id_transformation, id_step );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESSION, compressionType );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.SCHEMA_FILENAME, schemaFilename );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.NAMESPACE, namespace );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.DOC_VALUE, docValue );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.RECORD_NAME, recordName );
+
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
+  }
+
+  public String getSchemaFilename() {
+    return schemaFilename;
+  }
+
+  public void setSchemaFilename( String schemaFilename ) {
+    this.schemaFilename = schemaFilename;
+  }
+
+  public String getNamespace() {
+    return namespace;
+  }
+
+  public void setNamespace( String namespace ) {
+    this.namespace = namespace;
+  }
+
+  public String getRecordName() {
+    return recordName;
+  }
+
+  public void setRecordName( String recordName ) {
+    this.recordName = recordName;
+  }
+
+  public String getDocValue() {
+    return docValue;
+  }
+
+  public void setDocValue( String docValue ) {
+    this.docValue = docValue;
+  }
+
+  public String getCompressionType() {
+    return StringUtil.isVariable( compressionType ) ? compressionType : getCompressionType( null ).toString();
+  }
+
+  public void setCompressionType( String value ) {
+    compressionType = StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), null ).name();
+  }
+
+  public CompressionType getCompressionType( VariableSpace vspace ) {
+    return parseReplace( compressionType, vspace, str -> CompressionType.valueOf( str ), CompressionType.NONE );
+  }
+
+  public String[] getCompressionTypes() {
+    return getStrings( CompressionType.values() );
+  }
+
+  public static enum CompressionType {
+    NONE( getMsg( "AvroOutput.CompressionType.NONE" ) ),
+    DEFLATE( "Deflate" ),
+    SNAPPY( "Snappy" );
+
+    private final String name;
+
+    private CompressionType( String name ) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  protected static <T> String[] getStrings( T[] objects ) {
+    String[] names = new String[objects.length];
+    int i = 0;
+    for ( T obj : objects ) {
+      names[i++] = obj.toString();
+    }
+    return names;
+  }
+
+  protected static <T> T parseFromToString( String str, T[] values, T defaultValue ) {
+    if ( !Utils.isEmpty( str ) ) {
+      for ( T type : values ) {
+        if ( str.equalsIgnoreCase( type.toString() ) ) {
+          return type;
+        }
+      }
+    }
+    return defaultValue;
+  }
+
+  private  <T> T parseReplace( String value, VariableSpace vspace, Function<String, T> parser, T defaultValue ) {
+    String replaced = vspace != null ? vspace.environmentSubstitute( value ) : value;
+    if ( !Utils.isEmpty( replaced ) ) {
+      try {
+        return parser.apply( replaced );
+      } catch ( Exception e ) {
+        // ignored
+      }
+    }
+    return defaultValue;
+  }
+
+  private static String getMsg( String key ) {
+    return BaseMessages.getString( PKG, key );
+  }
+
+  protected static class FieldNames {
+    public static final String COMPRESSION = "compression";
+    public static final String SCHEMA_FILENAME = "schemaFilename";
+    public static final String RECORD_NAME = "recordName";
+    public static final String DOC_VALUE = "docValue";
+    public static final String NAMESPACE = "namespace";
   }
 
 }
