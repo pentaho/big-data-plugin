@@ -496,10 +496,11 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     fdvSpacer.width = 1;
     fdvSpacer.left = new FormAttachment( wSourceButtonComp, 30 );
     fdvSpacer.top = new FormAttachment( 0, 0 );
-    fdvSpacer.bottom = new FormAttachment( 100, 0 );
+    fdvSpacer.height = 45;
     vSpacer.setLayoutData( fdvSpacer );
 
     wFileSetComp = new Composite( wSourceGroup, SWT.NONE );
+    props.setLook( wFileSetComp );
     wFileSetComp.setLayout( new FormLayout() );
 
     // filename line
@@ -573,12 +574,13 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
       public void modifyText( ModifyEvent e ) {
         m_currentMeta.setChanged();
         m_avroFilenameText.setToolTipText( transMeta.environmentSubstitute( m_avroFilenameText.getText() ) );
+        checkWidgets();
       }
     } );
     fd = new FormData();
     fd.left = new FormAttachment( 0 );
     fd.top = new FormAttachment( filenameL, 5 );
-    fd.right = new FormAttachment( m_avroFileBrowse, 5 );
+    fd.right = new FormAttachment( m_avroFileBrowse, Const.isOSX() ? 0 : -5 );
     m_avroFilenameText.setLayoutData( fd );
 
     fd = new FormData();
@@ -588,6 +590,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     wFileSetComp.setLayoutData( fd );
 
     wFieldSetComp = new Composite( wSourceGroup, SWT.NONE );
+    props.setLook( wFieldSetComp );
     wFieldSetComp.setLayout( new FormLayout() );
 
     Label avroFieldNameL = new Label( wFieldSetComp, SWT.LEFT );
@@ -603,6 +606,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     m_avroFieldNameText.addModifyListener( e -> {
       m_currentMeta.setChanged();
       m_avroFieldNameText.setToolTipText( transMeta.environmentSubstitute( m_avroFieldNameText.getText() ) );
+      checkWidgets();
     } );
     fd = new FormData();
     fd.width = 250;
@@ -715,6 +719,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     vSpacer.setLayoutData( fdvSpacer );
 
     wSchemaFileSetComp = new Composite( wSourceGroup, SWT.NONE );
+    props.setLook( wSchemaFileSetComp );
     wSchemaFileSetComp.setLayout( new FormLayout() );
 
     // schema filename line
@@ -794,7 +799,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     fd = new FormData();
     fd.left = new FormAttachment( 0 );
     fd.top = new FormAttachment( m_defaultSchemaL, 5 );
-    fd.right = new FormAttachment( m_schemaFileBrowse, 5 );
+    fd.right = new FormAttachment( m_schemaFileBrowse, Const.isOSX() ? 0 : -5 );
     m_schemaFilenameText.setLayoutData( fd );
 
     fd = new FormData();
@@ -804,6 +809,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     wSchemaFileSetComp.setLayoutData( fd );
 
     wSchemaFieldSetComp = new Composite( wSourceGroup, SWT.NONE );
+    props.setLook( wSchemaFieldSetComp );
     wSchemaFieldSetComp.setLayout( new FormLayout() );
 
     // schema field name line
@@ -917,7 +923,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     colinf[ 2 ].setComboValues( ValueMeta.getTypes() );
 
     m_fieldsView =
-      new TableView( transMeta, wFieldsComp, SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, false, lsMod, props, false );
+      new TableView( transMeta, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, false, lsMod, props, false );
 
     fd = new FormData();
     fd.top = new FormAttachment( m_missingFieldsBut, 10 );
@@ -977,7 +983,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     } );
 
     m_lookupView =
-      new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI, colinf2, 1, false, lsMod, props, false );
+      new TableView( transMeta, wVarsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf2, 1, false, lsMod, props, false );
     fd = new FormData();
     fd.top = new FormAttachment( 0 );
     fd.bottom = new FormAttachment( m_getLookupFieldsBut, -10 );
@@ -1113,7 +1119,8 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     m_avroFieldNameText.setEnabled( sifield );
     // }
 
-    wPreview.setEnabled( m_sourceInFileBut.getSelection() );
+    wPreview
+      .setEnabled( !Utils.isEmpty( m_avroFilenameText.getText() ) || !Utils.isEmpty( m_avroFieldNameText.getText() ) );
 
     boolean sField = m_schemaInFieldBut.getSelection();
     if ( sField ) {
