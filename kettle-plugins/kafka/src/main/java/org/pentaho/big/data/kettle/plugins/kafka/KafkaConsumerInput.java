@@ -25,7 +25,9 @@ import com.google.common.collect.Sets;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
+import org.pentaho.di.core.Result;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
@@ -77,6 +79,7 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
   private Map<KafkaConsumerField.Name, Integer> positions;
 
   AtomicLong messageOffset = new AtomicLong();
+  private final HashMap<TopicPartition, Long> maxOffsets = new HashMap<>();
 
 
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
@@ -231,11 +234,14 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
 
   private synchronized void sendBufferToSubtrans( boolean forcedByTimer ) throws KettleException {
     if ( forcedByTimer || kafkaConsumerInputData.buffer.size() == Long.parseLong( environmentSubstitute( kafkaConsumerInputMeta.getBatchSize() ) ) ) {
-      kafkaConsumerInputData.subtransExecutor.execute( kafkaConsumerInputData.buffer );
+      Result result = kafkaConsumerInputData.subtransExecutor.execute( kafkaConsumerInputData.buffer );
       kafkaConsumerInputData.buffer.clear();
       if ( Long.parseLong( environmentSubstitute( kafkaConsumerInputMeta.getBatchDuration() ) ) >= 0 ) {
         kafkaConsumerInputData.timer.cancel();
         startBatchDurationTimer();
+      }
+      if ( result.getNrErrors() > 0 ) {
+        stopAll();
       }
     }
   }
@@ -261,16 +267,22 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
           ConsumerRecords<String, String> records = consumer.poll( 1000 );
 
           waitIfPaused();
-          records.forEach( record -> {
+          for ( ConsumerRecord<String, String> record : records ) {
+            maxOffsets.put( new TopicPartition( record.topic(), record.partition() ), record.offset() );
+            if ( closed.get() ) {
+              for ( TopicPartition topicPartition : maxOffsets.keySet() ) {
+                consumer.seek( topicPartition, maxOffsets.get( topicPartition ) );
+              }
+              consumer.commitSync();
+              break;
+            }
             try {
               processMessageAsRow( record );
             } catch ( KettleException e ) {
-              // TODO: send error rows somewhere else
               logError( BaseMessages.getString(
-                PKG, "KafkaConsumerInput.Error.ProcessingMessage", record.key(), record.value() ),  e );
+                PKG, "KafkaConsumerInput.Error.ProcessingMessage", record.key(), record.value() ), e );
             }
-          } );
-
+          }
         }
         return null;
       } catch ( WakeupException e ) {

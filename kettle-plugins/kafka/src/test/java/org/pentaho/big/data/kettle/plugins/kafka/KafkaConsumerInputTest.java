@@ -50,6 +50,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.recordsfromstream.RecordsFromStreamMeta;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -64,6 +65,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.abort.AbortMeta;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 import static org.mockito.Mockito.never;
@@ -117,6 +119,14 @@ public class KafkaConsumerInputTest {
     StepPluginType.getInstance().handlePluginAnnotation(
       KafkaConsumerInputMeta.class,
       KafkaConsumerInputMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
+      Collections.emptyList(), false, null );
+    StepPluginType.getInstance().handlePluginAnnotation(
+      RecordsFromStreamMeta.class,
+      RecordsFromStreamMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
+      Collections.emptyList(), false, null );
+    StepPluginType.getInstance().handlePluginAnnotation(
+      AbortMeta.class,
+      AbortMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
       Collections.emptyList(), false, null );
   }
 
@@ -406,6 +416,27 @@ public class KafkaConsumerInputTest {
     verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
     verifyRow( "key_2", "value_2", "2", "3", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "4", times( 1 ) );
+  }
+
+  @Test
+  public void testParentAbortsWithChild() throws Exception {
+    String path = getClass().getResource( "/abortParent.ktr" ).getPath();
+    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    Trans trans = new Trans( consumerParent );
+    KafkaConsumerInputMeta kafkaMeta =
+      (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
+    kafkaMeta.setTransformationPath( getClass().getResource( "/abortSub.ktr" ).getPath() );
+    kafkaMeta.setKafkaFactory( factory );
+    int messageCount = 4;
+    messages.put( topic, createRecords( topic.topic(), messageCount ) );
+    records = new ConsumerRecords<>( messages );
+    // provide some data when we try to poll for kafka messages
+    when( consumer.poll( 1000 ) ).thenReturn( records );
+    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) ).thenReturn( consumer );
+    trans.prepareExecution( new String[]{} );
+    trans.startThreads();
+    trans.waitUntilFinished();
+    assertEquals( 3, trans.getSteps().get( 0 ).step.getLinesInput() );
   }
 
   public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
