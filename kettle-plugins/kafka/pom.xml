@@ -97,6 +97,12 @@
       <version>${dependency.hamcrest.revision}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>pdi-core-plugins-impl</artifactId>
+      <version>${dependency.kettle.revision}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
