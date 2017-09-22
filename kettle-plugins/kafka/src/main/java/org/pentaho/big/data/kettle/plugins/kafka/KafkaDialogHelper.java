@@ -218,7 +218,7 @@ public class KafkaDialogHelper {
       TableItem row = optionsTable.getTable().getItem( rowIndex );
       String config = row.getText( 1 );
       String value = row.getText( 2 );
-      if ( !StringUtils.isBlank( config ) && !StringUtils.isBlank( value ) && !advancedConfig.containsKey( config ) ) {
+      if ( !StringUtils.isBlank( config ) && !advancedConfig.containsKey( config ) ) {
         advancedConfig.put( config, value );
       }
     }
