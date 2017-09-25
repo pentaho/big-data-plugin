@@ -63,6 +63,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public boolean enableDictionary;
   @Injection( name = "DICT_PAGE_SIZE" )
   public String dictPageSize;
+  @Injection( name = "OVERRIDE_OUTPUT" )
+  public boolean overrideOutput;
 
   public String filename;
 
