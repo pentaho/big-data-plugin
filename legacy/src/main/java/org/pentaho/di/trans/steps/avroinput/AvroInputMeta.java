@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -715,8 +715,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    * True if null should be output if a specified field is not present in the Avro schema (otherwise an exception is
    * raised)
    */
-  @Injection( name = "DONT_COMPLAIN_ABOUT_MISSING_FIELDS" )
-  protected boolean m_dontComplainAboutMissingFields;
+  @Injection( name = "ALLOW_NULL_VALUES" )
+  protected boolean m_allowNullValues;
 
   /** The fields to emit */
   @InjectionDeep
@@ -942,8 +942,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    * @param c
    *          true to ignore missing fields
    */
-  public void setDontComplainAboutMissingFields( boolean c ) {
-    m_dontComplainAboutMissingFields = c;
+  public void setAllowNullValues( boolean c ) {
+    m_allowNullValues = c;
   }
 
   /**
@@ -952,8 +952,8 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
    *
    * @return true to ignore missing fields
    */
-  public boolean getDontComplainAboutMissingFields() {
-    return m_dontComplainAboutMissingFields;
+  public boolean getAllowNullValues() {
+    return m_allowNullValues;
   }
 
   /*
@@ -1121,7 +1121,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
     retval.append( "\n    " ).append( XMLHandler.addTagValue( "cache_schemas", m_cacheSchemasInMemory ) );
 
     retval.append( "\n    " ).append(
-        XMLHandler.addTagValue( "ignore_missing_fields", m_dontComplainAboutMissingFields ) );
+        XMLHandler.addTagValue( "ignore_missing_fields", m_allowNullValues ) );
 
     if ( m_fields != null && m_fields.size() > 0 ) {
       retval.append( "\n    " ).append( XMLHandler.openTag( "avro_fields" ) );
@@ -1201,7 +1201,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
     String ignoreMissing = XMLHandler.getTagValue( stepnode, "ignore_missing_fields" );
     if ( !Const.isEmpty( ignoreMissing ) ) {
-      m_dontComplainAboutMissingFields = ignoreMissing.equalsIgnoreCase( "Y" );
+      m_allowNullValues = ignoreMissing.equalsIgnoreCase( "Y" );
     }
 
     Node fields = XMLHandler.getSubNode( stepnode, "avro_fields" );
@@ -1266,7 +1266,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
     m_schemaFieldName = rep.getStepAttributeString( id_step, 0, "schema_field_name" );
     m_schemaInFieldIsPath = rep.getStepAttributeBoolean( id_step, 0, "schema_in_field_is_path" );
     m_cacheSchemasInMemory = rep.getStepAttributeBoolean( id_step, 0, "cache_schemas" );
-    m_dontComplainAboutMissingFields = rep.getStepAttributeBoolean( id_step, 0, "ignore_missing_fields" );
+    m_allowNullValues = rep.getStepAttributeBoolean( id_step, 0, "ignore_missing_fields" );
 
     int nrfields = rep.countNrStepAttributes( id_step, "field_name" );
     if ( nrfields > 0 ) {
@@ -1332,7 +1332,7 @@ public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
     rep.saveStepAttribute( id_transformation, id_step, 0, "schema_in_field_is_path", m_schemaInFieldIsPath );
     rep.saveStepAttribute( id_transformation, id_step, 0, "cache_schemas", m_cacheSchemasInMemory );
-    rep.saveStepAttribute( id_transformation, id_step, 0, "ignore_missing_fields", m_dontComplainAboutMissingFields );
+    rep.saveStepAttribute( id_transformation, id_step, 0, "ignore_missing_fields", m_allowNullValues );
 
     if ( m_fields != null && m_fields.size() > 0 ) {
       for ( int i = 0; i < m_fields.size(); i++ ) {

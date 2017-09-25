@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2013 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -117,7 +117,7 @@ public class AvroInput extends BaseStep implements StepInterface {
         if ( getInputRowMeta() != null ) {
           m_data.initializeFromFieldDecoding( avroFieldName, readerSchema, m_meta.getAvroFields(), m_meta
               .getAvroIsJsonEncoded(), newFieldOffset, m_meta.getSchemaInField(), schemaFieldName, m_meta
-              .getSchemaInFieldIsPath(), m_meta.getCacheSchemasInMemory(), m_meta.getDontComplainAboutMissingFields(),
+              .getSchemaInFieldIsPath(), m_meta.getCacheSchemasInMemory(), m_meta.getAllowNullValues(),
               log );
         }
       } else {
@@ -125,7 +125,7 @@ public class AvroInput extends BaseStep implements StepInterface {
         FileObject fileObject = KettleVFS.getFileObject(
           environmentSubstitute( m_meta.getFilename() ), getTransMeta() );
         m_data.establishFileType( fileObject, readerSchema, m_meta.getAvroFields(), m_meta.getAvroIsJsonEncoded(),
-            newFieldOffset, m_meta.getDontComplainAboutMissingFields(), log );
+            newFieldOffset, m_meta.getAllowNullValues(), log );
       }
     }
 
