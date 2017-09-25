@@ -236,9 +236,11 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
 
     wPreview = new Button( shell, SWT.PUSH | SWT.CENTER );
     wPreview.setText( BaseMessages.getString( PKG, "System.Button.Preview" ) );
+    wPreview.pack();
     props.setLook( wPreview );
     fd = new FormData();
-    fd.left = new FormAttachment( 40 );
+    int offset = wPreview.getBounds().width / 2;
+    fd.left = new FormAttachment( 50, -offset );
     fd.bottom = new FormAttachment( 100, 0 );
     wPreview.setLayoutData( fd );
     wPreview.addSelectionListener( new SelectionAdapter() {
