@@ -108,7 +108,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
     }
 
-    data.output.setOutputFile( outputFileName );
+    data.output.setOutputFile( outputFileName, meta.overrideOutput );
     data.output.setSchema( createSchema( rowMeta ) );
 
     IPentahoParquetOutputFormat.COMPRESSION compression;

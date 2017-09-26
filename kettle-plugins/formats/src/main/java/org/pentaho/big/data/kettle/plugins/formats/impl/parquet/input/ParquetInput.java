@@ -22,6 +22,8 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
+import java.nio.file.NoSuchFileException;
+
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -84,6 +86,8 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
         data.currentSplit++;
         return true;
       }
+    } catch ( NoSuchFileException ex ) {
+      throw new KettleException( "No input file" );
     } catch ( KettleException ex ) {
       throw ex;
     } catch ( Exception ex ) {
