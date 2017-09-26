@@ -31,6 +31,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettlePluginException;
@@ -330,5 +331,35 @@ public class ShimBridgingClassloaderTest {
     } finally {
       myFile.delete();
     }
+  }
+
+  /*
+  BACKLOG-19039 - Yarn step for secure cluster stop working after license verifier check
+  Bug reason - license verifier tries to load bundle for com.pentaho.yarn.impl.shim.YarnServiceImpl.class using ShimBridgingClassloader
+  for getting bundle header Implementation-Version from bundle info and can't do it because ShimBridgingClassloader doesn't implement interface BundleReference
+  As a solution added implementation of interface BundleReference to ShimBridgingClassloader
+  Test possibility of ShimBridgingClassloader to return bundle, when it invokes from FrameworkUtil.getBundle(Class<?>)
+   */
+  @Test
+  public void testGetBundleWhenRequestingBundleShouldReturnBundle() throws ClassNotFoundException, IOException, KettleFileException{
+    String canonicalName = ShimBridgingClassloader.class.getCanonicalName();
+    String packageName = ShimBridgingClassloader.class.getPackage().getName();
+    URL url = getClass().getClassLoader().getResource(canonicalName.replace( ".", "/" ) + ".class");
+    when( bundleWiring.findEntries( "/" + packageName.replace( ".", "/" ),
+            ShimBridgingClassloader.class.getSimpleName() + ".class", 0 ) )
+            .thenReturn( Arrays.asList( url ) );
+    when( parentClassLoader.loadClass( anyString(), anyBoolean() ) ).thenAnswer( new Answer<Class<?>>() {
+      @Override public Class<?> answer( InvocationOnMock invocation ) throws Throwable {
+        Object[] arguments = invocation.getArguments();
+        return new ShimBridgingClassloader.PublicLoadResolveClassLoader( getClass().getClassLoader() )
+                .loadClass( (String) arguments[ 0 ], (boolean) arguments[ 1 ] );
+      }
+    } );
+    Class<?> shimBridgingClassloaderClass = shimBridgingClassloader.loadClass( canonicalName, true );
+    when(shimBridgingClassloader.getBundle()).thenReturn(bundle);
+
+    Bundle actualBundle = FrameworkUtil.getBundle(shimBridgingClassloaderClass);
+
+    assertEquals(actualBundle, bundle);
   }
 }
