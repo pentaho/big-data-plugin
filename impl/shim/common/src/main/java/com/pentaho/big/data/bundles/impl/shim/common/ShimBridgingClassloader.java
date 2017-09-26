@@ -24,7 +24,9 @@ package com.pentaho.big.data.bundles.impl.shim.common;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.IOUtils;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.wiring.BundleWiring;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
@@ -40,7 +42,7 @@ import java.util.List;
 /**
  * Created by bryan on 6/4/15.
  */
-public class ShimBridgingClassloader extends ClassLoader {
+public class ShimBridgingClassloader extends ClassLoader implements BundleReference {
   public static final String HADOOP_SPOON_PLUGIN = "HadoopSpoonPlugin";
   private static PluginClassloaderGetter pluginClassloaderGetter = new PluginClassloaderGetter();
   private final BundleWiring bundleWiring;
@@ -183,6 +185,11 @@ public class ShimBridgingClassloader extends ClassLoader {
       resolveClass( result );
     }
     return result;
+  }
+
+  @Override
+  public Bundle getBundle() {
+    return this.bundleWiring.getBundle();
   }
 
   /**
