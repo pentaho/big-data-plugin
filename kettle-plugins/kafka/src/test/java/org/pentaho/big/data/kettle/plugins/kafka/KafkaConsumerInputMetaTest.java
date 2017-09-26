@@ -229,7 +229,7 @@ public class KafkaConsumerInputMetaTest {
       + "    </advancedConfig>" + Const.CR,
       meta.getXML() );
 
-    verify( namedClusterEmbedManager ).addClusterToMeta( clusterName );
+    verify( namedClusterEmbedManager ).registerUrl( "hc://" + clusterName );
   }
 
   @Test
