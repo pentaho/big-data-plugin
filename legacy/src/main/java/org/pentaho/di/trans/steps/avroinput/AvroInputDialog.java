@@ -353,7 +353,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     avroMeta.setSchemaInFieldIsPath( m_schemaInFieldIsPathBut.getSelection() );
     avroMeta.setCacheSchemasInMemory( m_cacheSchemasBut.getSelection() );
     avroMeta.setSchemaFieldName( m_schemaFieldNameText.getText() );
-    avroMeta.setDontComplainAboutMissingFields( m_missingFieldsBut.getSelection() );
+    avroMeta.setAllowNullValues( m_missingFieldsBut.getSelection() );
 
     int numNonEmpty = m_fieldsView.nrNonEmpty();
     if ( numNonEmpty > 0 ) {
@@ -1081,7 +1081,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     m_schemaInFieldBut.setSelection( m_currentMeta.getSchemaInField() );
     m_schemaInFieldIsPathBut.setSelection( m_currentMeta.getSchemaInFieldIsPath() );
     m_cacheSchemasBut.setSelection( m_currentMeta.getCacheSchemasInMemory() );
-    m_missingFieldsBut.setSelection( m_currentMeta.getDontComplainAboutMissingFields() );
+    m_missingFieldsBut.setSelection( m_currentMeta.getAllowNullValues() );
     if ( !Utils.isEmpty( m_currentMeta.getSchemaFieldName() ) ) {
       m_schemaFieldNameText.setText( m_currentMeta.getSchemaFieldName() );
     }

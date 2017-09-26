@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -89,7 +89,7 @@ public class AvroInputMetaTest {
     commonAttributes.add( "avroIsJsonEncoded" );
     commonAttributes.add( "avroFields" );
     commonAttributes.add( "lookupFields" );
-    commonAttributes.add( "dontComplainAboutMissingFields" );
+    commonAttributes.add( "allowNullValues" );
 
     Map<String, FieldLoadSaveValidator<?>> fieldLoadSaveValidatorTypeMap = new HashMap<>();
 
