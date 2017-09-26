@@ -509,7 +509,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   @Override public String getXML() throws KettleException {
     StringBuilder retval = new StringBuilder();
     retval.append( "    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, clusterName ) );
-    parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().addClusterToMeta( clusterName );
+    parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
 
     getTopics().forEach( topic ->
       retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topic ) ) );
