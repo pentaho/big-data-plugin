@@ -22,9 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
@@ -33,9 +30,13 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
@@ -44,12 +45,18 @@ import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
 /**
  * Parquet output meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
  *
  * @author <alexander_buloichik@epam.com>
  */
 public abstract class ParquetOutputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
+
+  private static final Class<?> PKG = ParquetOutputMetaBase.class;
 
   @Injection( name = "COMPRESSION" )
   public String compressionType;
@@ -66,11 +73,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public String filename;
 
-  public FormatInputOutputField[] outputFields = new FormatInputOutputField[0];
+  public FormatInputOutputField[] outputFields = new FormatInputOutputField[ 0 ];
 
   @Override
   public void setDefault() {
-    outputFields = new FormatInputOutputField[0];
+    outputFields = new FormatInputOutputField[ 0 ];
   }
 
   public String getFilename() {
@@ -108,7 +115,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" ) );
         parquetOutputFields.add( outputField );
       }
-      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[0] );
+      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[ 0 ] );
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
     }
@@ -128,7 +135,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < outputFields.length; i++ ) {
-      FormatInputOutputField field = outputFields[i];
+      FormatInputOutputField field = outputFields[ i ];
 
       if ( field.getName() != null && field.getName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
@@ -172,7 +179,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
         parquetOutputFields.add( outputField );
       }
-      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[0] );
+      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[ 0 ] );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
@@ -190,7 +197,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       rep.saveStepAttribute( id_transformation, id_step, "rowGroupSize", rowGroupSize );
       rep.saveStepAttribute( id_transformation, id_step, "dataPageSize", dataPageSize );
       for ( int i = 0; i < outputFields.length; i++ ) {
-        FormatInputOutputField field = outputFields[i];
+        FormatInputOutputField field = outputFields[ i ];
 
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
@@ -216,4 +223,178 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       }
     }
   }
+
+  public int getRowGroupSize( VariableSpace vspace ) {
+    return parseReplace( rowGroupSize, vspace, str -> Integer.parseInt( str ), 0 );
+  }
+
+  protected <T> T parseReplace( String value, VariableSpace vspace, Function<String, T> parser, T defaultValue ) {
+    String replaced = vspace != null ? vspace.environmentSubstitute( value ) : value;
+    if ( !Utils.isEmpty( replaced ) ) {
+      try {
+        return parser.apply( replaced );
+      } catch ( Exception e ) {
+        // ignored
+      }
+    }
+    return defaultValue;
+  }
+
+  public EncodingType getEncodingType( VariableSpace vspace ) {
+    return enableDictionary ? EncodingType.DICTIONARY : EncodingType.PLAIN;
+  }
+
+  public void setEncodingType( String encoding ) {
+    enableDictionary = encoding != null ? encoding.startsWith( "D" ) : false;
+  }
+
+  public String getEncodingType() {
+    return enableDictionary ? EncodingType.DICTIONARY.uiName : EncodingType.PLAIN.uiName;
+  }
+
+  public String getRowGroupSize() {
+    return rowGroupSize;
+  }
+
+  public void setRowGroupSize( String value ) {
+    rowGroupSize = value;
+  }
+
+  public String getCompressionType() {
+    return StringUtil.isVariable( compressionType ) ? compressionType : getCompressionType( null ).toString();
+  }
+
+  public void setCompressionType( String value ) {
+    compressionType =
+      StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), null ).name();
+  }
+
+  public CompressionType getCompressionType( VariableSpace vspace ) {
+    return parseReplace( compressionType, vspace, str -> CompressionType.valueOf( str ), CompressionType.NONE );
+  }
+
+  public String getParquetVersion() {
+    return StringUtil.isVariable( parquetVersion ) ? parquetVersion : getParquetVersion( null ).toString();
+  }
+
+  public void setParquetVersion( String value ) {
+    parquetVersion =
+      StringUtil.isVariable( value ) ? value : parseFromToString( value, ParquetVersion.values(), null ).name();
+  }
+
+  public ParquetVersion getParquetVersion( VariableSpace vspace ) {
+    return parseReplace( parquetVersion, vspace, str -> ParquetVersion.valueOf( str ), ParquetVersion.PARQUET_1 );
+  }
+
+  public int getDataPageSize( VariableSpace vspace ) {
+    return parseReplace( dataPageSize, vspace, s -> Integer.parseInt( s ), 0 );
+  }
+
+  public String getDataPageSize() {
+    return dataPageSize;
+  }
+
+  public void setDataPageSize( String dataPageSize ) {
+    this.dataPageSize = dataPageSize;
+  }
+
+  public int getDictPageSize( VariableSpace vspace ) {
+    if ( getEncodingType( vspace ).equals( EncodingType.DICTIONARY ) ) {
+      return parseReplace( dictPageSize, vspace, s -> Integer.parseInt( s ), 0 );
+    } else {
+      return 0;
+    }
+  }
+
+  public String getDictPageSize() {
+    return dictPageSize;
+  }
+
+  public void setDictPageSize( String dictPageSize ) {
+    this.dictPageSize = dictPageSize;
+  }
+
+  public String[] getEncodingTypes() {
+    return getStrings( EncodingType.values() );
+  }
+
+  public String[] getCompressionTypes() {
+    return getStrings( CompressionType.values() );
+  }
+
+  public String[] getVersionTypes() {
+    return getStrings( ParquetVersion.values() );
+  }
+
+  public static enum CompressionType {
+    NONE( getMsg( "ParquetOutput.CompressionType.NONE" ) ), SNAPPY( "Snappy" ), GZIP( "GZIP" ), LZO( "LZO" );
+
+    private final String uiName;
+
+    private CompressionType( String name ) {
+      this.uiName = name;
+    }
+
+    @Override
+    public String toString() {
+      return uiName;
+    }
+  }
+
+  public static enum EncodingType {
+    PLAIN( getMsg( "ParquetOutput.EncodingType.PLAIN" ) ), DICTIONARY( getMsg(
+      "ParquetOutput.EncodingType.DICTIONARY" ) ), BIT_PACKED( getMsg(
+      "ParquetOutput.EncodingType.BIT_PACKED" ) ), RLE( getMsg( "ParquetOutput.EncodingType.RLE" ) );
+
+    private final String uiName;
+
+    private EncodingType( String name ) {
+      this.uiName = name;
+    }
+
+    @Override
+    public String toString() {
+      return uiName;
+    }
+  }
+
+  public static enum ParquetVersion {
+    PARQUET_1( "Parquet 1.0" ), PARQUET_2( "Parquet 2.0" );
+
+    private final String uiName;
+
+    private ParquetVersion( String name ) {
+      this.uiName = name;
+    }
+
+    @Override
+    public String toString() {
+      return uiName;
+    }
+  }
+
+  protected static <T> String[] getStrings( T[] objects ) {
+    String[] names = new String[ objects.length ];
+    int i = 0;
+    for ( T obj : objects ) {
+      names[ i++ ] = obj.toString();
+    }
+    return names;
+  }
+
+  protected static <T> T parseFromToString( String str, T[] values, T defaultValue ) {
+    if ( !Utils.isEmpty( str ) ) {
+      for ( T type : values ) {
+        if ( str.equals( type.toString() ) ) {
+          return type;
+        }
+      }
+    }
+    return defaultValue;
+  }
+
+  private static String getMsg( String key ) {
+    return BaseMessages.getString( PKG, key );
+  }
 }
+
