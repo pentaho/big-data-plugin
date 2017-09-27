@@ -463,8 +463,8 @@
     <OutputField kafkaName="offset" type="Integer">Offset</OutputField>
     <OutputField kafkaName="timestamp" type="Integer">Timestamp</OutputField>
     <advancedConfig>
-      <auto.offset.reset>latest</auto.offset.reset>
-      <security.protocol>PLAINTEXT</security.protocol>
+      <option property="auto.offset.reset" value="latest" />
+      <option property="security.protocol" value="PLAINTEXT" />
     </advancedConfig>
     <cluster_schema />
     <remotesteps>

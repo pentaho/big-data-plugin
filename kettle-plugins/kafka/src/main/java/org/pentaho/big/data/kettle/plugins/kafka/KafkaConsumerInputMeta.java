@@ -96,6 +96,9 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
   public static final String CONNECTION_TYPE = "connectionType";
   public static final String DIRECT_BOOTSTRAP_SERVERS = "directBootstrapServers";
   public static final String ADVANCED_CONFIG = "advancedConfig";
+  public static final String CONFIG_OPTION = "option";
+  public static final String OPTION_PROPERTY = "property";
+  public static final String OPTION_VALUE = "value";
   public static final String TOPIC_FIELD_NAME = TOPIC;
   public static final String OFFSET_FIELD_NAME = "offset";
   public static final String PARTITION_FIELD_NAME = "partition";
@@ -241,7 +244,14 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
         .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
             .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> config.put( node.getNodeName(), node.getTextContent() ) ) );
+            .forEach( node -> {
+              if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
+                config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
+                            node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
+              } else {
+                config.put( node.getNodeName(), node.getTextContent() );
+              }
+            } ) );
   }
 
   protected void setField( KafkaConsumerField field ) {
@@ -529,7 +539,8 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getConfig().forEach( ( key, value ) -> retval.append( "        " )
-        .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
+        .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
+                              OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
     return retval.toString();

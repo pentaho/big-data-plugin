@@ -79,6 +79,9 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   public static final String KEY_FIELD = "keyField";
   public static final String MESSAGE_FIELD = "messageField";
   public static final String ADVANCED_CONFIG = "advancedConfig";
+  public static final String CONFIG_OPTION = "option";
+  public static final String OPTION_PROPERTY = "property";
+  public static final String OPTION_VALUE = "value";
 
   private static Class<?> PKG = KafkaProducerOutput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -144,7 +147,14 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
         .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
             .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
-            .forEach( node -> config.put( node.getNodeName(), node.getTextContent() ) ) );
+            .forEach( node -> {
+              if ( CONFIG_OPTION.equals( node.getNodeName() ) ) {
+                config.put( node.getAttributes().getNamedItem( OPTION_PROPERTY ).getTextContent(),
+                  node.getAttributes().getNamedItem( OPTION_VALUE ).getTextContent() );
+              } else {
+                config.put( node.getNodeName(), node.getTextContent() );
+              }
+            } ) );
   }
 
   @Override public void setDefault() {
@@ -267,7 +277,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
     retval.append( "    " ).append( XMLHandler.openTag( ADVANCED_CONFIG ) ).append( Const.CR );
     getConfig().forEach( ( key, value ) -> retval.append( "        " )
-        .append( XMLHandler.addTagValue( (String) key, (String) value ) ) );
+      .append( XMLHandler.addTagValue( CONFIG_OPTION, "", true,
+        OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
     return retval.toString();

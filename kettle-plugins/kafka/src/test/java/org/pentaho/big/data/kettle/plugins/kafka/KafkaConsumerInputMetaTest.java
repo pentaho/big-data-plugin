@@ -111,8 +111,8 @@ public class KafkaConsumerInputMetaTest {
         + "    <OutputField kafkaName=\"offset\" type=\"Integer\">seven</OutputField>\n"
         + "    <OutputField kafkaName=\"timestamp\" type=\"Integer\">eight</OutputField>\n"
         + "    <advancedConfig>\n"
-        + "        <advanced.property1>advancedPropertyValue1</advanced.property1>\n"
-        + "        <advanced.property2>advancedPropertyValue2</advanced.property2>\n"
+        + "        <option property=\"advanced.property1\" value=\"advancedPropertyValue1\"></option>\n"
+        + "        <option property=\"advanced.property2\" value=\"advancedPropertyValue2\"></option>\n"
         + "    </advancedConfig>\n"
         + "    <cluster_schema />\n"
         + "    <remotesteps>\n"
@@ -224,8 +224,8 @@ public class KafkaConsumerInputMetaTest {
       + "    <OutputField kafkaName=\"offset\"  type=\"Integer\" >off</OutputField>" + Const.CR
       + "    <OutputField kafkaName=\"timestamp\"  type=\"Integer\" >time</OutputField>" + Const.CR
       + "    <advancedConfig>" + Const.CR
-      + "        <advanced.property1>advancedPropertyValue1</advanced.property1>" + Const.CR
-      + "        <advanced.property2>advancedPropertyValue2</advanced.property2>" + Const.CR
+      + "        <option property=\"advanced.property1\"  value=\"advancedPropertyValue1\" />" + Const.CR
+      + "        <option property=\"advanced.property2\"  value=\"advancedPropertyValue2\" />" + Const.CR
       + "    </advancedConfig>" + Const.CR,
       meta.getXML() );
 
