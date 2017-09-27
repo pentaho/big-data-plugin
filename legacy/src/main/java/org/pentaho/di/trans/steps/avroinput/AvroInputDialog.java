@@ -795,7 +795,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     m_schemaFilenameText.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent e ) {
         m_currentMeta.setChanged();
-        m_avroFilenameText.setToolTipText( transMeta.environmentSubstitute( m_schemaFilenameText.getText() ) );
+        m_schemaFilenameText.setToolTipText( transMeta.environmentSubstitute( m_schemaFilenameText.getText() ) );
       }
     } );
     fd = new FormData();
