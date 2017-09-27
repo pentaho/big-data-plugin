@@ -98,8 +98,8 @@ public class KafkaProducerOutputMetaTest {
         + "    <keyField>three</keyField>\n"
         + "    <messageField>four</messageField>\n"
         + "    <advancedConfig>\n"
-        + "        <advanced.property1>advancedPropertyValue1</advanced.property1>\n"
-        + "        <advanced.property2>advancedPropertyValue2</advanced.property2>\n"
+        + "        <option property=\"advanced.property1\" value=\"advancedPropertyValue1\" />\n"
+        + "        <option property=\"advanced.property2\" value=\"advancedPropertyValue2\" />\n"
         + "    </advancedConfig>\n"
         + "    <cluster_schema />\n"
         + "    <remotesteps>\n"
@@ -154,8 +154,8 @@ public class KafkaProducerOutputMetaTest {
         + "    <keyField>fieldOne</keyField>" + Const.CR
         + "    <messageField>message</messageField>" + Const.CR
         + "    <advancedConfig>" + Const.CR
-        + "        <advanced.property1>advancedPropertyValue1</advanced.property1>" + Const.CR
-        + "        <advanced.property2>advancedPropertyValue2</advanced.property2>" + Const.CR
+        + "        <option property=\"advanced.property1\"  value=\"advancedPropertyValue1\" />" + Const.CR
+        + "        <option property=\"advanced.property2\"  value=\"advancedPropertyValue2\" />" + Const.CR
         + "    </advancedConfig>" + Const.CR, meta.getXML()
     );
   }
