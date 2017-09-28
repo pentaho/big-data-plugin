@@ -42,6 +42,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -145,6 +146,13 @@ public class KafkaProducerOutputMetaTest {
     advancedConfig.put( "advanced.property2", "advancedPropertyValue2" );
     meta.setConfig( advancedConfig );
 
+    NamedClusterEmbedManager namedClusterEmbedManager = mock( NamedClusterEmbedManager.class );
+    TransMeta transMeta = mock( TransMeta.class );
+    when( transMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    meta.setParentStepMeta( stepMeta );
+
     assertEquals(
         "    <connectionType>DIRECT</connectionType>" + Const.CR
         + "    <directBootstrapServers>localhost:9092</directBootstrapServers>" + Const.CR
@@ -158,6 +166,7 @@ public class KafkaProducerOutputMetaTest {
         + "        <option property=\"advanced.property2\"  value=\"advancedPropertyValue2\" />" + Const.CR
         + "    </advancedConfig>" + Const.CR, meta.getXML()
     );
+    verify( namedClusterEmbedManager ).registerUrl( "hc://some_cluster" );
   }
 
   @Test
