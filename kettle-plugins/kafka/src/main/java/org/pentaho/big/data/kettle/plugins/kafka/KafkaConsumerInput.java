@@ -234,13 +234,13 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
 
   private synchronized void sendBufferToSubtrans( boolean forcedByTimer ) throws KettleException {
     if ( forcedByTimer || kafkaConsumerInputData.buffer.size() == Long.parseLong( environmentSubstitute( kafkaConsumerInputMeta.getBatchSize() ) ) ) {
-      Result result = kafkaConsumerInputData.subtransExecutor.execute( kafkaConsumerInputData.buffer );
+      Optional<Result> result = kafkaConsumerInputData.subtransExecutor.execute( kafkaConsumerInputData.buffer );
       kafkaConsumerInputData.buffer.clear();
       if ( Long.parseLong( environmentSubstitute( kafkaConsumerInputMeta.getBatchDuration() ) ) >= 0 ) {
         kafkaConsumerInputData.timer.cancel();
         startBatchDurationTimer();
       }
-      if ( result.getNrErrors() > 0 ) {
+      if ( result.isPresent() && result.get().getNrErrors() > 0 ) {
         stopAll();
       }
     }
