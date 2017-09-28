@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
@@ -412,6 +413,26 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     return label;
   }
 
+  @Override
+  protected void ok() {
+    if ( Utils.isEmpty( wStepname.getText() ) ) {
+      return;
+    }
+
+    List<String> validationErrorFields = validateOutputFields( wOutputFields, meta );
+
+    if ( validationErrorFields != null && !validationErrorFields.isEmpty() ) {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( BaseMessages.getString( PKG, "AvroOutput.MissingDefaultFields.Title" ) );
+      mb.setMessage( BaseMessages.getString( PKG, "AvroOutput.MissingDefaultFields.Msg" ) );
+      mb.open();
+      return;
+    }
+
+    getInfo( meta, false );
+    dispose();
+  }
+
   /**
    * Read the data from the meta object and show it in this dialog.
    */
@@ -462,9 +483,32 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       field.setType( item.getText( j++ ) );
       field.setIfNullValue( item.getText( j++ ) );
       field.setNullString( getNullableValue( item.getText( j++ ) ) );
+
       outputFields.add( field );
     }
     meta.setOutputFields( outputFields );
+  }
+
+  private List<String> validateOutputFields( TableView wFields, AvroOutputMeta meta ) {
+    int nrFields = wFields.nrNonEmpty();
+    List<String> validationErrorFields = new ArrayList<String>();
+
+    for ( int i = 0; i < nrFields; i++ ) {
+      TableItem item = wFields.getNonEmpty( i );
+
+      int j = 1;
+
+      String path = item.getText( j++ );
+      String name = item.getText( j++ );
+      String type = item.getText( j++ );
+      String defaultValue = item.getText( j++ );
+      String nullString = getNullableValue( item.getText( j++ ) );
+
+      if ( nullString.equals( NullableValuesEnum.NO.getValue() ) && ( defaultValue == null || defaultValue.trim().isEmpty() ) ) {
+        validationErrorFields.add( name );
+      }
+    }
+    return validationErrorFields;
   }
 
   private String getNullableValue( String nullString ) {
