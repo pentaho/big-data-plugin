@@ -281,6 +281,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
         OPTION_PROPERTY, (String) key, OPTION_VALUE, (String) value ) ) );
     retval.append( "    " ).append( XMLHandler.closeTag( ADVANCED_CONFIG ) ).append( Const.CR );
 
+    parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
     return retval.toString();
   }
 
