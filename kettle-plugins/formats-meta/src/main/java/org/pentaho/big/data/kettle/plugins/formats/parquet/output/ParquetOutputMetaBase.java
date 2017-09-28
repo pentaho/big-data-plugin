@@ -73,9 +73,24 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   @Injection( name = "OVERRIDE_OUTPUT" )
   public boolean overrideOutput;
 
+  /** Flag: add the date in the filename */
+  @Injection( name = "INC_DATE_IN_FILENAME" )
+  private boolean dateInFilename;
+
+  /** Flag: add the time in the filename */
+  @Injection( name = "INC_TIME_IN_FILENAME" )
+  private boolean timeInFilename;
+
+  @Injection( name = "DATE_FORMAT" )
+  private String dateTimeFormat;
+
+  /** The file extention in case of a generated filename */
+  @Injection( name = "EXTENSION" )
+  private String extension;
+
   public String filename;
 
-  public FormatInputOutputField[] outputFields = new FormatInputOutputField[ 0 ];
+  public FormatInputOutputField[] outputFields = new FormatInputOutputField[0];
 
   @Override
   public void setDefault() {
