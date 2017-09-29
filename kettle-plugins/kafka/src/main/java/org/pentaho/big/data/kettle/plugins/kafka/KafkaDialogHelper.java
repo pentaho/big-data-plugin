@@ -53,6 +53,7 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -71,11 +72,12 @@ public class KafkaDialogHelper {
   private MetastoreLocator metastoreLocator;
   private NamedClusterServiceLocator namedClusterServiceLocator;
   private TableView optionsTable;
+  private StepMeta parentMeta;
 
   public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
                             KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
                             NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
-                            TableView optionsTable ) {
+                            TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
     this.wTopic = wTopic;
     this.wbCluster = wbCluster;
@@ -85,6 +87,7 @@ public class KafkaDialogHelper {
     this.metastoreLocator = metastoreLocator;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.optionsTable = optionsTable;
+    this.parentMeta = parentMeta;
   }
 
   public void clusterNameChanged( @SuppressWarnings( "unused" ) Event event ) {
@@ -129,6 +132,7 @@ public class KafkaDialogHelper {
       localMeta.setClusterName( clusterName );
       localMeta.setDirectBootstrapServers( directBootstrapServers );
       localMeta.setConfig( config );
+      localMeta.setParentStepMeta( parentMeta );
       kafkaConsumer = kafkaFactory.consumer( localMeta, Function.identity() );
       @SuppressWarnings( "unchecked" ) Map<String, List<PartitionInfo>> topicMap = kafkaConsumer.listTopics();
       return topicMap;

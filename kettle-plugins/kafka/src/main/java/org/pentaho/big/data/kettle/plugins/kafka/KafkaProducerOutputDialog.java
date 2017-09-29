@@ -390,7 +390,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
       event -> {
         KafkaDialogHelper kafkaDialogHelper = new KafkaDialogHelper(
           wClusterName, wTopic, wbCluster, wBootstrapServers, kafkaFactory, meta.getNamedClusterService(),
-          meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable );
+          meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable, meta.getParentStepMeta() );
         kafkaDialogHelper.clusterNameChanged( event );
       } );
 

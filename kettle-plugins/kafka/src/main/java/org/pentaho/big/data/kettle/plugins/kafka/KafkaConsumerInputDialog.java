@@ -762,7 +762,8 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
       ComboVar cvar = (ComboVar) ccom.getParent();
 
       KafkaDialogHelper kdh = new KafkaDialogHelper( wClusterName, cvar, wbCluster, wBootstrapServers, kafkaFactory,
-        meta.getNamedClusterService(), meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable );
+        meta.getNamedClusterService(), meta.getNamedClusterServiceLocator(), meta.getMetastoreLocator(), optionsTable,
+        meta.getParentStepMeta() );
       kdh.clusterNameChanged( e );
     };
 
