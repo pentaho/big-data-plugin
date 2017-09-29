@@ -45,7 +45,9 @@ import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
@@ -73,9 +75,24 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   @Injection( name = "OVERRIDE_OUTPUT" )
   public boolean overrideOutput;
 
+  /** Flag: add the date in the filename */
+  @Injection( name = "INC_DATE_IN_FILENAME" )
+  private boolean dateInFilename;
+
+  /** Flag: add the time in the filename */
+  @Injection( name = "INC_TIME_IN_FILENAME" )
+  private boolean timeInFilename;
+
+  @Injection( name = "DATE_FORMAT" )
+  private String dateTimeFormat;
+
+  /** The file extention in case of a generated filename */
+  @Injection( name = "EXTENSION" )
+  private String extension;
+
   public String filename;
 
-  public FormatInputOutputField[] outputFields = new FormatInputOutputField[ 0 ];
+  public FormatInputOutputField[] outputFields = new FormatInputOutputField[0];
 
   @Override
   public void setDefault() {
@@ -224,6 +241,22 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         throw new RuntimeException( e );
       }
     }
+  }
+
+  public String constructOutputFilename() {
+    String outputFileName = filename;
+    if ( dateTimeFormat != null ) {
+      outputFileName += new SimpleDateFormat( dateTimeFormat ).format( new Date() );
+    } else {
+      if ( dateInFilename ) {
+        outputFileName += '_' + new SimpleDateFormat( "yyyyMMdd" ).format( new Date() );
+      }
+      if ( timeInFilename ) {
+        outputFileName += '_' + new SimpleDateFormat( "HHmmss" ).format( new Date() );
+      }
+    }
+    outputFileName += extension;
+    return outputFileName;
   }
 
   public int getRowGroupSize( VariableSpace vspace ) {

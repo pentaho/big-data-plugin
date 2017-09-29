@@ -102,7 +102,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
 
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
 
-    String outputFileName = meta.getFilename();
+    String outputFileName = meta.constructOutputFilename();
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
     if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
@@ -118,8 +118,9 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       compression = IPentahoParquetOutputFormat.COMPRESSION.UNCOMPRESSED;
     }
     data.output.setCompression( compression );
-    data.output.setVersion( "Parquet 1.0".equals( meta.getParquetVersion() )
-        ? IPentahoParquetOutputFormat.VERSION.VERSION_1_0 : IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
+    data.output
+        .setVersion( IPentahoParquetOutputFormat.VERSION.VERSION_1_0.toString().equals( meta.getParquetVersion() )
+            ? IPentahoParquetOutputFormat.VERSION.VERSION_1_0 : IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
     if ( meta.getRowGroupSize( variables ) > 0 ) {
       data.output.setRowGroupSize( meta.getRowGroupSize( variables ) * 1024 * 1024 );
     }
