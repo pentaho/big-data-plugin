@@ -97,6 +97,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   @Override
   public void setDefault() {
     outputFields = new FormatInputOutputField[ 0 ];
+    dictPageSize = String.valueOf( 1024 );
+    extension = "parquet";
   }
 
   public String getFilename() {
@@ -107,6 +109,54 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     this.filename = filename;
   }
 
+  public boolean isEnableDictionary() {
+    return enableDictionary;
+  }
+
+  public void setEnableDictionary( boolean enableDictionary ) {
+    this.enableDictionary = enableDictionary;
+  }
+
+  public boolean isOverrideOutput() {
+    return overrideOutput;
+  }
+
+  public void setOverrideOutput( boolean overrideOutput ) {
+    this.overrideOutput = overrideOutput;
+  }
+
+  public boolean isDateInFilename() {
+    return dateInFilename;
+  }
+
+  public void setDateInFilename( boolean dateInFilename ) {
+    this.dateInFilename = dateInFilename;
+  }
+
+  public boolean isTimeInFilename() {
+    return timeInFilename;
+  }
+
+  public void setTimeInFilename( boolean timeInFilename ) {
+    this.timeInFilename = timeInFilename;
+  }
+
+  public String getDateTimeFormat() {
+    return dateTimeFormat;
+  }
+
+  public void setDateTimeFormat( String dateTimeFormat ) {
+    this.dateTimeFormat = dateTimeFormat;
+  }
+
+  public String getExtension() {
+    return extension;
+  }
+
+  public void setExtension( String extension ) {
+    this.extension = extension;
+  }
+
   @Override
   public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
     readData( stepnode, metaStore );
@@ -115,12 +165,18 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
       filename = XMLHandler.getTagValue( stepnode, "filename" );
-      enableDictionary = Boolean.parseBoolean( XMLHandler.getTagValue( stepnode, "enableDictionary" ) );
+      overrideOutput = "Y".equalsIgnoreCase( ( XMLHandler.getTagValue( stepnode, "overrideOutput" ) ) );
+      enableDictionary = "Y".equalsIgnoreCase( ( XMLHandler.getTagValue( stepnode, "enableDictionary" ) ) );
       compressionType = XMLHandler.getTagValue( stepnode, "compression" );
       parquetVersion = XMLHandler.getTagValue( stepnode, "parquetVersion" );
       rowGroupSize = XMLHandler.getTagValue( stepnode, "rowGroupSize" );
       dataPageSize = XMLHandler.getTagValue( stepnode, "dataPageSize" );
       dictPageSize = XMLHandler.getTagValue( stepnode, "dictPageSize" );
+      extension = XMLHandler.getTagValue( stepnode, "extension" );
+      dateInFilename = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, "dateInFilename" ) );
+      timeInFilename = "Y".equalsIgnoreCase( ( XMLHandler.getTagValue( stepnode, "timeInFilename" ) ) );
+      dateTimeFormat = XMLHandler.getTagValue( stepnode, "dateTimeFormat" );
+
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
       List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
@@ -145,12 +201,17 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     StringBuffer retval = new StringBuffer( 800 );
 
     retval.append( "    " ).append( XMLHandler.addTagValue( "filename", filename ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "overrideOutput", overrideOutput ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "compression", compressionType ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "parquetVersion", parquetVersion ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "enableDictionary", enableDictionary ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "dictPageSize", dictPageSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "rowGroupSize", rowGroupSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "dataPageSize", dataPageSize ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "extension", extension ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "dateInFilename", dateInFilename ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "timeInFilename", timeInFilename ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "dateTimeFormat", dateTimeFormat ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < outputFields.length; i++ ) {
@@ -176,12 +237,17 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     throws KettleException {
     try {
       filename = rep.getStepAttributeString( id_step, "filename" );
+      overrideOutput = rep.getStepAttributeBoolean( id_step, "overrideOutput" );
       compressionType = rep.getStepAttributeString( id_step, "compression" );
       parquetVersion = rep.getStepAttributeString( id_step, "parquetVersion" );
       enableDictionary = rep.getStepAttributeBoolean( id_step, "enableDictionary" );
       dictPageSize = rep.getStepAttributeString( id_step, "dictPageSize" );
       rowGroupSize = rep.getStepAttributeString( id_step, "rowGroupSize" );
       dataPageSize = rep.getStepAttributeString( id_step, "dataPageSize" );
+      extension = rep.getStepAttributeString( id_step, "extension" );
+      dateInFilename = rep.getStepAttributeBoolean( id_step, "dateInFilename" );
+      timeInFilename = rep.getStepAttributeBoolean( id_step, "timeInFilename" );
+      dateTimeFormat = rep.getStepAttributeString( id_step, "dateTimeFormat" );
 
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
@@ -209,12 +275,18 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     throws KettleException {
     try {
       rep.saveStepAttribute( id_transformation, id_step, "filename", filename );
+      rep.saveStepAttribute( id_transformation, id_step, "overrideOutput", overrideOutput );
       rep.saveStepAttribute( id_transformation, id_step, "compression", compressionType );
       rep.saveStepAttribute( id_transformation, id_step, "parquetVersion", parquetVersion );
       rep.saveStepAttribute( id_transformation, id_step, "enableDictionary", enableDictionary );
       rep.saveStepAttribute( id_transformation, id_step, "dictPageSize", dictPageSize );
       rep.saveStepAttribute( id_transformation, id_step, "rowGroupSize", rowGroupSize );
       rep.saveStepAttribute( id_transformation, id_step, "dataPageSize", dataPageSize );
+      rep.saveStepAttribute( id_transformation, id_step, "extension", extension );
+      rep.saveStepAttribute( id_transformation, id_step, "dateInFilename", dateInFilename );
+      rep.saveStepAttribute( id_transformation, id_step, "timeInFilename", timeInFilename );
+      rep.saveStepAttribute( id_transformation, id_step, "dateTimeFormat", dateTimeFormat );
+
       for ( int i = 0; i < outputFields.length; i++ ) {
         FormatInputOutputField field = outputFields[ i ];
 
@@ -245,7 +317,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public String constructOutputFilename() {
     String outputFileName = filename;
-    if ( dateTimeFormat != null ) {
+    if ( dateTimeFormat != null && !dateTimeFormat.isEmpty() ) {
       outputFileName += new SimpleDateFormat( dateTimeFormat ).format( new Date() );
     } else {
       if ( dateInFilename ) {
@@ -255,7 +327,9 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputFileName += '_' + new SimpleDateFormat( "HHmmss" ).format( new Date() );
       }
     }
-    outputFileName += extension;
+    if ( extension != null && !extension.isEmpty() ) {
+      outputFileName += '.' + extension;
+    }
     return outputFileName;
   }
 
@@ -277,14 +351,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public EncodingType getEncodingType( VariableSpace vspace ) {
     return enableDictionary ? EncodingType.DICTIONARY : EncodingType.PLAIN;
-  }
-
-  public void setEncodingType( String encoding ) {
-    enableDictionary = encoding != null ? encoding.startsWith( "D" ) : false;
-  }
-
-  public String getEncodingType() {
-    return enableDictionary ? EncodingType.DICTIONARY.uiName : EncodingType.PLAIN.uiName;
   }
 
   public String getRowGroupSize() {
@@ -347,10 +413,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setDictPageSize( String dictPageSize ) {
     this.dictPageSize = dictPageSize;
-  }
-
-  public String[] getEncodingTypes() {
-    return getStrings( EncodingType.values() );
   }
 
   public String[] getCompressionTypes() {
