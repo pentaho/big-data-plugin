@@ -26,21 +26,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -49,7 +54,7 @@ import org.w3c.dom.Node;
  *
  * @author Alexander Buloichik@epam.com>
  */
-public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMetaInterface {
+public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
   private static final Class<?> PKG = AvroOutputMetaBase.class;
 
@@ -205,6 +210,31 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
+    }
+  }
+
+  @Override
+  public void resolve() {
+    if ( filename != null && !filename.isEmpty() ) {
+      try {
+        FileObject fileObject = KettleVFS.getFileObject( filename );
+        if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
+          filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+        }
+      } catch ( KettleFileException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+
+    if ( schemaFilename != null && !schemaFilename.isEmpty() ) {
+      try {
+        FileObject fileObject = KettleVFS.getFileObject( schemaFilename );
+        if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
+          schemaFilename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+        }
+      } catch ( KettleFileException e ) {
+        throw new RuntimeException( e );
+      }
     }
   }
 
