@@ -203,7 +203,7 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
     if ( space instanceof JobEntryHadoopTransJobExecutor ) {
       CurrentDirectoryResolver r = new CurrentDirectoryResolver();
       JobEntryHadoopTransJobExecutor jobEntry = (JobEntryHadoopTransJobExecutor) space;
-      space = r.resolveCurrentDirectory( jobEntry.getParentVariableSpace(), jobEntry.getParentJob().getRepositoryDirectory(), null );
+      space = r.resolveCurrentDirectory( jobEntry, jobEntry.getParentJob().getRepositoryDirectory(), null );
     }
     String repositoryDirS = space.environmentSubstitute( repositoryDir );
     if ( repositoryDirS.isEmpty() ) {
