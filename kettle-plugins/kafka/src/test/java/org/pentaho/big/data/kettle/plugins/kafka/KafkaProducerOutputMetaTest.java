@@ -37,6 +37,7 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
@@ -253,6 +254,32 @@ public class KafkaProducerOutputMetaTest {
 
     TransMeta transMeta = mock( TransMeta.class );
     when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "my_cluster" );
+    StepMeta stepMeta = new StepMeta();
+    stepMeta.setParentTransMeta( transMeta );
+    meta.setParentStepMeta( stepMeta );
+
+    assertThat( meta.getBootstrapServers(), is( "server:11111" ) );
+  }
+
+  @Test
+  public void testLooksForEmbeddedMetastore() {
+    NamedCluster namedCluster = mock( NamedCluster.class );
+    when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "server:11111" );
+
+    EmbeddedMetaStore embeddedMetaStore = mock( EmbeddedMetaStore.class );
+    NamedClusterService namedClusterService = mock( NamedClusterService.class );
+    when( namedClusterService.getNamedClusterByName( "my_cluster", embeddedMetaStore ) )
+      .thenReturn( namedCluster );
+
+    KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
+    meta.setConnectionType( CLUSTER );
+    meta.setNamedClusterService( namedClusterService );
+    meta.setMetastoreLocator( mock( MetastoreLocator.class ) );
+    meta.setClusterName( "${clusterName}" );
+
+    TransMeta transMeta = mock( TransMeta.class );
+    when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "my_cluster" );
+    when( transMeta.getEmbeddedMetaStore() ).thenReturn( embeddedMetaStore );
     StepMeta stepMeta = new StepMeta();
     stepMeta.setParentTransMeta( transMeta );
     meta.setParentStepMeta( stepMeta );
