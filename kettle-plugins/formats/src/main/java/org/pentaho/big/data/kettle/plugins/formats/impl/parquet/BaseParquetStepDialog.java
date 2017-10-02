@@ -89,6 +89,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
   public static final int FIELDS_SEP = 10;
   public static final int FIELD_LABEL_SEP = 5;
 
+  public static final int FIELD_TINY = 100;
   public static final int FIELD_SMALL = 150;
   public static final int FIELD_MEDIUM = 250;
   public static final int FIELD_LARGE = 350;

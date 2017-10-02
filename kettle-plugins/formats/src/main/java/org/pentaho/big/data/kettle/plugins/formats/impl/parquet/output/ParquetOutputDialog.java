@@ -68,6 +68,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
 
   private static final int COLUMNS_SEP = 5 * MARGIN;
 
+  private static final int OFFSET = 16;
+
   private TableView wOutputFields;
 
   private Button wOverwriteExistingFile;
@@ -196,24 +198,24 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     Label lCompression = createLabel( wComp, "ParquetOutputDialog.Options.Compression" );
     new FD( lCompression ).left( 0, 0 ).top( wComp, 0 ).apply();
     wCompression = createComboVar( wComp, meta.getCompressionTypes() );
-    new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
 
     Label lVersion = createLabel( wComp, "ParquetOutputDialog.Options.Version" );
     new FD( lVersion ).left( 0, 0 ).top( wCompression, FIELDS_SEP ).apply();
     wVersion = createComboVar( wComp, meta.getVersionTypes() );
-    new FD( wVersion ).left( 0, 0 ).top( lVersion, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    new FD( wVersion ).left( 0, 0 ).top( lVersion, FIELD_LABEL_SEP ).width( FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
 
     Label lRowSize = createLabel( wComp, "ParquetOutputDialog.Options.RowSize" );
     new FD( lRowSize ).left( 0, 0 ).top( wVersion, FIELDS_SEP ).apply();
     wRowSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wRowSize ).left( 0, 0 ).top( lRowSize, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    new FD( wRowSize ).left( 0, 0 ).top( lRowSize, FIELD_LABEL_SEP ).width( FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
     setIntegerOnly( wRowSize );
     wRowSize.addModifyListener( lsMod );
 
     Label lDataPageSize = createLabel( wComp, "ParquetOutputDialog.Options.PageSize" );
     new FD( lDataPageSize ).left( 0, 0 ).top( wRowSize, FIELDS_SEP ).apply();
     wPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wPageSize ).left( 0, 0 ).top( lDataPageSize, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    new FD( wPageSize ).left( 0, 0 ).top( lDataPageSize, FIELD_LABEL_SEP ).width( FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
     setIntegerOnly( wPageSize );
     wPageSize.addModifyListener( lsMod );
 
@@ -231,9 +233,9 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
 
     lDict = new Label( wComp, SWT.NONE );
     lDict.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.Options.DictPageSize" ) );
-    new FD( lDict ).left( 0, 16 ).top( wDictionaryEncoding, FIELD_LABEL_SEP ).apply();
+    new FD( lDict ).left( 0, OFFSET ).top( wDictionaryEncoding, FIELD_LABEL_SEP ).apply();
     wDictPageSize = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    new FD( wDictPageSize ).left( 0, 16 ).top( lDict, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH - 16 ).apply();
+    new FD( wDictPageSize ).left( 0, OFFSET ).top( lDict, FIELD_LABEL_SEP ).width( FIELD_TINY + VAR_EXTRA_WIDTH - OFFSET ).apply();
     setIntegerOnly( wDictPageSize );
     wDictPageSize.addModifyListener( lsMod );
 
@@ -244,7 +246,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     new FD( lExtension ).left( leftRef, COLUMNS_SEP ).top( wComp, 0 ).apply();
     wExtension = new TextVar( transMeta, wComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     new FD( wExtension ).left( leftRef, COLUMNS_SEP ).top( lExtension, FIELD_LABEL_SEP )
-      .width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+      .width( FIELD_TINY + VAR_EXTRA_WIDTH ).apply();
     wExtension.addModifyListener( lsMod );
 
     wIncludeDateInFilename = new Button( wComp, SWT.CHECK );
@@ -282,7 +284,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     wDateTimeFormat = new CCombo( wComp, SWT.BORDER | SWT.READ_ONLY );
     wDateTimeFormat.setEditable( true );
     props.setLook( wDateTimeFormat );
-    new FD( wDateTimeFormat ).left( leftRef, COLUMNS_SEP + 16 ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP )
+    new FD( wDateTimeFormat ).left( leftRef, COLUMNS_SEP + OFFSET ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP )
       .width( 200 ).apply();
     wDateTimeFormat.addModifyListener( lsMod );
 
