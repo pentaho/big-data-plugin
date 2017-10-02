@@ -575,7 +575,6 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     m_avroFilenameText.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent e ) {
         m_currentMeta.setChanged();
-        m_avroFilenameText.setToolTipText( transMeta.environmentSubstitute( m_avroFilenameText.getText() ) );
         checkWidgets();
       }
     } );
@@ -607,7 +606,6 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     props.setLook( m_avroFieldNameText );
     m_avroFieldNameText.addModifyListener( e -> {
       m_currentMeta.setChanged();
-      m_avroFieldNameText.setToolTipText( transMeta.environmentSubstitute( m_avroFieldNameText.getText() ) );
       checkWidgets();
     } );
     fd = new FormData();
@@ -795,7 +793,6 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     m_schemaFilenameText.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent e ) {
         m_currentMeta.setChanged();
-        m_schemaFilenameText.setToolTipText( transMeta.environmentSubstitute( m_schemaFilenameText.getText() ) );
       }
     } );
     fd = new FormData();
@@ -827,7 +824,6 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
     props.setLook( m_schemaFieldNameText );
     m_schemaFieldNameText.addModifyListener( e -> {
       m_currentMeta.setChanged();
-      m_schemaFieldNameText.setToolTipText( transMeta.environmentSubstitute( m_schemaFieldNameText.getText() ) );
     } );
     fd = new FormData();
     fd.width = 250;
