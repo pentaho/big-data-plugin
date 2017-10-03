@@ -27,9 +27,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.protocol.SecurityProtocol;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -83,8 +81,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   private static final Map<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of(
-      ProducerConfig.COMPRESSION_TYPE_CONFIG, "none", CommonClientConfigs.SECURITY_PROTOCOL_CONFIG,
-      SecurityProtocol.PLAINTEXT.name );
+      ProducerConfig.COMPRESSION_TYPE_CONFIG, "none" );
 
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 

@@ -35,7 +35,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang.StringUtils;
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -178,14 +177,14 @@ public class KafkaDialogHelper {
   }
 
   public static List<String> getConsumerAdvancedConfigOptionNames() {
-    return Arrays.asList( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, CommonClientConfigs.SECURITY_PROTOCOL_CONFIG,
+    return Arrays.asList( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
         SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
         SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
         SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
   }
 
   public static List<String> getProducerAdvancedConfigOptionNames() {
-    return Arrays.asList( ProducerConfig.COMPRESSION_TYPE_CONFIG, CommonClientConfigs.SECURITY_PROTOCOL_CONFIG,
+    return Arrays.asList( ProducerConfig.COMPRESSION_TYPE_CONFIG,
         SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
         SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
         SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
