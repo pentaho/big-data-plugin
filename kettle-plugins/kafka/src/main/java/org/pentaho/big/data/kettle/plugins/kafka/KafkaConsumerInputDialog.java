@@ -30,9 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.protocol.SecurityProtocol;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
@@ -95,8 +93,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private static Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
-  private static final Map<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest",
-      CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.PLAINTEXT.name );
+  private static final Map<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest" );
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
   private KafkaConsumerInputMeta meta;
