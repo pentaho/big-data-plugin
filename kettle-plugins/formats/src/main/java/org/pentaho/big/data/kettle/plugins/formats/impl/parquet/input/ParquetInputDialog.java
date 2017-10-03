@@ -23,6 +23,9 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -34,13 +37,20 @@ import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.TransPreviewFactory;
+import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
+import org.pentaho.di.ui.core.dialog.EnterTextDialog;
+import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
+import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
 public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> {
@@ -189,7 +199,65 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
   @Override
   protected Listener getPreview() {
-    // TODO
-    return event -> { };
+    // Preview the data
+    return event -> {
+      // Create the XML input step
+      ParquetInputMetaBase oneMeta = (ParquetInputMeta) meta.clone();
+      oneMeta.allocateFiles( 1 );
+      oneMeta.inputFiles.fileName[0] = wPath.getText().trim();
+
+      try {
+        SchemaDescription schema =
+            ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(),
+              oneMeta.inputFiles.fileName[0] );
+        List<FormatInputOutputField> fields = new ArrayList<>();
+        for ( SchemaDescription.Field f : schema ) {
+          FormatInputOutputField fo = new FormatInputOutputField();
+          fo.setPath( f.formatFieldName );
+          fo.setName( f.formatFieldName );
+          fo.setType( f.pentahoValueMetaType );
+          fields.add( fo );
+        }
+        oneMeta.inputFields = fields.toArray( new FormatInputOutputField[0] );
+      } catch ( Exception ex ) {
+        throw new RuntimeException( ex );
+      }
+
+      TransMeta previewMeta =
+          TransPreviewFactory.generatePreviewTransformation( transMeta, oneMeta, wStepname.getText() );
+
+      EnterNumberDialog numberDialog =
+          new EnterNumberDialog( shell, props.getDefaultPreviewSize(),
+              BaseMessages.getString( PKG, "ParquetInputDialog.PreviewSize.DialogTitle" ),
+              BaseMessages.getString( PKG, "ParquetInputDialog.PreviewSize.DialogMessage" ) );
+      int previewSize = numberDialog.open();
+      if ( previewSize > 0 ) {
+        TransPreviewProgressDialog progressDialog =
+            new TransPreviewProgressDialog( shell, previewMeta, new String[] {
+              wStepname.getText() },
+                new int[] {
+                  previewSize } );
+        progressDialog.open();
+
+        Trans trans = progressDialog.getTrans();
+        String loggingText = progressDialog.getLoggingText();
+
+        if ( !progressDialog.isCancelled() ) {
+          if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
+            EnterTextDialog etd =
+                new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
+                    BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+            etd.setReadOnly();
+            etd.open();
+          }
+        }
+
+        PreviewRowsDialog prd =
+            new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(),
+                progressDialog.getPreviewRowsMeta( wStepname.getText() ),
+                progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
+        prd.open();
+      }
+    };
   }
 }

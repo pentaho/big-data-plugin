@@ -198,6 +198,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
       wPreview.pack();
       int offset = wPreview.getBounds().width / 2;
       new FD( wPreview ).left( 50, -offset ).bottom( 100, 0 ).apply();
+      wPreview.addListener( SWT.Selection, lsPreview );
     }
     return wCancel;
   }
