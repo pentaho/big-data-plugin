@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -176,42 +177,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     setTruncatedColumn( wOutputFields.getTable(), 1 );
     if ( !Const.isWindows() ) {
       addColumnTooltip( wOutputFields.getTable(), 1 );
-    }
-  }
-
-  /**
-   * Enum with valid list of Nullable values - used for the Nullable combo box
-   *
-   * Also contains convience methods to get the default value and return a list of values as string to populate combo box
-    */
-  protected enum NullableValuesEnum {
-    YES( "Yes" ),
-    NO( "No" );
-
-    private String value;
-
-    NullableValuesEnum( String value ) {
-      this.value = value;
-    }
-
-    public String getValue() {
-      return value;
-    }
-
-    public static NullableValuesEnum getDefaultValue() {
-      return NullableValuesEnum.YES;
-    }
-
-    public static String[] getValuesArr() {
-      String[] valueArr = new String[NullableValuesEnum.values().length];
-
-      int i = 0;
-
-      for ( NullableValuesEnum nullValueEnum : NullableValuesEnum.values() ) {
-        valueArr[i++] = nullValueEnum.getValue();
-      }
-
-      return valueArr;
     }
   }
 
