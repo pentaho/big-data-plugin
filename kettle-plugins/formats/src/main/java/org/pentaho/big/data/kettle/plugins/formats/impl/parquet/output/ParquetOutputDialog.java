@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 import java.util.function.BiConsumer;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -40,6 +39,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -87,7 +87,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   private Button wIncludeDateInFilename;
   private Button wIncludeTimeInFilename;
   private Button wSpecifyDateTimeFormat;
-  private CCombo wDateTimeFormat;
+  private ComboVar wDateTimeFormat;
 
   public ParquetOutputDialog( Shell parent, Object parquetOutputMeta, TransMeta transMeta, String sname ) {
     this( parent, (ParquetOutputMeta) parquetOutputMeta, transMeta, sname );
@@ -156,7 +156,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Default" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetOutputDialog.Fields.column.Null" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ) };
+        ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     wOutputFields =
@@ -281,17 +281,14 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       }
     } );
 
-    wDateTimeFormat = new CCombo( wComp, SWT.BORDER | SWT.READ_ONLY );
-    wDateTimeFormat.setEditable( true );
+    String[] dates = Const.getDateFormats();
+    wDateTimeFormat = createComboVar( wComp, dates );
     props.setLook( wDateTimeFormat );
     new FD( wDateTimeFormat ).left( leftRef, COLUMNS_SEP + OFFSET ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP )
       .width( 200 ).apply();
     wDateTimeFormat.addModifyListener( lsMod );
 
-    String[] dates = Const.getDateFormats();
-    for ( int x = 0; x < dates.length; x++ ) {
-      wDateTimeFormat.add( dates[ x ] );
-    }
+
   }
 
   void actualizeDictionaryPageSizeControl() {
@@ -301,7 +298,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   }
 
   protected ComboVar createComboVar( Composite container, String[] options ) {
-    ComboVar combo = new ComboVar( transMeta, container, SWT.LEFT | SWT.BORDER );
+    ComboVar combo = new ComboVar( transMeta, container, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     combo.setItems( options );
     combo.addModifyListener( lsMod );
     return combo;
@@ -430,8 +427,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
             return true;
           }
         };
-        BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1,
-            listener );
+        BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1, false,
+          listener );
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
