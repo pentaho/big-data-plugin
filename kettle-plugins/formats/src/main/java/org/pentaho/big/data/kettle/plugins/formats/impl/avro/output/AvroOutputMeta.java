@@ -27,6 +27,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -37,6 +38,7 @@ import org.pentaho.di.trans.step.StepMeta;
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+output",
     i18nPackageName = "org.pentaho.di.trans.steps.avro" )
+@InjectionSupported( localizationPrefix = "AvroOutput.Injection.", groups = { "FIELDS" } )
 public class AvroOutputMeta extends AvroOutputMetaBase {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;

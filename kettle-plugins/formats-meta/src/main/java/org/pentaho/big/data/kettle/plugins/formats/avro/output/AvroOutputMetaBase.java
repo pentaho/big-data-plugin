@@ -34,6 +34,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -58,15 +59,16 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
   private static final Class<?> PKG = AvroOutputMetaBase.class;
 
-  private String filename;
+  @Injection( name = "FILENAME" ) private String filename;
 
+  @InjectionDeep
   private List<FormatInputOutputField> outputFields = new ArrayList<FormatInputOutputField>();
-  @Injection( name = FieldNames.COMPRESSION )
-  protected String compressionType;
-  @Injection( name = FieldNames.SCHEMA_FILENAME ) protected String schemaFilename;
-  @Injection( name = FieldNames.NAMESPACE ) protected String namespace;
-  @Injection( name = FieldNames.RECORD_NAME ) protected String recordName;
-  @Injection( name = FieldNames.DOC_VALUE ) protected String docValue;
+
+  @Injection( name = "OPTIONS_COMPRESSION" ) protected String compressionType;
+  @Injection( name = "SCHEMA_FILENAME" ) protected String schemaFilename;
+  @Injection( name = "SCHEMA_NAMESPACE" ) protected String namespace;
+  @Injection( name = "SCHEMA_RECORD_NAME" ) protected String recordName;
+  @Injection( name = "SCHEMA_DOC_VALUE" ) protected String docValue;
 
   @Override
   public void setDefault() {
