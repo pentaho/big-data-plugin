@@ -27,6 +27,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -37,6 +38,10 @@ import org.pentaho.di.trans.step.StepMeta;
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
   i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
+@InjectionSupported( localizationPrefix = "ParquetOutput.Injection.", groups = { "FILENAME_LINES", "FIELDS" }, hide = {
+  "FIELD_POSITION", "FIELD_LENGTH", "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",
+  "FIELD_DECIMAL", "FIELD_GROUP", "FIELD_REPEAT", "FIELD_TRIM_TYPE"
+} )
 public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;

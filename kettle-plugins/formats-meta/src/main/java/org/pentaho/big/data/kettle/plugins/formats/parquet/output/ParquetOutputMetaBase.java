@@ -30,6 +30,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -90,8 +91,10 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   @Injection( name = "EXTENSION" )
   private String extension;
 
+  @Injection( name = "FILENAME", group = "FILENAME_LINES" )
   public String filename;
 
+  @InjectionDeep
   public FormatInputOutputField[] outputFields = new FormatInputOutputField[0];
 
   @Override
@@ -155,6 +158,14 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setExtension( String extension ) {
     this.extension = extension;
+  }
+
+  public FormatInputOutputField[] getOutputFields() {
+    return outputFields;
+  }
+
+  public void setOutputFields( FormatInputOutputField[] outputFields ) {
+    this.outputFields = outputFields;
   }
 
   @Override
