@@ -150,6 +150,10 @@ public class ParquetOutput extends BaseStep implements StepInterface {
           case ValueMetaInterface.TYPE_BIGNUMBER:
             field.defaultValue = "0";
             break;
+          case ValueMetaInterface.TYPE_DATE:
+          case ValueMetaInterface.TYPE_TIMESTAMP:
+            field.defaultValue = "0";
+            break;
         }
         schema.addField( field );
       }
@@ -178,8 +182,10 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
     SchemaDescription schema = new SchemaDescription();
     for ( FormatInputOutputField f : meta.outputFields ) {
-      SchemaDescription.Field field =
-          schema.new Field( f.getPath(), f.getName(), f.getType(), Boolean.parseBoolean( f.getNullString() ) );
+      boolean allowNull =
+          f.getNullString() != null
+              && ( "yes".equalsIgnoreCase( f.getNullString() ) || "true".equalsIgnoreCase( f.getNullString() ) );
+      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), allowNull );
       field.defaultValue = f.getIfNullValue();
       schema.addField( field );
     }
