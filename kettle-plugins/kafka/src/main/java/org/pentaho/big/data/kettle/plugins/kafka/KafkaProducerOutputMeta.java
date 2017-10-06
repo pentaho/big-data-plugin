@@ -226,10 +226,16 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
       //todo: this needed for spark.  should make metastoreLocator know how to find embedded metastore in spark
       metastore = getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore();
     }
-    return Optional
-        .ofNullable(
-          namedClusterService.getNamedClusterByName(
-            parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastore ) )
+    Optional<NamedCluster> namedClusterByName = Optional.ofNullable(
+      namedClusterService.getNamedClusterByName(
+        parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ), metastore ) );
+    if ( !namedClusterByName.isPresent() ) {
+      namedClusterByName = Optional.ofNullable(
+        namedClusterService.getNamedClusterByName(
+          parentStepMeta.getParentTransMeta().environmentSubstitute( clusterName ),
+          getParentStepMeta().getParentTransMeta().getEmbeddedMetaStore() ) );
+    }
+    return namedClusterByName
         .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
