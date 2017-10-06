@@ -1139,7 +1139,7 @@ public class AvroInputDialog extends BaseStepDialog implements StepDialogInterfa
 
     EnterNumberDialog numberDialog =
       new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
-        "CsvInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
+        "AvroInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
         "AvroInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
 
