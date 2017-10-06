@@ -274,10 +274,11 @@ public class KafkaProducerOutputMetaTest {
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
     meta.setConnectionType( CLUSTER );
     meta.setNamedClusterService( namedClusterService );
-    meta.setMetastoreLocator( mock( MetastoreLocator.class ) );
+    meta.setMetastoreLocator( metastoreLocator );
     meta.setClusterName( "${clusterName}" );
 
     TransMeta transMeta = mock( TransMeta.class );
+    when( metastoreLocator.getMetastore() ).thenReturn( metastore );
     when( transMeta.environmentSubstitute( "${clusterName}" ) ).thenReturn( "my_cluster" );
     when( transMeta.getEmbeddedMetaStore() ).thenReturn( embeddedMetaStore );
     StepMeta stepMeta = new StepMeta();
@@ -285,6 +286,7 @@ public class KafkaProducerOutputMetaTest {
     meta.setParentStepMeta( stepMeta );
 
     assertThat( meta.getBootstrapServers(), is( "server:11111" ) );
+    verify( namedClusterService ).getNamedClusterByName( "my_cluster", metastore );
   }
 
   @Test
