@@ -22,9 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.UriParser;
@@ -59,6 +56,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.util.StringUtil;
@@ -76,6 +74,9 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
     implements StepDialogInterface {
@@ -624,6 +625,17 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
         log.logError( getBaseMsg( "ParquetInputDialog.FileBrowser.FileSystemException" ) );
       }
     }
+  }
+
+  protected static boolean checkForNonActiveShim( ClusterInitializationException ex ) {
+    Throwable cause = ex;
+    while ( cause != null ) {
+      if ( "NoShimSpecifiedException".equals( cause.getClass().getSimpleName() ) ) {
+        return true;
+      }
+      cause = cause.getCause();
+    }
+    return false;
   }
 
 }
