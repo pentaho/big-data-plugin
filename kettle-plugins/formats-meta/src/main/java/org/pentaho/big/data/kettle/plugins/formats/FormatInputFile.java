@@ -22,7 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats;
 
-import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.trans.steps.file.BaseFileInputFiles;
 
 /**
@@ -31,6 +30,6 @@ import org.pentaho.di.trans.steps.file.BaseFileInputFiles;
  * @author <alexander_buloichik@epam.com>
  */
 public class FormatInputFile extends BaseFileInputFiles {
-  @Injection( name = "ENVIRONMENT", group = "FILENAME_LINES" )
+
   public String[] environment = {};
 }
