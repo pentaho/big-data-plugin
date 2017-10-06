@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
 import org.pentaho.di.core.Const;
@@ -68,7 +69,11 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     wGetFields.addListener( SWT.Selection, event -> {
       try {
         setFields( ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), wPath.getText()
-            .trim() ) );
+          .trim() ) );
+      } catch ( ClusterInitializationException ex ) {
+        if ( !BaseParquetStepDialog.checkForNonActiveShim( ex ) ) {
+          throw new RuntimeException( ex );
+        }
       } catch ( Exception ex ) {
         throw new RuntimeException( ex );
       }
