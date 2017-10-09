@@ -25,6 +25,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
+import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -32,14 +33,13 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 
 /**
- * Step is disabled because we need to use legacy AvroInput yet.
- * 
+ *
  * @author Alexander Buloichik
  */
-/*@Step( id = "AvroInput", image = "PI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
+@Step( id = "AvroInputNew", image = "AI.svg", name = "AvroInputNew.Name", description = "AvroInputNew.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
-    i18nPackageName = "org.pentaho.di.trans.steps.parquet" )*/
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+input",
+    i18nPackageName = "org.pentaho.di.trans.steps.avro" )
 public class AvroInputMeta extends AvroInputMetaBase {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;

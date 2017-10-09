@@ -92,14 +92,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
       throw new KettleException( "No input files defined" );
     }
-    SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputOutputField f : meta.inputFields ) {
-      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), true );
-      schema.addField( field );
-    }
 
     data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-    data.input.setSchema( schema );
     data.input.setInputFile( meta.inputFiles.fileName[0] );
     data.input.setSplitSize( SPLIT_SIZE );
 
