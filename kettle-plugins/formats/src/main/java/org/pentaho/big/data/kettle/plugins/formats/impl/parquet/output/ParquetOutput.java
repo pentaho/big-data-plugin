@@ -75,6 +75,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       if ( currentRow != null ) {
         RowMetaAndData row = new RowMetaAndData( getInputRowMeta(), currentRow );
         data.writer.write( row );
+        putRow( row.getRowMeta(), row.getData() ); // in case we want it to go further or DET...
         return true;
       } else {
         // no more input to be expected...
