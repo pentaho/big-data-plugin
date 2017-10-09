@@ -24,22 +24,32 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
+import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.metastore.api.IMetaStore;
 
 /**
- * Step is disabled because we need to use legacy AvroInput yet.
- * 
+ *
  * @author Alexander Buloichik
  */
-/*@Step( id = "AvroInput", image = "PI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
+//keep ID as new because we will have old step with ID AvroInput
+@Step( id = "AvroInputNew", image = "AI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
-    i18nPackageName = "org.pentaho.di.trans.steps.parquet" )*/
+    documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+input",
+    i18nPackageName = "org.pentaho.di.trans.steps.avro" )
 public class AvroInputMeta extends AvroInputMetaBase {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
@@ -64,5 +74,27 @@ public class AvroInputMeta extends AvroInputMetaBase {
 
   public NamedCluster getNamedCluster() {
     return namedClusterService.getClusterTemplate();
+  }
+
+  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
+    return namedClusterServiceLocator;
+  }
+
+  @Override
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+                        VariableSpace space, Repository repository, IMetaStore metaStore ) throws
+          KettleStepException {
+    try {
+      for ( int i = 0; i < inputFields.size(); i++ ) {
+        FormatInputOutputField field = inputFields.get( i );
+        String value = space.environmentSubstitute( field.getName() );
+        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value,
+                field.getType() );
+        v.setOrigin( origin );
+        rowMeta.addValueMeta( v );
+      }
+    } catch ( KettlePluginException e ) {
+      throw new KettleStepException( "Unable to create value type", e );
+    }
   }
 }
