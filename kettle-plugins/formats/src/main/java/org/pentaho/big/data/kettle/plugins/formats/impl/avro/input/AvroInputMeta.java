@@ -65,4 +65,8 @@ public class AvroInputMeta extends AvroInputMetaBase {
   public NamedCluster getNamedCluster() {
     return namedClusterService.getClusterTemplate();
   }
+
+  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
+    return namedClusterServiceLocator;
+  }
 }

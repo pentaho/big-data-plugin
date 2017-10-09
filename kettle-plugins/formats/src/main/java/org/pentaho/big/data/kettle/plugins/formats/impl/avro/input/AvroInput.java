@@ -23,8 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -119,4 +119,12 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     throws Exception {
     return null;
   }
+
+  public static SchemaDescription retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
+      NamedCluster namedCluster, String schemaPath, String dataPath ) throws Exception {
+    FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
+    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    return in.readSchema( schemaPath, dataPath );
+  }
+
 }

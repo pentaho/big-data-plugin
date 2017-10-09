@@ -24,8 +24,6 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
-
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
@@ -36,19 +34,14 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.row.value.ValueMetaString;
-import org.pentaho.di.core.util.StringUtil;
-import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
+import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -58,15 +51,17 @@ import org.w3c.dom.Node;
  * @author Alexander Buloichik
  */
 public abstract class AvroInputMetaBase extends
-    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> {
-
+    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements ResolvableResource {
 
   private static final Class<?> PKG = AvroOutputMetaBase.class;
 
-  @Injection( name = AvroInputMetaBase.FieldNames.FILENAME ) private String filename;
+  @Injection( name = AvroInputMetaBase.FieldNames.FILENAME )
+  private String filename;
+
+  @Injection( name = AvroInputMetaBase.FieldNames.SCHEMA_FILENAME )
+  protected String schemaFilename;
 
   private List<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
-  @Injection( name = AvroInputMetaBase.FieldNames.SCHEMA_FILENAME ) protected String schemaFilename;
 
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
