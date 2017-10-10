@@ -336,7 +336,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       if ( wPreview != null ) {
         wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
       }
-    });
+    } );
     props.setLook( wPath );
     new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
 
@@ -401,9 +401,9 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       } catch ( FileSystemException ex ) {
         log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
       }
-    } 
+    }
     // do we have preview button?
-    if( wPreview != null ) {
+    if ( wPreview != null ) {
       //update preview button
       wPreview.setEnabled( !pathText.isEmpty() );
     }

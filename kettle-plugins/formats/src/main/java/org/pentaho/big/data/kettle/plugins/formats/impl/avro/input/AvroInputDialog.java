@@ -109,7 +109,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       wInputFields.clearAll();
       for ( SchemaDescription.Field field : schemaDescription ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
-        if( field != null ) {
+        if ( field != null ) {
           setField( item, field.formatFieldName, 1 );
           setField( item, field.pentahoFieldName, 2 );
           setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
@@ -319,7 +319,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   protected void getInfo( AvroInputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
     meta.setSchemaFilename( wSchemaPath.getText() );
-    
+
     int nrFields = wInputFields.nrNonEmpty();
     ArrayList<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
     for ( int i = 0; i < nrFields; i++ ) {

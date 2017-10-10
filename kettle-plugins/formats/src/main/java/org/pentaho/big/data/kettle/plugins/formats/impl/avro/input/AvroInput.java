@@ -25,10 +25,10 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -36,7 +36,6 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.BaseFileInputStep;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
-import org.pentaho.hadoop.shim.api.format.IPentahoInputFormat.IPentahoInputSplit;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
@@ -55,21 +54,23 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     meta = (AvroInputMeta) smi;
     data = (AvroInputData) sdi;
-
     try {
-      if ( data.splits == null ) {
-        initSplits();
+      if ( data.input == null ) {
+        FormatService formatService;
+        try {
+          formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+        } catch ( ClusterInitializationException e ) {
+          throw new KettleException( "can't get service format shim ", e );
+        }
+        if ( meta.getFilename() == null ) {
+          throw new KettleException( "No output files defined" );
+        }
+        data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+        data.input.setInputFile( meta.getFilename() );
+        data.input.setInputSchemaFile( meta.getSchemaFilename() );
+        data.reader = data.input.createRecordReader( null );
+        data.rowIterator = data.reader.iterator();
       }
-
-      if ( data.currentSplit >= data.splits.size() ) {
-        setOutputDone();
-        return false;
-      }
-
-      if ( data.reader == null ) {
-        openReader( data );
-      }
-
       if ( data.rowIterator.hasNext() ) {
         RowMetaAndData row = data.rowIterator.next();
         putRow( row.getRowMeta(), row.getData() );
@@ -77,9 +78,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
       } else {
         data.reader.close();
         data.reader = null;
-        logDebug( "Close split {0}", data.currentSplit );
-        data.currentSplit++;
-        return true;
+        setOutputDone();
+        return false;
       }
     } catch ( KettleException ex ) {
       throw ex;
@@ -88,27 +88,6 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     }
   }
 
-  void initSplits() throws Exception {
-    FormatService formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
-    if ( Utils.isEmpty( meta.getFilename() ) ) {
-      throw new KettleException( "No input files defined" );
-    }
-
-    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-    data.input.setInputFile( meta.getFilename() );
-    data.input.setSplitSize( SPLIT_SIZE );
-
-    data.splits = data.input.getSplits();
-    logDebug( "Input split count: {0}", data.splits.size() );
-    data.currentSplit = 0;
-  }
-
-  void openReader( AvroInputData data ) throws Exception {
-    logDebug( "Open split {0}", data.currentSplit );
-    IPentahoInputSplit sp = data.splits.get( data.currentSplit );
-    data.reader = data.input.createRecordReader( sp );
-    data.rowIterator = data.reader.iterator();
-  }
 
   @Override
   protected boolean init() {
