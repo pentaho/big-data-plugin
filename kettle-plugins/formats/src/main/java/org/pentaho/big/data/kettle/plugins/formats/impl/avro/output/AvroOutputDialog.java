@@ -40,7 +40,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.AvroFormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
@@ -437,12 +437,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   private void saveOutputFields( TableView wFields, AvroOutputMeta meta ) {
     int nrFields = wFields.nrNonEmpty();
 
-    List<FormatInputOutputField> outputFields = new ArrayList<>();
+    List<AvroFormatInputOutputField> outputFields = new ArrayList<>();
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wFields.getNonEmpty( i );
 
       int j = 1;
-      FormatInputOutputField field = new FormatInputOutputField();
+      AvroFormatInputOutputField field = new AvroFormatInputOutputField();
       field.setPath( item.getText( j++ ) );
       field.setName( item.getText( j++ ) );
       field.setType( item.getText( j++ ) );
@@ -495,8 +495,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     return value == null ? "" : value;
   }
 
-  private void populateFieldsUI( List<FormatInputOutputField> fields, TableView wFields,
-      BiConsumer<FormatInputOutputField, TableItem> converter ) {
+  private void populateFieldsUI(List<AvroFormatInputOutputField> fields, TableView wFields,
+                                BiConsumer<AvroFormatInputOutputField, TableItem> converter ) {
     int nrFields = fields.size();
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = null;
