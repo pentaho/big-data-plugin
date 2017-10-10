@@ -28,6 +28,8 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -48,13 +50,19 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.TransPreviewFactory;
+import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
+import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
+import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
@@ -87,6 +95,9 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
+
+    wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
+
     return wTabFolder;
   }
 
@@ -102,12 +113,13 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       wInputFields.clearAll();
       for ( SchemaDescription.Field field : schemaDescription ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
-
-        setField( item, field.formatFieldName, 1 );
-        setField( item, field.pentahoFieldName, 2 );
-        setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
-        setField( item, field.defaultValue, 4 );
-        setField( item, String.valueOf( field.allowNull ), 5 );
+        if( field != null ) {
+          setField( item, field.formatFieldName, 1 );
+          setField( item, field.pentahoFieldName, 2 );
+          setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
+          setField( item, field.defaultValue, 4 );
+          setField( item, String.valueOf( field.allowNull ), 5 );
+        }
       }
 
       wInputFields.removeEmptyRows();
@@ -302,6 +314,35 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   }
 
   /**
+   * Set the data from the meta object to the data in this dialog.
+   */
+
+  private void setData( AvroInputMeta meta ) {
+    if ( meta.inputFiles.fileName.length > 0 ) {
+      wPath.setText( meta.inputFiles.fileName[0] );
+    }
+    int itemIndex = 0;
+    for ( FormatInputOutputField inputField : meta.getInpuFields() ) {
+      TableItem item = null;
+      if ( itemIndex < wInputFields.table.getItemCount() ) {
+        item = wInputFields.table.getItem( itemIndex );
+      } else {
+        item = new TableItem( wInputFields.table, SWT.NONE );
+      }
+
+      if ( inputField.getPath() != null ) {
+        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getPath() );
+      }
+      if ( inputField.getName() != null ) {
+        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
+      }
+      item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
+
+      itemIndex++;
+    }
+  }
+
+  /**
    * Fill meta object from UI options.
    */
   @Override
@@ -336,6 +377,48 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     }
   }
 
+  private void doPreview() {
+    AvroInputMeta tempMeta = new AvroInputMeta( null, null );
+    setData( tempMeta );
+
+    TransMeta previewMeta =
+        TransPreviewFactory.generatePreviewTransformation( transMeta, tempMeta, wStepname.getText() );
+    transMeta.getVariable( "Internal.Transformation.Filename.Directory" );
+    previewMeta.getVariable( "Internal.Transformation.Filename.Directory" );
+
+    EnterNumberDialog numberDialog =
+        new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
+            "CsvInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
+            "AvroInputDialog.PreviewSize.DialogMessage" ) );
+    int previewSize = numberDialog.open();
+
+    if ( previewSize > 0 ) {
+      TransPreviewProgressDialog progressDialog =
+          new TransPreviewProgressDialog( shell, previewMeta, new String[] { wStepname.getText() },
+              new int[] { previewSize } );
+      progressDialog.open();
+
+      Trans trans = progressDialog.getTrans();
+      String loggingText = progressDialog.getLoggingText();
+
+      if ( !progressDialog.isCancelled() ) {
+        if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
+          EnterTextDialog etd =
+              new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
+                  BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+          etd.setReadOnly();
+          etd.open();
+        }
+      }
+
+      PreviewRowsDialog prd =
+          new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog
+              .getPreviewRowsMeta( wStepname.getText() ),
+              progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
+      prd.open();
+    }
+  }
+
   @Override
   protected int getWidth() {
     return SHELL_WIDTH;
@@ -353,8 +436,11 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
   @Override
   protected Listener getPreview() {
-    // TODO
-    return event -> { };
+    return event -> new SelectionAdapter() {
+      @Override
+      public void widgetSelected( SelectionEvent e ) {
+        doPreview();
+      }
+    };
   }
-
 }

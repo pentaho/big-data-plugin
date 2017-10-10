@@ -47,7 +47,7 @@ import org.w3c.dom.Node;
 
 /**
  * Avro input meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
- * 
+ *
  * @author Alexander Buloichik
  */
 public abstract class AvroInputMetaBase extends
