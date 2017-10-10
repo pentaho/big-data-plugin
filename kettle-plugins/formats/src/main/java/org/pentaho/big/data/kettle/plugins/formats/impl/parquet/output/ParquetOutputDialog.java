@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
+import java.util.Arrays;
 import java.util.function.BiConsumer;
 
 import org.eclipse.swt.SWT;
@@ -282,6 +283,9 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     } );
 
     String[] dates = Const.getDateFormats();
+    dates =
+        Arrays.stream( dates ).filter( d -> d.indexOf( '/' ) < 0 && d.indexOf( '\\' ) < 0 && d.indexOf( ':' ) < 0 )
+            .toArray( String[]::new ); // remove formats with slashes and colons
     wDateTimeFormat = createComboVar( wComp, dates );
     props.setLook( wDateTimeFormat );
     new FD( wDateTimeFormat ).left( leftRef, COLUMNS_SEP + OFFSET ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP )
