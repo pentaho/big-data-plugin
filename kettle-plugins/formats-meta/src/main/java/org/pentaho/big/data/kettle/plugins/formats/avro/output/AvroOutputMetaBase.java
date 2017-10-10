@@ -101,7 +101,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       filename = XMLHandler.getTagValue( stepnode, "filename" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
+        List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
         FormatInputOutputField outputField = new FormatInputOutputField();

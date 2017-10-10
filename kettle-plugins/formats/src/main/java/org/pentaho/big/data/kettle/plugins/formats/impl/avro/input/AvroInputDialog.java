@@ -73,6 +73,11 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private static final int FIELD_NAME_COLUMN_INDEX = 2;
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
+
+  private static final int FIELD_DEFAULT_VALUE_COLUMN_INDEX = 4;
+
+  private static final int FIELD_NULLABLE_COLUMN_INDEX = 5;
+
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
   private TableView wInputFields;
@@ -306,8 +311,15 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( inputField.getName() != null ) {
         item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
       }
-      item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
-
+      if ( inputField.getIfNullValue() != null ) {
+        item.setText( FIELD_DEFAULT_VALUE_COLUMN_INDEX, inputField.getIfNullValue() );
+      }
+      if ( inputField.getIfNullValue() != null ) {
+        item.setText( FIELD_NULLABLE_COLUMN_INDEX, inputField.getNullString() );
+      }
+      if ( inputField.getTypeDesc() != null ) {
+        item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
+      }
       itemIndex++;
     }
   }
@@ -328,6 +340,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      field.setNullString( item.getText( FIELD_NULLABLE_COLUMN_INDEX ) );
+      field.setIfNullValue( item.getText( FIELD_DEFAULT_VALUE_COLUMN_INDEX ) );
       inputFields.add( field );
     }
     meta.setInputFields( inputFields );
@@ -346,6 +360,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   }
 
   private void doPreview() {
+    getInfo( meta, true );
     TransMeta previewMeta =
         TransPreviewFactory.generatePreviewTransformation( transMeta, meta, wStepname.getText() );
     transMeta.getVariable( "Internal.Transformation.Filename.Directory" );
