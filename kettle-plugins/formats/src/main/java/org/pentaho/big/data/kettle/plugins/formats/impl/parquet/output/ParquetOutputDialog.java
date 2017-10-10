@@ -22,9 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
-import java.util.Arrays;
-import java.util.function.BiConsumer;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -59,6 +56,9 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
+
+import java.util.Arrays;
+import java.util.function.BiConsumer;
 
 public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta> implements StepDialogInterface {
 
@@ -104,6 +104,11 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     wOverwriteExistingFile.setText( BaseMessages.getString( PKG, "ParquetOutputDialog.OverwriteFile.Label" ) );
     props.setLook( wOverwriteExistingFile );
     new FD( wOverwriteExistingFile ).left( 0, 0 ).top( afterFile, FIELDS_SEP ).apply();
+    wOverwriteExistingFile.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+      }
+    } );
 
     CTabFolder wTabFolder = new CTabFolder( afterFile, SWT.BORDER );
     props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
