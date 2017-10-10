@@ -114,7 +114,7 @@ public abstract class AvroInputMetaBase extends
 
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
-      filename = XMLHandler.getTagValue( stepnode, "filename" );
+      filename = XMLHandler.getTagValue( stepnode, AvroInputMetaBase.FieldNames.FILENAME );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
       List<FormatInputOutputField> avroInputFields = new ArrayList<>();

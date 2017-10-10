@@ -28,6 +28,7 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -89,12 +90,12 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
   void initSplits() throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
-    if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
+    if ( Utils.isEmpty( meta.getFilename() ) ) {
       throw new KettleException( "No input files defined" );
     }
 
     data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-    data.input.setInputFile( meta.inputFiles.fileName[0] );
+    data.input.setInputFile( meta.getFilename() );
     data.input.setSplitSize( SPLIT_SIZE );
 
     data.splits = data.input.getSplits();

@@ -28,8 +28,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -95,8 +93,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
-
-    wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
 
     return wTabFolder;
   }
@@ -289,37 +285,11 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
    */
   @Override
   protected void getData( AvroInputMeta meta ) {
-    if ( meta.inputFiles.fileName.length > 0 ) {
-      wPath.setText( meta.inputFiles.fileName[0] );
+    if ( meta.getFilename() != null ) {
+      wPath.setText( meta.getFilename() );
     }
-    int itemIndex = 0;
-    for ( FormatInputOutputField inputField : meta.getInpuFields() ) {
-      TableItem item = null;
-      if ( itemIndex < wInputFields.table.getItemCount() ) {
-        item = wInputFields.table.getItem( itemIndex );
-      } else {
-        item = new TableItem( wInputFields.table, SWT.NONE );
-      }
-
-      if ( inputField.getPath() != null ) {
-        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getPath() );
-      }
-      if ( inputField.getName() != null ) {
-        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
-      }
-      item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
-
-      itemIndex++;
-    }
-  }
-
-  /**
-   * Set the data from the meta object to the data in this dialog.
-   */
-
-  private void setData( AvroInputMeta meta ) {
-    if ( meta.inputFiles.fileName.length > 0 ) {
-      wPath.setText( meta.inputFiles.fileName[0] );
+    if ( meta.getSchemaFilename() != null ) {
+      wSchemaPath.setText( meta.getSchemaFilename() );
     }
     int itemIndex = 0;
     for ( FormatInputOutputField inputField : meta.getInpuFields() ) {
@@ -347,11 +317,9 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
    */
   @Override
   protected void getInfo( AvroInputMeta meta, boolean preview ) {
-    String filePath = wPath.getText();
-    if ( filePath != null && !filePath.isEmpty() ) {
-      meta.allocateFiles( 1 );
-      meta.inputFiles.fileName[0] = wPath.getText();
-    }
+    meta.setFilename( wPath.getText() );
+    meta.setSchemaFilename( wSchemaPath.getText() );
+    
     int nrFields = wInputFields.nrNonEmpty();
     ArrayList<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
     for ( int i = 0; i < nrFields; i++ ) {
@@ -378,17 +346,14 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   }
 
   private void doPreview() {
-    AvroInputMeta tempMeta = new AvroInputMeta( null, null );
-    setData( tempMeta );
-
     TransMeta previewMeta =
-        TransPreviewFactory.generatePreviewTransformation( transMeta, tempMeta, wStepname.getText() );
+        TransPreviewFactory.generatePreviewTransformation( transMeta, meta, wStepname.getText() );
     transMeta.getVariable( "Internal.Transformation.Filename.Directory" );
     previewMeta.getVariable( "Internal.Transformation.Filename.Directory" );
 
     EnterNumberDialog numberDialog =
         new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
-            "CsvInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
+            "AvroInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
             "AvroInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
 
@@ -436,9 +401,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
   @Override
   protected Listener getPreview() {
-    return event -> new SelectionAdapter() {
-      @Override
-      public void widgetSelected( SelectionEvent e ) {
+    return new Listener() {
+      public void handleEvent( Event e ) {
         doPreview();
       }
     };

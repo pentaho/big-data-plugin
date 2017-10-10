@@ -194,6 +194,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       wPreview = new Button( shell, SWT.PUSH );
       wPreview.setText( getBaseMsg( "BaseStepDialog.Preview" ) );
       wPreview.pack();
+      wPreview.addListener( SWT.Selection, lsPreview );
       int offset = wPreview.getBounds().width / 2;
       new FD( wPreview ).left( 50, -offset ).bottom( 100, 0 ).apply();
     }
@@ -331,6 +332,11 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     props.setLook( wlPath );
     new FD( wlPath ).left( 0, 0 ).top( wLocation, FIELDS_SEP ).apply();
     wPath = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wPath.addModifyListener( event -> {
+      if ( wPreview != null ) {
+        wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
+      }
+    });
     props.setLook( wPath );
     new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
 
@@ -395,6 +401,11 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       } catch ( FileSystemException ex ) {
         log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
       }
+    } 
+    // do we have preview button?
+    if( wPreview != null ) {
+      //update preview button
+      wPreview.setEnabled( !pathText.isEmpty() );
     }
   }
 
