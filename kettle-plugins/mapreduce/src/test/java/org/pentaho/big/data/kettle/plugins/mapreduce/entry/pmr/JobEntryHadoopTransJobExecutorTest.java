@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2017-2017 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2017-2017 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
