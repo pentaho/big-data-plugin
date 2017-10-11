@@ -61,7 +61,7 @@ public abstract class AvroInputMetaBase extends
   @Injection( name = AvroInputMetaBase.FieldNames.SCHEMA_FILENAME )
   protected String schemaFilename;
 
-  private List<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
+  protected List<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
 
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
