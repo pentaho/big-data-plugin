@@ -264,7 +264,8 @@ public abstract class ParquetInputMetaBase extends
     if ( inputFiles != null && inputFiles.fileName != null ) {
       for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
         try {
-          FileObject fileObject = KettleVFS.getFileObject( inputFiles.fileName[ i ] );
+          String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
+          FileObject fileObject = KettleVFS.getFileObject( realFileName );
           if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
             inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getOriginalURIString();
           }
