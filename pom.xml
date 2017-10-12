@@ -36,6 +36,9 @@
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
   <properties>
+    <!-- parsedVersion properties are dynamically created by the build-helper-maven-plugin:create-doc-version-property -->
+    <doc.version>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</doc.version>
+
     <dependency.mockito.revision>1.9.5</dependency.mockito.revision>
     <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
     <dependency.json.revision>8.0-SNAPSHOT</dependency.json.revision>
@@ -90,6 +93,7 @@
     <kafka-clients.version>0.10.2.1</kafka-clients.version>
     <dependency.hamcrest.revision>1.3</dependency.hamcrest.revision>
   </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -97,6 +101,12 @@
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
         <executions>
+          <execution>
+            <id>create-doc-version-property</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
           <execution>
             <id>add-test-source</id>
             <phase>generate-test-sources</phase>
