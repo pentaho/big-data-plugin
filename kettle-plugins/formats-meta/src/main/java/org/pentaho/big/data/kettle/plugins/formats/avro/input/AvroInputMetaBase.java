@@ -55,10 +55,10 @@ public abstract class AvroInputMetaBase extends
 
   private static final Class<?> PKG = AvroOutputMetaBase.class;
 
-  @Injection( name = "filename" )
+  @Injection( name = "AVRO_FILENAME" )
   private String filename;
 
-  @Injection( name = "schemaFilename" )
+  @Injection( name = "SCHEMA_FILENAME" )
   protected String schemaFilename;
 
   protected List<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
