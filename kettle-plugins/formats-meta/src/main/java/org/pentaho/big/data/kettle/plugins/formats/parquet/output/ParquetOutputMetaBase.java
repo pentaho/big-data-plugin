@@ -316,7 +316,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public void resolve() {
     if ( filename != null && !filename.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( filename );
+        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
+        FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }

@@ -22,8 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
-import java.nio.file.NoSuchFileException;
-
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -44,6 +42,8 @@ import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IPentahoInputFormat.IPentahoInputSplit;
 import org.pentaho.hadoop.shim.api.format.IPentahoParquetInputFormat;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
+
+import java.nio.file.NoSuchFileException;
 
 public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInputData> {
   public static long SPLIT_SIZE = 128 * 1024 * 1024;
@@ -105,7 +105,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class );
     data.input.setSchema( schema );
 
-    String inputFileName = meta.inputFiles.fileName[0];
+    String inputFileName = environmentSubstitute( meta.inputFiles.fileName[ 0 ] );
     FileObject inputFileObject = KettleVFS.getFileObject( inputFileName );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
       inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();

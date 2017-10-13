@@ -103,7 +103,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
 
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
 
-    String outputFileName = meta.constructOutputFilename();
+    String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
     if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
@@ -114,14 +114,16 @@ public class ParquetOutput extends BaseStep implements StepInterface {
 
     IPentahoParquetOutputFormat.COMPRESSION compression;
     try {
-      compression = IPentahoParquetOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+      compression =
+        IPentahoParquetOutputFormat.COMPRESSION.valueOf( meta.getCompressionType( variables ).name().toUpperCase() );
     } catch ( Exception ex ) {
       compression = IPentahoParquetOutputFormat.COMPRESSION.UNCOMPRESSED;
     }
     data.output.setCompression( compression );
     data.output
-        .setVersion( IPentahoParquetOutputFormat.VERSION.VERSION_1_0.toString().equals( meta.getParquetVersion() )
-            ? IPentahoParquetOutputFormat.VERSION.VERSION_1_0 : IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
+      .setVersion(
+        ParquetOutputMetaBase.ParquetVersion.PARQUET_1.equals( meta.getParquetVersion( variables ) )
+          ? IPentahoParquetOutputFormat.VERSION.VERSION_1_0 : IPentahoParquetOutputFormat.VERSION.VERSION_2_0 );
     if ( meta.getRowGroupSize( variables ) > 0 ) {
       data.output.setRowGroupSize( meta.getRowGroupSize( variables ) * 1024 * 1024 );
     }
