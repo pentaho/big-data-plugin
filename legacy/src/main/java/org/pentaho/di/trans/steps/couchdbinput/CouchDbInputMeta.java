@@ -50,15 +50,9 @@ import org.w3c.dom.Node;
 
 import java.util.List;
 
-/**
- * Created on 8-apr-2011
- *
- * @author matt
- * @since 4.2.0-M1
- */
 @Step( id = "CouchDbInput", image = "couchdb-input.svg", name = "CouchDbInput.Name",
   description = "CouchDbInput.Description",
-  documentationUrl = "http://wiki.pentaho.com/display/EAI/CouchDB+Input",
+  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/CouchDB_Input",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   i18nPackageName = "org.pentaho.di.trans.steps.couchdbinput" )
 

@@ -47,7 +47,7 @@ import org.w3c.dom.Node;
 
 @Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
     description = "HadoopFileInputPlugin.Description",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Hadoop+File+Input",
+    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Hadoop_File_Input",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileinput" )
 @InjectionSupported( localizationPrefix = "HadoopFileInput.Injection.", groups = { "FILENAME_LINES", "FIELDS", "FILTERS" } )

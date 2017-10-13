@@ -79,7 +79,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
   name = "KafkaConsumer.TypeLongDesc",
   description = "KafkaConsumer.TypeTooltipDesc",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
+  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Kafka_Consumer" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {
   public enum ConnectionType {
