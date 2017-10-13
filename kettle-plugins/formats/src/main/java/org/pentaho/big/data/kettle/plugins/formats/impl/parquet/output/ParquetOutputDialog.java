@@ -397,7 +397,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       field.setName( item.getText( j++ ) );
       field.setType( item.getText( j++ ) );
       field.setIfNullValue( item.getText( j++ ) );
-      field.setNullString( item.getText( j++ ) );
+      field.setNullable( NullableValuesEnum.YES.getValue().equals( item.getText( j++ ) ) );
       outputFields[i] = field;
     }
     meta.outputFields = outputFields;
@@ -410,7 +410,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       item.setText( i++, coalesce( field.getName() ) );
       item.setText( i++, coalesce( field.getTypeDesc() ) );
       item.setText( i++, coalesce( field.getIfNullValue() ) );
-      item.setText( i++, coalesce( field.getNullString() ) );
+      item.setText( i++, field.isNullable() ? NullableValuesEnum.YES.getValue() : NullableValuesEnum.NO.getValue() );
     } );
   }
 

@@ -22,8 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
-import java.io.IOException;
-
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
@@ -45,6 +43,8 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
 import org.pentaho.hadoop.shim.api.format.SchemaDescription;
+
+import java.io.IOException;
 
 public class ParquetOutput extends BaseStep implements StepInterface {
 
@@ -183,10 +183,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
     SchemaDescription schema = new SchemaDescription();
     for ( FormatInputOutputField f : meta.outputFields ) {
-      boolean allowNull =
-          f.getNullString() != null
-              && ( "yes".equalsIgnoreCase( f.getNullString() ) || "true".equalsIgnoreCase( f.getNullString() ) );
-      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), allowNull );
+      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), f.isNullable() );
       field.defaultValue = f.getIfNullValue();
       schema.addField( field );
     }

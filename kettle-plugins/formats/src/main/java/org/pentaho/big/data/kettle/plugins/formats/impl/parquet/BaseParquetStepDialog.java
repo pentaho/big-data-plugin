@@ -108,6 +108,8 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
 
   private static final String HDFS_SCHEME = "hdfs";
 
+  private static final String MAPRFS_CHEME = "maprfs";
+
   protected Image icon;
 
   protected TextVar wPath;
@@ -479,8 +481,10 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     List<CustomVfsUiPanel> customVfsUiPanels = fileChooserDialog.getCustomVfsUiPanels();
     List<VFSScheme> vfsSchemes = new ArrayList<>();
     customVfsUiPanels.forEach( vfsPanel -> {
-      VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
-      vfsSchemes.add( scheme );
+      if ( !MAPRFS_CHEME.equals( vfsPanel.getVfsScheme() ) ) {
+        VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
+        vfsSchemes.add( scheme );
+      }
     } );
     return vfsSchemes;
   }
