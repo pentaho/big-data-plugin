@@ -120,9 +120,9 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
                 return meta.getOutputFields()[0].getIfNullValue();
             }
         });
-        check("FIELD_NULL_STRING", new StringGetter() {
-            public String get() {
-                return meta.getOutputFields()[0].getNullString();
+        check("FIELD_NULLABLE", new BooleanGetter() {
+            public boolean get() {
+                return meta.getOutputFields()[0].isNullable();
             }
         });
 

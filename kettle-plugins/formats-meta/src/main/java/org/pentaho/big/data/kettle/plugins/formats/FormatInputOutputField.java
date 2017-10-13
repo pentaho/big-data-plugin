@@ -34,11 +34,22 @@ public class FormatInputOutputField extends BaseFileField {
   @Injection( name = "FIELD_PATH", group = "FIELDS" )
   protected String path;
 
+  @Injection( name = "FIELD_NULLABLE", group = "FIELDS" )
+  protected boolean nullable;
+
   public String getPath() {
     return path;
   }
 
   public void setPath( String path ) {
     this.path = path;
+  }
+
+  public boolean isNullable() {
+    return nullable;
+  }
+
+  public void setNullable( boolean nullable ) {
+    this.nullable = nullable;
   }
 }

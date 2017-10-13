@@ -197,7 +197,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
         outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
         outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
-        outputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
+        outputField.setNullable( "Y".equalsIgnoreCase( XMLHandler.getTagValue( fnode, "nullable" ) ) );
         outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" ) );
         parquetOutputFields.add( outputField );
       }
@@ -233,7 +233,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getNullString() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.isNullable() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
         retval.append( "      </field>" ).append( Const.CR );
       }
@@ -270,8 +270,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
         outputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
-        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "nullable" ) );
-        outputField.setNullString( rep.getStepAttributeString( id_step, i, "default" ) );
+        outputField.setNullable( rep.getStepAttributeBoolean( id_step, i, "nullable" ) );
+        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "default" ) );
 
         parquetOutputFields.add( outputField );
       }
@@ -304,8 +304,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.isNullable() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getIfNullValue() );
       }
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
@@ -360,10 +360,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     return defaultValue;
   }
 
-  public EncodingType getEncodingType( VariableSpace vspace ) {
-    return enableDictionary ? EncodingType.DICTIONARY : EncodingType.PLAIN;
-  }
-
   public String getRowGroupSize() {
     return rowGroupSize;
   }
@@ -411,11 +407,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   }
 
   public int getDictPageSize( VariableSpace vspace ) {
-    if ( getEncodingType( vspace ).equals( EncodingType.DICTIONARY ) ) {
-      return parseReplace( dictPageSize, vspace, s -> Integer.parseInt( s ), 0 );
-    } else {
-      return 0;
-    }
+    return parseReplace( dictPageSize, vspace, s -> Integer.parseInt( s ), 0 );
   }
 
   public String getDictPageSize() {
@@ -435,28 +427,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   }
 
   public static enum CompressionType {
-    NONE( getMsg( "ParquetOutput.CompressionType.NONE" ) ), SNAPPY( "Snappy" ), GZIP( "GZIP" ), LZO( "LZO" );
+    NONE( "None" ), SNAPPY( "Snappy" ), GZIP( "GZIP" );
 
     private final String uiName;
 
     private CompressionType( String name ) {
-      this.uiName = name;
-    }
-
-    @Override
-    public String toString() {
-      return uiName;
-    }
-  }
-
-  public static enum EncodingType {
-    PLAIN( getMsg( "ParquetOutput.EncodingType.PLAIN" ) ), DICTIONARY( getMsg(
-      "ParquetOutput.EncodingType.DICTIONARY" ) ), BIT_PACKED( getMsg(
-      "ParquetOutput.EncodingType.BIT_PACKED" ) ), RLE( getMsg( "ParquetOutput.EncodingType.RLE" ) );
-
-    private final String uiName;
-
-    private EncodingType( String name ) {
       this.uiName = name;
     }
 
