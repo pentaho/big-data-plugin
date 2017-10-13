@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.ui.core.dialog.ShowHelpDialog;
 import org.pentaho.di.ui.spoon.XulSpoonResourceBundle;
 import org.pentaho.di.ui.spoon.XulSpoonSettingsManager;
@@ -38,9 +39,6 @@ import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.ui.xul.swt.SwtXulRunner;
 import org.pentaho.ui.xul.swt.tags.SwtDialog;
 
-/**
- * Created by bryan on 8/13/15.
- */
 public class HadoopConfigurationRestartXulDialog extends AbstractXulEventHandler {
   private static final Class<?> PKG = HadoopConfigurationsXulDialog.class;
   private static final String CONTROLLER_NAME = "hadoopConfigurationRestartXulDialog";
@@ -78,17 +76,21 @@ public class HadoopConfigurationRestartXulDialog extends AbstractXulEventHandler
   }
 
   public void showHelp() {
-    ShowHelpDialog showHelpDialog =
-      new ShowHelpDialog( shell,
+    String docUrl =
+        Const.getDocUrl( BaseMessages.getString( PKG, "HadoopConfigurationRestartXulDialog.Help.Url" ) );
+
+    ShowHelpDialog showHelpDialog = new ShowHelpDialog( shell,
         BaseMessages.getString( PKG, "HadoopConfigurationRestartXulDialog.Help.Title" ),
-        BaseMessages.getString( PKG, "HadoopConfigurationRestartXulDialog.Help.Url" ),
+        docUrl,
         BaseMessages.getString( PKG, "HadoopConfigurationRestartXulDialog.Help.Header" ) ) {
 
-        // Parent is modal so we have to be as well
-        @Override protected Shell createShell( Shell parent ) {
-          return new Shell( parent, SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.APPLICATION_MODAL );
-        }
-      };
+      // Parent is modal so we have to be as well
+      @Override
+      protected Shell createShell( Shell parent ) {
+        return new Shell( parent, SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.APPLICATION_MODAL );
+      }
+    };
+
     showHelpDialog.open();
     showHelpDialog.dispose();
   }

@@ -30,6 +30,7 @@ import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
 import org.pentaho.runtime.test.test.impl.RuntimeTestResultEntryImpl;
+import org.pentaho.di.core.Const;
 
 /**
  * This is a convenience class that will add a shim troubleshooting guide action if none is specified and the severity
@@ -87,7 +88,8 @@ public class ClusterRuntimeTestEntry extends RuntimeTestResultEntryImpl {
                                                         RuntimeTestEntrySeverity severity, DocAnchor docAnchor ) {
     if ( severity == null || severity.ordinal() >= RuntimeTestEntrySeverity.WARNING.ordinal() ) {
       MessageGetter messageGetter = messageGetterFactory.create( PKG );
-      String docUrl = messageGetter.getMessage( RUNTIME_TEST_RESULT_ENTRY_WITH_DEFAULT_SHIM_HELP_SHELL_DOC );
+      String docUrl =
+          Const.getDocUrl( messageGetter.getMessage( RUNTIME_TEST_RESULT_ENTRY_WITH_DEFAULT_SHIM_HELP_SHELL_DOC ) );
       if ( docAnchor != null ) {
         docUrl += messageGetter.getMessage( docAnchor.getAnchorTextKey() );
       }

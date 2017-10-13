@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.dialog.ShowHelpDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -89,17 +90,21 @@ public class NoHadoopConfigurationsXulDialog extends AbstractXulEventHandler {
   }
 
   public void showHelp() {
-    ShowHelpDialog showHelpDialog =
-      new ShowHelpDialog( shell,
+    String docUrl =
+        Const.getDocUrl( BaseMessages.getString( PKG, "HadoopConfigurationSelectionDialog.Help.Url" ) );
+
+    ShowHelpDialog showHelpDialog = new ShowHelpDialog( shell,
         BaseMessages.getString( PKG, "HadoopConfigurationSelectionDialog.Help.Title" ),
-        BaseMessages.getString( PKG, "HadoopConfigurationSelectionDialog.Help.Url" ),
+        docUrl,
         BaseMessages.getString( PKG, "HadoopConfigurationSelectionDialog.Help.Header" ) ) {
 
-        // Parent is modal so we have to be as well
-        @Override protected Shell createShell( Shell parent ) {
-          return new Shell( parent, SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.APPLICATION_MODAL );
-        }
-      };
+      // Parent is modal so we have to be as well
+      @Override
+      protected Shell createShell( Shell parent ) {
+        return new Shell( parent, SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.APPLICATION_MODAL );
+      }
+    };
+
     showHelpDialog.open();
     showHelpDialog.dispose();
   }
