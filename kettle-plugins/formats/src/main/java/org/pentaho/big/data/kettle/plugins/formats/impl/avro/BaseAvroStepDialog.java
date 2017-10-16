@@ -338,6 +338,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       }
     } );
     props.setLook( wPath );
+    wPath.addModifyListener( lsMod );
     new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
 
 
