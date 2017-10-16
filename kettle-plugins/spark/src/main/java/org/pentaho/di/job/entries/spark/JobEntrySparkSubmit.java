@@ -69,16 +69,13 @@ import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlank
  * this: spark-submit --class org.pentaho.spark.SparkExecTest --master yarn-cluster my-spark-job.jar arg1 arg2
  * <p>
  * More information on the options is here: http://spark.apache.org/docs/1.2.0/submitting-applications.html
- *
- * @author jdixon
- * @since Dec 3 2014
  */
 
 @JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/spark.svg", id = "SparkSubmit",
   name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.spark",
-  documentationUrl = "0L0/0Y0/0L0/Spark_Submit" )
+  documentationUrl = "Products/Data_Integration/Job_Entry_Reference/Spark_Submit" )
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
   public static final String JOB_TYPE_JAVA_SCALA = "Java or Scala";
   public static final String JOB_TYPE_PYTHON = "Python";

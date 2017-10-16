@@ -63,7 +63,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
   name = "KafkaProducer.TypeLongDesc",
   description = "KafkaProducer.TypeTooltipDesc",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
+  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Kafka_Producer" )
 @InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public enum ConnectionType {

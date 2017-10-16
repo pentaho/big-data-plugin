@@ -83,12 +83,10 @@ import org.w3c.dom.Node;
  * Class providing an input step for reading data from an HBase table according to meta data mapping info stored in a
  * separate HBase table called "pentaho_mappings". See org.pentaho.hbase.mapping.Mapping for details on the meta data
  * format.
- * 
- * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 @Step( id = "HBaseInput", image = "HB.svg", name = "HBaseInput.Name", description = "HBaseInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Input",
+    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/HBase_Input",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
 @InjectionSupported( localizationPrefix = "HBaseInput.Injection.", groups = { "OUTPUT_FIELDS", "MAPPING", "FILTER" } )
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {

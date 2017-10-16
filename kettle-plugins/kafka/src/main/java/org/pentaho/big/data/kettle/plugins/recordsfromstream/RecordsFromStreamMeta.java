@@ -29,6 +29,7 @@ import org.pentaho.di.trans.steps.rowsfromresult.RowsFromResultMeta;
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.recordsfromstream",
   name = "RecordsFromStream.TypeLongDesc",
   description = "RecordsFromStream.TypeTooltipDesc",
-  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
+  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Get_Records_From_Stream" )
 public class RecordsFromStreamMeta extends RowsFromResultMeta {
 }

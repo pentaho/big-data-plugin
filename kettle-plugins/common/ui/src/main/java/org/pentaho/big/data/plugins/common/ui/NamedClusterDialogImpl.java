@@ -134,10 +134,11 @@ public class NamedClusterDialogImpl extends Dialog {
     BaseStepDialog.setSize( shell );
 
     // Create help button
+    String docUrl = Const.getDocUrl( BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Doc" ) );
     PluginInterface plugin =
         PluginRegistry.getInstance().findPluginWithId( LifecyclePluginType.class, /* TODO */ "HadoopSpoonPlugin" );
     HelpUtils.createHelpButton( shell, HelpUtils.getHelpDialogTitle( plugin ),
-        BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Doc" ),
+        docUrl,
         BaseMessages.getString( PKG, "NamedClusterDialog.Shell.Title" ) );
 
     // Buttons

@@ -85,7 +85,7 @@ import java.util.regex.Pattern;
   description = "HadoopTransJobExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor",
-  documentationUrl = "0L0/0Y0/0L0/Pentaho_MapReduce" )
+  documentationUrl = "Products/Data_Integration/Job_Entry_Reference/Pentaho_MapReduce" )
 public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
   public static final String MAPREDUCE_APPLICATION_CLASSPATH = "mapreduce.application.classpath";
   public static final String DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH =

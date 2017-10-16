@@ -36,7 +36,7 @@ import org.pentaho.di.trans.step.StepMeta;
 
 @Step( id = "ParquetOutput", image = "PO.svg", name = "ParquetOutput.Name", description = "ParquetOutput.Description",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  documentationUrl = "http://wiki.pentaho.com/display/EAI/Parquet+output",
+  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Parquet_Output",
   i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
 @InjectionSupported( localizationPrefix = "ParquetOutput.Injection.", groups = { "FILENAME_LINES", "FIELDS" }, hide = {
   "FIELD_POSITION", "FIELD_LENGTH", "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",

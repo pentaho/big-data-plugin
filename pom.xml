@@ -90,6 +90,7 @@
     <kafka-clients.version>0.10.2.1</kafka-clients.version>
     <dependency.hamcrest.revision>1.3</dependency.hamcrest.revision>
   </properties>
+
   <build>
     <plugins>
       <plugin>

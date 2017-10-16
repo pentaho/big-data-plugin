@@ -30,7 +30,7 @@ import org.pentaho.di.trans.steps.injector.InjectorMeta;
 
 @Step( id = "HadoopEnterPlugin", image = "MRI.svg", name = "HadoopEnterPlugin.Name",
     description = "HadoopEnterPlugin.Description",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/MapReduce+Input",
+    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/MapReduce_Input",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopenter" )
 @InjectionSupported( localizationPrefix = "HadoopEnterPlugin.Injection." )

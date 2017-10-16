@@ -42,14 +42,10 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 
-/**
- *
- * @author Alexander Buloichik
- */
 //keep ID as new because we will have old step with ID AvroInput
 @Step( id = "AvroInputNew", image = "AI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+input",
+    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Avro_Input",
     i18nPackageName = "org.pentaho.di.trans.steps.avro" )
 @InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "FIELDS" }, hide = {
         "FILEMASK", "EXCLUDE_FILEMASK", "FILE_REQUIRED", "INCLUDE_SUBFOLDERS", "FIELD_POSITION", "FIELD_LENGTH",

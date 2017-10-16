@@ -92,9 +92,11 @@ public class ClusterTestResultsDialog extends Dialog {
 
     int margin = Const.FORM_MARGIN;
 
-    HelpUtils.createHelpButton( shell, BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Title" ),
-      BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ),
-      BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Header" ) );
+    String docUrl = Const.getDocUrl( BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc" ) );
+    HelpUtils.createHelpButton( shell,
+        BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Title" ),
+        docUrl,
+        BaseMessages.getString( PKG, "ClusterTestResultsDialog.Shell.Doc.Header" ) );
 
     FormLayout formLayout = new FormLayout();
     formLayout.marginWidth = margin;
