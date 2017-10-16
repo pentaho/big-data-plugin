@@ -284,6 +284,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         wDateTimeFormat.setEnabled( wSpecifyDateTimeFormat.getSelection() );
+        actualizeDateTimeControls();
       }
     } );
 
@@ -304,6 +305,16 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     boolean dictionaryEncoding = wDictionaryEncoding.getSelection();
     lDict.setEnabled( dictionaryEncoding );
     wDictPageSize.setEnabled( dictionaryEncoding );
+  }
+
+  void actualizeDateTimeControls() {
+    boolean allowedToIncludeDateTime = !wSpecifyDateTimeFormat.getSelection();
+    wIncludeDateInFilename.setEnabled( allowedToIncludeDateTime );
+    wIncludeTimeInFilename.setEnabled( allowedToIncludeDateTime );
+    if ( !allowedToIncludeDateTime ) {
+      wIncludeDateInFilename.setSelection( false );
+      wIncludeTimeInFilename.setSelection( false );
+    }
   }
 
   protected ComboVar createComboVar( Composite container, String[] options ) {
@@ -356,6 +367,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     }
 
     actualizeDictionaryPageSizeControl();
+    actualizeDateTimeControls();
   }
 
   private String coalesce( String value ) {
@@ -375,12 +387,14 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     meta.setRowGroupSize( wRowSize.getText() );
     meta.setDataPageSize( wPageSize.getText() );
     meta.setExtension( wExtension.getText() );
-    meta.setDateInFilename( wIncludeDateInFilename.getSelection() );
-    meta.setTimeInFilename( wIncludeTimeInFilename.getSelection() );
     if ( wSpecifyDateTimeFormat.getSelection() ) {
       meta.setDateTimeFormat( wDateTimeFormat.getText() );
+      meta.setDateInFilename( false );
+      meta.setTimeInFilename( false );
     } else {
       meta.setDateTimeFormat( null );
+      meta.setDateInFilename( wIncludeDateInFilename.getSelection() );
+      meta.setTimeInFilename( wIncludeTimeInFilename.getSelection() );
     }
   }
 
