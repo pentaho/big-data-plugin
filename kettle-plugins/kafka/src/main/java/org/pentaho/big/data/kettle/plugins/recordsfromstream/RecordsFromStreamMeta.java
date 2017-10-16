@@ -30,6 +30,6 @@ import org.pentaho.di.trans.steps.rowsfromresult.RowsFromResultMeta;
   name = "RecordsFromStream.TypeLongDesc",
   description = "RecordsFromStream.TypeTooltipDesc",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
-  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Get_Records_From_Stream")
+  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Get_Records_From_Stream" )
 public class RecordsFromStreamMeta extends RowsFromResultMeta {
 }
