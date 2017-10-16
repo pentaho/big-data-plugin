@@ -383,6 +383,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     if ( Utils.isEmpty( wStepname.getText() ) ) {
       return;
     }
+    stepname = wStepname.getText();
 
     List<String> validationErrorFields = validateOutputFields( wOutputFields, meta );
 
@@ -495,7 +496,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     return value == null ? "" : value;
   }
 
-  private void populateFieldsUI(List<AvroFormatInputOutputField> fields, TableView wFields,
+  private void populateFieldsUI( List<AvroFormatInputOutputField> fields, TableView wFields,
                                 BiConsumer<AvroFormatInputOutputField, TableItem> converter ) {
     int nrFields = fields.size();
     for ( int i = 0; i < nrFields; i++ ) {

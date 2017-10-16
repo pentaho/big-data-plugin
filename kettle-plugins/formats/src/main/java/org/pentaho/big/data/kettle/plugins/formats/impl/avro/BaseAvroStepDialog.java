@@ -211,6 +211,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     if ( Utils.isEmpty( wStepname.getText() ) ) {
       return;
     }
+    stepname = wStepname.getText();
 
     getInfo( meta, false );
     dispose();
