@@ -216,6 +216,8 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
       return;
     }
 
+    stepname = wStepname.getText();
+
     getInfo( meta, false );
     dispose();
   }
