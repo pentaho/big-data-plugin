@@ -216,7 +216,8 @@ public abstract class AvroInputMetaBase extends
   public void resolve() {
     if ( filename != null && !filename.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( filename );
+        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
+        FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
@@ -227,7 +228,8 @@ public abstract class AvroInputMetaBase extends
 
     if ( schemaFilename != null && !schemaFilename.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( schemaFilename );
+        String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaFilename );
+        FileObject fileObject = KettleVFS.getFileObject( realSchemaFilename );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           schemaFilename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
