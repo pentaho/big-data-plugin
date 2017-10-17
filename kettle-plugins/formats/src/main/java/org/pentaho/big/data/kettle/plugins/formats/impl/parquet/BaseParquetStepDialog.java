@@ -150,9 +150,8 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     updateLocation();
 
     meta.setChanged( changed );
-    int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
-    shell.setMinimumSize( getWidth(), height );
-    shell.setSize( getWidth(), height );
+    shell.setMinimumSize( getWidth(), 650 );
+    shell.setSize( getWidth(), 650 );
     shell.open();
     wStepname.setFocus();
     while ( !shell.isDisposed() ) {
