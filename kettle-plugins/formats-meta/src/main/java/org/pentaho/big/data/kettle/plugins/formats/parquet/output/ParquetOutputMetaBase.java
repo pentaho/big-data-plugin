@@ -330,7 +330,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public String constructOutputFilename() {
     String outputFileName = filename;
     if ( dateTimeFormat != null && !dateTimeFormat.isEmpty() ) {
-      outputFileName += new SimpleDateFormat( dateTimeFormat ).format( new Date() );
+      String dateTimeFormatPattern = getParentStepMeta().getParentTransMeta().environmentSubstitute( dateTimeFormat );
+      outputFileName += new SimpleDateFormat( dateTimeFormatPattern ).format( new Date() );
     } else {
       if ( dateInFilename ) {
         outputFileName += '_' + new SimpleDateFormat( "yyyyMMdd" ).format( new Date() );
