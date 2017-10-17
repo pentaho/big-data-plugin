@@ -173,8 +173,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
         outputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
-        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "nullable" ) );
-        outputField.setNullString( rep.getStepAttributeString( id_step, i, "default" ) );
+        outputField.setNullString( rep.getStepAttributeString( id_step, i, "nullable" ) );
+        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "default" ) );
 
         avroOutputFields.add( outputField );
       }
@@ -200,8 +200,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getNullString() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getIfNullValue() );
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESSION, compressionType );
@@ -219,7 +219,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
   public void resolve() {
     if ( filename != null && !filename.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( filename );
+        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
+        FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
@@ -230,7 +231,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
     if ( schemaFilename != null && !schemaFilename.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( schemaFilename );
+        String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaFilename );
+        FileObject fileObject = KettleVFS.getFileObject( realSchemaFilename );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           schemaFilename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }

@@ -66,8 +66,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           throw new KettleException( "No output files defined" );
         }
         data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-        data.input.setInputFile( meta.getFilename() );
-        data.input.setInputSchemaFile( meta.getSchemaFilename() );
+        data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+        data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
         data.reader = data.input.createRecordReader( null );
         data.rowIterator = data.reader.iterator();
       }

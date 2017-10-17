@@ -120,7 +120,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
     }
 
     data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
-    data.output.setOutputFile( meta.getFilename() );
+    data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
     data.output.setSchemaDescription( schemaDescription );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
@@ -132,7 +132,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
     data.output.setNameSpace( meta.getNamespace() );
     data.output.setRecordName( meta.getRecordName() );
     data.output.setDocValue( meta.getDocValue() );
-    data.output.setSchemaFilename( meta.getSchemaFilename() );
+    data.output.setSchemaFilename( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
     data.writer = data.output.createRecordWriter();
   }
 
