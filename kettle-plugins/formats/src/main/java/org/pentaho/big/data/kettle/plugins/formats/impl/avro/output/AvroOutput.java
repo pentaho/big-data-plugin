@@ -87,7 +87,9 @@ public class AvroOutput extends BaseStep implements StepInterface {
             outputData[i] = currentRow[inputRowIndex];
           }
         }
-        data.writer.write( new RowMetaAndData( outputRMI, outputData ) );
+        RowMetaAndData row = new RowMetaAndData( outputRMI, outputData );
+        data.writer.write( row );
+        putRow( row.getRowMeta(), row.getData() );
         return true;
       } else {
         // no more input to be expected...
