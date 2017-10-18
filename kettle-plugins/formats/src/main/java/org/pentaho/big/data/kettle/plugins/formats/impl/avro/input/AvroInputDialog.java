@@ -316,7 +316,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( inputField.getIfNullValue() != null ) {
         item.setText( FIELD_DEFAULT_VALUE_COLUMN_INDEX, inputField.getIfNullValue() );
       }
-      if ( inputField.getIfNullValue() != null ) {
+      if ( inputField.getNullString() != null ) {
         String value = inputField.getNullString();
         if ( !StringUtil.isEmpty( value ) ) {
           value = Boolean.valueOf( value ) ? "Yes" : "No";
