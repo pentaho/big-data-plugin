@@ -203,4 +203,33 @@ public class NamedClusterManager implements NamedClusterService {
   public Map<String, Object> getProperties() {
     return properties;
   }
+
+  @Override
+  public NamedCluster getNamedClusterByHost( String hostName, IMetaStore metastore ) {
+    if ( metastore == null || hostName == null ) {
+      return null;
+    }
+    try {
+      List<NamedCluster> namedClusters = list( metastore );
+      for ( NamedCluster nc : namedClusters ) {
+        if ( nc.getHdfsHost().equals( hostName ) ) {
+          return nc;
+        }
+      }
+    } catch ( MetaStoreException e ) {
+      return null;
+    }
+    return null;
+  }
+
+  @Override
+  public void updateNamedClusterTemplate( String hostName, int port, boolean isMapr ) {
+    clusterTemplate.setHdfsHost( hostName );
+    if ( port > 0 ) {
+      clusterTemplate.setHdfsPort( String.valueOf( port ) );
+    } else {
+      clusterTemplate.setHdfsPort( "" );
+    }
+    clusterTemplate.setMapr( isMapr );
+  }
 }

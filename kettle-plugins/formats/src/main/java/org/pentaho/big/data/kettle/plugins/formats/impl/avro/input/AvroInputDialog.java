@@ -110,7 +110,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     String avroFileName = wPath.getText();
     avroFileName = transMeta.environmentSubstitute( avroFileName );
     try {
-      SchemaDescription schemaDescription = AvroInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
+      SchemaDescription schemaDescription = AvroInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster( avroFileName ), schemaFileName, avroFileName );
       wInputFields.clearAll();
       for ( SchemaDescription.Field field : schemaDescription ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );

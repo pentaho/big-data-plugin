@@ -13,12 +13,12 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-jdbc</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -35,7 +35,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
       <version>${project.version}</version>
     </dependency>

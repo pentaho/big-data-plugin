@@ -98,8 +98,9 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     swtXulLoader.setOuterContext( shell );
 
     container =
-      swtXulLoader.loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/ui/entry/JobEntryHadoopJobExecutorDialog.xul",
-        bundle ); //$NON-NLS-1$
+      swtXulLoader
+        .loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/ui/entry/JobEntryHadoopJobExecutorDialog.xul",
+          bundle ); //$NON-NLS-1$
 
     final XulRunner runner = new SwtXulRunner();
     runner.addContainer( container );
@@ -222,7 +223,7 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
   private void selectNamedCluster() {
     @SuppressWarnings( "unchecked" )
     XulMenuList<NamedCluster> namedClusterMenu =
-        (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
+      (XulMenuList<NamedCluster>) container.getDocumentRoot().getElementById( "named-clusters" ); //$NON-NLS-1$
 
     NamedCluster namedCluster = jobEntry.getNamedCluster();
     if ( namedCluster != null && isKnownNamedCluster( namedCluster, controller ) ) {

@@ -48,6 +48,7 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.plugins.Plugin;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
@@ -70,6 +71,9 @@ public class AvroInputMetaTest {
 
   @Mock
   private NamedClusterService namedClusterService;
+
+  @Mock
+  MetastoreLocatorOsgi metaStoreService;
 
   @Mock
   private StepMeta nextStep;
@@ -103,7 +107,7 @@ public class AvroInputMetaTest {
 
   @Before
   public void setUp() throws KettlePluginException {
-    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService );
+    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService, metaStoreService );
     when( field.getType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
 
     Map<Class<?>, String> classMap = new HashMap<Class<?>, String>();

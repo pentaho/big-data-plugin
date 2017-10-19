@@ -155,58 +155,6 @@
       <version>${dependency.xstream.revision}</version>
     </dependency>
     <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh512-package</artifactId>
-      <version>${pentaho-hadoop-shims-cdh512.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hdp26-package</artifactId>
-      <version>${pentaho-hadoop-shims-hdp26.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-mapr520-package</artifactId>
-      <version>${pentaho-hadoop-shims-mapr520.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-emr58-package</artifactId>
-      <version>${pentaho-hadoop-shims-emr58.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
       <version>${project.version}</version>
@@ -232,46 +180,6 @@
       </resource>
     </resources>
     <plugins>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh512-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-hdp26-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-mapr520-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr58-package</artifactId>
-                  <type>zip</type>
-                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>${maven-assembly-plugin.version}</version>

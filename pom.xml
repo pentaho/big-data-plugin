@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.pentaho</groupId>
@@ -22,14 +23,13 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
-  <modules>
-    <module>legacy</module>
-    <module>api</module>
+ <!-- <modules>
+
     <module>impl</module>
     <module>kettle-plugins</module>
     <module>osgi-jaas</module>
     <module>assemblies</module>
-  </modules>
+  </modules>-->
   <scm>
     <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
     <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
@@ -72,7 +72,8 @@
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
     <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
     <publish-sonar-phase></publish-sonar-phase>
-    <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
+    <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17
+    </plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.junit.revision>4.11</dependency.junit.revision>
     <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
@@ -156,8 +157,35 @@
         </configuration>
       </plugin>
     </plugins>
-  </build>
 
+  </build>
+  <profiles>
+    <profile>
+      <id>lowdeps</id>
+      <activation>
+        <property>
+          <name>!skipDefault</name>
+        </property>
+      </activation>
+      <modules>
+      </modules>
+    </profile>
+    <profile>
+      <id>highdeps</id>
+      <activation>
+        <property>
+          <name>!skipDefault</name>
+        </property>
+      </activation>
+      <modules>
+        <module>legacy</module>
+        <module>impl</module>
+        <module>kettle-plugins</module>
+        <module>osgi-jaas</module>
+        <module>assemblies</module>
+      </modules>
+    </profile>
+  </profiles>
 
   <repositories>
     <repository>

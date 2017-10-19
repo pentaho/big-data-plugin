@@ -26,10 +26,12 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
@@ -65,11 +67,13 @@ public class AvroInputMeta extends AvroInputMetaBase {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
+  private MetastoreLocatorOsgi metaStoreService;
 
   public AvroInputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
-      NamedClusterService namedClusterService ) {
+      NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
+    this.metaStoreService = metaStore;
   }
 
   @Override
@@ -84,7 +88,15 @@ public class AvroInputMeta extends AvroInputMetaBase {
   }
 
   public NamedCluster getNamedCluster() {
-    return namedClusterService.getClusterTemplate();
+    NamedCluster namedCluster =
+      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.getFilename() );
+    return namedCluster;
+  }
+
+  public NamedCluster getNamedCluster( String fileUri ) {
+    NamedCluster namedCluster =
+      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, fileUri );
+    return namedCluster;
   }
 
   public NamedClusterServiceLocator getNamedClusterServiceLocator() {

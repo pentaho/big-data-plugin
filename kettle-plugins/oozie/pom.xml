@@ -18,22 +18,22 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-pig</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -92,7 +92,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-oozie</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -102,7 +102,7 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-impl-shim-oozie</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

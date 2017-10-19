@@ -18,27 +18,27 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-jaas</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -78,7 +78,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>

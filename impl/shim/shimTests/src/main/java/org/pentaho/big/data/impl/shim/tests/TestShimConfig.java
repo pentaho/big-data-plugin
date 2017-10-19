@@ -26,12 +26,12 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.Configuration;
+import org.pentaho.hadoop.shim.api.HasConfiguration;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
@@ -59,37 +59,46 @@ public class TestShimConfig extends BaseRuntimeTest {
 
   private final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
-  private final HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
+  //private final HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
+  private final HasConfiguration hasConfiguration;
 
-  public TestShimConfig( MessageGetterFactory messageGetterFactory ) {
-    this( messageGetterFactory, HadoopConfigurationBootstrap.getInstance() );
-  }
+//  public TestShimConfig( MessageGetterFactory messageGetterFactory ) {
+//    this( messageGetterFactory, HadoopConfigurationBootstrap.getInstance() );
+//  }
 
-  public TestShimConfig( MessageGetterFactory messageGetterFactory,
-                         HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
+  public TestShimConfig( HasConfiguration hasConfiguration, MessageGetterFactory messageGetterFactory ) {
     super( NamedCluster.class, TestShimLoad.HADOOP_CONFIGURATION_MODULE, HADOOP_CONFIGURATION_TEST_SHIM_CONFIG,
-      messageGetterFactory.create( PKG ).getMessage( TEST_SHIM_CONFIG_NAME ), true,
-      new HashSet<>( Arrays.asList( TestShimLoad.HADOOP_CONFIGURATION_TEST_SHIM_LOAD ) ) );
+            messageGetterFactory.create( PKG ).getMessage( TEST_SHIM_CONFIG_NAME ), true,
+            new HashSet<>( Arrays.asList( TestShimLoad.HADOOP_CONFIGURATION_TEST_SHIM_LOAD ) ) );
     this.messageGetterFactory = messageGetterFactory;
     messageGetter = messageGetterFactory.create( PKG );
-    this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;
+    this.hasConfiguration = hasConfiguration;
   }
+
+//  public TestShimConfig( MessageGetterFactory messageGetterFactory,
+//                         HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
+//    super( NamedCluster.class, TestShimLoad.HADOOP_CONFIGURATION_MODULE, HADOOP_CONFIGURATION_TEST_SHIM_CONFIG,
+//      messageGetterFactory.create( PKG ).getMessage( TEST_SHIM_CONFIG_NAME ), true,
+//      new HashSet<>( Arrays.asList( TestShimLoad.HADOOP_CONFIGURATION_TEST_SHIM_LOAD ) ) );
+//    this.messageGetterFactory = messageGetterFactory;
+//    messageGetter = messageGetterFactory.create( PKG );
+//    //this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;
+//  }
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     String activeConfigurationId = "";
     try {
-      activeConfigurationId = hadoopConfigurationBootstrap.getWillBeActiveConfigurationId();
+      //activeConfigurationId = hadoopConfigurationBootstrap.getWillBeActiveConfigurationId();
       // Get the active shim
-      HadoopConfigurationProvider hadoopConfigurationProvider = hadoopConfigurationBootstrap.getProvider();
+      NamedCluster namedCluster = (NamedCluster) objectUnderTest;
+      //HadoopConfigurationProvider hadoopConfigurationProvider = hadoopConfigurationBootstrap.getProvider();
 
-      HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
+      HadoopConfiguration hadoopConfiguration = hasConfiguration.getHadoopConfiguration();
       activeConfigurationId = hadoopConfiguration.getIdentifier();
-      Configuration config = hadoopConfiguration.getHadoopShim().createConfiguration();
+      Configuration config = hadoopConfiguration.getHadoopShim().createConfiguration( namedCluster.getName() );
       String defaultFS = config.get( HadoopFileSystem.FS_DEFAULT_NAME );
 
       // Get the named cluster
-      NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-
       // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
       // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
       // Here we try to resolve the parameters if we can:
@@ -118,16 +127,23 @@ public class TestShimConfig extends BaseRuntimeTest {
           messageGetter.getMessage( TEST_SHIM_CONFIG_FS_MATCH_DESC ),
           messageGetter.getMessage( TEST_SHIM_CONFIG_FS_MATCH_MESSAGE ),
           ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
-    } catch ( NoShimSpecifiedException e ) {
+    }
+    catch ( Exception e ) {
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
           messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ), e.getMessage(), e,
           ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
-    } catch ( ConfigurationException e ) {
-      return new RuntimeTestResultSummaryImpl(
-        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
-          messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC, activeConfigurationId ),
-          e.getMessage(), e, ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
     }
+//    catch ( NoShimSpecifiedException e ) {
+//      return new RuntimeTestResultSummaryImpl(
+//        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
+//          messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ), e.getMessage(), e,
+//          ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
+//    } catch ( ConfigurationException e ) {
+//      return new RuntimeTestResultSummaryImpl(
+//        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
+//          messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC, activeConfigurationId ),
+//          e.getMessage(), e, ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
+//    }
   }
 }
