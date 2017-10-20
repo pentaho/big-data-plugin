@@ -143,11 +143,12 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
         cancel();
       }
     } );
+
+    int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
+    shell.setMinimumSize( getWidth(), height );
+    shell.setSize( getWidth(), height );
     getData( meta );
     updateLocation();
-
-    shell.setMinimumSize( getWidth(), 650 );
-    shell.setSize( getWidth(), 650 );
     shell.open();
     wStepname.setFocus();
     while ( !shell.isDisposed() ) {
