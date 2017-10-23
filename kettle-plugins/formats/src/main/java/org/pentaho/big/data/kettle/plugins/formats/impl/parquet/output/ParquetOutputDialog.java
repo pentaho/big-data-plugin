@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -49,6 +50,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -451,12 +453,52 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
           }
         };
         BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1, false,
-          listener );
+          listener, ParquetOutputDialog::getFieldsChoiceDialog );
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
           .getString( PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
     }
+  }
+
+  static MessageDialog getFieldsChoiceDialog( Shell shell, int existingFields, int newFields ) {
+    MessageDialog messageDialog =
+      new MessageDialog( shell,
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Title" ), // "Warning!"
+        null,
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Message", "" + newFields ),
+        MessageDialog.WARNING, new String[] {
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.AddNew" ),
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Add" ),
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.ClearAndAdd" ),
+        BaseMessages.getString( PKG, "ParquetOutput.GetFieldsChoice.Cancel" ), }, 0 ) {
+
+        public void create() {
+          super.create();
+          getShell().setBackground( GUIResource.getInstance().getColorWhite() );
+        }
+
+        protected Control createMessageArea( Composite composite ) {
+          Control control = super.createMessageArea( composite );
+          imageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
+          messageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
+          return control;
+        }
+
+        protected Control createDialogArea( Composite parent ) {
+          Control control = super.createDialogArea( parent );
+          control.setBackground( GUIResource.getInstance().getColorWhite() );
+          return control;
+        }
+
+        protected Control createButtonBar( Composite parent ) {
+          Control control = super.createButtonBar( parent );
+          control.setBackground( GUIResource.getInstance().getColorWhite() );
+          return control;
+        }
+      };
+    MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
+    return messageDialog;
   }
 
   @Override
