@@ -95,6 +95,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     wlFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
     props.setLook( wlFields );
     new FD( wlFields ).left( 0, 0 ).top( 0, FIELDS_SEP ).apply();
+    FormatInputOutputField[] fields = meta.inputFields;
+    int nrRows = fields == null ? 0 : fields.length;
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.AvroPath" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
@@ -104,7 +106,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
           ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
     wInputFields =
         new TableView( transMeta, shell, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-            parameterColumns, 7, lsMod, props );
+            parameterColumns, nrRows, lsMod, props );
     props.setLook( wInputFields );
     new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wlFields, FIELD_LABEL_SEP )
       .bottom( wGetFields, -FIELDS_SEP ).apply();
