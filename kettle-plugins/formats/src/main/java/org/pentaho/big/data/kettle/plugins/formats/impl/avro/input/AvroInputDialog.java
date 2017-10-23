@@ -41,13 +41,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
-import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
@@ -75,10 +73,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private static final int FIELD_NAME_COLUMN_INDEX = 2;
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
-
-  private static final int FIELD_DEFAULT_VALUE_COLUMN_INDEX = 4;
-
-  private static final int FIELD_NULLABLE_COLUMN_INDEX = 5;
 
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
@@ -120,8 +114,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
           setField( item, field.formatFieldName, 1 );
           setField( item, field.pentahoFieldName, 2 );
           setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
-          setField( item, field.defaultValue, 4 );
-          setField( item, field.allowNull ? "Yes" : "No", 5 );
         }
       }
 
@@ -153,30 +145,26 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     layout.marginHeight = MARGIN;
     wComp.setLayout( layout );
 
+    //get fields button
     lsGet = new Listener() {
       public void handleEvent( Event e ) {
         populateFieldsTable();
       }
     };
-
     Button wGetFields = new Button( wComp, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
     new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
-
     wGetFields.addListener( SWT.Selection, lsGet );
 
+    // fields table
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Type" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ),
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Default" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Null" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
+          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     wInputFields =
@@ -313,16 +301,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( inputField.getName() != null ) {
         item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
       }
-      if ( inputField.getIfNullValue() != null ) {
-        item.setText( FIELD_DEFAULT_VALUE_COLUMN_INDEX, inputField.getIfNullValue() );
-      }
-      if ( inputField.getNullString() != null ) {
-        String value = inputField.getNullString();
-        if ( !StringUtil.isEmpty( value ) ) {
-          value = Boolean.valueOf( value ) ? "Yes" : "No";
-        }
-        item.setText( FIELD_NULLABLE_COLUMN_INDEX, value );
-      }
       if ( inputField.getTypeDesc() != null ) {
         item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
       }
@@ -346,14 +324,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-
-      String value = item.getText( FIELD_NULLABLE_COLUMN_INDEX );
-      if ( !StringUtil.isEmpty( value ) ) {
-        value = value.equals( "Yes" ) ? "true" : "false";
-      }
-      field.setNullString( value );
-
-      field.setIfNullValue( item.getText( FIELD_DEFAULT_VALUE_COLUMN_INDEX ) );
       inputFields.add( field );
     }
     meta.setInputFields( inputFields );
