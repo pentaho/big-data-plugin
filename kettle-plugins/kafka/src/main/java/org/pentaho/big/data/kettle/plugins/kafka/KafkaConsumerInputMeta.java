@@ -51,6 +51,7 @@ import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -363,27 +364,35 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
                      StepMeta stepMeta, RowMetaInterface prev, String[] input, String[] output,
                      RowMetaInterface info, VariableSpace space, Repository repository,
                      IMetaStore metaStore ) {
-    CheckResult cr;
-    if ( prev == null || prev.size() == 0 ) {
-      cr = new CheckResult( CheckResultInterface.TYPE_RESULT_WARNING,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NotReceivingFields" ), stepMeta );
-      remarks.add( cr );
-    } else {
-      cr = new CheckResult( CheckResultInterface.TYPE_RESULT_OK,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.StepRecevingData", prev.size() + "" ),
-        stepMeta );
-      remarks.add( cr );
+    long duration = Long.MIN_VALUE;
+    try {
+      if ( !StringUtil.isVariable( getBatchDuration() ) ) {
+        duration = Long.parseLong( space.environmentSubstitute( getBatchDuration() ) );
+      }
+    } catch ( NumberFormatException e ) {
+      remarks.add( new CheckResult(
+        CheckResultInterface.TYPE_RESULT_ERROR,
+        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Duration" ),
+        stepMeta ) );
     }
 
-    // See if we have input streams leading to this step!
-    if ( input.length > 0 ) {
-      cr = new CheckResult( CheckResultInterface.TYPE_RESULT_OK,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.StepRecevingData2" ), stepMeta );
-      remarks.add( cr );
-    } else {
-      cr = new CheckResult( CheckResultInterface.TYPE_RESULT_ERROR,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NoInputReceivedFromOtherSteps" ), stepMeta );
-      remarks.add( cr );
+    long size = Long.MIN_VALUE;
+    try {
+      if ( !StringUtil.isVariable( getBatchSize() ) ) {
+        size = Long.parseLong( space.environmentSubstitute( getBatchSize() ) );
+      }
+    } catch ( NumberFormatException e ) {
+      remarks.add( new CheckResult(
+        CheckResultInterface.TYPE_RESULT_ERROR,
+        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Number of records" ),
+        stepMeta ) );
+    }
+
+    if ( duration == 0 && size == 0 ) {
+      remarks.add( new CheckResult(
+        CheckResultInterface.TYPE_RESULT_ERROR,
+        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NoBatchDefined" ),
+        stepMeta ) );
     }
   }
 

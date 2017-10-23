@@ -27,6 +27,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -110,6 +111,18 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
     }
     boolean superInit = super.init( kafkaConsumerInputMeta, kafkaConsumerInputData );
     if ( !superInit ) {
+      return false;
+    }
+    List<CheckResultInterface> remarks = new ArrayList<>(  );
+    kafkaConsumerInputMeta.check(
+      remarks, getTransMeta(), kafkaConsumerInputMeta.getParentStepMeta(),
+      null, null, null, null, //these parameters are not used inside the method
+      variables, getRepository(), getMetaStore()  );
+    boolean errorsPresent =
+      remarks.stream().filter( result -> result.getType() == CheckResultInterface.TYPE_RESULT_ERROR )
+        .peek( result -> logError( result.getText() ) )
+        .count() > 0;
+    if ( errorsPresent ) {
       return false;
     }
 
