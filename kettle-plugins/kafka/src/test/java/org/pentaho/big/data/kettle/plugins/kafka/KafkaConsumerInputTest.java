@@ -160,6 +160,8 @@ public class KafkaConsumerInputTest {
   @Test( expected = KafkaException.class )
   public void testInit_kafkaConfigIssue() throws Exception {
     step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
+    meta.setBatchSize( "100" );
+    meta.setBatchDuration( "1000" );
 
     step.init( meta, data );
   }
@@ -211,6 +213,34 @@ public class KafkaConsumerInputTest {
 
     verify( consumer ).subscribe( topics );
     verify( repository ).loadTransformation( "consumerSub.ktr", null, null, true, null );
+  }
+
+  @Test
+  public void testInitFailsOnZeroBatchAndDuration() throws Exception {
+    meta.setConsumerGroup( "testGroup" );
+    meta.setKafkaFactory( factory );
+    meta.setBatchDuration( "0" );
+    meta.setBatchSize( "0" );
+
+    step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
+
+    assertFalse( step.init( meta, data ) );
+    verify( logChannel ).logError( "The \"Number of records\" and \"Duration\" fields can’t both be set to 0. Please "
+      + "set a value of 1 or higher for one of the fields." );
+  }
+
+  @Test
+  public void testInitFailsOnNaNBatchAndDuration() throws Exception {
+    meta.setConsumerGroup( "testGroup" );
+    meta.setKafkaFactory( factory );
+    meta.setBatchDuration( "one" );
+    meta.setBatchSize( "two" );
+
+    step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
+
+    assertFalse( step.init( meta, data ) );
+    verify( logChannel ).logError( "The \"Duration\" field is using a non-numeric value. Please set a numeric value." );
+    verify( logChannel ).logError( "The \"Number of records\" field is using a non-numeric value. Please set a numeric value." );
   }
 
   @Test

@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.hamcrest.Matchers;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -39,7 +40,14 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.KettleClientEnvironment;
+import org.pentaho.di.core.ProgressMonitorListener;
+import org.pentaho.di.core.Props;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.plugins.StepPluginType;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
@@ -80,6 +88,20 @@ public class KafkaConsumerInputMetaTest {
   @Mock IMetaStore metastore;
   @Mock Repository rep;
   @Mock MetastoreLocator metastoreLocator;
+
+  @BeforeClass
+  public static void init() throws Exception {
+    KettleClientEnvironment.init();
+    PluginRegistry.addPluginType( StepPluginType.getInstance() );
+    PluginRegistry.init();
+    if ( !Props.isInitialized() ) {
+      Props.init( 0 );
+    }
+    StepPluginType.getInstance().handlePluginAnnotation(
+      KafkaConsumerInputMeta.class,
+      KafkaConsumerInputMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
+      Collections.emptyList(), false, null );
+  }
 
   @Test
   public void testLoadsFieldsFromXml() throws Exception {
@@ -472,5 +494,30 @@ public class KafkaConsumerInputMetaTest {
     meta.applyInjectedProperties();
     assertThat( meta.getConfig().size(), Matchers.is( 1 ) );
     assertThat( meta.getConfig(), hasEntry( "injectedName", "injectedValue" ) );
+  }
+
+  @Test
+  public void testCheckErrorsOnZeroSizeAndDuration() throws Exception {
+    TransMeta transMeta = new TransMeta( getClass().getResource( "/zeroBatchAndDuration.ktr" ).getPath() );
+    ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
+    List<CheckResultInterface> remarks = new ArrayList<>(  );
+    transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
+    assertEquals( 2, remarks.size() );
+    assertEquals( CheckResultInterface.TYPE_RESULT_ERROR, remarks.get( 0 ).getType() );
+    assertEquals( "The \"Number of records\" and \"Duration\" fields can’t both be set to 0. Please set a value of 1 "
+      + "or higher for one of the fields.", remarks.get( 0 ).getText() );
+  }
+
+  @Test
+  public void testCheckErrorsOnNaN() throws Exception {
+    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationNaN.ktr" ).getPath() );
+    ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
+    List<CheckResultInterface> remarks = new ArrayList<>(  );
+    transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
+    assertEquals( 3, remarks.size() );
+    assertEquals( CheckResultInterface.TYPE_RESULT_ERROR, remarks.get( 0 ).getType() );
+    assertEquals( "The \"Duration\" field is using a non-numeric value. Please set a numeric value.", remarks.get( 0 ).getText() );
+    assertEquals( CheckResultInterface.TYPE_RESULT_ERROR, remarks.get( 1 ).getType() );
+    assertEquals( "The \"Number of records\" field is using a non-numeric value. Please set a numeric value.", remarks.get( 1 ).getText() );
   }
 }
