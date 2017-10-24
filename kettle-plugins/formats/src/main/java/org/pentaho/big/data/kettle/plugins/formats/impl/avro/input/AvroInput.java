@@ -26,6 +26,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -55,7 +57,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     meta = (AvroInputMeta) smi;
     data = (AvroInputData) sdi;
     try {
-      if ( data.input == null ) {
+      if ( data.input == null || data.reader == null || data.rowIterator == null ) {
         FormatService formatService;
         try {
           formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
@@ -68,6 +70,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
         data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
         data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
         data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
+        data.input.setSchema( createSchemaFromMeta( meta ) );
         data.reader = data.input.createRecordReader( null );
         data.rowIterator = data.reader.iterator();
       }
@@ -78,6 +81,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
       } else {
         data.reader.close();
         data.reader = null;
+        data.input = null;
         setOutputDone();
         return false;
       }
@@ -105,6 +109,15 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
     return in.readSchema( schemaPath, dataPath );
+  }
+
+  public static SchemaDescription createSchemaFromMeta( AvroInputMetaBase meta ) {
+    SchemaDescription schema = new SchemaDescription();
+    for ( FormatInputOutputField f : meta.getInpuFields() ) {
+      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), f.getIfNullValue(), true );
+      schema.addField( field );
+    }
+    return schema;
   }
 
 }
