@@ -74,10 +74,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
-  private static final int FIELD_DEFAULT_VALUE_COLUMN_INDEX = 4;
-
-  private static final int FIELD_NULLABLE_COLUMN_INDEX = 5;
-
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
   private TableView wInputFields;
@@ -118,8 +114,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
           setField( item, field.formatFieldName, 1 );
           setField( item, field.pentahoFieldName, 2 );
           setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
-          setField( item, field.defaultValue, 4 );
-          setField( item, String.valueOf( field.allowNull ), 5 );
         }
       }
 
@@ -151,30 +145,26 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     layout.marginHeight = MARGIN;
     wComp.setLayout( layout );
 
+    //get fields button
     lsGet = new Listener() {
       public void handleEvent( Event e ) {
         populateFieldsTable();
       }
     };
-
     Button wGetFields = new Button( wComp, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
     new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
-
     wGetFields.addListener( SWT.Selection, lsGet );
 
+    // fields table
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Type" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Default" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Null" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, true ) };
+          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     wInputFields =
@@ -311,12 +301,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( inputField.getName() != null ) {
         item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
       }
-      if ( inputField.getIfNullValue() != null ) {
-        item.setText( FIELD_DEFAULT_VALUE_COLUMN_INDEX, inputField.getIfNullValue() );
-      }
-      if ( inputField.getIfNullValue() != null ) {
-        item.setText( FIELD_NULLABLE_COLUMN_INDEX, inputField.getNullString() );
-      }
       if ( inputField.getTypeDesc() != null ) {
         item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
       }
@@ -340,8 +324,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-      field.setNullString( item.getText( FIELD_NULLABLE_COLUMN_INDEX ) );
-      field.setIfNullValue( item.getText( FIELD_DEFAULT_VALUE_COLUMN_INDEX ) );
       inputFields.add( field );
     }
     meta.setInputFields( inputFields );
