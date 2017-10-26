@@ -50,10 +50,10 @@ public class PigServiceFactoryImpl implements NamedClusterServiceFactory<PigServ
     return PigService.class;
   }
 
-  @Override public boolean canHandle( NamedCluster namedCluster ) {
-    String shimIdentifier = null; // TODO: Specify shim
-    return ( shimIdentifier == null && isActiveConfiguration ) || hadoopConfiguration.getIdentifier()
-      .equals( shimIdentifier );
+  @Override
+  public boolean canHandle( NamedCluster namedCluster ) {
+    boolean ncState = namedCluster == null ? true : !namedCluster.isUseGateway();
+    return isActiveConfiguration && ncState;
   }
 
   @Override public PigService create( NamedCluster namedCluster ) {
