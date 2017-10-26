@@ -15,7 +15,6 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <easymock.versin>3.0</easymock.versin>
-    <xstream.version>1.4.9</xstream.version>
     <jface.version>3.3.0-I20070606-0010</jface.version>
   </properties>
   <dependencies>
