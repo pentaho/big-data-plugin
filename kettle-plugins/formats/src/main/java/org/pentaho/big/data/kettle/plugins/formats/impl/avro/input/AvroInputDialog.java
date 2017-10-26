@@ -170,7 +170,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wInputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
             parameterColumns, 7, null, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 20, 20, 10 );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
