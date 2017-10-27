@@ -231,24 +231,24 @@ public class KafkaConsumerInputMetaTest {
     meta.setParentStepMeta( stepMeta );
 
     assertEquals(
-        "    <clusterName>some_cluster</clusterName>" + Const.CR
-      + "    <topic>temperature</topic>" + Const.CR
-      + "    <consumerGroup>alert</consumerGroup>" + Const.CR
-      + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>" + Const.CR
-      + "    <batchSize>54321</batchSize>" + Const.CR
-      + "    <batchDuration>987</batchDuration>" + Const.CR
-      + "    <connectionType>DIRECT</connectionType>" + Const.CR
-      + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
-      + "    <OutputField kafkaName=\"key\"  type=\"String\" >kafkaKey</OutputField>" + Const.CR
-      + "    <OutputField kafkaName=\"message\"  type=\"String\" >kafkaMessage</OutputField>" + Const.CR
-      + "    <OutputField kafkaName=\"topic\"  type=\"String\" >topic</OutputField>" + Const.CR
-      + "    <OutputField kafkaName=\"partition\"  type=\"Integer\" >part</OutputField>" + Const.CR
-      + "    <OutputField kafkaName=\"offset\"  type=\"Integer\" >off</OutputField>" + Const.CR
-      + "    <OutputField kafkaName=\"timestamp\"  type=\"Integer\" >time</OutputField>" + Const.CR
-      + "    <advancedConfig>" + Const.CR
-      + "        <option property=\"advanced.property1\"  value=\"advancedPropertyValue1\" />" + Const.CR
-      + "        <option property=\"advanced.property2\"  value=\"advancedPropertyValue2\" />" + Const.CR
-      + "    </advancedConfig>" + Const.CR,
+      "    <clusterName>some_cluster</clusterName>" + Const.CR
+        + "    <topic>temperature</topic>" + Const.CR
+        + "    <consumerGroup>alert</consumerGroup>" + Const.CR
+        + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>" + Const.CR
+        + "    <batchSize>54321</batchSize>" + Const.CR
+        + "    <batchDuration>987</batchDuration>" + Const.CR
+        + "    <connectionType>DIRECT</connectionType>" + Const.CR
+        + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
+        + "    <OutputField kafkaName=\"key\"  type=\"String\" >kafkaKey</OutputField>" + Const.CR
+        + "    <OutputField kafkaName=\"message\"  type=\"String\" >kafkaMessage</OutputField>" + Const.CR
+        + "    <OutputField kafkaName=\"topic\"  type=\"String\" >topic</OutputField>" + Const.CR
+        + "    <OutputField kafkaName=\"partition\"  type=\"Integer\" >part</OutputField>" + Const.CR
+        + "    <OutputField kafkaName=\"offset\"  type=\"Integer\" >off</OutputField>" + Const.CR
+        + "    <OutputField kafkaName=\"timestamp\"  type=\"Integer\" >time</OutputField>" + Const.CR
+        + "    <advancedConfig>" + Const.CR
+        + "        <option property=\"advanced.property1\"  value=\"advancedPropertyValue1\" />" + Const.CR
+        + "        <option property=\"advanced.property2\"  value=\"advancedPropertyValue2\" />" + Const.CR
+        + "    </advancedConfig>" + Const.CR,
       meta.getXML() );
 
     verify( namedClusterEmbedManager ).registerUrl( "hc://" + clusterName );
@@ -289,9 +289,11 @@ public class KafkaConsumerInputMetaTest {
 
     when( rep.getStepAttributeInteger( stepId, meta.ADVANCED_CONFIG + "_COUNT" ) ).thenReturn( 2L );
     when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config1" );
-    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue1" );
+    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_VALUE" ) )
+      .thenReturn( "advancedPropertyValue1" );
     when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config2" );
-    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue2" );
+    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_VALUE" ) )
+      .thenReturn( "advancedPropertyValue2" );
 
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
     assertEquals( "some_cluster", meta.getClusterName() );
@@ -367,22 +369,30 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, "kafkaServer:9092" );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key", meta.getKeyField().getOutputName() );
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key_type", meta.getKeyField().getOutputType().toString() );
+    verify( rep )
+      .saveStepAttribute( transId, stepId, "OutputField_key_type", meta.getKeyField().getOutputType().toString() );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_message", meta.getMessageField().getOutputName() );
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_message_type", meta.getMessageField().getOutputType().toString() );
+    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_message_type",
+      meta.getMessageField().getOutputType().toString() );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_topic", meta.getTopicField().getOutputName() );
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_topic_type", meta.getTopicField().getOutputType().toString() );
+    verify( rep )
+      .saveStepAttribute( transId, stepId, "OutputField_topic_type", meta.getTopicField().getOutputType().toString() );
 
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_partition", meta.getPartitionField().getOutputName() );
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_partition_type", meta.getPartitionField().getOutputType().toString() );
+    verify( rep )
+      .saveStepAttribute( transId, stepId, "OutputField_partition", meta.getPartitionField().getOutputName() );
+    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_partition_type",
+      meta.getPartitionField().getOutputType().toString() );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_offset", meta.getOffsetField().getOutputName() );
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_offset_type", meta.getOffsetField().getOutputType().toString() );
+    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_offset_type",
+      meta.getOffsetField().getOutputType().toString() );
 
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_timestamp", meta.getTimestampField().getOutputName() );
-    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_timestamp_type", meta.getTimestampField().getOutputType().toString() );
+    verify( rep )
+      .saveStepAttribute( transId, stepId, "OutputField_timestamp", meta.getTimestampField().getOutputName() );
+    verify( rep ).saveStepAttribute( transId, stepId, "OutputField_timestamp_type",
+      meta.getTimestampField().getOutputType().toString() );
 
     verify( rep, times( 1 ) ).saveStepAttribute( transId, stepId, meta.ADVANCED_CONFIG + "_COUNT", 2 );
     verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_NAME", "advanced.property1" );
@@ -398,7 +408,7 @@ public class KafkaConsumerInputMetaTest {
 
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     when( namedClusterService.getNamedClusterByName( eq( "my_cluster" ), any( IMetaStore.class ) ) )
-        .thenReturn( namedCluster );
+      .thenReturn( namedCluster );
 
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     meta.setNamedClusterService( namedClusterService );
@@ -423,7 +433,7 @@ public class KafkaConsumerInputMetaTest {
     NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     JaasConfigService jaasConfigService = mock( JaasConfigService.class );
-    NamedCluster namedCluster =  mock( NamedCluster.class );
+    NamedCluster namedCluster = mock( NamedCluster.class );
     when( metastoreLocator.getMetastore() ).thenReturn( metastore );
     when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
     when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) ).thenReturn( jaasConfigService );
@@ -449,7 +459,7 @@ public class KafkaConsumerInputMetaTest {
   public void testGetJaasConfigException() throws Exception {
     NamedClusterServiceLocator namedClusterLocator = mock( NamedClusterServiceLocator.class );
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    NamedCluster namedCluster =  mock( NamedCluster.class );
+    NamedCluster namedCluster = mock( NamedCluster.class );
     when( metastoreLocator.getMetastore() ).thenReturn( metastore );
     when( namedClusterService.getNamedClusterByName( "kurtsCluster", metastore ) ).thenReturn( namedCluster );
     when( namedClusterLocator.getService( namedCluster, JaasConfigService.class ) )
@@ -478,7 +488,8 @@ public class KafkaConsumerInputMetaTest {
     resourceDependencies = inputMeta.getResourceDependencies( new TransMeta(), stepMeta );
     assertEquals( 1, resourceDependencies.get( 0 ).getEntries().size() );
     assertEquals( path, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResource() );
-    assertEquals( ResourceEntry.ResourceType.ACTIONFILE, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResourcetype() );
+    assertEquals( ResourceEntry.ResourceType.ACTIONFILE,
+      resourceDependencies.get( 0 ).getEntries().get( 0 ).getResourcetype() );
   }
 
   @Test
@@ -500,7 +511,7 @@ public class KafkaConsumerInputMetaTest {
   public void testCheckErrorsOnZeroSizeAndDuration() throws Exception {
     TransMeta transMeta = new TransMeta( getClass().getResource( "/zeroBatchAndDuration.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
-    List<CheckResultInterface> remarks = new ArrayList<>(  );
+    List<CheckResultInterface> remarks = new ArrayList<>();
     transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
     assertEquals( 2, remarks.size() );
     assertEquals( CheckResultInterface.TYPE_RESULT_ERROR, remarks.get( 0 ).getType() );
@@ -512,12 +523,51 @@ public class KafkaConsumerInputMetaTest {
   public void testCheckErrorsOnNaN() throws Exception {
     TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationNaN.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
-    List<CheckResultInterface> remarks = new ArrayList<>(  );
+    List<CheckResultInterface> remarks = new ArrayList<>();
     transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
     assertEquals( 3, remarks.size() );
     assertEquals( CheckResultInterface.TYPE_RESULT_ERROR, remarks.get( 0 ).getType() );
-    assertEquals( "The \"Duration\" field is using a non-numeric value. Please set a numeric value.", remarks.get( 0 ).getText() );
+    assertEquals( "The \"Duration\" field is using a non-numeric value. Please set a numeric value.",
+      remarks.get( 0 ).getText() );
     assertEquals( CheckResultInterface.TYPE_RESULT_ERROR, remarks.get( 1 ).getType() );
-    assertEquals( "The \"Number of records\" field is using a non-numeric value. Please set a numeric value.", remarks.get( 1 ).getText() );
+    assertEquals( "The \"Number of records\" field is using a non-numeric value. Please set a numeric value.",
+      remarks.get( 1 ).getText() );
+  }
+
+  @Test
+  public void testCheckErrorsOnVariablesNoSubstitute() throws Exception {
+    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
+    ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
+    List<CheckResultInterface> remarks = new ArrayList<>();
+    transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
+    assertEquals( 1, remarks.size() );
+    assertEquals( "None of the field names seem to contain spaces or other database unfriendly characters(OK)",
+      remarks.get( 0 ).getText() );
+  }
+
+  @Test
+  public void testCheckErrorsOnVariablesSubstitute() throws Exception {
+    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
+    ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
+    List<CheckResultInterface> remarks = new ArrayList<>();
+    Variables variables = new Variables();
+    variables.setVariable( "something", "1" );
+    transMeta.checkSteps( remarks, false, monitor, variables, rep, metastore );
+    assertEquals( 1, remarks.size() );
+    assertEquals( "None of the field names seem to contain spaces or other database unfriendly characters(OK)",
+      remarks.get( 0 ).getText() );
+  }
+
+  @Test
+  public void testCheckErrorsOnVariablesSubstituteError() throws Exception {
+    TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
+    ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
+    List<CheckResultInterface> remarks = new ArrayList<>();
+    Variables variables = new Variables();
+    variables.setVariable( "something", "0" );
+    transMeta.checkSteps( remarks, false, monitor, variables, rep, metastore );
+    assertEquals( 2, remarks.size() );
+    assertEquals( "The \"Number of records\" and \"Duration\" fields can’t both be set to 0. Please set a value of 1 "
+        + "or higher for one of the fields.", remarks.get( 0 ).getText() );
   }
 }

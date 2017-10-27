@@ -366,26 +366,26 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
                      IMetaStore metaStore ) {
     long duration = Long.MIN_VALUE;
     try {
-      if ( !StringUtil.isVariable( getBatchDuration() ) ) {
-        duration = Long.parseLong( space.environmentSubstitute( getBatchDuration() ) );
-      }
+      duration = Long.parseLong( space.environmentSubstitute( getBatchDuration() ) );
     } catch ( NumberFormatException e ) {
-      remarks.add( new CheckResult(
-        CheckResultInterface.TYPE_RESULT_ERROR,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Duration" ),
-        stepMeta ) );
+      if ( !StringUtil.isVariable( getBatchDuration() ) ) {
+        remarks.add( new CheckResult(
+          CheckResultInterface.TYPE_RESULT_ERROR,
+          BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Duration" ),
+          stepMeta ) );
+      }
     }
 
     long size = Long.MIN_VALUE;
     try {
-      if ( !StringUtil.isVariable( getBatchSize() ) ) {
-        size = Long.parseLong( space.environmentSubstitute( getBatchSize() ) );
-      }
+      size = Long.parseLong( space.environmentSubstitute( getBatchSize() ) );
     } catch ( NumberFormatException e ) {
-      remarks.add( new CheckResult(
-        CheckResultInterface.TYPE_RESULT_ERROR,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Number of records" ),
-        stepMeta ) );
+      if ( !StringUtil.isVariable( getBatchSize() ) ) {
+        remarks.add( new CheckResult(
+          CheckResultInterface.TYPE_RESULT_ERROR,
+          BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Number of records" ),
+          stepMeta ) );
+      }
     }
 
     if ( duration == 0 && size == 0 ) {
