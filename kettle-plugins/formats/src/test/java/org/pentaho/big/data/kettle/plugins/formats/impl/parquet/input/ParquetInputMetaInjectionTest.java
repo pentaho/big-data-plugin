@@ -68,5 +68,11 @@ public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<Par
         return meta.inputFields[ 0 ].getPath();
       }
     } );
+
+    checkStringToInt( "FIELD_SOURCE_TYPE", new IntGetter() {
+      public int get() {
+        return meta.inputFields[ 0 ].getSourceType();
+      }
+    }, typeNames, getTypeCodes( typeNames ) );
   }
 }
