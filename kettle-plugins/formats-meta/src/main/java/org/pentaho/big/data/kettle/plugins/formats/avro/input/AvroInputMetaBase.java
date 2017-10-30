@@ -126,6 +126,7 @@ public abstract class AvroInputMetaBase extends
         inputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
         inputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
         inputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" )  );
+        inputField.setSourceType( XMLHandler.getTagValue( fnode, "sourcetype" ) );
         avroInputFields.add( inputField );
       }
       this.inputFields = avroInputFields;
@@ -154,6 +155,7 @@ public abstract class AvroInputMetaBase extends
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getNullString() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "sourcetype", field.getSourceTypeDesc() ) );
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -181,6 +183,7 @@ public abstract class AvroInputMetaBase extends
         inputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
         inputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "nullable" ) );
         inputField.setNullString( rep.getStepAttributeString( id_step, i, "default" ) );
+        inputField.setSourceType( rep.getStepAttributeString( id_step, i, "sourcetype" ) );
 
         avroOutputFields.add( inputField );
       }
@@ -204,6 +207,7 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
         rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
         rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "sourcetype", field.getSourceTypeDesc() );
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, "schemaFilename", schemaFilename );
