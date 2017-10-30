@@ -74,6 +74,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
+  private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 4;
+
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
   private TableView wInputFields;
@@ -114,6 +116,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
           setField( item, field.formatFieldName, 1 );
           setField( item, field.pentahoFieldName, 2 );
           setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
+          setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 4 );
         }
       }
 
@@ -123,7 +126,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     } catch ( Exception ex ) {
       logError( BaseMessages.getString( PKG, "AvroInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
       new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
-          "AvroInput.Error.UnableToLoadSchemaFromContainerFile", avroFileName ), ex );
+        "AvroInput.Error.UnableToLoadSchemaFromContainerFile", avroFileName ), ex );
     }
   }
 
@@ -160,17 +163,19 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     // fields table
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Type" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
+        ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ),
+      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.SourceType" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     wInputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
             parameterColumns, 7, null, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25 );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 25 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
@@ -226,16 +231,16 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wSchemaPath = new TextVar( transMeta, wSourceGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wSchemaPath );
     new FD( wSchemaPath ).left( 0, 0 ).top( wlSchemaPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH )
-        .rright().apply();
+      .rright().apply();
 
     wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
     props.setLook( wbBrowse );
     wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbSchemaBrowse.addListener( SWT.Selection, event -> browseForFileInputPathForSchema() );
     int bOffset = ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.
-        computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
+      computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
-        .apply();
+      .apply();
 
     layout = new FormLayout();
     layout.marginWidth = MARGIN;
@@ -260,10 +265,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       }
 
       FileObject
-          selectedFile =
-          fileChooserDialog
-              .open( shell, null, getSchemeFromPath( path ), true, fileName, FILES_FILTERS, fileFilterNames, true,
-                  VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
+        selectedFile =
+        fileChooserDialog
+          .open( shell, null, getSchemeFromPath( path ), true, fileName, FILES_FILTERS, fileFilterNames, true,
+            VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
         wSchemaPath.setText( selectedFile.getURL().toString() );
       }
@@ -304,6 +309,9 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( inputField.getTypeDesc() != null ) {
         item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
       }
+      if ( inputField.getSourceTypeDesc() != null ) {
+        item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, inputField.getSourceTypeDesc() );
+      }
       itemIndex++;
     }
   }
@@ -324,6 +332,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      field.setSourceType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) ) );
       inputFields.add( field );
     }
     meta.setInputFields( inputFields );
@@ -344,20 +353,20 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private void doPreview() {
     getInfo( meta, true );
     TransMeta previewMeta =
-        TransPreviewFactory.generatePreviewTransformation( transMeta, meta, wStepname.getText() );
+      TransPreviewFactory.generatePreviewTransformation( transMeta, meta, wStepname.getText() );
     transMeta.getVariable( "Internal.Transformation.Filename.Directory" );
     previewMeta.getVariable( "Internal.Transformation.Filename.Directory" );
 
     EnterNumberDialog numberDialog =
-        new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
-            "AvroInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
-            "AvroInputDialog.PreviewSize.DialogMessage" ) );
+      new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
+        "AvroInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
+        "AvroInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
 
     if ( previewSize > 0 ) {
       TransPreviewProgressDialog progressDialog =
-          new TransPreviewProgressDialog( shell, previewMeta, new String[] { wStepname.getText() },
-              new int[] { previewSize } );
+        new TransPreviewProgressDialog( shell, previewMeta, new String[] { wStepname.getText() },
+          new int[] { previewSize } );
       progressDialog.open();
 
       Trans trans = progressDialog.getTrans();
@@ -366,17 +375,17 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( !progressDialog.isCancelled() ) {
         if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
           EnterTextDialog etd =
-              new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
-                  BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+            new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
+              BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
           etd.setReadOnly();
           etd.open();
         }
       }
 
       PreviewRowsDialog prd =
-          new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog
-              .getPreviewRowsMeta( wStepname.getText() ),
-              progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
+        new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog
+          .getPreviewRowsMeta( wStepname.getText() ),
+          progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
       prd.open();
     }
   }
