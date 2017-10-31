@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -90,7 +90,6 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.fileinput.BaseFileInputField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
@@ -2772,7 +2771,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           wFields.clearAll( false );
 
           for ( int i = 0; i < fields.size(); i++ ) {
-            TextFileInputField field = (TextFileInputField) fields.get( i );
+            BaseFileInputField field = (BaseFileInputField) fields.get( i );
             if ( !field.isIgnored() && field.getLength() > 0 ) {
               TableItem item = new TableItem( wFields.table, SWT.NONE );
               item.setText( 1, field.getName() );
@@ -2842,13 +2841,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       // See if positions are skipped, if this is the case, add dummy fields...
       if ( f.getPosition() != prevEnd ) {
         // gap
-        TextFileInputField field = new TextFileInputField( "Dummy" + dummynr, prevEnd, f.getPosition() - prevEnd );
+        BaseFileInputField field = new BaseFileInputField( "Dummy" + dummynr, prevEnd, f.getPosition() - prevEnd );
         field.setIgnored( true ); // don't include in result by default.
         fields.add( field );
         dummynr++;
       }
 
-      TextFileInputField field = new TextFileInputField( f.getName(), f.getPosition(), f.getLength() );
+      BaseFileInputField field = new BaseFileInputField( f.getName(), f.getPosition(), f.getLength() );
       field.setType( f.getType() );
       field.setIgnored( false );
       field.setFormat( f.getFormat() );
@@ -2866,7 +2865,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     }
 
     if ( info.inputFiles.inputFields.length == 0 ) {
-      TextFileInputField field = new TextFileInputField( "Field1", 0, maxsize );
+      BaseFileInputField field = new BaseFileInputField( "Field1", 0, maxsize );
       fields.add( field );
     } else {
       // Take the last field and see if it reached until the maximum...
@@ -2876,7 +2875,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       int len = f.getLength();
       if ( pos + len < maxsize ) {
         // If not, add an extra trailing field!
-        TextFileInputField field = new TextFileInputField( "Dummy" + dummynr, pos + len, maxsize - pos - len );
+        BaseFileInputField field = new BaseFileInputField( "Dummy" + dummynr, pos + len, maxsize - pos - len );
         field.setIgnored( true ); // don't include in result by default.
         fields.add( field );
         dummynr++;
