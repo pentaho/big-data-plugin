@@ -64,6 +64,18 @@ public class PigServiceFactoryImplTest {
   }
 
   @Test
+  public void testCanHandle_UseGateway() {
+    when( namedCluster.isUseGateway() ).thenReturn( true );
+    assertFalse( pigServiceFactory.canHandle( namedCluster ) );
+  }
+
+  @Test
+  public void testCanHandle_NtUseGateway() {
+    when( namedCluster.isUseGateway() ).thenReturn( false );
+    assertTrue( pigServiceFactory.canHandle( namedCluster ) );
+  }
+
+  @Test
   public void testActiveCanHandle() {
     assertTrue( pigServiceFactory.canHandle( namedCluster ) );
   }

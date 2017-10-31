@@ -39,6 +39,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
@@ -57,7 +58,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Job entry that executes a Pig script either on a hadoop cluster or locally.
@@ -200,7 +200,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     if ( m_params != null ) {
       for ( String name : m_params.keySet() ) {
         String value = m_params.get( name );
-        if ( !Const.isEmpty( name ) && !Const.isEmpty( value ) ) {
+        if ( !Utils.isEmpty( name ) && !Utils.isEmpty( value ) ) {
           retval.append( "      <parameter>" ).append( Const.CR );
           retval.append( "        " ).append( XMLHandler.addTagValue( "name", name ) );
           retval.append( "        " ).append( XMLHandler.addTagValue( "value", value ) );
@@ -308,7 +308,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         int i = 0;
         for ( String name : m_params.keySet() ) {
           String value = m_params.get( name );
-          if ( !Const.isEmpty( name ) && !Const.isEmpty( value ) ) {
+          if ( !Utils.isEmpty( name ) && !Utils.isEmpty( value ) ) {
             rep.saveJobEntryAttribute( id_job, getObjectId(), i, "param_name", name );
             rep.saveJobEntryAttribute( id_job, getObjectId(), i, "param_value", value );
             i++;
@@ -427,15 +427,10 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
            * @see org.pentaho.di.job.entry.JobEntryInterface#execute(org.pentaho.di.core.Result, int)
            */
   public Result execute( final Result result, int arg1 ) throws KettleException {
-
     result.setNrErrors( 0 );
-
-
-    if ( Const.isEmpty( m_scriptFile ) ) {
-      throw new KettleException(
-        BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_ERROR_NO_PIG_SCRIPT_SPECIFIED ) );
+    if ( Utils.isEmpty( m_scriptFile ) ) {
+      throw new KettleException( BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_ERROR_NO_PIG_SCRIPT_SPECIFIED ) );
     }
-
     try {
       String scriptFileS = m_scriptFile;
       scriptFileS = environmentSubstitute( scriptFileS );
@@ -445,9 +440,6 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       if ( m_localExecution && !pigService.isLocalExecutionSupported() ) {
         throw new KettleException( BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ) );
       }
-
-      final Properties properties = new Properties();
-
       // transform the map type to list type which can been accepted by ParameterSubstitutionPreprocessor
       final List<String> paramList = new ArrayList<String>();
       if ( m_params != null ) {
@@ -460,8 +452,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         }
       }
 
-      final PigService.ExecutionMode execMode = ( m_localExecution ? PigService.ExecutionMode.LOCAL : PigService
-        .ExecutionMode.MAPREDUCE );
+      final PigService.ExecutionMode execMode = ( m_localExecution ? PigService.ExecutionMode.LOCAL : PigService.ExecutionMode.MAPREDUCE );
 
       if ( m_enableBlocking ) {
         PigResult pigResult = pigService
@@ -488,8 +479,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
           @Override
           public void jobFinished( Job job ) throws KettleException {
             if ( runThread.isAlive() ) {
-              logMinimal( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.AsynctaskStillRunning",
-                getName(), job.getJobname() ) );
+              logMinimal( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.Warning.AsynctaskStillRunning", getName(), job.getJobname() ) );
             }
           }
         } );
@@ -508,13 +498,18 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
   protected void processScriptExecutionResult( PigResult pigResult, Result result ) {
     int[] executionStatus = pigResult.getResult();
     Exception pigResultException = pigResult.getException();
-    if ( executionStatus != null ) {
+    //we have several execution status
+    if ( executionStatus != null && executionStatus.length > 0 ) {
+      int countFailedJob = 0;
+      if ( executionStatus.length > 1 ) {
+        countFailedJob = executionStatus[ 1 ];
+      }
       logBasic( BaseMessages.getString( PKG, "JobEntryPigScriptExecutor.JobCompletionStatus",
-        "" + executionStatus[ 0 ], "" + executionStatus[ 1 ] ) );
+        String.valueOf( executionStatus[ 0 ] ), String.valueOf( countFailedJob ) ) );
 
-      if ( executionStatus[ 1 ] > 0 ) {
+      if ( countFailedJob > 0 ) {
         result.setStopped( true );
-        result.setNrErrors( executionStatus[ 1 ] );
+        result.setNrErrors( countFailedJob );
         result.setResult( false );
       }
     } else if ( pigResultException != null ) {
@@ -525,8 +520,7 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
     }
     FileObject logFile = pigResult.getLogFile();
     if ( logFile != null ) {
-      ResultFile resultFile =
-        new ResultFile( ResultFile.FILE_TYPE_LOG, logFile, parentJob.getJobname(), getName() );
+      ResultFile resultFile = new ResultFile( ResultFile.FILE_TYPE_LOG, logFile, parentJob.getJobname(), getName() );
       result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
     }
   }
