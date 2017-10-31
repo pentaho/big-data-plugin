@@ -262,7 +262,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   public void setDefault() {
     batchSize = "1000";
-    batchDuration = "0";
+    batchDuration = "1000";
   }
 
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )

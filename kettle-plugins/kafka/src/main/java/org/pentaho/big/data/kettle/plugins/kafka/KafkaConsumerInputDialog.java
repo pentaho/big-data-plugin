@@ -476,30 +476,12 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdBatchComp.bottom = new FormAttachment( 100, 0 );
     wSetupComp.setLayoutData( fdBatchComp );
 
-    wlBatchSize = new Label( wBatchComp, SWT.LEFT );
-    props.setLook( wlBatchSize );
-    wlBatchSize.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.BatchSize" ) );
-    FormData fdlBatchSize = new FormData();
-    fdlBatchSize.left = new FormAttachment( 0, 0 );
-    fdlBatchSize.top = new FormAttachment( 0, 0 );
-    fdlBatchSize.right = new FormAttachment( 50, 0 );
-    wlBatchSize.setLayoutData( fdlBatchSize );
-
-    wBatchSize = new TextVar( transMeta, wBatchComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wBatchSize );
-    wBatchSize.addModifyListener( lsMod );
-    FormData fdBatchSize = new FormData();
-    fdBatchSize.left = new FormAttachment( 0, 0 );
-    fdBatchSize.top = new FormAttachment( wlBatchSize, 5 );
-    fdBatchSize.width = 75;
-    wBatchSize.setLayoutData( fdBatchSize );
-
     wlBatchDuration = new Label( wBatchComp, SWT.LEFT );
     props.setLook( wlBatchDuration );
     wlBatchDuration.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.BatchDuration" ) );
     FormData fdlBatchDuration = new FormData();
     fdlBatchDuration.left = new FormAttachment( 0, 0 );
-    fdlBatchDuration.top = new FormAttachment( wBatchSize, 10 );
+    fdlBatchDuration.top = new FormAttachment( 0, 0 );
     fdlBatchDuration.right = new FormAttachment( 50, 0 );
     wlBatchDuration.setLayoutData( fdlBatchDuration );
 
@@ -511,6 +493,24 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     fdBatchDuration.top = new FormAttachment( wlBatchDuration, 5 );
     fdBatchDuration.width = 75;
     wBatchDuration.setLayoutData( fdBatchDuration );
+
+    wlBatchSize = new Label( wBatchComp, SWT.LEFT );
+    props.setLook( wlBatchSize );
+    wlBatchSize.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.BatchSize" ) );
+    FormData fdlBatchSize = new FormData();
+    fdlBatchSize.left = new FormAttachment( 0, 0 );
+    fdlBatchSize.top = new FormAttachment( wBatchDuration, 10 );
+    fdlBatchSize.right = new FormAttachment( 50, 0 );
+    wlBatchSize.setLayoutData( fdlBatchSize );
+
+    wBatchSize = new TextVar( transMeta, wBatchComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wBatchSize );
+    wBatchSize.addModifyListener( lsMod );
+    FormData fdBatchSize = new FormData();
+    fdBatchSize.left = new FormAttachment( 0, 0 );
+    fdBatchSize.top = new FormAttachment( wlBatchSize, 5 );
+    fdBatchSize.width = 75;
+    wBatchSize.setLayoutData( fdBatchSize );
 
     wBatchComp.layout();
     wBatchTab.setControl( wBatchComp );
