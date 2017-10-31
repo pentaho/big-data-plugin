@@ -172,10 +172,12 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
+    parameterColumns[3].setAutoResize( false );
+
     wInputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
             parameterColumns, 7, null, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 25 );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 0 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
