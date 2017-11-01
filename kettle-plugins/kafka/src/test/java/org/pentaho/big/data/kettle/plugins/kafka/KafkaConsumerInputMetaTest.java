@@ -539,7 +539,9 @@ public class KafkaConsumerInputMetaTest {
     TransMeta transMeta = new TransMeta( getClass().getResource( "/batchAndDurationVariable.ktr" ).getPath() );
     ProgressMonitorListener monitor = mock( ProgressMonitorListener.class );
     List<CheckResultInterface> remarks = new ArrayList<>();
-    transMeta.checkSteps( remarks, false, monitor, new Variables(), rep, metastore );
+    Variables space = new Variables();
+    space.setVariable( "something", "1000" );
+    transMeta.checkSteps( remarks, false, monitor, space, rep, metastore );
     assertEquals( 1, remarks.size() );
     assertEquals( "None of the field names seem to contain spaces or other database unfriendly characters(OK)",
       remarks.get( 0 ).getText() );

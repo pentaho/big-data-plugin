@@ -51,7 +51,6 @@ import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -368,24 +367,20 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     try {
       duration = Long.parseLong( space.environmentSubstitute( getBatchDuration() ) );
     } catch ( NumberFormatException e ) {
-      if ( !StringUtil.isVariable( getBatchDuration() ) ) {
-        remarks.add( new CheckResult(
-          CheckResultInterface.TYPE_RESULT_ERROR,
-          BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Duration" ),
-          stepMeta ) );
-      }
+      remarks.add( new CheckResult(
+        CheckResultInterface.TYPE_RESULT_ERROR,
+        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Duration" ),
+        stepMeta ) );
     }
 
     long size = Long.MIN_VALUE;
     try {
       size = Long.parseLong( space.environmentSubstitute( getBatchSize() ) );
     } catch ( NumberFormatException e ) {
-      if ( !StringUtil.isVariable( getBatchSize() ) ) {
-        remarks.add( new CheckResult(
-          CheckResultInterface.TYPE_RESULT_ERROR,
-          BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Number of records" ),
-          stepMeta ) );
-      }
+      remarks.add( new CheckResult(
+        CheckResultInterface.TYPE_RESULT_ERROR,
+        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Number of records" ),
+        stepMeta ) );
     }
 
     if ( duration == 0 && size == 0 ) {
