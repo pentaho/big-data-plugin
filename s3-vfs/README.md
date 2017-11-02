@@ -1,4 +1,4 @@
-# Pentaho S3 VFS
+# Hitachi Vantara S3 VFS
 
 
 #### Pre-requisites for building the project:
