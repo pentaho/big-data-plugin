@@ -24,13 +24,6 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -69,6 +62,14 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
@@ -222,6 +223,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
     setConsumerGroup( XMLHandler.getTagValue( stepnode, CONSUMER_GROUP ) );
     setTransformationPath( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
+    setFileName( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
     setBatchSize( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) );
     setBatchDuration( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) );
     setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
@@ -275,6 +277,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
     setConsumerGroup( rep.getStepAttributeString( id_step, CONSUMER_GROUP ) );
     setTransformationPath( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
+    setFileName( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
     setBatchSize( rep.getStepAttributeString( id_step, BATCH_SIZE ) );
     setBatchDuration( rep.getStepAttributeString( id_step, BATCH_DURATION ) );
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( id_step, CONNECTION_TYPE ) ) );
@@ -639,6 +642,20 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     }
 
     return references;
+  }
+
+  @Override public String[] getReferencedObjectDescriptions() {
+    return new String[] {
+        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.ReferencedObject.SubTrans.Description" ) };
+  }
+
+  @Override public boolean[] isReferencedObjectEnabled() {
+    return new boolean[] { !Utils.isEmpty( transformationPath ) };
+  }
+
+  @Override public Object loadReferencedObject( int index, Repository rep, IMetaStore metaStore, VariableSpace space )
+      throws KettleException {
+    return loadMappingMeta( this, rep, metaStore, space );
   }
 
   protected void applyInjectedProperties() {

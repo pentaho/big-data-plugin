@@ -23,12 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.eclipse.swt.SWT;
@@ -66,7 +60,10 @@ import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
+import org.pentaho.di.repository.RepositoryObject;
+import org.pentaho.di.repository.RepositoryObjectType;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
@@ -80,8 +77,16 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.repository.dialog.SelectObjectDialog;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.di.ui.util.DialogUtils;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
@@ -103,6 +108,7 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
   private TextVar wTransPath;
   private Button wbBrowseTrans;
 
+  private ObjectId referenceObjectId;
   private ObjectLocationSpecificationMethod specificationMethod;
 
   private Label wlClusterName;
@@ -844,6 +850,24 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     }
     toggleVisibility( isDirect() );
 
+    specificationMethod = meta.getSpecificationMethod();
+    switch ( specificationMethod ) {
+      case FILENAME:
+        wTransPath.setText( Const.NVL( meta.getFileName(), "" ) );
+        break;
+      case REPOSITORY_BY_NAME:
+        String fullPath = Const.NVL( meta.getDirectoryPath(), "" ) + "/" + Const.NVL( meta.getTransName(), "" );
+        wTransPath.setText( fullPath );
+        break;
+      case REPOSITORY_BY_REFERENCE:
+        referenceObjectId = meta.getTransObjectId();
+        getByReferenceData( referenceObjectId );
+        break;
+      default:
+        break;
+    }
+
+
     populateFieldData();
   }
 
@@ -883,6 +907,32 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
     setFieldsFromTable();
 
     setOptionsFromTable();
+
+    meta.setSpecificationMethod( specificationMethod );
+    switch ( specificationMethod ) {
+      case FILENAME:
+        meta.setFileName( wTransPath.getText() );
+        meta.setDirectoryPath( null );
+        meta.setTransName( null );
+        meta.setTransObjectId( null );
+        break;
+      case REPOSITORY_BY_NAME:
+        String transPath = wTransPath.getText();
+        String transName = transPath;
+        String directory = "";
+        int index = transPath.lastIndexOf( "/" );
+        if ( index != -1 ) {
+          transName = transPath.substring( index + 1 );
+          directory = transPath.substring( 0, index );
+        }
+        meta.setDirectoryPath( directory );
+        meta.setTransName( transName );
+        meta.setFileName( null );
+        meta.setTransObjectId( null );
+        break;
+      default:
+        break;
+    }
 
     dispose();
   }
@@ -1056,6 +1106,23 @@ public class KafkaConsumerInputDialog extends BaseStepDialog implements StepDial
         break;
       default:
         break;
+    }
+  }
+
+  private void getByReferenceData( ObjectId transObjectId ) {
+    try {
+      RepositoryObject transInf = repository.getObjectInformation( transObjectId, RepositoryObjectType.TRANSFORMATION );
+      String
+              path =
+              DialogUtils
+                      .getPath( transMeta.getRepositoryDirectory().getPath(),
+                              transInf.getRepositoryDirectory().getPath() );
+      String fullPath = Const.NVL( path, "" ) + "/" + Const.NVL( transInf.getName(), "" );
+      wTransPath.setText( fullPath );
+    } catch ( KettleException e ) {
+      new ErrorDialog( shell,
+              BaseMessages.getString( PKG, "JobEntryTransDialog.Exception.UnableToReferenceObjectId.Title" ),
+              BaseMessages.getString( PKG, "JobEntryTransDialog.Exception.UnableToReferenceObjectId.Message" ), e );
     }
   }
 }

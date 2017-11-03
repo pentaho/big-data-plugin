@@ -22,13 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -45,6 +38,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.ProgressMonitorListener;
 import org.pentaho.di.core.Props;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.variables.Variables;
@@ -60,12 +54,21 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -155,6 +158,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "one", meta.getTopics().get( 0 ) );
     assertEquals( "two", meta.getConsumerGroup() );
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getTransformationPath() );
+    assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getFileName() );
     assertEquals( "12345", meta.getBatchSize() );
     assertEquals( "999", meta.getBatchDuration() );
     assertEquals( CLUSTER, meta.getConnectionType() );
@@ -300,6 +304,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "readings", meta.getTopics().get( 0 ) );
     assertEquals( "hooligans", meta.getConsumerGroup() );
     assertEquals( "/home/pentaho/atrans.ktr", meta.getTransformationPath() );
+    assertEquals( "/home/pentaho/atrans.ktr", meta.getFileName() );
     assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
     assertEquals( CLUSTER, meta.getConnectionType() );
@@ -571,5 +576,33 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( 2, remarks.size() );
     assertEquals( "The \"Number of records\" and \"Duration\" fields can’t both be set to 0. Please set a value of 1 "
         + "or higher for one of the fields.", remarks.get( 0 ).getText() );
+  }
+
+  @Test
+  public void testReferencedObjectHasDescription() {
+    KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
+    assertEquals( 1, meta.getReferencedObjectDescriptions().length );
+    assertTrue( meta.getReferencedObjectDescriptions()[ 0 ] instanceof String );
+  }
+
+  @Test
+  public void testIsReferencedObjectEnabled() {
+    KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
+    assertEquals( 1, meta.isReferencedObjectEnabled().length );
+    assertFalse( meta.isReferencedObjectEnabled()[ 0 ] );
+    meta.setTransformationPath( "/some/path" );
+    assertTrue( meta.isReferencedObjectEnabled()[ 0 ] );
+  }
+
+  @Test
+  public void testLoadReferencedObject() {
+    KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
+    meta.setFileName( getClass().getResource( "/consumerSub.ktr" ).getPath() );
+    try {
+      TransMeta subTrans = (TransMeta) meta.loadReferencedObject( 0, null, null, new Variables() );
+      assertThat( subTrans.getName(), is( "consumerSub" ) );
+    } catch ( KettleException e ) {
+      fail();
+    }
   }
 }
