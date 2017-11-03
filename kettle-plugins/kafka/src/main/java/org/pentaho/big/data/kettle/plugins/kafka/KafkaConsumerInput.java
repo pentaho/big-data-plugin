@@ -44,11 +44,13 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.transexecutor.TransExecutorMeta;
 import org.pentaho.di.trans.steps.transexecutor.TransExecutorParameters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -328,6 +330,7 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
   public void stopRunning( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface )
     throws KettleException {
 
+    kafkaConsumerInputData.subtransExecutor.stop();
     callable.shutdown();
     kafkaConsumerInputData.timer.cancel();
   }
@@ -335,6 +338,10 @@ public class KafkaConsumerInput extends BaseStep implements StepInterface {
   @Override public void resumeRunning() {
     callable.pauseLatch.countDown();
     super.resumeRunning();
+  }
+
+  @Override public Collection<StepStatus> subStatuses() {
+    return kafkaConsumerInputData.subtransExecutor.getStatuses().values();
   }
 
   @Override public void pauseRunning() {
