@@ -85,7 +85,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
   /**
    * Logging categories to monitor and log within Kettle
    */
-  private String[] LOGS_TO_MONITOR = new String[] { "org.apache.sqoop", "org.apache.hadoop" };
+  private String[] LOGS_TO_MONITOR = new String[] { "org.apache.sqoop", "org.apache.hadoop", "com.pentaho.big.data.bundles.impl.shim.sqoop.knox" };
 
   /**
    * Cache for the levels of loggers we changed so we can revert them when we remove our appender
