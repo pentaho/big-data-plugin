@@ -36,6 +36,7 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
+import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
@@ -138,10 +139,12 @@ public class S3FileObject extends AbstractFileObject {
     return object;
   }
 
-  private S3Object getObjectFromS3( String name, Boolean needContent ) throws S3ServiceException, IOException {
-    S3Object s3Object = fileSystem.getS3Service().getObject( getS3BucketName(), name );
-    if ( !needContent && s3Object != null ) {
-      s3Object.closeDataInputStream();
+  private S3Object getObjectFromS3( String name, Boolean needContent ) throws ServiceException, IOException {
+    S3Object s3Object;
+    if ( needContent ) {
+      s3Object = fileSystem.getS3Service().getObject( getS3BucketName(), name );
+    } else {
+      s3Object = (S3Object) fileSystem.getS3Service().getObjectDetails( getS3BucketName(), name, null, null, null, null );
     }
     return s3Object;
   }

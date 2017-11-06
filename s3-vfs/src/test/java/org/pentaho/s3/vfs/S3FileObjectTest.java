@@ -28,6 +28,7 @@ import org.jets3t.service.S3Service;
 import org.jets3t.service.S3ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
+import org.jets3t.service.model.StorageObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,6 +69,7 @@ public class S3FileObjectTest {
     s3ServiceMock = mock( S3Service.class );
     S3Bucket testBucket = new S3Bucket( BUCKET_NAME );
     S3Object s3Object = new S3Object( OBJECT_NAME );
+    StorageObject storageObject = new StorageObject( OBJECT_NAME );
 
     filename = new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME + "/" + OBJECT_NAME, FileType.FILE, null );
     S3FileName rootFileName = new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/" + BUCKET_NAME, FileType.FILE, null );
@@ -88,6 +90,7 @@ public class S3FileObjectTest {
     when( s3ServiceMock.getBucket( BUCKET_NAME ) ).thenReturn( testBucket );
     when( s3ServiceMock.getObject( testBucket, OBJECT_NAME ) ).thenReturn( s3Object );
     when( s3ServiceMock.getObject( BUCKET_NAME, OBJECT_NAME ) ).thenReturn( s3Object );
+    when( s3ServiceMock.getObjectDetails( BUCKET_NAME, OBJECT_NAME, null, null, null, null ) ).thenReturn( storageObject );
     when( s3ServiceMock.createBucket( BUCKET_NAME ) ).thenThrow( new S3ServiceException() ); // throw exception if
                                                                                              // bucket exists
     when( fileSystemSpy.getS3Service() ).thenReturn( s3ServiceMock );
