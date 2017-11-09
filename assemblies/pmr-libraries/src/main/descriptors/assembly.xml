@@ -147,7 +147,6 @@
         <include>org.codehaus.groovy:groovy</include>
         <include>org.codehaus.jackson:jackson-core-asl</include>
         <include>org.codehaus.jackson:jackson-jaxrs</include>
-        <include>org.codehaus.jackson:jackson-mapper-asl</include>
         <include>org.drools:knowledge-api</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
