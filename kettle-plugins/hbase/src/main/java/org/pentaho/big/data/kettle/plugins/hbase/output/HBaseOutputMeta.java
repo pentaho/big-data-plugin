@@ -36,7 +36,6 @@ import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -45,6 +44,7 @@ import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -95,6 +95,10 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   /** the name of the mapping for columns/types for the target table */
   @Injection( name = "TARGET_MAPPING_NAME" )
   protected String m_targetMappingName;
+
+  /** if true then the incoming column with row key from the mapping will be deleted */
+  @Injection( name = "DELETE_ROW_KEY" )
+  protected boolean m_deleteRowKey;
 
   /** if true then the WAL will not be written to */
   @Injection( name = "DISABLE_WRITE_TO_WAL" )
@@ -211,6 +215,14 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     return m_targetMappingName;
   }
 
+  public boolean getDeleteRowKey() {
+    return m_deleteRowKey;
+  }
+
+  public void setDeleteRowKey( boolean m_deleteRowKey ) {
+    this.m_deleteRowKey = m_deleteRowKey;
+  }
+
   public void setDisableWriteToWAL( boolean d ) {
     m_disableWriteToWAL = d;
   }
@@ -290,22 +302,26 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     namedClusterLoadSaveUtil
       .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
 
-    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+    if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
     }
-    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "default_config_url", m_defaultConfigURL ) );
     }
-    if ( !Const.isEmpty( m_targetTableName ) ) {
+    if ( !Utils.isEmpty( m_targetTableName ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "target_table_name", m_targetTableName ) );
     }
-    if ( !Const.isEmpty( m_targetMappingName ) ) {
+    if ( !Utils.isEmpty( m_targetMappingName ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "target_mapping_name", m_targetMappingName ) );
     }
-    if ( !Const.isEmpty( m_writeBufferSize ) ) {
+
+    retval.append( "\n    " ).append( XMLHandler.addTagValue( "delete_rows_by_key", m_deleteRowKey ) );
+
+    if ( !Utils.isEmpty( m_writeBufferSize ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "write_buffer_size", m_writeBufferSize ) );
     }
     retval.append( "\n    " ).append( XMLHandler.addTagValue( "disable_wal", m_disableWriteToWAL ) );
+
 
     if ( m_mapping != null ) {
       retval.append( m_mapping.getXML() );
@@ -333,6 +349,10 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     m_defaultConfigURL = XMLHandler.getTagValue( stepnode, "default_config_url" );
     m_targetTableName = XMLHandler.getTagValue( stepnode, "target_table_name" );
     m_targetMappingName = XMLHandler.getTagValue( stepnode, "target_mapping_name" );
+    String deleteKeys = XMLHandler.getTagValue( stepnode, "delete_rows_by_key" );
+    if ( !Utils.isEmpty( deleteKeys ) ) {
+      m_deleteRowKey = deleteKeys.equalsIgnoreCase( "Y" );
+    }
     m_writeBufferSize = XMLHandler.getTagValue( stepnode, "write_buffer_size" );
     String disableWAL = XMLHandler.getTagValue( stepnode, "disable_wal" );
     m_disableWriteToWAL = disableWAL.equalsIgnoreCase( "Y" );
@@ -360,6 +380,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
     m_targetTableName = rep.getStepAttributeString( id_step, 0, "target_table_name" );
     m_targetMappingName = rep.getStepAttributeString( id_step, 0, "target_mapping_name" );
+    m_deleteRowKey = rep.getStepAttributeBoolean( id_step, 0, "delete_rows_by_key" );
     m_writeBufferSize = rep.getStepAttributeString( id_step, 0, "write_buffer_size" );
     m_disableWriteToWAL = rep.getStepAttributeBoolean( id_step, 0, "disable_wal" );
 
@@ -380,19 +401,22 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
     namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
 
-    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+    if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "core_config_url", m_coreConfigURL );
     }
-    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "default_config_url", m_defaultConfigURL );
     }
-    if ( !Const.isEmpty( m_targetTableName ) ) {
+    if ( !Utils.isEmpty( m_targetTableName ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "target_table_name", m_targetTableName );
     }
-    if ( !Const.isEmpty( m_targetMappingName ) ) {
+    if ( !Utils.isEmpty( m_targetMappingName ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "target_mapping_name", m_targetMappingName );
     }
-    if ( !Const.isEmpty( m_writeBufferSize ) ) {
+
+    rep.saveStepAttribute( id_transformation, id_step, 0, "delete_rows_by_key", m_deleteRowKey );
+
+    if ( !Utils.isEmpty( m_writeBufferSize ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "write_buffer_size", m_writeBufferSize );
     }
     rep.saveStepAttribute( id_transformation, id_step, 0, "disable_wal", m_disableWriteToWAL );
@@ -407,6 +431,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     m_defaultConfigURL = null;
     m_targetTableName = null;
     m_targetMappingName = null;
+    m_deleteRowKey = false;
     m_disableWriteToWAL = false;
     m_writeBufferSize = null;
     namedCluster = namedClusterService.getClusterTemplate();

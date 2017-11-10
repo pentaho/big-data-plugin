@@ -65,6 +65,12 @@ public class HBaseOutputMetaInjectionTest extends BaseMetadataInjectionTest<HBas
         return meta.getTargetMappingName();
       }
     } );
+    check( "DELETE_ROW_KEY", new BooleanGetter()  {
+      @Override
+      public boolean get() {
+        return meta.getDeleteRowKey();
+      }
+    } );
     check( "DISABLE_WRITE_TO_WAL", new BooleanGetter() {
       public boolean get() {
         return meta.getDisableWriteToWAL();

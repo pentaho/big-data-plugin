@@ -81,9 +81,8 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
    *           if a problem occurs when initializing the new put operation
    */
   public static HBasePut initializeNewPut( RowMetaInterface inRowMeta, int keyIndex, Object[] kettleRow,
-                                           Mapping tableMapping, ByteConversionUtil bu,
-                                           HBaseTableWriteOperationManager hBaseTableWriteOperationManager,
-                                           boolean writeToWAL ) throws Exception {
+      Mapping tableMapping, ByteConversionUtil bu, HBaseTableWriteOperationManager hBaseTableWriteOperationManager,
+      boolean writeToWAL ) throws Exception {
     ValueMetaInterface keyvm = inRowMeta.getValueMeta( keyIndex );
 
     if ( keyvm.isNull( kettleRow[keyIndex] ) ) {
@@ -92,8 +91,7 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
 
     byte[] encodedKey = bu.encodeKeyValue( kettleRow[keyIndex], keyvm, tableMapping.getKeyType() );
 
-    HBasePut hBaseTablePut = hBaseTableWriteOperationManager
-      .createPut( bu.encodeKeyValue( kettleRow[ keyIndex ], keyvm, tableMapping.getKeyType() ) );
+    HBasePut hBaseTablePut = hBaseTableWriteOperationManager.createPut( encodedKey );
     hBaseTablePut.setWriteToWAL( writeToWAL );
     return hBaseTablePut;
   }
@@ -118,7 +116,7 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
    *           if a problem occurs when adding a column to the put operation
    */
   public static void addColumnsToPut( RowMetaInterface inRowMeta, Object[] kettleRow, int keyIndex,
-                                      Map<String, HBaseValueMetaInterface> columnsMappedByAlias, HBasePut hBasePut, ByteConversionUtil bu )
+      Map<String, HBaseValueMetaInterface> columnsMappedByAlias, HBasePut hBasePut, ByteConversionUtil bu )
     throws KettleException {
 
     for ( int i = 0; i < inRowMeta.size(); i++ ) {
@@ -160,4 +158,5 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
 
     return result;
   }
+
 }

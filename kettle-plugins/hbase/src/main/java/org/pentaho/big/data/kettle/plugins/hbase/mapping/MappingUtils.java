@@ -51,6 +51,8 @@ public class MappingUtils {
 
   private static final Set<String> TUPLE_COLUMNS = new HashSet<String>();
 
+  public static final String TUPLE_MAPPING_VISIBILITY = "Visibility";
+
   static {
     TUPLE_COLUMNS.add( Mapping.TupleMapping.KEY.toString() );
     TUPLE_COLUMNS.add( Mapping.TupleMapping.FAMILY.toString() );
@@ -70,8 +72,8 @@ public class MappingUtils {
     }
   }
 
-  public static MappingAdmin getMappingAdmin( HBaseService hBaseService, VariableSpace variableSpace,
-      String siteConfig, String defaultConfig ) throws IOException {
+  public static MappingAdmin getMappingAdmin( HBaseService hBaseService, VariableSpace variableSpace, String siteConfig,
+      String defaultConfig ) throws IOException {
     HBaseConnection hBaseConnection = hBaseService.getHBaseConnection( variableSpace, siteConfig, defaultConfig, null );
     return new MappingAdmin( hBaseConnection );
   }
@@ -88,7 +90,8 @@ public class MappingUtils {
       throw new KettleException( Messages.getString( "MappingDialog.Error.Message.NoFieldsDefined" ) );
     }
 
-    Mapping theMapping = hBaseService.getMappingFactory().createMapping( tableName, mappingDefinition.getMappingName() );
+    Mapping theMapping =
+        hBaseService.getMappingFactory().createMapping( tableName, mappingDefinition.getMappingName() );
     // is the mapping a tuple mapping?
     final boolean isTupleMapping = isTupleMapping( mappingDefinition );
     if ( isTupleMapping ) {
@@ -128,7 +131,8 @@ public class MappingUtils {
       if ( !Const.isEmpty( column.getType() ) ) {
         type = column.getType();
       } else {
-        throw new KettleException( Messages.getString( "MappingDialog.Error.Message.TypeIssue" ) + ": " + columnNumber );
+        throw new KettleException( Messages.getString( "MappingDialog.Error.Message.TypeIssue" ) + ": "
+            + columnNumber );
       }
 
       HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
@@ -160,8 +164,8 @@ public class MappingUtils {
           theMapping.addMappedColumn( valueMeta, isTupleMapping );
         } catch ( Exception ex ) {
           String message =
-              Messages.getString( "MappingDialog.Error.Message1.DuplicateColumn" ) + family + "," + colName
-                  + Messages.getString( "MappingDialog.Error.Message2.DuplicateColumn" );
+              Messages.getString( "MappingDialog.Error.Message1.DuplicateColumn" ) + family + "," + colName + Messages
+                  .getString( "MappingDialog.Error.Message2.DuplicateColumn" );
           throw new KettleException( message );
         }
       }
@@ -196,7 +200,7 @@ public class MappingUtils {
   public static boolean isTupleMapping( MappingDefinition mappingDefinition ) {
     List<MappingColumn> mappingColumns = mappingDefinition.getMappingColumns();
     int mappingSize = mappingColumns.size();
-    if ( mappingSize != TUPLE_COLUMNS_COUNT ) {
+    if ( !( mappingSize == TUPLE_COLUMNS_COUNT || mappingSize == TUPLE_COLUMNS_COUNT + 1 ) ) {
       return false;
     }
     int tupleIdCount = 0;
@@ -205,11 +209,11 @@ public class MappingUtils {
         tupleIdCount++;
       }
     }
-    return tupleIdCount == TUPLE_COLUMNS_COUNT;
+    return tupleIdCount == TUPLE_COLUMNS_COUNT || tupleIdCount == TUPLE_COLUMNS_COUNT + 1;
   }
 
   public static boolean isTupleMappingColumn( String columnName ) {
-    return TUPLE_COLUMNS.contains( columnName );
+    return TUPLE_COLUMNS.contains( columnName ) || columnName.equals( TUPLE_MAPPING_VISIBILITY );
   }
 
 }

@@ -64,6 +64,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
@@ -120,6 +121,9 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   // Mapping name line
   private Button m_mappingNamesBut;
   private CCombo m_mappingNamesCombo;
+
+  //Delete row key line
+  private Button m_deleteRowKeyBut;
 
   /** Store the mapping information in the step's meta data */
   private Button m_storeMappingInStepMetaData;
@@ -444,6 +448,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     fd.right = new FormAttachment( m_mappingNamesBut, -margin );
     m_mappingNamesCombo.setLayoutData( fd );
 
+
     // store mapping in meta data
     Label storeMapping = new Label( wConfigComp, SWT.RIGHT );
     storeMapping.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.StoreMapping.Label" ) );
@@ -464,6 +469,33 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     fd.top = new FormAttachment( m_mappingNamesCombo, margin );
     m_storeMappingInStepMetaData.setLayoutData( fd );
 
+
+    //delete rows by key option
+    Label deleteRows = new Label( wConfigComp, SWT.RIGHT );
+    deleteRows.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DeleteRowKey.Label" ) );
+    deleteRows.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DeleteRowKey.TipText" ) );
+    props.setLook( deleteRows );
+
+    fd = new FormData();
+    fd.left = new FormAttachment( 0, 0 );
+    fd.top = new FormAttachment( m_storeMappingInStepMetaData, margin );
+    fd.right = new FormAttachment( middle, -margin );
+    deleteRows.setLayoutData( fd );
+
+    m_deleteRowKeyBut = new Button( wConfigComp, SWT.CHECK );
+    props.setLook( m_deleteRowKeyBut );
+    fd = new FormData();
+    fd.right = new FormAttachment( 100, 0 );
+    fd.left = new FormAttachment( middle, 0 );
+    fd.top = new FormAttachment( m_storeMappingInStepMetaData, margin );
+    m_deleteRowKeyBut.setLayoutData( fd );
+
+    m_deleteRowKeyBut.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent se ) {
+        walEnabled();
+      };
+    } );
+
     // disable write to WAL
     Label disableWALLab = new Label( wConfigComp, SWT.RIGHT );
     disableWALLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DisableWAL.Label" ) );
@@ -472,7 +504,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     props.setLook( disableWALLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
-    fd.top = new FormAttachment( m_storeMappingInStepMetaData, margin );
+    fd.top = new FormAttachment( m_deleteRowKeyBut, margin );
     fd.right = new FormAttachment( middle, -margin );
     disableWALLab.setLayoutData( fd );
 
@@ -482,7 +514,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     props.setLook( m_disableWriteToWALBut );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
-    fd.top = new FormAttachment( m_storeMappingInStepMetaData, margin );
+    fd.top = new FormAttachment( m_deleteRowKeyBut, margin );
     // fd.right = new FormAttachment(middle, -margin);
     m_disableWriteToWALBut.setLayoutData( fd );
 
@@ -624,7 +656,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   }
 
   protected void ok() {
-    if ( Const.isEmpty( m_stepnameText.getText() ) ) {
+    if ( Utils.isEmpty( m_stepnameText.getText() ) ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
       mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "System.StepJobEntryNameMissing.Title" ) );
       mb.setMessage( BaseMessages.getString( HBaseOutputMeta.PKG, "System.JobEntryNameMissing.Msg" ) );
@@ -654,7 +686,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     updateMetaConnectionDetails( m_currentMeta );
 
     if ( m_storeMappingInStepMetaData.getSelection() ) {
-      if ( Const.isEmpty( m_mappingNamesCombo.getText() ) ) {
+      if ( Utils.isEmpty( m_mappingNamesCombo.getText() ) ) {
         List<String> problems = new ArrayList<String>();
         Mapping toSet = m_mappingEditor.getMapping( false, problems, false );
         if ( problems.size() > 0 ) {
@@ -731,7 +763,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   }
 
   protected void updateMetaConnectionDetails( HBaseOutputMeta meta ) {
-    if ( Const.isEmpty( m_stepnameText.getText() ) ) {
+    if ( Utils.isEmpty( m_stepnameText.getText() ) ) {
       return;
     }
 
@@ -745,6 +777,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     meta.setTargetTableName( m_mappedTableNamesCombo.getText() );
     meta.setTargetMappingName( m_mappingNamesCombo.getText() );
 
+    meta.setDeleteRowKey( m_deleteRowKeyBut.getSelection() );
+
     meta.setDisableWriteToWAL( m_disableWriteToWALBut.getSelection() );
     meta.setWriteBufferSize( m_writeBufferSizeText.getText() );
 
@@ -754,32 +788,38 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
     namedClusterWidget.setSelectedNamedCluster( m_currentMeta.getNamedCluster().getName() );
 
-    if ( !Const.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getCoreConfigURL() ) ) {
       m_coreConfigText.setText( m_currentMeta.getCoreConfigURL() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getDefaultConfigURL() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getDefaultConfigURL() ) ) {
       m_defaultConfigText.setText( m_currentMeta.getDefaultConfigURL() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getTargetTableName() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getTargetTableName() ) ) {
       m_mappedTableNamesCombo.setText( m_currentMeta.getTargetTableName() );
     }
 
-    if ( !Const.isEmpty( m_currentMeta.getTargetMappingName() ) ) {
+    if ( !Utils.isEmpty( m_currentMeta.getTargetMappingName() ) ) {
       m_mappingNamesCombo.setText( m_currentMeta.getTargetMappingName() );
     }
 
+    m_deleteRowKeyBut.setSelection( m_currentMeta.getDeleteRowKey() );
+
     m_disableWriteToWALBut.setSelection( m_currentMeta.getDisableWriteToWAL() );
 
-    if ( !Const.isEmpty( m_currentMeta.getWriteBufferSize() ) ) {
+    walEnabled();
+
+    if ( !Utils.isEmpty( m_currentMeta.getWriteBufferSize() ) ) {
       m_writeBufferSizeText.setText( m_currentMeta.getWriteBufferSize() );
     }
 
-    if ( Const.isEmpty( m_currentMeta.getTargetMappingName() ) && m_currentMeta.getMapping() != null ) {
+    if ( Utils.isEmpty( m_currentMeta.getTargetMappingName() ) && m_currentMeta.getMapping() != null ) {
       m_mappingEditor.setMapping( m_currentMeta.getMapping() );
       m_storeMappingInStepMetaData.setSelection( true );
     }
+
+
   }
 
   @Override public HBaseService getHBaseService() throws ClusterInitializationException {
@@ -795,11 +835,11 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     String defaultConf = "";
     String zookeeperHosts = "";
 
-    if ( !Const.isEmpty( m_coreConfigText.getText() ) ) {
+    if ( !Utils.isEmpty( m_coreConfigText.getText() ) ) {
       coreConf = transMeta.environmentSubstitute( m_coreConfigText.getText() );
     }
 
-    if ( !Const.isEmpty( m_defaultConfigText.getText() ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigText.getText() ) ) {
       defaultConf = transMeta.environmentSubstitute( m_defaultConfigText.getText() );
     }
 
@@ -808,7 +848,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       zookeeperHosts = transMeta.environmentSubstitute( nc.getZooKeeperHost() );
     }
 
-    if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
+    if ( Utils.isEmpty( zookeeperHosts ) && Utils.isEmpty( coreConf ) && Utils.isEmpty( defaultConf ) ) {
       throw new IOException( BaseMessages.getString( HBaseOutputMeta.PKG,
           "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
     }
@@ -851,7 +891,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   private void setupMappingNamesForTable( boolean quiet ) {
     m_mappingNamesCombo.removeAll();
 
-    if ( !Const.isEmpty( m_mappedTableNamesCombo.getText() ) ) {
+    if ( !Utils.isEmpty( m_mappedTableNamesCombo.getText() ) ) {
       HBaseConnection connection = null;
       try {
         connection = getHBaseConnection();
@@ -905,5 +945,9 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   public String getCurrentConfiguration() {
     updateMetaConnectionDetails( m_configurationMeta );
     return m_configurationMeta.getXML();
+  }
+
+  public void walEnabled() {
+    m_disableWriteToWALBut.setEnabled( !m_deleteRowKeyBut.getSelection() );
   }
 }
