@@ -96,11 +96,24 @@ public class AvroInputMeta extends AvroInputMetaBase {
                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws
           KettleStepException {
     try {
+      if ( !inputFiles.passingThruFields ) {
+        // all incoming fields are not transmitted !
+        rowMeta.clear();
+      } else {
+        if ( info != null ) {
+          boolean found = false;
+          for ( int i = 0; i < info.length && !found; i++ ) {
+            if ( info[i] != null ) {
+              rowMeta.mergeRowMeta( info[i], origin );
+              found = true;
+            }
+          }
+        }
+      }
       for ( int i = 0; i < inputFields.size(); i++ ) {
         FormatInputOutputField field = inputFields.get( i );
         String value = space.environmentSubstitute( field.getName() );
-        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value,
-                field.getType() );
+        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getType() );
         v.setOrigin( origin );
         rowMeta.addValueMeta( v );
       }

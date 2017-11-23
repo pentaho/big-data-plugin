@@ -82,6 +82,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   protected TextVar wSchemaPath;
   protected Button wbSchemaBrowse;
 
+  private Button wPassThruFields;
+
   public AvroInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (AvroInputMeta) in, transMeta, sname );
   }
@@ -148,6 +150,15 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     layout.marginHeight = MARGIN;
     wComp.setLayout( layout );
 
+    // Accept fields from previous steps?
+    //
+    wPassThruFields = new Button( wComp, SWT.CHECK );
+    wPassThruFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.PassThruFields.Label" ) );
+    wPassThruFields.setToolTipText( BaseMessages.getString( PKG, "AvroInputDialog.PassThruFields.Tooltip" ) );
+    wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
+    props.setLook( wPassThruFields );
+    new FD( wPassThruFields ).left( 0, 0 ).top( wComp, 0 ).apply();
+    
     //get fields button
     lsGet = new Listener() {
       public void handleEvent( Event e ) {
@@ -181,7 +192,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
-    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wComp, 0 ).bottom( wGetFields, -FIELDS_SEP ).apply();
+    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wPassThruFields, FIELDS_SEP ).bottom( wGetFields, -FIELDS_SEP ).apply();
 
     wInputFields.setRowNums();
     wInputFields.optWidth( true );
@@ -293,6 +304,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     if ( meta.getSchemaFilename() != null ) {
       wSchemaPath.setText( meta.getSchemaFilename() );
     }
+    wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
     int itemIndex = 0;
     for ( FormatInputOutputField inputField : meta.getInpuFields() ) {
       TableItem item = null;
@@ -325,6 +337,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   protected void getInfo( AvroInputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
     meta.setSchemaFilename( wSchemaPath.getText() );
+    meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
 
     int nrFields = wInputFields.nrNonEmpty();
     ArrayList<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
