@@ -64,7 +64,9 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
@@ -467,6 +469,49 @@ public class KafkaConsumerInputTest {
     trans.startThreads();
     trans.waitUntilFinished();
     assertEquals( 3, trans.getSteps().get( 0 ).step.getLinesInput() );
+  }
+
+  @Test
+  public void testSubTransStatuses() throws Exception {
+    String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
+    TransMeta consumerParent = new TransMeta( path, new Variables() );
+    Trans trans = new Trans( consumerParent );
+    KafkaConsumerInputMeta kafkaMeta =
+      (KafkaConsumerInputMeta) consumerParent.getStep( 0 ).getStepMetaInterface();
+    kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
+    kafkaMeta.setBatchSize( "4" );
+    kafkaMeta.setBatchDuration( "0" );
+    kafkaMeta.setKafkaFactory( factory );
+    int messageCount = 4;
+    messages.put( topic, createRecords( topic.topic(), messageCount ) );
+    records = new ConsumerRecords<>( messages );
+    // provide some data when we try to poll for kafka messages
+    when( consumer.poll( 1000 ) )
+      .thenReturn( records )
+      .then( invocationOnMock -> {
+        for ( StepStatus stepStatus : trans.getSteps().get( 0 ).step.subStatuses() ) {
+          assertEquals( BaseStepData.StepExecutionStatus.STATUS_RUNNING.getDescription(),
+                        stepStatus.getStatusDescription() );
+        }
+
+        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
+          continue;  //here to fool checkstyle
+        }
+        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
+        return new ConsumerRecords<>( Collections.emptyMap() );
+      } );
+    when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
+      .thenReturn( consumer );
+    trans.prepareExecution( new String[]{} );
+    KafkaConsumerInput kafkaStep = (KafkaConsumerInput) trans.getSteps().get( 0 ).step;
+    Collection<StepStatus> stepStatuses = kafkaStep.subStatuses();
+    assertEquals( 0, stepStatuses.size() );
+    trans.startThreads();
+    trans.waitUntilFinished();
+    for ( StepStatus stepStatus : trans.getSteps().get( 0 ).step.subStatuses() ) {
+      assertEquals( BaseStepData.StepExecutionStatus.STATUS_STOPPED.getDescription(),
+                    stepStatus.getStatusDescription() );
+    }
   }
 
   public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
