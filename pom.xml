@@ -84,7 +84,7 @@
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
     <dependency.hadoop-shims-api.revision>8.0-SNAPSHOT</dependency.hadoop-shims-api.revision>
     <dependency.avro.revision>1.6.2</dependency.avro.revision>
-    <dependency.cxf.revision>2.6.15</dependency.cxf.revision>
+    <dependency.cxf.revision>3.0.13</dependency.cxf.revision>
     <dependency.aws-java-sdk.revision>1.7.4</dependency.aws-java-sdk.revision>
     <hadoop-shims-emr58.version>8.0-SNAPSHOT</hadoop-shims-emr58.version>
     <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
