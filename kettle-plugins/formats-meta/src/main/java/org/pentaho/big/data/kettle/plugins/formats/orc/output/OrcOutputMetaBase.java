@@ -58,6 +58,7 @@ import java.util.function.Function;
 public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
   private static final Class<?> PKG = OrcOutputMetaBase.class;
+  public static final int DEFAULT_ROWS_BETWEEN_ENTRIES = 10000;
 
   @Injection( name = "FILENAME" )
   private String filename;
@@ -74,11 +75,8 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   @Injection( name = "OPTIONS_COMPRESS_SIZE" )
   protected String compressSize = "256";
 
-  @Injection( name = "OPTIONS_INLINE_INDEXES" )
-  protected boolean inlineIndexes = false;
-
   @Injection( name = "OPTIONS_ROWS_BETWEEN_ENTRIES" )
-  protected String rowsBetweenEntries = "10000";
+  protected String rowsBetweenEntries = "";
 
   @Injection( name = "OPTIONS_DATE_IN_FILE_NAME" )
   protected boolean dateInFileName = false;
@@ -128,14 +126,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
 
   public void setCompressSize( String compressSize ) {
     this.compressSize = compressSize;
-  }
-
-  public boolean isInlineIndexes() {
-    return inlineIndexes;
-  }
-
-  public void setInlineIndexes( boolean inlineIndexes ) {
-    this.inlineIndexes = inlineIndexes;
   }
 
   public String getRowsBetweenEntries() {
@@ -198,7 +188,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       compressSize = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESS_SIZE );
       rowsBetweenEntries = XMLHandler.getTagValue( stepnode, FieldNames.ROWS_BETWEEN_ENTRIES );
       dateTimeFormat = XMLHandler.getTagValue( stepnode, FieldNames.DATE_FORMAT );
-      inlineIndexes = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.INLINE_INDEXES ) );
       dateInFileName = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.DATE_IN_FILE_NAME ) );
       timeInFileName = "Y".equalsIgnoreCase( ( XMLHandler.getTagValue( stepnode, FieldNames.TIME_IN_FILE_NAME ) ) );
 
@@ -219,7 +208,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.COMPRESS_SIZE, compressSize ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.ROWS_BETWEEN_ENTRIES, rowsBetweenEntries ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DATE_FORMAT, dateTimeFormat ) );
-    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.INLINE_INDEXES, inlineIndexes ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DATE_IN_FILE_NAME, dateInFileName ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.TIME_IN_FILE_NAME, timeInFileName ) );
 
@@ -252,7 +240,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       compressSize = rep.getStepAttributeString( id_step, FieldNames.COMPRESS_SIZE );
       rowsBetweenEntries = rep.getStepAttributeString( id_step, FieldNames.ROWS_BETWEEN_ENTRIES );
       dateTimeFormat = rep.getStepAttributeString( id_step, FieldNames.DATE_FORMAT );
-      inlineIndexes = rep.getStepAttributeBoolean( id_step, FieldNames.INLINE_INDEXES );
       dateInFileName = rep.getStepAttributeBoolean( id_step, FieldNames.DATE_IN_FILE_NAME );
       timeInFileName = rep.getStepAttributeBoolean( id_step, FieldNames.TIME_IN_FILE_NAME );
 
@@ -288,7 +275,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESS_SIZE, compressSize );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.ROWS_BETWEEN_ENTRIES, rowsBetweenEntries );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.DATE_FORMAT, dateTimeFormat );
-      rep.saveStepAttribute( id_transformation, id_step, FieldNames.INLINE_INDEXES, inlineIndexes );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.DATE_IN_FILE_NAME, dateInFileName );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.TIME_IN_FILE_NAME, timeInFileName );
 

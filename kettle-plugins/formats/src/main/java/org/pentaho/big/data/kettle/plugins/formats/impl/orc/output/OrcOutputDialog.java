@@ -82,6 +82,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
   private Button wTimeInFileName;
   private Button wSpecifyDateTimeFormat;
   private ComboVar wDateTimeFormat;
+  private int startingRowsBetweenEntries = OrcOutputMeta.DEFAULT_ROWS_BETWEEN_ENTRIES;
 
 
   private TableView wOutputFields;
@@ -230,48 +231,51 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     wCompressSize.setLayoutData( formData );
     wCompressSize.getTextWidget().addModifyListener( lsMod );
     setIntegerOnly( wCompressSize );
-    wStripeSize.addModifyListener( lsMod );
-
-    Label wSeparator = new Label( wGrid, SWT.SEPARATOR | SWT.VERTICAL );
-    formData = new FormData();
-    formData.top = new FormAttachment( 10, 0 );
-    formData.left = new FormAttachment( wCompressSize, 50 );
-    formData.height = 100;
-    wSeparator.setLayoutData( formData );
+    wCompressSize.addModifyListener( lsMod );
 
     wInlineIndexes = new Button( wGrid, SWT.CHECK );
+    props.setLook( wInlineIndexes );
     wInlineIndexes.setText( BaseMessages.getString( PKG, "OrcOutputDialog.Options.InlineIndexes" ) );
     formData = new FormData();
     formData.top = new FormAttachment( 0, 0 );
-    formData.left = new FormAttachment( wSeparator, 50 );
+    formData.left = new FormAttachment( wCompressSize, 50 );
     wInlineIndexes.setLayoutData( formData );
     wInlineIndexes.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
+        boolean isSelected = wInlineIndexes.getSelection();
+        if ( isSelected ) {
+          wRowsBetweenEntries.setEnabled( true );
+          wRowsBetweenEntries.setText( Integer.toString( startingRowsBetweenEntries ) );
+        } else {
+          wRowsBetweenEntries.setEnabled( false );
+          wRowsBetweenEntries.setText( "" );
+        }
       }
     } );
 
     wLabel = createLabel( wGrid, "OrcOutputDialog.Options.RowsBetweenEntries" );
     formData = new FormData();
-    formData.top = new FormAttachment( wInlineIndexes, 15 );
-    formData.left = new FormAttachment( wSeparator, 50 );
+    formData.top = new FormAttachment( wInlineIndexes, 10 );
+    formData.left = new FormAttachment( wCompressSize, 70 );
     wLabel.setLayoutData( formData );
 
     wRowsBetweenEntries = new TextVar( transMeta, wGrid, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wRowsBetweenEntries );
     formData = new FormData();
     formData.top = new FormAttachment( wLabel, 5 );
-    formData.left = new FormAttachment( wSeparator, 50 );
+    formData.left = new FormAttachment( wCompressSize, 70 );
     formData.width = FIELD_SMALL + VAR_EXTRA_WIDTH;
     wRowsBetweenEntries.setLayoutData( formData );
     setIntegerOnly( wRowsBetweenEntries );
     wRowsBetweenEntries.addModifyListener( lsMod );
 
     wDateInFileName = new Button( wGrid, SWT.CHECK );
+    props.setLook( wDateInFileName );
     wDateInFileName.setText( BaseMessages.getString( PKG, "OrcOutputDialog.Options.DateInFileName" ) );
     formData = new FormData();
-    formData.top = new FormAttachment( wRowsBetweenEntries, 15 );
-    formData.left = new FormAttachment( wSeparator, 50 );
+    formData.top = new FormAttachment( wRowsBetweenEntries, 10 );
+    formData.left = new FormAttachment( wCompressSize, 50 );
     wDateInFileName.setLayoutData( formData );
     wDateInFileName.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
@@ -287,10 +291,11 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
 
 
     wTimeInFileName = new Button( wGrid, SWT.CHECK );
+    props.setLook( wTimeInFileName );
     wTimeInFileName.setText( BaseMessages.getString( PKG, "OrcOutputDialog.Options.TimeInFileName" ) );
     formData = new FormData();
-    formData.top = new FormAttachment( wDateInFileName, 5 );
-    formData.left = new FormAttachment( wSeparator, 50 );
+    formData.top = new FormAttachment( wDateInFileName, 10 );
+    formData.left = new FormAttachment( wCompressSize, 50 );
     wTimeInFileName.setLayoutData( formData );
     wTimeInFileName.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
@@ -307,9 +312,10 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
 
     wSpecifyDateTimeFormat = new Button( wGrid, SWT.CHECK );
     wSpecifyDateTimeFormat.setText( BaseMessages.getString( PKG, "OrcOutputDialog.Options.SpecifyDateTimeFormat" ) );
+    props.setLook( wSpecifyDateTimeFormat );
     formData = new FormData();
-    formData.top = new FormAttachment( wTimeInFileName, 5 );
-    formData.left = new FormAttachment( wSeparator, 50 );
+    formData.top = new FormAttachment( wTimeInFileName, 10 );
+    formData.left = new FormAttachment( wCompressSize, 50 );
     wSpecifyDateTimeFormat.setLayoutData( formData );
     wSpecifyDateTimeFormat.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent e ) {
@@ -333,7 +339,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     props.setLook( wDateTimeFormat );
     formData = new FormData();
     formData.top = new FormAttachment( wSpecifyDateTimeFormat, 5 );
-    formData.left = new FormAttachment( wSeparator, 80 );
+    formData.left = new FormAttachment( wCompressSize, 70 );
     wDateTimeFormat.setLayoutData( formData );
   }
 
@@ -388,9 +394,21 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     populateFieldsUI( meta, wOutputFields );
     wCompression.setText( meta.getCompressionType() );
     wCompressSize.setText( meta.getCompressSize() );
-    wInlineIndexes.setSelection( meta.isInlineIndexes() );
+
+    String rowsBetweenEntries = coalesce( meta.getRowsBetweenEntries() );
+    if ( !rowsBetweenEntries.isEmpty() ) {
+      startingRowsBetweenEntries = Integer.parseInt( rowsBetweenEntries );
+      wInlineIndexes.setSelection( true );
+      wRowsBetweenEntries.setText( rowsBetweenEntries );
+      wRowsBetweenEntries.setEnabled( true );
+    } else {
+      startingRowsBetweenEntries = OrcOutputMeta.DEFAULT_ROWS_BETWEEN_ENTRIES;
+      wInlineIndexes.setSelection( false );
+      wRowsBetweenEntries.setText( "" );
+      wRowsBetweenEntries.setEnabled( false );
+    }
+
     wStripeSize.setText( meta.getStripeSize() );
-    wRowsBetweenEntries.setText( meta.getRowsBetweenEntries() );
 
     String dateTimeFormat = coalesce( meta.getDateTimeFormat() );
     if ( !dateTimeFormat.isEmpty() ) {
@@ -415,9 +433,8 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     meta.setFilename( wPath.getText() );
     meta.setCompressionType( wCompression.getText() );
     meta.setCompressSize( wCompressSize.getText() );
-    meta.setInlineIndexes( wInlineIndexes.getSelection() );
     meta.setStripeSize( wStripeSize.getText() );
-    meta.setRowsBetweenEntries( wRowsBetweenEntries.getText() );
+    meta.setRowsBetweenEntries( wRowsBetweenEntries.getText().trim() );
     if ( wSpecifyDateTimeFormat.getSelection() ) {
       meta.setTimeInFileName( false );
       meta.setDateInFileName( false );

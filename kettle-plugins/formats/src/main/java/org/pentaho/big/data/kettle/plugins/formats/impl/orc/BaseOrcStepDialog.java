@@ -170,10 +170,16 @@ public abstract class BaseOrcStepDialog<T extends BaseStepMeta & StepMetaInterfa
     Composite afterFile;
     afterFile = new Composite( shell, SWT.NONE );
     afterFile.setLayout( new FormLayout() );
-    Label hSpacer = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    new FD( hSpacer ).height( 1 ).left( 0, 0 ).bottom( wCancel, -MARGIN ).right( 100, 0 ).apply();
 
-    new FD( afterFile ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( hSpacer, -MARGIN ).apply();
+    Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
+    FormData fdSpacer = new FormData();
+    fdSpacer.height = 2;
+    fdSpacer.left = new FormAttachment( 0, 0 );
+    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
+    fdSpacer.right = new FormAttachment( 100, 0 );
+    separator.setLayoutData( fdSpacer );
+
+    new FD( afterFile ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
 
     createAfterFile( afterFile );
   }
@@ -279,7 +285,12 @@ public abstract class BaseOrcStepDialog<T extends BaseStepMeta & StepMetaInterfa
 
     // separator
     Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    new FD( separator ).height( 1 ).left( 0, 0 ).top( wStepname, MARGIN ).right( 100, 0 ).apply();
+    FormData fdSpacer = new FormData();
+    fdSpacer.height = 2;
+    fdSpacer.left = new FormAttachment( 0, 0 );
+    fdSpacer.top = new FormAttachment( wStepname, 15 );
+    fdSpacer.right = new FormAttachment( 100, 0 );
+    separator.setLayoutData( fdSpacer );
 
     addIcon( separator );
     return separator;
