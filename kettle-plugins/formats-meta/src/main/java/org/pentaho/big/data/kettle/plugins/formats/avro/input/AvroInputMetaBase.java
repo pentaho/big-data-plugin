@@ -34,6 +34,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -114,6 +115,8 @@ public abstract class AvroInputMetaBase extends
 
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
+      String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
+      inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
       filename = XMLHandler.getTagValue( stepnode, "filename" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
@@ -142,7 +145,8 @@ public abstract class AvroInputMetaBase extends
     StringBuffer retval = new StringBuffer( 800 );
     final String INDENT = "    ";
 
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", filename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < inputFields.size(); i++ ) {
@@ -161,7 +165,7 @@ public abstract class AvroInputMetaBase extends
     }
     retval.append( "    </fields>" ).append( Const.CR );
 
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaFilename", schemaFilename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaFilename", getSchemaFilename() ) );
     return retval.toString();
   }
 
@@ -169,6 +173,8 @@ public abstract class AvroInputMetaBase extends
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
       throws KettleException {
     try {
+
+      inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
       filename = rep.getStepAttributeString( id_step, "filename" );
 
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
@@ -198,7 +204,8 @@ public abstract class AvroInputMetaBase extends
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
       throws KettleException {
     try {
-      rep.saveStepAttribute( id_transformation, id_step, "filename", filename );
+      rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
+      rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
       for ( int i = 0; i < inputFields.size(); i++ ) {
         FormatInputOutputField field = inputFields.get( i );
 
@@ -210,7 +217,7 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "sourcetype", field.getSourceTypeDesc() );
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
-      rep.saveStepAttribute( id_transformation, id_step, "schemaFilename", schemaFilename );
+      rep.saveStepAttribute( id_transformation, id_step, "schemaFilename", getSchemaFilename() );
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
