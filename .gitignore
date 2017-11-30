@@ -17,3 +17,4 @@ override.properties
 .idea/
 target/
 rebel.xml
+.DS_Store

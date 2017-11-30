@@ -1,0 +1,36 @@
+<step>
+  <name>Orc Input</name>
+  <type>OrcInputNew</type>
+  <description/>
+  <distribute>Y</distribute>
+  <custom_distribution/>
+  <copies>1</copies>
+  <partitioning>
+    <method>none</method>
+    <schema_name/>
+  </partitioning>
+  <passing_through_fields>N</passing_through_fields>
+  <filename>SampleFileName</filename>
+  <fields>
+    <field>
+      <path>SamplePath</path>
+      <name>SampleName</name>
+      <type>String</type>
+      <nullable>false</nullable>
+      <default>SampleDefault</default>
+      <sourcetype>String</sourcetype>
+    </field>
+  </fields>
+  <cluster_schema/>
+  <remotesteps>
+    <input>
+    </input>
+    <output>
+    </output>
+  </remotesteps>
+  <GUI>
+    <xloc>416</xloc>
+    <yloc>112</yloc>
+    <draw>Y</draw>
+  </GUI>
+</step>
