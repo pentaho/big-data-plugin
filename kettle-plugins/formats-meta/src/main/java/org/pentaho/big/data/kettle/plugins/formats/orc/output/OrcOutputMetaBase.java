@@ -59,6 +59,8 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
 
   private static final Class<?> PKG = OrcOutputMetaBase.class;
   public static final int DEFAULT_ROWS_BETWEEN_ENTRIES = 10000;
+  public static final int DEFAULT_STRIPE_SIZE = 64; // In megabytes
+  public static final int DEFAULT_COMPRESS_SIZE = 256; // In kilobytes
 
   @Injection( name = "FILENAME" )
   private String filename;
@@ -70,13 +72,13 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   protected String compressionType = "";
 
   @Injection( name = "OPTIONS_STRIPE_SIZE" )
-  protected String stripeSize = "67";
+  protected int stripeSize = 64;
 
   @Injection( name = "OPTIONS_COMPRESS_SIZE" )
-  protected String compressSize = "256";
+  protected int compressSize = 256;
 
   @Injection( name = "OPTIONS_ROWS_BETWEEN_ENTRIES" )
-  protected String rowsBetweenEntries = "";
+  protected int rowsBetweenEntries = 0;
 
   @Injection( name = "OPTIONS_DATE_IN_FILE_NAME" )
   protected boolean dateInFileName = false;
@@ -112,27 +114,27 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     this.outputFields = outputFields;
   }
 
-  public String getStripeSize() {
+  public int getStripeSize() {
     return stripeSize;
   }
 
-  public void setStripeSize( String stripeSize ) {
+  public void setStripeSize( int stripeSize ) {
     this.stripeSize = stripeSize;
   }
 
-  public String getCompressSize() {
+  public int getCompressSize() {
     return compressSize;
   }
 
-  public void setCompressSize( String compressSize ) {
+  public void setCompressSize( int compressSize ) {
     this.compressSize = compressSize;
   }
 
-  public String getRowsBetweenEntries() {
+  public int getRowsBetweenEntries() {
     return rowsBetweenEntries;
   }
 
-  public void setRowsBetweenEntries( String rowsBetweenEntries ) {
+  public void setRowsBetweenEntries( int rowsBetweenEntries ) {
     this.rowsBetweenEntries = rowsBetweenEntries;
   }
 
@@ -184,9 +186,9 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
 
       filename = XMLHandler.getTagValue( stepnode, FieldNames.FILE_NAME );
       compressionType = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESSION );
-      stripeSize = XMLHandler.getTagValue( stepnode, FieldNames.STRIPE_SIZE );
-      compressSize = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESS_SIZE );
-      rowsBetweenEntries = XMLHandler.getTagValue( stepnode, FieldNames.ROWS_BETWEEN_ENTRIES );
+      stripeSize = Integer.parseInt( XMLHandler.getTagValue( stepnode, FieldNames.STRIPE_SIZE ), 10 );
+      compressSize = Integer.parseInt( XMLHandler.getTagValue( stepnode, FieldNames.COMPRESS_SIZE ), 10 );
+      rowsBetweenEntries = Integer.parseInt( XMLHandler.getTagValue( stepnode, FieldNames.ROWS_BETWEEN_ENTRIES ), 10 );
       dateTimeFormat = XMLHandler.getTagValue( stepnode, FieldNames.DATE_FORMAT );
       dateInFileName = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.DATE_IN_FILE_NAME ) );
       timeInFileName = "Y".equalsIgnoreCase( ( XMLHandler.getTagValue( stepnode, FieldNames.TIME_IN_FILE_NAME ) ) );
@@ -236,9 +238,9 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     try {
       filename = rep.getStepAttributeString( id_step, FieldNames.FILE_NAME );
       compressionType = rep.getStepAttributeString( id_step, FieldNames.COMPRESSION );
-      stripeSize = rep.getStepAttributeString( id_step, FieldNames.STRIPE_SIZE );
-      compressSize = rep.getStepAttributeString( id_step, FieldNames.COMPRESS_SIZE );
-      rowsBetweenEntries = rep.getStepAttributeString( id_step, FieldNames.ROWS_BETWEEN_ENTRIES );
+      stripeSize = Math.toIntExact( rep.getStepAttributeInteger( id_step, FieldNames.STRIPE_SIZE ) );
+      compressSize = Math.toIntExact( rep.getStepAttributeInteger( id_step, FieldNames.COMPRESS_SIZE ) );
+      rowsBetweenEntries = Math.toIntExact( rep.getStepAttributeInteger( id_step, FieldNames.ROWS_BETWEEN_ENTRIES ) );
       dateTimeFormat = rep.getStepAttributeString( id_step, FieldNames.DATE_FORMAT );
       dateInFileName = rep.getStepAttributeBoolean( id_step, FieldNames.DATE_IN_FILE_NAME );
       timeInFileName = rep.getStepAttributeBoolean( id_step, FieldNames.TIME_IN_FILE_NAME );

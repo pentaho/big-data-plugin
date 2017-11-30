@@ -131,6 +131,11 @@ public class OrcOutput extends BaseStep implements StepInterface {
       compression = IPentahoOrcOutputFormat.COMPRESSION.NONE;
     }
     data.output.setCompression( compression );
+    if ( compression != IPentahoOrcOutputFormat.COMPRESSION.NONE ) {
+      data.output.setCompressSize( meta.getCompressSize() );
+    }
+    data.output.setRowIndexStride( meta.getRowsBetweenEntries() );
+    data.output.setStripeSize( meta.getStripeSize() );
     data.writer = data.output.createRecordWriter();
   }
 
