@@ -49,12 +49,12 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${dependency.hadoop-shims-api.revision}</version>
+      <version>${pentaho-hadoop-shims-api.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
@@ -145,7 +145,7 @@
     <dependency>
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>kettle-log4j-core</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
@@ -180,7 +180,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -192,13 +192,13 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -233,7 +233,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
@@ -258,7 +258,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${dependency.hadoop-shims-api.revision}</version>
+      <version>${pentaho-hadoop-shims-api.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>

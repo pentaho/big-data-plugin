@@ -21,7 +21,7 @@
     <dependency>
       <groupId>org.pentaho.di</groupId>
       <artifactId>pdi-ce</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
       <type>zip</type>
     </dependency>
     <dependency>
