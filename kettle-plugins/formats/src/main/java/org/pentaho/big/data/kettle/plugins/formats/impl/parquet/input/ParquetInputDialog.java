@@ -80,6 +80,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       try {
         setFields( ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), wPath.getText()
           .trim() ) );
+        meta.setChanged();
       } catch ( ClusterInitializationException ex ) {
         if ( !BaseParquetStepDialog.checkForNonActiveShim( ex ) ) {
           throw new RuntimeException( ex );
