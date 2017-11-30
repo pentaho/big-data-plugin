@@ -324,9 +324,13 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
         wDateTimeFormat.setEnabled( isSelected );
         if ( !isSelected ) {
           wDateTimeFormat.setText( "" );
+          wTimeInFileName.setEnabled( true );
+          wDateInFileName.setEnabled( true );
         } else {
           wTimeInFileName.setSelection( false );
           wDateInFileName.setSelection( false );
+          wTimeInFileName.setEnabled( false );
+          wDateInFileName.setEnabled( false );
         }
       }
     } );
@@ -393,13 +397,13 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     }
     populateFieldsUI( meta, wOutputFields );
     wCompression.setText( meta.getCompressionType() );
-    wCompressSize.setText( meta.getCompressSize() );
+    wCompressSize.setText( meta.getCompressSize() > 0 ? Integer.toString( meta.getCompressSize() ) : Integer.toString( OrcOutputMeta.DEFAULT_COMPRESS_SIZE ) );
 
-    String rowsBetweenEntries = coalesce( meta.getRowsBetweenEntries() );
-    if ( !rowsBetweenEntries.isEmpty() ) {
-      startingRowsBetweenEntries = Integer.parseInt( rowsBetweenEntries );
+    int rowsBetweenEntries = meta.getRowsBetweenEntries();
+    if ( rowsBetweenEntries != 0 ) {
+      startingRowsBetweenEntries = rowsBetweenEntries;
       wInlineIndexes.setSelection( true );
-      wRowsBetweenEntries.setText( rowsBetweenEntries );
+      wRowsBetweenEntries.setText( Integer.toString( rowsBetweenEntries ) );
       wRowsBetweenEntries.setEnabled( true );
     } else {
       startingRowsBetweenEntries = OrcOutputMeta.DEFAULT_ROWS_BETWEEN_ENTRIES;
@@ -408,16 +412,20 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
       wRowsBetweenEntries.setEnabled( false );
     }
 
-    wStripeSize.setText( meta.getStripeSize() );
+    wStripeSize.setText( Integer.toString( meta.getStripeSize() ) );
 
     String dateTimeFormat = coalesce( meta.getDateTimeFormat() );
     if ( !dateTimeFormat.isEmpty() ) {
       wTimeInFileName.setSelection( false );
       wDateInFileName.setSelection( false );
+      wTimeInFileName.setEnabled( false );
+      wDateInFileName.setEnabled( false );
       wSpecifyDateTimeFormat.setSelection( true );
       wDateTimeFormat.setText( dateTimeFormat );
       wDateTimeFormat.setEnabled( true );
     } else {
+      wTimeInFileName.setEnabled( true );
+      wDateInFileName.setEnabled( true );
       wTimeInFileName.setSelection( meta.isTimeInFileName() );
       wDateInFileName.setSelection( meta.isDateInFileName() );
       wSpecifyDateTimeFormat.setSelection( false );
@@ -432,9 +440,12 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
   protected void getInfo( OrcOutputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
     meta.setCompressionType( wCompression.getText() );
-    meta.setCompressSize( wCompressSize.getText() );
-    meta.setStripeSize( wStripeSize.getText() );
-    meta.setRowsBetweenEntries( wRowsBetweenEntries.getText().trim() );
+    int compressSize = ( wCompressSize.getText().length() > 0 ) ? Integer.parseInt( wCompressSize.getText() ) : OrcOutputMeta.DEFAULT_COMPRESS_SIZE;
+    meta.setCompressSize( compressSize );
+    int stripeSize = ( wStripeSize.getText().length() > 0 ) ? Integer.parseInt( wStripeSize.getText() ) : OrcOutputMeta.DEFAULT_STRIPE_SIZE;
+    meta.setStripeSize( stripeSize );
+    int rowsBetweenEntries = ( wRowsBetweenEntries.getText().length() > 0 ) ? Integer.parseInt( wRowsBetweenEntries.getText() ) : 0;
+    meta.setRowsBetweenEntries( rowsBetweenEntries );
     if ( wSpecifyDateTimeFormat.getSelection() ) {
       meta.setTimeInFileName( false );
       meta.setDateInFileName( false );
