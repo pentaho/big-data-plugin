@@ -25,6 +25,11 @@
     <argument ref="namedClusterService"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
+  <bean id="orcInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.orc.input.OrcInputMeta" scope="prototype">
+    <argument ref="namedClusterServiceLocator"/>
+    <argument ref="namedClusterService"/>
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
   <bean id="orcOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.orc.output.OrcOutputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
