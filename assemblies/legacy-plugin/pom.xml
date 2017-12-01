@@ -35,7 +35,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${dependency.pentaho-s3-vfs.revision}</version>
+      <version>${pentaho-s3-vfs.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
@@ -122,7 +122,7 @@
     <dependency>
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>kettle-log4j-core</artifactId>
-      <version>${dependency.kettle.revision}</version>
+      <version>${pdi.version}</version>
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
@@ -157,7 +157,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-cdh512-package</artifactId>
-      <version>${hadoop-shims-cdh512.version}</version>
+      <version>${pentaho-hadoop-shims-cdh512.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -170,7 +170,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp26-package</artifactId>
-      <version>${dependency.hadoop-shims-hdp26.revision}</version>
+      <version>${pentaho-hadoop-shims-hdp26.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -183,7 +183,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr520-package</artifactId>
-      <version>${dependency.hadoop-shims-mapr520.revision}</version>
+      <version>${pentaho-hadoop-shims-mapr520.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -196,7 +196,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-emr58-package</artifactId>
-      <version>${hadoop-shims-emr58.version}</version>
+      <version>${pentaho-hadoop-shims-emr58.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
