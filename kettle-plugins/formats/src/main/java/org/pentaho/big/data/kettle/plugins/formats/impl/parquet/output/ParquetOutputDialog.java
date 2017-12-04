@@ -458,6 +458,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
         };
         BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1, false,
           listener, ParquetOutputDialog::getFieldsChoiceDialog );
+        meta.setChanged();
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
