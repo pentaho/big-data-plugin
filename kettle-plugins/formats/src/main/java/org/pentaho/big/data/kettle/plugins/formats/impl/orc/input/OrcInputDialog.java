@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
@@ -78,12 +77,6 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   }
 
   protected Control createAfterFile( Composite afterFile ) {
-    // fields label
-    Label wlFields = new Label( afterFile, SWT.RIGHT );
-    wlFields.setText( BaseMessages.getString( PKG, "OrcInputDialog.Fields.Label" ) );
-    props.setLook( wlFields );
-    new FD( wlFields ).left( 0, 0 ).top( 0, FIELDS_SEP ).apply();
-
     // Accept fields from previous steps?
     //
     wPassThruFields = new Button( afterFile, SWT.CHECK );
@@ -91,7 +84,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     wPassThruFields.setToolTipText( BaseMessages.getString( PKG, "OrcInputDialog.PassThruFields.Tooltip" ) );
     wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
     props.setLook( wPassThruFields );
-    new FD( wPassThruFields ).left( 0, 0 ).top( wlFields, FIELDS_SEP ).apply();
+    new FD( wPassThruFields ).left( 0, MARGIN ).top( 0, MARGIN ).apply();
 
     //get fields button
     lsGet = new Listener() {
@@ -102,7 +95,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     Button wGetFields = new Button( afterFile, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "OrcInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
-    new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
+    new FD( wGetFields ).bottom( 100, -FIELDS_SEP ).right( 100, -MARGIN ).apply();
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
@@ -126,7 +119,8 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
-    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wPassThruFields, FIELDS_SEP ).bottom( wGetFields, -FIELDS_SEP ).apply();
+    new FD( wInputFields ).left( 0, MARGIN ).right( 100, -MARGIN ).top( wPassThruFields, FIELDS_SEP )
+            .bottom( wGetFields, -FIELDS_SEP ).apply();
 
     wInputFields.setRowNums();
     wInputFields.optWidth( true );
