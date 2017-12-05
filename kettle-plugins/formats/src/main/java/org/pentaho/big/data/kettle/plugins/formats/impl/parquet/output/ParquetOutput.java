@@ -84,8 +84,16 @@ public class ParquetOutput extends BaseStep implements StepInterface {
         return false;
       }
     } catch ( KettleException ex ) {
+      try {
+        closeWriter();
+      } catch ( Exception ex2 ) {
+      }
       throw ex;
     } catch ( Exception ex ) {
+      try {
+        closeWriter();
+      } catch ( Exception ex2 ) {
+      }
       throw new KettleException( ex );
     }
   }
