@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -458,6 +459,15 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
         };
         BaseStepDialog.getFieldsFromPrevious( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1, -1, false,
           listener, ParquetOutputDialog::getFieldsChoiceDialog );
+
+        // fix empty null fields to nullable
+        for ( int i = 0; i < wOutputFields.table.getItemCount(); i++ ) {
+          TableItem tableItem = wOutputFields.table.getItem( i );
+          if ( StringUtils.isEmpty( tableItem.getText( 5 ) ) ) {
+            tableItem.setText( 5, "Yes" );
+          }
+        }
+
         meta.setChanged();
       }
     } catch ( KettleException ke ) {
