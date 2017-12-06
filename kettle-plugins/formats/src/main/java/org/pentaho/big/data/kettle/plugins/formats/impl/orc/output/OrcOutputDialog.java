@@ -97,9 +97,29 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     this.meta = orcOutputMeta;
   }
 
-  // TODO name
-  protected Control createAfterFile( Composite afterFile ) {
-    CTabFolder wTabFolder = new CTabFolder( afterFile, SWT.BORDER );
+  @Override
+  protected void createUI()  {
+    Control prev = createHeader();
+
+    //main fields
+    prev = addFileWidgets( prev );
+
+    createFooter( shell );
+
+    Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
+    FormData fdSpacer = new FormData();
+    fdSpacer.height = 2;
+    fdSpacer.left = new FormAttachment( 0, 0 );
+    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
+    fdSpacer.right = new FormAttachment( 100, 0 );
+    separator.setLayoutData( fdSpacer );
+
+    Composite tabContainer;
+    tabContainer = new Composite( shell, SWT.NONE );
+    tabContainer.setLayout( new FormLayout() );
+    new FD( tabContainer ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
+
+    CTabFolder wTabFolder = new CTabFolder( tabContainer, SWT.BORDER );
     props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
     wTabFolder.setSimple( false );
 
@@ -108,7 +128,6 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
 
     new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
-    return wTabFolder;
   }
 
   @Override

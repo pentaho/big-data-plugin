@@ -25,12 +25,16 @@ import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.orc.BaseOrcStepDialog;
 import org.pentaho.di.core.Const;
@@ -76,10 +80,31 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     super( parent, (OrcInputMeta) in, transMeta, sname );
   }
 
-  protected Control createAfterFile( Composite afterFile ) {
+  @Override
+  protected void createUI( ) {
+    Control prev = createHeader();
+
+    //main fields
+    prev = addFileWidgets( prev );
+
+    createFooter( shell );
+
+    Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
+    FormData fdSpacer = new FormData();
+    fdSpacer.height = 2;
+    fdSpacer.left = new FormAttachment( 0, 0 );
+    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
+    fdSpacer.right = new FormAttachment( 100, 0 );
+    separator.setLayoutData( fdSpacer );
+
+    Group fieldsContainer = new Group( shell, SWT.SHADOW_IN );
+    fieldsContainer.setLayout( new FormLayout() );
+    fieldsContainer.setText( BaseMessages.getString( PKG, "OrcInputDialog.Fields.Label" ) );
+    new FD( fieldsContainer ).left( 0, 0 ).top( prev, MARGIN ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
+
     // Accept fields from previous steps?
     //
-    wPassThruFields = new Button( afterFile, SWT.CHECK );
+    wPassThruFields = new Button( fieldsContainer, SWT.CHECK );
     wPassThruFields.setText( BaseMessages.getString( PKG, "OrcInputDialog.PassThruFields.Label" ) );
     wPassThruFields.setToolTipText( BaseMessages.getString( PKG, "OrcInputDialog.PassThruFields.Tooltip" ) );
     wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
@@ -92,7 +117,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
         populateFieldsTable();
       }
     };
-    Button wGetFields = new Button( afterFile, SWT.PUSH );
+    Button wGetFields = new Button( fieldsContainer, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "OrcInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
     new FD( wGetFields ).bottom( 100, -FIELDS_SEP ).right( 100, -MARGIN ).apply();
@@ -113,7 +138,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     parameterColumns[3].setAutoResize( false );
 
     wInputFields =
-            new TableView( transMeta, afterFile, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
+            new TableView( transMeta, fieldsContainer, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
                     parameterColumns, 7, null, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 0 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
@@ -133,8 +158,6 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     if ( !Const.isWindows() ) {
       addColumnTooltip( wInputFields.getTable(), 1 );
     }
-
-    return wGetFields;
   }
 
   protected void populateFieldsTable() {
