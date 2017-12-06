@@ -49,7 +49,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -160,30 +159,7 @@ public abstract class BaseOrcStepDialog<T extends BaseStepMeta & StepMetaInterfa
     return stepname;
   }
 
-  protected void createUI() {
-    Control prev = createHeader();
-
-    //main fields
-    prev = addFileWidgets( prev );
-
-    createFooter( shell );
-
-    Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    FormData fdSpacer = new FormData();
-    fdSpacer.height = 2;
-    fdSpacer.left = new FormAttachment( 0, 0 );
-    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
-    fdSpacer.right = new FormAttachment( 100, 0 );
-    separator.setLayoutData( fdSpacer );
-
-    Group fields = new Group( shell, SWT.SHADOW_IN );
-    fields.setLayout( new FormLayout() );
-    fields.setText( BaseMessages.getString( PKG, "OrcInputDialog.Fields.Label" ) );
-
-    new FD( fields ).left( 0, 0 ).top( prev, MARGIN ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
-
-    createAfterFile( fields );
-  }
+  protected abstract void createUI();
 
   protected Control createFooter( Composite shell ) {
 
@@ -224,8 +200,6 @@ public abstract class BaseOrcStepDialog<T extends BaseStepMeta & StepMetaInterfa
     getInfo( meta, false );
     dispose();
   }
-
-  protected abstract Control createAfterFile( Composite container );
 
   protected abstract String getStepTitle();
 
