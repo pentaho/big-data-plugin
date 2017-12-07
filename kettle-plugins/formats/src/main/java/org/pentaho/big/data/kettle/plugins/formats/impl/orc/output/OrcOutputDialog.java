@@ -80,6 +80,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
   private TextVar wRowsBetweenEntries;
   private Button wDateInFileName;
   private Button wTimeInFileName;
+  private Button wOverwriteExistingFile;
   private Button wSpecifyDateTimeFormat;
   private ComboVar wDateTimeFormat;
   private int startingRowsBetweenEntries = OrcOutputMeta.DEFAULT_ROWS_BETWEEN_ENTRIES;
@@ -119,6 +120,16 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     tabContainer.setLayout( new FormLayout() );
     new FD( tabContainer ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
 
+    wOverwriteExistingFile = new Button( tabContainer, SWT.CHECK );
+    wOverwriteExistingFile.setText( BaseMessages.getString( PKG, "OrcOutputDialog.OverwriteFile.Label" ) );
+    props.setLook( wOverwriteExistingFile );
+    new FD( wOverwriteExistingFile ).left( 0, 0 ).top( tabContainer, FIELDS_SEP ).apply();
+    wOverwriteExistingFile.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+      }
+    } );
+
     CTabFolder wTabFolder = new CTabFolder( tabContainer, SWT.BORDER );
     props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
     wTabFolder.setSimple( false );
@@ -126,7 +137,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     addFieldsTab( wTabFolder );
     addOptionsTab( wTabFolder );
 
-    new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    new FD( wTabFolder ).left( 0, 0 ).top( wOverwriteExistingFile, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
   }
 
@@ -414,6 +425,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     if ( meta.getFilename() != null ) {
       wPath.setText( meta.getFilename() );
     }
+    wOverwriteExistingFile.setSelection( meta.isOverrideOutput() );
     populateFieldsUI( meta, wOutputFields );
     wCompression.setText( meta.getCompressionType() );
     wCompressSize.setText( meta.getCompressSize() > 0 ? Integer.toString( meta.getCompressSize() ) : Integer.toString( OrcOutputMeta.DEFAULT_COMPRESS_SIZE ) );
@@ -458,6 +470,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
   @Override
   protected void getInfo( OrcOutputMeta meta, boolean preview ) {
     meta.setFilename( wPath.getText() );
+    meta.setOverrideOutput( wOverwriteExistingFile.getSelection() );
     meta.setCompressionType( wCompression.getText() );
     int compressSize = ( wCompressSize.getText().length() > 0 ) ? Integer.parseInt( wCompressSize.getText() ) : OrcOutputMeta.DEFAULT_COMPRESS_SIZE;
     meta.setCompressSize( compressSize );

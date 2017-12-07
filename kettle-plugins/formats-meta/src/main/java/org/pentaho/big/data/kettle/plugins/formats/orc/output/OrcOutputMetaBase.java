@@ -89,6 +89,9 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   @Injection( name = "OPTIONS_DATE_FORMAT" )
   protected String dateTimeFormat = "";
 
+  @Injection( name = "OVERRIDE_OUTPUT" )
+  protected boolean overrideOutput;
+
   @Override
   public void setDefault() {
     // TODO Auto-generated method stub
@@ -97,6 +100,14 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   public String getFilename() {
 
     return filename;
+  }
+
+  public boolean isOverrideOutput() {
+    return overrideOutput;
+  }
+
+  public void setOverrideOutput( boolean overrideOutput ) {
+    this.overrideOutput = overrideOutput;
   }
 
   public void setFilename( String filename ) {
@@ -185,13 +196,14 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       this.outputFields = orcOutputFields;
 
       filename = XMLHandler.getTagValue( stepnode, FieldNames.FILE_NAME );
+      overrideOutput = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.OVERRIDE_OUTPUT ) );
       compressionType = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESSION );
       stripeSize = Integer.parseInt( XMLHandler.getTagValue( stepnode, FieldNames.STRIPE_SIZE ), 10 );
       compressSize = Integer.parseInt( XMLHandler.getTagValue( stepnode, FieldNames.COMPRESS_SIZE ), 10 );
       rowsBetweenEntries = Integer.parseInt( XMLHandler.getTagValue( stepnode, FieldNames.ROWS_BETWEEN_ENTRIES ), 10 );
       dateTimeFormat = XMLHandler.getTagValue( stepnode, FieldNames.DATE_FORMAT );
       dateInFileName = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.DATE_IN_FILE_NAME ) );
-      timeInFileName = "Y".equalsIgnoreCase( ( XMLHandler.getTagValue( stepnode, FieldNames.TIME_IN_FILE_NAME ) ) );
+      timeInFileName = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.TIME_IN_FILE_NAME ) );
 
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
@@ -205,6 +217,7 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     final String INDENT = "    ";
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.FILE_NAME, filename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.OVERRIDE_OUTPUT, overrideOutput ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.COMPRESSION, compressionType ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.STRIPE_SIZE, stripeSize ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.COMPRESS_SIZE, compressSize ) );
@@ -237,6 +250,7 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     throws KettleException {
     try {
       filename = rep.getStepAttributeString( id_step, FieldNames.FILE_NAME );
+      overrideOutput = rep.getStepAttributeBoolean( id_step, FieldNames.OVERRIDE_OUTPUT );
       compressionType = rep.getStepAttributeString( id_step, FieldNames.COMPRESSION );
       stripeSize = Math.toIntExact( rep.getStepAttributeInteger( id_step, FieldNames.STRIPE_SIZE ) );
       compressSize = Math.toIntExact( rep.getStepAttributeInteger( id_step, FieldNames.COMPRESS_SIZE ) );
@@ -272,6 +286,7 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     try {
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.FILE_NAME, filename );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.OVERRIDE_OUTPUT, overrideOutput );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESSION, compressionType );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.STRIPE_SIZE, stripeSize );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESS_SIZE, compressSize );
@@ -382,6 +397,7 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
 
   protected static class FieldNames {
     public static final String FILE_NAME = "filename";
+    public static final String OVERRIDE_OUTPUT = "overrideOutput";
     public static final String COMPRESSION = "compression";
     public static final String COMPRESS_SIZE = "compressSize";
     public static final String INLINE_INDEXES = "inlineIndexes";

@@ -122,7 +122,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
     }
 
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class );
-    data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+    data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ), meta.isOverrideOutput() );
     data.output.setSchemaDescription( schemaDescription );
     IPentahoOrcOutputFormat.COMPRESSION compression;
     try {
