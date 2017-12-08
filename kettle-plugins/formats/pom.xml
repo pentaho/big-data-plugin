@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-impl-shim-format</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
 
     <dependency>
