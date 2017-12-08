@@ -40,7 +40,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettlePluginException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.KettleURLClassLoader;
 import org.pentaho.di.core.plugins.PluginAnnotationType;
@@ -131,19 +130,20 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
         throw new KettlePluginException( e );
       }
     }
-    try {
+   // try {
       Set<String> librarySet = new HashSet<String>( libraries );
       KettleURLClassLoader classloader = classLoaderMap.get( librarySet );
-      if ( classloader == null ) {
-        classloader =
-            new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
-                .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
-        classLoaderMap.put( librarySet, classloader );
-      }
-      PluginRegistry.getInstance().addClassLoader( classloader, plugin );
-    } catch ( ConfigurationException e ) {
-      throw new KettlePluginException( e );
-    }
+      //todo: what the ?? when multishim, any classloader needed to be put? or big-data-plugin classloader here
+//      if ( classloader == null ) {
+//        classloader =
+//            new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
+//                .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
+//        classLoaderMap.put( librarySet, classloader );
+//      }
+//      PluginRegistry.getInstance().addClassLoader( classloader, plugin );
+//    } catch ( ConfigurationException e ) {
+//      throw new KettlePluginException( e );
+//    }
   }
 
   @Override

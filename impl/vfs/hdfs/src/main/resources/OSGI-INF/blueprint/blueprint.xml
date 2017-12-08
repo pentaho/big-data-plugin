@@ -9,6 +9,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="hdfsFileNameParser" />
     <argument value="hdfs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -16,6 +17,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="maprfsFileNameParser" />
     <argument value="maprfs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -23,6 +25,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="hdfsFileNameParser" />
     <argument value="s3n" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
 
@@ -31,6 +34,7 @@
       <argument ref="namedClusterService"/>
       <argument ref="maprfsFileNameParser" />
       <argument value="escalefs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -38,6 +42,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="maprfsFileNameParser" />
     <argument value="wasb" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -45,6 +50,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="maprfsFileNameParser" />
     <argument value="wasbs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider" scope="singleton">

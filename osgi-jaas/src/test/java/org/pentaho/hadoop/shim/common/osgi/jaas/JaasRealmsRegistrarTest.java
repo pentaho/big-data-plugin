@@ -34,7 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
@@ -52,7 +51,6 @@ public class JaasRealmsRegistrarTest {
     testee = mock( JaasRealmsRegistrar.class );
     doCallRealMethod().when( testee ).onClassLoaderAvailable( any( ClassLoader.class ) );
     doCallRealMethod().when( testee ).onConfigurationClose( any( HadoopConfiguration.class ) );
-    doReturn( true ).when( testee ).isMaprShimActive( any( HadoopConfigurationBootstrap.class ) );
   }
 
   @After
@@ -66,7 +64,6 @@ public class JaasRealmsRegistrarTest {
 
   @Test
   public void testIgnoresNotMaprShims() throws ConfigurationException {
-    doReturn( true ).when( testee ).isMaprShimActive( any( HadoopConfigurationBootstrap.class ) );
     BundleContext bundleContext = mock( BundleContext.class );
     doReturn( bundleContext ).when( testee ).getBundleContext();
     testee.onClassLoaderAvailable( mock( ClassLoader.class ) );

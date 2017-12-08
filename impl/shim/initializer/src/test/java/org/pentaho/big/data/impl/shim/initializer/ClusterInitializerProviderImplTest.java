@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.hadoop.shim.ConfigurationException;
 
 import static org.junit.Assert.assertNotNull;
@@ -39,14 +38,12 @@ import static org.mockito.Mockito.when;
  * Created by bryan on 10/2/15.
  */
 public class ClusterInitializerProviderImplTest {
-  private HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
   private ClusterInitializerProviderImpl clusterInitializerProvider;
   private NamedCluster namedCluster;
 
   @Before
   public void setup() {
-    hadoopConfigurationBootstrap = mock( HadoopConfigurationBootstrap.class );
-    clusterInitializerProvider = new ClusterInitializerProviderImpl( hadoopConfigurationBootstrap );
+    clusterInitializerProvider = new ClusterInitializerProviderImpl( );
     namedCluster = mock( NamedCluster.class );
   }
 
@@ -64,12 +61,10 @@ public class ClusterInitializerProviderImplTest {
   @Test
   public void testInitializeSuccess() throws ClusterInitializationException, ConfigurationException {
     clusterInitializerProvider.initialize( namedCluster );
-    verify( hadoopConfigurationBootstrap ).getProvider();
   }
 
   @Test( expected = ClusterInitializationException.class )
   public void testInitializationFalure() throws ClusterInitializationException, ConfigurationException {
-    when( hadoopConfigurationBootstrap.getProvider() ).thenThrow( new ConfigurationException( null ) );
     clusterInitializerProvider.initialize( namedCluster );
   }
 }

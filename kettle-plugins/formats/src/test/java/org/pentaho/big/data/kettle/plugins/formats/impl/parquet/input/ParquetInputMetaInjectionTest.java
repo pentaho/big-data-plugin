@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 
 import static org.mockito.Mockito.mock;
@@ -38,8 +39,9 @@ public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<Par
   public void setup() {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
+    MetastoreLocatorOsgi metaStoreService = mock(MetastoreLocatorOsgi.class);
     setup( new ParquetInputMeta( namedClusterServiceLocator,
-      namedClusterService ) );
+      namedClusterService, metaStoreService ) );
   }
 
   @Test

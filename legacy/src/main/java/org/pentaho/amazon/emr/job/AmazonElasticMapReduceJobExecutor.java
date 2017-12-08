@@ -45,7 +45,6 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.logging.Log4jFileAppender;
 import org.pentaho.di.core.logging.LogWriter;
 import org.pentaho.di.core.util.StringUtil;
@@ -91,8 +90,9 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
   }
 
   public String getMainClass( URL localJarUrl ) throws Exception {
-    HadoopShim shim =
-        HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+    //todo: here we should select named cluster according to step or url
+    HadoopShim shim = null;
+        //HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
 
     final Class<?> mainClass = util.getMainClassFromManifest( localJarUrl, shim.getClass().getClassLoader() );
     if ( mainClass != null ) {

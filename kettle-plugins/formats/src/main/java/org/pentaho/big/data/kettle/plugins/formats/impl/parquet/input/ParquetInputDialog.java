@@ -249,7 +249,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
       try {
         SchemaDescription schema =
-            ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(),
+            ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster( oneMeta.inputFiles.fileName[ 0 ] ),
               oneMeta.inputFiles.fileName[0] );
         List<FormatInputOutputField> fields = new ArrayList<>();
         for ( SchemaDescription.Field f : schema ) {

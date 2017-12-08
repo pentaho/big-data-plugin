@@ -233,6 +233,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
+    this.setShimIdentifier( nc.getShimIdentifier() );
     this.setStorageScheme( nc.getStorageScheme() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );
