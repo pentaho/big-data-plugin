@@ -20,22 +20,22 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-pig</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
