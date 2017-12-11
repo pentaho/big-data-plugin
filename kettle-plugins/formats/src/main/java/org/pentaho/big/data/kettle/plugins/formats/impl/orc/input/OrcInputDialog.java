@@ -81,7 +81,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   }
 
   @Override
-  protected void createUI( ) {
+  protected void createUI() {
     Control prev = createHeader();
 
     //main fields
@@ -132,20 +132,21 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
       new ColumnInfo( BaseMessages.getString( PKG, "OrcInputDialog.Fields.column.Type" ),
         ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ),
       new ColumnInfo( BaseMessages.getString( PKG, "OrcInputDialog.Fields.column.SourceType" ),
-         ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true ) };
-    parameterColumns[0].setAutoResize( false );
-    parameterColumns[1].setUsingVariables( true );
-    parameterColumns[3].setAutoResize( false );
+        ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true ) };
+    parameterColumns[ 0 ].setAutoResize( false );
+    parameterColumns[ 1 ].setUsingVariables( true );
+    parameterColumns[ 3 ].setAutoResize( false );
 
     wInputFields =
-            new TableView( transMeta, fieldsContainer, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-                    parameterColumns, 7, null, props );
+      new TableView( transMeta, fieldsContainer,
+        SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
+        parameterColumns, 7, null, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 0 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
     new FD( wInputFields ).left( 0, MARGIN ).right( 100, -MARGIN ).top( wPassThruFields, FIELDS_SEP )
-            .bottom( wGetFields, -FIELDS_SEP ).apply();
+      .bottom( wGetFields, -FIELDS_SEP ).apply();
 
     wInputFields.setRowNums();
     wInputFields.optWidth( true );
@@ -164,7 +165,8 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     String orcFileName = wPath.getText();
     orcFileName = transMeta.environmentSubstitute( orcFileName );
     try {
-      SchemaDescription schemaDescription = OrcInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), orcFileName );
+      SchemaDescription schemaDescription = OrcInput
+        .retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster( orcFileName ), orcFileName );
       wInputFields.clearAll();
       for ( SchemaDescription.Field field : schemaDescription ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
