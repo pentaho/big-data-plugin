@@ -24,11 +24,15 @@ package org.pentaho.big.data.kettle.plugins.formats.impl;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 public abstract class NamedClusterResolver {
 
@@ -54,7 +58,8 @@ public abstract class NamedClusterResolver {
     return hostName;
   }
 
-  public static NamedCluster resolveNamedCluster( NamedClusterService namedClusterService,
+  public static NamedCluster resolveNamedCluster( NamedClusterServiceLocator namedClusterServiceLocator,
+                                                  NamedClusterService namedClusterService,
                                                   MetastoreLocatorOsgi metaStoreService, String fileUri ) {
     NamedCluster namedCluster;
     String scheme = extractScheme( fileUri );
@@ -65,13 +70,28 @@ public abstract class NamedClusterResolver {
       namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
     }
     if ( namedCluster == null ) {
-      try {
-        namedCluster = namedClusterService.list( metaStoreService.getMetastore() ).get( 0 );
-      } catch ( MetaStoreException e ) {
-        e.printStackTrace();
-      }
-      //namedCluster = namedClusterService.getClusterTemplate();
+      namedCluster =
+        getNamedClusterWithExistingFormatService( namedClusterServiceLocator, namedClusterService, metaStoreService );
     }
     return namedCluster;
+  }
+
+  private static NamedCluster getNamedClusterWithExistingFormatService(
+    NamedClusterServiceLocator namedClusterServiceLocator, NamedClusterService namedClusterService,
+    MetastoreLocatorOsgi metaStoreService ) {
+    try {
+      List<NamedCluster> namedClusters = namedClusterService.list( metaStoreService.getMetastore() );
+      for ( NamedCluster nc : namedClusters ) {
+        FormatService formatService = namedClusterServiceLocator.getService( nc, FormatService.class );
+        if ( formatService != null ) {
+          return nc;
+        }
+      }
+    } catch ( MetaStoreException e ) {
+      e.printStackTrace();
+    } catch ( ClusterInitializationException e ) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }

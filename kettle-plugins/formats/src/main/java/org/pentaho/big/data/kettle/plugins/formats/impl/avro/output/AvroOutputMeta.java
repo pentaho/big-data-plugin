@@ -62,7 +62,7 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
 
   public NamedCluster getNamedCluster() {
     NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.getFilename() );
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename() );
     return namedCluster;
   }
 
