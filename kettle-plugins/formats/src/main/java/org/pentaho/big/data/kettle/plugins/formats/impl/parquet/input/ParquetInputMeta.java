@@ -88,13 +88,13 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
 
   public NamedCluster getNamedCluster() {
     NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.inputFiles.fileName[ 0 ] );
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, this.inputFiles.fileName[ 0 ] );
     return namedCluster;
   }
 
   public NamedCluster getNamedCluster( String fileUri ) {
     NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, fileUri );
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, fileUri );
     return namedCluster;
   }
 

@@ -89,13 +89,13 @@ public class OrcInputMeta extends OrcInputMetaBase {
 
   public NamedCluster getNamedCluster() {
     NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.getFilename() );
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename() );
     return namedCluster;
   }
 
   public NamedCluster getNamedCluster( String fileUri ) {
     NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, fileUri );
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, fileUri );
     return namedCluster;
   }
 
