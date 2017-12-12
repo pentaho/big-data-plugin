@@ -5,11 +5,6 @@
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
     <feature>pentaho-hadoop-shims-api</feature>
-    <conditional>
-      <condition>community-edition</condition>
-      <feature>pentaho-hadoop-shims-cdh513</feature>
-      <feature>pentaho-hadoop-shims-hdp26</feature>
-    </conditional>
     <feature>pentaho-big-data-kettle-plugins</feature>
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
@@ -97,5 +92,14 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-kafka/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
+  </feature>
+
+  <feature name="shims-list" description="Shims bundles list" version="1.0">
+    <feature>pentaho-hadoop-shims-api</feature>
+    <conditional>
+      <condition>community-edition</condition>
+      <feature>pentaho-hadoop-shims-cdh513</feature>
+      <feature>pentaho-hadoop-shims-hdp26</feature>
+    </conditional>
   </feature>
 </features>
