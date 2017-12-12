@@ -30,6 +30,7 @@
     <feature>pentaho-hadoop-shims-api</feature>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-common/${pentaho-hadoop-shims-hdp26.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-hbase/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-hive/${pentaho-hadoop-shims-hdp26.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
