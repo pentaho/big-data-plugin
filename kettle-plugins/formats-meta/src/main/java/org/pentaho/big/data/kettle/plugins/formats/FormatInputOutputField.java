@@ -36,7 +36,7 @@ public class FormatInputOutputField extends BaseFileField {
   protected String path;
 
   @Injection( name = "FIELD_NULLABLE", group = "FIELDS" )
-  protected boolean nullable;
+  protected boolean nullable = true;
 
   protected int sourceType;
 
