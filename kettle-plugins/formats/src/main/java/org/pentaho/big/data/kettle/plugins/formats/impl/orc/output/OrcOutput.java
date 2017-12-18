@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.orc.OrcFormatInputOutputField;
@@ -33,6 +34,8 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -122,7 +125,15 @@ public class OrcOutput extends BaseStep implements StepInterface {
     }
 
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class );
-    data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ), meta.isOverrideOutput() );
+
+
+    String outputFileName = environmentSubstitute( meta.getFilename() );
+    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
+    if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
+      outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
+    }
+    data.output.setOutputFile( outputFileName, meta.isOverrideOutput() );
+
     data.output.setSchemaDescription( schemaDescription );
     IPentahoOrcOutputFormat.COMPRESSION compression;
     try {
