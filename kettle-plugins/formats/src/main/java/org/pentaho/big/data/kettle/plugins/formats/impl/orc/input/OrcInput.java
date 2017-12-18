@@ -31,6 +31,9 @@ import org.pentaho.big.data.kettle.plugins.formats.orc.input.OrcInputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -65,10 +68,14 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
           throw new KettleException( "can't get service format shim ", e );
         }
         if ( meta.getFilename() == null ) {
-          throw new KettleException( "No output files defined" );
+          throw new KettleException( "No input files defined" );
         }
         data.input = formatService.createInputFormat( IPentahoOrcInputFormat.class );
-        data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+
+        String inputFileName = getKettleVFSFileName(
+                meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+
+        data.input.setInputFile( inputFileName );
         data.input.setSchema( createSchemaFromMeta( meta ) );
         data.reader = data.input.createRecordReader( null );
         data.rowIterator = data.reader.iterator();
@@ -107,7 +114,8 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
       NamedCluster namedCluster, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoOrcInputFormat in = formatService.createInputFormat( IPentahoOrcInputFormat.class );
-    in.setInputFile( dataPath );
+
+    in.setInputFile( getKettleVFSFileName( dataPath ) );
     return in.readSchema( );
   }
 
@@ -120,4 +128,13 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return schema;
   }
 
+  public static String getKettleVFSFileName( String path ) throws KettleFileException {
+    String inputFileName = path;
+    FileObject inputFileObject = KettleVFS.getFileObject( path );
+    if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
+      inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
+    }
+
+    return inputFileName;
+  }
 }
