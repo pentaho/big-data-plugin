@@ -28,8 +28,6 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;
-import org.pentaho.di.core.CheckResult;
-import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
@@ -37,7 +35,6 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
-import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
@@ -52,13 +49,13 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.resource.ResourceEntry;
 import org.pentaho.di.resource.ResourceReference;
-import org.pentaho.di.trans.StepWithMappingMeta;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
@@ -73,9 +70,6 @@ import java.util.stream.IntStream;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
-/**
- * Skeleton for PDI Step plugin.
- */
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg",
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
   name = "KafkaConsumer.TypeLongDesc",
@@ -83,7 +77,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
   documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Kafka_Consumer" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
-public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepMetaInterface {
+public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMetaInterface {
   public enum ConnectionType {
     DIRECT,
     CLUSTER
@@ -111,9 +105,6 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   private static Class<?> PKG = KafkaConsumerInput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
-  @Injection( name = "TRANSFORMATION_PATH" )
-  private String transformationPath;
-
   @Injection( name = "CONNECTION_TYPE" )
   private ConnectionType connectionType = DIRECT;
 
@@ -128,12 +119,6 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
 
   @Injection( name = "CONSUMER_GROUP" )
   private String consumerGroup;
-
-  @Injection( name = "NUM_MESSAGES" )
-  private String batchSize;
-
-  @Injection( name = "DURATION" )
-  private String batchDuration;
 
   @InjectionDeep( prefix = "KEY" )
   private KafkaConsumerField keyField;
@@ -203,7 +188,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     setSpecificationMethod( ObjectLocationSpecificationMethod.FILENAME );
   }
 
-  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) {
     readData( stepnode );
   }
 
@@ -362,37 +347,6 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     }
   }
 
-  public void check( List<CheckResultInterface> remarks, TransMeta transMeta,
-                     StepMeta stepMeta, RowMetaInterface prev, String[] input, String[] output,
-                     RowMetaInterface info, VariableSpace space, Repository repository,
-                     IMetaStore metaStore ) {
-    long duration = Long.MIN_VALUE;
-    try {
-      duration = Long.parseLong( space.environmentSubstitute( getBatchDuration() ) );
-    } catch ( NumberFormatException e ) {
-      remarks.add( new CheckResult(
-        CheckResultInterface.TYPE_RESULT_ERROR,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Duration" ),
-        stepMeta ) );
-    }
-
-    long size = Long.MIN_VALUE;
-    try {
-      size = Long.parseLong( space.environmentSubstitute( getBatchSize() ) );
-    } catch ( NumberFormatException e ) {
-      remarks.add( new CheckResult(
-        CheckResultInterface.TYPE_RESULT_ERROR,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NaN", "Number of records" ),
-        stepMeta ) );
-    }
-
-    if ( duration == 0 && size == 0 ) {
-      remarks.add( new CheckResult(
-        CheckResultInterface.TYPE_RESULT_ERROR,
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.CheckResult.NoBatchDefined" ),
-        stepMeta ) );
-    }
-  }
 
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta tr,
                                 Trans trans ) {
@@ -460,18 +414,6 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     return timestampField;
   }
 
-  public String getTransformationPath() {
-    return transformationPath;
-  }
-
-  public String getBatchSize() {
-    return batchSize;
-  }
-
-  public String getBatchDuration() {
-    return batchDuration;
-  }
-
   public String getDirectBootstrapServers() {
     return directBootstrapServers;
   }
@@ -500,18 +442,6 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     this.timestampField = timestampField;
   }
 
-  public void setTransformationPath( String transformationPath ) {
-    this.transformationPath = transformationPath;
-  }
-
-  public void setBatchSize( String batchSize ) {
-    this.batchSize = batchSize;
-  }
-
-  public void setBatchDuration( String batchDuration ) {
-    this.batchDuration = batchDuration;
-  }
-
   public void setDirectBootstrapServers( final String directBootstrapServers ) {
     this.directBootstrapServers = directBootstrapServers;
   }
@@ -524,7 +454,7 @@ public class KafkaConsumerInputMeta extends StepWithMappingMeta implements StepM
     this.connectionType = connectionType;
   }
 
-  @Override public String getXML() throws KettleException {
+  @Override public String getXML() {
     StringBuilder retval = new StringBuilder();
     retval.append( "    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, clusterName ) );
     parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( "hc://" + clusterName );
