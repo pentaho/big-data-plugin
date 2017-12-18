@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.formats.orc.input;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
-import org.pentaho.big.data.kettle.plugins.formats.orc.output.OrcOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -55,7 +54,7 @@ import java.util.List;
 public abstract class OrcInputMetaBase extends
     BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements ResolvableResource {
 
-  private static final Class<?> PKG = OrcOutputMetaBase.class;
+  private static final Class<?> PKG = OrcInputMetaBase.class;
 
   @Injection( name = "ORC_FILENAME" )
   private String filename;
