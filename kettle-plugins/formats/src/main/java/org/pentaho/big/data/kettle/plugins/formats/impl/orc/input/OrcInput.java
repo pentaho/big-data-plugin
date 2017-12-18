@@ -69,7 +69,6 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
         }
         data.input = formatService.createInputFormat( IPentahoOrcInputFormat.class );
         data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
-        // TODO: data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
         data.input.setSchema( createSchemaFromMeta( meta ) );
         data.reader = data.input.createRecordReader( null );
         data.rowIterator = data.reader.iterator();
@@ -108,6 +107,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
       NamedCluster namedCluster, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoOrcInputFormat in = formatService.createInputFormat( IPentahoOrcInputFormat.class );
+    in.setInputFile( dataPath );
     return in.readSchema( );
   }
 
