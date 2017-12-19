@@ -141,6 +141,10 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       NamedCluster namedCluster, String path ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class );
+    FileObject inputFileObject = KettleVFS.getFileObject( path );
+    if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
+      path = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
+    }
     return in.readSchema( path );
   }
 
