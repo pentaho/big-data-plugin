@@ -43,7 +43,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
 
 //keep ID as new because we will have old step with ID AvroInput
-@Step( id = "AvroInputNew", image = "AI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
+@Step( id = "AvroInput", image = "AI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Avro_Input",
     i18nPackageName = "org.pentaho.di.trans.steps.avro" )
