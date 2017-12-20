@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -71,18 +72,16 @@ import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.String;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -261,7 +260,7 @@ public class KafkaConsumerInputTest {
     meta.setConsumerGroup( "testGroup" );
 
     meta.setKeyField( new KafkaConsumerField( KafkaConsumerField.Name.KEY, "key" ) );
-    meta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "msg" ) );
+    meta.setMessageField( new KafkaConsumerField( KafkaConsumerField.Name.MESSAGE, "message" ) );
 
     // set the topic output field name to not include it in the output fields
     meta.setTopicField( new KafkaConsumerField( KafkaConsumerField.Name.TOPIC, null ) );
@@ -295,6 +294,10 @@ public class KafkaConsumerInputTest {
     meta.setTopics( topicList );
     step.init( meta, data );
 
+    KafkaStreamSource kafkaStreamSource = (KafkaStreamSource) spy( step.getSource() );
+    step.setSource( kafkaStreamSource );
+    Iterable rows = kafkaStreamSource.rows();
+
     Runnable processRowRunnable = () -> {
       try {
         step.processRow( meta, data );
@@ -309,14 +312,9 @@ public class KafkaConsumerInputTest {
     step.stopRunning( meta, data );
     service.shutdown();
 
-    // make sure put row was called
-    verify( step, atLeast( messageCount ) ).collectRow( any( RowMetaInterface.class ), any( Object[].class ) );
-
-    // we should have set the offset of the offset value of the last record
-    assertEquals( messageCount - 1, step.messageOffset.get() );
-
-    // don't know exactly how many times we will end up consuming our samples set of messages
-    assertTrue( step.getLinesInput() >= messageCount );
+    verify( kafkaStreamSource ).open();
+    verify( kafkaStreamSource, times( 2 ) ).rows();
+    assertEquals( 5, Iterables.size( rows ) );
 
     // make sure all of the appropriate columns are in the output row meta
     assertNotNull( data.outputRowMeta.searchValueMeta( meta.getMessageField().getOutputName() ) );
@@ -327,7 +325,6 @@ public class KafkaConsumerInputTest {
 
     // we deliberately set the topic field name to null so it would NOT be included, make sure it's not there
     assertNull( data.outputRowMeta.searchValueMeta( KafkaConsumerInputMeta.TOPIC_FIELD_NAME ) );
-
   }
 
   private List<ConsumerRecord<String, String>> createRecords( String topic, int count ) {
