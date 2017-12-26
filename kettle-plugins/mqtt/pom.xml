@@ -27,7 +27,7 @@
     <version>8.1.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>mqtt</artifactId>
+  <artifactId>pentaho-big-data-kettle-plugins-mqtt</artifactId>
 
   <version>8.1.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
