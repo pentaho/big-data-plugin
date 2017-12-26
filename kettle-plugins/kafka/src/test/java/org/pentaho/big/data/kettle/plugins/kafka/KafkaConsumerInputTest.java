@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -109,6 +110,7 @@ public class KafkaConsumerInputTest {
   @Mock Consumer consumer;
   @Mock LogChannelInterfaceFactory logChannelFactory;
   @Mock LogChannelInterface logChannel;
+  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
   @BeforeClass
   public static void init() throws Exception {
@@ -339,6 +341,7 @@ public class KafkaConsumerInputTest {
     return records;
   }
 
+
   @Test
   public void testRunsSubtransWhenPresent() throws Exception {
     String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
@@ -393,7 +396,7 @@ public class KafkaConsumerInputTest {
     // provide some data when we try to poll for kafka messages
     when( consumer.poll( 1000 ) ).thenReturn( records )
       .then( invocationOnMock -> {
-        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 1000L, TimeUnit.MILLISECONDS );
+        executor.schedule( trans::stopAll, 1000L, TimeUnit.MILLISECONDS );
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
@@ -433,7 +436,7 @@ public class KafkaConsumerInputTest {
         while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
           continue;  //here to fool checkstyle
         }
-        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
+        executor.schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
@@ -493,11 +496,10 @@ public class KafkaConsumerInputTest {
           assertEquals( BaseStepData.StepExecutionStatus.STATUS_RUNNING.getDescription(),
                         stepStatus.getStatusDescription() );
         }
-
         while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
           continue;  //here to fool checkstyle
         }
-        Executors.newSingleThreadScheduledExecutor().schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
+        executor.schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
