@@ -23,6 +23,7 @@
 package org.pentaho.di.trans.step.mqtt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -54,6 +55,9 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   protected TextVar wConnection;
   private Label wlTopics;
   private TableView topicsTable;
+  private CTabItem wFieldsTab;
+  private Composite wFieldsComp;
+  private TableView fieldsTable;
 
   public MQTTConsumerDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, in, tr, sname );
@@ -161,6 +165,103 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     topicsTable.setLayoutData( fdData );
   }
 
+  @Override protected void createAdditionalTabs() {
+    buildFieldsTab();
+  }
+
+  private void buildFieldsTab() {
+    wFieldsTab = new CTabItem( wTabFolder, SWT.NONE );
+    wFieldsTab.setText( BaseMessages.getString( PKG, "MQTTConsumerDialog.FieldsTab" ) );
+
+    wFieldsComp = new Composite( wTabFolder, SWT.NONE );
+    props.setLook( wFieldsComp );
+    FormLayout fieldsLayout = new FormLayout();
+    fieldsLayout.marginHeight = 15;
+    fieldsLayout.marginWidth = 15;
+    wFieldsComp.setLayout( fieldsLayout );
+
+    FormData fieldsFormData = new FormData();
+    fieldsFormData.left = new FormAttachment( 0, 0 );
+    fieldsFormData.top = new FormAttachment( wFieldsComp, 0 );
+    fieldsFormData.right = new FormAttachment( 100, 0 );
+    fieldsFormData.bottom = new FormAttachment( 100, 0 );
+    wFieldsComp.setLayoutData( fieldsFormData );
+
+    buildFieldTable( wFieldsComp, wFieldsComp );
+
+    wFieldsComp.layout();
+    wFieldsTab.setControl( wFieldsComp );
+  }
+
+  private void buildFieldTable( Composite parentWidget, Control relativePosition ) {
+    ColumnInfo[] columns = getFieldColumns();
+
+    fieldsTable = new TableView(
+      transMeta,
+      parentWidget,
+      SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI,
+      columns,
+      2,
+      true,
+      lsMod,
+      props,
+      false
+    );
+
+    fieldsTable.setSortable( false );
+    fieldsTable.getTable().addListener( SWT.Resize, event -> {
+      Table table = (Table) event.widget;
+      table.getColumn( 1 ).setWidth( 147 );
+      table.getColumn( 2 ).setWidth( 147 );
+      table.getColumn( 3 ).setWidth( 147 );
+    } );
+
+    populateFieldData();
+
+    FormData fdData = new FormData();
+    fdData.left = new FormAttachment( 0, 0 );
+    fdData.top = new FormAttachment( relativePosition, 5 );
+    fdData.right = new FormAttachment( 100, 0 );
+
+    // resize the columns to fit the data in them
+    Arrays.stream( fieldsTable.getTable().getColumns() ).forEach( column -> {
+      if ( column.getWidth() > 0 ) {
+        // don't pack anything with a 0 width, it will resize it to make it visible (like the index column)
+        column.setWidth( 120 );
+      }
+    } );
+
+    // don't let any rows get deleted or added (this does not affect the read-only state of the cells)
+    fieldsTable.setReadonly( true );
+    fieldsTable.setLayoutData( fdData );
+  }
+
+  private void populateFieldData() {
+    TableItem messageItem = fieldsTable.getTable().getItem( 0 );
+    messageItem.setText( 1, BaseMessages.getString( PKG, "MQTTConsumerDialog.InputName.Message" ) );
+    messageItem.setText( 2, mqttMeta.getMsgOutputName() );
+    messageItem.setText( 3, "String" );
+
+    TableItem topicItem = fieldsTable.getTable().getItem( 1 );
+    topicItem.setText( 1, BaseMessages.getString( PKG, "MQTTConsumerDialog.InputName.Topic" ) );
+    topicItem.setText( 2, mqttMeta.getTopicOutputName() );
+    topicItem.setText( 3, "String" );
+  }
+
+  private ColumnInfo[] getFieldColumns() {
+    ColumnInfo referenceName = new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.Column.Ref" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+
+    ColumnInfo name = new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.Column.Name" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+
+    ColumnInfo type = new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.Column.Type" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+
+    return new ColumnInfo[]{ referenceName, name, type };
+  }
+
+
   @Override protected void additionalOks( BaseStreamStepMeta meta ) {
     mqttMeta.setMqttServer( wConnection.getText() );
     mqttMeta.setTopics( Arrays.stream( topicsTable.getTable().getItems() )
@@ -168,5 +269,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
       .filter( t -> !"".equals( t ) )
       .distinct()
       .collect( Collectors.toList() ) );
+    mqttMeta.setMsgOutputName( fieldsTable.getTable().getItem( 0 ).getText( 2 ) );
+    mqttMeta.setTopicOutputName( fieldsTable.getTable().getItem( 1 ).getText( 2 ) );
   }
 }
