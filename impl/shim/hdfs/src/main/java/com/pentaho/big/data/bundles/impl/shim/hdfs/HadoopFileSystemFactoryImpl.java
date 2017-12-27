@@ -61,6 +61,7 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
 
   @Override
   public HadoopFileSystem create( NamedCluster namedCluster, URI uri ) throws IOException {
+    final URI finalUri = uri != null ? uri : URI.create( "" );
     final HadoopShim hadoopShim = hadoopConfiguration.getHadoopShim();
     final Configuration configuration = hadoopShim.createConfiguration();
     FileSystem fileSystem = (FileSystem) hadoopShim.getFileSystem( configuration ).getDelegate();
@@ -73,7 +74,7 @@ public class HadoopFileSystemFactoryImpl implements HadoopFileSystemFactory {
       @Override
       public FileSystem getFileSystem() {
         try {
-          return (FileSystem) hadoopShim.getFileSystem( uri, configuration, null ).getDelegate();
+          return (FileSystem) hadoopShim.getFileSystem( finalUri, configuration, null ).getDelegate();
         } catch ( IOException e ) {
           LOGGER.debug( "Error looking up/creating the file system ", e );
           return null;
