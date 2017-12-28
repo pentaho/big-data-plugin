@@ -140,6 +140,8 @@
         <include>org.apache.xmlgraphics:batik-transcoder</include>
         <include>org.apache.xmlgraphics:batik-util</include>
         <include>org.apache.xmlgraphics:batik-xml</include>
+        <include>org.apache.xmlgraphics:batik-constants</include>
+        <include>org.apache.xmlgraphics:batik-i18n</include>
         <include>org.beanshell:bsh</include>
         <include>org.codehaus.groovy:groovy</include>
         <include>org.codehaus.jackson:jackson-core-asl</include>
