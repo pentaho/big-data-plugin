@@ -26,17 +26,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -44,7 +33,6 @@ import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -72,21 +60,32 @@ import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.String;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.String;
 import static org.pentaho.di.core.util.Assert.assertFalse;
 import static org.pentaho.di.core.util.Assert.assertNull;
 
@@ -219,7 +218,7 @@ public class KafkaConsumerInputTest {
   }
 
   @Test
-  public void testInitFailsOnZeroBatchAndDuration() throws Exception {
+  public void testInitFailsOnZeroBatchAndDuration() {
     meta.setConsumerGroup( "testGroup" );
     meta.setKafkaFactory( factory );
     meta.setBatchDuration( "0" );
@@ -233,7 +232,7 @@ public class KafkaConsumerInputTest {
   }
 
   @Test
-  public void testInitFailsOnNaNBatchAndDuration() throws Exception {
+  public void testInitFailsOnNaNBatchAndDuration() {
     meta.setConsumerGroup( "testGroup" );
     meta.setKafkaFactory( factory );
     meta.setBatchDuration( "one" );
@@ -249,10 +248,12 @@ public class KafkaConsumerInputTest {
   @Test
   public void testErrorLoadingSubtrans() throws Exception {
     meta.setTransformationPath( "garbage" );
+    meta.setBatchDuration( "1000" );
+    meta.setBatchSize( "1000" );
     step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
 
     assertFalse( step.init( meta, data ) );
-    verify( logChannel ).logError( eq( "Unable to initialize Kafka Consumer" ), any( KettleException.class ) );
+    verify( logChannel ).logError( eq( "Unable to initialize Kafka Consumer" ) );
   }
 
   @Test
@@ -356,6 +357,7 @@ public class KafkaConsumerInputTest {
     when( consumer.poll( 1000 ) ).thenReturn( records )
       .then( invocationOnMock -> {
         while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
+          //noinspection UnnecessaryContinue
           continue;  //here to fool checkstyle
         }
         trans.stopAll();
@@ -372,11 +374,7 @@ public class KafkaConsumerInputTest {
     verifyRow( "key_3", "value_3", "3", "2", times( 1 ) );
   }
 
-  //todo: this periodically fails on wingman.  got better when I increased the wait time to a full second, but still
-  //causing problems.  Need to find a completely deterministic way of knowing that the first four rows have
-  //been written.  until then, ignoring.
   @Test
-  @Ignore
   public void testExecutesWhenDurationIsReached() throws Exception {
     String path = getClass().getResource( "/consumerParent.ktr" ).getPath();
     TransMeta consumerParent = new TransMeta( path, new Variables() );
@@ -392,19 +390,17 @@ public class KafkaConsumerInputTest {
     records = new ConsumerRecords<>( messages );
     // provide some data when we try to poll for kafka messages
     when( consumer.poll( 1000 ) ).thenReturn( records )
-      .then( invocationOnMock -> {
-        executor.schedule( trans::stopAll, 1000L, TimeUnit.MILLISECONDS );
-        return new ConsumerRecords<>( Collections.emptyMap() );
-      } );
+      .thenReturn( new ConsumerRecords<>( Collections.emptyMap() ) );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
     trans.prepareExecution( new String[]{} );
     trans.startThreads();
-    trans.waitUntilFinished();
+    waitForOneSubTrans( trans );
     verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
     verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
     verifyRow( "key_2", "value_2", "2", "3", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "4", times( 1 ) );
+    trans.stopAll();
   }
 
   @Test
@@ -429,13 +425,7 @@ public class KafkaConsumerInputTest {
         latch.countDown();
         return records;
       } )
-      .then( invocationOnMock -> {
-        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
-          continue;  //here to fool checkstyle
-        }
-        executor.schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
-        return new ConsumerRecords<>( Collections.emptyMap() );
-      } );
+      .thenReturn( new ConsumerRecords<>( Collections.emptyMap() ) );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
     trans.prepareExecution( new String[]{} );
@@ -443,11 +433,19 @@ public class KafkaConsumerInputTest {
     latch.await();
     verifyRow( "key_0", "value_0", "0", "1", never() );
     trans.resumeRunning();
-    trans.waitUntilFinished();
+    waitForOneSubTrans( trans );
     verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
     verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
     verifyRow( "key_2", "value_2", "2", "3", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "4", times( 1 ) );
+    trans.stopAll();
+  }
+
+  private void waitForOneSubTrans( Trans trans ) {
+    while ( trans.getSteps().get( 0 ).step.subStatuses().isEmpty() ) {
+      //noinspection UnnecessaryContinue
+      continue; //checkstyle complains without this
+    }
   }
 
   @Test
@@ -468,7 +466,15 @@ public class KafkaConsumerInputTest {
     trans.prepareExecution( new String[]{} );
     trans.startThreads();
     trans.waitUntilFinished();
-    assertEquals( 3, trans.getSteps().get( 0 ).step.getLinesInput() );
+    Collection<StepStatus> stepStatuses = trans.getSteps().get( 0 ).step.subStatuses();
+    StepStatus recordsFromStream =
+      stepStatuses.stream().filter( stepStatus -> stepStatus.getStepname().equals( "Get records from stream" ) )
+        .findFirst().orElseThrow( RuntimeException::new );
+    StepStatus abort =
+      stepStatuses.stream().filter( stepStatus -> stepStatus.getStepname().equals( "Abort" ) )
+        .findFirst().orElseThrow( RuntimeException::new );
+    assertEquals( 3, recordsFromStream.getLinesRead() );
+    assertEquals( 2, abort.getLinesRead() );
   }
 
   @Test
@@ -493,10 +499,6 @@ public class KafkaConsumerInputTest {
           assertEquals( BaseStepData.StepExecutionStatus.STATUS_RUNNING.getDescription(),
                         stepStatus.getStatusDescription() );
         }
-        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
-          continue;  //here to fool checkstyle
-        }
-        executor.schedule( trans::stopAll, 200L, TimeUnit.MILLISECONDS );
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
@@ -506,7 +508,8 @@ public class KafkaConsumerInputTest {
     Collection<StepStatus> stepStatuses = kafkaStep.subStatuses();
     assertEquals( 0, stepStatuses.size() );
     trans.startThreads();
-    trans.waitUntilFinished();
+    waitForOneSubTrans( trans );
+    trans.stopAll();
     for ( StepStatus stepStatus : trans.getSteps().get( 0 ).step.subStatuses() ) {
       assertEquals( BaseStepData.StepExecutionStatus.STATUS_STOPPED.getDescription(),
                     stepStatus.getStatusDescription() );

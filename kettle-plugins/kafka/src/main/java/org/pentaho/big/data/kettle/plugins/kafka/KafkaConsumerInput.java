@@ -21,29 +21,21 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import com.google.common.collect.Sets;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.pentaho.di.core.CheckResultInterface;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.trans.SubtransExecutor;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.di.trans.step.StepStatus;
-import org.pentaho.di.trans.steps.transexecutor.TransExecutorMeta;
-import org.pentaho.di.trans.steps.transexecutor.TransExecutorParameters;
 import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Consume messages from a Kafka topic
@@ -52,9 +44,6 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
 
   private static Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
-
-  private KafkaConsumerInputMeta kafkaConsumerInputMeta;
-  private KafkaConsumerInputData kafkaConsumerInputData;
 
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                              Trans trans ) {
@@ -68,35 +57,12 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
    * @param stepDataInterface The data to initialize
    */
   public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
-    kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
-    kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
+    KafkaConsumerInputMeta kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
+    KafkaConsumerInputData kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
 
-    try {
-      kafkaConsumerInputMeta.setParentStepMeta( getStepMeta() );
-      kafkaConsumerInputMeta.setFileName( kafkaConsumerInputMeta.getTransformationPath() );
-      TransMeta transMeta = TransExecutorMeta
-        .loadMappingMeta( kafkaConsumerInputMeta, getTransMeta().getRepository(), getTransMeta().getMetaStore(),
-          getParentVariableSpace() );
-      kafkaConsumerInputData.subtransExecutor =
-        new SubtransExecutor( getTrans(), transMeta, true, kafkaConsumerInputData, new TransExecutorParameters() );
-    } catch ( KettleException e ) {
-      logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.InitFailed" ), e );
-      return false;
-    }
     boolean superInit = super.init( kafkaConsumerInputMeta, kafkaConsumerInputData );
     if ( !superInit ) {
-      return false;
-    }
-    List<CheckResultInterface> remarks = new ArrayList<>();
-    kafkaConsumerInputMeta.check(
-      remarks, getTransMeta(), kafkaConsumerInputMeta.getParentStepMeta(),
-      null, null, null, null, //these parameters are not used inside the method
-      variables, getRepository(), getMetaStore() );
-    boolean errorsPresent =
-      remarks.stream().filter( result -> result.getType() == CheckResultInterface.TYPE_RESULT_ERROR )
-        .peek( result -> logError( result.getText() ) )
-        .count() > 0;
-    if ( errorsPresent ) {
+      logError( BaseMessages.getString( PKG, "KafkaConsumerInput.Error.InitFailed" ) );
       return false;
     }
 
@@ -105,7 +71,7 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       kafkaConsumerInputMeta.getFields( kafkaConsumerInputData.outputRowMeta,
         getStepname(), null, null, this, repository, metaStore );
     } catch ( KettleStepException e ) {
-      // TODO: just log this exception and return false?
+      log.logError( e.getMessage(), e );
     }
 
     Consumer consumer =
@@ -113,20 +79,14 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
         kafkaConsumerInputMeta.getKeyField().getOutputType(),
         kafkaConsumerInputMeta.getMessageField().getOutputType() );
 
-    ArrayList topicList = new ArrayList<String>();
-    for ( String topic : kafkaConsumerInputMeta.getTopics() ) {
-      topicList.add( environmentSubstitute( topic ) );
-    }
-    consumer.subscribe( Sets.newHashSet( topicList ) );
+    Set<String> topics =
+      kafkaConsumerInputMeta.getTopics().stream().map( this::environmentSubstitute ).collect( Collectors.toSet() );
+    consumer.subscribe( topics );
 
     window = new FixedTimeStreamWindow<>( subtransExecutor, kafkaConsumerInputData.outputRowMeta, getDuration(),
       getBatchSize() );
-    source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables );
+    source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
 
     return true;
-  }
-
-  @Override public Collection<StepStatus> subStatuses() {
-    return kafkaConsumerInputData.subtransExecutor.getStatuses().values();
   }
 }

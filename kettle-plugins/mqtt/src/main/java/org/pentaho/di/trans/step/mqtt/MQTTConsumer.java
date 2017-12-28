@@ -65,7 +65,7 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
       logger.error( getString( PKG, "MQTTInput.Error.FailureGettingFields" ), e );
     }
     window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
-    source = new MQTTStreamSource( mqttConsumerMeta.getMqttServer(), mqttConsumerMeta.getTopics(), 2 );
+    source = new MQTTStreamSource( mqttConsumerMeta.getMqttServer(), mqttConsumerMeta.getTopics(), 2, this );
     return init;
   }
 

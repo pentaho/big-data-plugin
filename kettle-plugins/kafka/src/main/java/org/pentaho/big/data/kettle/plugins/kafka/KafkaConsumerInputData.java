@@ -22,22 +22,13 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.trans.SubtransExecutor;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.steps.transexecutor.TransExecutorData;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-
 
 public class KafkaConsumerInputData extends TransExecutorData implements StepDataInterface {
-  SubtransExecutor subtransExecutor;
   RowMetaInterface outputRowMeta;
-  List<RowMetaAndData> buffer = new ArrayList<>();
-  Timer timer;
 
   /**
    *

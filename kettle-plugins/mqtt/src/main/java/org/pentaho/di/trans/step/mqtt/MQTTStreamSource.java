@@ -72,7 +72,9 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
     }
   };
 
-  public MQTTStreamSource( String broker, List<String> topics, int qualityOfService ) {
+  public MQTTStreamSource( String broker, List<String> topics, int qualityOfService,
+                           MQTTConsumer mqttConsumer ) {
+    super( mqttConsumer );
     this.broker = broker;
     this.topics = topics;
     this.qos = qualityOfService;

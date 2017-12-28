@@ -28,7 +28,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.pentaho.di.core.row.RowDataUtil;
-import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.trans.streaming.common.BlockingQueueStreamSource;
@@ -48,7 +47,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 
-public class KafkaStreamSource extends BlockingQueueStreamSource {
+public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
 
   private static Class<?> PKG = KafkaConsumerInputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
   private final Logger logger = LoggerFactory.getLogger( getClass() );
@@ -65,7 +64,9 @@ public class KafkaStreamSource extends BlockingQueueStreamSource {
   private Future<Void> future;
 
   public KafkaStreamSource( Consumer consumer, KafkaConsumerInputMeta inputMeta,
-                            KafkaConsumerInputData kafkaConsumerInputData, VariableSpace variables ) {
+                            KafkaConsumerInputData kafkaConsumerInputData, VariableSpace variables,
+                            KafkaConsumerInput kafkaStep ) {
+    super( kafkaStep );
     positions = new HashMap<>();
     this.consumer = consumer;
     this.variables = variables;
@@ -75,14 +76,12 @@ public class KafkaStreamSource extends BlockingQueueStreamSource {
 
   @Override public void close() {
     super.close();
-    kafkaConsumerInputData.subtransExecutor.stop();
     callable.shutdown();
     future.cancel( true );
   }
 
   @Override public void open() {
     if ( future != null ) {
-      // TODO: create message property
       logger.warn( "open() called more than once" );
       return;
     }
