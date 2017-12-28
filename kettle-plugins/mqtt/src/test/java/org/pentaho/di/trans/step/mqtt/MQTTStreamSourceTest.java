@@ -33,6 +33,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.di.trans.streaming.api.StreamSource;
 
@@ -49,6 +50,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
@@ -64,6 +66,8 @@ public class MQTTStreamSourceTest {
   private BrokerService brokerService;
 
   private ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+  @Mock MQTTConsumer mqttConsumer;
 
 
   @Before
@@ -86,7 +90,7 @@ public class MQTTStreamSourceTest {
   @Test
   public void testMqttStreamSingleTopic() throws Exception {
     StreamSource<List<Object>> source =
-      new MQTTStreamSource( "127.0.0.1:" + port, Arrays.asList( "mytopic" ), 2 );
+      new MQTTStreamSource( "127.0.0.1:" + port, singletonList( "mytopic" ), 2, mqttConsumer );
     source.open();
 
     final String[] messages = { "foo", "bar", "baz" };
@@ -102,7 +106,7 @@ public class MQTTStreamSourceTest {
   public void multipleTopics() throws MqttException, InterruptedException {
     StreamSource<List<Object>> source =
       new MQTTStreamSource( "127.0.0.1:" + port,
-        Arrays.asList( "mytopic-1", "vermilion.minotaur", "nosuchtopic" ), 2 );
+        Arrays.asList( "mytopic-1", "vermilion.minotaur", "nosuchtopic" ), 2, mqttConsumer );
     source.open();
 
     String[] topic1Messages = { "foo", "bar", "baz" };
@@ -120,7 +124,7 @@ public class MQTTStreamSourceTest {
 
     // contains any order wan't working for me for some reason, this should be similar
     assertThat( expectedResults.size(), equalTo( rows.size() ) );
-    rows.stream().forEach( row -> assertTrue( expectedResults.contains( row ) ) );
+    rows.forEach( row -> assertTrue( expectedResults.contains( row ) ) );
     source.close();
   }
 
@@ -129,14 +133,14 @@ public class MQTTStreamSourceTest {
   public void servernameCheck() {
     // valid server:port
     MQTTStreamSource source =
-      new MQTTStreamSource( "127.0.0.1:" + port, Arrays.asList( "mytopic" ), 2 );
+      new MQTTStreamSource( "127.0.0.1:" + port, singletonList( "mytopic" ), 2, mqttConsumer );
     source.open();
     source.close();
 
     //invalid tcp://server/port
     try {
       source =
-        new MQTTStreamSource( "tcp://127.0.0.1:" + port, Arrays.asList( "mytopic" ), 2 );
+        new MQTTStreamSource( "tcp://127.0.0.1:" + port, singletonList( "mytopic" ), 2, mqttConsumer );
       source.open();
       fail( "Expected exception." );
     } catch ( Exception e ) {
@@ -147,11 +151,11 @@ public class MQTTStreamSourceTest {
   @Test
   public void clientIdNotReused() {
     MQTTStreamSource source1 =
-      new MQTTStreamSource( "127.0.0.1:" + port, Arrays.asList( "mytopic" ), 2 );
+      new MQTTStreamSource( "127.0.0.1:" + port, singletonList( "mytopic" ), 2, mqttConsumer );
     source1.open();
 
     MQTTStreamSource source2 =
-      new MQTTStreamSource( "127.0.0.1:" + port, Arrays.asList( "mytopic" ), 2 );
+      new MQTTStreamSource( "127.0.0.1:" + port, singletonList( "mytopic" ), 2, mqttConsumer );
     source2.open();
 
     assertThat( source1.mqttClient.getClientId(), not( equalTo( source2.mqttClient.getClientId() ) ) );
