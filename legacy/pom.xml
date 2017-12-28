@@ -24,7 +24,6 @@
   </scm>
   <properties>
     <common.version>3.3.0-v20070426</common.version>
-    <xstream.version>1.4.9</xstream.version>
     <xmlpull.revision>1.1.3.1</xmlpull.revision>
     <pig.version>0.8.1</pig.version>
     <pentaho-hadoop-shims-cdh54-package.version>${dependency.hadoop-shims-cdh54.revision}</pentaho-hadoop-shims-cdh54-package.version>
@@ -176,7 +175,7 @@
     <dependency>
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
-      <version>${xstream.version}</version>
+      <version>${dependency.xstream.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
