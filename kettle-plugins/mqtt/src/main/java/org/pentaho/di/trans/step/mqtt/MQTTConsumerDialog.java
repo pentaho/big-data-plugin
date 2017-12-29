@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
@@ -42,9 +43,10 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStreamingDialog;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
 
 public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialogInterface {
 
@@ -155,7 +157,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     fdData.bottom = new FormAttachment( 100, 0 );
 
     // resize the columns to fit the data in them
-    Arrays.stream( topicsTable.getTable().getColumns() ).forEach( column -> {
+    stream( topicsTable.getTable().getColumns() ).forEach( column -> {
       if ( column.getWidth() > 0 ) {
         // don't pack anything with a 0 width, it will resize it to make it visible (like the index column)
         column.setWidth( 120 );
@@ -167,6 +169,15 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
 
   @Override protected void createAdditionalTabs() {
     buildFieldsTab();
+  }
+
+  @Override protected String[] getFieldNames() {
+    return stream( fieldsTable.getTable().getItems() ).map( row -> row.getText( 2 ) ).toArray( String[]::new );
+  }
+
+  @Override protected int[] getFieldTypes() {
+    return stream( fieldsTable.getTable().getItems() )
+      .mapToInt( row -> ValueMetaFactory.getIdForValueMeta( row.getText( 3 )  ) ).toArray();
   }
 
   private void buildFieldsTab() {
@@ -224,7 +235,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     fdData.right = new FormAttachment( 100, 0 );
 
     // resize the columns to fit the data in them
-    Arrays.stream( fieldsTable.getTable().getColumns() ).forEach( column -> {
+    stream( fieldsTable.getTable().getColumns() ).forEach( column -> {
       if ( column.getWidth() > 0 ) {
         // don't pack anything with a 0 width, it will resize it to make it visible (like the index column)
         column.setWidth( 120 );
@@ -264,7 +275,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
 
   @Override protected void additionalOks( BaseStreamStepMeta meta ) {
     mqttMeta.setMqttServer( wConnection.getText() );
-    mqttMeta.setTopics( Arrays.stream( topicsTable.getTable().getItems() )
+    mqttMeta.setTopics( stream( topicsTable.getTable().getItems() )
       .map( item -> item.getText( 1 ) )
       .filter( t -> !"".equals( t ) )
       .distinct()

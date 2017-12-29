@@ -40,7 +40,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.recordsfromstream.RecordsFromStreamMeta;
+import org.pentaho.di.trans.steps.recordsfromstream.RecordsFromStreamMeta;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -108,7 +108,6 @@ public class KafkaConsumerInputTest {
   @Mock Consumer consumer;
   @Mock LogChannelInterfaceFactory logChannelFactory;
   @Mock LogChannelInterface logChannel;
-  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
   @BeforeClass
   public static void init() throws Exception {
@@ -123,17 +122,13 @@ public class KafkaConsumerInputTest {
       KafkaConsumerInputMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
       Collections.emptyList(), false, null );
     StepPluginType.getInstance().handlePluginAnnotation(
-      RecordsFromStreamMeta.class,
-      RecordsFromStreamMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
-      Collections.emptyList(), false, null );
-    StepPluginType.getInstance().handlePluginAnnotation(
       AbortMeta.class,
       AbortMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
       Collections.emptyList(), false, null );
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
 
@@ -160,7 +155,7 @@ public class KafkaConsumerInputTest {
   }
 
   @Test( expected = KafkaException.class )
-  public void testInit_kafkaConfigIssue() throws Exception {
+  public void testInit_kafkaConfigIssue() {
     step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
     meta.setBatchSize( "100" );
     meta.setBatchDuration( "1000" );
@@ -169,7 +164,7 @@ public class KafkaConsumerInputTest {
   }
 
   @Test
-  public void testInit_happyPath() throws Exception {
+  public void testInit_happyPath() {
     meta.setConsumerGroup( "testGroup" );
     meta.setKafkaFactory( factory );
     meta.setBatchDuration( "0" );
@@ -246,7 +241,7 @@ public class KafkaConsumerInputTest {
   }
 
   @Test
-  public void testErrorLoadingSubtrans() throws Exception {
+  public void testErrorLoadingSubtrans() {
     meta.setTransformationPath( "garbage" );
     meta.setBatchDuration( "1000" );
     meta.setBatchSize( "1000" );
