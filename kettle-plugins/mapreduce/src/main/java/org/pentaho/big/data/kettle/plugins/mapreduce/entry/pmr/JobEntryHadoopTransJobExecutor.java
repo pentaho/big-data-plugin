@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -56,6 +56,7 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.di.repository.HasRepositoryDirectories;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectory;
@@ -86,7 +87,8 @@ import java.util.regex.Pattern;
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor",
   documentationUrl = "Products/Data_Integration/Job_Entry_Reference/Pentaho_MapReduce" )
-public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface {
+public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface,
+  HasRepositoryDirectories {
   public static final String MAPREDUCE_APPLICATION_CLASSPATH = "mapreduce.application.classpath";
   public static final String DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH =
     "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*";
@@ -238,6 +240,56 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
 
   public void setHadoopJobName( String hadoopJobName ) {
     this.hadoopJobName = hadoopJobName;
+  }
+
+  /**
+   * @return  An array of 3 elements : 0 - specification method for mapper,
+   *                                   1 - specification method for combiner,
+   *                                   2 - specification method for reducer.
+   */
+  @Override
+  public ObjectLocationSpecificationMethod[] getSpecificationMethods() {
+    return new ObjectLocationSpecificationMethod[] {
+      defineSpecificationMethod( mapRepositoryDir, mapRepositoryFile, mapRepositoryReference ),
+      defineSpecificationMethod( combinerRepositoryDir, combinerRepositoryFile, combinerRepositoryReference ),
+      defineSpecificationMethod( reduceRepositoryDir, reduceRepositoryFile, reduceRepositoryReference )
+    };
+  }
+
+  /**
+   * Returns an array of 3 elements : 0 - mapper, 1 - combiner, 2 - reducer directories
+   * @return String array[2] of mapper, combiner, reducer repository directories
+   */
+  @Override
+  public String[] getDirectories() {
+    return new String[]{
+      mapRepositoryDir != null ? mapRepositoryDir : mapTrans,
+      combinerRepositoryDir != null ? combinerRepositoryDir : combinerTrans,
+      reduceRepositoryDir != null ? reduceRepositoryDir : reduceTrans };
+  }
+
+  /**
+   * Updates repository directories with values from an array of 3 elements :
+   * 0 - mapper, 1 - combiner, 2 - reducer directories
+   * @param directory Array[2] of updated mapper, combiner, reducer directories to set
+   */
+  @Override
+  public void setDirectories( String[] directory ) {
+    if ( mapRepositoryDir != null ) {
+      mapRepositoryDir = directory[0];
+    } else {
+      mapTrans = directory[0];
+    }
+    if ( combinerRepositoryDir != null ) {
+      combinerRepositoryDir = directory[1];
+    } else {
+      combinerTrans = directory[1];
+    }
+    if ( reduceRepositoryDir != null ) {
+      reduceRepositoryDir = directory[2];
+    } else {
+      reduceTrans = directory[2];
+    }
   }
 
   public String getMapTrans() {
@@ -1272,6 +1324,13 @@ public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Clon
   private boolean hasCombinerDefinition() {
     return !Const.isEmpty( combinerTrans ) || combinerRepositoryReference != null
       || ( !Const.isEmpty( combinerRepositoryDir ) && !Const.isEmpty( combinerRepositoryFile ) );
+  }
+
+  private ObjectLocationSpecificationMethod defineSpecificationMethod( String repDir, String repFileName, ObjectId reference ) {
+    if ( reference != null ) {
+      return ObjectLocationSpecificationMethod.REPOSITORY_BY_REFERENCE;
+    }
+    return ObjectLocationSpecificationMethod.REPOSITORY_BY_NAME;
   }
 
   /**
