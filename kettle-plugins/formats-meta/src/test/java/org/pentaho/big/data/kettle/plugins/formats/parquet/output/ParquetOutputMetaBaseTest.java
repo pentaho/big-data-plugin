@@ -25,18 +25,26 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class ParquetOutputMetaBaseTest {
 
+  @Mock StepMeta parentStepMeta;
+  @Mock TransMeta parentTransMeta;
+  @Mock NamedClusterEmbedManager namedClusterEmbedManager;
   private ParquetOutputMetaBase metaBase;
 
   @Before
@@ -62,5 +70,14 @@ public class ParquetOutputMetaBaseTest {
     metaBase.setCompressionType( "abc" );
     Assert.assertTrue( metaBase.compressionType.equals( "NONE" ) );
   }
-}
 
+  public void getXMLShouldCallRegisterUrl() {
+    metaBase.setFilename( "hc://HC/fileName" );
+    when( parentStepMeta.getParentTransMeta() ).thenReturn( parentTransMeta );
+    when( parentTransMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
+    metaBase.setParentStepMeta( parentStepMeta );
+
+    metaBase.getXML();
+    verify( namedClusterEmbedManager ).registerUrl( eq( "hc://HC/fileName" ) );
+  }
+}
