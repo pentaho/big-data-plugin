@@ -168,6 +168,8 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   }
 
   @Override protected void createAdditionalTabs() {
+    // Set the height so the topics table has approximately 5 rows
+    shell.setMinimumSize( 527, 485 );
     buildFieldsTab();
   }
 
