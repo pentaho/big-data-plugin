@@ -112,7 +112,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
-    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
+    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName, getTransMeta() );
     if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
     }
@@ -184,10 +184,16 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
     meta = (ParquetOutputMeta) smi;
     data = (ParquetOutputData) sdi;
-    if ( super.init( smi, sdi ) ) {
-      return true;
+    if ( !super.init( smi, sdi ) ) {
+      return false;
     }
-    return false;
+
+    //Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
+    if ( getTransMeta().getNamedClusterEmbedManager() != null ) {
+      getTransMeta().getNamedClusterEmbedManager()
+        .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
+    }
+    return true;
   }
 
   public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
