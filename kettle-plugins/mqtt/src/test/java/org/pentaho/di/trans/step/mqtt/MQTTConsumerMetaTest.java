@@ -170,4 +170,16 @@ public class MQTTConsumerMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, BaseStreamStepMeta.NUM_MESSAGES, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BaseStreamStepMeta.DURATION, "10000" );
   }
+
+  @Test
+  public void testSaveDefaultEmptyConnection() {
+    MQTTConsumerMeta meta = new MQTTConsumerMeta();
+    assertEquals(
+      "<MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>" + Const.CR
+        + "<NUM_MESSAGES>1000</NUM_MESSAGES>" + Const.CR
+        + "<MQTT_SERVER/>" + Const.CR
+        + "<TOPIC_OUTPUT_NAME>Topic</TOPIC_OUTPUT_NAME>" + Const.CR
+        + "<DURATION>1000</DURATION>" + Const.CR
+        + "<TRANSFORMATION_PATH/>" + Const.CR, meta.getXML() );
+  }
 }
