@@ -51,6 +51,7 @@
     <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
     <mondrian.version>8.1.0.0-SNAPSHOT</mondrian.version>
+    <oss-licenses.version>8.1.0.0-SNAPSHOT</oss-licenses.version>
     <pdi.version>8.1.0.0-SNAPSHOT</pdi.version>
     <pentaho-reporting.version>8.1.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.simple-jndi.revision>1.0.0</dependency.simple-jndi.revision>
