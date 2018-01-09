@@ -59,7 +59,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   private static Class<?> PKG = MQTTConsumer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   @Injection( name = MQTT_SERVER )
-  public String mqttServer;
+  public String mqttServer = "";
 
   @Injection( name = TOPICS )
   public List<String> topics = new ArrayList<>();
