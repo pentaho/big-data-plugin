@@ -22,7 +22,6 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
 import java.util.ArrayList;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
@@ -67,8 +66,6 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
   private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 4;
-
-  private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
   private TableView wInputFields;
   protected TextVar wSchemaPath;
@@ -197,12 +194,12 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
    */
   @Override
   protected void getData( OrcInputMeta meta ) {
-    if ( meta.getFilename() != null ) {
+    if ( meta.getFilename().length() > 0 ) {
       wPath.setText( meta.getFilename() );
     }
     wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
     int itemIndex = 0;
-    for ( FormatInputOutputField inputField : meta.getInpuFields() ) {
+    for ( FormatInputOutputField inputField : meta.getInputFields() ) {
       TableItem item = null;
       if ( itemIndex < wInputFields.table.getItemCount() ) {
         item = wInputFields.table.getItem( itemIndex );
@@ -231,32 +228,23 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
    */
   @Override
   protected void getInfo( OrcInputMeta meta, boolean preview ) {
-    meta.setFilename( wPath.getText() );
+    String filePath = wPath.getText();
+    if ( filePath != null && !filePath.isEmpty() ) {
+      meta.allocateFiles( 1 );
+      meta.setFilename( wPath.getText().trim() );
+    }
+
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
 
     int nrFields = wInputFields.nrNonEmpty();
-    ArrayList<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
+    meta.setInputFields( new ArrayList<>() );
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       FormatInputOutputField field = new FormatInputOutputField();
       field.setPath( item.getText( ORC_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-      field.setSourceType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) ) );
-      inputFields.add( field );
-    }
-    meta.setInputFields( inputFields );
-  }
-
-  private String getSchemeFromPath( String path ) {
-    if ( Utils.isEmpty( path ) ) {
-      return SCHEMA_SCHEME_DEFAULT;
-    }
-    int endIndex = path.indexOf( ':' );
-    if ( endIndex > 0 ) {
-      return path.substring( 0, endIndex );
-    } else {
-      return SCHEMA_SCHEME_DEFAULT;
+      meta.getInputFields().add( field );
     }
   }
 
