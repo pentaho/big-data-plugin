@@ -47,11 +47,13 @@ public class HBaseServiceImpl implements HBaseService {
   private final NamedCluster namedCluster;
   private final HBaseShim hBaseShim;
   private final HBaseBytesUtilShim bytesUtil;
+  private final String shimVersion;
 
   public HBaseServiceImpl( NamedCluster namedCluster, HadoopConfiguration hadoopConfiguration )
     throws ConfigurationException {
     this.namedCluster = namedCluster;
     this.hBaseShim = hadoopConfiguration.getHBaseShim();
+    shimVersion = hadoopConfiguration.getIdentifier() != null ? hadoopConfiguration.getIdentifier() : "";
     try {
       bytesUtil = this.hBaseShim.getHBaseConnection().getBytesUtil();
     } catch ( Exception e ) {
@@ -81,6 +83,9 @@ public class HBaseServiceImpl implements HBaseService {
     if ( !Const.isEmpty( defaultConfig ) ) {
       connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.DEFAULTS_KEY, defaultConfig );
     }
+
+    connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.ACTIVE_SHIM_VERSION, shimVersion );
+
     return new HBaseConnectionImpl( this, hBaseShim, bytesUtil, connProps, logChannelInterface );
   }
 

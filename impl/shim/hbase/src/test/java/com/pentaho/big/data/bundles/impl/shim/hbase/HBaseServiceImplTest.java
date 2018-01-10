@@ -112,7 +112,8 @@ public class HBaseServiceImplTest {
     verify( hBaseConnection ).configureConnection( propertiesArgumentCaptor.capture(), eq( new ArrayList
       <String>() ) );
     Properties properties = propertiesArgumentCaptor.getValue();
-    assertEquals( 0, properties.size() );
+    //At least ACTIVE_SHIM_VERSION property should present
+    assertEquals( 1, properties.size() );
   }
 
   @Test
