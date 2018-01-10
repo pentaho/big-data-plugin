@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -602,12 +603,35 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return stepname;
   }
 
+  /**
+   * Replaces the password present in each file URI with '***' before displaying it in the UI.
+   *
+   * @param files List of files to be processed
+   * @return The list of files to be processed with the password replaced with '***'
+   */
+  protected String[] getFriendlyURIs( String[] files ) {
+    for ( int i = 0; i < files.length; i++ ) {
+      String userinfo = URI.create( files[i] ).getUserInfo();
+
+      if ( userinfo != null ) {
+        String[] credentials = userinfo.split( ":", 2 );
+
+        if ( credentials.length == 2 ) {
+          credentials[1] = "***";
+          files[i] = files[i].replaceFirst( userinfo, String.join( ":", credentials ) );
+        }
+      }
+    }
+
+    return files;
+  }
+
   private void showFiles() {
     TextFileInputMeta tfii = new TextFileInputMeta();
     getInfo( tfii );
     String[] files = tfii.getFilePaths( transMeta );
     if ( files != null && files.length > 0 ) {
-      EnterSelectionDialog esd = new EnterSelectionDialog( shell, files, "Files read", "Files read:" );
+      EnterSelectionDialog esd = new EnterSelectionDialog( shell, getFriendlyURIs( files ), "Files read", "Files read:" );
       esd.setViewOnly();
       esd.open();
     } else {
