@@ -66,7 +66,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
   private static final int DIALOG_HEIGHT = 506;
 
-  private static final int PARQUET_PATH_COLUMN_INDEX = 1;
+  private static final int AVRO_PATH_COLUMN_INDEX = 1;
 
   private static final int FIELD_NAME_COLUMN_INDEX = 2;
 
@@ -148,7 +148,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
       FormatInputOutputField inputField = meta.inputFields[i];
       if ( inputField.getPath() != null ) {
-        item.setText( PARQUET_PATH_COLUMN_INDEX, inputField.getPath() );
+        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getPath() );
       }
       if ( inputField.getName() != null ) {
         item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
@@ -193,7 +193,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       }
       TableItem item = new TableItem( wInputFields.table, SWT.NONE );
 
-      item.setText( PARQUET_PATH_COLUMN_INDEX, f.formatFieldName );
+      item.setText( AVRO_PATH_COLUMN_INDEX, f.formatFieldName );
       item.setText( FIELD_NAME_COLUMN_INDEX, f.formatFieldName );
       item.setText( FIELD_TYPE_COLUMN_INDEX, ValueMetaFactory.getValueMetaName( f.pentahoValueMetaType ) );
     }
@@ -216,7 +216,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       FormatInputOutputField field = new FormatInputOutputField();
-      field.setPath( item.getText( PARQUET_PATH_COLUMN_INDEX ) );
+      field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
       meta.inputFields[i] = field;

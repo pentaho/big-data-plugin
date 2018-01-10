@@ -67,13 +67,13 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
         } catch ( ClusterInitializationException e ) {
           throw new KettleException( "can't get service format shim ", e );
         }
-        if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
+        if ( meta.getFilename() == null ) {
           throw new KettleException( "No input files defined" );
         }
         data.input = formatService.createInputFormat( IPentahoOrcInputFormat.class );
 
         String inputFileName = getKettleVFSFileName(
-                meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.inputFiles.fileName[0] ) );
+                meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
 
         data.input.setInputFile( inputFileName );
         data.input.setSchema( createSchemaFromMeta( meta ) );
@@ -121,7 +121,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
 
   public static SchemaDescription createSchemaFromMeta( OrcInputMetaBase meta ) {
     SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputOutputField f : meta.inputFields ) {
+    for ( FormatInputOutputField f : meta.getInpuFields() ) {
       SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), f.getIfNullValue(), true );
       schema.addField( field );
     }

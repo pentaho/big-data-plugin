@@ -22,19 +22,16 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.orc.input;
 
-import java.util.List;
-
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.value.ValueMetaBase;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -46,6 +43,9 @@ import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Orc input meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
  *
@@ -54,198 +54,18 @@ import org.w3c.dom.Node;
 public abstract class OrcInputMetaBase extends
     BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements ResolvableResource {
 
+  private static final Class<?> PKG = OrcInputMetaBase.class;
+
+  @Injection( name = "ORC_FILENAME" )
+  private String filename;
+
+  protected List<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
+
   public OrcInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
-    inputFields = new FormatInputOutputField[0];
   }
 
-  @Override
-  public String getXML() {
-    StringBuilder retval = new StringBuilder( 1500 );
-
-    retval.append( "    " ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
-    retval.append( "    <file>" ).append( Const.CR );
-    for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
-      retval.append( "      " ).append( XMLHandler.addTagValue( "environment", inputFiles.environment[i] ) );
-
-      if ( parentStepMeta != null && parentStepMeta.getParentTransMeta() != null ) {
-        parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( inputFiles.fileName[i] );
-      }
-
-      retval.append( "      " ).append( XMLHandler.addTagValue( "name", inputFiles.fileName[i] ) );
-      retval.append( "      " ).append( XMLHandler.addTagValue( "filemask", inputFiles.fileMask[i] ) );
-      retval.append( "      " ).append( XMLHandler.addTagValue( "exclude_filemask", inputFiles.excludeFileMask[i] ) );
-      retval.append( "      " ).append( XMLHandler.addTagValue( "file_required", inputFiles.fileRequired[i] ) );
-      retval.append( "      " ).append( XMLHandler.addTagValue( "include_subfolders",
-          inputFiles.includeSubFolders[i] ) );
-    }
-    retval.append( "    </file>" ).append( Const.CR );
-
-    retval.append( "    <fields>" ).append( Const.CR );
-    for ( int i = 0; i < inputFields.length; i++ ) {
-      FormatInputOutputField field = inputFields[i];
-      retval.append( "      <field>" ).append( Const.CR );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getFormat() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "currency", field.getCurrencySymbol() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "decimal", field.getDecimalSymbol() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "group", field.getGroupSymbol() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "nullif", field.getNullString() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "ifnull", field.getIfNullValue() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "position", field.getPosition() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "length", field.getLength() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "trim_type", field.getTrimTypeCode() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "repeat", field.isRepeated() ) );
-      retval.append( "      </field>" ).append( Const.CR );
-    }
-    retval.append( "    </fields>" ).append( Const.CR );
-
-    return retval.toString();
-  }
-
-  @Override
-  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
-    throws KettleException {
-    try {
-      rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
-      for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
-        rep.saveStepAttribute( id_transformation, id_step, i, "environment", inputFiles.environment[i] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_name", inputFiles.fileName[i] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_mask", inputFiles.fileMask[i] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "exclude_file_mask", inputFiles.excludeFileMask[i] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_required", inputFiles.fileRequired[i] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "include_subfolders", inputFiles.includeSubFolders[i] );
-      }
-
-      for ( int i = 0; i < inputFields.length; i++ ) {
-        FormatInputOutputField field = inputFields[i];
-
-        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field.getName() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_format", field.getFormat() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_currency", field.getCurrencySymbol() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_decimal", field.getDecimalSymbol() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_group", field.getGroupSymbol() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_nullif", field.getNullString() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_ifnull", field.getIfNullValue() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_position", field.getPosition() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_length", field.getLength() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_precision", field.getPrecision() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_trim_type", field.getTrimTypeCode() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_repeat", field.isRepeated() );
-      }
-    } catch ( Exception e ) {
-      throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
-    }
-  }
-
-  @Override
-  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
-    Node filenode = XMLHandler.getSubNode( stepnode, "file" );
-    Node fields = XMLHandler.getSubNode( stepnode, "fields" );
-    int nrfiles = XMLHandler.countNodes( filenode, "name" );
-    int nrfields = XMLHandler.countNodes( fields, "field" );
-
-    String passThroughFields = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false"
-            : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
-    allocateFiles( nrfiles );
-    inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passThroughFields );
-    for ( int i = 0; i < nrfiles; i++ ) {
-      Node envnode = XMLHandler.getSubNodeByNr( filenode, "environment", i );
-      Node filenamenode = XMLHandler.getSubNodeByNr( filenode, "name", i );
-      Node filemasknode = XMLHandler.getSubNodeByNr( filenode, "filemask", i );
-      Node excludefilemasknode = XMLHandler.getSubNodeByNr( filenode, "exclude_filemask", i );
-      Node fileRequirednode = XMLHandler.getSubNodeByNr( filenode, "file_required", i );
-      Node includeSubFoldersnode = XMLHandler.getSubNodeByNr( filenode, "include_subfolders", i );
-      inputFiles.environment[i] = XMLHandler.getNodeValue( envnode );
-      inputFiles.fileName[i] = XMLHandler.getNodeValue( filenamenode );
-      inputFiles.fileMask[i] = XMLHandler.getNodeValue( filemasknode );
-      inputFiles.excludeFileMask[i] = XMLHandler.getNodeValue( excludefilemasknode );
-      inputFiles.fileRequired[i] = XMLHandler.getNodeValue( fileRequirednode );
-      inputFiles.includeSubFolders[i] = XMLHandler.getNodeValue( includeSubFoldersnode );
-    }
-
-    inputFields = new FormatInputOutputField[nrfields];
-    for ( int i = 0; i < nrfields; i++ ) {
-      Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-      FormatInputOutputField field = new FormatInputOutputField();
-
-      field.setPath( XMLHandler.getTagValue( fnode, "path" ) );
-      field.setName( XMLHandler.getTagValue( fnode, "name" ) );
-      field.setType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
-      field.setFormat( XMLHandler.getTagValue( fnode, "format" ) );
-      field.setCurrencySymbol( XMLHandler.getTagValue( fnode, "currency" ) );
-      field.setDecimalSymbol( XMLHandler.getTagValue( fnode, "decimal" ) );
-      field.setGroupSymbol( XMLHandler.getTagValue( fnode, "group" ) );
-      field.setNullString( XMLHandler.getTagValue( fnode, "nullif" ) );
-      field.setIfNullValue( XMLHandler.getTagValue( fnode, "ifnull" ) );
-      field.setPosition( Const.toInt( XMLHandler.getTagValue( fnode, "position" ), -1 ) );
-      field.setLength( Const.toInt( XMLHandler.getTagValue( fnode, "length" ), -1 ) );
-      field.setPrecision( Const.toInt( XMLHandler.getTagValue( fnode, "precision" ), -1 ) );
-      field.setTrimType( ValueMetaString.getTrimTypeByCode( XMLHandler.getTagValue( fnode, "trim_type" ) ) );
-      field.setRepeated( YES.equalsIgnoreCase( XMLHandler.getTagValue( fnode, "repeat" ) ) );
-
-      inputFields[i] = field;
-    }
-  }
-
-  @Override
-  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-    throws KettleException {
-    try {
-      int nrfiles = rep.countNrStepAttributes( id_step, "file_name" );
-
-      allocateFiles( nrfiles );
-
-      inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
-      for ( int i = 0; i < nrfiles; i++ ) {
-        inputFiles.environment[i] = rep.getStepAttributeString( id_step, i, "environment" );
-        inputFiles.fileName[i] = rep.getStepAttributeString( id_step, i, "file_name" );
-        inputFiles.fileMask[i] = rep.getStepAttributeString( id_step, i, "file_mask" );
-        inputFiles.excludeFileMask[i] = rep.getStepAttributeString( id_step, i, "exclude_file_mask" );
-        inputFiles.fileRequired[i] = rep.getStepAttributeString( id_step, i, "file_required" );
-        if ( !YES.equalsIgnoreCase( inputFiles.fileRequired[i] ) ) {
-          inputFiles.fileRequired[i] = NO;
-        }
-        inputFiles.includeSubFolders[i] = rep.getStepAttributeString( id_step, i, "include_subfolders" );
-        if ( !YES.equalsIgnoreCase( inputFiles.includeSubFolders[i] ) ) {
-          inputFiles.includeSubFolders[i] = NO;
-        }
-      }
-
-      int nrfields = rep.countNrStepAttributes( id_step, "field_name" );
-      inputFields = new FormatInputOutputField[nrfields];
-      for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputOutputField field = new FormatInputOutputField();
-
-        field.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
-        field.setName( rep.getStepAttributeString( id_step, i, "field_name" ) );
-        field.setType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "field_type" ) ) );
-        field.setFormat( rep.getStepAttributeString( id_step, i, "field_format" ) );
-        field.setCurrencySymbol( rep.getStepAttributeString( id_step, i, "field_currency" ) );
-        field.setDecimalSymbol( rep.getStepAttributeString( id_step, i, "field_decimal" ) );
-        field.setGroupSymbol( rep.getStepAttributeString( id_step, i, "field_group" ) );
-        field.setNullString( rep.getStepAttributeString( id_step, i, "field_nullif" ) );
-        field.setIfNullValue( rep.getStepAttributeString( id_step, i, "field_ifnull" ) );
-        field.setPosition( (int) rep.getStepAttributeInteger( id_step, i, "field_position" ) );
-        field.setLength( (int) rep.getStepAttributeInteger( id_step, i, "field_length" ) );
-        field.setPrecision( (int) rep.getStepAttributeInteger( id_step, i, "field_precision" ) );
-        field.setTrimType( ValueMetaString.getTrimTypeByCode( rep.getStepAttributeString( id_step, i,
-            "field_trim_type" ) ) );
-        field.setRepeated( rep.getStepAttributeBoolean( id_step, i, "field_repeat" ) );
-
-        inputFields[i] = field;
-      }
-
-    } catch ( Exception e ) {
-      throw new KettleException( "Unexpected error reading step information from the repository", e );
-    }
-  }
 
   public void allocateFiles( int nrFiles ) {
     inputFiles.environment = new String[nrFiles];
@@ -267,23 +87,147 @@ public abstract class OrcInputMetaBase extends
   @Override
   public void setDefault() {
     allocateFiles( 0 );
-    inputFields = new FormatInputOutputField[0];
+  }
+
+  public String getFilename() {
+    return filename;
+  }
+
+  public void setFilename( String filename ) {
+    this.filename = filename;
+  }
+
+  public List<FormatInputOutputField> getInpuFields() {
+    return inputFields;
+  }
+
+  public void setInputFields( List<FormatInputOutputField> inputFields ) {
+    this.inputFields = inputFields;
+  }
+
+  @Override
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+    readData( stepnode, metaStore );
+  }
+
+  private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
+    try {
+      String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
+      inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
+      filename = XMLHandler.getTagValue( stepnode, "filename" );
+      Node fields = XMLHandler.getSubNode( stepnode, "fields" );
+      int nrfields = XMLHandler.countNodes( fields, "field" );
+      List<FormatInputOutputField> orcInputFields = new ArrayList<>();
+      for ( int i = 0; i < nrfields; i++ ) {
+        Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
+        FormatInputOutputField inputField = new FormatInputOutputField();
+        inputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
+        inputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
+        inputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
+        inputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
+        inputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" )  );
+        inputField.setSourceType( XMLHandler.getTagValue( fnode, "sourcetype" ) );
+        orcInputFields.add( inputField );
+      }
+      this.inputFields = orcInputFields;
+    } catch ( Exception e ) {
+      throw new KettleXMLException( "Unable to load step info from XML", e );
+    }
+  }
+
+  @Override
+  public String getXML() {
+    StringBuffer retval = new StringBuffer( 800 );
+    final String INDENT = "    ";
+
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );
+
+    retval.append( "    <fields>" ).append( Const.CR );
+    for ( int i = 0; i < inputFields.size(); i++ ) {
+      FormatInputOutputField field = inputFields.get( i );
+
+      if ( field.getName() != null && field.getName().length() != 0 ) {
+        retval.append( "      <field>" ).append( Const.CR );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getNullString() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "sourcetype", field.getSourceTypeDesc() ) );
+        retval.append( "      </field>" ).append( Const.CR );
+      }
+    }
+    retval.append( "    </fields>" ).append( Const.CR );
+
+    return retval.toString();
+  }
+
+  @Override
+  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
+      throws KettleException {
+    try {
+
+      inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
+      filename = rep.getStepAttributeString( id_step, "filename" );
+
+      // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
+      int nrfields = rep.countNrStepAttributes( id_step, "type" );
+
+      List<FormatInputOutputField> orcOutputFields = new ArrayList<>();
+      for ( int i = 0; i < nrfields; i++ ) {
+        FormatInputOutputField inputField = new FormatInputOutputField();
+
+        inputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
+        inputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
+        inputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
+        inputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "nullable" ) );
+        inputField.setNullString( rep.getStepAttributeString( id_step, i, "default" ) );
+        inputField.setSourceType( rep.getStepAttributeString( id_step, i, "sourcetype" ) );
+
+        orcOutputFields.add( inputField );
+      }
+      this.inputFields = orcOutputFields;
+    } catch ( Exception e ) {
+      throw new KettleException( "Unexpected error reading step information from the repository", e );
+    }
+  }
+
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
+      throws KettleException {
+    try {
+      rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
+      rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
+      for ( int i = 0; i < inputFields.size(); i++ ) {
+        FormatInputOutputField field = inputFields.get( i );
+
+        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "sourcetype", field.getSourceTypeDesc() );
+      }
+      super.saveRep( rep, metaStore, id_transformation, id_step );
+    } catch ( Exception e ) {
+      throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
+    }
   }
 
   @Override
   public void resolve() {
-    if ( inputFiles != null && inputFiles.fileName != null ) {
-      for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
-        try {
-          String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( inputFiles.fileName[ i ] );
-          FileObject fileObject = KettleVFS.getFileObject( realFileName );
-          if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-            inputFiles.fileName[ i ] = ( (AliasedFileObject) fileObject ).getOriginalURIString();
-          }
-        } catch ( KettleFileException e ) {
-          throw new RuntimeException( e );
+    if ( filename != null && !filename.isEmpty() ) {
+      try {
+        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
+        FileObject fileObject = KettleVFS.getFileObject( realFileName );
+        if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
+          filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
+      } catch ( KettleFileException e ) {
+        throw new RuntimeException( e );
       }
     }
   }
+
 }
