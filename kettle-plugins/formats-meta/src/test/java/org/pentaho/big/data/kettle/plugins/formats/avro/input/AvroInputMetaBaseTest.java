@@ -146,7 +146,7 @@ public class AvroInputMetaBaseTest {
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
 
-    FormatInputOutputField field = meta.getInpuFields().get( 0 );
+    FormatInputOutputField field = meta.getInputFields().get( 0 );
     assertEquals( "SampleName", field.getName() );
     assertEquals( "SamplePath", field.getPath() );
     assertEquals( ValueMetaInterface.TYPE_NONE, field.getType() );
@@ -173,7 +173,7 @@ public class AvroInputMetaBaseTest {
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
 
-    FormatInputOutputField field = meta.getInpuFields().get( 0 );
+    FormatInputOutputField field = meta.getInputFields().get( 0 );
     assertEquals( "SampleName", field.getName() );
     assertEquals( "SamplePath", field.getPath() );
     assertEquals( ValueMetaInterface.TYPE_NONE, field.getType() );
