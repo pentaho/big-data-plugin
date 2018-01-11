@@ -497,9 +497,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       int i = 1;
       item.setText( i++, coalesce( field.getAvroFieldName() ) );
       item.setText( i++, coalesce( field.getPentahoFieldName() ) );
-      item.setText( i++, coalesce( AvroSpec.DataType.values()[field.getAvroType()].getName() ) );
+      item.setText( i++, coalesce( field.getAvroType().getName() ) );
       item.setText( i++, coalesce( field.getDefaultValue() ) );
-      item.setText( i++, coalesce( field.getAllowNull() ) );
+      item.setText( i++, Boolean.toString( field.getAllowNull() ) );
     } );
   }
 
