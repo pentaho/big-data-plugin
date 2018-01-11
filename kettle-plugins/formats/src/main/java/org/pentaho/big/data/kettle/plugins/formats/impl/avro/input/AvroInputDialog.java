@@ -22,6 +22,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -40,7 +41,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -59,7 +60,8 @@ import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
+import org.pentaho.hadoop.shim.api.format.AvroSpec;
+import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
@@ -110,15 +112,16 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     String avroFileName = wPath.getText();
     avroFileName = transMeta.environmentSubstitute( avroFileName );
     try {
-      SchemaDescription schemaDescription = AvroInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
+      List<? extends IAvroInputField> defaultFields = AvroInput.getDefaultFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
       wInputFields.clearAll();
-      for ( SchemaDescription.Field field : schemaDescription ) {
+      for ( IAvroInputField field : defaultFields ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
         if ( field != null ) {
-          setField( item, field.formatFieldName, 1 );
-          setField( item, field.pentahoFieldName, 2 );
-          setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
-          setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 4 );
+          AvroSpec.DataType avroType = field.getAvroType();
+          setField( item, field.getAvroFieldName(), AVRO_PATH_COLUMN_INDEX );
+          setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
+          setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
+          setField( item, avroType != null ? avroType.getName() : "", FIELD_SOURCE_TYPE_COLUMN_INDEX );
         }
       }
 
@@ -306,7 +309,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     }
     wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
     int itemIndex = 0;
-    for ( FormatInputOutputField inputField : meta.getInpuFields() ) {
+    for ( AvroInputField inputField : meta.getInputFields() ) {
       TableItem item = null;
       if ( itemIndex < wInputFields.table.getItemCount() ) {
         item = wInputFields.table.getItem( itemIndex );
@@ -314,17 +317,17 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         item = new TableItem( wInputFields.table, SWT.NONE );
       }
 
-      if ( inputField.getPath() != null ) {
-        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getPath() );
+      if ( inputField.getAvroFieldName() != null ) {
+        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getAvroFieldName() );
       }
-      if ( inputField.getName() != null ) {
-        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
+      if ( inputField.getPentahoFieldName() != null ) {
+        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getPentahoFieldName() );
       }
       if ( inputField.getTypeDesc() != null ) {
         item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
       }
-      if ( inputField.getSourceTypeDesc() != null ) {
-        item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, inputField.getSourceTypeDesc() );
+      if ( inputField.getAvroType() != null ) {
+        item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, inputField.getAvroType().getName() );
       }
       itemIndex++;
     }
@@ -340,14 +343,22 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
 
     int nrFields = wInputFields.nrNonEmpty();
-    ArrayList<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
+    ArrayList<AvroInputField> inputFields = new ArrayList<AvroInputField>();
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
-      FormatInputOutputField field = new FormatInputOutputField();
-      field.setPath( item.getText( AVRO_PATH_COLUMN_INDEX ) );
-      field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
-      field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-      field.setSourceType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) ) );
+      AvroInputField field = new AvroInputField();
+      field.setAvroFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) );
+      field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
+      field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+
+      AvroSpec.DataType avroType = null;
+      for (AvroSpec.DataType tmpType : AvroSpec.DataType.values()) {
+        if (tmpType.getName().equals( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) )) {
+          avroType = tmpType;
+          break;
+        }
+      }
+      field.setAvroType( avroType );
       inputFields.add( field );
     }
     meta.setInputFields( inputFields );

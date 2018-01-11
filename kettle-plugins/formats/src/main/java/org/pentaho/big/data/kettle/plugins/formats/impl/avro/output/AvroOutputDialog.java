@@ -40,7 +40,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.kettle.plugins.formats.avro.AvroFormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
@@ -62,6 +62,7 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
+import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
@@ -74,6 +75,20 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
+
+  private static final String[] SUPPORTED_AVRO_TYPE_NAMES = {
+    AvroSpec.DataType.STRING.getName(),
+    AvroSpec.DataType.INTEGER.getName(),
+    AvroSpec.DataType.LONG.getName(),
+    AvroSpec.DataType.FLOAT.getName(),
+    AvroSpec.DataType.DOUBLE.getName(),
+    AvroSpec.DataType.BOOLEAN.getName(),
+    AvroSpec.DataType.DECIMAL.getName(),
+    AvroSpec.DataType.DATE.getName(),
+    AvroSpec.DataType.TIMESTAMP_MILLIS.getName(),
+    AvroSpec.DataType.BYTES.getName()
+  };
+
 
   private static final int COLUMNS_SEP = 5 * MARGIN;
 
@@ -148,7 +163,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Name" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Type" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, SUPPORTED_AVRO_TYPE_NAMES ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Default" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Null" ),
@@ -432,23 +447,19 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     meta.setSchemaFilename( wSchemaPath.getText() );
     meta.setCompressionType( wCompression.getText() );
 
-    saveOutputFields( wOutputFields, meta );
-  }
+    int nrFields = wOutputFields.nrNonEmpty();
 
-  private void saveOutputFields( TableView wFields, AvroOutputMeta meta ) {
-    int nrFields = wFields.nrNonEmpty();
-
-    List<AvroFormatInputOutputField> outputFields = new ArrayList<>();
+    List<AvroOutputField> outputFields = new ArrayList<>();
     for ( int i = 0; i < nrFields; i++ ) {
-      TableItem item = wFields.getNonEmpty( i );
+      TableItem item = wOutputFields.getNonEmpty( i );
 
       int j = 1;
-      AvroFormatInputOutputField field = new AvroFormatInputOutputField();
-      field.setPath( item.getText( j++ ) );
-      field.setName( item.getText( j++ ) );
-      field.setType( item.getText( j++ ) );
-      field.setIfNullValue( item.getText( j++ ) );
-      field.setNullString( getNullableValue( item.getText( j++ ) ) );
+      AvroOutputField field = new AvroOutputField();
+      field.setAvroFieldName( item.getText( j++ ) );
+      field.setPentahoFieldName( item.getText( j++ ) );
+      field.setAvroType( item.getText( j++ ) );
+      field.setDefaultValue( item.getText( j++ ) );
+      field.setAllowNull( getNullableValue( item.getText( j++ ) ) );
 
       outputFields.add( field );
     }
@@ -484,11 +495,11 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   private void populateFieldsUI( AvroOutputMeta meta, TableView wOutputFields ) {
     populateFieldsUI( meta.getOutputFields(), wOutputFields, ( field, item ) -> {
       int i = 1;
-      item.setText( i++, coalesce( field.getPath() ) );
-      item.setText( i++, coalesce( field.getName() ) );
-      item.setText( i++, coalesce( field.getTypeDesc() ) );
-      item.setText( i++, coalesce( field.getIfNullValue() ) );
-      item.setText( i++, coalesce( field.getNullString() ) );
+      item.setText( i++, coalesce( field.getAvroFieldName() ) );
+      item.setText( i++, coalesce( field.getPentahoFieldName() ) );
+      item.setText( i++, coalesce( AvroSpec.DataType.values()[field.getAvroType()].getName() ) );
+      item.setText( i++, coalesce( field.getDefaultValue() ) );
+      item.setText( i++, coalesce( field.getAllowNull() ) );
     } );
   }
 
@@ -496,8 +507,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     return value == null ? "" : value;
   }
 
-  private void populateFieldsUI( List<AvroFormatInputOutputField> fields, TableView wFields,
-                                BiConsumer<AvroFormatInputOutputField, TableItem> converter ) {
+  private void populateFieldsUI( List<AvroOutputField> fields, TableView wFields,
+                                BiConsumer<AvroOutputField, TableItem> converter ) {
     int nrFields = fields.size();
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = null;

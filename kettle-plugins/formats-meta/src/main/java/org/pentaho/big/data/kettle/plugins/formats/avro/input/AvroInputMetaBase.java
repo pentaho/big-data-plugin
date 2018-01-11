@@ -62,7 +62,7 @@ public abstract class AvroInputMetaBase extends
   @Injection( name = "SCHEMA_FILENAME" )
   protected String schemaFilename;
 
-  protected List<FormatInputOutputField> inputFields = new ArrayList<FormatInputOutputField>();
+  protected List<AvroInputField> inputFields = new ArrayList<AvroInputField>();
 
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
@@ -100,11 +100,11 @@ public abstract class AvroInputMetaBase extends
     this.filename = filename;
   }
 
-  public List<FormatInputOutputField> getInpuFields() {
+  public List<AvroInputField> getInputFields() {
     return inputFields;
   }
 
-  public void setInputFields( List<FormatInputOutputField> inputFields ) {
+  public void setInputFields( List<AvroInputField> inputFields ) {
     this.inputFields = inputFields;
   }
 
@@ -120,16 +120,13 @@ public abstract class AvroInputMetaBase extends
       filename = XMLHandler.getTagValue( stepnode, "filename" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      List<FormatInputOutputField> avroInputFields = new ArrayList<>();
+      List<AvroInputField> avroInputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-        FormatInputOutputField inputField = new FormatInputOutputField();
-        inputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
-        inputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
+        AvroInputField inputField = new AvroInputField();
+        inputField.setAvroFieldName( XMLHandler.getTagValue( fnode, "path" ) );
+        inputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
         inputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
-        inputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
-        inputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" )  );
-        inputField.setSourceType( XMLHandler.getTagValue( fnode, "sourcetype" ) );
         avroInputFields.add( inputField );
       }
       this.inputFields = avroInputFields;
@@ -150,16 +147,13 @@ public abstract class AvroInputMetaBase extends
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < inputFields.size(); i++ ) {
-      FormatInputOutputField field = inputFields.get( i );
+      AvroInputField field = inputFields.get( i );
 
-      if ( field.getName() != null && field.getName().length() != 0 ) {
+      if ( field.getPentahoFieldName() != null && field.getPentahoFieldName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getAvroFieldName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getNullString() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "sourcetype", field.getSourceTypeDesc() ) );
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -180,20 +174,17 @@ public abstract class AvroInputMetaBase extends
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
 
-      List<FormatInputOutputField> avroOutputFields = new ArrayList<>();
+      List<AvroInputField> avroInputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputOutputField inputField = new FormatInputOutputField();
+        AvroInputField inputField = new AvroInputField();
 
-        inputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
-        inputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
+        inputField.setAvroFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
+        inputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         inputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
-        inputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "nullable" ) );
-        inputField.setNullString( rep.getStepAttributeString( id_step, i, "default" ) );
-        inputField.setSourceType( rep.getStepAttributeString( id_step, i, "sourcetype" ) );
 
-        avroOutputFields.add( inputField );
+        avroInputFields.add( inputField );
       }
-      this.inputFields = avroOutputFields;
+      this.inputFields = avroInputFields;
       schemaFilename = rep.getStepAttributeString( id_step, "schemaFilename" );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
@@ -207,14 +198,11 @@ public abstract class AvroInputMetaBase extends
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
       rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
       for ( int i = 0; i < inputFields.size(); i++ ) {
-        FormatInputOutputField field = inputFields.get( i );
+        AvroInputField field = inputFields.get( i );
 
-        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getAvroFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getIfNullValue() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getNullString() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "sourcetype", field.getSourceTypeDesc() );
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, "schemaFilename", getSchemaFilename() );

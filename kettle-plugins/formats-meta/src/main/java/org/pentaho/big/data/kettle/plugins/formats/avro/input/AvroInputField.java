@@ -20,78 +20,76 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.formats.avro;
+package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.hadoop.shim.api.format.AvroSpec;
+import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 
 /**
  * Base class for format's input/output field - path added.
  * 
  * @author JRice <joseph.rice@hitachivantara.com>
  */
-public class AvroFormatInputOutputField {
+public class AvroInputField implements IAvroInputField {
   @Injection( name = "FIELD_PATH", group = "FIELDS" )
-  protected String path;
+  protected String avroFieldName;
 
   @Injection( name = "FIELD_NAME", group = "FIELDS" )
-  private String name;
+  private String pentahoFieldName;
 
-  @Injection( name = "FIELD_NULL_STRING", group = "FIELDS" )
-  private String nullString;
+  private int pentahoType;
 
-  @Injection( name = "FIELD_IF_NULL", group = "FIELDS" )
-  private String ifNullValue;
+  private AvroSpec.DataType avroType = null;
 
-  private int type;
-
-  public String getPath() {
-    return path;
+  @Override
+  public String getAvroFieldName() {
+    return avroFieldName;
   }
 
-  public void setPath( String path ) {
-    this.path = path;
+  @Override
+  public void setAvroFieldName( String avroFieldName ) {
+    this.avroFieldName = avroFieldName;
   }
 
-  public String getName() {
-    return name;
+  @Override
+  public String getPentahoFieldName() {
+    return pentahoFieldName;
   }
 
-  public void setName( String name ) {
-    this.name = name;
+  @Override
+  public void setPentahoFieldName( String pentahoFieldName ) {
+    this.pentahoFieldName = pentahoFieldName;
   }
 
-  public String getNullString() {
-    return nullString;
+  @Override
+  public int getPentahoType() {
+    return pentahoType;
   }
 
-  public void setNullString( String nullString ) {
-    this.nullString = nullString;
+  @Override
+  public void setPentahoType( int pentahoType ) {
+    this.pentahoType = pentahoType;
   }
 
-  public String getIfNullValue() {
-    return ifNullValue;
+  @Override
+  public AvroSpec.DataType getAvroType() {
+    return avroType;
   }
 
-  public void setIfNullValue( String ifNullValue ) {
-    this.ifNullValue = ifNullValue;
-  }
+  @Override
+  public void setAvroType( AvroSpec.DataType avroType ) {
 
-  public int getType() {
-    return type;
-  }
-
-  public void setType( int type ) {
-    this.type = type;
   }
 
   public String getTypeDesc() {
-    return ValueMetaFactory.getValueMetaName( type );
+    return ValueMetaFactory.getValueMetaName( pentahoType );
   }
 
   @Injection( name = "FIELD_TYPE", group = "FIELDS" )
   public void setType( String value ) {
-    this.type = ValueMetaFactory.getIdForValueMeta( value );
+    this.pentahoType = ValueMetaFactory.getIdForValueMeta( value );
   }
 
 }
