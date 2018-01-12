@@ -66,7 +66,16 @@ public class AvroOutput extends BaseStep implements StepInterface {
       data = (AvroOutputData) sdi;
 
       if ( data.output == null ) {
-        init();
+        try {
+          init();
+        } catch ( Throwable e ) {
+          String error = e.getMessage().replaceAll( "TRANS_NAME", getTrans().getName() );
+          error = error.replaceAll( "STEP_NAME", getStepname() );
+          getLogChannel().logError( error );
+          setErrors( 1 );
+          setOutputDone();
+          return false;
+        }
       }
 
       Object[] currentRow = getRow();
@@ -110,9 +119,6 @@ public class AvroOutput extends BaseStep implements StepInterface {
       formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
-    }
-    if ( meta.getFilename() == null ) {
-      throw new KettleException( "No output files defined" );
     }
     SchemaDescription schemaDescription = new SchemaDescription();
     for ( AvroFormatInputOutputField f : meta.getOutputFields() ) {
