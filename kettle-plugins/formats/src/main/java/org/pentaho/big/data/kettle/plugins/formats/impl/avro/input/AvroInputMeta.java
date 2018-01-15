@@ -25,6 +25,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettlePluginException;
@@ -111,9 +112,9 @@ public class AvroInputMeta extends AvroInputMetaBase {
         }
       }
       for ( int i = 0; i < inputFields.size(); i++ ) {
-        FormatInputOutputField field = inputFields.get( i );
-        String value = space.environmentSubstitute( field.getName() );
-        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getType() );
+        AvroInputField field = inputFields.get( i );
+        String value = space.environmentSubstitute( field.getPentahoFieldName() );
+        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, 1 );
         v.setOrigin( origin );
         rowMeta.addValueMeta( v );
       }
