@@ -59,7 +59,7 @@
     <dependency.slf4j.revision>1.7.7</dependency.slf4j.revision>
     <pentaho-hadoop-shims-cdh512.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh512.version>
     <pentaho-hadoop-shims-cdh513.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh513.version>
-    <dependency.jets3t.revision>0.9.3</dependency.jets3t.revision>
+    <dependency.jets3t.revision>0.9.4</dependency.jets3t.revision>
     <dependency.xstream.revision>1.4.10</dependency.xstream.revision>
     <pentaho-hadoop-shims-mapr520.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr520.version>
     <pentaho-hadoop-shims-mapr60.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr60.version>
