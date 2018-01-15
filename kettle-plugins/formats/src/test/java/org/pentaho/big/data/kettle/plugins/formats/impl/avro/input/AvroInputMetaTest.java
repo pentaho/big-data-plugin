@@ -46,6 +46,7 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.plugins.Plugin;
@@ -60,6 +61,7 @@ import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -84,7 +86,7 @@ public class AvroInputMetaTest {
   private RowMetaInterface rowMeta;
 
   @Mock
-  private FormatInputOutputField field;
+  private AvroInputField field;
 
   @Mock
   private Repository repository;
@@ -104,7 +106,7 @@ public class AvroInputMetaTest {
   @Before
   public void setUp() throws KettlePluginException {
     meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService );
-    when( field.getType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
+    when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
 
     Map<Class<?>, String> classMap = new HashMap<Class<?>, String>();
     Class<? extends PluginTypeInterface> pluginType = ValueMetaPluginType.class;
@@ -163,7 +165,7 @@ public class AvroInputMetaTest {
 
   @Test( expected = KettleStepException.class )
   public void testGetFields_unknownPluginForFieldType() throws KettleStepException {
-    FormatInputOutputField fld = mock( FormatInputOutputField.class );
+    AvroInputField fld = mock( AvroInputField.class );
 
     meta.setInputFields( Arrays.asList( fld ) );
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );

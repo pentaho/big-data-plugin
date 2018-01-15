@@ -47,7 +47,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
@@ -68,7 +67,7 @@ import org.xml.sax.SAXException;
 public class AvroInputMetaBaseTest {
 
   @Mock
-  private FormatInputOutputField field;
+  private AvroInputField field;
 
   @Mock
   private Repository rep;
@@ -106,19 +105,16 @@ public class AvroInputMetaBaseTest {
 
   @Test
   public void testGetXML() throws KettleStepException {
-    when( field.getName() ).thenReturn( "SampleName" );
+    when( field.getPentahoFieldName() ).thenReturn( "SampleName" );
     meta.setInputFields( Arrays.asList( field ) );
 
     assertNotNull( meta.getXML() );
     verify( meta ).getFilename();
     verify( meta ).getSchemaFilename();
 
-    verify( field ).getPath();
-    verify( field, times( 3 ) ).getName();
+    verify( field ).getAvroFieldName();
+    verify( field, times( 3 ) ).getPentahoFieldName();
     verify( field ).getTypeDesc();
-    verify( field ).getIfNullValue();
-    verify( field ).getNullString();
-    verify( field ).getSourceTypeDesc();
   }
 
   @Test
@@ -129,12 +125,9 @@ public class AvroInputMetaBaseTest {
     verify( meta ).getFilename();
     verify( meta ).getSchemaFilename();
 
-    verify( field ).getPath();
-    verify( field ).getName();
+    verify( field ).getAvroFieldName();
+    verify( field ).getPentahoFieldName();
     verify( field ).getTypeDesc();
-    verify( field ).getIfNullValue();
-    verify( field ).getNullString();
-    verify( field ).getSourceTypeDesc();
   }
 
   @Test
@@ -146,13 +139,10 @@ public class AvroInputMetaBaseTest {
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
 
-    FormatInputOutputField field = meta.getInputFields().get( 0 );
-    assertEquals( "SampleName", field.getName() );
-    assertEquals( "SamplePath", field.getPath() );
-    assertEquals( ValueMetaInterface.TYPE_NONE, field.getType() );
-    assertEquals( "false", field.getNullString() );
-    assertEquals( "SampleDefault", field.getIfNullValue() );
-    assertEquals( ValueMetaInterface.TYPE_NONE, field.getSourceType() );
+    AvroInputField field  = meta.getInputFields().get( 0 );
+    assertEquals( "SampleName", field.getPentahoFieldName() );
+    assertEquals( "SamplePath", field.getAvroFieldName() );
+    assertEquals( ValueMetaInterface.TYPE_NONE, field.getAvroType() );
   }
 
   @Test
@@ -173,12 +163,9 @@ public class AvroInputMetaBaseTest {
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
 
-    FormatInputOutputField field = meta.getInputFields().get( 0 );
-    assertEquals( "SampleName", field.getName() );
-    assertEquals( "SamplePath", field.getPath() );
-    assertEquals( ValueMetaInterface.TYPE_NONE, field.getType() );
-    assertEquals( "false", field.getNullString() );
-    assertEquals( "SampleDefault", field.getIfNullValue() );
-    assertEquals( ValueMetaInterface.TYPE_NONE, field.getSourceType() );
+    AvroInputField field = meta.getInputFields().get( 0 );
+    assertEquals( "SampleName", field.getPentahoFieldName() );
+    assertEquals( "SamplePath", field.getAvroFieldName() );
+    assertEquals( ValueMetaInterface.TYPE_NONE, field.getAvroType() );
   }
 }
