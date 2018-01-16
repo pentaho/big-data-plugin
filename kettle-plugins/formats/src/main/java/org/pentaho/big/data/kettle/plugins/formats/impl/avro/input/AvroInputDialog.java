@@ -104,6 +104,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     return wTabFolder;
   }
 
+  private String concatenateAvroNameAndType ( String avroFieldName, AvroSpec.DataType avroType ) {
+    return avroFieldName + "( " + avroType.getName() + " )";
+  }
+
   protected void populateFieldsTable() {
     // this schema overrides any that might be in a container file
     String schemaFileName = wSchemaPath.getText();
@@ -118,7 +122,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
         if ( field != null ) {
           AvroSpec.DataType avroType = field.getAvroType();
-          setField( item, field.getAvroFieldName(), AVRO_PATH_COLUMN_INDEX );
+          setField( item, concatenateAvroNameAndType( field.getAvroFieldName(), field.getAvroType() ), AVRO_PATH_COLUMN_INDEX );
           setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
           setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
           setField( item, avroType != null ? avroType.getName() : "", FIELD_SOURCE_TYPE_COLUMN_INDEX );

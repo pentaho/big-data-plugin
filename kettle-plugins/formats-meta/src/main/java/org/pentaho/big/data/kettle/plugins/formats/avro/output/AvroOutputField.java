@@ -23,7 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
 import org.pentaho.di.core.injection.Injection;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.IAvroOutputField;
 
@@ -99,16 +98,35 @@ public class AvroOutputField implements IAvroOutputField {
 
   @Injection( name = "FIELD_NULL_STRING", group = "FIELDS" )
   public void setAllowNull( String allowNull ) {
-    this.allowNull = Boolean.parseBoolean( allowNull );
-  }
-
-  @Injection( name = "FIELD_TYPE", group = "FIELDS" )
-  public void setAvroType( String typeName ) {
-    for (AvroSpec.DataType avroType : AvroSpec.DataType.values()) {
-      if (avroType.getName().equals( typeName )) {
-        this.avroType = avroType;
+    if ( allowNull != null && allowNull.length() > 0) {
+      if ( allowNull.equalsIgnoreCase( "yes" ) ) {
+        this.allowNull = true;
+      } else if ( allowNull.equalsIgnoreCase( "no" ) ) {
+        this.allowNull = false;
+      } else {
+        this.allowNull = Boolean.parseBoolean( allowNull );
       }
     }
   }
 
+  @Injection( name = "FIELD_TYPE", group = "FIELDS" )
+  public void setAvroType( String typeName ) {
+    try  {
+      setAvroType( Integer.parseInt( typeName ) );
+    } catch ( NumberFormatException nfe ) {
+      for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
+        if ( avroType.getName().equals( typeName ) ) {
+          this.avroType = avroType;
+        }
+      }
+    }
+  }
+
+  private void setAvroType( int typeOrdinal ) {
+    for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
+      if ( avroType.ordinal() == typeOrdinal ) {
+        this.avroType = avroType;
+      }
+    }
+  }
 }
