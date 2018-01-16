@@ -40,7 +40,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.verification.VerificationMode;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.di.trans.steps.recordsfromstream.RecordsFromStreamMeta;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -69,7 +68,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
@@ -351,7 +349,7 @@ public class KafkaConsumerInputTest {
     // provide some data when we try to poll for kafka messages
     when( consumer.poll( 1000 ) ).thenReturn( records )
       .then( invocationOnMock -> {
-        while ( trans.getSteps().get( 0 ).step.getLinesInput() < 4 ) {
+        while ( trans.getSteps().get( 0 ).step.getLinesWritten() < 4 ) {
           //noinspection UnnecessaryContinue
           continue;  //here to fool checkstyle
         }
