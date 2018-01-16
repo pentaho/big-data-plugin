@@ -111,6 +111,6 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
     in.setInputSchemaFile( schemaPath );
     in.setInputFile( dataPath );
-    return in.getFields( );
+    return in.getFields();
   }
 }

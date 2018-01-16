@@ -500,7 +500,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       item.setText( i++, coalesce( field.getPentahoFieldName() ) );
       item.setText( i++, coalesce( field.getAvroType().getName() ) );
       item.setText( i++, coalesce( field.getDefaultValue() ) );
-      item.setText( i++, Boolean.toString( field.getAllowNull() ) );
+      item.setText( i++, field.getAllowNull() ? NullableValuesEnum.YES.getValue() : NullableValuesEnum.NO.getValue() );
     } );
   }
 
@@ -627,7 +627,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
         }
         if ( dataTypeColumn != null ) {
           for ( int c = 0; c < dataTypeColumn.length; c++ ) {
-            tableItem.setText( dataTypeColumn[ c ], convertToAvroType( v.getType() ) );
+            tableItem.setText( dataTypeColumn[ c ], meta.convertToAvroType( v.getType() ) );
           }
         }
         if ( lengthColumn > 0 ) {
@@ -652,30 +652,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     tableView.setRowNums();
     if ( optimizeWidth ) {
       tableView.optWidth( true );
-    }
-  }
-
-  private String convertToAvroType( int pdiType ) {
-    switch ( pdiType ) {
-      case ValueMetaInterface.TYPE_INET:
-      case ValueMetaInterface.TYPE_STRING:
-        return AvroSpec.DataType.STRING.getName();
-      case ValueMetaInterface.TYPE_TIMESTAMP:
-        return AvroSpec.DataType.TIMESTAMP_MILLIS.getName();
-      case ValueMetaInterface.TYPE_BINARY:
-        return AvroSpec.DataType.BYTES.getName();
-      case ValueMetaInterface.TYPE_BIGNUMBER:
-        return AvroSpec.DataType.DECIMAL.getName();
-      case ValueMetaInterface.TYPE_BOOLEAN:
-        return AvroSpec.DataType.BOOLEAN.getName();
-      case ValueMetaInterface.TYPE_DATE:
-        return AvroSpec.DataType.DATE.getName();
-      case ValueMetaInterface.TYPE_INTEGER:
-        return AvroSpec.DataType.LONG.getName();
-      case ValueMetaInterface.TYPE_NUMBER:
-        return AvroSpec.DataType.DOUBLE.getName();
-      default:
-        return AvroSpec.DataType.NULL.getName();
     }
   }
 
