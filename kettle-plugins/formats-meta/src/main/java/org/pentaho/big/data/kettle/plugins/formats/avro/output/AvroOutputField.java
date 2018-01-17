@@ -99,9 +99,9 @@ public class AvroOutputField implements IAvroOutputField {
   @Injection( name = "FIELD_NULL_STRING", group = "FIELDS" )
   public void setAllowNull( String allowNull ) {
     if ( allowNull != null && allowNull.length() > 0) {
-      if ( allowNull.equalsIgnoreCase( "yes" ) ) {
+      if ( allowNull.equalsIgnoreCase( "yes" ) || allowNull.equalsIgnoreCase( "y" ) ) {
         this.allowNull = true;
-      } else if ( allowNull.equalsIgnoreCase( "no" ) ) {
+      } else if ( allowNull.equalsIgnoreCase( "no" ) || allowNull.equalsIgnoreCase( "n" ) ) {
         this.allowNull = false;
       } else {
         this.allowNull = Boolean.parseBoolean( allowNull );
