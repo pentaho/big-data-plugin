@@ -63,4 +63,13 @@ public class HadoopFileOutputDialogTest {
     assertEquals( expected, HadoopFileOutputDialog.getUrlPath( expected ) );
   }
 
+  @Test
+  public void testGetUrlPathRootPath() {
+    assertEquals( "/", HadoopFileOutputDialog.getUrlPath( "hdfs://myhost:8020/" ) );
+  }
+
+  @Test
+  public void testGetUrlPathRootPathWithoutSlash() {
+    assertEquals( "/", HadoopFileOutputDialog.getUrlPath( "hdfs://myhost:8020" ) );
+  }
 }
