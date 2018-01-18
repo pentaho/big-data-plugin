@@ -822,12 +822,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-osgi-utils-api</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-capability-manager</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -865,9 +865,9 @@
       <version>${pentaho-reporting.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-xul-core</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.pentaho</groupId>
+      <artifactId>commons-xul-core</artifactId>
+      <version>${commons-xul.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -997,7 +997,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-service-coordinator</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -1017,7 +1017,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
-      <version>${project.version}</version>
+      <version>${platform.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.felix</groupId>
@@ -1032,12 +1032,12 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${project.version}</version>
+      <version>${platform.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-extensions</artifactId>
-      <version>${project.version}</version>
+      <version>${platform.version}</version>
       <exclusions>
         <exclusion>
           <artifactId>xbean</artifactId>
@@ -1053,7 +1053,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-karaf-assembly</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-karaf.version}</version>
       <type>zip</type>
       <classifier>pmr</classifier>
     </dependency>
@@ -1065,7 +1065,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metaverse-api</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-metaverse.version}</version>
     </dependency>
   </dependencies>
   <build>
