@@ -102,4 +102,12 @@ public class AvroInputField implements IAvroInputField {
     this.pentahoType = ValueMetaFactory.getIdForValueMeta( value );
   }
 
+  public String getDisplayableAvroFieldName() {
+    String displayableAvroFieldName = avroFieldName;
+    if ( avroFieldName.contains( FILENAME_DELIMITER ) ) {
+      displayableAvroFieldName = avroFieldName.split( FILENAME_DELIMITER )[0];
+    }
+
+    return displayableAvroFieldName;
+  }
 }
