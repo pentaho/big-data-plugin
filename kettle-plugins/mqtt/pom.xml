@@ -139,7 +139,6 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Embed-Dependency>org.eclipse.paho.client.mqttv3;scope=compile|runtime</Embed-Dependency>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Bundle-Version>${project.version}</Bundle-Version>
             <Export-Package>org.pentaho.di.trans.step.mqtt.*;version=${project.version}</Export-Package>

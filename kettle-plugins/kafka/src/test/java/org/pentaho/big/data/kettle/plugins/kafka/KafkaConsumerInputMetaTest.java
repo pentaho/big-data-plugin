@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -476,25 +476,6 @@ public class KafkaConsumerInputMetaTest {
     inputMeta.setMetastoreLocator( metastoreLocator );
     inputMeta.setConnectionType( CLUSTER );
     assertFalse( inputMeta.getJaasConfigService().isPresent() );
-  }
-
-  @Test
-  public void testGetResourceDependencies() {
-    String stepId = "KafkConsumerInput";
-    String path = "/home/bgroves/fake.ktr";
-
-    StepMeta stepMeta = new StepMeta();
-    stepMeta.setStepID( stepId );
-    KafkaConsumerInputMeta inputMeta = new KafkaConsumerInputMeta();
-    List<ResourceReference> resourceDependencies = inputMeta.getResourceDependencies( new TransMeta(), stepMeta );
-    assertEquals( 0, resourceDependencies.get( 0 ).getEntries().size() );
-
-    inputMeta.setTransformationPath( path );
-    resourceDependencies = inputMeta.getResourceDependencies( new TransMeta(), stepMeta );
-    assertEquals( 1, resourceDependencies.get( 0 ).getEntries().size() );
-    assertEquals( path, resourceDependencies.get( 0 ).getEntries().get( 0 ).getResource() );
-    assertEquals( ResourceEntry.ResourceType.ACTIONFILE,
-      resourceDependencies.get( 0 ).getEntries().get( 0 ).getResourcetype() );
   }
 
   @Test
