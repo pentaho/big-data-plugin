@@ -122,7 +122,7 @@ public class AvroOutputField implements IAvroOutputField {
     }
   }
 
-  private void setAvroType( int typeOrdinal ) {
+  public void setAvroType( int typeOrdinal ) {
     for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
       if ( avroType.ordinal() == typeOrdinal ) {
         this.avroType = avroType;
