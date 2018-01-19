@@ -26,14 +26,12 @@ import java.io.IOException;
 
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.avro.AvroFormatInputOutputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -43,7 +41,6 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
 public class AvroOutput extends BaseStep implements StepInterface {
 
@@ -85,9 +82,9 @@ public class AvroOutput extends BaseStep implements StepInterface {
         //create data equals with output fileds
         Object[] outputData = new Object[meta.getOutputFields().size()];
         for ( int i = 0; i < meta.getOutputFields().size(); i++ ) {
-          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getName() );
+          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getPentahoFieldName() );
           if ( inputRowIndex == -1 ) {
-            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getName() + " ] couldn't be found in the input stream!" );
+            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getPentahoFieldName() + " ] couldn't be found in the input stream!" );
           } else {
             ValueMetaInterface vmi = ValueMetaFactory.cloneValueMeta( getInputRowMeta().getValueMeta( inputRowIndex ) );
             //add output value meta according output fields
@@ -120,16 +117,10 @@ public class AvroOutput extends BaseStep implements StepInterface {
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
-    SchemaDescription schemaDescription = new SchemaDescription();
-    for ( AvroFormatInputOutputField f : meta.getOutputFields() ) {
-      SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), ValueMetaBase.convertStringToBoolean( f.getNullString() ) );
-      field.defaultValue = f.getIfNullValue();
-      schemaDescription.addField( field );
-    }
 
     data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
     data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
-    data.output.setSchemaDescription( schemaDescription );
+    data.output.setFields( meta.getOutputFields() );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
       compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
