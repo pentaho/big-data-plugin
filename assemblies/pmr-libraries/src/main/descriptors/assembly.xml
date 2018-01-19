@@ -7,7 +7,7 @@
   <fileSets>
     <fileSet>
       <directory>target/dependencies/pentaho-karaf-assembly</directory>
-      <outputDirectory>/system/karaf</outputDirectory>
+      <outputDirectory>system/karaf</outputDirectory>
       <!--<excludes>
         <exclude>plugins/</exclude>
         <exclude>system/karaf/etc/org.apache.karaf.features.cfg</exclude>
@@ -15,16 +15,16 @@
     </fileSet>
     <fileSet>
       <directory>target/classes</directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>.</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>target/simple-jndi</directory>
-      <outputDirectory>/</outputDirectory>
+      <outputDirectory>.</outputDirectory>
     </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>/lib</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <unpack>false</unpack>
       <scope>runtime</scope>
       <useProjectArtifact>false</useProjectArtifact>
