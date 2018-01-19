@@ -93,6 +93,10 @@ public class AvroInputField implements IAvroInputField {
     }
   }
 
+  public void setAvroType( int avroType ) {
+    this.avroType = AvroSpec.DataType.values()[ avroType ];
+  }
+
   public String getTypeDesc() {
     return ValueMetaFactory.getValueMetaName( pentahoType );
   }
