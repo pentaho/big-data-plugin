@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -365,7 +365,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     }
   }
 
-  private String convertToAvroType ( String type ) {
+  private String convertToAvroType( String type ) {
     int pdiType = ValueMetaFactory.getIdForValueMeta( type );
     if ( pdiType > 0 ) {
       return convertToAvroType( pdiType );

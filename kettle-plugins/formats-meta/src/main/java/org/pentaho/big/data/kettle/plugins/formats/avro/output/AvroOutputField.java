@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -98,7 +98,7 @@ public class AvroOutputField implements IAvroOutputField {
 
   @Injection( name = "FIELD_NULL_STRING", group = "FIELDS" )
   public void setAllowNull( String allowNull ) {
-    if ( allowNull != null && allowNull.length() > 0) {
+    if ( allowNull != null && allowNull.length() > 0 ) {
       if ( allowNull.equalsIgnoreCase( "yes" ) || allowNull.equalsIgnoreCase( "y" ) ) {
         this.allowNull = true;
       } else if ( allowNull.equalsIgnoreCase( "no" ) || allowNull.equalsIgnoreCase( "n" ) ) {
