@@ -45,7 +45,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -107,6 +106,7 @@ public class AvroInputMetaTest {
   public void setUp() throws KettlePluginException {
     meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService );
     when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
+    when( field.getPentahoType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
 
     Map<Class<?>, String> classMap = new HashMap<Class<?>, String>();
     Class<? extends PluginTypeInterface> pluginType = ValueMetaPluginType.class;

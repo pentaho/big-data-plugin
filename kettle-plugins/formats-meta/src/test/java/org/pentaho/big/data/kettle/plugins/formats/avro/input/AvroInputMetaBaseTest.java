@@ -51,7 +51,6 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
-import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -59,6 +58,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -88,6 +88,7 @@ public class AvroInputMetaBaseTest {
 
   @Before
   public void setUp() throws KettlePluginException {
+    when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     meta = spy( new AvroInputMetaBase() {
 
       @Override
@@ -142,7 +143,7 @@ public class AvroInputMetaBaseTest {
     AvroInputField field  = meta.getInputFields().get( 0 );
     assertEquals( "SampleName", field.getPentahoFieldName() );
     assertEquals( "SamplePath", field.getAvroFieldName() );
-    assertEquals( ValueMetaInterface.TYPE_NONE, field.getAvroType() );
+    assertEquals( "string", field.getAvroType().getType() );
   }
 
   @Test
@@ -158,6 +159,7 @@ public class AvroInputMetaBaseTest {
     when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "nullable" ) ) ).thenReturn( "SampleDefault" );
     when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "default" ) ) ).thenReturn( "false" );
     when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "sourcetype" ) ) ).thenReturn( "0" );
+    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "avro_type" ) ) ).thenReturn( "string" );
 
     meta.readRep( rep, metaStore, id_step, databases );
     assertEquals( "SampleFileName", meta.getFilename() );
@@ -166,6 +168,6 @@ public class AvroInputMetaBaseTest {
     AvroInputField field = meta.getInputFields().get( 0 );
     assertEquals( "SampleName", field.getPentahoFieldName() );
     assertEquals( "SamplePath", field.getAvroFieldName() );
-    assertEquals( ValueMetaInterface.TYPE_NONE, field.getAvroType() );
+    assertEquals( "string", field.getAvroType().getType() );
   }
 }
