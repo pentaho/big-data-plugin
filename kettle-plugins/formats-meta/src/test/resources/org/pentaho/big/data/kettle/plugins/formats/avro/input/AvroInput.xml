@@ -16,6 +16,7 @@
         <path>SamplePath</path>
         <name>SampleName</name>
         <type>String</type>
+        <avro_type>string</avro_type>
         <nullable>false</nullable>
         <default>SampleDefault</default>
         <sourcetype>String</sourcetype>
