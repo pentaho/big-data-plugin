@@ -52,6 +52,7 @@
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
     <dependency.mondrian.revision>8.0-SNAPSHOT</dependency.mondrian.revision>
     <dependency.kettle.revision>8.0-SNAPSHOT</dependency.kettle.revision>
+    <oss-licenses.version>8.0-SNAPSHOT</oss-licenses.version>
     <dependency.pentaho-reporting.revision>8.0-SNAPSHOT</dependency.pentaho-reporting.revision>
     <dependency.simple-jndi.revision>1.0.0</dependency.simple-jndi.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>

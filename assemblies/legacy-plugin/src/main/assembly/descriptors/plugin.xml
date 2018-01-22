@@ -69,5 +69,20 @@
                 <include>com.thoughtworks.xstream:xstream</include>
             </includes>
         </dependencySet>
+        <dependencySet>
+          <outputDirectory>/</outputDirectory>
+          <useTransitiveDependencies>false</useTransitiveDependencies>
+          <useProjectArtifact>false</useProjectArtifact>
+          <scope>provided</scope>
+          <includes>
+            <include>pentaho:oss-licenses:zip</include>
+          </includes>
+          <unpack>true</unpack>
+          <unpackOptions>
+            <includes>
+              <include>PentahoBigDataPlugin_OSS_Licenses.html</include>
+            </includes>
+          </unpackOptions>
+        </dependencySet>
     </dependencySets>
 </assembly>
