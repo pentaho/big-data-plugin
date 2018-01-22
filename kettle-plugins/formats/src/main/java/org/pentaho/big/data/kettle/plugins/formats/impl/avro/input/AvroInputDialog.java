@@ -110,7 +110,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
    * since this method converts the field for show user and the extract methods myst convert to internal format
    */
   private String concatenateAvroNameAndType( String avroFieldName, AvroSpec.DataType avroType ) {
-    return avroFieldName + "( " + avroType.getName() + " )";
+    return avroFieldName + " (" + avroType.getName() + ")";
   }
 
   /**
