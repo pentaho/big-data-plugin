@@ -110,6 +110,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         outputField.setAvroFieldName( XMLHandler.getTagValue( fnode, "path" ) );
         outputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
         outputField.setAvroType( convertToAvroType(  XMLHandler.getTagValue( fnode, "type" ) ) );
+        outputField.setPrecision( XMLHandler.getTagValue( fnode, "precision" ) );
+        outputField.setScale( XMLHandler.getTagValue( fnode, "scale" ) );
         outputField.setAllowNull( XMLHandler.getTagValue( fnode, "nullable" ) );
         outputField.setDefaultValue( XMLHandler.getTagValue( fnode, "default" )  );
         avroOutputFields.add( outputField );
@@ -143,6 +145,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getAvroFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getAvroType().ordinal() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "scale", field.getScale() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getAllowNull() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getDefaultValue() ) );
         retval.append( "      </field>" ).append( Const.CR );
@@ -175,6 +179,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         outputField.setAvroFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         outputField.setAvroType( convertToAvroType( rep.getStepAttributeString( id_step, i, "type" ) ) );
+        outputField.setPrecision( rep.getStepAttributeString( id_step, i, "precision" ) );
+        outputField.setScale( rep.getStepAttributeString( id_step, i, "scale" ) );
         outputField.setAllowNull( rep.getStepAttributeString( id_step, i, "nullable" ) );
         outputField.setDefaultValue( rep.getStepAttributeString( id_step, i, "default" ) );
 
@@ -202,6 +208,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getAvroFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getAvroType().ordinal() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "precision", field.getPrecision() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "scale", field.getScale() );
         rep.saveStepAttribute( id_transformation, id_step, i, "nullable", Boolean.toString( field.getAllowNull() ) );
         rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getDefaultValue() );
       }
