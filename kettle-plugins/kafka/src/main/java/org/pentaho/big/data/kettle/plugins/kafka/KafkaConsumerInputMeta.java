@@ -555,20 +555,6 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return config;
   }
 
-  @Override public String[] getReferencedObjectDescriptions() {
-    return new String[] {
-        BaseMessages.getString( PKG, "KafkaConsumerInputMeta.ReferencedObject.SubTrans.Description" ) };
-  }
-
-  @Override public boolean[] isReferencedObjectEnabled() {
-    return new boolean[] { !Utils.isEmpty( transformationPath ) };
-  }
-
-  @Override public Object loadReferencedObject( int index, Repository rep, IMetaStore metaStore, VariableSpace space )
-      throws KettleException {
-    return loadMappingMeta( this, rep, metaStore, space );
-  }
-
   protected void applyInjectedProperties() {
     if ( injectedConfigNames != null || injectedConfigValues != null ) {
       Preconditions.checkState( injectedConfigNames != null, "Options names were not injected" );
