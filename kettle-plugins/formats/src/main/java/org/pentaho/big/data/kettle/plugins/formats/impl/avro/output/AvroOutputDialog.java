@@ -58,7 +58,6 @@ import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
-import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -174,8 +173,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     wOutputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
             parameterColumns, 7, lsMod, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 20, 20, 10 );
-    wOutputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wOutputFields );
     new FD( wOutputFields ).left( 0, 0 ).right( 100, 0 ).top( wComp, 0 ).bottom( wGetFields, -FIELDS_SEP ).apply();
@@ -189,7 +186,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     for ( ColumnInfo col : parameterColumns ) {
       col.setAutoResize( false );
     }
-    resizer.addColumnResizeListeners( wOutputFields.getTable() );
+
     setTruncatedColumn( wOutputFields.getTable(), 1 );
     if ( !Const.isWindows() ) {
       addColumnTooltip( wOutputFields.getTable(), 1 );

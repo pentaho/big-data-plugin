@@ -53,7 +53,6 @@ import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
-import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
@@ -175,8 +174,6 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     wOutputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
             parameterColumns, nrRows, lsMod, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 20, 20, 10 );
-    wOutputFields.getTable().addListener( SWT.Resize, resizer );
 
 
     props.setLook( wOutputFields );
@@ -191,7 +188,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     for ( ColumnInfo col : parameterColumns ) {
       col.setAutoResize( false );
     }
-    resizer.addColumnResizeListeners( wOutputFields.getTable() );
+
     setTruncatedColumn( wOutputFields.getTable(), 1 );
     if ( !Const.isWindows() ) {
       addColumnTooltip( wOutputFields.getTable(), 1 );
