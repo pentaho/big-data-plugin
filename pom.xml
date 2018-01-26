@@ -57,7 +57,6 @@
     <dependency.simple-jndi.revision>1.0.0</dependency.simple-jndi.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
     <dependency.slf4j.revision>1.7.7</dependency.slf4j.revision>
-    <pentaho-hadoop-shims-cdh512.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh512.version>
     <pentaho-hadoop-shims-cdh513.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh513.version>
     <dependency.jets3t.revision>0.9.4</dependency.jets3t.revision>
     <dependency.xstream.revision>1.4.10</dependency.xstream.revision>
@@ -88,7 +87,6 @@
     <dependency.avro.revision>1.6.2</dependency.avro.revision>
     <dependency.cxf.revision>3.0.13</dependency.cxf.revision>
     <dependency.aws-java-sdk.revision>1.7.4</dependency.aws-java-sdk.revision>
-    <pentaho-hadoop-shims-emr58.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-emr58.version>
     <pentaho-hadoop-shims-emr59.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-emr59.version>
     <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
     <kafka-clients.version>0.10.2.1</kafka-clients.version>
