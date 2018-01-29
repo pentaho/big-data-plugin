@@ -117,7 +117,7 @@
                 <descriptor>mvn:io.hawt/hawtio-karaf/1.4.11/xml/features</descriptor>
                 <descriptor>mvn:org.apache.karaf.assemblies.features/standard/${dependency.karaf.revision}/xml/features</descriptor>
                 <descriptor>mvn:org.apache.karaf.assemblies.features/enterprise/${dependency.karaf.revision}/xml/features</descriptor>
-                <descriptor>mvn:org.apache.cxf.karaf/apache-cxf/2.7.11/xml/features</descriptor>
+                <descriptor>mvn:org.apache.cxf.karaf/apache-cxf/${dependency.cxf.revision}/xml/features</descriptor>
                 <descriptor>mvn:org.apache.camel.karaf/apache-camel/2.13.2/xml/features</descriptor>
                 <descriptor>mvn:pentaho/pentaho-karaf-features/${project.version}/xml/standard</descriptor>
                 <descriptor>mvn:pentaho-karaf-features/pentaho-big-data-plugin-osgi/${project.version}/xml/features</descriptor>
