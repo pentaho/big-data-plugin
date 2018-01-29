@@ -1720,9 +1720,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
       UrlFileNameParser parser = new UrlFileNameParser();
       FileName fileName = parser.parseUri( null, null, noVariablesURL );
-      String root = fileName.getRootURI();
+      String root = fileName.getRootURI().replaceFirst( "/$", "" );
       if ( noVariablesURL.startsWith( root ) ) {
-        path = incomingURL.substring( root.length() - 1 );
+        path = incomingURL.length() > root.length() ? incomingURL.substring( root.length() ) : "/";
       }
     } catch ( FileSystemException e ) {
       path = null;
