@@ -46,6 +46,10 @@ public class AvroOutputField implements IAvroOutputField {
 
   private AvroSpec.DataType avroType;
 
+  private int precision;
+
+  private int scale;
+
   @Override
   public String getAvroFieldName() {
     return avroFieldName;
@@ -127,6 +131,32 @@ public class AvroOutputField implements IAvroOutputField {
       if ( avroType.ordinal() == typeOrdinal ) {
         this.avroType = avroType;
       }
+    }
+  }
+
+  public boolean isDecimalType() {
+    return avroType.getName().equals( AvroSpec.DataType.DECIMAL.getName() );
+  }
+
+  public int getPrecision() {
+    return precision;
+  }
+
+  public void setPrecision( String precision ) {
+    this.precision = Integer.valueOf( precision );
+    if ( this.precision <= 0 ) {
+      this.precision = AvroSpec.DEFAULT_DECIMAL_PRECISION;
+    }
+  }
+
+  public int getScale() {
+    return scale;
+  }
+
+  public void setScale( String scale ) {
+    this.scale = Integer.valueOf( scale );
+    if ( this.scale < 0 ) {
+      this.scale = AvroSpec.DEFAULT_DECIMAL_SCALE;
     }
   }
 }

@@ -165,16 +165,21 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Type" ),
           ColumnInfo.COLUMN_TYPE_CCOMBO, SUPPORTED_AVRO_TYPE_NAMES ),
+      new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Precision" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+      new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Scale" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Default" ),
           ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.column.Null" ),
           ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
+
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     wOutputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
             parameterColumns, 7, lsMod, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 20, 20, 10 );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 10, 10, 10, 15, 5 );
     wOutputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wOutputFields );
@@ -459,6 +464,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       field.setAvroFieldName( item.getText( j++ ) );
       field.setPentahoFieldName( item.getText( j++ ) );
       field.setAvroType( item.getText( j++ ) );
+      if ( field.isDecimalType() ) {
+        field.setPrecision( item.getText( j++ ) );
+        field.setScale( item.getText( j++ ) );
+      } else {
+        j += 2;
+      }
       field.setDefaultValue( item.getText( j++ ) );
       field.setAllowNull( getNullableValue( item.getText( j++ ) ) );
 
@@ -469,7 +480,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
   private List<String> validateOutputFields( TableView wFields, AvroOutputMeta meta ) {
     int nrFields = wFields.nrNonEmpty();
-    List<String> validationErrorFields = new ArrayList<String>();
+    List<String> validationErrorFields = new ArrayList<>();
 
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wFields.getNonEmpty( i );
@@ -479,6 +490,16 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       String path = item.getText( j++ );
       String name = item.getText( j++ );
       String type = item.getText( j++ );
+      String precision = item.getText( j++ );
+      if ( precision == null || precision.trim().isEmpty() ) {
+        item.setText( 4, Integer.toString( AvroSpec.DEFAULT_DECIMAL_PRECISION ) );
+      }
+
+      String scale = item.getText( j++ );
+      if ( scale == null || scale.trim().isEmpty() ) {
+        item.setText( 5, Integer.toString( AvroSpec.DEFAULT_DECIMAL_SCALE ) );
+      }
+
       String defaultValue = item.getText( j++ );
       String nullString = getNullableValue( item.getText( j++ ) );
 
@@ -499,6 +520,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       item.setText( i++, coalesce( field.getAvroFieldName() ) );
       item.setText( i++, coalesce( field.getPentahoFieldName() ) );
       item.setText( i++, coalesce( field.getAvroType().getName() ) );
+      if ( field.isDecimalType() ) {
+        item.setText( i++, coalesce( String.valueOf( field.getPrecision() ) ) );
+        item.setText( i++, coalesce( String.valueOf( field.getScale() ) ) );
+      } else {
+        i += 2;
+      }
       item.setText( i++, coalesce( field.getDefaultValue() ) );
       item.setText( i++, field.getAllowNull() ? NullableValuesEnum.YES.getValue() : NullableValuesEnum.NO.getValue() );
     } );
@@ -531,8 +558,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
             return true;
           }
         };
-        getFieldsFromPreviousStep( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, -1,
-            -1, true, listener );
+        getFieldsFromPreviousStep( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, 4,
+            5, true, listener );
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
@@ -630,14 +657,20 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
             tableItem.setText( dataTypeColumn[ c ], meta.convertToAvroType( v.getType() ) );
           }
         }
-        if ( lengthColumn > 0 ) {
-          if ( v.getLength() >= 0 ) {
+
+        if ( meta.convertToAvroType( v.getType() ).equals( AvroSpec.DataType.DECIMAL.getName() ) ) {
+          if ( lengthColumn > 0 && v.getLength() > 0 ) {
             tableItem.setText( lengthColumn, Integer.toString( v.getLength() ) );
+          } else {
+            // Set the default precision
+            tableItem.setText( lengthColumn, Integer.toString( AvroSpec.DEFAULT_DECIMAL_PRECISION ) );
           }
-        }
-        if ( precisionColumn > 0 ) {
-          if ( v.getPrecision() >= 0 ) {
+
+          if ( precisionColumn > 0 && v.getPrecision() >= 0 ) {
             tableItem.setText( precisionColumn, Integer.toString( v.getPrecision() ) );
+          } else {
+            // Set the default scale
+            tableItem.setText( precisionColumn, Integer.toString( AvroSpec.DEFAULT_DECIMAL_SCALE ) );
           }
         }
 
