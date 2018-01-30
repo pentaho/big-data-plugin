@@ -6,7 +6,11 @@
              http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
              http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
 
-             <bean id="MQTTConsumerMeta" class="org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta" scope="prototype">
-        <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
-    </bean>
+  <bean id="MQTTConsumerMeta" class="org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
+
+  <bean id="MQTTProducerMeta" class="org.pentaho.di.trans.step.mqtt.MQTTProducerMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
+  </bean>
 </blueprint>
