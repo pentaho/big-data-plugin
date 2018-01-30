@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -46,9 +46,11 @@ import org.pentaho.metastore.api.IMetaStore;
 import java.util.ArrayList;
 import java.util.List;
 
-
-@Step( id = "MQTTConsumer", image = "MQTTConsumer.svg", name = "MQTT Consumer",
-  description = "Subscribes and streams an MQTT Topic", categoryDescription = "Streaming" )
+@Step( id = "MQTTConsumer", image = "MQTTConsumer.svg",
+  i18nPackageName = "org.pentaho.di.trans.step.mqtt",
+  name = "MQTTConsumer.TypeLongDesc",
+  description = "MQTTConsumer.TypeTooltipDesc",
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported( localizationPrefix = "MQTTConsumerMeta.Injection." )
 public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInterface, Cloneable {
 
