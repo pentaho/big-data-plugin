@@ -435,6 +435,12 @@ public class KafkaConsumerInputTest {
   }
 
   private void waitForOneSubTrans( Trans trans ) {
+    try {
+      //todo: figure out how not to sleep, this used to work
+      Thread.sleep( 1000 );
+    } catch ( InterruptedException e ) {
+      e.printStackTrace();
+    }
     while ( trans.getSteps().get( 0 ).step.subStatuses().isEmpty() ) {
       //noinspection UnnecessaryContinue
       continue; //checkstyle complains without this
