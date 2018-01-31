@@ -143,9 +143,13 @@ public class AvroOutputField implements IAvroOutputField {
   }
 
   public void setPrecision( String precision ) {
-    this.precision = Integer.valueOf( precision );
-    if ( this.precision <= 0 ) {
+    if ( precision == null ) {
       this.precision = AvroSpec.DEFAULT_DECIMAL_PRECISION;
+    } else {
+      this.precision = Integer.valueOf( precision );
+      if ( this.precision <= 0 ) {
+        this.precision = AvroSpec.DEFAULT_DECIMAL_PRECISION;
+      }
     }
   }
 
@@ -154,9 +158,13 @@ public class AvroOutputField implements IAvroOutputField {
   }
 
   public void setScale( String scale ) {
-    this.scale = Integer.valueOf( scale );
-    if ( this.scale < 0 ) {
+    if ( scale == null ) {
       this.scale = AvroSpec.DEFAULT_DECIMAL_SCALE;
+    } else {
+      this.scale = Integer.valueOf( scale );
+      if ( this.scale < 0 ) {
+        this.scale = AvroSpec.DEFAULT_DECIMAL_SCALE;
+      }
     }
   }
 }
