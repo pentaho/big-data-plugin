@@ -267,7 +267,7 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
     FormData fdlTopic = new FormData();
     fdlTopic.left = new FormAttachment( 0, 0 );
     fdlTopic.top = new FormAttachment( wClientId, 10 );
-    fdlTopic.width = 210;
+    fdlTopic.width = 200;
     wlTopic.setLayoutData( fdlTopic );
 
     wTopic = new TextVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
@@ -276,7 +276,7 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
     FormData fdTopic = new FormData();
     fdTopic.left = new FormAttachment( 0, 0 );
     fdTopic.top = new FormAttachment( wlTopic, 5 );
-    fdTopic.width = 210;
+    fdTopic.width = 200;
     wTopic.setLayoutData( fdTopic );
 
     wlQOS = new Label( wSetupComp, SWT.LEFT );
@@ -285,7 +285,7 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
     FormData fdlQOS = new FormData();
     fdlQOS.left = new FormAttachment( wlTopic, 15 );
     fdlQOS.top = new FormAttachment( wClientId, 10 );
-    fdlQOS.width = 110;
+    fdlQOS.width = 120;
     wlQOS.setLayoutData( fdlQOS );
 
     wQOS = new ComboVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
@@ -294,7 +294,7 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
     FormData fdQOS = new FormData();
     fdQOS.left = new FormAttachment( wTopic, 15 );
     fdQOS.top = new FormAttachment( wlQOS, 5 );
-    fdQOS.width = 125;
+    fdQOS.width = 135;
     wQOS.setLayoutData( fdQOS );
     wQOS.add( "0" );
     wQOS.add( "1" );
