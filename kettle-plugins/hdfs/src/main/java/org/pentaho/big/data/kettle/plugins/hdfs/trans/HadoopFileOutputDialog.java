@@ -612,9 +612,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     fdDateTimeFormat.right = new FormAttachment( 100, 0 );
     wDateTimeFormat.setLayoutData( fdDateTimeFormat );
     String[] dates = Const.getDateFormats();
-    for ( int x = 0; x < dates.length; x++ ) {
-      wDateTimeFormat.add( dates[x] );
-    }
+    fillWithSupportedDateFormats( wDateTimeFormat, dates );
     wbShowFiles = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
     props.setLook( wbShowFiles );
     wbShowFiles.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.ShowFiles.Button" ) );
@@ -1317,6 +1315,15 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
       }
     }
     return stepname;
+  }
+
+  protected void fillWithSupportedDateFormats( CCombo combo, String[] dates ) {
+    for ( String s : dates ) {
+      // ':' is not supported in filenames by hadoop file system, add other characters if needed to the regex below
+      if ( s.matches( "[^:]+" ) ) {
+        combo.add( s );
+      }
+    }
   }
 
   private void activeFileNameField() {
