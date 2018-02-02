@@ -218,7 +218,7 @@
         <include>org.pentaho:pentaho-hadoop-shims-api</include>
         <include>pentaho:pentaho-metadata</include>
         <include>pentaho:pentaho-osgi-utils-api</include>
-        <include>pentaho:pentaho-registry</include>
+        <include>org.pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
         <include>org.pentaho.reporting.engine:classic-core</include>
         <include>pentaho:salesforce-partner</include>
