@@ -89,6 +89,7 @@ public class MQTTProducer extends BaseStep implements StepInterface {
     }
 
     if ( first ) {
+      logDebug( "Publishing using a quality of service level of " + environmentSubstitute( meta.getQOS() ) );
       data.messageFieldIndex = getInputRowMeta().indexOfValue( environmentSubstitute( meta.getMessageField() ) );
       try {
         data.mqttClient =
