@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.di.trans.step.mqtt;
 import com.google.common.base.Preconditions;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -35,6 +36,9 @@ import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.pentaho.di.i18n.BaseMessages.getString;
 
@@ -65,7 +69,15 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
       logger.error( getString( PKG, "MQTTInput.Error.FailureGettingFields" ), e );
     }
     window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
-    source = new MQTTStreamSource( mqttConsumerMeta.getMqttServer(), mqttConsumerMeta.getTopics(), 2, this );
+    try {
+      final List<String> topics = mqttConsumerMeta.getTopics();
+      source = new MQTTStreamSource( environmentSubstitute( mqttConsumerMeta.getMqttServer() ),
+        Arrays.asList( environmentSubstitute( topics.toArray( new String[ topics.size() ] ) ) ),
+        Integer.parseInt( environmentSubstitute( mqttConsumerMeta.getQos() ) ), this );
+    } catch ( NumberFormatException e ) {
+      log.logError( BaseMessages.getString( PKG, "MQTT.Error.QOS", environmentSubstitute( mqttConsumerMeta.getQos() ) ) );
+      return false;
+    }
     return init;
   }
 

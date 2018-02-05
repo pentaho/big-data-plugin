@@ -106,7 +106,7 @@ public class MQTTProducer extends BaseStep implements StepInterface {
     try {
       mqttMessage.setQos( Integer.parseInt( environmentSubstitute( meta.getQOS() ) ) );
     } catch ( NumberFormatException e ) {
-      throw new KettleStepException( BaseMessages.getString( PKG, "MQTTProducer.Error.QOS", environmentSubstitute( meta.getQOS() ) ) );
+      throw new KettleStepException( BaseMessages.getString( PKG, "MQTT.Error.QOS", environmentSubstitute( meta.getQOS() ) ) );
     }
     mqttMessage.setPayload( ( row[ data.messageFieldIndex ] ).toString().getBytes() );
 

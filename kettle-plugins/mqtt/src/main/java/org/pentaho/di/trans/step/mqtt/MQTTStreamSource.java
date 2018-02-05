@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -91,6 +91,7 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
 
       mqttClient.connect( new MqttConnectOptions() ); // keeping default ops for now
       mqttClient.setCallback( callback );
+      logger.debug( "Subscribing to topics with a quality of service level of " + qos );
       mqttClient.subscribe( topics.toArray( new String[ 0 ] ), initializedIntAray( qos ) );
     } catch ( MqttException e ) {
       logger.error( e.getMessage(), e );
