@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -54,6 +54,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepData;
+import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
@@ -434,14 +435,9 @@ public class KafkaConsumerInputTest {
     trans.stopAll();
   }
 
-  private void waitForOneSubTrans( Trans trans ) {
-    try {
-      //todo: figure out how not to sleep, this used to work
-      Thread.sleep( 1000 );
-    } catch ( InterruptedException e ) {
-      e.printStackTrace();
-    }
+  private void waitForOneSubTrans( Trans trans ) throws InterruptedException {
     while ( trans.getSteps().get( 0 ).step.subStatuses().isEmpty() ) {
+      Thread.sleep( 10 );
       //noinspection UnnecessaryContinue
       continue; //checkstyle complains without this
     }
