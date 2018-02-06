@@ -155,7 +155,9 @@ public abstract class AvroInputMetaBase extends
         retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getAvroFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", field.getAvroType().getType() ) );
+        if ( field.getAvroType() != null ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", field.getAvroType().getType() ) );
+        }
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -206,7 +208,9 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getAvroFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", field.getAvroType().getType() );
+        if ( field.getAvroType() != null ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", field.getAvroType().getType() );
+        }
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, "schemaFilename", getSchemaFilename() );
