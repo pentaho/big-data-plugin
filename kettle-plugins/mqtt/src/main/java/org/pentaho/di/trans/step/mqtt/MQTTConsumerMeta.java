@@ -58,6 +58,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   public static final String TOPICS = "TOPICS";
   public static final String MSG_OUTPUT_NAME = "MSG_OUTPUT_NAME";
   public static final String TOPIC_OUTPUT_NAME = "TOPIC_OUTPUT_NAME";
+  public static final String QOS = "QOS";
   private static Class<?> PKG = MQTTConsumer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   @Injection( name = MQTT_SERVER )
@@ -72,6 +73,9 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   @Injection( name = TOPIC_OUTPUT_NAME )
   public String topicOutputName = "Topic";
 
+  @Injection( name = QOS )
+  public String qos = "0";
+
   public MQTTConsumerMeta() {
     super();
     setSpecificationMethod( ObjectLocationSpecificationMethod.FILENAME );
@@ -85,6 +89,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   public void setDefault() {
     super.setDefault();
     mqttServer = "";
+    qos = "0";
   }
 
   @Override public String getFileName() {
@@ -94,25 +99,27 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
     super.readRep( rep, metaStore, id_step, databases );
-    setMqttServer( rep.getStepAttributeString( id_step, MQTT_SERVER  ) );
-    setMsgOutputName( rep.getStepAttributeString( id_step, MSG_OUTPUT_NAME  ) );
-    setTopicOutputName( rep.getStepAttributeString( id_step, TOPIC_OUTPUT_NAME  ) );
+    setMqttServer( rep.getStepAttributeString( id_step, MQTT_SERVER ) );
+    setMsgOutputName( rep.getStepAttributeString( id_step, MSG_OUTPUT_NAME ) );
+    setTopicOutputName( rep.getStepAttributeString( id_step, TOPIC_OUTPUT_NAME ) );
     int topicCount = rep.countNrStepAttributes( id_step, TOPICS );
     for ( int i = 0; i < topicCount; i++ ) {
       topics.add( rep.getStepAttributeString( id_step, i, TOPICS ) );
     }
+    setQos( rep.getStepAttributeString( id_step, QOS ) );
   }
 
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transId, ObjectId stepId )
     throws KettleException {
     super.saveRep( rep, metaStore, transId, stepId );
-    rep.saveStepAttribute( transId, stepId, MQTT_SERVER, mqttServer  );
-    rep.saveStepAttribute( transId, stepId, MSG_OUTPUT_NAME, msgOutputName  );
-    rep.saveStepAttribute( transId, stepId, TOPIC_OUTPUT_NAME, topicOutputName  );
+    rep.saveStepAttribute( transId, stepId, MQTT_SERVER, mqttServer );
+    rep.saveStepAttribute( transId, stepId, MSG_OUTPUT_NAME, msgOutputName );
+    rep.saveStepAttribute( transId, stepId, TOPIC_OUTPUT_NAME, topicOutputName );
     int i = 0;
     for ( String topic : topics ) {
       rep.saveStepAttribute( transId, stepId, i++, TOPICS, topic );
     }
+    rep.saveStepAttribute( transId, stepId, QOS, qos );
   }
 
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
@@ -164,5 +171,13 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
 
   public void setTopicOutputName( String topicOutputName ) {
     this.topicOutputName = topicOutputName;
+  }
+
+  public String getQos() {
+    return qos;
+  }
+
+  public void setQos( String qos ) {
+    this.qos = qos;
   }
 }

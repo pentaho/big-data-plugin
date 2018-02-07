@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -39,6 +39,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
+import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStreamingDialog;
@@ -57,6 +58,8 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   protected TextVar wConnection;
   private Label wlTopics;
   private TableView topicsTable;
+  private Label wlQOS;
+  private ComboVar wQOS;
   private CTabItem wFieldsTab;
   private Composite wFieldsComp;
   private TableView fieldsTable;
@@ -70,6 +73,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     super.getData();
     wConnection.setText( mqttMeta.getMqttServer() );
     populateTopicsData();
+    wQOS.setText( mqttMeta.getQos() );
   }
 
   private void populateTopicsData() {
@@ -121,12 +125,34 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     fdlTopics.right = new FormAttachment( 50, 0 );
     wlTopics.setLayoutData( fdlTopics );
 
-    buildTopicsTable( wSetupComp, wlTopics );
+    wQOS = new ComboVar( transMeta, wSetupComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wQOS );
+    wQOS.addModifyListener( lsMod );
+    FormData fdQOS = new FormData();
+    fdQOS.left = new FormAttachment( 0, 0 );
+    fdQOS.bottom = new FormAttachment( 100, 0 );
+    fdQOS.width = 95;
+    wQOS.setLayoutData( fdQOS );
+    wQOS.add( "0" );
+    wQOS.add( "1" );
+    wQOS.add( "2" );
+
+    wlQOS = new Label( wSetupComp, SWT.LEFT );
+    props.setLook( wlQOS );
+    wlQOS.setText( BaseMessages.getString( PKG, "MQTTConsumerDialog.QOS" ) );
+    FormData fdlQOS = new FormData();
+    fdlQOS.left = new FormAttachment( 0, 0 );
+    fdlQOS.bottom = new FormAttachment( wQOS, -5 );
+    fdlQOS.right = new FormAttachment( 50, 0 );
+    wlQOS.setLayoutData( fdlQOS );
+
+    // Put last so it expands with the dialog. Anchoring itself to QOS Label and the Topics Label
+    buildTopicsTable( wSetupComp, wlTopics, wlQOS );
   }
 
-  private void buildTopicsTable( Composite parentWidget, Control controlAbove ) {
+  private void buildTopicsTable( Composite parentWidget, Control controlAbove, Control controlBelow ) {
     ColumnInfo[] columns = new ColumnInfo[]{ new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.TopicHeading" ),
-      ColumnInfo.COLUMN_TYPE_CCOMBO, new String[1], false ) };
+      ColumnInfo.COLUMN_TYPE_TEXT, new String[1], false ) };
 
     columns[0].setUsingVariables( true );
 
@@ -154,7 +180,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( controlAbove, 5 );
     fdData.right = new FormAttachment( 0, 337 );
-    fdData.bottom = new FormAttachment( 100, 0 );
+    fdData.bottom = new FormAttachment( controlBelow, -10 );
 
     // resize the columns to fit the data in them
     stream( topicsTable.getTable().getColumns() ).forEach( column -> {
@@ -169,7 +195,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
 
   @Override protected void createAdditionalTabs() {
     // Set the height so the topics table has approximately 5 rows
-    shell.setMinimumSize( 527, 500 );
+    shell.setMinimumSize( 527, 600 );
     buildFieldsTab();
   }
 
@@ -284,5 +310,6 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
       .collect( Collectors.toList() ) );
     mqttMeta.setMsgOutputName( fieldsTable.getTable().getItem( 0 ).getText( 2 ) );
     mqttMeta.setTopicOutputName( fieldsTable.getTable().getItem( 1 ).getText( 2 ) );
+    mqttMeta.setQos( wQOS.getText() );
   }
 }

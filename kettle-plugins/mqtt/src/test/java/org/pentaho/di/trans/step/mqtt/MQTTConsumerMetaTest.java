@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -44,6 +44,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.MQTT_SERVER;
+import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.QOS;
 import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.TOPICS;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.DURATION;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.NUM_MESSAGES;
@@ -71,6 +72,7 @@ public class MQTTConsumerMetaTest {
       + "    </partitioning>\n"
       + "    <TOPICS>one</TOPICS>\n"
       + "    <TOPICS>two</TOPICS>\n"
+      + "    <QOS>1</QOS>"
       + "    <MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>\n"
       + "    <NUM_MESSAGES>5</NUM_MESSAGES>\n"
       + "    <MQTT_SERVER>mqttHost:1883</MQTT_SERVER>\n"
@@ -94,6 +96,7 @@ public class MQTTConsumerMetaTest {
     meta.loadXML( node, Collections.emptyList(), metastore );
     assertEquals( "one", meta.getTopics().get( 0 ) );
     assertEquals( "two", meta.getTopics().get( 1 ) );
+    assertEquals( "1", meta.getQos() );
     assertEquals( "${Internal.Entry.Current.Directory}/write-to-log.ktr", meta.getTransformationPath() );
     assertEquals( "${Internal.Entry.Current.Directory}/write-to-log.ktr", meta.getFileName() );
     assertEquals( "5", meta.getBatchSize() );
@@ -110,6 +113,7 @@ public class MQTTConsumerMetaTest {
     ArrayList<String> topicList = new ArrayList<>();
     topicList.add( "temperature" );
     meta.setTopics( topicList );
+    meta.setQos( "1" );
 
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
     meta.setBatchSize( "54321" );
@@ -124,6 +128,7 @@ public class MQTTConsumerMetaTest {
       "<TOPICS>temperature</TOPICS>" + Const.CR
         + "<MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>" + Const.CR
         + "<NUM_MESSAGES>54321</NUM_MESSAGES>" + Const.CR
+        + "<QOS>1</QOS>" + Const.CR
         + "<MQTT_SERVER>some_cluster</MQTT_SERVER>" + Const.CR
         + "<TOPIC_OUTPUT_NAME>Topic</TOPIC_OUTPUT_NAME>" + Const.CR
         + "<DURATION>987</DURATION>" + Const.CR
@@ -141,6 +146,7 @@ public class MQTTConsumerMetaTest {
     when( rep.getStepAttributeString( stepId, NUM_MESSAGES ) ).thenReturn( "999" );
     when( rep.getStepAttributeString( stepId, DURATION ) ).thenReturn( "111" );
     when( rep.getStepAttributeString( stepId, MQTT_SERVER ) ).thenReturn( "host111" );
+    when( rep.getStepAttributeString( stepId, QOS ) ).thenReturn( "2" );
 
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
     assertEquals( "readings", meta.getTopics().get( 0 ) );
@@ -159,6 +165,7 @@ public class MQTTConsumerMetaTest {
     ArrayList<String> topicList = new ArrayList<>();
     topicList.add( "temperature" );
     meta.setTopics( topicList );
+    meta.setQos( "1" );
     meta.setTransformationPath( "/home/Pentaho/btrans.ktr" );
     meta.setBatchSize( "33" );
     meta.setBatchDuration( "10000" );
@@ -169,6 +176,7 @@ public class MQTTConsumerMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, "/home/Pentaho/btrans.ktr" );
     verify( rep ).saveStepAttribute( transId, stepId, BaseStreamStepMeta.NUM_MESSAGES, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BaseStreamStepMeta.DURATION, "10000" );
+    verify( rep ).saveStepAttribute( transId, stepId, QOS, "1" );
   }
 
   @Test
@@ -177,6 +185,7 @@ public class MQTTConsumerMetaTest {
     assertEquals(
       "<MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>" + Const.CR
         + "<NUM_MESSAGES>1000</NUM_MESSAGES>" + Const.CR
+        + "<QOS>0</QOS>" + Const.CR
         + "<MQTT_SERVER/>" + Const.CR
         + "<TOPIC_OUTPUT_NAME>Topic</TOPIC_OUTPUT_NAME>" + Const.CR
         + "<DURATION>1000</DURATION>" + Const.CR
