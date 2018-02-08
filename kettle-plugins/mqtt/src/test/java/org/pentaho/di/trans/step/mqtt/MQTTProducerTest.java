@@ -44,6 +44,7 @@ import org.pentaho.di.trans.step.StepMetaDataCombi;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -129,5 +130,31 @@ public class MQTTProducerTest {
 
     verify( logChannel ).logError( eq( "Unexpected error" ), any( KettleStepException.class ) );
     verify( mqttClient, never() ).publish( any(), any() );
+  }
+
+  @Test
+  public void testProcessFirstRow() throws Exception {
+    StepMetaDataCombi combi = trans.getSteps().get(1);
+    MQTTProducer step = (MQTTProducer) combi.step;
+    step.first = true;
+
+    trans.startThreads();
+    trans.waitUntilFinished();
+
+    assertFalse(step.first);
+  }
+
+  @Test
+  public void testFeedbackSize() throws Exception {
+    StepMetaDataCombi combi = trans.getSteps().get(1);
+    MQTTProducer step = (MQTTProducer) combi.step;
+
+    when(logChannel.isBasic()).thenReturn(true);
+    step.getTransMeta().setFeedbackSize(1);
+
+    trans.startThreads();
+    trans.waitUntilFinished();
+
+    verify(logChannel).logBasic(eq("Linenr1"));
   }
 }
