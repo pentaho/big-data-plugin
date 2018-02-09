@@ -75,7 +75,7 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
         Arrays.asList( environmentSubstitute( topics.toArray( new String[ topics.size() ] ) ) ),
         Integer.parseInt( environmentSubstitute( mqttConsumerMeta.getQos() ) ), this );
     } catch ( NumberFormatException e ) {
-      log.logError( BaseMessages.getString( PKG, "MQTT.Error.QOS", environmentSubstitute( mqttConsumerMeta.getQos() ) ) );
+      logError( BaseMessages.getString( PKG, "MQTTConsumer.Error.QOS", environmentSubstitute( mqttConsumerMeta.getQos() ) ) );
       return false;
     }
     return init;

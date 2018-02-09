@@ -104,6 +104,6 @@ public class MQTTConsumerTest {
       assertTrue( e.getMessage().contains( BaseMessages.getString( Trans.class, "Trans.Log.FailToInitializeAtLeastOneStep" ) ) );
     }
 
-    verify( logChannel ).logError( BaseMessages.getString( MQTTConsumer.class, "MQTT.Error.QOS", "hello" ) );
+    verify( logChannel ).logError( BaseMessages.getString( MQTTConsumer.class, "MQTTConsumer.Error.QOS", "hello" ) );
   }
 }
