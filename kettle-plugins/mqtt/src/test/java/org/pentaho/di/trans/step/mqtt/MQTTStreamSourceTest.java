@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -97,7 +97,7 @@ public class MQTTStreamSourceTest {
     publish( "mytopic", messages );
 
     List<List<Object>> rows = getQuickly(
-      iterateSource( source.rows().iterator(), 3 ) );
+      iterateSource( source.observable().blockingIterable().iterator(), 3 ) );
     assertThat( messagesToRows( "mytopic", messages ), equalTo( rows ) );
     source.close();
   }
@@ -116,7 +116,7 @@ public class MQTTStreamSourceTest {
 
     Thread.sleep( 200 );
     List<List<Object>> rows = getQuickly(
-      iterateSource( source.rows().iterator(), 6 ) );
+      iterateSource( source.observable().blockingIterable().iterator(), 6 ) );
     List<List<Object>> expectedResults = ImmutableList.<List<Object>>builder()
       .addAll( messagesToRows( "mytopic-1", topic1Messages ) )
       .addAll( messagesToRows( "vermilion.minotaur", topic2Messages ) )

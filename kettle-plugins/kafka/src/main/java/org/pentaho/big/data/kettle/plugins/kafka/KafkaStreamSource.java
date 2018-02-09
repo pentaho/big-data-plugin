@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -56,7 +55,6 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
   private KafkaConsumerInputMeta kafkaConsumerInputMeta;
   private KafkaConsumerInputData kafkaConsumerInputData;
   private Map<KafkaConsumerField.Name, Integer> positions;
-  private final HashMap<TopicPartition, Long> maxOffsets = new HashMap<>();
 
   private Consumer consumer;
   private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -75,12 +73,10 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
   }
 
   @Override public void close() {
-    super.close();
     callable.shutdown();
-    future.cancel( true );
   }
 
-  @Override public void open() {
+  @Override public void open()  {
     if ( future != null ) {
       logger.warn( "open() called more than once" );
       return;
@@ -102,16 +98,18 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
         match.ifPresent( name -> positions.put( name, idx ) );
       } );
 
-    callable = new KafkaConsumerCallable( consumer );
+    callable = new KafkaConsumerCallable( consumer, () -> super.close() );
     future = executorService.submit( callable );
   }
 
   class KafkaConsumerCallable implements Callable<Void> {
     private final AtomicBoolean closed = new AtomicBoolean( false );
     private final Consumer consumer;
+    private Runnable onClose;
 
-    public KafkaConsumerCallable( Consumer consumer ) {
+    public KafkaConsumerCallable( Consumer consumer, Runnable onClose ) {
       this.consumer = consumer;
+      this.onClose = onClose;
     }
 
     public Void call() {
@@ -121,14 +119,6 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
 
           List<List<Object>> rows = new ArrayList<>();
           for ( ConsumerRecord<String, String> record : records ) {
-            maxOffsets.put( new TopicPartition( record.topic(), record.partition() ), record.offset() );
-            if ( closed.get() ) {
-              for ( TopicPartition topicPartition : maxOffsets.keySet() ) {
-                consumer.seek( topicPartition, maxOffsets.get( topicPartition ) );
-              }
-              consumer.commitSync();
-              break;
-            }
             rows.add( processMessageAsRow( record ) );
           }
 
@@ -143,6 +133,7 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
         return null;
       } finally {
         consumer.close();
+        onClose.run();
       }
     }
 

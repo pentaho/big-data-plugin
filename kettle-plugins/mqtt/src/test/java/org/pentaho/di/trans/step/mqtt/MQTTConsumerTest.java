@@ -71,7 +71,7 @@ public class MQTTConsumerTest {
 
   @Before
   public void setup() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.initMocks( this );
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
     when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
