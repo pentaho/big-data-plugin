@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -63,10 +63,10 @@ public class HBaseServiceImpl implements HBaseService {
 
   @Override
   public HBaseConnectionImpl getHBaseConnection( VariableSpace variableSpace, String siteConfig, String defaultConfig,
-                                             LogChannelInterface logChannelInterface ) throws IOException {
+                                                 LogChannelInterface logChannelInterface ) throws IOException {
     Properties connProps = new Properties();
     String zooKeeperHost = null;
-    String zooKeeperPort  = null;
+    String zooKeeperPort = null;
     if ( namedCluster != null ) {
       zooKeeperHost = variableSpace.environmentSubstitute( namedCluster.getZooKeeperHost() );
       zooKeeperPort = variableSpace.environmentSubstitute( namedCluster.getZooKeeperPort() );
@@ -78,10 +78,12 @@ public class HBaseServiceImpl implements HBaseService {
       connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.ZOOKEEPER_PORT_KEY, zooKeeperPort );
     }
     if ( !Const.isEmpty( siteConfig ) ) {
-      connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.SITE_KEY, siteConfig );
+      connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.SITE_KEY,
+        FilePathModifierUtil.modifyPathToConfigFileIfNecessary( siteConfig ) );
     }
     if ( !Const.isEmpty( defaultConfig ) ) {
-      connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.DEFAULTS_KEY, defaultConfig );
+      connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.DEFAULTS_KEY,
+        FilePathModifierUtil.modifyPathToConfigFileIfNecessary( defaultConfig ) );
     }
 
     connProps.setProperty( org.pentaho.hbase.shim.spi.HBaseConnection.ACTIVE_SHIM_VERSION, shimVersion );
