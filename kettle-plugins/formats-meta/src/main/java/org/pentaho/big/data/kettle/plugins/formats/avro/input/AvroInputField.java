@@ -49,8 +49,8 @@ public class AvroInputField implements IAvroInputField {
   }
 
   @Override
-  public void setAvroFieldName( String avroFieldName ) {
-    this.avroFieldName = avroFieldName;
+  public void setFormatFieldName( String formatFieldName ) {
+    this.avroFieldName = formatFieldName;
   }
 
   @Override

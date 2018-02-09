@@ -23,7 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.formats.orc.output;
 
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.kettle.plugins.formats.orc.OrcFormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -31,6 +30,7 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -43,6 +43,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.workarounds.ResolvableResource;
+import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -66,7 +67,7 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   private String filename;
 
   @InjectionDeep
-  private List<OrcFormatInputOutputField> outputFields = new ArrayList<OrcFormatInputOutputField>();
+  private List<OrcOutputField> outputFields = new ArrayList<>();
 
   @Injection( name = "OPTIONS_COMPRESSION" )
   protected String compressionType = "";
@@ -115,12 +116,12 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     this.filename = filename;
   }
 
-  public List<OrcFormatInputOutputField> getOutputFields() {
+  public List<OrcOutputField> getOutputFields() {
 
     return outputFields;
   }
 
-  public void setOutputFields( List<OrcFormatInputOutputField> outputFields ) {
+  public void setOutputFields( List<OrcOutputField> outputFields ) {
 
     this.outputFields = outputFields;
   }
@@ -182,15 +183,15 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     try {
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      List<OrcFormatInputOutputField> orcOutputFields = new ArrayList<>();
+      List<OrcOutputField> orcOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-        OrcFormatInputOutputField outputField = new OrcFormatInputOutputField();
-        outputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
-        outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
-        outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
-        outputField.setNullString( XMLHandler.getTagValue( fnode, "nullable" ) );
-        outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" ) );
+        OrcOutputField outputField = new OrcOutputField();
+        outputField.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
+        outputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
+        outputField.setFormatType( XMLHandler.getTagValue( fnode, "type" ) );
+        outputField.setAllowNull( XMLHandler.getTagValue( fnode, "nullable" ) );
+        outputField.setDefaultValue( XMLHandler.getTagValue( fnode, "default" ) );
         orcOutputFields.add( outputField );
       }
       this.outputFields = orcOutputFields;
@@ -228,15 +229,15 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < outputFields.size(); i++ ) {
-      OrcFormatInputOutputField field = outputFields.get( i );
+      OrcOutputField field = outputFields.get( i );
 
-      if ( field.getName() != null && field.getName().length() != 0 ) {
+      if ( field.getPentahoFieldName() != null && field.getPentahoFieldName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getNullString() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getOrcType().getId() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getAllowNull() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getDefaultValue() ) );
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -262,15 +263,15 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
 
-      List<OrcFormatInputOutputField> orcOutputFields = new ArrayList<>();
+      List<OrcOutputField> orcOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
-        OrcFormatInputOutputField outputField = new OrcFormatInputOutputField();
+        OrcOutputField outputField = new OrcOutputField();
 
-        outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
-        outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
-        outputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
-        outputField.setNullString( rep.getStepAttributeString( id_step, i, "nullable" ) );
-        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "default" ) );
+        outputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
+        outputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
+        outputField.setFormatType( rep.getStepAttributeString( id_step, i, "type" ) );
+        outputField.setAllowNull( rep.getStepAttributeString( id_step, i, "nullable" ) );
+        outputField.setDefaultValue( rep.getStepAttributeString( id_step, i, "default" ) );
 
         orcOutputFields.add( outputField );
       }
@@ -296,13 +297,13 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.TIME_IN_FILE_NAME, timeInFileName );
 
       for ( int i = 0; i < outputFields.size(); i++ ) {
-        OrcFormatInputOutputField field = outputFields.get( i );
+        OrcOutputField field = outputFields.get( i );
 
-        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getNullString() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getIfNullValue() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getOrcType().getId() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getAllowNull() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getDefaultValue() );
       }
 
     } catch ( Exception e ) {
@@ -389,6 +390,30 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       }
     }
     return defaultValue;
+  }
+
+  public String convertToOrcType( int pdiType ) {
+    switch ( pdiType ) {
+      case ValueMetaInterface.TYPE_INET:
+      case ValueMetaInterface.TYPE_STRING:
+        return OrcSpec.DataType.STRING.getName();
+      case ValueMetaInterface.TYPE_TIMESTAMP:
+        return OrcSpec.DataType.TIMESTAMP.getName();
+      case ValueMetaInterface.TYPE_BINARY:
+        return OrcSpec.DataType.BINARY.getName();
+      case ValueMetaInterface.TYPE_BIGNUMBER:
+        return OrcSpec.DataType.DECIMAL.getName();
+      case ValueMetaInterface.TYPE_BOOLEAN:
+        return OrcSpec.DataType.BOOLEAN.getName();
+      case ValueMetaInterface.TYPE_DATE:
+        return OrcSpec.DataType.DATE.getName();
+      case ValueMetaInterface.TYPE_INTEGER:
+        return OrcSpec.DataType.INTEGER.getName();
+      case ValueMetaInterface.TYPE_NUMBER:
+        return OrcSpec.DataType.DOUBLE.getName();
+      default:
+        return OrcSpec.DataType.NULL.getName();
+    }
   }
 
   private static String getMsg( String key ) {
