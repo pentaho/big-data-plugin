@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -194,7 +194,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
    */
   @Override
   protected void getData( OrcInputMeta meta ) {
-    if ( meta.getFilename().length() > 0 ) {
+    if ( meta.getFilename() != null && meta.getFilename().length() > 0 ) {
       wPath.setText( meta.getFilename() );
     }
     wPassThruFields.setSelection( meta.inputFiles.passingThruFields );

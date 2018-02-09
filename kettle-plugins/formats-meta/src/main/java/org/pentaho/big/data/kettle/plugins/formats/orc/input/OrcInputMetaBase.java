@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -63,7 +63,12 @@ public abstract class OrcInputMetaBase extends
   }
 
   public String getFilename() {
-    return inputFiles.fileName[0];
+    if ( inputFiles != null && inputFiles.fileName != null
+        && inputFiles.fileName.length > 0 ) {
+      return inputFiles.fileName[0];
+    } else {
+      return null;
+    }
   }
 
   public void setFilename( String filename ) {
