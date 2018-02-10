@@ -54,7 +54,6 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepData;
-import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
@@ -291,7 +290,7 @@ public class KafkaConsumerInputTest {
 
     KafkaStreamSource kafkaStreamSource = (KafkaStreamSource) spy( step.getSource() );
     step.setSource( kafkaStreamSource );
-    Iterable rows = kafkaStreamSource.rows();
+    Iterable rows = kafkaStreamSource.observable().blockingIterable();
 
     Runnable processRowRunnable = () -> {
       try {
@@ -308,7 +307,7 @@ public class KafkaConsumerInputTest {
     service.shutdown();
 
     verify( kafkaStreamSource ).open();
-    verify( kafkaStreamSource, times( 2 ) ).rows();
+    verify( kafkaStreamSource, times( 2 ) ).observable();
     assertEquals( 5, Iterables.size( rows ) );
 
     // make sure all of the appropriate columns are in the output row meta
