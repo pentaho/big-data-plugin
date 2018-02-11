@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,15 +22,22 @@
 
 package org.pentaho.amazon;
 
+import com.google.common.base.Strings;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.amazon.emr.job.AmazonElasticMapReduceJobExecutor;
+import org.pentaho.amazon.client.ClientFactoriesManager;
+import org.pentaho.amazon.client.ClientType;
+import org.pentaho.amazon.client.api.AimClient;
+import org.pentaho.amazon.client.api.PricingClient;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
@@ -50,66 +57,79 @@ import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.s3.vfs.S3FileProvider;
+import org.pentaho.ui.xul.XulDomContainer;
+import org.pentaho.ui.xul.XulException;
+import org.pentaho.ui.xul.binding.Binding;
+import org.pentaho.ui.xul.binding.BindingConvertor;
+import org.pentaho.ui.xul.binding.BindingFactory;
+import org.pentaho.ui.xul.components.XulButton;
+import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
+import org.pentaho.ui.xul.swt.tags.SwtDialog;
+import org.pentaho.ui.xul.util.AbstractModelList;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
-/**
- * created by: rfellows date: 5/24/12
- */
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public abstract class AbstractAmazonJobExecutorController extends AbstractXulEventHandler {
 
-  private static final Class<?> PKG = AmazonElasticMapReduceJobExecutor.class;
+  private static final Class<?> PKG = AbstractAmazonJobExecutorController.class;
 
   /* property change names */
-  public static final String JOB_ENTRY_NAME = "jobEntryName"; //$NON-NLS-1$
-  public static final String HADOOP_JOB_NAME = "hadoopJobName"; //$NON-NLS-1$
-  public static final String HADOOP_JOB_FLOW_ID = "hadoopJobFlowId"; //$NON-NLS-1$
-  public static final String JAR_URL = "jarUrl"; //$NON-NLS-1$
-  public static final String ACCESS_KEY = "accessKey"; //$NON-NLS-1$
-  public static final String SECRET_KEY = "secretKey"; //$NON-NLS-1$
-  public static final String STAGING_DIR = "stagingDir"; //$NON-NLS-1$
-  public static final String STAGING_DIR_FILE = "stagingDirFile"; //$NON-NLS-1$
-  public static final String NUM_INSTANCES = "numInstances"; //$NON-NLS-1$
-  public static final String MASTER_INSTANCE_TYPE = "masterInstanceType"; //$NON-NLS-1$
-  public static final String SLAVE_INSTANCE_TYPE = "slaveInstanceType"; //$NON-NLS-1$
-  public static final String CMD_LINE_ARGS = "commandLineArgs"; //$NON-NLS-1$
-  public static final String BLOCKING = "blocking"; //$NON-NLS-1$
-  public static final String LOGGING_INTERVAL = "loggingInterval"; //$NON-NLS-1$
+  public static final String JOB_ENTRY_NAME = "jobEntryName";
+  public static final String HADOOP_JOB_NAME = "hadoopJobName";
+  public static final String HADOOP_JOB_FLOW_ID = "hadoopJobFlowId";
+  public static final String JAR_URL = "jarUrl";
+  public static final String ACCESS_KEY = "accessKey";
+  public static final String SECRET_KEY = "secretKey";
+  public static final String STAGING_DIR = "stagingDir";
+  public static final String STAGING_DIR_FILE = "stagingDirFile";
+  public static final String NUM_INSTANCES = "numInstances";
+  public static final String REGION = "region";
+  public static final String MASTER_INSTANCE_TYPE = "masterInstanceType";
+  public static final String SLAVE_INSTANCE_TYPE = "slaveInstanceType";
+  public static final String EC2_ROLE = "ec2Role";
+  public static final String EMR_ROLE = "emrRole";
+  public static final String CMD_LINE_ARGS = "commandLineArgs";
+  public static final String BLOCKING = "blocking";
+  public static final String LOGGING_INTERVAL = "loggingInterval";
+  public static final String ALIVE = "alive";
 
   /* XUL Element id's */
+  public static final String XUL_JOBENTRY_NAME = "jobentry-name";
   public static final String XUL_JOBENTRY_HADOOPJOB_NAME = "jobentry-hadoopjob-name";
-  public static final String XUL_ACCESS_KEY1 = "access-key";
-  public static final String XUL_SECRET_KEY1 = "secret-key";
+  public static final String XUL_ACCESS_KEY = "access-key";
+  public static final String XUL_SECRET_KEY = "secret-key";
+  public static final String XUL_EMR_SETTINGS = "emr-settings";
+  public static final String XUL_REGION = "region";
+  public static final String XUL_EC2_ROLE = "ec2-role";
+  public static final String XUL_EMR_ROLE = "emr-role";
+  public static final String XUL_MASTER_INSTANCE_TYPE = "master-instance-type";
+  public static final String XUL_SLAVE_INSTANCE_TYPE = "slave-instance-type";
+  public static final String XUL_EMR_RELEASE = "emr-release";
   public static final String XUL_JOBENTRY_HADOOPJOB_FLOW_ID = "jobentry-hadoopjob-flow-id";
   public static final String XUL_S3_STAGING_DIRECTORY = "s3-staging-directory";
   public static final String XUL_COMMAND_LINE_ARGUMENTS = "command-line-arguments";
-  public static final String XUL_NUM_INSTANCES1 = "num-instances";
+  public static final String XUL_NUM_INSTANCES = "num-instances";
+  public static final String XUL_BLOCKING = "blocking";
   public static final String XUL_LOGGING_INTERVAL1 = "logging-interval";
+  public static final String XUL_ALIVE = "alive";
   public static final String XUL_AMAZON_EMR_JOB_ENTRY_DIALOG = "amazon-emr-job-entry-dialog";
   public static final String XUL_AMAZON_EMR_ERROR_DIALOG = "amazon-emr-error-dialog";
   public static final String XUL_AMAZON_EMR_ERROR_MESSAGE = "amazon-emr-error-message";
-  public static final String XUL_JAR_URL = "jar-url";
 
-  /* Messages */
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR =
-      "AmazonElasticMapReduceJobExecutor.JobEntryName.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR =
-      "AmazonElasticMapReduceJobExecutor.JobFlowName.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR =
-      "AmazonElasticMapReduceJobExecutor.AccessKey.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR =
-      "AmazonElasticMapReduceJobExecutor.SecretKey.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR =
-      "AmazonElasticMapReduceJobExecutor.StagingDir.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR =
-      "AmazonElasticMapReduceJobExecutor.MasterInstanceType.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR =
-      "AmazonElasticMapReduceJobExecutor.SlaveInstanceType.Error";
-  public static final String MSG_DIALOG_ERROR = "Dialog.Error";
-  public static final String MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR =
-      "AmazonElasticMapReduceJobExecutor.JarURL.Error";
+  private static final String EC2_DEFAULT_ROLE = "EMR_EC2_DefaultRole";
+  private static final String EMR_DEFAULT_ROLE = "EMR_DefaultRole";
+
+  protected static final String[] XUL_EMR_MENU_ID_ARRAY =
+    { XUL_EC2_ROLE, XUL_EMR_ROLE, XUL_MASTER_INSTANCE_TYPE, XUL_SLAVE_INSTANCE_TYPE, XUL_EMR_RELEASE };
 
   protected String jobEntryName;
   protected String hadoopJobName;
@@ -120,26 +140,483 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected String stagingDir = "";
   protected FileObject stagingDirFile = null;
   protected String jarUrl = "";
+  protected boolean alive = false;
 
   protected String numInstances = "2";
-  protected String masterInstanceType = "m1.small";
-  protected String slaveInstanceType = "m1.small";
-  protected String cmdLineArgs;
+  protected String masterInstanceType;
+  protected String slaveInstanceType;
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion( String region ) {
+    String previousVal = this.region;
+    String newVal = region;
+
+    this.region = region;
+    firePropertyChange( REGION, previousVal, newVal );
+  }
+
+  protected String region;
+  protected String emrRelease;
+
+  protected String ec2Role;
+  protected String emrRole;
+
+  protected String commandLineArgs;
   protected boolean blocking;
   protected String loggingInterval = "60"; // 60 seconds
 
   protected VfsFileChooserDialog fileChooserDialog;
   protected S3VfsFileChooserHelper helper;
 
-  public void accept() {
+  // Generically typed fields
+  protected AbstractAmazonJobEntry jobEntry; // AbstractJobEntry<BlockableJobConfig>
 
+  // common fields
+  protected XulDomContainer container;
+  protected BindingFactory bindingFactory;
+  protected List<Binding> bindings;
+
+  private AbstractModelList<String> masterInstanceTypes;
+  private AbstractModelList<String> slaveInstanceTypes;
+  private AbstractModelList<String> regions;
+  private AbstractModelList<String> ec2Roles;
+  private AbstractModelList<String> emrRoles;
+  private AbstractModelList<String> releases;
+
+  protected boolean suppressEventHandling = false;
+
+  public AbstractAmazonJobExecutorController( XulDomContainer container, AbstractAmazonJobEntry jobEntry,
+                                              BindingFactory bindingFactory ) {
+
+    this.jobEntry = jobEntry;
+    this.container = container;
+    this.bindingFactory = bindingFactory;
+
+    regions = new AbstractModelList<>();
+    ec2Roles = new AbstractModelList<>();
+    emrRoles = new AbstractModelList<>();
+    masterInstanceTypes = new AbstractModelList<>();
+    slaveInstanceTypes = new AbstractModelList<>();
+    releases = new AbstractModelList<>();
+    bindings = new ArrayList<>();
+  }
+
+  public AbstractAmazonJobExecutorController() {
+  }
+
+  protected void initializeEmrSettingsGroupMenuFields() {
+    populateRegions();
+    populateEc2Roles();
+    populateEmrRoles();
+    populateMasterInstanceTypes();
+    populateSlaveInstanceTypes();
+    populateReleases();
+  }
+
+  protected void initializeTextFields() {
+
+    XulTextbox numInstances = (XulTextbox) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+    numInstances.setValue( getNumInstances() );
+    XulTextbox loggingInterval =
+      (XulTextbox) container.getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
+    loggingInterval.setValue( getLoggingInterval() );
+
+    ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
+    tempBox.setVariableSpace( getVariableSpace() );
+  }
+
+  protected void createBindings() {
+
+    bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
+
+    bindings.add( bindingFactory.createBinding( regions, "children", XUL_REGION, "elements" ) );
+    bindingFactory.createBinding( XUL_REGION, "selectedIndex", this, "selectedRegion",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return regions.get( index );
+        }
+
+        public Integer targetToSource( final String str ) {
+          return regions.indexOf( str );
+        }
+      } );
+
+    bindings.add( bindingFactory.createBinding( ec2Roles, "children", XUL_EC2_ROLE, "elements" ) );
+    bindingFactory.createBinding( XUL_EC2_ROLE, "selectedIndex", this, "selectedEc2Role",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return ec2Roles.get( index );
+        }
+
+        public Integer targetToSource( final String role ) {
+          return ec2Roles.indexOf( role );
+        }
+      } );
+
+    bindings.add( bindingFactory.createBinding( emrRoles, "children", XUL_EMR_ROLE, "elements" ) );
+    bindingFactory.createBinding( XUL_EMR_ROLE, "selectedIndex", this, "selectedEmrRole",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return emrRoles.get( index );
+        }
+
+        public Integer targetToSource( final String role ) {
+          return emrRoles.indexOf( role );
+        }
+      } );
+
+    bindings
+      .add( bindingFactory.createBinding( masterInstanceTypes, "children", XUL_MASTER_INSTANCE_TYPE, "elements" ) );
+    bindingFactory.createBinding( XUL_MASTER_INSTANCE_TYPE, "selectedIndex", this, "selectedMasterInstanceType",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return masterInstanceTypes.get( index );
+        }
+
+        public Integer targetToSource( final String str ) {
+          return masterInstanceTypes.indexOf( str );
+        }
+      } );
+
+    bindings.add( bindingFactory.createBinding( slaveInstanceTypes, "children", XUL_SLAVE_INSTANCE_TYPE, "elements" ) );
+    bindingFactory.createBinding( XUL_SLAVE_INSTANCE_TYPE, "selectedIndex", this, "selectedSlaveInstanceType",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return slaveInstanceTypes.get( index );
+        }
+
+        public Integer targetToSource( final String str ) {
+          return slaveInstanceTypes.indexOf( str );
+        }
+      } );
+
+    bindings.add( bindingFactory.createBinding( releases, "children", XUL_EMR_RELEASE, "elements" ) );
+    bindingFactory.createBinding( XUL_EMR_RELEASE, "selectedIndex", this, "emrRelease",
+      new BindingConvertor<Integer, String>() {
+        public String sourceToTarget( final Integer index ) {
+          if ( index == -1 ) {
+            return null;
+          }
+          return releases.get( index );
+        }
+
+        public Integer targetToSource( final String str ) {
+          return releases.indexOf( str );
+        }
+      } );
+
+    bindingFactory.createBinding( XUL_JOBENTRY_NAME, "value", this, JOB_ENTRY_NAME );
+    bindingFactory.createBinding( XUL_JOBENTRY_HADOOPJOB_NAME, "value", this, HADOOP_JOB_NAME );
+    bindingFactory.createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", this, HADOOP_JOB_FLOW_ID );
+    bindingFactory.createBinding( XUL_ACCESS_KEY, "value", this, ACCESS_KEY );
+    bindingFactory.createBinding( XUL_SECRET_KEY, "value", this, SECRET_KEY );
+    bindingFactory.createBinding( XUL_S3_STAGING_DIRECTORY, "value", this, STAGING_DIR );
+    bindingFactory.createBinding( XUL_COMMAND_LINE_ARGUMENTS, "value", this, CMD_LINE_ARGS );
+    bindingFactory.createBinding( XUL_NUM_INSTANCES, "value", this, NUM_INSTANCES );
+    bindingFactory.createBinding( XUL_ALIVE, "selected", this, ALIVE );
+    bindingFactory.createBinding( XUL_BLOCKING, "selected", this, BLOCKING );
+    bindingFactory.createBinding( XUL_LOGGING_INTERVAL1, "value", this, LOGGING_INTERVAL );
+
+    bindingFactory.setBindingType( Binding.Type.ONE_WAY );
+    bindingFactory
+      .createBinding( XUL_ACCESS_KEY, "value", XUL_EMR_SETTINGS, "disabled", secretKeyIsEmpty( container ) );
+    bindingFactory
+      .createBinding( XUL_SECRET_KEY, "value", XUL_EMR_SETTINGS, "disabled", accessKeyIsEmpty( container ) );
+  }
+
+  private static BindingConvertor<String, Boolean> accessKeyIsEmpty( XulDomContainer container ) {
+    return new BindingConvertor<String, Boolean>() {
+      @Override public Boolean sourceToTarget( String value ) {
+        ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+        return ( Strings.isNullOrEmpty( value ) || Strings.isNullOrEmpty( tempBox.getValue() ) );
+      }
+
+      @Override public String targetToSource( Boolean value ) {
+        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+      }
+    };
+  }
+
+  private static BindingConvertor<String, Boolean> secretKeyIsEmpty( XulDomContainer container ) {
+    return new BindingConvertor<String, Boolean>() {
+      @Override public Boolean sourceToTarget( String value ) {
+        ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
+        return ( Strings.isNullOrEmpty( value ) || Strings.isNullOrEmpty( tempBox.getValue() ) );
+      }
+
+      @Override public String targetToSource( Boolean value ) {
+        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+      }
+    };
+  }
+
+  protected AbstractModelList<String> populateEc2Roles() {
+    String ec2Role = getJobEntry().getEc2Role();
+    if ( ec2Role != null ) {
+      ec2Roles.add( ec2Role );
+    }
+    return ec2Roles;
+  }
+
+  protected AbstractModelList<String> populateEmrRoles() {
+    String emrRole = getJobEntry().getEmrRole();
+    if ( emrRole != null ) {
+      emrRoles.add( emrRole );
+    }
+    return emrRoles;
+  }
+
+  protected AbstractModelList<String> populateMasterInstanceTypes() {
+    String masterInstanceType = getJobEntry().getMasterInstanceType();
+    if ( masterInstanceType != null ) {
+      masterInstanceTypes.add( masterInstanceType );
+    }
+    return masterInstanceTypes;
+  }
+
+  protected AbstractModelList<String> populateSlaveInstanceTypes() {
+    String slaveInstanceType = getJobEntry().getSlaveInstanceType();
+    if ( slaveInstanceType != null ) {
+      slaveInstanceTypes.add( slaveInstanceType );
+    }
+    return slaveInstanceTypes;
+  }
+
+  protected void setRolesFromAmazonAccount( AimClient amiClient ) throws Exception {
+    setEc2RolesFromAmazonAccount( amiClient );
+    setEmrRolesFromAmazonAccount( amiClient );
+  }
+
+  private void setEc2RolesFromAmazonAccount( AimClient amiClient ) {
+    AbstractModelList<String> ec2List;
+    ec2List = amiClient.getEc2RolesFromAmazonAccount();
+
+    if ( ec2List.isEmpty() ) {
+      ec2List.add( EC2_DEFAULT_ROLE );
+    }
+
+    ec2Roles.clear();
+    ec2Roles.addAll( ec2List );
+  }
+
+  private void setEmrRolesFromAmazonAccount( AimClient amiClient ) {
+    AbstractModelList<String> emrList;
+    emrList = amiClient.getEmrRolesFromAmazonAccount();
+
+    if ( emrList.isEmpty() ) {
+      emrList.add( EMR_DEFAULT_ROLE );
+    }
+
+    emrRoles.clear();
+    emrRoles.addAll( emrList );
+  }
+
+  protected List<String> populateInstanceTypesForSelectedRegion( PricingClient pricingClient ) throws Exception {
+
+    List<String> instanceTypes = null;
+
+    try {
+      instanceTypes = pricingClient.populateInstanceTypesForSelectedRegion();
+    } catch ( IOException e ) {
+      e.printStackTrace();
+      showErrorDialog(
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobEntry.Instance.error.title" ),
+        e.getMessage() );
+    }
+
+    masterInstanceTypes.clear();
+    slaveInstanceTypes.clear();
+
+    if ( instanceTypes != null ) {
+      masterInstanceTypes.addAll( instanceTypes );
+      slaveInstanceTypes.addAll( instanceTypes );
+    }
+
+    return instanceTypes;
+  }
+
+  protected AbstractModelList<String> populateRegions() {
+    regions.clear();
+    regions =
+      Arrays.stream( AmazonRegions.values() ).map( v -> v.getHumanReadableRegion() )
+        .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
+    return regions;
+  }
+
+  protected AbstractModelList<String> populateReleases() {
+    releases.clear();
+    releases =
+      Arrays.stream( AmazonEmrReleases.values() ).map( v -> v.getEmrRelease() )
+        .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
+
+    String emrRelease = getJobEntry().getEmrRelease();
+
+    if ( emrRelease != null && !releases.contains( emrRelease ) ) {
+      releases.add( 0, emrRelease );
+    }
+
+    if ( emrRelease == null && releases.size() > 0 ) {
+      getJobEntry().setEmrRelease( releases.get( 0 ) );
+    }
+    return releases;
+  }
+
+  public AbstractModelList<String> getReleases() {
+    return releases;
+  }
+
+  private XulMenuList<String> getXulMenu( String elementMenuId ) {
+    return (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( elementMenuId );
+  }
+
+  private void setXulMenuDisabled( String elementMenuId, boolean isDisable ) {
+    XulMenuList<String> xulMenu = getXulMenu( elementMenuId );
+    xulMenu.setDisabled( isDisable );
+  }
+
+  protected void setXulMenusDisabled( boolean isDisable ) {
+    Arrays.stream( XUL_EMR_MENU_ID_ARRAY ).forEach( ( e ) -> setXulMenuDisabled( e, isDisable ) );
+  }
+
+  protected void setSelectedItemForEachMenu() {
+    getXulMenu( XUL_EC2_ROLE ).setSelectedItem( getJobEntry().getEc2Role() );
+    getXulMenu( XUL_EMR_ROLE ).setSelectedItem( getJobEntry().getEmrRole() );
+    getXulMenu( XUL_MASTER_INSTANCE_TYPE ).setSelectedItem( getJobEntry().getMasterInstanceType() );
+    getXulMenu( XUL_SLAVE_INSTANCE_TYPE ).setSelectedItem( getJobEntry().getSlaveInstanceType() );
+  }
+
+  private List<String> initRolesAndTypes( String accessKey, String secretKey ) throws Exception {
+
+    ClientFactoriesManager manager = ClientFactoriesManager.getInstance();
+
+    AimClient aimClient = manager
+      .createClient( accessKey, secretKey, getJobEntry().getRegion(), ClientType.AIM );
+
+    setRolesFromAmazonAccount( aimClient );
+
+    PricingClient pricingClient = manager
+      .createClient( accessKey, secretKey, getJobEntry().getRegion(), ClientType.PRICING );
+
+    return populateInstanceTypesForSelectedRegion( pricingClient );
+  }
+
+  public void getEmrSettings() {
+
+    ExtTextbox accessKey = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+
+    ExtTextbox secretKey = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
+
+    XulButton connectButton = (XulButton) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
+
+    connectButton.setDisabled( true );
+
+    String ec2Role = getJobEntry().getEc2Role();
+    String emrRole = getJobEntry().getEmrRole();
+    String masterSelectedInstanceType = getJobEntry().getMasterInstanceType();
+    String slaveSelectedInstanceType = getJobEntry().getSlaveInstanceType();
+    String errorMessage;
+
+    try {
+
+      List<String> instanceTypes = initRolesAndTypes( accessKey.getValue(), secretKey.getValue() );
+
+      if ( ec2Role != null && ec2Roles.contains( ec2Role ) ) {
+        this.ec2Role = ec2Role;
+      }
+
+      if ( emrRole != null && emrRoles.contains( emrRole ) ) {
+        this.emrRole = emrRole;
+      }
+
+      if ( masterSelectedInstanceType != null && instanceTypes.contains( masterSelectedInstanceType ) ) {
+        this.masterInstanceType = masterSelectedInstanceType;
+      }
+
+      if ( slaveSelectedInstanceType != null && instanceTypes.contains( slaveSelectedInstanceType ) ) {
+        this.slaveInstanceType = slaveSelectedInstanceType;
+      }
+
+      setXulMenusDisabled( false );
+
+      XulTextbox numInstances = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
+      numInstances.setDisabled( false );
+
+      setSelectedItemForEachMenu();
+
+    } catch ( Exception e ) {
+      e.printStackTrace();
+      errorMessage = e.getMessage() == null ? ExceptionUtils.getStackTrace( e ) : e.getMessage();
+      showErrorDialog(
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobEntry.Connection.error.title" ),
+        errorMessage );
+    } finally {
+      connectButton.setDisabled( false );
+    }
+  }
+
+  public AbstractModelList<String> getEc2Roles() {
+    return ec2Roles;
+  }
+
+  public AbstractModelList<String> getEmrRoles() {
+    return emrRoles;
+  }
+
+  public AbstractModelList<String> getMasterInstanceTypes() {
+    return masterInstanceTypes;
+  }
+
+  public AbstractModelList<String> getSlaveInstanceTypes() {
+    return slaveInstanceTypes;
+  }
+
+  public AbstractModelList<String> getRegions() {
+    return regions;
+  }
+
+  public void setBindings( List<Binding> bindings ) {
+    this.bindings = bindings;
+  }
+
+  public void accept() {
     syncModel();
 
     String validationErrors = buildValidationErrorMessages();
 
     if ( !StringUtil.isEmpty( validationErrors ) ) {
-      openErrorDialog( BaseMessages.getString( PKG, MSG_DIALOG_ERROR ), validationErrors );
-      // show validation errors dialog
+      openErrorDialog( BaseMessages.getString( PKG, "Dialog.Error" ), validationErrors );
       return;
     }
 
@@ -149,16 +626,28 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   protected void syncModel() {
+    XulMenuList<String> tempMenu =
+      (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_REGION );
+    this.region = tempMenu.getValue();
+    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_EC2_ROLE );
+    this.ec2Role = tempMenu.getValue();
+    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_ROLE );
+    this.emrRole = tempMenu.getValue();
+    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_MASTER_INSTANCE_TYPE );
+    this.masterInstanceType = tempMenu.getValue();
+    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_SLAVE_INSTANCE_TYPE );
+    this.slaveInstanceType = tempMenu.getValue();
+    tempMenu = (XulMenuList<String>) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_RELEASE );
+    this.emrRelease = tempMenu.getValue();
     ExtTextbox tempBox =
-        (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
+      (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
     this.hadoopJobName = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY1 );
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
     this.accessKey = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY1 );
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
     this.secretKey = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
     this.hadoopJobFlowId = ( (Text) tempBox.getTextControl() ).getText();
-
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
     this.stagingDir = ( (Text) tempBox.getTextControl() ).getText();
     try {
@@ -168,8 +657,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     }
 
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_COMMAND_LINE_ARGUMENTS );
-    this.cmdLineArgs = ( (Text) tempBox.getTextControl() ).getText();
-    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_NUM_INSTANCES1 );
+    this.commandLineArgs = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_NUM_INSTANCES );
     this.numInstances = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_LOGGING_INTERVAL1 );
     this.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
@@ -179,41 +668,53 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     String validationErrors = "";
     if ( StringUtil.isEmpty( getJobEntryName() ) ) {
       validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_ENTRY_NAME_ERROR ) + "\n";
-    }
-    if ( StringUtil.isEmpty( getHadoopJobName() ) ) {
-      validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JOB_FLOW_NAME_ERROR ) + "\n";
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobEntryName.Error" ) + "\n";
     }
     if ( StringUtil.isEmpty( getAccessKey() ) ) {
       validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_ACCESS_KEY_ERROR ) + "\n";
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.AccessKey.Error" ) + "\n";
     }
     if ( StringUtil.isEmpty( getSecretKey() ) ) {
       validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SECRET_KEY_ERROR ) + "\n";
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SecretKey.Error" ) + "\n";
     }
+    if ( StringUtil.isEmpty( getRegion() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Region.Error" ) + "\n";
+    }
+    if ( StringUtil.isEmpty( getEc2Role() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Ec2Role.Error" ) + "\n";
+    }
+    if ( StringUtil.isEmpty( getEmrRole() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRole.Error" ) + "\n";
+    }
+    if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.MasterInstanceType.Error" ) + "\n";
+    }
+    if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SlaveInstanceType.Error" ) + "\n";
+    }
+    if ( StringUtil.isEmpty( getEmrRelease() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRelease.Error" ) + "\n";
+    }
+    if ( StringUtil.isEmpty( getHadoopJobName() ) ) {
+      validationErrors +=
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobFlowName.Error" ) + "\n";
+    }
+
     String s3Protocol = S3FileProvider.SCHEME + "://";
     String sdir = getVariableSpace().environmentSubstitute( stagingDir );
     if ( StringUtil.isEmpty( getStagingDir() ) ) {
       validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) + "\n";
     } else if ( !sdir.startsWith( s3Protocol ) ) {
       validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_STAGING_DIR_ERROR ) + "\n";
-    }
-
-    /*
-     * if (numInstances <= 0) { validationErrors += BaseMessages.getString(PKG,
-     * "AmazonElasticMapReduceJobExecutor.NumInstances.Error") + "\n"; }
-     */
-    if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
-      validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_MASTER_INSTANCE_TYPE_ERROR ) + "\n";
-    }
-    if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
-      validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_SLAVE_INSTANCE_TYPE_ERROR ) + "\n";
+        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) + "\n";
     }
     return validationErrors;
   }
@@ -226,21 +727,177 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     getJobEntry().setAccessKey( getAccessKey() );
     getJobEntry().setSecretKey( getSecretKey() );
     getJobEntry().setStagingDir( getStagingDir() );
-    getJobEntry().setJarUrl( getJarUrl() );
     getJobEntry().setNumInstances( getNumInstances() );
     getJobEntry().setMasterInstanceType( getMasterInstanceType() );
     getJobEntry().setSlaveInstanceType( getSlaveInstanceType() );
+    getJobEntry().setRegion( getRegion() );
+    getJobEntry().setEmrRelease( getEmrRelease() );
+    getJobEntry().setEc2Role( getEc2Role() );
+    getJobEntry().setEmrRole( getEmrRole() );
     getJobEntry().setCmdLineArgs( getCommandLineArgs() );
-    // advanced config
-    getJobEntry().setBlocking( isBlocking() );
+    getJobEntry().setAlive( isAlive() );
+    getJobEntry().setBlocking( getBlocking() );
     getJobEntry().setLoggingInterval( getLoggingInterval() );
 
     getJobEntry().setChanged();
   }
 
-  public void init() {
+
+  public String getSelectedEc2Role() {
+    return this.ec2Role;
+  }
+
+  public String getSelectedEmrRole() {
+    return this.emrRole;
+  }
+
+  public String getSelectedMasterInstanceType() {
+    return this.masterInstanceType;
+  }
+
+  public String getSelectedSlaveInstanceType() {
+    return this.slaveInstanceType;
+  }
+
+  public void setSelectedEc2Role( String selectedEc2Role ) {
+    if ( !suppressEventHandling ) {
+
+      if ( this.ec2Role == null && ec2Roles.contains( EC2_DEFAULT_ROLE ) ) {
+        selectedEc2Role = EC2_DEFAULT_ROLE;
+      }
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedEc2Role", this.ec2Role, selectedEc2Role );
+        this.ec2Role = selectedEc2Role;
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  public void setSelectedEmrRole( String selectedEmrRole ) {
+    if ( !suppressEventHandling ) {
+
+      if ( this.emrRole == null && emrRoles.contains( EMR_DEFAULT_ROLE ) ) {
+        selectedEmrRole = EMR_DEFAULT_ROLE;
+      }
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedEmrRole", this.emrRole, selectedEmrRole );
+        this.emrRole = selectedEmrRole;
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  public void setSelectedMasterInstanceType( String selectedMasterInstanceType ) {
+
+    if ( !suppressEventHandling ) {
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedMasterInstanceType", this.masterInstanceType, selectedMasterInstanceType );
+        this.masterInstanceType = selectedMasterInstanceType;
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  public void setSelectedSlaveInstanceType( String selectedSlaveInstanceType ) {
+
+    if ( !suppressEventHandling ) {
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedSlaveInstanceType", this.slaveInstanceType, selectedSlaveInstanceType );
+        this.slaveInstanceType = selectedSlaveInstanceType;
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  public String getSelectedRegion() {
+    return getRegion();
+  }
+
+  public void setSelectedRegion( String selectedRegion ) {
+
+    if ( !suppressEventHandling ) {
+
+      if ( !selectedRegion.equals( this.region ) ) {
+        setXulMenusDisabled( true );
+
+        ec2Roles.clear();
+        emrRoles.clear();
+        masterInstanceTypes.clear();
+        slaveInstanceTypes.clear();
+      }
+
+      this.region = selectedRegion;
+
+      getJobEntry().setRegion( this.region );
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "selectedRegion", null, this.region );
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  protected void initializeEc2RoleSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<String> ec2RoleMenu = getXulMenu( XUL_EC2_ROLE );
+    String selectedEc2Role = getJobEntry().getEc2Role();
+    ec2RoleMenu.setSelectedItem( selectedEc2Role );
+  }
+
+  protected void initializeEmrRoleSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<String> emrRoleMenu = getXulMenu( XUL_EMR_ROLE );
+    String selectedEmrRole = getJobEntry().getEmrRole();
+    emrRoleMenu.setSelectedItem( selectedEmrRole );
+  }
+
+  protected void initializeMasterInstanceSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<String> namedClusterMenu = getXulMenu( XUL_MASTER_INSTANCE_TYPE );
+    String selectedMasterInstanceType = getJobEntry().getMasterInstanceType();
+    namedClusterMenu.setSelectedItem( selectedMasterInstanceType );
+  }
+
+  protected void initializeSlaveInstanceSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<String> namedClusterMenu = getXulMenu( XUL_SLAVE_INSTANCE_TYPE );
+    String selectedSlaveInstanceType = getJobEntry().getSlaveInstanceType();
+    namedClusterMenu.setSelectedItem( selectedSlaveInstanceType );
+  }
+
+  protected void initializeRegionSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<String> namedClusterMenu = getXulMenu( XUL_REGION );
+    String selectedRegion = getJobEntry().getRegion();
+    namedClusterMenu.setSelectedItem( selectedRegion );
+  }
+
+  protected void initializeReleaseSelection() {
+    @SuppressWarnings( "unchecked" )
+    XulMenuList<String> namedClusterMenu = getXulMenu( XUL_EMR_RELEASE );
+    String selectedRelease = getJobEntry().getEmrRelease();
+    namedClusterMenu.setSelectedItem( selectedRelease );
+  }
+
+  protected void beforeInit() {
+
+    suppressEventHandling = true;
+
     if ( getJobEntry() != null ) {
-      // common/simple
       setName( getJobEntry().getName() );
       setJobEntryName( getJobEntry().getName() );
       setHadoopJobName( getJobEntry().getHadoopJobName() );
@@ -248,19 +905,85 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       setAccessKey( getJobEntry().getAccessKey() );
       setSecretKey( getJobEntry().getSecretKey() );
       setStagingDir( getJobEntry().getStagingDir() );
-      setJarUrl( getJobEntry().getJarUrl() );
       setNumInstances( getJobEntry().getNumInstances() );
       setMasterInstanceType( getJobEntry().getMasterInstanceType() );
       setSlaveInstanceType( getJobEntry().getSlaveInstanceType() );
+      setRegion( getJobEntry().getRegion() );
+      setEmrRelease( getJobEntry().getEmrRelease() );
+      setEc2Role( getJobEntry().getEc2Role() );
+      setEmrRole( getJobEntry().getEmrRole() );
       setCommandLineArgs( getJobEntry().getCmdLineArgs() );
-      setBlocking( getJobEntry().isBlocking() );
+      setBlocking( getJobEntry().getBlocking() );
+      setAlive( getJobEntry().getAlive() );
       setLoggingInterval( getJobEntry().getLoggingInterval() );
+    }
+  }
+
+  protected void afterInit() {
+
+    suppressEventHandling = false;
+
+    initializeRegionSelection();
+    initializeEc2RoleSelection();
+    initializeEmrRoleSelection();
+    initializeMasterInstanceSelection();
+    initializeSlaveInstanceSelection();
+    initializeReleaseSelection();
+  }
+
+  protected abstract String getDialogElementId();
+
+  /**
+   * Look up the dialog reference from the document.
+   *
+   * @return The dialog element referred to by {@link #getDialogElementId()}
+   */
+  protected SwtDialog getDialog() {
+    return (SwtDialog) getXulDomContainer().getDocumentRoot().getElementById( getDialogElementId() );
+  }
+
+  /**
+   * @return the shell for the currently visible dialog. This will be used to display additional dialogs/popups.
+   */
+  protected Shell getShell() {
+    return getDialog().getShell();
+  }
+
+  public JobEntryInterface open() {
+    XulDialog dialog = getDialog();
+    dialog.show();
+    return getJobEntry();
+  }
+
+  /**
+   * Show an error dialog with the title and message provided.
+   *
+   * @param title   Dialog window title
+   * @param message Dialog message
+   */
+  protected void showErrorDialog( String title, String message ) {
+    MessageBox mb = new MessageBox( getShell(), SWT.OK | SWT.ICON_ERROR );
+    mb.setText( title );
+    mb.setMessage( message );
+    mb.open();
+  }
+
+  public void init() throws XulException, InvocationTargetException {
+
+    beforeInit();
+
+    try {
+      for ( Binding binding : bindings ) {
+        binding.fireSourceChanged();
+      }
+    } finally {
+      afterInit();
     }
   }
 
   public void cancel() {
     XulDialog xulDialog =
-        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
     Shell shell = (Shell) xulDialog.getRootObject();
     if ( !shell.isDisposed() ) {
       WindowProperty winprop = new WindowProperty( shell );
@@ -272,11 +995,11 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void openErrorDialog( String title, String message ) {
     XulDialog errorDialog =
-        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.setTitle( title );
 
     XulTextbox errorMessage =
-        (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
+      (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_MESSAGE );
     errorMessage.setValue( message );
 
     errorDialog.show();
@@ -284,7 +1007,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   public void closeErrorDialog() {
     XulDialog errorDialog =
-        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_ERROR_DIALOG );
     errorDialog.hide();
   }
 
@@ -294,7 +1017,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
       VfsFileChooserDialog fileChooserDialog =
-          Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
+        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
@@ -306,8 +1029,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     if ( !Const.isEmpty( getAccessKey() ) || !Const.isEmpty( getSecretKey() ) ) {
       // create a FileSystemOptions with user & password
       StaticUserAuthenticator userAuthenticator =
-          new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( getAccessKey() ),
-              getVariableSpace().environmentSubstitute( getSecretKey() ) );
+        new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( getAccessKey() ),
+          getVariableSpace().environmentSubstitute( getSecretKey() ) );
 
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
@@ -330,12 +1053,12 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-      int fileDialogMode ) throws KettleException, FileSystemException {
+                            int fileDialogMode ) throws KettleException, FileSystemException {
     return browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode, false );
   }
 
   public FileObject browse( String[] fileFilters, String[] fileFilterNames, String fileUri, FileSystemOptions opts,
-      int fileDialogMode, boolean showFileScheme ) throws KettleException, FileSystemException {
+                            int fileDialogMode, boolean showFileScheme ) throws KettleException, FileSystemException {
     getFileChooserHelper().setShowFileScheme( showFileScheme );
     return getFileChooserHelper().browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode );
   }
@@ -366,7 +1089,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   @Override
   public String getName() {
-    return "jobEntryController"; //$NON-NLS-1$
+    return "jobEntryController";
   }
 
   public String getJobEntryName() {
@@ -501,8 +1224,32 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     firePropertyChange( SLAVE_INSTANCE_TYPE, previousVal, newVal );
   }
 
+  public String getEc2Role() {
+    return ec2Role;
+  }
+
+  public void setEc2Role( String ec2Role ) {
+    String previousVal = this.ec2Role;
+    String newVal = ec2Role;
+
+    this.ec2Role = ec2Role;
+    firePropertyChange( EC2_ROLE, previousVal, newVal );
+  }
+
+  public String getEmrRole() {
+    return emrRole;
+  }
+
+  public void setEmrRole( String emrRole ) {
+    String previousVal = this.emrRole;
+    String newVal = emrRole;
+
+    this.emrRole = emrRole;
+    firePropertyChange( EMR_ROLE, previousVal, newVal );
+  }
+
   public void invertBlocking() {
-    setBlocking( !isBlocking() );
+    setBlocking( !getBlocking() );
   }
 
   public abstract AbstractAmazonJobEntry getJobEntry();
@@ -510,19 +1257,19 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public abstract void setJobEntry( AbstractAmazonJobEntry jobEntry );
 
   public String getCommandLineArgs() {
-    return cmdLineArgs;
+    return commandLineArgs;
   }
 
-  public void setCommandLineArgs( String cmdLineArgs ) {
-    String previousVal = this.cmdLineArgs;
-    String newVal = cmdLineArgs;
+  public void setCommandLineArgs( String commandLineArgs ) {
+    String previousVal = this.commandLineArgs;
+    String newVal = commandLineArgs;
 
-    this.cmdLineArgs = cmdLineArgs;
+    this.commandLineArgs = commandLineArgs;
 
     firePropertyChange( CMD_LINE_ARGS, previousVal, newVal );
   }
 
-  public boolean isBlocking() {
+  public boolean getBlocking() {
     return blocking;
   }
 
@@ -546,11 +1293,44 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     firePropertyChange( LOGGING_INTERVAL, previousVal, newVal );
   }
 
+  public String getEmrRelease() {
+    return emrRelease;
+  }
+
+  public void setEmrRelease( String emrRelease ) {
+
+    if ( !suppressEventHandling ) {
+      this.emrRelease = emrRelease;
+      getJobEntry().setEmrRelease( this.emrRelease );
+
+      suppressEventHandling = true;
+      try {
+        firePropertyChange( "emrRelease", null, this.emrRelease );
+      } finally {
+        suppressEventHandling = false;
+      }
+    }
+  }
+
+  public boolean isAlive() {
+    return alive;
+  }
+
+  public void setAlive( boolean alive ) {
+    boolean previousVal = this.alive;
+    this.alive = alive;
+    firePropertyChange( ALIVE, previousVal, alive );
+  }
+
+  public void invertAlive() {
+    setAlive( !isAlive() );
+  }
+
   public FileObject resolveFile( String fileUri ) throws FileSystemException, KettleFileException {
     VariableSpace vs = getVariableSpace();
     FileSystemOptions opts = new FileSystemOptions();
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
-        new StaticUserAuthenticator( null, getAccessKey(), getSecretKey() ) );
+      new StaticUserAuthenticator( null, getAccessKey(), getSecretKey() ) );
     FileObject file = KettleVFS.getFileObject( fileUri, vs, opts );
     return file;
   }
@@ -558,7 +1338,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected S3VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
     if ( helper == null ) {
       XulDialog xulDialog =
-          (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
       Shell shell = (Shell) xulDialog.getRootObject();
 
       helper = new S3VfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
@@ -569,11 +1349,10 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public void help() {
     JobEntryInterface jobEntry = getJobEntry();
     XulDialog xulDialog =
-        (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
+      (XulDialog) getXulDomContainer().getDocumentRoot().getElementById( XUL_AMAZON_EMR_JOB_ENTRY_DIALOG );
     Shell shell = (Shell) xulDialog.getRootObject();
     PluginInterface plugin =
-        PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
+      PluginRegistry.getInstance().findPluginWithId( JobEntryPluginType.class, jobEntry.getPluginId() );
     HelpUtils.openHelpDialog( shell, plugin );
   }
-
 }

@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,13 +33,53 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
+import org.pentaho.ui.xul.XulDomContainer;
+import org.pentaho.ui.xul.XulException;
+import org.pentaho.ui.xul.binding.Binding;
+import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJobExecutorController {
 
   private static final Class<?> PKG = AmazonElasticMapReduceJobExecutor.class;
 
-  private AmazonElasticMapReduceJobExecutor jobEntry = null;
+  // Define string names for the attributes.
+  public static final String JAR_URL = "jarUrl";
+
+  public static final String XUL_JAR_URL = "jar-url";
+
+  private AmazonElasticMapReduceJobExecutor jobEntry;
+  private String jarUrl = "";
+
+  public AmazonElasticMapReduceJobExecutorController( XulDomContainer container, AbstractAmazonJobEntry jobEntry,
+                                                      BindingFactory bindingFactory ) {
+
+    super( container, jobEntry, bindingFactory );
+    this.jobEntry = (AmazonElasticMapReduceJobExecutor) jobEntry;
+    initializeEmrSettingsGroupMenuFields();
+  }
+
+  @Override
+  protected void initializeTextFields() {
+    super.initializeTextFields();
+    ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JAR_URL );
+    tempBox.setVariableSpace( getVariableSpace() );
+  }
+
+  protected void createBindings() {
+
+    super.createBindings();
+    bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
+    bindingFactory.createBinding( XUL_JAR_URL, "value", this, JAR_URL );
+    initializeTextFields();
+  }
+
+  @Override
+  public String getDialogElementId() {
+    return "amazon-emr-job-entry-dialog";
+  }
 
   @Override
   protected void syncModel() {
@@ -48,14 +88,49 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
     this.jarUrl = ( (Text) tempBox.getTextControl() ).getText();
   }
 
+  public String getJarUrl() {
+    return jarUrl;
+  }
+
+  public void setJarUrl( String jarUrl ) {
+    String previousVal = this.jarUrl;
+    String newVal = jarUrl;
+
+    this.jarUrl = jarUrl;
+    firePropertyChange( AmazonElasticMapReduceJobExecutorController.JAR_URL, previousVal, newVal );
+
+  }
+
+  @Override
+  protected void configureJobEntry() {
+    super.configureJobEntry();
+    jobEntry.setJarUrl( jarUrl );
+  }
+
   @Override
   protected String buildValidationErrorMessages() {
     String validationErrors = super.buildValidationErrorMessages();
     if ( StringUtil.isEmpty( jarUrl ) ) {
       validationErrors +=
-          BaseMessages.getString( PKG, MSG_AMAZON_ELASTIC_MAP_REDUCE_JOB_EXECUTOR_JAR_URL_ERROR ) + "\n";
+        BaseMessages.getString( PKG, "AmazonElasticMapReduceJobExecutor.JarURL.Error" ) + "\n";
     }
     return validationErrors;
+  }
+
+  /**
+   * Initialize the dialog by loading model data, creating bindings and firing initial sync
+   *
+   * @throws XulException
+   * @throws InvocationTargetException
+   */
+  public void init() throws XulException, InvocationTargetException {
+
+    createBindings();
+
+    super.init();
+    if ( jobEntry != null ) {
+      setJarUrl( jobEntry.getJarUrl() );
+    }
   }
 
   public void browseJar() throws KettleException, FileSystemException {
@@ -65,8 +140,8 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
     FileSystemOptions opts = getFileSystemOptions();
 
     FileObject selectedFile =
-        browse( fileFilters, fileFilterNames, getVariableSpace().environmentSubstitute( jarUrl ), opts,
-            VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE, true );
+      browse( fileFilters, fileFilterNames, getVariableSpace().environmentSubstitute( jarUrl ), opts,
+        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE, true );
     if ( selectedFile != null ) {
       setJarUrl( selectedFile.getName().getURI() );
     }
@@ -74,7 +149,7 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
 
   @Override
   public AbstractAmazonJobEntry getJobEntry() {
-    return jobEntry;
+    return this.jobEntry;
   }
 
   @Override

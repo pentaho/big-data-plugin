@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,7 +22,6 @@
 
 package org.pentaho.amazon;
 
-import com.amazonaws.auth.AWSCredentials;
 import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 
@@ -35,12 +34,16 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
   protected String hadoopJobFlowId;
   protected String accessKey = "";
   protected String secretKey = "";
-  protected String jarUrl = "";
-  protected String stagingDir = "";
+  protected String region;
+  protected String ec2Role;
+  protected String emrRole;
+  protected String masterInstanceType;
+  protected String slaveInstanceType;
   protected String numInstances = "2";
-  protected String masterInstanceType = "Small [m1.small]";
-  protected String slaveInstanceType = "Small [m1.small]";
+  protected String emrRelease;
+  protected String stagingDir = "";
   protected String cmdLineArgs;
+  protected boolean alive;
   protected boolean blocking;
   protected String loggingInterval = "60"; // 60 seconds default
 
@@ -76,14 +79,6 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     this.secretKey = secretKey;
   }
 
-  public String getJarUrl() {
-    return jarUrl;
-  }
-
-  public void setJarUrl( String jarUrl ) {
-    this.jarUrl = jarUrl;
-  }
-
   public String getStagingDir() {
     return stagingDir;
   }
@@ -92,12 +87,28 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     this.stagingDir = stagingDir;
   }
 
-  public String getNumInstances() {
-    return numInstances;
+  public String getRegion() {
+    return region;
   }
 
-  public void setNumInstances( String numInstances ) {
-    this.numInstances = numInstances;
+  public void setRegion( String region ) {
+    this.region = region;
+  }
+
+  public String getEc2Role() {
+    return ec2Role;
+  }
+
+  public void setEc2Role( String ec2Role ) {
+    this.ec2Role = ec2Role;
+  }
+
+  public String getEmrRole() {
+    return emrRole;
+  }
+
+  public void setEmrRole( String emrRole ) {
+    this.emrRole = emrRole;
   }
 
   public String getMasterInstanceType() {
@@ -116,6 +127,22 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     this.slaveInstanceType = slaveInstanceType;
   }
 
+  public String getNumInstances() {
+    return numInstances;
+  }
+
+  public void setNumInstances( String numInstances ) {
+    this.numInstances = numInstances;
+  }
+
+  public String getEmrRelease() {
+    return emrRelease;
+  }
+
+  public void setEmrRelease( String emrRelease ) {
+    this.emrRelease = emrRelease;
+  }
+
   public String getCmdLineArgs() {
     return cmdLineArgs;
   }
@@ -124,7 +151,15 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     this.cmdLineArgs = cmdLineArgs;
   }
 
-  public boolean isBlocking() {
+  public boolean getAlive() {
+    return alive;
+  }
+
+  public void setAlive( boolean isAlive ) {
+    this.alive = isAlive;
+  }
+
+  public boolean getBlocking() {
     return blocking;
   }
 
@@ -140,14 +175,11 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     this.loggingInterval = loggingInterval;
   }
 
-  protected AWSCredentials awsCredentials = new AWSCredentials() {
+  public String getAWSSecretKey() {
+    return environmentSubstitute( secretKey );
+  }
 
-    public String getAWSSecretKey() {
-      return environmentSubstitute( secretKey );
-    }
-
-    public String getAWSAccessKeyId() {
-      return environmentSubstitute( accessKey );
-    }
-  };
+  public String getAWSAccessKeyId() {
+    return environmentSubstitute( accessKey );
+  }
 }
