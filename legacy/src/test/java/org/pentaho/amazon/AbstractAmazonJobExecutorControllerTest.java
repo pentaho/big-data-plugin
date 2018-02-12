@@ -471,4 +471,61 @@ public class AbstractAmazonJobExecutorControllerTest {
     verify( hiveJobExecutorController, never() ).showErrorDialog( anyString(), anyString() );
   }
 
+  @Test
+  public void testHideFields_fieldsArrayIsNull() {
+
+    boolean hideFields = jobExecutorController.hideFields();
+
+    assertEquals( false, hideFields );
+  }
+
+  @Test
+  public void testHideFields_firstFieldInArrayIsNotEmpty() {
+
+    String[] fieldsValues = { "accessKey", "", "" };
+
+    boolean hideFields = jobExecutorController.hideFields( fieldsValues );
+
+    assertEquals( true, hideFields );
+  }
+
+  @Test
+  public void testHideFields_secondFieldInArrayIsNotEmpty() {
+
+    String[] fieldsValues = { "", "secretKey", "" };
+
+    boolean hideFields = jobExecutorController.hideFields( fieldsValues );
+
+    assertEquals( true, hideFields );
+  }
+
+  @Test
+  public void testHideFields_lastFieldInArrayIsNotEmpty() {
+
+    String[] fieldsValues = { "", "", "jobFlowId" };
+
+    boolean hideFields = jobExecutorController.hideFields( fieldsValues );
+
+    assertEquals( true, hideFields );
+  }
+
+  @Test
+  public void testHideFields_lastFieldInArrayIsEmptyAndOtherFieldsIsNotEmpty() {
+
+    String[] fieldsValues = { "accessKey", "secretKey", "" };
+
+    boolean hideFields = jobExecutorController.hideFields( fieldsValues );
+
+    assertEquals( false, hideFields );
+  }
+
+  @Test
+  public void testHideFields_fieldArrayIsFull() {
+
+    String[] fieldsValues = { "accessKey", "secretKey", "jobFlowId" };
+
+    boolean hideFields = jobExecutorController.hideFields( fieldsValues );
+
+    assertEquals( true, hideFields );
+  }
 }

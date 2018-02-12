@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -354,13 +355,39 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       .createBinding( XUL_ACCESS_KEY, "value", XUL_EMR_SETTINGS, "disabled", secretKeyIsEmpty( container ) );
     bindingFactory
       .createBinding( XUL_SECRET_KEY, "value", XUL_EMR_SETTINGS, "disabled", accessKeyIsEmpty( container ) );
+
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EMR_SETTINGS, "disabled",
+        jobFlowIdIsNotEmpty( container ) );
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EC2_ROLE, "disabled",
+        jobFlowIdIsFilled( container ) );
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EMR_ROLE, "disabled",
+        jobFlowIdIsFilled( container ) );
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_MASTER_INSTANCE_TYPE, "disabled",
+        jobFlowIdIsFilled( container ) );
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_SLAVE_INSTANCE_TYPE, "disabled",
+        jobFlowIdIsFilled( container ) );
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EMR_RELEASE, "disabled",
+        jobFlowIdIsFilled( container ) );
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_NUM_INSTANCES, "disabled",
+        jobFlowIdIsFilled( container ) );
   }
 
   private static BindingConvertor<String, Boolean> accessKeyIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
       @Override public Boolean sourceToTarget( String value ) {
-        ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
-        return ( Strings.isNullOrEmpty( value ) || Strings.isNullOrEmpty( tempBox.getValue() ) );
+        ExtTextbox accessKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+        ExtTextbox jobFlowIdBox =
+          (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
+
+        String[] fieldsValues = { value, accessKeyBox.getValue(), jobFlowIdBox.getValue() };
+        return hideFields( fieldsValues );
       }
 
       @Override public String targetToSource( Boolean value ) {
@@ -372,14 +399,71 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   private static BindingConvertor<String, Boolean> secretKeyIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
       @Override public Boolean sourceToTarget( String value ) {
-        ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
-        return ( Strings.isNullOrEmpty( value ) || Strings.isNullOrEmpty( tempBox.getValue() ) );
+        ExtTextbox secretKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
+        ExtTextbox jobFlowIdBox =
+          (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
+
+        String[] fieldsValues = { value, secretKeyBox.getValue(), jobFlowIdBox.getValue() };
+        return hideFields( fieldsValues );
       }
 
       @Override public String targetToSource( Boolean value ) {
         throw new AbstractMethodError( "Boolean to String conversion is not supported" );
       }
     };
+  }
+
+  private static BindingConvertor<String, Boolean> jobFlowIdIsNotEmpty( XulDomContainer container ) {
+    return new BindingConvertor<String, Boolean>() {
+      @Override public Boolean sourceToTarget( String value ) {
+        ExtTextbox accessKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+        ExtTextbox secretKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
+
+        String[] fieldsValues = { accessKeyBox.getValue(), secretKeyBox.getValue(), value };
+        return hideFields( fieldsValues );
+      }
+
+      @Override public String targetToSource( Boolean value ) {
+        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+      }
+    };
+  }
+
+  private static BindingConvertor<String, Boolean> jobFlowIdIsFilled( XulDomContainer container ) {
+    return new BindingConvertor<String, Boolean>() {
+      @Override public Boolean sourceToTarget( String value ) {
+        XulMenuList<String> masterInstanceMenu =
+          (XulMenuList<String>) container.getDocumentRoot().getElementById( XUL_MASTER_INSTANCE_TYPE );
+
+        if ( !Strings.isNullOrEmpty( value ) ) {
+          return true;
+        }
+        return ( masterInstanceMenu.getElements().size() < 1 );
+      }
+
+      @Override public String targetToSource( Boolean value ) {
+        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+      }
+    };
+  }
+
+  @VisibleForTesting
+  public static boolean hideFields( String... fieldValues ) {
+
+    if ( fieldValues.length == 0 ) {
+      return false;
+    }
+
+    if ( !Strings.isNullOrEmpty( fieldValues[ fieldValues.length - 1 ] ) ) {
+      return true;
+    }
+
+    for ( int i = 0; i < fieldValues.length - 1; i++ ) {
+      if ( Strings.isNullOrEmpty( fieldValues[ i ] ) ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   protected AbstractModelList<String> populateEc2Roles() {
