@@ -37,9 +37,6 @@ import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-
 import static org.pentaho.di.i18n.BaseMessages.getString;
 
 /**
@@ -70,12 +67,16 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
     }
     window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
     try {
-      final List<String> topics = mqttConsumerMeta.getTopics();
-      source = new MQTTStreamSource( environmentSubstitute( mqttConsumerMeta.getMqttServer() ),
-        Arrays.asList( environmentSubstitute( topics.toArray( new String[ topics.size() ] ) ) ),
-        Integer.parseInt( environmentSubstitute( mqttConsumerMeta.getQos() ) ), this );
+      source = MQTTStreamSource.builder()
+        .withBroker( mqttConsumerMeta.getMqttServer() )
+        .withTopics( mqttConsumerMeta.getTopics() )
+        .withQos( mqttConsumerMeta.getQos() )
+        .withVariables( this )
+        .withBaseStep( this )
+        .build();
     } catch ( NumberFormatException e ) {
-      logError( BaseMessages.getString( PKG, "MQTTConsumer.Error.QOS", environmentSubstitute( mqttConsumerMeta.getQos() ) ) );
+      log.logError(
+        BaseMessages.getString( PKG, "MQTTConsumer.Error.QOS", environmentSubstitute( mqttConsumerMeta.getQos() ) ) );
       return false;
     }
     return init;

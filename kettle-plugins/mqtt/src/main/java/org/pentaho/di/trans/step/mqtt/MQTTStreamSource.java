@@ -33,11 +33,16 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
+import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.BlockingQueueStreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static java.util.Collections.singletonList;
@@ -50,11 +55,18 @@ import static org.pentaho.di.i18n.BaseMessages.getString;
 public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
   private final Logger logger = LoggerFactory.getLogger( this.getClass() );
   private static final Class<?> PKG = MQTTStreamSource.class;
-  private static final String PROTOCOL = "tcp://";
+  private static final String UNSECURE_PROTOCOL = "tcp://";
+  private static final String SECURE_PROTOCOL = "ssl://";
 
   private final String broker;
   private final List<String> topics;
   private final int qos;
+  private final boolean isSecure;
+  private final String username;
+  private final String password;
+
+  private final Map<String, String> sslConfig;
+
 
   @VisibleForTesting protected MqttClient mqttClient;
 
@@ -73,13 +85,23 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
   };
 
   public MQTTStreamSource( String broker, List<String> topics, int qualityOfService,
-                           MQTTConsumer mqttConsumer ) {
+                           BaseStreamStep mqttConsumer, boolean isSecure, String username,
+                           String password, Map<String, String> sslConfig ) {
     super( mqttConsumer );
     this.broker = broker;
     this.topics = topics;
     this.qos = qualityOfService;
+    this.isSecure = isSecure;
+    this.username = username;
+    this.password = password;
+    this.sslConfig = sslConfig;
   }
 
+  //  public MQTTStreamSource( String broker, List<String> topics, int qualityOfService,
+  //                           MQTTConsumer mqttConsumer, Map<String, String> sslConfig ) {
+  //    this( broker, topics, qualityOfService, mqttConsumer );
+  //    this.sslConfig = sslConfig;
+  //  }
 
   @Override public void open() {
     try {
@@ -87,7 +109,8 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
         .checkArgument( broker.matches( "^[^ :/]+:\\d+" ), getString( PKG, "MQTTInput.Error.ConnectionURL" ) );
       // expectation that the broker will contain the server:port.
       mqttClient = new MqttClient(
-        PROTOCOL + broker, MqttAsyncClient.generateClientId(), new MemoryPersistence() );
+        UNSECURE_PROTOCOL + broker, MqttAsyncClient.generateClientId(), new MemoryPersistence() );
+
 
       mqttClient.connect( new MqttConnectOptions() ); // keeping default ops for now
       mqttClient.setCallback( callback );
@@ -112,5 +135,84 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
       logger.error( e.getMessage(), e );
     }
 
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static final class Builder {
+    private String broker;
+    private List<String> topics;
+    private String qos;
+    private boolean isSecure;
+    private String username;
+    private String password;
+    private Map<String, String> sslConfig;
+    private BaseStreamStep baseStreamStep;
+    private VariableSpace space = new Variables();
+
+    private Builder() {
+    }
+
+    public Builder withBroker( String broker ) {
+      this.broker = broker;
+      return this;
+    }
+
+    public Builder withTopics( List<String> topics ) {
+      this.topics = topics;
+      return this;
+    }
+
+    public Builder withQos( String qos ) {
+      this.qos = qos;
+      return this;
+    }
+
+    public Builder withIsSecure( boolean isSecure ) {
+      this.isSecure = isSecure;
+      return this;
+    }
+
+    public Builder withUsername( String username ) {
+      this.username = username;
+      return this;
+    }
+
+    public Builder withPassword( String password ) {
+      this.password = password;
+      return this;
+    }
+
+    public Builder withSslConfig( Map<String, String> sslConfig ) {
+      this.sslConfig = sslConfig;
+      return this;
+    }
+
+    public Builder withBaseStep( BaseStreamStep step ) {
+      this.baseStreamStep = step;
+      return this;
+    }
+
+    public Builder withVariables( VariableSpace space ) {
+      this.space = space;
+      return this;
+    }
+
+    public MQTTStreamSource build() {
+      MQTTStreamSource streamSource =
+        new MQTTStreamSource(
+          space.environmentSubstitute( broker ),
+          Arrays.asList( space.environmentSubstitute( topics.toArray( new String[ 0 ] ) ) ),
+          Integer.parseInt( space.environmentSubstitute( this.qos ) ),
+          baseStreamStep,
+          isSecure,
+          space.environmentSubstitute( username ),
+          space.environmentSubstitute( password ),
+          sslConfig );
+      // TODO variable subs for ssl stuff.
+      return streamSource;
+    }
   }
 }
