@@ -59,6 +59,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   public static final String MSG_OUTPUT_NAME = "MSG_OUTPUT_NAME";
   public static final String TOPIC_OUTPUT_NAME = "TOPIC_OUTPUT_NAME";
   public static final String QOS = "QOS";
+  public static final String USERNAME = "USERNAME";
   private static Class<?> PKG = MQTTConsumer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   @Injection( name = MQTT_SERVER )
@@ -76,6 +77,12 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   @Injection( name = QOS )
   public String qos = "0";
 
+//  @Injection( name = USERNAME )
+  public String username = "";
+
+//  @Injection( name = PASSWORD )
+  public String password = "";
+
   public MQTTConsumerMeta() {
     super();
     setSpecificationMethod( ObjectLocationSpecificationMethod.FILENAME );
@@ -90,6 +97,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
     super.setDefault();
     mqttServer = "";
     qos = "0";
+    username = "";
+    password = "";
   }
 
   @Override public String getFileName() {
@@ -107,6 +116,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
       topics.add( rep.getStepAttributeString( id_step, i, TOPICS ) );
     }
     setQos( rep.getStepAttributeString( id_step, QOS ) );
+//    setUsername( rep.getStepAttributeString( id_step, USERNAME ) );
+//    setPassword( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, PASSWORD ) ) );
   }
 
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transId, ObjectId stepId )
@@ -120,6 +131,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
       rep.saveStepAttribute( transId, stepId, i++, TOPICS, topic );
     }
     rep.saveStepAttribute( transId, stepId, QOS, qos );
+//    rep.saveStepAttribute( transId, stepId, USERNAME, username );
+//    rep.saveStepAttribute( transId, stepId, PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) );
   }
 
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
@@ -179,5 +192,21 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
 
   public void setQos( String qos ) {
     this.qos = qos;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername( String username ) {
+    this.username = username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword( String password ) {
+    this.password = password;
   }
 }

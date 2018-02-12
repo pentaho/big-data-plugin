@@ -24,11 +24,15 @@ package org.pentaho.di.trans.step.mqtt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -40,6 +44,7 @@ import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ComboVar;
+import org.pentaho.di.ui.core.widget.PasswordTextVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStreamingDialog;
@@ -63,6 +68,16 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   private CTabItem wFieldsTab;
   private Composite wFieldsComp;
   private TableView fieldsTable;
+  private CTabItem wSecurityTab;
+  private Composite wSecurityComp;
+  private Label wlUsername;
+  private TextVar wUsername;
+  private Label wlPassword;
+  private PasswordTextVar wPassword;
+  private Button wUseSSL;
+  private Label wlUseSSL;
+  private Label wlSSLProperties;
+  private TableView sslTable;
 
   public MQTTConsumerDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, in, tr, sname );
@@ -74,6 +89,8 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     wConnection.setText( mqttMeta.getMqttServer() );
     populateTopicsData();
     wQOS.setText( mqttMeta.getQos() );
+    wUseSSL.setText( mqttMeta.getUsername() );
+    wPassword.setText( mqttMeta.getPassword() );
   }
 
   private void populateTopicsData() {
@@ -196,7 +213,178 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   @Override protected void createAdditionalTabs() {
     // Set the height so the topics table has approximately 5 rows
     shell.setMinimumSize( 527, 600 );
+    buildSecurityTab();
     buildFieldsTab();
+  }
+
+  private void buildSecurityTab() {
+    wSecurityTab = new CTabItem( wTabFolder, SWT.NONE );
+    wSecurityTab.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.Tab" ) );
+
+    wSecurityComp = new Composite( wTabFolder, SWT.NONE );
+    props.setLook( wSecurityComp );
+    FormLayout setupLayout = new FormLayout();
+    setupLayout.marginHeight = 15;
+    setupLayout.marginWidth = 15;
+    wSecurityComp.setLayout( setupLayout );
+
+    // Authentication group
+    Group wAuthenticationGroup = new Group( wSecurityComp, SWT.SHADOW_ETCHED_IN );
+    props.setLook( wAuthenticationGroup );
+    wAuthenticationGroup.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.Authentication" ) );
+    FormLayout flAuthentication = new FormLayout();
+    flAuthentication.marginHeight = 15;
+    flAuthentication.marginWidth = 15;
+    wAuthenticationGroup.setLayout( flAuthentication );
+
+    FormData fdAuthenticationGroup = new FormData();
+    fdAuthenticationGroup.left = new FormAttachment( 0, 0 );
+    fdAuthenticationGroup.top = new FormAttachment( 0, 0 );
+    fdAuthenticationGroup.right = new FormAttachment( 100, 0 );
+    fdAuthenticationGroup.width = INPUT_WIDTH;
+    wAuthenticationGroup.setLayoutData( fdAuthenticationGroup );
+
+    wlUsername = new Label( wAuthenticationGroup, SWT.LEFT );
+    props.setLook( wlUsername );
+    wlUsername.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.Username" ) );
+    FormData fdlUsername = new FormData();
+    fdlUsername.left = new FormAttachment( 0, 0 );
+    fdlUsername.top = new FormAttachment( 0, 0 );
+    fdlUsername.right = new FormAttachment( 0, INPUT_WIDTH );
+    wlUsername.setLayoutData( fdlUsername );
+
+    wUsername = new TextVar( transMeta, wAuthenticationGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wUsername );
+    wUsername.addModifyListener( lsMod );
+    FormData fdUsername = new FormData();
+    fdUsername.left = new FormAttachment( 0, 0 );
+    fdUsername.top = new FormAttachment( wlUsername, 5 );
+    fdUsername.right = new FormAttachment( 0, INPUT_WIDTH );
+    wUsername.setLayoutData( fdUsername );
+
+    wlPassword = new Label( wAuthenticationGroup, SWT.LEFT );
+    props.setLook( wlPassword );
+    wlPassword.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.Password" ) );
+    FormData fdlPassword = new FormData();
+    fdlPassword.left = new FormAttachment( 0, 0 );
+    fdlPassword.top = new FormAttachment( wUsername, 10 );
+    fdlPassword.right = new FormAttachment( 0, INPUT_WIDTH );
+    wlPassword.setLayoutData( fdlPassword );
+
+    wPassword = new PasswordTextVar( transMeta, wAuthenticationGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wPassword );
+    wPassword.addModifyListener( lsMod );
+    FormData fdPassword = new FormData();
+    fdPassword.left = new FormAttachment( 0, 0 );
+    fdPassword.top = new FormAttachment( wlPassword, 5 );
+    fdPassword.right = new FormAttachment( 0, INPUT_WIDTH );
+    wPassword.setLayoutData( fdPassword );
+
+    wUseSSL = new Button( wSecurityComp, SWT.CHECK );
+    props.setLook( wUseSSL );
+    FormData fdUseSSL = new FormData();
+    fdUseSSL.top = new FormAttachment( wAuthenticationGroup, 15 );
+    fdUseSSL.left = new FormAttachment( 0, 0 );
+    wUseSSL.setLayoutData( fdUseSSL );
+    wUseSSL.addSelectionListener( new SelectionListener() {
+      @Override public void widgetSelected( SelectionEvent selectionEvent ) {
+        boolean selection = ( (Button) selectionEvent.getSource() ).getSelection();
+        sslTable.setEnabled( selection );
+      }
+
+      @Override public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
+        boolean selection = ( (Button) selectionEvent.getSource() ).getSelection();
+        sslTable.setEnabled( selection );
+      }
+    } );
+
+    wlUseSSL = new Label( wSecurityComp, SWT.LEFT );
+    props.setLook( wlUseSSL );
+    wlUseSSL.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.UseSSL" ) );
+    FormData fdlUseSSL = new FormData();
+    fdlUseSSL.left = new FormAttachment( wUseSSL, 0 );
+    fdlUseSSL.top = new FormAttachment( wAuthenticationGroup, 15 );
+    wlUseSSL.setLayoutData( fdlUseSSL );
+
+    wlSSLProperties = new Label( wSecurityComp, SWT.LEFT );
+    wlSSLProperties.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.SSLProperties" ) );
+    props.setLook( wlSSLProperties );
+    FormData fdlSSLProperties = new FormData();
+    fdlSSLProperties.top = new FormAttachment( wUseSSL, 10 );
+    fdlSSLProperties.left = new FormAttachment( 0, 0 );
+    wlSSLProperties.setLayoutData( fdlSSLProperties );
+
+    buildSSLTable( wSecurityComp, wlSSLProperties );
+
+    FormData fdSecurityComp = new FormData();
+    fdSecurityComp.left = new FormAttachment( 0, 0 );
+    fdSecurityComp.top = new FormAttachment( 0, 0 );
+    fdSecurityComp.right = new FormAttachment( 100, 0 );
+    fdSecurityComp.bottom = new FormAttachment( 100, 0 );
+    wSecurityComp.setLayoutData( fdSecurityComp );
+    wSecurityComp.layout();
+    wSecurityTab.setControl( wSecurityComp );
+  }
+
+  private void buildSSLTable( Composite parentWidget, Control relativePosition ) {
+    ColumnInfo[] columns = getSSLColumns();
+
+    // TODO: Means of getting the SSL Config information
+    int fieldCount = 10;
+//    int fieldCount = consumerMeta.getSSLConfig().size();
+
+    sslTable = new TableView(
+      transMeta,
+      parentWidget,
+      SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI,
+      columns,
+      fieldCount,
+      false,
+      lsMod,
+      props,
+      false
+    );
+
+    sslTable.setSortable( false );
+    sslTable.getTable().addListener( SWT.Resize, event -> {
+      Table table = (Table) event.widget;
+      table.getColumn( 1 ).setWidth( 179 );
+      table.getColumn( 2 ).setWidth( 178 );
+    } );
+
+    populateSSLData();
+
+    FormData fdData = new FormData();
+    fdData.left = new FormAttachment( 0, 0 );
+    fdData.top = new FormAttachment( relativePosition, 5 );
+    fdData.bottom = new FormAttachment( 100, 0 );
+    fdData.width = INPUT_WIDTH + 10;
+
+    // resize the columns to fit the data in them
+    stream( sslTable.getTable().getColumns() ).forEach( column -> {
+      if ( column.getWidth() > 0 ) {
+        // don't pack anything with a 0 width, it will resize it to make it visible (like the index column)
+        column.setWidth( 120 );
+      }
+    } );
+
+    sslTable.setLayoutData( fdData );
+  }
+
+  private ColumnInfo[] getSSLColumns() {
+    ColumnInfo optionName = new ColumnInfo( BaseMessages.getString( PKG, "MQTTDialog.Security.SSL.Column.Name" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+
+    ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "MQTTDialog.Security.SSL.Column.Value" ),
+      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    value.setUsingVariables( true );
+
+    return new ColumnInfo[]{ optionName, value };
+  }
+
+  private void populateSSLData() {
+    // TODO: fill out with SSL table with property and values
+    int rowIndex = 0;
   }
 
   @Override protected String[] getFieldNames() {
