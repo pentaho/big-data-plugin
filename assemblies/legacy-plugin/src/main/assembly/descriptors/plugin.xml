@@ -45,7 +45,12 @@
             </outputFileNameMapping>
             <includes>
                 <include>org.apache.avro:avro</include>
-                <include>com.amazonaws:aws-java-sdk</include>
+                <include>joda-time:joda-time</include>
+                <include>com.amazonaws:aws-java-sdk-core</include>
+                <include>com.amazonaws:aws-java-sdk-iam</include>
+                <include>com.amazonaws:aws-java-sdk-emr</include>
+                <include>com.amazonaws:aws-java-sdk-s3</include>
+                <include>com.amazonaws:aws-java-sdk-pricing</include>
                 <include>org.eclipse.core:commands</include>
                 <include>org.eclipse.equinox:common</include>
                 <include>commons-cli:commons-cli</include>

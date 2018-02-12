@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,68 +22,52 @@
 
 package org.pentaho.amazon.emr.job;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.auth.StaticUserAuthenticator;
-import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
-import org.pentaho.amazon.AbstractAmazonJobEntry;
+import org.pentaho.amazon.AbstractAmazonJobExecutor;
 import org.pentaho.di.cluster.SlaveServer;
-import org.pentaho.di.core.Const;
-import org.pentaho.di.core.Result;
-import org.pentaho.di.core.ResultFile;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.logging.Log4jFileAppender;
-import org.pentaho.di.core.logging.LogWriter;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entries.hadoopjobexecutor.JarUtility;
-import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
-import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceClient;
-import com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsRequest;
-import com.amazonaws.services.elasticmapreduce.model.DescribeJobFlowsRequest;
-import com.amazonaws.services.elasticmapreduce.model.DescribeJobFlowsResult;
-import com.amazonaws.services.elasticmapreduce.model.HadoopJarStepConfig;
-import com.amazonaws.services.elasticmapreduce.model.JobFlowDetail;
-import com.amazonaws.services.elasticmapreduce.model.JobFlowInstancesConfig;
-import com.amazonaws.services.elasticmapreduce.model.RunJobFlowRequest;
-import com.amazonaws.services.elasticmapreduce.model.RunJobFlowResult;
-import com.amazonaws.services.elasticmapreduce.model.StepConfig;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-
 @JobEntry( id = "EMRJobExecutorPlugin", image = "EMR.svg", name = "EMRJobExecutorPlugin.Name",
-    description = "EMRJobExecutorPlugin.Description",
-    categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/Amazon+EMR+Job+Executor",
-    i18nPackageName = "org.pentaho.amazon.emr.job" )
-public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry implements Cloneable, JobEntryInterface {
+  description = "EMRJobExecutorPlugin.Description",
+  categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
+  documentationUrl = "http://wiki.pentaho.com/display/EAI/Amazon+EMR+Job+Executor",
+  i18nPackageName = "org.pentaho.amazon.emr.job" )
+public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor {
 
-  private static Class<?> PKG = AmazonElasticMapReduceJobExecutor.class; // for i18n purposes, needed by Translator2!!
-                                                                         // $NON-NLS-1$
+  private static Class<?> PKG = AmazonElasticMapReduceJobExecutor.class;
+  private static final String STEP_EMR = "emr";
+  private URL localFileUrl;
+
+  protected String jarUrl = "";
+
+  public String getJarUrl() {
+    return jarUrl;
+  }
+
+  public void setJarUrl( String jarUrl ) {
+    this.jarUrl = jarUrl;
+  }
 
   private JarUtility util = new JarUtility();
 
@@ -92,14 +76,14 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
 
   public String getMainClass( URL localJarUrl ) throws Exception {
     HadoopShim shim =
-        HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+      HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
 
     final Class<?> mainClass = util.getMainClassFromManifest( localJarUrl, shim.getClass().getClassLoader() );
     if ( mainClass != null ) {
       return mainClass.getName();
     } else {
       List<Class<?>> classesWithMains =
-          util.getClassesInJarWithMain( localJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
+        util.getClassesInJarWithMain( localJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
       if ( !classesWithMains.isEmpty() ) {
         return classesWithMains.get( 0 ).getName();
       }
@@ -107,272 +91,40 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     throw new RuntimeException( "Could not find main class in: " + localJarUrl.toExternalForm() );
   }
 
+  public boolean isAlive() {
+    return alive;
+  }
+
   @Override
-  public Result execute( Result result, int arg1 ) throws KettleException {
-    Log4jFileAppender appender = null;
-    String logFileName = "pdi-" + this.getName(); //$NON-NLS-1$
-    try {
-      appender = LogWriter.createFileAppender( logFileName, true, false );
-      LogWriter.getInstance().addAppender( appender );
-      log.setLogLevel( parentJob.getLogLevel() );
-    } catch ( Exception e ) {
-      logError( BaseMessages.getString( PKG,
-          "AmazonElasticMapReduceJobExecutor.FailedToOpenLogFile", logFileName, e.toString() ) ); //$NON-NLS-1$
-      logError( Const.getStackTracker( e ) );
-    }
-
-    try {
-      // create/connect aws service
-      AmazonElasticMapReduceClient emrClient = new AmazonElasticMapReduceClient( awsCredentials );
-
-      // pull down jar from vfs
-      FileObject jarFile = KettleVFS.getFileObject( buildFilename( jarUrl ) );
-      File tmpFile = File.createTempFile( "customEMR", "jar" );
-      tmpFile.deleteOnExit();
-      FileOutputStream tmpFileOut = new FileOutputStream( tmpFile );
-      IOUtils.copy( jarFile.getContent().getInputStream(), tmpFileOut );
-      URL localJarUrl = tmpFile.toURI().toURL();
-
-      // find main class in jar
-      String mainClass = getMainClass( localJarUrl );
-
-      // create staging bucket
-      AmazonS3 s3Client = new AmazonS3Client( awsCredentials );
-
-      FileSystemOptions opts = new FileSystemOptions();
-      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
-          new StaticUserAuthenticator( null, awsCredentials.getAWSAccessKeyId(), awsCredentials.getAWSSecretKey() ) );
-      FileObject stagingDirFileObject = KettleVFS.getFileObject( stagingDir, getVariables(), opts );
-
-      String stagingBucketName = stagingDirFileObject.getName().getBaseName();
-      if ( !s3Client.doesBucketExist( stagingBucketName ) ) {
-        s3Client.createBucket( stagingBucketName );
-      }
-
-      // delete old jar if needed
-      try {
-        s3Client.deleteObject( stagingBucketName, jarFile.getName().getBaseName() );
-      } catch ( Exception ex ) {
-        logError( Const.getStackTracker( ex ) );
-      }
-
-      // put jar in s3 staging bucket
-      s3Client.putObject( new PutObjectRequest( stagingBucketName, jarFile.getName().getBaseName(), tmpFile ) );
-      // create non-vfs s3 url to jar
-      String stagingS3JarUrl = "s3://" + stagingBucketName + "/" + jarFile.getName().getBaseName();
-      String stagingS3BucketUrl = "s3://" + stagingBucketName;
-
-      RunJobFlowRequest runJobFlowRequest = null;
-      RunJobFlowResult runJobFlowResult = null;
-      if ( StringUtil.isEmpty( hadoopJobFlowId ) ) {
-        // create EMR job flow
-        runJobFlowRequest = createJobFlow( stagingS3BucketUrl, stagingS3JarUrl, mainClass );
-        // start EMR job
-        runJobFlowResult = emrClient.runJobFlow( runJobFlowRequest );
-      } else {
-        List<String> jarStepArgs = new ArrayList<String>();
-        if ( !StringUtil.isEmpty( cmdLineArgs ) ) {
-          StringTokenizer st = new StringTokenizer( cmdLineArgs, " " );
-          while ( st.hasMoreTokens() ) {
-            String token = st.nextToken();
-            logBasic( "adding args: " + token );
-            jarStepArgs.add( token );
-          }
-        }
-
-        HadoopJarStepConfig hadoopJarStep = new HadoopJarStepConfig();
-        hadoopJarStep.setJar( stagingS3JarUrl );
-        hadoopJarStep.setMainClass( mainClass );
-        hadoopJarStep.setArgs( jarStepArgs );
-
-        StepConfig stepConfig = new StepConfig();
-        stepConfig.setName( "custom jar: " + jarUrl );
-        stepConfig.setHadoopJarStep( hadoopJarStep );
-
-        List<StepConfig> steps = new ArrayList<StepConfig>();
-        steps.add( stepConfig );
-
-        AddJobFlowStepsRequest addJobFlowStepsRequest = new AddJobFlowStepsRequest();
-        addJobFlowStepsRequest.setJobFlowId( hadoopJobFlowId );
-        addJobFlowStepsRequest.setSteps( steps );
-
-        emrClient.addJobFlowSteps( addJobFlowStepsRequest );
-      }
-
-      String loggingIntervalS = environmentSubstitute( loggingInterval );
-      int logIntv = 60;
-      try {
-        logIntv = Integer.parseInt( loggingIntervalS );
-      } catch ( NumberFormatException ex ) {
-        logError( "Unable to parse logging interval '" + loggingIntervalS + "' - using " + "default of 60" );
-      }
-
-      // monitor it / blocking / logging if desired
-      if ( blocking ) {
-        try {
-          if ( log.isBasic() ) {
-
-            String executionState = "RUNNING";
-
-            List<String> jobFlowIds = new ArrayList<String>();
-            String id = hadoopJobFlowId;
-            if ( StringUtil.isEmpty( hadoopJobFlowId ) ) {
-              id = runJobFlowResult.getJobFlowId();
-              jobFlowIds.add( id );
-            }
-
-            while ( isRunning( executionState ) ) {
-              DescribeJobFlowsRequest describeJobFlowsRequest = new DescribeJobFlowsRequest();
-              describeJobFlowsRequest.setJobFlowIds( jobFlowIds );
-
-              DescribeJobFlowsResult describeJobFlowsResult = emrClient.describeJobFlows( describeJobFlowsRequest );
-              boolean found = false;
-              for ( JobFlowDetail jobFlowDetail : describeJobFlowsResult.getJobFlows() ) {
-                if ( jobFlowDetail.getJobFlowId().equals( id ) ) {
-                  executionState = jobFlowDetail.getExecutionStatusDetail().getState();
-                  found = true;
-                }
-              }
-
-              if ( !found ) {
-                break;
-              }
-              // logBasic(BaseMessages.getString(PKG, "AmazonElasticMapReduceJobExecutor.RunningPercent", setupPercent,
-              // mapPercent, reducePercent));
-              logBasic( hadoopJobName + " execution status: " + executionState );
-              try {
-                if ( isRunning( executionState ) ) {
-                  Thread.sleep( logIntv * 1000 );
-                }
-              } catch ( InterruptedException ie ) {
-                // Ignore
-              }
-            }
-
-            if ( "FAILED".equalsIgnoreCase( executionState ) ) {
-              result.setStopped( true );
-              result.setNrErrors( 1 );
-              result.setResult( false );
-
-              S3Object outObject = s3Client.getObject( stagingBucketName, id + "/steps/1/stdout" );
-              ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-              IOUtils.copy( outObject.getObjectContent(), outStream );
-              logError( outStream.toString() );
-
-              S3Object errorObject = s3Client.getObject( stagingBucketName, id + "/steps/1/stderr" );
-              ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-              IOUtils.copy( errorObject.getObjectContent(), errorStream );
-              logError( errorStream.toString() );
-            }
-          }
-        } catch ( Exception e ) {
-          logError( e.getMessage(), e );
-        }
-      }
-
-    } catch ( Throwable t ) {
-      t.printStackTrace();
-      result.setStopped( true );
-      result.setNrErrors( 1 );
-      result.setResult( false );
-      logError( t.getMessage(), t );
-    }
-
-    if ( appender != null ) {
-      LogWriter.getInstance().removeAppender( appender );
-      appender.close();
-
-      ResultFile resultFile =
-          new ResultFile( ResultFile.FILE_TYPE_LOG, appender.getFile(), parentJob.getJobname(), getName() );
-      result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
-    }
-
-    return result;
+  public File createStagingFile() throws IOException, KettleException {
+    // pull down .jar file from VSF
+    FileObject jarFile = KettleVFS.getFileObject( buildFilename( jarUrl ) );
+    File tmpFile = File.createTempFile( "customEMR", "jar" );
+    tmpFile.deleteOnExit();
+    FileOutputStream tmpFileOut = new FileOutputStream( tmpFile );
+    IOUtils.copy( jarFile.getContent().getInputStream(), tmpFileOut );
+    localFileUrl = tmpFile.toURI().toURL();
+    setS3BucketKey( jarFile );
+    return tmpFile;
   }
 
-  public RunJobFlowRequest createJobFlow( String stagingS3BucketUrl, String stagingS3Jar, String mainClass ) {
-    List<String> jarStepArgs = new ArrayList<String>();
-    if ( !StringUtil.isEmpty( cmdLineArgs ) ) {
-      StringTokenizer st = new StringTokenizer( cmdLineArgs, " " );
-      while ( st.hasMoreTokens() ) {
-        String token = st.nextToken();
-        logBasic( "adding args: " + token );
-        jarStepArgs.add( token );
-      }
-    }
-
-    HadoopJarStepConfig hadoopJarStep = new HadoopJarStepConfig();
-    hadoopJarStep.setJar( stagingS3Jar );
-    hadoopJarStep.setMainClass( mainClass );
-    hadoopJarStep.setArgs( jarStepArgs );
-
-    StepConfig stepConfig = new StepConfig();
-    stepConfig.setName( "custom jar: " + jarUrl );
-    stepConfig.setHadoopJarStep( hadoopJarStep );
-
-    List<StepConfig> steps = new ArrayList<StepConfig>();
-    steps.add( stepConfig );
-
-    String numInstancesS = environmentSubstitute( numInstances );
-    int numInsts = 2;
-    try {
-      numInsts = Integer.parseInt( numInstancesS );
-    } catch ( NumberFormatException e ) {
-      logError( "Unable to parse number of instances to use '" + numInstancesS + "' - " + "using 2 instances..." );
-    }
-    JobFlowInstancesConfig instances = new JobFlowInstancesConfig();
-    instances.setInstanceCount( numInsts );
-    instances.setMasterInstanceType( getInstanceType( masterInstanceType ) );
-    instances.setSlaveInstanceType( getInstanceType( slaveInstanceType ) );
-    instances.setHadoopVersion( "0.20" );
-
-    RunJobFlowRequest runJobFlowRequest = new RunJobFlowRequest();
-    runJobFlowRequest.setSteps( steps );
-    runJobFlowRequest.setLogUri( stagingS3BucketUrl );
-    runJobFlowRequest.setName( hadoopJobName );
-    runJobFlowRequest.setInstances( instances );
-
-    // ScriptBootstrapActionConfig scriptBootstrapAction = new ScriptBootstrapActionConfig();
-    // scriptBootstrapAction.setPath("s3://mddwordcount/bootstrap.sh");
-    // List<String> bootstrapArgs = new ArrayList<String>();
-    // bootstrapArgs.add("http://pdi-node-dist.s3.amazonaws.com");
-    // //
-    // bootstrapArgs.add(
-    //   "http://ci.pentaho.com/view/Data%20Integration/job/Kettle/lastSuccessfulBuild/artifact/Kettle/");
-    // bootstrapArgs.add("pdi-hadoop-node-TRUNK-SNAPSHOT.zip");
-    // scriptBootstrapAction.setArgs(bootstrapArgs);
-    // BootstrapActionConfig bootstrapActionConfig = new BootstrapActionConfig();
-    // bootstrapActionConfig.setName("mdd bootstrap");
-    // bootstrapActionConfig.setScriptBootstrapAction(scriptBootstrapAction);
-    // List<BootstrapActionConfig> bootstrapActions = new ArrayList<BootstrapActionConfig>();
-    // bootstrapActions.add(bootstrapActionConfig);
-    // runJobFlowRequest.setBootstrapActions(bootstrapActions);
-
-    return runJobFlowRequest;
+  @Override
+  public String getStepBootstrapActions() {
+    return null;
   }
 
-  public static String getInstanceType( String unparsedInstanceType ) {
-    return unparsedInstanceType.substring( unparsedInstanceType.lastIndexOf( "[" ) + 1, unparsedInstanceType
-        .lastIndexOf( "]" ) );
+  @Override
+  public String getMainClass() throws Exception {
+    return getMainClass( localFileUrl );
   }
 
-  public static boolean isRunning( String state ) {
-    // * <b>Pattern: </b>COMPLETED|FAILED|TERMINATED|RUNNING|SHUTTING_DOWN|STARTING|WAITING|BOOTSTRAPPING<br/>
-    if ( "COMPLETED".equalsIgnoreCase( state ) ) {
-      return false;
-    }
-    if ( "FAILED".equalsIgnoreCase( state ) ) {
-      return false;
-    }
-    if ( "TERMINATED".equalsIgnoreCase( state ) ) {
-      return false;
-    }
-    return true;
+  public String getStepType() {
+    return STEP_EMR;
   }
 
   @Override
   public void loadXML( Node entrynode, List<DatabaseMeta> databases, List<SlaveServer> slaveServers,
-      Repository rep, IMetaStore metaStore )
+                       Repository rep, IMetaStore metaStore )
     throws KettleXMLException {
     super.loadXML( entrynode, databases, slaveServers );
     hadoopJobName = XMLHandler.getTagValue( entrynode, "hadoop_job_name" );
@@ -381,17 +133,16 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, "access_key" ) );
     secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, "secret_key" ) );
     stagingDir = XMLHandler.getTagValue( entrynode, "staging_dir" );
-    // numInstances = Integer.parseInt(XMLHandler.getTagValue(entrynode, "num_instances"));
-    numInstances = XMLHandler.getTagValue( entrynode, "num_instances" );
+    region = XMLHandler.getTagValue( entrynode, "region" );
+    ec2Role = XMLHandler.getTagValue( entrynode, "ec2_role" );
+    emrRole = XMLHandler.getTagValue( entrynode, "emr_role" );
     masterInstanceType = XMLHandler.getTagValue( entrynode, "master_instance_type" );
     slaveInstanceType = XMLHandler.getTagValue( entrynode, "slave_instance_type" );
-
+    numInstances = XMLHandler.getTagValue( entrynode, "num_instances" );
+    emrRelease = XMLHandler.getTagValue( entrynode, "emr_release" );
     cmdLineArgs = XMLHandler.getTagValue( entrynode, "command_line_args" );
+    alive = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "alive" ) );
     blocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "blocking" ) );
-    /*
-     * try { loggingInterval = Integer.parseInt(XMLHandler.getTagValue(entrynode, "logging_interval")); } catch
-     * (NumberFormatException nfe) { }
-     */
     loggingInterval = XMLHandler.getTagValue( entrynode, "logging_interval" );
   }
 
@@ -401,52 +152,56 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     retval.append( super.getXML() );
     retval.append( "      " ).append( XMLHandler.addTagValue( "hadoop_job_name", hadoopJobName ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "hadoop_job_flow_id", hadoopJobFlowId ) );
-
     retval.append( "      " ).append( XMLHandler.addTagValue( "jar_url", jarUrl ) );
-    retval.append( "      " ).append(
-        XMLHandler.addTagValue( "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
-    retval.append( "      " ).append(
-        XMLHandler.addTagValue( "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "staging_dir", stagingDir ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "num_instances", numInstances ) );
+    retval.append( "      " )
+      .append( XMLHandler.addTagValue( "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
+    retval.append( "      " )
+      .append( XMLHandler.addTagValue( "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "region", region ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "ec2_role", ec2Role ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "emr_role", emrRole ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "master_instance_type", masterInstanceType ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "slave_instance_type", slaveInstanceType ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "emr_release", emrRelease ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "num_instances", numInstances ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "staging_dir", stagingDir ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "command_line_args", cmdLineArgs ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "alive", alive ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "logging_interval", loggingInterval ) );
-    retval.append( "      " ).append( XMLHandler.addTagValue( "hadoop_job_name", hadoopJobName ) );
 
     return retval.toString();
   }
 
   @Override
   public void loadRep( Repository rep, IMetaStore metaStore, ObjectId id_jobentry, List<DatabaseMeta> databases,
-      List<SlaveServer> slaveServers ) throws KettleException {
+                       List<SlaveServer> slaveServers ) throws KettleException {
     if ( rep != null ) {
       super.loadRep( rep, metaStore, id_jobentry, databases, slaveServers );
 
       setHadoopJobName( rep.getJobEntryAttributeString( id_jobentry, "hadoop_job_name" ) );
       setHadoopJobFlowId( rep.getJobEntryAttributeString( id_jobentry, "hadoop_job_flow_id" ) );
-
       setJarUrl( rep.getJobEntryAttributeString( id_jobentry, "jar_url" ) );
       setAccessKey( Encr
-          .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, "access_key" ) ) );
+        .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, "access_key" ) ) );
       setSecretKey( Encr
-          .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, "secret_key" ) ) );
+        .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, "secret_key" ) ) );
       setStagingDir( rep.getJobEntryAttributeString( id_jobentry, "staging_dir" ) );
-
-      // setNumInstances(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "num_instances")).intValue());
-      setNumInstances( rep.getJobEntryAttributeString( id_jobentry, "num_instances" ) );
+      setRegion( rep.getJobEntryAttributeString( id_jobentry, "region" ) );
+      setEc2Role( rep.getJobEntryAttributeString( id_jobentry, "ec2_role" ) );
+      setEmrRole( rep.getJobEntryAttributeString( id_jobentry, "emr_role" ) );
       setMasterInstanceType( rep.getJobEntryAttributeString( id_jobentry, "master_instance_type" ) );
       setSlaveInstanceType( rep.getJobEntryAttributeString( id_jobentry, "slave_instance_type" ) );
-
+      setEmrRelease( rep.getJobEntryAttributeString( id_jobentry, "emr_release" ) );
+      setNumInstances( rep.getJobEntryAttributeString( id_jobentry, "num_instances" ) );
       setCmdLineArgs( rep.getJobEntryAttributeString( id_jobentry, "command_line_args" ) );
+      setAlive( rep.getJobEntryAttributeBoolean( id_jobentry, "alive" ) );
       setBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "blocking" ) );
-      // setLoggingInterval(new Long(rep.getJobEntryAttributeInteger(id_jobentry, "logging_interval")).intValue());
       setLoggingInterval( rep.getJobEntryAttributeString( id_jobentry, "logging_interval" ) );
 
     } else {
-      throw new KettleException( "Unable to save to a repository. The repository is null." ); //$NON-NLS-1$
+      throw new KettleException( BaseMessages.getString( PKG,
+        "AmazonElasticMapReduceJobExecutor.LoadFromRepository.Error" ) );
     }
   }
 
@@ -455,24 +210,29 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     if ( rep != null ) {
       super.saveRep( rep, metaStore, id_job );
 
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_name", hadoopJobName ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_flow_id", hadoopJobFlowId ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "jar_url", jarUrl ); //$NON-NLS-1$
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_name", hadoopJobName );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "hadoop_job_flow_id", hadoopJobFlowId );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "jar_url", jarUrl );
       rep.saveJobEntryAttribute( id_job, getObjectId(),
-          "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) ); //$NON-NLS-1$
+        "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) );
       rep.saveJobEntryAttribute( id_job, getObjectId(),
-          "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "staging_dir", stagingDir ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "num_instances", numInstances ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "master_instance_type", masterInstanceType ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "slave_instance_type", slaveInstanceType ); //$NON-NLS-1$
-
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking ); //$NON-NLS-1$
-      rep.saveJobEntryAttribute( id_job, getObjectId(), "logging_interval", loggingInterval ); //$NON-NLS-1$
+        "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "staging_dir", stagingDir );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "region", region );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "ec2_role", ec2Role );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "emr_role", emrRole );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "master_instance_type", masterInstanceType );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "slave_instance_type", slaveInstanceType );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "emr_release", emrRelease );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "num_instances", numInstances );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "alive", alive );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "logging_interval", loggingInterval );
 
     } else {
-      throw new KettleException( "Unable to save to a repository. The repository is null." ); //$NON-NLS-1$
+      throw new KettleException(
+        BaseMessages.getString( PKG, "AmazonElasticMapReduceJobExecutor.SaveToRepository.Error" ) );
     }
   }
 
@@ -498,5 +258,4 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobEntry im
     className += "Dialog";
     return className;
   }
-
 }
