@@ -131,7 +131,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     FormData fdQOS = new FormData();
     fdQOS.left = new FormAttachment( 0, 0 );
     fdQOS.bottom = new FormAttachment( 100, 0 );
-    fdQOS.width = 95;
+    fdQOS.width = 135;
     wQOS.setLayoutData( fdQOS );
     wQOS.add( "0" );
     wQOS.add( "1" );
