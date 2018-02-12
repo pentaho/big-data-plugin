@@ -117,21 +117,21 @@ public class AvroOutput extends BaseStep implements StepInterface {
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
-
+    TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
     data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
-    data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+    data.output.setOutputFile( parentTransMeta.environmentSubstitute( meta.getFilename() ) );
     data.output.setFields( meta.getOutputFields() );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
-      compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+      compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( parentTransMeta.environmentSubstitute( meta.getCompressionType() ).toUpperCase() );
     } catch ( Exception ex ) {
       compression = IPentahoAvroOutputFormat.COMPRESSION.UNCOMPRESSED;
     }
     data.output.setCompression( compression );
-    data.output.setNameSpace( meta.getNamespace() );
-    data.output.setRecordName( meta.getRecordName() );
-    data.output.setDocValue( meta.getDocValue() );
-    data.output.setSchemaFilename( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
+    data.output.setNameSpace( parentTransMeta.environmentSubstitute( meta.getNamespace() ) );
+    data.output.setRecordName( parentTransMeta.environmentSubstitute( meta.getRecordName() ) );
+    data.output.setDocValue( parentTransMeta.environmentSubstitute( meta.getDocValue() ) );
+    data.output.setSchemaFilename( parentTransMeta.environmentSubstitute( meta.getSchemaFilename() ) );
     data.writer = data.output.createRecordWriter();
   }
 
