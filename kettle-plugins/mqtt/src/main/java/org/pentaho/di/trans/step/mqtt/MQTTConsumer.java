@@ -25,7 +25,6 @@ package org.pentaho.di.trans.step.mqtt;
 import com.google.common.base.Preconditions;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowMeta;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -66,19 +65,7 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
       logger.error( getString( PKG, "MQTTInput.Error.FailureGettingFields" ), e );
     }
     window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
-    try {
-      source = MQTTStreamSource.builder()
-        .withBroker( mqttConsumerMeta.getMqttServer() )
-        .withTopics( mqttConsumerMeta.getTopics() )
-        .withQos( mqttConsumerMeta.getQos() )
-        .withVariables( this )
-        .withBaseStep( this )
-        .build();
-    } catch ( NumberFormatException e ) {
-      log.logError(
-        BaseMessages.getString( PKG, "MQTTConsumer.Error.QOS", environmentSubstitute( mqttConsumerMeta.getQos() ) ) );
-      return false;
-    }
+    source = new MQTTStreamSource( mqttConsumerMeta, this );
     return init;
   }
 
