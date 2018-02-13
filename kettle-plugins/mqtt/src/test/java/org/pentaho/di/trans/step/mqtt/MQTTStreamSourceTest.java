@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.trans.streaming.api.StreamSource;
 
 import java.io.IOException;
@@ -50,6 +51,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static junit.framework.TestCase.assertTrue;
@@ -58,6 +60,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith ( MockitoJUnitRunner.class )
 public class MQTTStreamSourceTest {
@@ -68,6 +73,8 @@ public class MQTTStreamSourceTest {
   private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
   @Mock MQTTConsumer mqttConsumer;
+  @Mock MQTTConsumerMeta consumerMeta;
+  @Mock LogChannelInterface logger;
 
 
   @Before
@@ -79,6 +86,14 @@ public class MQTTStreamSourceTest {
     brokerService.addConnector( "mqtt://localhost:" + port );
     brokerService.start();
     brokerService.waitUntilStarted();
+    when( consumerMeta.getQos() ).thenReturn( "2" );
+    when( consumerMeta.getMqttServer() ).thenReturn( "127.0.0.1:" + port );
+    when( consumerMeta.getTopics() ).thenReturn( singletonList( "mytopic" ) );
+    when( mqttConsumer.environmentSubstitute( anyString() ) )
+      .thenAnswer( answer -> answer.getArguments()[ 0 ] );
+    when( mqttConsumer.environmentSubstitute( any( String[].class ) ) )
+      .thenAnswer( answer -> answer.getArguments()[ 0 ] );
+    when( mqttConsumer.getLogChannel() ).thenReturn( logger );
   }
 
   @After
@@ -89,13 +104,7 @@ public class MQTTStreamSourceTest {
 
   @Test
   public void testMqttStreamSingleTopic() throws Exception {
-    StreamSource<List<Object>> source =
-      MQTTStreamSource.builder()
-        .withQos( "2" )
-        .withBaseStep( mqttConsumer )
-        .withBroker( "127.0.0.1:" + port )
-        .withTopics( singletonList( "mytopic" ) )
-        .build();
+    StreamSource<List<Object>> source = new MQTTStreamSource( consumerMeta, mqttConsumer );
     source.open();
 
     final String[] messages = { "foo", "bar", "baz" };
@@ -109,13 +118,9 @@ public class MQTTStreamSourceTest {
 
   @Test
   public void multipleTopics() throws MqttException, InterruptedException {
-    StreamSource<List<Object>> source =
-      MQTTStreamSource.builder()
-      .withQos( "2" )
-      .withBaseStep( mqttConsumer )
-      .withBroker( "127.0.0.1:" + port )
-      .withTopics( Arrays.asList( "mytopic-1", "vermilion.minotaur", "nosuchtopic" ) )
-      .build();
+    when( consumerMeta.getTopics() ).thenReturn(
+      Arrays.asList( "mytopic-1", "vermilion.minotaur", "nosuchtopic" ) );
+    StreamSource<List<Object>> source = new MQTTStreamSource( consumerMeta, mqttConsumer );
     source.open();
 
     String[] topic1Messages = { "foo", "bar", "baz" };
@@ -141,26 +146,14 @@ public class MQTTStreamSourceTest {
   @Test
   public void servernameCheck() {
     // valid server:port
-    StreamSource<List<Object>> source =
-      MQTTStreamSource.builder()
-        .withQos( "2" )
-        .withBaseStep( mqttConsumer )
-        .withBroker( "127.0.0.1:" + port )
-        .withTopics( singletonList( "mytopic" ) )
-        .build();
+    StreamSource<List<Object>> source = new MQTTStreamSource( consumerMeta, mqttConsumer );
 
     source.open();
     source.close();
 
+    when( consumerMeta.getMqttServer() ).thenReturn( "tcp:/127.0.0.1:" + port );
     //invalid tcp://server/port
     try {
-      source =
-        MQTTStreamSource.builder()
-          .withQos( "2" )
-          .withBaseStep( mqttConsumer )
-          .withBroker( "tcp://127.0.0.1:" + port )
-          .withTopics( singletonList( "mytopic" ) )
-          .build();
       source.open();
       fail( "Expected exception." );
     } catch ( Exception e ) {
@@ -170,22 +163,10 @@ public class MQTTStreamSourceTest {
 
   @Test
   public void clientIdNotReused() {
-    MQTTStreamSource source1 =
-      MQTTStreamSource.builder()
-        .withQos( "2" )
-        .withBaseStep( mqttConsumer )
-        .withBroker( "127.0.0.1:" + port )
-        .withTopics( singletonList( "mytopic" ) )
-        .build();
+    MQTTStreamSource source1 = new MQTTStreamSource( consumerMeta, mqttConsumer );
     source1.open();
 
-    MQTTStreamSource source2 =
-      MQTTStreamSource.builder()
-        .withQos( "2" )
-        .withBaseStep( mqttConsumer )
-        .withBroker( "127.0.0.1:" + port )
-        .withTopics( singletonList( "mytopic" ) )
-        .build();
+    MQTTStreamSource source2 = new MQTTStreamSource( consumerMeta, mqttConsumer );
     source2.open();
 
     assertThat( source1.mqttClient.getClientId(), not( equalTo( source2.mqttClient.getClientId() ) ) );
@@ -219,9 +200,10 @@ public class MQTTStreamSourceTest {
         new MemoryPersistence() );
       pub.connect();
       for ( String msg : messages ) {
-        pub.publish( topic, new MqttMessage( msg.getBytes() ) );
+        pub.publish( topic, new MqttMessage( msg.getBytes( defaultCharset() ) ) );
       }
     } finally {
+      assert pub != null;
       pub.disconnect();
       pub.close();
     }

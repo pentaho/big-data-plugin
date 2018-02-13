@@ -36,16 +36,13 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -93,17 +90,5 @@ public class MQTTConsumerTest {
     }
   }
 
-  @Test
-  public void testFailParsingQOSLevel() {
-    trans.setVariable( "qos", "hello" );
-    try {
-      trans.prepareExecution( new String[] {} );
-      fail( "Should of failed initialization." );
-    } catch ( KettleException e ) {
-      // Initialization failed because QOS level isn't 0, 1 or 2
-      assertTrue( e.getMessage().contains( BaseMessages.getString( Trans.class, "Trans.Log.FailToInitializeAtLeastOneStep" ) ) );
-    }
 
-    verify( logChannel ).logError( BaseMessages.getString( MQTTConsumer.class, "MQTTConsumer.Error.QOS", "hello" ) );
-  }
 }

@@ -22,10 +22,8 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.i18n.BaseMessages;
@@ -93,21 +91,24 @@ public class MQTTProducer extends BaseStep implements StepInterface {
       data.messageFieldIndex = getInputRowMeta().indexOfValue( environmentSubstitute( meta.getMessageField() ) );
       try {
         data.mqttClient =
-          new MqttClient( PROTOCOL + environmentSubstitute( meta.getMqttServer() ),
-            environmentSubstitute( meta.getClientId() ), new MemoryPersistence() );
-        data.mqttClient.connect();
+          MQTTClientBuilder.builder()
+            .withBroker( meta.getMqttServer() )
+            .withStep( this )
+            .withClientId( meta.getClientId() )
+            .buildAndConnect();
       } catch ( MqttException e ) {
         logError( e.getMessage(), e );
       }
 
-      first  = false;
+      first = false;
     }
 
     MqttMessage mqttMessage = new MqttMessage();
     try {
       mqttMessage.setQos( Integer.parseInt( environmentSubstitute( meta.getQOS() ) ) );
     } catch ( NumberFormatException e ) {
-      throw new KettleStepException( BaseMessages.getString( PKG, "MQTTProducer.Error.QOS", environmentSubstitute( meta.getQOS() ) ) );
+      throw new KettleStepException(
+        BaseMessages.getString( PKG, "MQTTProducer.Error.QOS", environmentSubstitute( meta.getQOS() ) ) );
     }
     mqttMessage.setPayload( ( row[ data.messageFieldIndex ] ).toString().getBytes() );
 
