@@ -1,23 +1,18 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p>
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * <p>
+ * ******************************************************************************
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.hbase.input;
@@ -94,12 +89,14 @@ import java.util.Set;
 
 /**
  * Dialog class for HBaseInput
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterface, ConfigurationProducer {
 
-  /** various UI bits and pieces for the dialog */
+  /**
+   * various UI bits and pieces for the dialog
+   */
   private Label m_stepnameLabel;
   private Text m_stepnameText;
 
@@ -133,7 +130,9 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   private Button m_mappingNamesBut;
   private CCombo m_mappingNamesCombo;
 
-  /** Store the mapping information in the step's meta data */
+  /**
+   * Store the mapping information in the step's meta data
+   */
   private Button m_storeMappingInStepMetaData;
 
   // Key start line
@@ -266,7 +265,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLab.setLayoutData( fd );
 
-    namedClusterWidget = new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
+    namedClusterWidget =
+      new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     fd = new FormData();
@@ -301,18 +301,18 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         String[] extensions = null;
         String[] filterNames = null;
 
-        extensions = new String[2];
-        filterNames = new String[2];
-        extensions[0] = "*.xml";
-        filterNames[0] = Messages.getString( "HBaseInputDialog.FileType.XML" );
-        extensions[1] = "*";
-        filterNames[1] = Messages.getString( "System.FileType.AllFiles" );
+        extensions = new String[ 2 ];
+        filterNames = new String[ 2 ];
+        extensions[ 0 ] = "*.xml";
+        filterNames[ 0 ] = Messages.getString( "HBaseInputDialog.FileType.XML" );
+        extensions[ 1 ] = "*";
+        filterNames[ 1 ] = Messages.getString( "System.FileType.AllFiles" );
 
         dialog.setFilterExtensions( extensions );
 
         if ( dialog.open() != null ) {
           m_coreConfigText.setText( dialog.getFilterPath() + System.getProperty( "file.separator" )
-              + dialog.getFileName() );
+            + dialog.getFileName() );
         }
 
       }
@@ -360,18 +360,18 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         String[] extensions = null;
         String[] filterNames = null;
 
-        extensions = new String[2];
-        filterNames = new String[2];
-        extensions[0] = "*.xml";
-        filterNames[0] = Messages.getString( "HBaseInputDialog.FileType.XML" );
-        extensions[1] = "*";
-        filterNames[1] = Messages.getString( "System.FileType.AllFiles" );
+        extensions = new String[ 2 ];
+        filterNames = new String[ 2 ];
+        extensions[ 0 ] = "*.xml";
+        filterNames[ 0 ] = Messages.getString( "HBaseInputDialog.FileType.XML" );
+        extensions[ 1 ] = "*";
+        filterNames[ 1 ] = Messages.getString( "System.FileType.AllFiles" );
 
         dialog.setFilterExtensions( extensions );
 
         if ( dialog.open() != null ) {
           m_defaultConfigText.setText( dialog.getFilterPath() + System.getProperty( "file.separator" )
-              + dialog.getFileName() );
+            + dialog.getFileName() );
         }
 
       }
@@ -483,7 +483,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     Label storeMapping = new Label( wConfigComp, SWT.RIGHT );
     storeMapping.setText( BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.StoreMapping.Label" ) );
     storeMapping.setToolTipText(
-        BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.StoreMapping.TipText" ) );
+      BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.StoreMapping.TipText" ) );
     props.setLook( storeMapping );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -597,30 +597,30 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
     // fields stuff
     ColumnInfo[] colinf =
-        new ColumnInfo[] {
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_NAME" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FORMAT" ), ColumnInfo.COLUMN_TYPE_FORMAT,
-              3 ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ), };
+      new ColumnInfo[] {
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_NAME" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FORMAT" ), ColumnInfo.COLUMN_TYPE_FORMAT,
+          3 ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ), };
 
-    colinf[0].setReadOnly( true );
-    colinf[1].setReadOnly( true );
-    colinf[2].setReadOnly( true );
-    colinf[3].setReadOnly( true );
-    colinf[4].setReadOnly( true );
-    colinf[5].setReadOnly( true );
+    colinf[ 0 ].setReadOnly( true );
+    colinf[ 1 ].setReadOnly( true );
+    colinf[ 2 ].setReadOnly( true );
+    colinf[ 3 ].setReadOnly( true );
+    colinf[ 4 ].setReadOnly( true );
+    colinf[ 5 ].setReadOnly( true );
 
-    colinf[5].setComboValuesSelectionListener( new ComboValuesSelectionListener() {
+    colinf[ 5 ].setComboValuesSelectionListener( new ComboValuesSelectionListener() {
 
       public String[] getComboValues( TableItem tableItem, int rowNr, int colNr ) {
         String[] comboValues = new String[] {};
@@ -727,36 +727,36 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     m_matchAllBut.setSelection( true );
 
     final ColumnInfo[] colinf2 =
-        new ColumnInfo[] {
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_ALIAS" ) + "     ",
-              ColumnInfo.COLUMN_TYPE_CCOMBO, false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_OPERATOR" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_COMPARISON" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_FORMAT" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
-              false ),
-          new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_SIGNED" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
-              false ), };
+      new ColumnInfo[] {
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_ALIAS" ) + "     ",
+          ColumnInfo.COLUMN_TYPE_CCOMBO, false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_TEXT,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_OPERATOR" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_COMPARISON" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_FORMAT" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+          false ),
+        new ColumnInfo( Messages.getString( "HBaseInputDialog.Filters.FIELD_SIGNED" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+          false ), };
 
-    colinf2[0].setReadOnly( false );
-    colinf2[1].setReadOnly( false );
-    colinf2[2].setReadOnly( true );
-    colinf2[3].setReadOnly( false );
-    colinf2[4].setReadOnly( false );
-    colinf2[5].setReadOnly( true );
+    colinf2[ 0 ].setReadOnly( false );
+    colinf2[ 1 ].setReadOnly( false );
+    colinf2[ 2 ].setReadOnly( true );
+    colinf2[ 3 ].setReadOnly( false );
+    colinf2[ 4 ].setReadOnly( false );
+    colinf2[ 5 ].setReadOnly( true );
 
-    m_filterAliasCI = colinf2[0];
+    m_filterAliasCI = colinf2[ 0 ];
     m_filterAliasCI.setComboValues( new String[] { "" } );
-    colinf2[2].setComboValues( ColumnFilter.ComparisonType.getAllOperators() );
-    colinf2[5].setComboValues( new String[] { "Y", "N" } );
+    colinf2[ 2 ].setComboValues( ColumnFilter.ComparisonType.getAllOperators() );
+    colinf2[ 5 ].setComboValues( new String[] { "Y", "N" } );
 
-    colinf2[2].setComboValuesSelectionListener( new ComboValuesSelectionListener() {
+    colinf2[ 2 ].setComboValuesSelectionListener( new ComboValuesSelectionListener() {
 
       public String[] getComboValues( TableItem tableItem, int rowNr, int colNr ) {
-        String[] comboValues = colinf2[2].getComboValues();
+        String[] comboValues = colinf2[ 2 ].getComboValues();
 
         // try to fill in the type
         String alias = tableItem.getText( 1 );
@@ -771,8 +771,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
           } else if ( vm.isString() ) {
             comboValues = ColumnFilter.ComparisonType.getStringOperators();
           } else {
-            comboValues = new String[1];
-            comboValues[0] = "";
+            comboValues = new String[ 1 ];
+            comboValues[ 0 ] = "";
           }
         } else {
           // if we've not got a connection, or there is no user-specified
@@ -785,7 +785,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
       }
     } );
 
-    colinf2[4].setComboValuesSelectionListener( new ComboValuesSelectionListener() {
+    colinf2[ 4 ].setComboValuesSelectionListener( new ComboValuesSelectionListener() {
       public String[] getComboValues( TableItem tableItem, int rowNr, int colNr ) {
         String[] comboValues = new String[] {};
 
@@ -806,11 +806,11 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             break;
           default:
             break;
-        // if there is not type information available (no connection and no
-        // user-specified
-        // columns in the meta class) then the user will just have to type
-        // in their own
-        // formatting string (if necessary)
+          // if there is not type information available (no connection and no
+          // user-specified
+          // columns in the meta class) then the user will just have to type
+          // in their own
+          // formatting string (if necessary)
         }
         return comboValues;
       }
@@ -892,8 +892,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     ServiceStatus serviceStatus = m_currentMeta.getServiceStatus();
     if ( !serviceStatus.isOk() ) {
       new ErrorDialog( shell, Messages.getString( "Dialog.Error" ),
-              Messages.getString( "HBaseInput.Error.ServiceStatus" ),
-              serviceStatus.getException() );
+        Messages.getString( "HBaseInput.Error.ServiceStatus" ),
+        serviceStatus.getException() );
     }
 
     shell.open();
@@ -1085,11 +1085,13 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             p.append( s ).append( "\n" );
           }
           MessageDialog md =
-              new MessageDialog( shell, BaseMessages.getString( HBaseInputMeta.PKG,
-                  "HBaseInputDialog.Error.IssuesWithMapping.Title" ), null, BaseMessages.getString( HBaseInputMeta.PKG,
-                    "HBaseInputDialog.Error.IssuesWithMapping" ) + ":\n\n" + p.toString(), MessageDialog.WARNING,
-                  new String[] { BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonOK" ),
-                      BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
+            new MessageDialog( shell, BaseMessages.getString( HBaseInputMeta.PKG,
+              "HBaseInputDialog.Error.IssuesWithMapping.Title" ), null, BaseMessages.getString( HBaseInputMeta.PKG,
+              "HBaseInputDialog.Error.IssuesWithMapping" ) + ":\n\n" + p.toString(), MessageDialog.WARNING,
+              new String[] {
+                BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonOK" ),
+                BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonCancel" ) },
+              0 );
           MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
           int idx = md.open() & 0xFF;
           if ( idx == 1 || idx == 255 /* 255 = escape pressed */ ) {
@@ -1103,21 +1105,21 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
           connection = getHBaseConnection();
           MappingAdmin admin = new MappingAdmin( connection );
           Mapping current =
-              admin.getMapping( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ), transMeta
-                  .environmentSubstitute( m_mappingNamesCombo.getText() ) );
+            admin.getMapping( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ), transMeta
+              .environmentSubstitute( m_mappingNamesCombo.getText() ) );
 
           m_currentMeta.setMapping( current );
           m_currentMeta.setSourceMappingName( "" );
         } catch ( Exception e ) {
           logError( Messages.getString( "HBaseInputDialog.ErrorMessage.UnableToGetMapping" )
-              + " \""
-              + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
-                  + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
+            + " \""
+            + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
+            + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
           new ErrorDialog( shell, Messages.getString( "HBaseInputDialog.ErrorMessage.UnableToGetMapping" ), Messages
-              .getString( "HBaseInputDialog.ErrorMessage.UnableToGetMapping" )
-              + " \""
-              + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
-                  + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
+            .getString( "HBaseInputDialog.ErrorMessage.UnableToGetMapping" )
+            + " \""
+            + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
+            + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
         } finally {
           if ( connection != null ) {
             try {
@@ -1251,7 +1253,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
 
     if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
       throw new IOException( BaseMessages.getString( HBaseInputMeta.PKG,
-          "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
+        "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
     }
     return hBaseService.getHBaseConnection( transMeta, coreConf, defaultConf, null );
   }
@@ -1265,7 +1267,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     }
 
     boolean displayFieldsEmbeddedMapping =
-      ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
+      ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const
+        .isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
       ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) )
         && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
@@ -1314,7 +1317,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
                 filterAliasNames.add( aliasS );
               }
             }
-            String[] filterAliasNamesA = filterAliasNames.toArray( new String[1] );
+            String[] filterAliasNamesA = filterAliasNames.toArray( new String[ 1 ] );
             m_filterAliasCI.setComboValues( filterAliasNamesA );
             filterAliasesDone = true;
           } else {
@@ -1451,7 +1454,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
           // set the allowable combo values for the selectable columns in the
           // filter tab
           if ( !filterAliasesDone ) {
-            String[] filterAliasNamesA = filterAliasNames.toArray( new String[1] );
+            String[] filterAliasNamesA = filterAliasNames.toArray( new String[ 1 ] );
             m_filterAliasCI.setComboValues( filterAliasNamesA );
             filterAliasesDone = true;
           }
@@ -1495,7 +1498,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     } catch ( Exception e ) {
       logError( Messages.getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), e );
       new ErrorDialog( shell, Messages.getString( "HBaseInputDialog.ErrorMessage." + "UnableToConnect" ), Messages
-          .getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), e );
+        .getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), e );
     } finally {
       if ( connection != null ) {
         try {
@@ -1503,7 +1506,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         } catch ( Exception e ) {
           String msg = Messages.getString( "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
           logError( msg, e );
-          new ErrorDialog( shell, msg, msg,  e );
+          new ErrorDialog( shell, msg, msg, e );
         }
       }
     }
@@ -1518,7 +1521,10 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         connection = getHBaseConnection();
         MappingAdmin admin = new MappingAdmin( connection );
 
-        List<String> mappingNames = admin.getMappingNames( m_mappedTableNamesCombo.getText().trim() );
+        String mappedTableName =
+          MappingAdmin.getTableNameFromVariable( m_currentMeta, m_mappedTableNamesCombo.getText().trim() );
+
+        List<String> mappingNames = admin.getMappingNames( mappedTableName );
 
         for ( String n : mappingNames ) {
           m_mappingNamesCombo.add( n );
@@ -1527,7 +1533,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         if ( !quiet ) {
           logError( Messages.getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
           new ErrorDialog( shell, Messages.getString( "HBaseInputDialog.ErrorMessage." + "UnableToConnect" ), Messages
-              .getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
+            .getString( "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
         }
       } finally {
         if ( connection != null ) {
@@ -1537,7 +1543,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             if ( !quiet ) {
               String msg = Messages.getString( "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
               logError( msg, e );
-              new ErrorDialog( shell, msg, msg,  e );
+              new ErrorDialog( shell, msg, msg, e );
             }
           }
         }

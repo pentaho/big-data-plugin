@@ -1,23 +1,18 @@
 /*******************************************************************************
- *
  * Pentaho Big Data
- *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
- *
- *******************************************************************************
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
+ * <p>
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * <p>
+ * ******************************************************************************
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.hbase.output;
@@ -83,7 +78,7 @@ import java.util.Set;
 
 /**
  * Dialog class for HBaseOutput
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInterface, ConfigurationProducer,
@@ -93,7 +88,9 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   private final HBaseOutputMeta m_originalMeta;
   private final HBaseOutputMeta m_configurationMeta;
 
-  /** various UI bits and pieces for the dialog */
+  /**
+   * various UI bits and pieces for the dialog
+   */
   private Label m_stepnameLabel;
   private Text m_stepnameText;
 
@@ -121,7 +118,9 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
   private Button m_mappingNamesBut;
   private CCombo m_mappingNamesCombo;
 
-  /** Store the mapping information in the step's meta data */
+  /**
+   * Store the mapping information in the step's meta data
+   */
   private Button m_storeMappingInStepMetaData;
 
   // Disable write to WAL check box
@@ -220,7 +219,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label namedClusterLab = new Label( wConfigComp, SWT.RIGHT );
     namedClusterLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedCluster.Label" ) );
     namedClusterLab.setToolTipText(
-        BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedCluster.TipText" ) );
+      BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedCluster.TipText" ) );
     props.setLook( namedClusterLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -228,7 +227,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLab.setLayoutData( fd );
 
-    namedClusterWidget = new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
+    namedClusterWidget =
+      new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     fd = new FormData();
@@ -241,7 +241,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label coreConfigLab = new Label( wConfigComp, SWT.RIGHT );
     coreConfigLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.CoreConfig.Label" ) );
     coreConfigLab
-        .setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.CoreConfig.TipText" ) );
+      .setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.CoreConfig.TipText" ) );
     props.setLook( coreConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -264,18 +264,18 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
         String[] extensions = null;
         String[] filterNames = null;
 
-        extensions = new String[2];
-        filterNames = new String[2];
-        extensions[0] = "*.xml";
-        filterNames[0] = BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.FileType.XML" );
-        extensions[1] = "*";
-        filterNames[1] = BaseMessages.getString( HBaseOutputMeta.PKG, "System.FileType.AllFiles" );
+        extensions = new String[ 2 ];
+        filterNames = new String[ 2 ];
+        extensions[ 0 ] = "*.xml";
+        filterNames[ 0 ] = BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.FileType.XML" );
+        extensions[ 1 ] = "*";
+        filterNames[ 1 ] = BaseMessages.getString( HBaseOutputMeta.PKG, "System.FileType.AllFiles" );
 
         dialog.setFilterExtensions( extensions );
 
         if ( dialog.open() != null ) {
           m_coreConfigText.setText( dialog.getFilterPath() + System.getProperty( "file.separator" )
-              + dialog.getFileName() );
+            + dialog.getFileName() );
         }
 
       }
@@ -301,7 +301,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label defaultConfigLab = new Label( wConfigComp, SWT.RIGHT );
     defaultConfigLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DefaultConfig.Label" ) );
     defaultConfigLab.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG,
-        "HBaseOutputDialog.DefaultConfig.TipText" ) );
+      "HBaseOutputDialog.DefaultConfig.TipText" ) );
     props.setLook( defaultConfigLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -324,18 +324,18 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
         String[] extensions = null;
         String[] filterNames = null;
 
-        extensions = new String[2];
-        filterNames = new String[2];
-        extensions[0] = "*.xml";
-        filterNames[0] = BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseInputDialog.FileType.XML" );
-        extensions[1] = "*";
-        filterNames[1] = BaseMessages.getString( HBaseOutputMeta.PKG, "System.FileType.AllFiles" );
+        extensions = new String[ 2 ];
+        filterNames = new String[ 2 ];
+        extensions[ 0 ] = "*.xml";
+        filterNames[ 0 ] = BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseInputDialog.FileType.XML" );
+        extensions[ 1 ] = "*";
+        filterNames[ 1 ] = BaseMessages.getString( HBaseOutputMeta.PKG, "System.FileType.AllFiles" );
 
         dialog.setFilterExtensions( extensions );
 
         if ( dialog.open() != null ) {
           m_defaultConfigText.setText( dialog.getFilterPath() + System.getProperty( "file.separator" )
-              + dialog.getFileName() );
+            + dialog.getFileName() );
         }
 
       }
@@ -371,7 +371,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     m_mappedTableNamesBut = new Button( wConfigComp, SWT.PUSH | SWT.CENTER );
     props.setLook( m_mappedTableNamesBut );
     m_mappedTableNamesBut.setText(
-        BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.TableName.Button" ) );
+      BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.TableName.Button" ) );
     fd = new FormData();
     fd.right = new FormAttachment( 100, 0 );
     fd.top = new FormAttachment( m_defaultConfigText, 0 );
@@ -404,7 +404,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label mappingNameLab = new Label( wConfigComp, SWT.RIGHT );
     mappingNameLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.MappingName.Label" ) );
     mappingNameLab.setToolTipText( BaseMessages
-        .getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.MappingName.TipText" ) );
+      .getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.MappingName.TipText" ) );
     props.setLook( mappingNameLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -448,7 +448,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label storeMapping = new Label( wConfigComp, SWT.RIGHT );
     storeMapping.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.StoreMapping.Label" ) );
     storeMapping
-        .setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.StoreMapping.TipText" ) );
+      .setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.StoreMapping.TipText" ) );
     props.setLook( storeMapping );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -468,7 +468,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label disableWALLab = new Label( wConfigComp, SWT.RIGHT );
     disableWALLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DisableWAL.Label" ) );
     disableWALLab
-        .setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DisableWAL.TipText" ) );
+      .setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.DisableWAL.TipText" ) );
     props.setLook( disableWALLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -478,7 +478,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
     m_disableWriteToWALBut = new Button( wConfigComp, SWT.CHECK | SWT.CENTER );
     m_disableWriteToWALBut.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG,
-        "HBaseOutputDialog.DisableWAL.TipText" ) );
+      "HBaseOutputDialog.DisableWAL.TipText" ) );
     props.setLook( m_disableWriteToWALBut );
     fd = new FormData();
     fd.left = new FormAttachment( middle, 0 );
@@ -490,7 +490,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     Label writeBufferLab = new Label( wConfigComp, SWT.RIGHT );
     writeBufferLab.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.WriteBufferSize.Label" ) );
     writeBufferLab.setToolTipText( BaseMessages.getString( HBaseOutputMeta.PKG,
-        "HBaseOutputDialog.WriteBufferSize.TipText" ) );
+      "HBaseOutputDialog.WriteBufferSize.TipText" ) );
     props.setLook( writeBufferLab );
     fd = new FormData();
     fd.left = new FormAttachment( 0, 0 );
@@ -602,8 +602,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     ServiceStatus serviceStatus = m_currentMeta.getServiceStatus();
     if ( !serviceStatus.isOk() ) {
       new ErrorDialog( shell, Messages.getString( "Dialog.Error" ),
-              Messages.getString( "HBaseOutput.Error.ServiceStatus" ),
-              serviceStatus.getException() );
+        Messages.getString( "HBaseOutput.Error.ServiceStatus" ),
+        serviceStatus.getException() );
     }
 
     shell.open();
@@ -643,7 +643,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
         MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
         mb.setText( BaseMessages.getString( HBaseOutputMeta.PKG, "Dialog.Error" ) );
         mb.setMessage( BaseMessages.getString(
-            HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedClusterMissingValues.Msg" ) );
+          HBaseOutputMeta.PKG, "HBaseOutputDialog.NamedClusterMissingValues.Msg" ) );
         mb.open();
         return;
       }
@@ -663,17 +663,17 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
             p.append( s ).append( "\n" );
           }
           MessageDialog md =
-              new MessageDialog(
-                  shell,
-                  BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping.Title" ),
-                  null,
-                  BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping" ) + ":\n\n"
-                      + p.toString(),
-                  MessageDialog.WARNING,
-                  new String[] {
-                      BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping.ButtonOK" ),
-                      BaseMessages.getString( HBaseOutputMeta.PKG,
-                        "HBaseOutputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
+            new MessageDialog(
+              shell,
+              BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping.Title" ),
+              null,
+              BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping" ) + ":\n\n"
+                + p.toString(),
+              MessageDialog.WARNING,
+              new String[] {
+                BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.Error.IssuesWithMapping.ButtonOK" ),
+                BaseMessages.getString( HBaseOutputMeta.PKG,
+                  "HBaseOutputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
           MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
           int idx = md.open() & 0xFF;
           if ( idx == 1 || idx == 255 /* 255 = escape pressed */ ) {
@@ -689,21 +689,21 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
           Mapping current = null;
 
           current =
-              admin.getMapping( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ), transMeta
-                  .environmentSubstitute( m_mappingNamesCombo.getText() ) );
+            admin.getMapping( transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() ), transMeta
+              .environmentSubstitute( m_mappingNamesCombo.getText() ) );
 
           m_currentMeta.setMapping( current );
           m_currentMeta.setTargetMappingName( "" );
         } catch ( Exception e ) {
           logError( Messages.getString( "HBaseOutputDialog.ErrorMessage.UnableToGetMapping" )
-              + " \""
-              + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
-                  + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
+            + " \""
+            + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
+            + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
           new ErrorDialog( shell, Messages.getString( "HBaseOutputDialog.ErrorMessage.UnableToGetMapping" ), Messages
-              .getString( "HBaseOutputDialog.ErrorMessage.UnableToGetMapping" )
-              + " \""
-              + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
-                  + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
+            .getString( "HBaseOutputDialog.ErrorMessage.UnableToGetMapping" )
+            + " \""
+            + transMeta.environmentSubstitute( m_mappedTableNamesCombo.getText() + ","
+            + transMeta.environmentSubstitute( m_mappingNamesCombo.getText() ) + "\"" ), e );
         } finally {
           try {
             if ( connection != null ) {
@@ -810,7 +810,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
     if ( Const.isEmpty( zookeeperHosts ) && Const.isEmpty( coreConf ) && Const.isEmpty( defaultConf ) ) {
       throw new IOException( BaseMessages.getString( HBaseOutputMeta.PKG,
-          "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
+        "MappingDialog.Error.Message.CantConnectNoConnectionDetailsProvided" ) );
     }
 
     return getHBaseService().getHBaseConnection( transMeta, coreConf, defaultConf, null );
@@ -832,8 +832,8 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
     } catch ( Exception ex ) {
       logError( BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ErrorMessage.UnableToConnect" ), ex );
       new ErrorDialog( shell, BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseOutputDialog.ErrorMessage."
-          + "UnableToConnect" ), BaseMessages.getString( HBaseOutputMeta.PKG,
-            "HBaseOutputDialog.ErrorMessage.UnableToConnect" ), ex );
+        + "UnableToConnect" ), BaseMessages.getString( HBaseOutputMeta.PKG,
+        "HBaseOutputDialog.ErrorMessage.UnableToConnect" ), ex );
     } finally {
       try {
         if ( connection != null ) {
@@ -841,7 +841,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
         }
       } catch ( Exception e ) {
         String msg = BaseMessages.getString(
-            HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
+          HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
         logError( msg, e );
         new ErrorDialog( shell, msg, msg, e );
       }
@@ -850,14 +850,16 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
 
   private void setupMappingNamesForTable( boolean quiet ) {
     m_mappingNamesCombo.removeAll();
-
     if ( !Const.isEmpty( m_mappedTableNamesCombo.getText() ) ) {
       HBaseConnection connection = null;
       try {
         connection = getHBaseConnection();
         MappingAdmin admin = new MappingAdmin( connection );
 
-        List<String> mappingNames = admin.getMappingNames( m_mappedTableNamesCombo.getText().trim() );
+        String mappedTableName =
+          MappingAdmin.getTableNameFromVariable( m_currentMeta, m_mappedTableNamesCombo.getText().trim() );
+
+        List<String> mappingNames = admin.getMappingNames( mappedTableName );
 
         for ( String n : mappingNames ) {
           m_mappingNamesCombo.add( n );
@@ -865,10 +867,10 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
       } catch ( Exception ex ) {
         if ( !quiet ) {
           logError(
-              BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
+            BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
           new ErrorDialog( shell, BaseMessages.getString( HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage."
-              + "UnableToConnect" ), BaseMessages.getString( HBaseOutputMeta.PKG,
-                "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
+            + "UnableToConnect" ), BaseMessages.getString( HBaseOutputMeta.PKG,
+            "HBaseInputDialog.ErrorMessage.UnableToConnect" ), ex );
         }
       } finally {
         try {
@@ -878,7 +880,7 @@ public class HBaseOutputDialog extends BaseStepDialog implements StepDialogInter
         } catch ( Exception e ) {
           if ( !quiet ) {
             String msg = BaseMessages.getString(
-                HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
+              HBaseOutputMeta.PKG, "HBaseInputDialog.ErrorMessage.FailedClosingHBaseConnection" );
             logError( msg, e );
             new ErrorDialog( shell, msg, msg, e );
           }
