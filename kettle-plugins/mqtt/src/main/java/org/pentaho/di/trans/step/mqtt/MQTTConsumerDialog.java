@@ -223,10 +223,10 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
 
     wSecurityComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wSecurityComp );
-    FormLayout setupLayout = new FormLayout();
-    setupLayout.marginHeight = 15;
-    setupLayout.marginWidth = 15;
-    wSecurityComp.setLayout( setupLayout );
+    FormLayout securityLayout = new FormLayout();
+    securityLayout.marginHeight = 15;
+    securityLayout.marginWidth = 15;
+    wSecurityComp.setLayout( securityLayout );
 
     // Authentication group
     Group wAuthenticationGroup = new Group( wSecurityComp, SWT.SHADOW_ETCHED_IN );
@@ -314,14 +314,15 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     fdlSSLProperties.left = new FormAttachment( 0, 0 );
     wlSSLProperties.setLayoutData( fdlSSLProperties );
 
-    buildSSLTable( wSecurityComp, wlSSLProperties );
-
     FormData fdSecurityComp = new FormData();
     fdSecurityComp.left = new FormAttachment( 0, 0 );
     fdSecurityComp.top = new FormAttachment( 0, 0 );
     fdSecurityComp.right = new FormAttachment( 100, 0 );
     fdSecurityComp.bottom = new FormAttachment( 100, 0 );
     wSecurityComp.setLayoutData( fdSecurityComp );
+
+    buildSSLTable( wSecurityComp, wlSSLProperties );
+
     wSecurityComp.layout();
     wSecurityTab.setControl( wSecurityComp );
   }
@@ -330,7 +331,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     ColumnInfo[] columns = getSSLColumns();
 
     // TODO: Means of getting the SSL Config information
-    int fieldCount = 10;
+    int fieldCount = 1;
 //    int fieldCount = consumerMeta.getSSLConfig().size();
 
     sslTable = new TableView(
