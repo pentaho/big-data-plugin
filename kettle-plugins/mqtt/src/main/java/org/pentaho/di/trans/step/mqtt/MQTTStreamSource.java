@@ -30,8 +30,6 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.pentaho.di.trans.streaming.common.BlockingQueueStreamSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -43,7 +41,6 @@ import static java.util.Collections.singletonList;
  * broker, and qos. The parent class .rows() method is responsible for creating the blocking iterable.
  */
 public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
-  private final Logger logger = LoggerFactory.getLogger( this.getClass() );
   private static final Class<?> PKG = MQTTStreamSource.class;
   private final MQTTConsumerMeta mqttConsumerMeta;
   private final MQTTConsumer mqttConsumer;
@@ -79,9 +76,12 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
         .withQos( mqttConsumerMeta.getQos() )
         .withStep( mqttConsumer )
         .withCallback( callback )
+        .withUsername( mqttConsumerMeta.getUsername() )
+        .withPassword( mqttConsumerMeta.getPassword() )
         .buildAndConnect();
     } catch ( MqttException e ) {
-      logger.error( e.getMessage(), e );
+      mqttConsumer.stopAll();
+      mqttConsumer.logError( e.getMessage() );
     }
   }
 
@@ -91,9 +91,7 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
       mqttClient.disconnect();
       mqttClient.close();
     } catch ( MqttException e ) {
-      logger.error( e.getMessage(), e );
+      mqttConsumer.logError( e.getMessage() );
     }
-
   }
-
 }

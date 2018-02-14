@@ -34,9 +34,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.trans.streaming.api.StreamSource;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -62,9 +64,14 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.hamcrest.core.IsNot.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith ( MockitoJUnitRunner.class )
+@RunWith( PowerMockRunner.class )
+@PrepareForTest( MQTTClientBuilder.class )
 public class MQTTStreamSourceTest {
 
   int port;
@@ -75,7 +82,6 @@ public class MQTTStreamSourceTest {
   @Mock MQTTConsumer mqttConsumer;
   @Mock MQTTConsumerMeta consumerMeta;
   @Mock LogChannelInterface logger;
-
 
   @Before
   public void startBroker() throws Exception {
@@ -101,7 +107,6 @@ public class MQTTStreamSourceTest {
     brokerService.stop();
   }
 
-
   @Test
   public void testMqttStreamSingleTopic() throws Exception {
     StreamSource<List<Object>> source = new MQTTStreamSource( consumerMeta, mqttConsumer );
@@ -117,7 +122,7 @@ public class MQTTStreamSourceTest {
   }
 
   @Test
-  public void multipleTopics() throws MqttException, InterruptedException {
+  public void testMultipleTopics() throws MqttException, InterruptedException {
     when( consumerMeta.getTopics() ).thenReturn(
       Arrays.asList( "mytopic-1", "vermilion.minotaur", "nosuchtopic" ) );
     StreamSource<List<Object>> source = new MQTTStreamSource( consumerMeta, mqttConsumer );
@@ -142,9 +147,8 @@ public class MQTTStreamSourceTest {
     source.close();
   }
 
-
   @Test
-  public void servernameCheck() {
+  public void testServernameCheck() {
     // valid server:port
     StreamSource<List<Object>> source = new MQTTStreamSource( consumerMeta, mqttConsumer );
 
@@ -162,7 +166,7 @@ public class MQTTStreamSourceTest {
   }
 
   @Test
-  public void clientIdNotReused() {
+  public void testClientIdNotReused() {
     MQTTStreamSource source1 = new MQTTStreamSource( consumerMeta, mqttConsumer );
     source1.open();
 
@@ -173,6 +177,26 @@ public class MQTTStreamSourceTest {
 
     source1.close();
     source2.close();
+  }
+
+  @Test
+  public void testMQTTOpenException() throws Exception {
+    PowerMockito.mockStatic( MQTTClientBuilder.class );
+    MQTTClientBuilder.ClientFactory clientFactory = mock( MQTTClientBuilder.ClientFactory.class );
+    MqttClient mqttClient = mock( MqttClient.class );
+    MQTTClientBuilder builder = spy( MQTTClientBuilder.class );
+    MqttException mqttException = mock( MqttException.class );
+
+    when( clientFactory.getClient( any(), any(), any() ) ).thenReturn( mqttClient );
+    when( mqttException.getMessage() ).thenReturn( "There is an error connecting" );
+    doThrow( mqttException ).when( builder ).buildAndConnect();
+    PowerMockito.when( MQTTClientBuilder.builder() ).thenReturn( builder );
+
+    MQTTStreamSource source = new MQTTStreamSource( consumerMeta, mqttConsumer );
+    source.open();
+
+    verify( mqttConsumer ).stopAll();
+    verify( mqttConsumer ).logError( "There is an error connecting" );
   }
 
   private Future<List<List<Object>>> iterateSource( Iterator<List<Object>> iter, int numRowsExpected ) {
@@ -224,5 +248,4 @@ public class MQTTStreamSourceTest {
     socket.close();
     return freePort;
   }
-
 }

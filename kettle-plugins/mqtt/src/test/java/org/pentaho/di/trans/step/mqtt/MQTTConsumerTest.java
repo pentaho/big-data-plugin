@@ -79,6 +79,7 @@ public class MQTTConsumerTest {
     trans.setVariable( "topic", "TestWinning" );
     trans.setVariable( "subtrans", "ConsumeRowsSubtrans.ktr" );
     trans.setVariable( "qos", "0" );
+    trans.setVariable( "username", "testuser" );
   }
 
   @Test

@@ -30,6 +30,7 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.trans.step.StepInterface;
 
 import java.util.List;
@@ -178,11 +179,11 @@ final class MQTTClientBuilder {
     if ( isSecure ) {
       setSSLProps( options );
     }
-    if ( username != null ) {
-      options.setUserName( username );
+    if ( !StringUtil.isEmpty( username ) ) {
+      options.setUserName( step.environmentSubstitute( username ) );
     }
-    if ( password != null ) {
-      options.setPassword( password.toCharArray() );
+    if ( !StringUtil.isEmpty( password ) ) {
+      options.setPassword( step.environmentSubstitute( password ).toCharArray() );
     }
     return options;
   }
