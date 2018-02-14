@@ -21,12 +21,18 @@
  ******************************************************************************/
 package org.pentaho.di.trans.step.mqtt;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
@@ -46,8 +52,10 @@ import static org.mockito.Mockito.when;
 import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.MQTT_SERVER;
 import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.QOS;
 import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.TOPICS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.USERNAME;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.DURATION;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.NUM_MESSAGES;
+import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.PASSWORD;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.TRANSFORMATION_PATH;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -55,6 +63,15 @@ public class MQTTConsumerMetaTest {
 
   @Mock private IMetaStore metastore;
   @Mock Repository rep;
+
+  @BeforeClass
+  public static void setUpBeforeClass() throws KettleException {
+    PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
+    PluginRegistry.init( true );
+    String passwordEncoderPluginID =
+      Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_PASSWORD_ENCODER_PLUGIN ), "Kettle" );
+    Encr.init( passwordEncoderPluginID );
+  }
 
   @Test
   public void testLoadAndSave() throws KettleXMLException {
@@ -72,7 +89,9 @@ public class MQTTConsumerMetaTest {
       + "    </partitioning>\n"
       + "    <TOPICS>one</TOPICS>\n"
       + "    <TOPICS>two</TOPICS>\n"
-      + "    <QOS>1</QOS>"
+      + "    <QOS>1</QOS>\n"
+      + "    <PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>\n"
+      + "    <USERNAME>testuser</USERNAME>\n"
       + "    <MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>\n"
       + "    <NUM_MESSAGES>5</NUM_MESSAGES>\n"
       + "    <MQTT_SERVER>mqttHost:1883</MQTT_SERVER>\n"
@@ -102,6 +121,8 @@ public class MQTTConsumerMetaTest {
     assertEquals( "5", meta.getBatchSize() );
     assertEquals( "60000", meta.getBatchDuration() );
     assertEquals( "mqttHost:1883", meta.getMqttServer() );
+    assertEquals( "testuser", meta.getUsername() );
+    assertEquals( "test", meta.getPassword() );
   }
 
   @Test
@@ -114,6 +135,8 @@ public class MQTTConsumerMetaTest {
     topicList.add( "temperature" );
     meta.setTopics( topicList );
     meta.setQos( "1" );
+    meta.setUsername( "testuser" );
+    meta.setPassword( "test" );
 
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
     meta.setBatchSize( "54321" );
@@ -129,6 +152,8 @@ public class MQTTConsumerMetaTest {
         + "<MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>" + Const.CR
         + "<NUM_MESSAGES>54321</NUM_MESSAGES>" + Const.CR
         + "<QOS>1</QOS>" + Const.CR
+        + "<PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>" + Const.CR
+        + "<USERNAME>testuser</USERNAME>" + Const.CR
         + "<MQTT_SERVER>some_cluster</MQTT_SERVER>" + Const.CR
         + "<TOPIC_OUTPUT_NAME>Topic</TOPIC_OUTPUT_NAME>" + Const.CR
         + "<DURATION>987</DURATION>" + Const.CR
@@ -147,6 +172,8 @@ public class MQTTConsumerMetaTest {
     when( rep.getStepAttributeString( stepId, DURATION ) ).thenReturn( "111" );
     when( rep.getStepAttributeString( stepId, MQTT_SERVER ) ).thenReturn( "host111" );
     when( rep.getStepAttributeString( stepId, QOS ) ).thenReturn( "2" );
+    when( rep.getStepAttributeString( stepId, USERNAME ) ).thenReturn( "testuser" );
+    when( rep.getStepAttributeString( stepId, PASSWORD ) ).thenReturn( "Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce" );
 
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
     assertEquals( "readings", meta.getTopics().get( 0 ) );
@@ -155,6 +182,8 @@ public class MQTTConsumerMetaTest {
     assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
     assertEquals( "host111", meta.getMqttServer() );
+    assertEquals( "testuser", meta.getUsername() );
+    assertEquals( "test", meta.getPassword() );
   }
 
   @Test
@@ -170,6 +199,8 @@ public class MQTTConsumerMetaTest {
     meta.setBatchSize( "33" );
     meta.setBatchDuration( "10000" );
     meta.setMqttServer( "mqttServer:1883" );
+    meta.setUsername( "testuser" );
+    meta.setPassword( "test" );
     meta.saveRep( rep, metastore, transId, stepId );
     verify( rep ).saveStepAttribute( transId, stepId, MQTTConsumerMeta.MQTT_SERVER, "mqttServer:1883" );
     verify( rep ).saveStepAttribute( transId, stepId, 0, TOPICS, "temperature" );
@@ -177,6 +208,8 @@ public class MQTTConsumerMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, BaseStreamStepMeta.NUM_MESSAGES, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BaseStreamStepMeta.DURATION, "10000" );
     verify( rep ).saveStepAttribute( transId, stepId, QOS, "1" );
+    verify( rep ).saveStepAttribute( transId, stepId, USERNAME, "testuser" );
+    verify( rep ).saveStepAttribute( transId, stepId, PASSWORD, "Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce" );
   }
 
   @Test
@@ -186,6 +219,8 @@ public class MQTTConsumerMetaTest {
       "<MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>" + Const.CR
         + "<NUM_MESSAGES>1000</NUM_MESSAGES>" + Const.CR
         + "<QOS>0</QOS>" + Const.CR
+        + "<PASSWORD>Encrypted </PASSWORD>" + Const.CR
+        + "<USERNAME/>" + Const.CR
         + "<MQTT_SERVER/>" + Const.CR
         + "<TOPIC_OUTPUT_NAME>Topic</TOPIC_OUTPUT_NAME>" + Const.CR
         + "<DURATION>1000</DURATION>" + Const.CR

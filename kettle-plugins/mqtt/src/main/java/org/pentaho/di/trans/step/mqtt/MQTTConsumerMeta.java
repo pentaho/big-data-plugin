@@ -25,6 +25,7 @@ package org.pentaho.di.trans.step.mqtt;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.Injection;
@@ -77,10 +78,10 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   @Injection( name = QOS )
   public String qos = "0";
 
-//  @Injection( name = USERNAME )
+  @Injection( name = USERNAME )
   public String username = "";
 
-//  @Injection( name = PASSWORD )
+  @Injection( name = PASSWORD )
   public String password = "";
 
   public MQTTConsumerMeta() {
@@ -116,8 +117,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
       topics.add( rep.getStepAttributeString( id_step, i, TOPICS ) );
     }
     setQos( rep.getStepAttributeString( id_step, QOS ) );
-//    setUsername( rep.getStepAttributeString( id_step, USERNAME ) );
-//    setPassword( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, PASSWORD ) ) );
+    setUsername( rep.getStepAttributeString( id_step, USERNAME ) );
+    setPassword( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, PASSWORD ) ) );
   }
 
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transId, ObjectId stepId )
@@ -131,8 +132,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
       rep.saveStepAttribute( transId, stepId, i++, TOPICS, topic );
     }
     rep.saveStepAttribute( transId, stepId, QOS, qos );
-//    rep.saveStepAttribute( transId, stepId, USERNAME, username );
-//    rep.saveStepAttribute( transId, stepId, PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) );
+    rep.saveStepAttribute( transId, stepId, USERNAME, username );
+    rep.saveStepAttribute( transId, stepId, PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) );
   }
 
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,

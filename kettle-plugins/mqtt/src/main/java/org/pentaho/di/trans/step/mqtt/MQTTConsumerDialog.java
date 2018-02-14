@@ -89,7 +89,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     wConnection.setText( mqttMeta.getMqttServer() );
     populateTopicsData();
     wQOS.setText( mqttMeta.getQos() );
-    wUseSSL.setText( mqttMeta.getUsername() );
+    wUsername.setText( mqttMeta.getUsername() );
     wPassword.setText( mqttMeta.getPassword() );
   }
 
@@ -499,5 +499,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     mqttMeta.setMsgOutputName( fieldsTable.getTable().getItem( 0 ).getText( 2 ) );
     mqttMeta.setTopicOutputName( fieldsTable.getTable().getItem( 1 ).getText( 2 ) );
     mqttMeta.setQos( wQOS.getText() );
+    mqttMeta.setUsername( wUsername.getText() );
+    mqttMeta.setPassword( wPassword.getText() );
   }
 }
