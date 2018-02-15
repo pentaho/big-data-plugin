@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,7 +26,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.orc.input.OrcInputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
@@ -41,8 +40,10 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.BaseFileInputStep;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
+import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcInputFormat;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
+
+import java.util.List;
 
 public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
   public static long SPLIT_SIZE = 128 * 1024 * 1024;
@@ -110,8 +111,8 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return null;
   }
 
-  public static SchemaDescription retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
-      NamedCluster namedCluster, String dataPath ) throws Exception {
+  public static List<? extends IOrcInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
+                                                               NamedCluster namedCluster, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoOrcInputFormat in = formatService.createInputFormat( IPentahoOrcInputFormat.class );
 
@@ -119,13 +120,8 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return in.readSchema( );
   }
 
-  public static SchemaDescription createSchemaFromMeta( OrcInputMetaBase meta ) {
-    SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputOutputField f : meta.getInputFields() ) {
-      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), f.getIfNullValue(), true );
-      schema.addField( field );
-    }
-    return schema;
+  public static List<? extends IOrcInputField> createSchemaFromMeta( OrcInputMetaBase meta ) {
+    return meta.getInputFields();
   }
 
   public static String getKettleVFSFileName( String path ) throws KettleFileException {

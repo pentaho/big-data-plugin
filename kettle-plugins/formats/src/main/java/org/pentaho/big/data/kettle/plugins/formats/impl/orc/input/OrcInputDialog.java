@@ -22,6 +22,9 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
@@ -34,8 +37,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.orc.BaseOrcStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.orc.OrcInputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.util.Utils;
@@ -51,8 +54,9 @@ import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
+import org.pentaho.hadoop.shim.api.format.IOrcInputField;
+import org.pentaho.hadoop.shim.api.format.OrcSpec;
 
 public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
 
@@ -158,18 +162,16 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   }
 
   protected void populateFieldsTable() {
-    String orcFileName = wPath.getText();
-    orcFileName = transMeta.environmentSubstitute( orcFileName );
     try {
-      SchemaDescription schemaDescription = OrcInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), orcFileName );
+      List<? extends IOrcInputField> inputFields = getInputFieldsFromOrcFile( false );
       wInputFields.clearAll();
-      for ( SchemaDescription.Field field : schemaDescription ) {
+      for ( IOrcInputField field : inputFields ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
         if ( field != null ) {
-          setField( item, field.formatFieldName, 1 );
-          setField( item, field.pentahoFieldName, 2 );
-          setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 3 );
-          setField( item, ValueMetaFactory.getValueMetaName( field.pentahoValueMetaType ), 4 );
+          setField( item, concatenateOrcNameAndType( field ), ORC_PATH_COLUMN_INDEX );
+          setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
+          setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
+          setField( item, OrcSpec.DataType.getDataType( field.getFormatType() ).getName(), FIELD_SOURCE_TYPE_COLUMN_INDEX );
         }
       }
 
@@ -179,8 +181,27 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     } catch ( Exception ex ) {
       logError( BaseMessages.getString( PKG, "OrcInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
       new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
-        "OrcInput.Error.UnableToLoadSchemaFromContainerFile", orcFileName ), ex );
+        "OrcInput.Error.UnableToLoadSchemaFromContainerFile", getProcessedFileName() ), ex );
     }
+  }
+
+  private String getProcessedFileName() {
+    return transMeta.environmentSubstitute( wPath.getText() );
+  }
+
+  private List<? extends IOrcInputField> getInputFieldsFromOrcFile( boolean failQuietly ) {
+    String orcFileName = getProcessedFileName();
+    List<? extends IOrcInputField> inputFields = null;
+    try {
+      inputFields = OrcInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), orcFileName );
+    } catch ( Exception ex ) {
+      if ( !failQuietly ) {
+        logError( BaseMessages.getString( PKG, "OrcInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
+        new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
+          "OrcInput.Error.UnableToLoadSchemaFromContainerFile", orcFileName ), ex );
+      }
+    }
+    return inputFields;
   }
 
   private void setField( TableItem item, String fieldValue, int fieldIndex ) {
@@ -199,7 +220,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     }
     wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
     int itemIndex = 0;
-    for ( FormatInputOutputField inputField : meta.getInputFields() ) {
+    for ( IOrcInputField inputField : meta.getInputFields() ) {
       TableItem item = null;
       if ( itemIndex < wInputFields.table.getItemCount() ) {
         item = wInputFields.table.getItem( itemIndex );
@@ -207,20 +228,29 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
         item = new TableItem( wInputFields.table, SWT.NONE );
       }
 
-      if ( inputField.getPath() != null ) {
-        item.setText( ORC_PATH_COLUMN_INDEX, inputField.getPath() );
+      if ( inputField.getFormatFieldName() != null ) {
+        item.setText( ORC_PATH_COLUMN_INDEX,
+          concatenateOrcNameAndType( inputField ) );
       }
-      if ( inputField.getName() != null ) {
-        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
+      if ( inputField.getPentahoFieldName() != null ) {
+        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getPentahoFieldName() );
       }
-      if ( inputField.getTypeDesc() != null ) {
-        item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
+      if ( getTypeDesc( inputField.getPentahoType() ) != null ) {
+        item.setText( FIELD_TYPE_COLUMN_INDEX, getTypeDesc( inputField.getPentahoType() ) );
       }
-      if ( inputField.getSourceTypeDesc() != null ) {
-        item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, inputField.getSourceTypeDesc() );
+      if ( getSourceTypeDesc( inputField.getFormatType() ) != null ) {
+        item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, getSourceTypeDesc( inputField.getFormatType() ) );
       }
       itemIndex++;
     }
+  }
+
+  public String getTypeDesc( int type ) {
+    return ValueMetaFactory.getValueMetaName( type );
+  }
+
+  public String getSourceTypeDesc( int type ) {
+    return OrcSpec.DataType.getDataType( type ).getName();
   }
 
   /**
@@ -236,16 +266,76 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
 
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
 
+    List<? extends IOrcInputField> actualOrcFileInputFields = getInputFieldsFromOrcFile( true );
+
     int nrFields = wInputFields.nrNonEmpty();
     meta.setInputFields( new ArrayList<>() );
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
-      FormatInputOutputField field = new FormatInputOutputField();
-      field.setPath( item.getText( ORC_PATH_COLUMN_INDEX ) );
-      field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
-      field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      OrcInputField field = new OrcInputField();
+      field.setFormatFieldName( extractFieldName( item.getText( ORC_PATH_COLUMN_INDEX ) ) );
+      if ( actualOrcFileInputFields != null ) {
+        IOrcInputField actualOrcField = actualOrcFileInputFields.stream()
+          .filter( x -> field.getFormatFieldName().equals( x.getFormatFieldName() ) )
+          .findFirst( ).orElse( null );
+        if ( actualOrcField != null ) {
+          field.setFormatType( actualOrcField.getFormatType() );
+        } else {
+          field.setFormatType( extractOrcType( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) ).getId() );
+          item.setText( concatenateOrcNameAndType( field ) );
+        }
+      }
+      field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
+      field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
       meta.getInputFields().add( field );
     }
+  }
+
+  /**
+   * When all else fails, extract he orc type from the field description.
+   *
+   * @see #concatenateOrcNameAndType(IOrcInputField)
+   */
+  private OrcSpec.DataType extractOrcType( String orcNameTypeFromUI ) {
+    if ( orcNameTypeFromUI != null ) {
+      String uiType = StringUtils.substringBetween( orcNameTypeFromUI, "(", ")" );
+      if ( uiType != null ) {
+        String uiTypeTrimmed = uiType.trim();
+        for ( OrcSpec.DataType temp : OrcSpec.DataType.values() ) {
+          if ( temp.getName().equalsIgnoreCase( uiTypeTrimmed ) ) {
+            return temp;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get the field name from the UI path column
+   *
+   * @see #concatenateOrcNameAndType(IOrcInputField)
+   */
+  private String extractFieldName( String orcNameTypeFromUI ) {
+    if ( orcNameTypeFromUI != null ) {
+      return StringUtils.substringBefore( orcNameTypeFromUI, "(" ).trim();
+    }
+    return orcNameTypeFromUI;
+  }
+
+  /**
+   * this method must be changed only with change {@link #extractOrcType(String)}
+   * since this method converts the field for show user and the extract methods myst convert to internal format
+   */
+  private String concatenateOrcNameAndType( IOrcInputField field ) {
+    String typeName;
+    OrcSpec.DataType orcDataType = OrcSpec.DataType.getDataType( field.getFormatType() );
+    if ( orcDataType == null ) {
+      typeName = "unknown";
+    } else {
+      typeName = OrcSpec.DataType.getDataType( field.getFormatType() ).getName();
+    }
+    return field.getFormatFieldName() + " (" + typeName + ")";
   }
 
   private void doPreview() {

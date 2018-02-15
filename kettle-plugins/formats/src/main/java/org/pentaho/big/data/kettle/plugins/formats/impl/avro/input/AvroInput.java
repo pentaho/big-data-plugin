@@ -93,7 +93,6 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     }
   }
 
-
   @Override
   protected boolean init() {
     return true;

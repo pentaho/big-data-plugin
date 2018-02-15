@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,7 +24,6 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.orc.input.OrcInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettlePluginException;
@@ -40,6 +39,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.metastore.api.IMetaStore;
 
 //keep ID as new because we will have old step with ID OrcInput
@@ -109,9 +109,9 @@ public class OrcInputMeta extends OrcInputMetaBase {
           }
         }
       }
-      for ( FormatInputOutputField field : getInputFields() ) {
-        String value = space.environmentSubstitute( field.getName() );
-        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getType() );
+      for ( IOrcInputField field : getInputFields() ) {
+        String value = space.environmentSubstitute( field.getPentahoFieldName() );
+        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getPentahoType() );
         v.setOrigin( origin );
         rowMeta.addValueMeta( v );
       }
