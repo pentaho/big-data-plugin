@@ -24,6 +24,7 @@ package org.pentaho.di.trans.step.mqtt;
 
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
@@ -56,6 +57,8 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
   public static final String TOPIC = "TOPIC";
   public static final String QOS = "QOS";
   public static final String MESSAGE_FIELD = "MESSAGE_FIELD";
+  public static final String USERNAME = "USERNAME";
+  public static final String PASSWORD = "PASSWORD";
 
   private static Class<?> PKG = MQTTProducer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -74,6 +77,12 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
   @Injection( name = MESSAGE_FIELD )
   private String messageField;
 
+  @Injection( name = USERNAME )
+  private String username;
+
+  @Injection( name = PASSWORD )
+  private String password;
+
   public MQTTProducerMeta() {
     super();
   }
@@ -83,6 +92,8 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     mqttServer = "";
     topic = "";
     qos = "0";
+    username = "";
+    password = "";
   }
 
   @Override
@@ -105,6 +116,8 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     setTopic( rep.getStepAttributeString( stepId, TOPIC ) );
     setQOS( rep.getStepAttributeString( stepId, QOS ) );
     setMessageField( rep.getStepAttributeString( stepId, MESSAGE_FIELD ) );
+    setUsername( rep.getStepAttributeString( stepId, USERNAME ) );
+    setPassword( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( stepId, PASSWORD ) ) );
   }
 
   @Override
@@ -116,6 +129,8 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     rep.saveStepAttribute( transformationId, stepId, TOPIC, topic );
     rep.saveStepAttribute( transformationId, stepId, QOS, qos );
     rep.saveStepAttribute( transformationId, stepId, MESSAGE_FIELD, messageField );
+    rep.saveStepAttribute( transformationId, stepId, USERNAME, username );
+    rep.saveStepAttribute( transformationId, stepId, PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) );
   }
 
   @Override
@@ -126,6 +141,9 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topic ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( QOS, qos ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( USERNAME, username ) );
+    retval.append( "    " )
+      .append( XMLHandler.addTagValue( PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) ) );
 
     return retval.toString();
   }
@@ -141,6 +159,8 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     setTopic( XMLHandler.getTagValue( stepnode, TOPIC ) );
     setQOS( XMLHandler.getTagValue( stepnode, QOS ) );
     setMessageField( XMLHandler.getTagValue( stepnode, MESSAGE_FIELD ) );
+    setUsername( XMLHandler.getTagValue( stepnode, USERNAME ) );
+    setPassword( Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, PASSWORD ) ) );
   }
 
   @Override
@@ -191,5 +211,21 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
 
   public void setMessageField( String messageField ) {
     this.messageField = messageField;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername( String username ) {
+    this.username = username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword( String password ) {
+    this.password = password;
   }
 }

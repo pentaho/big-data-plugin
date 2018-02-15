@@ -35,6 +35,8 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
+import java.util.Collections;
+
 public class MQTTProducer extends BaseStep implements StepInterface {
   private static Class<?> PKG = MQTTProducerMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
   private static final String PROTOCOL = "tcp://";
@@ -90,14 +92,17 @@ public class MQTTProducer extends BaseStep implements StepInterface {
       logDebug( "Publishing using a quality of service level of " + environmentSubstitute( meta.getQOS() ) );
       data.messageFieldIndex = getInputRowMeta().indexOfValue( environmentSubstitute( meta.getMessageField() ) );
       try {
-        data.mqttClient =
-          MQTTClientBuilder.builder()
-            .withBroker( meta.getMqttServer() )
-            .withStep( this )
-            .withClientId( meta.getClientId() )
-            .buildAndConnect();
+        data.mqttClient = MQTTClientBuilder.builder()
+          .withBroker( meta.getMqttServer() )
+          .withTopics( Collections.singletonList( meta.getTopic() ) )
+          .withQos( meta.getQOS() )
+          .withStep( this )
+          .withUsername( meta.getUsername() )
+          .withPassword( meta.getPassword() )
+          .buildAndConnect();
       } catch ( MqttException e ) {
         logError( e.getMessage(), e );
+        return false;
       }
 
       first = false;
