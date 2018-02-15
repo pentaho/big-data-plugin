@@ -88,8 +88,10 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
   @Override public void close() {
     super.close();
     try {
-      mqttClient.disconnect();
-      mqttClient.close();
+      if ( mqttClient != null ) {
+        mqttClient.disconnect();
+        mqttClient.close();
+      }
     } catch ( MqttException e ) {
       mqttConsumer.logError( e.getMessage() );
     }
