@@ -23,6 +23,7 @@
 package org.pentaho.di.trans.step.mqtt;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.pentaho.di.i18n.BaseMessages.getString;
 
 final class MQTTClientBuilder {
@@ -50,6 +52,21 @@ final class MQTTClientBuilder {
   // the paho library specifies ssl prop names as com.ibm, though not necessarily using the ibm implementations
   private static final String SSL_PROP_PREFIX = "com.ibm.";
 
+  public static final Map<String, String> DEFAULT_SSL_OPTS = ImmutableMap.<String, String>builder()
+    .put( "ssl.protocol", "TLS" )
+    .put( "ssl.contextProvider", "" )
+    .put( "ssl.keyStore", "" )
+    .put( "ssl.keyStorePassword", "" )
+    .put( "ssl.keyStoreType", "JKS" )
+    .put( "ssl.keyStoreProvider", "" )
+    .put( "ssl.trustStore", "" )
+    .put( "ssl.trustStorePassword", "" )
+    .put( "ssl.trustStoreType", "" )
+    .put( "ssl.trustStoreProvider", "" )
+    .put( "ssl.enabledCipherSuites", "" )
+    .put( "ssl.keyManager", "" )
+    .put( "ssl.trustManager", "" )
+    .build();
 
   private String broker;
   private List<String> topics;
@@ -131,7 +148,7 @@ final class MQTTClientBuilder {
   MqttClient buildAndConnect() throws MqttException {
     validateArgs();
 
-    String broker = UNSECURE_PROTOCOL + getBroker();
+    String broker = getProtocol() + getBroker();
     MqttClient client = clientFactory.getClient( broker, clientId,
       new MemoryPersistence() );
 
@@ -153,6 +170,9 @@ final class MQTTClientBuilder {
     return step.environmentSubstitute( this.broker );
   }
 
+  private String getProtocol() {
+    return isSecure ? SECURE_PROTOCOL : UNSECURE_PROTOCOL;
+  }
 
   private void validateArgs() {
     // expectation that the broker will contain the server:port.
@@ -163,7 +183,7 @@ final class MQTTClientBuilder {
       checkArgument( qosVal >= 0 && qosVal <= 2 );
     } catch ( Exception e ) {
       String errorMsg = getString( PKG, "MQTTClientBuilder.Error.QOS",
-         step.getStepMeta().getName(), step.environmentSubstitute( qos ) );
+        step.getStepMeta().getName(), step.environmentSubstitute( qos ) );
       step.getLogChannel().logError( errorMsg );
       throw new IllegalArgumentException( errorMsg );
     }
@@ -192,6 +212,7 @@ final class MQTTClientBuilder {
     Properties props = new Properties();
     props.putAll(
       sslConfig.entrySet().stream()
+        .filter( entry -> !isNullOrEmpty( entry.getValue() ) )
         .collect( Collectors.toMap( e -> SSL_PROP_PREFIX + e.getKey(),
           Map.Entry::getValue ) ) );
     options.setSSLProperties( props );

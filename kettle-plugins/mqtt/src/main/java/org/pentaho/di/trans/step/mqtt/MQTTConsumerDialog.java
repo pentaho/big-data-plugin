@@ -50,7 +50,9 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStreamingDialog;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.Arrays.stream;
 
@@ -90,6 +92,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     populateTopicsData();
     wQOS.setText( mqttMeta.getQos() );
     wUsername.setText( mqttMeta.getUsername() );
+    wUseSSL.setSelection( mqttMeta.isUseSsl() );
     wPassword.setText( mqttMeta.getPassword() );
   }
 
@@ -168,10 +171,11 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   }
 
   private void buildTopicsTable( Composite parentWidget, Control controlAbove, Control controlBelow ) {
-    ColumnInfo[] columns = new ColumnInfo[]{ new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.TopicHeading" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, new String[1], false ) };
+    ColumnInfo[] columns =
+      new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.TopicHeading" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, new String[ 1 ], false ) };
 
-    columns[0].setUsingVariables( true );
+    columns[ 0 ].setUsingVariables( true );
 
     int topicsCount = mqttMeta.getTopics().size();
 
@@ -330,9 +334,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   private void buildSSLTable( Composite parentWidget, Control relativePosition ) {
     ColumnInfo[] columns = getSSLColumns();
 
-    // TODO: Means of getting the SSL Config information
     int fieldCount = 1;
-//    int fieldCount = consumerMeta.getSSLConfig().size();
 
     sslTable = new TableView(
       transMeta,
@@ -380,12 +382,15 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
       ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     value.setUsingVariables( true );
 
-    return new ColumnInfo[]{ optionName, value };
+    return new ColumnInfo[] { optionName, value };
   }
 
   private void populateSSLData() {
-    // TODO: fill out with SSL table with property and values
-    int rowIndex = 0;
+    sslTable.clearAll();
+    Map<String, String> sslConfig = mqttMeta.getSslConfig();
+    mqttMeta.sslKeys.stream().sorted()
+      .forEach( key -> sslTable.add( key, sslConfig.get( key ) ) );
+    sslTable.remove( 0 );  // blank row
   }
 
   @Override protected String[] getFieldNames() {
@@ -394,7 +399,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
 
   @Override protected int[] getFieldTypes() {
     return stream( fieldsTable.getTable().getItems() )
-      .mapToInt( row -> ValueMetaFactory.getIdForValueMeta( row.getText( 3 )  ) ).toArray();
+      .mapToInt( row -> ValueMetaFactory.getIdForValueMeta( row.getText( 3 ) ) ).toArray();
   }
 
   private void buildFieldsTab() {
@@ -486,7 +491,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     ColumnInfo type = new ColumnInfo( BaseMessages.getString( PKG, "MQTTConsumerDialog.Column.Type" ),
       ColumnInfo.COLUMN_TYPE_TEXT, false, true );
 
-    return new ColumnInfo[]{ referenceName, name, type };
+    return new ColumnInfo[] { referenceName, name, type };
   }
 
 
@@ -502,5 +507,13 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     mqttMeta.setQos( wQOS.getText() );
     mqttMeta.setUsername( wUsername.getText() );
     mqttMeta.setPassword( wPassword.getText() );
+    mqttMeta.setUseSsl( wUseSSL.getSelection() );
+    mqttMeta.setSslConfig( tableToMap( sslTable ) );
+  }
+
+  private Map<String, String> tableToMap( TableView table ) {
+    return IntStream.range( 0, table.getItemCount() )
+      .mapToObj( table::getItem )
+      .collect( Collectors.toMap( strArray -> strArray[ 0 ], strArray -> strArray[ 1 ] ) );
   }
 }

@@ -78,6 +78,8 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
         .withCallback( callback )
         .withUsername( mqttConsumerMeta.getUsername() )
         .withPassword( mqttConsumerMeta.getPassword() )
+        .withIsSecure( mqttConsumerMeta.isUseSsl() )
+        .withSslConfig( mqttConsumerMeta.getSslConfig() )
         .buildAndConnect();
     } catch ( MqttException e ) {
       mqttConsumer.stopAll();
