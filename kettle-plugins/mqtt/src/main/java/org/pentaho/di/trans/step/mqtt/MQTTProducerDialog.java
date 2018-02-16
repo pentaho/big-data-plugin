@@ -481,9 +481,7 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
   private void buildSSLTable( Composite parentWidget, Control relativePosition ) {
     ColumnInfo[] columns = getSSLColumns();
 
-    // TODO: Means of getting the SSL Config information
     int fieldCount = 1;
-    //    int fieldCount = consumerMeta.getSSLConfig().size();
 
     sslTable = new TableView(
       transMeta,
