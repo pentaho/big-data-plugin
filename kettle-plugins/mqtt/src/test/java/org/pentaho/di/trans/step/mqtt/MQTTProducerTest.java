@@ -188,6 +188,6 @@ public class MQTTProducerTest {
     trans.startThreads();
     trans.waitUntilFinished();
 
-    verify( logChannel ).logError( eq( "There was an error connecting" ), any( MqttException.class ) );
+    verify( logChannel ).logError( "There was an error connecting" );
   }
 }
