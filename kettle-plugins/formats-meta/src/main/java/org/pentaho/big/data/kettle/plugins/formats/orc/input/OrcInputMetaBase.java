@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
+import org.pentaho.big.data.kettle.plugins.formats.orc.OrcInputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -34,7 +35,6 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -54,12 +54,12 @@ import org.w3c.dom.Node;
 public abstract class OrcInputMetaBase extends
     BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements ResolvableResource {
 
-  protected List<FormatInputOutputField> inputFields;
+  protected List<OrcInputField> inputFields;
 
   public OrcInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
-    inputFields = new ArrayList<>();
+    inputFields = new ArrayList<OrcInputField>();
   }
 
   public String getFilename() {
@@ -75,11 +75,11 @@ public abstract class OrcInputMetaBase extends
     inputFiles.fileName[0] = filename;
   }
 
-  public List<FormatInputOutputField> getInputFields() {
+  public List<OrcInputField> getInputFields() {
     return inputFields;
   }
 
-  public void setInputFields( List<FormatInputOutputField> inputFields ) {
+  public void setInputFields( List<OrcInputField> inputFields ) {
     this.inputFields = inputFields;
   }
 
@@ -107,22 +107,12 @@ public abstract class OrcInputMetaBase extends
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < inputFields.size(); i++ ) {
-      FormatInputOutputField field = inputFields.get( i );
+      OrcInputField field = inputFields.get( i );
       retval.append( "      <field>" ).append( Const.CR );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
+      retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
+      retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getFormat() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "currency", field.getCurrencySymbol() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "decimal", field.getDecimalSymbol() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "group", field.getGroupSymbol() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "nullif", field.getNullString() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "ifnull", field.getIfNullValue() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "position", field.getPosition() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "length", field.getLength() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "trim_type", field.getTrimTypeCode() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "repeat", field.isRepeated() ) );
+      retval.append( "        " ).append( XMLHandler.addTagValue( "orc_type", field.getOrcType().getName() ) );
       retval.append( "      </field>" ).append( Const.CR );
     }
     retval.append( "    </fields>" ).append( Const.CR );
@@ -145,22 +135,12 @@ public abstract class OrcInputMetaBase extends
       }
 
       for ( int i = 0; i < inputFields.size(); i++ ) {
-        FormatInputOutputField field = inputFields.get( i );
+        OrcInputField field = inputFields.get( i );
 
-        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field.getName() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_format", field.getFormat() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_currency", field.getCurrencySymbol() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_decimal", field.getDecimalSymbol() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_group", field.getGroupSymbol() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_nullif", field.getNullString() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_ifnull", field.getIfNullValue() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_position", field.getPosition() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_length", field.getLength() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_precision", field.getPrecision() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_trim_type", field.getTrimTypeCode() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "field_repeat", field.isRepeated() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "orc_type", field.getOrcType().getName() );
       }
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
@@ -196,23 +176,12 @@ public abstract class OrcInputMetaBase extends
     inputFields = new ArrayList<>();
     for ( int i = 0; i < nrfields; i++ ) {
       Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-      FormatInputOutputField field = new FormatInputOutputField();
 
-      field.setPath( XMLHandler.getTagValue( fnode, "path" ) );
-      field.setName( XMLHandler.getTagValue( fnode, "name" ) );
-      field.setType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
-      field.setFormat( XMLHandler.getTagValue( fnode, "format" ) );
-      field.setCurrencySymbol( XMLHandler.getTagValue( fnode, "currency" ) );
-      field.setDecimalSymbol( XMLHandler.getTagValue( fnode, "decimal" ) );
-      field.setGroupSymbol( XMLHandler.getTagValue( fnode, "group" ) );
-      field.setNullString( XMLHandler.getTagValue( fnode, "nullif" ) );
-      field.setIfNullValue( XMLHandler.getTagValue( fnode, "ifnull" ) );
-      field.setPosition( Const.toInt( XMLHandler.getTagValue( fnode, "position" ), -1 ) );
-      field.setLength( Const.toInt( XMLHandler.getTagValue( fnode, "length" ), -1 ) );
-      field.setPrecision( Const.toInt( XMLHandler.getTagValue( fnode, "precision" ), -1 ) );
-      field.setTrimType( ValueMetaString.getTrimTypeByCode( XMLHandler.getTagValue( fnode, "trim_type" ) ) );
-      field.setRepeated( YES.equalsIgnoreCase( XMLHandler.getTagValue( fnode, "repeat" ) ) );
-
+      OrcInputField field = new OrcInputField();
+      field.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
+      field.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
+      field.setPentahoType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
+      field.setOrcType( XMLHandler.getTagValue( fnode, "orc_type" ) );
       inputFields.add( field );
     }
   }
@@ -244,23 +213,11 @@ public abstract class OrcInputMetaBase extends
       int nrfields = rep.countNrStepAttributes( id_step, "field_name" );
       inputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputOutputField field = new FormatInputOutputField();
-
-        field.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
-        field.setName( rep.getStepAttributeString( id_step, i, "field_name" ) );
-        field.setType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "field_type" ) ) );
-        field.setFormat( rep.getStepAttributeString( id_step, i, "field_format" ) );
-        field.setCurrencySymbol( rep.getStepAttributeString( id_step, i, "field_currency" ) );
-        field.setDecimalSymbol( rep.getStepAttributeString( id_step, i, "field_decimal" ) );
-        field.setGroupSymbol( rep.getStepAttributeString( id_step, i, "field_group" ) );
-        field.setNullString( rep.getStepAttributeString( id_step, i, "field_nullif" ) );
-        field.setIfNullValue( rep.getStepAttributeString( id_step, i, "field_ifnull" ) );
-        field.setPosition( (int) rep.getStepAttributeInteger( id_step, i, "field_position" ) );
-        field.setLength( (int) rep.getStepAttributeInteger( id_step, i, "field_length" ) );
-        field.setPrecision( (int) rep.getStepAttributeInteger( id_step, i, "field_precision" ) );
-        field.setTrimType( ValueMetaString.getTrimTypeByCode( rep.getStepAttributeString( id_step, i,
-            "field_trim_type" ) ) );
-        field.setRepeated( rep.getStepAttributeBoolean( id_step, i, "field_repeat" ) );
+        OrcInputField field = new OrcInputField();
+        field.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
+        field.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
+        field.setPentahoType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "type" ) ) );
+        field.setOrcType( rep.getStepAttributeString( id_step, i, "orc_type" ) );
 
         inputFields.add( field );
       }

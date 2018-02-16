@@ -461,9 +461,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
       int j = 1;
       AvroOutputField field = new AvroOutputField();
-      field.setAvroFieldName( item.getText( j++ ) );
+      field.setFormatFieldName( item.getText( j++ ) );
       field.setPentahoFieldName( item.getText( j++ ) );
-      field.setAvroType( item.getText( j++ ) );
+      field.setFormatType( item.getText( j++ ) );
       if ( field.isDecimalType() ) {
         field.setPrecision( item.getText( j++ ) );
         field.setScale( item.getText( j++ ) );
@@ -517,7 +517,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   private void populateFieldsUI( AvroOutputMeta meta, TableView wOutputFields ) {
     populateFieldsUI( meta.getOutputFields(), wOutputFields, ( field, item ) -> {
       int i = 1;
-      item.setText( i++, coalesce( field.getAvroFieldName() ) );
+      item.setText( i++, coalesce( field.getFormatFieldName() ) );
       item.setText( i++, coalesce( field.getPentahoFieldName() ) );
       item.setText( i++, coalesce( field.getAvroType().getName() ) );
       if ( field.isDecimalType() ) {

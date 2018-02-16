@@ -380,7 +380,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
-      field.setAvroFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) );
+      field.setFormatFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) );
       field.setAvroType( extractAvroType( item.getText( DISPLAYABLE_AVRO_PATH_COLUMN_INDEX ) ) );
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );

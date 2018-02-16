@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,14 +25,12 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.orc.OrcFormatInputOutputField;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -44,7 +42,6 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcOutputFormat;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
 import java.io.IOException;
 
@@ -79,9 +76,9 @@ public class OrcOutput extends BaseStep implements StepInterface {
         //create data equals with output fileds
         Object[] outputData = new Object[meta.getOutputFields().size()];
         for ( int i = 0; i < meta.getOutputFields().size(); i++ ) {
-          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getName() );
+          int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getPentahoFieldName() );
           if ( inputRowIndex == -1 ) {
-            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getName() + " ] couldn't be found in the input stream!" );
+            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getPentahoFieldName() + " ] couldn't be found in the input stream!" );
           } else {
             ValueMetaInterface vmi = ValueMetaFactory.cloneValueMeta( getInputRowMeta().getValueMeta( inputRowIndex ) );
             //add output value meta according output fields
@@ -114,18 +111,12 @@ public class OrcOutput extends BaseStep implements StepInterface {
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
+
     if ( meta.getFilename() == null ) {
       throw new KettleException( "No output files defined" );
     }
-    SchemaDescription schemaDescription = new SchemaDescription();
-    for ( OrcFormatInputOutputField f : meta.getOutputFields() ) {
-      SchemaDescription.Field field = schemaDescription.new Field( f.getPath(), f.getName(), f.getType(), ValueMetaBase.convertStringToBoolean( f.getNullString() ) );
-      field.defaultValue = f.getIfNullValue();
-      schemaDescription.addField( field );
-    }
 
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class );
-
 
     String outputFileName = environmentSubstitute( meta.getFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
@@ -133,8 +124,8 @@ public class OrcOutput extends BaseStep implements StepInterface {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
     }
     data.output.setOutputFile( outputFileName, meta.isOverrideOutput() );
+    data.output.setFields( meta.getOutputFields() );
 
-    data.output.setSchemaDescription( schemaDescription );
     IPentahoOrcOutputFormat.COMPRESSION compression;
     try {
       compression = IPentahoOrcOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );

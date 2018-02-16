@@ -124,9 +124,9 @@ public abstract class AvroInputMetaBase extends
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
         AvroInputField inputField = new AvroInputField();
-        inputField.setAvroFieldName( XMLHandler.getTagValue( fnode, "path" ) );
+        inputField.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
         inputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
-        inputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
+        inputField.setPentahoType( XMLHandler.getTagValue( fnode, "type" ) );
         inputField.setAvroType( XMLHandler.getTagValue( fnode, "avro_type" ) );
         avroInputFields.add( inputField );
       }
@@ -182,9 +182,9 @@ public abstract class AvroInputMetaBase extends
       for ( int i = 0; i < nrfields; i++ ) {
         AvroInputField inputField = new AvroInputField();
 
-        inputField.setAvroFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
+        inputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
         inputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
-        inputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
+        inputField.setPentahoType( rep.getStepAttributeString( id_step, i, "type" ) );
         inputField.setAvroType( rep.getStepAttributeString( id_step, i, "avro_type" ) );
 
         avroInputFields.add( inputField );

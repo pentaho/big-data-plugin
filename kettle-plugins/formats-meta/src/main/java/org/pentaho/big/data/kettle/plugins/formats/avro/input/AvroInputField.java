@@ -22,96 +22,58 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
-import org.pentaho.di.core.injection.Injection;
+import org.pentaho.big.data.kettle.plugins.formats.BaseFormatInputField;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 
 /**
  * Base class for format's input/output field - path added.
- * 
+ *
  * @author JRice <joseph.rice@hitachivantara.com>
  */
-public class AvroInputField implements IAvroInputField {
-  @Injection( name = "FIELD_PATH", group = "FIELDS" )
-  protected String avroFieldName;
-
-  @Injection( name = "FIELD_NAME", group = "FIELDS" )
-  private String pentahoFieldName;
-
-  private int pentahoType;
-
-  private AvroSpec.DataType avroType = null;
+public class AvroInputField extends BaseFormatInputField implements IAvroInputField {
 
   @Override
   public String getAvroFieldName() {
-    return avroFieldName;
+    return formatFieldName;
   }
 
-  @Override
-  public void setAvroFieldName( String avroFieldName ) {
-    this.avroFieldName = avroFieldName;
-  }
-
-  @Override
-  public String getPentahoFieldName() {
-    return pentahoFieldName;
-  }
-
-  @Override
-  public void setPentahoFieldName( String pentahoFieldName ) {
-    this.pentahoFieldName = pentahoFieldName;
-  }
-
-  @Override
-  public int getPentahoType() {
-    return pentahoType;
-  }
-
-  @Override
-  public void setPentahoType( int pentahoType ) {
-    this.pentahoType = pentahoType;
+  @Override public void setAvroFieldName( String avroFieldName ) {
+    this.formatFieldName = avroFieldName;
   }
 
   @Override
   public AvroSpec.DataType getAvroType() {
-    return avroType;
+    return AvroSpec.DataType.getDataType( getFormatType() );
   }
 
   @Override
   public void setAvroType( AvroSpec.DataType avroType ) {
-    this.avroType = avroType;
+    setFormatType( avroType.getId() );
   }
 
   @Override
   public void setAvroType( String avroType ) {
     for ( AvroSpec.DataType tmpType : AvroSpec.DataType.values() ) {
-      if ( tmpType.getType().equalsIgnoreCase( avroType ) ) {
-        this.avroType = tmpType;
+      if ( tmpType.getName().equalsIgnoreCase( avroType ) ) {
+        setFormatType( tmpType.getId() );
         break;
       }
     }
   }
 
-  public void setAvroType( int avroType ) {
-    this.avroType = AvroSpec.DataType.values()[ avroType ];
-  }
-
-  public String getTypeDesc() {
-    return ValueMetaFactory.getValueMetaName( pentahoType );
-  }
-
-  @Injection( name = "FIELD_TYPE", group = "FIELDS" )
-  public void setType( String value ) {
-    this.pentahoType = ValueMetaFactory.getIdForValueMeta( value );
-  }
-
+  @Override
   public String getDisplayableAvroFieldName() {
-    String displayableAvroFieldName = avroFieldName;
-    if ( avroFieldName.contains( FILENAME_DELIMITER ) ) {
-      displayableAvroFieldName = avroFieldName.split( FILENAME_DELIMITER )[0];
+    String displayableAvroFieldName = formatFieldName;
+    if ( formatFieldName.contains( FILENAME_DELIMITER ) ) {
+      displayableAvroFieldName = formatFieldName.split( FILENAME_DELIMITER )[ 0 ];
     }
 
     return displayableAvroFieldName;
+  }
+
+  public String getTypeDesc() {
+    return ValueMetaFactory.getValueMetaName( getPentahoType() );
   }
 }

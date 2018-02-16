@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
+import org.pentaho.big.data.kettle.plugins.formats.BaseFormatOutputField;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.IAvroOutputField;
@@ -31,117 +32,44 @@ import org.pentaho.hadoop.shim.api.format.IAvroOutputField;
  * 
  * @author JRice <joseph.rice@hitachivantara.com>
  */
-public class AvroOutputField implements IAvroOutputField {
-  @Injection( name = "FIELD_PATH", group = "FIELDS" )
-  protected String avroFieldName;
-
-  @Injection( name = "FIELD_NAME", group = "FIELDS" )
-  private String pentahoFieldName;
-
-  @Injection( name = "FIELD_NULL_STRING", group = "FIELDS" )
-  private boolean allowNull;
-
-  @Injection( name = "FIELD_IF_NULL", group = "FIELDS" )
-  private String defaultValue;
-
-  private AvroSpec.DataType avroType;
-
-  private int precision;
-
-  private int scale;
-
-  @Override
-  public String getAvroFieldName() {
-    return avroFieldName;
-  }
-
-  @Override
-  public void setAvroFieldName( String avroFieldName ) {
-    this.avroFieldName = avroFieldName;
-  }
-
-  @Override
-  public String getPentahoFieldName() {
-    return pentahoFieldName;
-  }
-
-  @Override
-  public void setPentahoFieldName( String pentahoFieldName ) {
-    this.pentahoFieldName = pentahoFieldName;
-  }
-
-  @Override
-  public boolean getAllowNull() {
-    return allowNull;
-  }
-
-  @Override
-  public void setAllowNull( boolean allowNull ) {
-    this.allowNull = allowNull;
-  }
-
-  @Override
-  public String getDefaultValue() {
-    return defaultValue;
-  }
-
-  @Override
-  public void setDefaultValue( String defaultValue ) {
-    this.defaultValue = defaultValue;
-  }
-
+public class AvroOutputField extends BaseFormatOutputField implements IAvroOutputField {
   @Override
   public AvroSpec.DataType getAvroType() {
-    return avroType;
+    return AvroSpec.DataType.values()[ formatType ];
   }
 
   @Override
-  public void setAvroType( AvroSpec.DataType avroType ) {
-    this.avroType = avroType;
+  public void setFormatType( AvroSpec.DataType avroType ) {
+    this.formatType = avroType.ordinal();
   }
 
-  @Injection( name = "FIELD_NULL_STRING", group = "FIELDS" )
-  public void setAllowNull( String allowNull ) {
-    if ( allowNull != null && allowNull.length() > 0 ) {
-      if ( allowNull.equalsIgnoreCase( "yes" ) || allowNull.equalsIgnoreCase( "y" ) ) {
-        this.allowNull = true;
-      } else if ( allowNull.equalsIgnoreCase( "no" ) || allowNull.equalsIgnoreCase( "n" ) ) {
-        this.allowNull = false;
-      } else {
-        this.allowNull = Boolean.parseBoolean( allowNull );
+  @Override
+  public void setFormatType( int formatType ) {
+    for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
+      if ( avroType.ordinal() == formatType ) {
+        this.formatType = formatType;
       }
     }
   }
 
   @Injection( name = "FIELD_TYPE", group = "FIELDS" )
-  public void setAvroType( String typeName ) {
+  public void setFormatType( String typeName ) {
     try  {
-      setAvroType( Integer.parseInt( typeName ) );
+      setFormatType( Integer.parseInt( typeName ) );
     } catch ( NumberFormatException nfe ) {
       for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
         if ( avroType.getName().equals( typeName ) ) {
-          this.avroType = avroType;
+          this.formatType = avroType.ordinal();
         }
       }
     }
   }
 
-  public void setAvroType( int typeOrdinal ) {
-    for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
-      if ( avroType.ordinal() == typeOrdinal ) {
-        this.avroType = avroType;
-      }
-    }
-  }
-
   public boolean isDecimalType() {
-    return avroType.getName().equals( AvroSpec.DataType.DECIMAL.getName() );
+    return getAvroType().getName().equals( AvroSpec.DataType.DECIMAL.getName() );
   }
 
-  public int getPrecision() {
-    return precision;
-  }
-
+  @Override
   public void setPrecision( String precision ) {
     if ( precision == null ) {
       this.precision = AvroSpec.DEFAULT_DECIMAL_PRECISION;
@@ -153,10 +81,7 @@ public class AvroOutputField implements IAvroOutputField {
     }
   }
 
-  public int getScale() {
-    return scale;
-  }
-
+  @Override
   public void setScale( String scale ) {
     if ( scale == null ) {
       this.scale = AvroSpec.DEFAULT_DECIMAL_SCALE;
