@@ -840,9 +840,9 @@
       <version>${mondrian.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-database-model</artifactId>
-      <version>${pentaho-database-model.version}</version>
+      <groupId>org.pentaho</groupId>
+      <artifactId>commons-database-model</artifactId>
+      <version>${commons-database.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
