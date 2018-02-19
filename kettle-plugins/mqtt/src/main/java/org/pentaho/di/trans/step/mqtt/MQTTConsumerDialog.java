@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -77,12 +78,13 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   private Label wlPassword;
   private PasswordTextVar wPassword;
   private Button wUseSSL;
-  private Label wlUseSSL;
   private Label wlSSLProperties;
   private TableView sslTable;
+  private final Point startingDimensions = new Point( 527, 612 );
 
   public MQTTConsumerDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, in, tr, sname );
+
     mqttMeta = (MQTTConsumerMeta) in;
   }
 
@@ -109,6 +111,13 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
 
   @Override protected String getDialogTitle() {
     return BaseMessages.getString( PKG, "MQTTConsumerDialog.Shell.Title" );
+  }
+
+  @Override
+  public void setSize() {
+    setSize( shell );  // sets shell location and preferred size
+    shell.setMinimumSize( startingDimensions );
+    shell.setSize( startingDimensions ); // override the preferred size
   }
 
   @Override protected void buildSetup( Composite wSetupComp ) {
@@ -222,7 +231,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   }
 
   private void buildSecurityTab() {
-    wSecurityTab = new CTabItem( wTabFolder, SWT.NONE );
+    wSecurityTab = new CTabItem( wTabFolder, SWT.NONE, 1 );
     wSecurityTab.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.Tab" ) );
 
     wSecurityComp = new Composite( wTabFolder, SWT.NONE );
@@ -285,6 +294,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     wPassword.setLayoutData( fdPassword );
 
     wUseSSL = new Button( wSecurityComp, SWT.CHECK );
+    wUseSSL.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.UseSSL" ) );
     props.setLook( wUseSSL );
     FormData fdUseSSL = new FormData();
     fdUseSSL.top = new FormAttachment( wAuthenticationGroup, 15 );
@@ -294,6 +304,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
       @Override public void widgetSelected( SelectionEvent selectionEvent ) {
         boolean selection = ( (Button) selectionEvent.getSource() ).getSelection();
         sslTable.setEnabled( selection );
+        sslTable.table.setEnabled( selection );
       }
 
       @Override public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
@@ -301,14 +312,6 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
         sslTable.setEnabled( selection );
       }
     } );
-
-    wlUseSSL = new Label( wSecurityComp, SWT.LEFT );
-    props.setLook( wlUseSSL );
-    wlUseSSL.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.UseSSL" ) );
-    FormData fdlUseSSL = new FormData();
-    fdlUseSSL.left = new FormAttachment( wUseSSL, 0 );
-    fdlUseSSL.top = new FormAttachment( wAuthenticationGroup, 15 );
-    wlUseSSL.setLayoutData( fdlUseSSL );
 
     wlSSLProperties = new Label( wSecurityComp, SWT.LEFT );
     wlSSLProperties.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.SSLProperties" ) );

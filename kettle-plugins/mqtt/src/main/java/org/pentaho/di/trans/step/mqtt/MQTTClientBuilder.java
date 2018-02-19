@@ -36,6 +36,7 @@ import org.pentaho.di.trans.step.StepInterface;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -155,6 +156,7 @@ final class MQTTClientBuilder {
     client.setCallback( callback );
 
     step.getLogChannel().logDebug( "Subscribing to topics with a quality of service level of " + qos );
+    step.getLogChannel().logDebug( loggableOptions().toString() );
 
     client.connect( getOptions() );
     if ( topics != null && topics.size() > 0 ) {
@@ -206,6 +208,20 @@ final class MQTTClientBuilder {
       options.setPassword( step.environmentSubstitute( password ).toCharArray() );
     }
     return options;
+  }
+
+  /**
+   * Returns a copy of loggable options with sensitive data stripped.
+   */
+  private MqttConnectOptions loggableOptions() {
+    MqttConnectOptions loggableOptions = getOptions();
+
+    Optional.ofNullable( loggableOptions.getSSLProperties() )
+      .orElseGet( () -> new Properties() )
+      .keySet().stream()
+      .filter( key -> key.toString().toUpperCase().contains( "PASSWORD" ) )
+      .forEach( key -> loggableOptions.getSSLProperties().put( key, "*****" ) );
+    return loggableOptions;
   }
 
   private void setSSLProps( MqttConnectOptions options ) {
