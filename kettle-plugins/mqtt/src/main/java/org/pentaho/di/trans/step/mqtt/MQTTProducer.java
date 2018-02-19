@@ -101,7 +101,8 @@ public class MQTTProducer extends BaseStep implements StepInterface {
           .withPassword( meta.getPassword() )
           .buildAndConnect();
       } catch ( MqttException e ) {
-        logError( e.getMessage(), e );
+        stopAll();
+        logError( e.getMessage() );
         return false;
       }
 
