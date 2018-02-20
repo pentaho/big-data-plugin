@@ -27,6 +27,7 @@ import com.amazonaws.services.elasticmapreduce.model.ActionOnFailure;
 import com.amazonaws.services.elasticmapreduce.model.AddJobFlowStepsRequest;
 import com.amazonaws.services.elasticmapreduce.model.Application;
 import com.amazonaws.services.elasticmapreduce.model.BootstrapActionConfig;
+import com.amazonaws.services.elasticmapreduce.model.CancelStepsRequest;
 import com.amazonaws.services.elasticmapreduce.model.ClusterState;
 import com.amazonaws.services.elasticmapreduce.model.DescribeClusterRequest;
 import com.amazonaws.services.elasticmapreduce.model.DescribeClusterResult;
@@ -54,14 +55,16 @@ import org.pentaho.di.core.util.Utils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 /**
  * Created by Aliaksandr_Zhuk on 2/5/2018.
  */
 public class EmrClientImpl implements EmrClient {
-
   private static final String EMR_EC2_DEFAULT_ROLE = "EMR_EC2_DefaultRole";
   private static final String EMR_EFAULT_ROLE = "EMR_DefaultRole";
 
@@ -77,6 +80,7 @@ public class EmrClientImpl implements EmrClient {
   private List<StepSummary> stepSummaries = null;
   private boolean alive;
   private boolean requestClusterShutdown = false;
+  private boolean requestStepCancell = false;
 
   public EmrClientImpl( AmazonElasticMapReduce emrClient ) {
     this.emrClient = emrClient;
@@ -280,13 +284,18 @@ public class EmrClientImpl implements EmrClient {
 
   private StepConfig configureHiveStep( String stagingS3qUrl, String cmdLineArgs ) {
 
+    String[] cmdLineArgsArr;
     if ( cmdLineArgs == null ) {
-      cmdLineArgs = "";
+      cmdLineArgsArr = new String[] { "" };
+    } else {
+      List<String> cmdArgs = Arrays.asList( cmdLineArgs.split( "\\s+" ) );
+      List<String> updatedCmdArgs = cmdArgs.stream().map( e -> replaceDoubleS3( e ) ).collect( Collectors.toList() );
+      cmdLineArgsArr = updatedCmdArgs.toArray( new String[ updatedCmdArgs.size() ] );
     }
 
     StepConfig hiveStepConfig =
       new StepConfig( "Hive",
-        new StepFactory().newRunHiveScriptStep( stagingS3qUrl, cmdLineArgs ) );
+        new StepFactory().newRunHiveScriptStep( stagingS3qUrl, cmdLineArgsArr ) );
     if ( alive ) {
       hiveStepConfig.withActionOnFailure( ActionOnFailure.CANCEL_AND_WAIT );
     } else {
@@ -348,10 +357,18 @@ public class EmrClientImpl implements EmrClient {
       StringTokenizer st = new StringTokenizer( cmdLineArgs, " " );
       while ( st.hasMoreTokens() ) {
         String token = st.nextToken();
-        jarStepArgs.add( token );
+        jarStepArgs.add( replaceDoubleS3( token ) );
       }
     }
     return jarStepArgs;
+  }
+
+  private static String replaceDoubleS3( String token ) {
+
+    if ( token.contains( "s3://s3/" ) ) {
+      token = token.replace( "s3://s3/", "s3://" );
+    }
+    return token;
   }
 
   private List<Application> initApplications() {
@@ -362,7 +379,7 @@ public class EmrClientImpl implements EmrClient {
   }
 
   private List<BootstrapActionConfig> initBootstrapActions( String bootstrapActions ) {
-    List<BootstrapActionConfig> actionConfigs = ConfigBootstrapActions( bootstrapActions );
+    List<BootstrapActionConfig> actionConfigs = configBootstrapActions( bootstrapActions );
     return actionConfigs;
   }
 
@@ -371,7 +388,7 @@ public class EmrClientImpl implements EmrClient {
    *
    * @return List<StepConfig> configuration data for the bootstrap actions
    */
-  private static List<BootstrapActionConfig> ConfigBootstrapActions( String bootstrapActions ) {
+  private static List<BootstrapActionConfig> configBootstrapActions( String bootstrapActions ) {
 
     List<BootstrapActionConfig> bootstrapActionConfigs = new ArrayList<>();
 
@@ -408,12 +425,13 @@ public class EmrClientImpl implements EmrClient {
                 name = "Bootstrap Action " + actionCount;
               }
               // Enter data for one bootstrap action.
-              BootstrapActionConfig bootstrapActionConfig = ConfigureBootstrapAction( path, name, args );
+              BootstrapActionConfig bootstrapActionConfig = configureBootstrapAction( path, name, args );
               bootstrapActionConfigs.add( bootstrapActionConfig );
               name = "";
               args = null;
             }
             if ( value.startsWith( "s3://" ) ) {
+              value = replaceDoubleS3( value );
               path = value;
             } else { // The value for a bootstrap action does not start with "s3://".
               throw new RuntimeException( "s3:// path expected for bootstrap action: " + key + " " + value );
@@ -427,7 +445,7 @@ public class EmrClientImpl implements EmrClient {
           name = value;
         }
         if ( key.equals( "--args" ) ) {
-          args = ConfigArgs( value, "," );
+          args = configArgs( value, "," );
         }
       }
 
@@ -437,12 +455,32 @@ public class EmrClientImpl implements EmrClient {
           name = "Bootstrap Action " + actionCount;
         }
         // Enter data for the last bootstrap action.
-        BootstrapActionConfig bootstrapActionConfig = ConfigureBootstrapAction( path, name, args );
+        BootstrapActionConfig bootstrapActionConfig = configureBootstrapAction( path, name, args );
         bootstrapActionConfigs.add( bootstrapActionConfig );
       }
     }
 
     return bootstrapActionConfigs;
+  }
+
+  /**
+   * Configure a bootstrap action object, given its name, path and arguments.
+   *
+   * @param path - path for the bootstrap action program in S3
+   * @param name - name of the bootstrap action
+   * @param args - arguments for the bootstrap action
+   * @return configuration data object for one bootstrap action
+   */
+  private static BootstrapActionConfig configureBootstrapAction( String path, String name, List<String> args ) {
+
+    ScriptBootstrapActionConfig scriptBootstrapActionConfig = new ScriptBootstrapActionConfig();
+    BootstrapActionConfig bootstrapActionConfig = new BootstrapActionConfig();
+    scriptBootstrapActionConfig.setPath( path );
+    scriptBootstrapActionConfig.setArgs( args );
+    bootstrapActionConfig.setName( name );
+    bootstrapActionConfig.setScriptBootstrapAction( scriptBootstrapActionConfig );
+
+    return bootstrapActionConfig;
   }
 
   /**
@@ -452,7 +490,7 @@ public class EmrClientImpl implements EmrClient {
    * @param separator - separates one argument from another.
    * @return A list of arguments
    */
-  private static List<String> ConfigArgs( String args, String separator ) {
+  private static List<String> configArgs( String args, String separator ) {
 
     List<String> argList = new ArrayList<String>();
     if ( !StringUtil.isEmpty( args ) ) {
@@ -473,12 +511,14 @@ public class EmrClientImpl implements EmrClient {
    * @param args - arguments for the bootstrap action
    * @return configuration data object for one bootstrap action
    */
-  private static BootstrapActionConfig ConfigureBootstrapAction( String path, String name, List<String> args ) {
+  private static BootstrapActionConfig createBootstrapAction( String path, String name, List<String> args ) {
 
     ScriptBootstrapActionConfig scriptBootstrapActionConfig = new ScriptBootstrapActionConfig();
     BootstrapActionConfig bootstrapActionConfig = new BootstrapActionConfig();
-    scriptBootstrapActionConfig.setPath( path );
-    scriptBootstrapActionConfig.setArgs( args );
+    if ( !path.isEmpty() ) {
+      scriptBootstrapActionConfig.setPath( path );
+      scriptBootstrapActionConfig.setArgs( args );
+    }
     bootstrapActionConfig.setName( name );
     bootstrapActionConfig.setScriptBootstrapAction( scriptBootstrapActionConfig );
 
@@ -519,11 +559,36 @@ public class EmrClientImpl implements EmrClient {
   }
 
   private void terminateJobFlows() {
-    TerminateJobFlowsRequest terminateJobFlowsRequest = new TerminateJobFlowsRequest();
-    terminateJobFlowsRequest.withJobFlowIds( hadoopJobFlowId );
-    emrClient.terminateJobFlows( terminateJobFlowsRequest );
-    currentClusterState = getActualClusterState();
-    requestClusterShutdown = true;
+    if ( !requestClusterShutdown ) {
+      TerminateJobFlowsRequest terminateJobFlowsRequest = new TerminateJobFlowsRequest();
+      terminateJobFlowsRequest.withJobFlowIds( hadoopJobFlowId );
+      emrClient.terminateJobFlows( terminateJobFlowsRequest );
+      currentClusterState = getActualClusterState();
+      requestClusterShutdown = true;
+    }
+  }
+
+  private void cancelStepExecution() {
+    if ( !requestStepCancell ) {
+      CancelStepsRequest cancelStepsRequest = new CancelStepsRequest();
+      cancelStepsRequest.setClusterId( hadoopJobFlowId );
+      Collection<String> stepIds = new ArrayList<>();
+      stepIds.add( stepId );
+      cancelStepsRequest.setStepIds( stepIds );
+      emrClient.cancelSteps( cancelStepsRequest );
+      requestStepCancell = true;
+    }
+  }
+
+  @Override
+  public boolean stopSteps() {
+    if ( alive ) {
+      cancelStepExecution();
+      return true;
+    } else {
+      terminateJobFlows();
+    }
+    return false;
   }
 
   private String getActualClusterState() {

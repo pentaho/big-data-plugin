@@ -45,6 +45,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
+
 /**
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
@@ -225,6 +228,40 @@ public class EmrClientImplTest {
     emrClient.addStepToExistingJobFlow( stagingS3FileUrl, stagingS3BucketUrl, stepType, mainClass, jobEntry );
 
     Assert.assertEquals( stepSummary3.getId(), emrClient.getStepId() );
+  }
+
+  @Test
+  public void testStopSteps_whenLeaveClusterAlive() throws Exception {
+
+    boolean expectedStopSteps = true;
+
+    Whitebox.setInternalState( emrClient, "alive", true );
+
+    PowerMockito.doNothing().when( emrClient, "terminateJobFlows" );
+    PowerMockito.doNothing().when( emrClient, "cancelStepExecution" );
+
+    boolean stopSteps = emrClient.stopSteps();
+
+    PowerMockito.verifyPrivate( emrClient, times( 0 ) ).invoke( "terminateJobFlows" );
+    PowerMockito.verifyPrivate( emrClient, times( 1 ) ).invoke( "cancelStepExecution" );
+    Assert.assertEquals( expectedStopSteps, stopSteps );
+  }
+
+  @Test
+  public void testStopSteps_whenNotLeaveClusterAlive() throws Exception {
+
+    boolean expectedStopSteps = false;
+
+    Whitebox.setInternalState( emrClient, "alive", false );
+
+    PowerMockito.doNothing().when( emrClient, "terminateJobFlows" );
+    PowerMockito.doNothing().when( emrClient, "cancelStepExecution" );
+
+    boolean stopSteps = emrClient.stopSteps();
+
+    PowerMockito.verifyPrivate( emrClient, times( 1 ) ).invoke( "terminateJobFlows" );
+    PowerMockito.verifyPrivate( emrClient, times( 0 ) ).invoke( "cancelStepExecution" );
+    Assert.assertEquals( expectedStopSteps, stopSteps );
   }
 
   private void setJobEntryFields() {

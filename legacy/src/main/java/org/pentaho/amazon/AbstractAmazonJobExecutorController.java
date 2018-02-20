@@ -748,59 +748,67 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
   }
 
-  protected String buildValidationErrorMessages() {
-    String validationErrors = "";
+
+  public List<String> getValidationWarnings() {
+    List<String> warnings = new ArrayList<String>();
+
     if ( StringUtil.isEmpty( getJobEntryName() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobEntryName.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobEntryName.Error" ) );
     }
     if ( StringUtil.isEmpty( getAccessKey() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.AccessKey.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.AccessKey.Error" ) );
     }
     if ( StringUtil.isEmpty( getSecretKey() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SecretKey.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SecretKey.Error" ) );
     }
     if ( StringUtil.isEmpty( getRegion() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Region.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Region.Error" ) );
     }
-    if ( StringUtil.isEmpty( getEc2Role() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Ec2Role.Error" ) + "\n";
+
+    if ( StringUtil.isEmpty( getHadoopJobFlowId() ) ) {
+      if ( StringUtil.isEmpty( getEc2Role() ) ) {
+        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Ec2Role.Error" ) );
+      }
+      if ( StringUtil.isEmpty( getEmrRole() ) ) {
+        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRole.Error" ) );
+      }
+      if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
+        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.MasterInstanceType.Error" ) );
+      }
+      if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
+        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SlaveInstanceType.Error" ) );
+      }
+      if ( StringUtil.isEmpty( getEmrRelease() ) ) {
+        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRelease.Error" ) );
+      }
     }
-    if ( StringUtil.isEmpty( getEmrRole() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRole.Error" ) + "\n";
-    }
-    if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.MasterInstanceType.Error" ) + "\n";
-    }
-    if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SlaveInstanceType.Error" ) + "\n";
-    }
-    if ( StringUtil.isEmpty( getEmrRelease() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRelease.Error" ) + "\n";
-    }
+
     if ( StringUtil.isEmpty( getHadoopJobName() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobFlowName.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobFlowName.Error" ) );
     }
 
     String s3Protocol = S3FileProvider.SCHEME + "://";
     String sdir = getVariableSpace().environmentSubstitute( stagingDir );
     if ( StringUtil.isEmpty( getStagingDir() ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) );
     } else if ( !sdir.startsWith( s3Protocol ) ) {
-      validationErrors +=
-        BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) + "\n";
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) );
     }
-    return validationErrors;
+
+    return warnings;
+  }
+
+  protected String buildValidationErrorMessages() {
+    StringBuilder sb = new StringBuilder();
+    List<String> warnings = getValidationWarnings();
+
+    if ( !warnings.isEmpty() ) {
+      for ( String warning : warnings ) {
+        sb.append( warning ).append( "\n" );
+      }
+    }
+
+    return sb.toString();
   }
 
   protected void configureJobEntry() {

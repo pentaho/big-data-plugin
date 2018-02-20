@@ -60,4 +60,6 @@ public interface EmrClient {
   boolean isStepNotSuccess();
 
   String getJobFlowLogUri()throws URISyntaxException;
+
+  boolean stopSteps();
 }
