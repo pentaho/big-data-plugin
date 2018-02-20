@@ -95,6 +95,8 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     wQOS.setText( mqttMeta.getQos() );
     wUsername.setText( mqttMeta.getUsername() );
     wUseSSL.setSelection( mqttMeta.isUseSsl() );
+    sslTable.setEnabled( mqttMeta.isUseSsl() );
+    sslTable.table.setEnabled( mqttMeta.isUseSsl() );
     wPassword.setText( mqttMeta.getPassword() );
   }
 
