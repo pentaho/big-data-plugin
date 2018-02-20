@@ -118,7 +118,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
 
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class );
 
-    String outputFileName = environmentSubstitute( meta.getFilename() );
+    String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
     if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();

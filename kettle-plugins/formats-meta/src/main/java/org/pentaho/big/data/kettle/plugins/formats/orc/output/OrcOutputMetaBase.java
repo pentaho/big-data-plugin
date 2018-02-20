@@ -47,7 +47,9 @@ import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
@@ -392,6 +394,21 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
     return defaultValue;
   }
 
+  public String constructOutputFilename() {
+    String outputFileName = filename;
+    if ( dateTimeFormat != null && !dateTimeFormat.isEmpty() ) {
+      String dateTimeFormatPattern = getParentStepMeta().getParentTransMeta().environmentSubstitute( dateTimeFormat );
+      outputFileName += new SimpleDateFormat( dateTimeFormatPattern ).format( new Date() );
+    } else {
+      if ( dateInFileName ) {
+        outputFileName += '_' + new SimpleDateFormat( "yyyyMMdd" ).format( new Date() );
+      }
+      if ( timeInFileName ) {
+        outputFileName += '_' + new SimpleDateFormat( "HHmmss" ).format( new Date() );
+      }
+    }
+    return outputFileName;
+  }
   public String convertToOrcType( int pdiType ) {
     switch ( pdiType ) {
       case ValueMetaInterface.TYPE_INET:
