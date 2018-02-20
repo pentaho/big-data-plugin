@@ -69,7 +69,7 @@
     <dependency.httpcomponents-core.revision>4.4</dependency.httpcomponents-core.revision>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.httpcomponents-client.revision>4.5.3</dependency.httpcomponents-client.revision>
-    <pentaho-database-model.version>8.1.0.0-SNAPSHOT</pentaho-database-model.version>
+    <commons-database.version>8.1.0.0-SNAPSHOT</commons-database.version>
     <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
     <pentaho-reporting.version>8.1.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
