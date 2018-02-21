@@ -222,6 +222,11 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
           if ( log.isBasic() ) {
             while ( emrClient.isRunning() ) {
 
+              if ( isJobStoppedByUser() ) {
+                setResultError( result );
+                break;
+              }
+
               if ( emrClient.getCurrentClusterState() == null || emrClient.getCurrentClusterState().isEmpty() ) {
                 break;
               }
@@ -243,10 +248,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
             }
 
             if ( emrClient.isClusterTerminated() && emrClient.isStepNotSuccess() ) {
-              result.setStopped( true );
-              result.setNrErrors( 1 );
-              result.setResult( false );
-
+              setResultError( result );
               logError( hadoopJobName
                 + " " + BaseMessages
                 .getString( PKG, "AbstractAmazonJobExecutor.JobFlowExecutionStatus", hadoopJobFlowId )
@@ -254,10 +256,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
             }
 
             if ( emrClient.isStepNotSuccess() ) {
-              result.setStopped( true );
-              result.setNrErrors( 1 );
-              result.setResult( false );
-
+              setResultError( result );
               logBasic( hadoopJobName
                 + " " + BaseMessages
                 .getString( PKG, "AbstractAmazonJobExecutor.JobFlowStepStatus", emrClient.getStepId() )
@@ -274,9 +273,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
       }
     } catch ( Throwable t ) {
       t.printStackTrace();
-      result.setStopped( true );
-      result.setNrErrors( 1 );
-      result.setResult( false );
+      setResultError( result );
       logError( t.getMessage(), t );
     }
 
@@ -289,5 +286,18 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
       result.getResultFiles().put( resultFile.getFile().toString(), resultFile );
     }
     return result;
+  }
+
+  private boolean isJobStoppedByUser() {
+    if ( getParentJob().isInterrupted() || getParentJob().isStopped() ) {
+      return emrClient.stopSteps();
+    }
+    return false;
+  }
+
+  private void setResultError( Result result ) {
+    result.setStopped( true );
+    result.setNrErrors( 1 );
+    result.setResult( false );
   }
 }
