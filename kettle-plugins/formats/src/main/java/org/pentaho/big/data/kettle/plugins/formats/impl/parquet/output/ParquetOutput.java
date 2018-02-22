@@ -25,13 +25,11 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.trans.Trans;
@@ -42,7 +40,6 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
 
 import java.io.IOException;
 
@@ -87,12 +84,14 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       try {
         closeWriter();
       } catch ( Exception ex2 ) {
+        // Do nothing
       }
       throw ex;
     } catch ( Exception ex ) {
       try {
         closeWriter();
       } catch ( Exception ex2 ) {
+        // Do nothing
       }
       throw new KettleException( ex );
     }
@@ -118,7 +117,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     }
 
     data.output.setOutputFile( outputFileName, meta.overrideOutput );
-    data.output.setSchema( createSchema( rowMeta ) );
+    data.output.setFields( meta.getOutputFields() );
 
     IPentahoParquetOutputFormat.COMPRESSION compression;
     try {
@@ -146,32 +145,6 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.writer = data.output.createRecordWriter();
   }
 
-  private SchemaDescription createSchema( RowMetaInterface rowMeta ) {
-    SchemaDescription schema = createSchemaFromMeta( meta );
-    if ( schema.isEmpty() ) {
-      for ( ValueMetaInterface v : rowMeta.getValueMetaList() ) {
-        SchemaDescription.Field field = schema.new Field( v.getName(), v.getName(), v.getType(), true );
-        switch ( v.getType() ) {
-          case ValueMetaInterface.TYPE_STRING:
-            field.defaultValue = "";
-            break;
-          case ValueMetaInterface.TYPE_NUMBER:
-          case ValueMetaInterface.TYPE_BOOLEAN:
-          case ValueMetaInterface.TYPE_INTEGER:
-          case ValueMetaInterface.TYPE_BIGNUMBER:
-            field.defaultValue = "0";
-            break;
-          case ValueMetaInterface.TYPE_DATE:
-          case ValueMetaInterface.TYPE_TIMESTAMP:
-            field.defaultValue = "0";
-            break;
-        }
-        schema.addField( field );
-      }
-    }
-    return schema;
-  }
-
   public void closeWriter() throws KettleException {
     try {
       data.writer.close();
@@ -194,15 +167,5 @@ public class ParquetOutput extends BaseStep implements StepInterface {
         .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
     }
     return true;
-  }
-
-  public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
-    SchemaDescription schema = new SchemaDescription();
-    for ( FormatInputOutputField f : meta.outputFields ) {
-      SchemaDescription.Field field = schema.new Field( f.getPath(), f.getName(), f.getType(), f.isNullable() );
-      field.defaultValue = f.getIfNullValue();
-      schema.addField( field );
-    }
-    return schema;
   }
 }
