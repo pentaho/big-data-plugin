@@ -41,10 +41,10 @@
       <jar_url>.&#47;samples&#47;jobs&#47;hadoop&#47;wordcount.jar</jar_url>
       <access_key></access_key>
       <secret_key></secret_key>
-      <staging_dir>pentaho-emr-staging</staging_dir>
+      <staging_dir>s3:&#47;&#47;s3&#47;&lt;bucket_name></staging_dir>
       <num_instances>1</num_instances>
-      <master_instance_type>Small [m1.small]</master_instance_type>
-      <slave_instance_type>Small [m1.small]</slave_instance_type>
+      <master_instance_type></master_instance_type>
+      <slave_instance_type></slave_instance_type>
       <command_line_args>--input s3:&#47;&#47;mddwordcount&#47;input --output s3:&#47;&#47;mddwordcount&#47;output</command_line_args>
       <blocking>Y</blocking>
       <logging_interval>15</logging_interval>

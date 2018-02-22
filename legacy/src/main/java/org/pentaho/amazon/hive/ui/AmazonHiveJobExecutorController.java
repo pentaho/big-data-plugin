@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon.hive.ui;
 
+import com.google.common.base.Strings;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -36,6 +37,7 @@ import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
+import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
@@ -86,7 +88,27 @@ public class AmazonHiveJobExecutorController extends AbstractAmazonJobExecutorCo
     bindingFactory.setBindingType( Binding.Type.BI_DIRECTIONAL );
     bindingFactory.createBinding( XUL_BOOTSTRAP_ACTIONS, "value", this, BOOTSTRAP_ACTIONS );
     bindingFactory.createBinding( XUL_QURL, "value", this, Q_URL );
+
+    bindingFactory
+      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_BOOTSTRAP_ACTIONS, "disabled",
+        jobFlowIdIsFilled( container ) );
+
     initializeTextFields();
+  }
+
+  private static BindingConvertor<String, Boolean> jobFlowIdIsFilled( XulDomContainer container ) {
+    return new BindingConvertor<String, Boolean>() {
+      @Override public Boolean sourceToTarget( String value ) {
+        if ( Strings.isNullOrEmpty( value ) ) {
+          return false;
+        }
+        return true;
+      }
+
+      @Override public String targetToSource( Boolean value ) {
+        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+      }
+    };
   }
 
   @Override
