@@ -22,13 +22,11 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
-import com.google.common.collect.Maps;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -50,11 +48,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.stream.Collectors.toList;
 import static org.pentaho.di.trans.step.mqtt.MQTTClientBuilder.DEFAULT_SSL_OPTS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_SERVER;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MSG_OUTPUT_NAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.QOS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_GROUP;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_KEYS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_VALUES;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.TOPICS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.TOPIC_OUTPUT_NAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USERNAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USE_SSL;
+import static org.pentaho.di.trans.step.mqtt.SslConfigHelper.conf;
 
 @Step ( id = "MQTTConsumer", image = "MQTTConsumer.svg",
   i18nPackageName = "org.pentaho.di.trans.step.mqtt",
@@ -62,60 +69,33 @@ import static org.pentaho.di.trans.step.mqtt.MQTTClientBuilder.DEFAULT_SSL_OPTS;
   description = "MQTTConsumer.TypeTooltipDesc",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
 @InjectionSupported ( localizationPrefix = "MQTTConsumerMeta.Injection.", groups = { "SSL" } )
-public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInterface, Cloneable {
+public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInterface {
 
-  public static final String MQTT_SERVER = "MQTT_SERVER";
-  public static final String TOPICS = "TOPICS";
-  public static final String MSG_OUTPUT_NAME = "MSG_OUTPUT_NAME";
-  public static final String TOPIC_OUTPUT_NAME = "TOPIC_OUTPUT_NAME";
-  public static final String QOS = "QOS";
-  public static final String SSL_GROUP = "SSL";
-  public static final String USE_SSL = "USE_SSL";
-  public static final String SSL_KEYS = "SSL_KEYS";
-  public static final String SSL_VALUES = "SSL_VALUES";
-  public static final String USERNAME = "USERNAME";
-  private static Class<?> PKG = MQTTConsumer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+  @Injection ( name = MQTT_SERVER ) private String mqttServer = "";
 
+  @Injection ( name = TOPICS ) private List<String> topics = new ArrayList<>();
 
-  @Injection ( name = MQTT_SERVER )
-  public String mqttServer = "";
+  @Injection ( name = MSG_OUTPUT_NAME ) private String msgOutputName = "Message";
 
-  @Injection ( name = TOPICS )
-  public List<String> topics = new ArrayList<>();
+  @Injection ( name = TOPIC_OUTPUT_NAME ) private String topicOutputName = "Topic";
 
-  @Injection ( name = MSG_OUTPUT_NAME )
-  public String msgOutputName = "Message";
+  @Injection ( name = QOS ) private String qos = "0";
 
-  @Injection ( name = TOPIC_OUTPUT_NAME )
-  public String topicOutputName = "Topic";
+  @Injection ( name = USERNAME ) private String username = "";
 
-  @Injection ( name = QOS )
-  public String qos = "0";
+  @Injection ( name = PASSWORD ) private String password = "";
 
-  @Injection ( name = USERNAME )
-  public String username = "";
-
-  @Injection ( name = PASSWORD )
-  public String password = "";
-
-  @Injection ( name = USE_SSL, group = SSL_GROUP )
-  public Boolean useSsl = new Boolean( false );
+  @Injection ( name = USE_SSL, group = SSL_GROUP ) private Boolean useSsl = false;
 
   @Injection ( name = SSL_KEYS, group = SSL_GROUP )
-  public List<String> sslKeys = new ArrayList();
+  public List<String> sslKeys = new ArrayList<>();
 
   @Injection ( name = SSL_VALUES, group = SSL_GROUP )
-  public List<String> sslValues = new ArrayList();
+  public List<String> sslValues = new ArrayList<>();
 
   public MQTTConsumerMeta() {
     super();
-
     setSpecificationMethod( ObjectLocationSpecificationMethod.FILENAME );
-  }
-
-  public Object clone() {
-    Object retval = super.clone();
-    return retval;
   }
 
   public void setDefault() {
@@ -205,7 +185,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
 
 
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+                         VariableSpace space, Repository repository, IMetaStore metaStore ) {
     rowMeta.addValueMeta( new ValueMetaString( msgOutputName ) );
     rowMeta.addValueMeta( new ValueMetaString( topicOutputName ) );
   }
@@ -219,6 +199,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
     return new MQTTConsumerData();
   }
 
+  @SuppressWarnings ( { "deprecation" } )
+  // can be removed once the new @StepDialog annotation supports OSGi
   public String getDialogClassName() {
     return "org.pentaho.di.trans.step.mqtt.MQTTConsumerDialog";
   }
@@ -280,18 +262,12 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   }
 
   public Map<String, String> getSslConfig() {
-    checkState( sslKeys != null
-      && sslValues != null
-      && sslKeys.size() == sslValues.size() );
-    return Maps.toMap( sslKeys, key -> sslValues.get( sslKeys.indexOf( key ) ) );
+    return conf( sslKeys, sslValues ).asMap();
   }
 
   public void setSslConfig( Map<String, String> sslConfig ) {
-    checkNotNull( sslConfig );
-    sslKeys = newArrayList( sslConfig.keySet() );
-    sslValues = sslKeys.stream()
-      .map( key -> sslConfig.get( key ) )
-      .collect( toList() );
+    sslKeys = conf( sslConfig ).keys();
+    sslValues = conf( sslConfig ).vals();
   }
 
   public boolean isUseSsl() {

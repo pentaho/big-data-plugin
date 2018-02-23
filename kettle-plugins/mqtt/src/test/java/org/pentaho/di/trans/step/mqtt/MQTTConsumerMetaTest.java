@@ -53,17 +53,16 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
-
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.MQTT_SERVER;
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.QOS;
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.SSL_KEYS;
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.SSL_VALUES;
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.TOPICS;
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.USERNAME;
-import static org.pentaho.di.trans.step.mqtt.MQTTConsumerMeta.USE_SSL;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_SERVER;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.QOS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_KEYS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_VALUES;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.TOPICS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USERNAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USE_SSL;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.DURATION;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.NUM_MESSAGES;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.PASSWORD;
@@ -73,7 +72,7 @@ import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.TRANSFORM
 public class MQTTConsumerMetaTest {
 
   @Mock private IMetaStore metastore;
-  @Mock Repository rep;
+  @Mock private Repository rep;
 
   @BeforeClass
   public static void setUpBeforeClass() throws KettleException {
@@ -84,7 +83,7 @@ public class MQTTConsumerMetaTest {
     Encr.init( passwordEncoderPluginID );
   }
 
-  MQTTConsumerMeta meta = new MQTTConsumerMeta();
+  private MQTTConsumerMeta meta = new MQTTConsumerMeta();
 
   @Test
   public void testLoadAndSave() throws KettleXMLException {
