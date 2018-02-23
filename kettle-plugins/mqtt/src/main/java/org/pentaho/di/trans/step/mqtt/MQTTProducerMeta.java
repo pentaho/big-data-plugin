@@ -26,7 +26,6 @@ import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -42,46 +41,65 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-@Step( id = "MQTTProducer", image = "MQTTProducer.svg",
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+import static org.pentaho.di.trans.step.mqtt.MQTTClientBuilder.DEFAULT_SSL_OPTS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CLIENT_ID;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MESSAGE_FIELD;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_SERVER;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.PASSWORD;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.QOS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_GROUP;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_KEYS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_VALUES;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.TOPIC;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USERNAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USE_SSL;
+import static org.pentaho.di.trans.step.mqtt.SslConfigHelper.conf;
+
+@Step ( id = "MQTTProducer", image = "MQTTProducer.svg",
   i18nPackageName = "org.pentaho.di.trans.step.mqtt",
   name = "MQTTProducer.TypeLongDesc",
   description = "MQTTProducer.TypeTooltipDesc",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming" )
-@InjectionSupported( localizationPrefix = "MQTTProducerMeta.Injection." )
-public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface, Cloneable {
+@InjectionSupported ( localizationPrefix = "MQTTProducerMeta.Injection." )
+public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface {
 
-  public static final String MQTT_SERVER = "MQTT_SERVER";
-  public static final String CLIENT_ID = "CLIENT_ID";
-  public static final String TOPIC = "TOPIC";
-  public static final String QOS = "QOS";
-  public static final String MESSAGE_FIELD = "MESSAGE_FIELD";
-  public static final String USERNAME = "USERNAME";
-  public static final String PASSWORD = "PASSWORD";
-
-  private static Class<?> PKG = MQTTProducer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
-
-  @Injection( name = MQTT_SERVER )
+  @Injection ( name = MQTT_SERVER )
   private String mqttServer;
 
-  @Injection( name = CLIENT_ID )
+  @Injection ( name = CLIENT_ID )
   private String clientId;
 
-  @Injection( name = TOPIC )
+  @Injection ( name = TOPIC )
   private String topic;
 
-  @Injection( name = QOS )
+  @Injection ( name = QOS )
   private String qos;
 
-  @Injection( name = MESSAGE_FIELD )
+  @Injection ( name = MESSAGE_FIELD )
   private String messageField;
 
-  @Injection( name = USERNAME )
+  @Injection ( name = USERNAME )
   private String username;
 
-  @Injection( name = PASSWORD )
+  @Injection ( name = PASSWORD )
   private String password;
+
+  @Injection ( name = USE_SSL, group = SSL_GROUP )
+  private Boolean useSsl = false;
+
+  @Injection ( name = SSL_KEYS, group = SSL_GROUP )
+  private List<String> sslKeys = new ArrayList<>();
+
+  @Injection ( name = SSL_VALUES, group = SSL_GROUP )
+  private List<String> sslValues = new ArrayList<>();
+
 
   public MQTTProducerMeta() {
     super();
@@ -94,6 +112,14 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     qos = "0";
     username = "";
     password = "";
+
+    sslKeys = DEFAULT_SSL_OPTS
+      .keySet().stream()
+      .sorted()
+      .collect( toList() );
+    sslValues = sslKeys.stream()
+      .map( DEFAULT_SSL_OPTS::get )
+      .collect( toList() );
   }
 
   @Override
@@ -145,11 +171,17 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     retval.append( "    " )
       .append( XMLHandler.addTagValue( PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) ) );
 
+    retval.append( "<SSL>\n" );
+    sslKeys.forEach( key -> retval.append( "<SSL_KEYS>" ).append( key ).append( "</SSL_KEYS>\n" ) );
+    sslValues.forEach( val -> retval.append( "<SSL_VALUES>" ).append( val ).append( "</SSL_VALUES>\n" ) );
+    retval.append( "<USE_SSL>" ).append( isUseSsl() ).append( "</USE_SSL>\n" );
+    retval.append( "</SSL>\n" );
+
     return retval.toString();
   }
 
   @Override
-  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) {
     readData( stepnode );
   }
 
@@ -161,16 +193,29 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
     setMessageField( XMLHandler.getTagValue( stepnode, MESSAGE_FIELD ) );
     setUsername( XMLHandler.getTagValue( stepnode, USERNAME ) );
     setPassword( Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, PASSWORD ) ) );
+
+
+    Node sslNode = XMLHandler.getSubNode( stepnode, "SSL" );
+    List<Node> sslKeyNodes = XMLHandler.getNodes( sslNode, "SSL_KEYS" );
+    List<Node> sslValNodes = XMLHandler.getNodes( sslNode, "SSL_VALUES" );
+    String useSslNode = XMLHandler.getTagValue( sslNode, "USE_SSL" );
+
+    sslKeys = new ArrayList<>();
+    sslValues = new ArrayList<>();
+    ofNullable( sslKeyNodes ).orElse( emptyList() ).stream()
+      .map( Node::getTextContent )
+      .forEach( sslKeys::add );
+    ofNullable( sslValNodes ).orElse( emptyList() ).stream()
+      .map( Node::getTextContent )
+      .forEach( sslValues::add );
+    useSsl = Boolean.parseBoolean( useSslNode );
   }
 
+  @SuppressWarnings ( { "deprecation" } )
+  // can be removed once the new @StepDialog annotation supports OSGi
   @Override
   public String getDialogClassName() {
     return "org.pentaho.di.trans.step.mqtt.MQTTProducerDialog";
-  }
-
-  public Object clone() {
-    Object retval = super.clone();
-    return retval;
   }
 
   public String getMqttServer() {
@@ -228,4 +273,23 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface,
   public void setPassword( String password ) {
     this.password = password;
   }
+
+  public Map<String, String> getSslConfig() {
+    return conf( sslKeys, sslValues ).asMap();
+  }
+
+  public void setSslConfig( Map<String, String> sslConfig ) {
+    sslKeys = conf( sslConfig ).keys();
+    sslValues = conf( sslConfig ).vals();
+  }
+
+  public boolean isUseSsl() {
+    return useSsl;
+  }
+
+  public void setUseSsl( boolean useSsl ) {
+    this.useSsl = useSsl;
+  }
+
+
 }

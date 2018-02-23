@@ -37,9 +37,10 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 
 import java.util.Collections;
 
+import static java.nio.charset.Charset.defaultCharset;
+
 public class MQTTProducer extends BaseStep implements StepInterface {
   private static Class<?> PKG = MQTTProducerMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
-  private static final String PROTOCOL = "tcp://";
 
   private MQTTProducerMeta meta;
   private MQTTProducerData data;
@@ -99,6 +100,8 @@ public class MQTTProducer extends BaseStep implements StepInterface {
           .withStep( this )
           .withUsername( meta.getUsername() )
           .withPassword( meta.getPassword() )
+          .withSslConfig( meta.getSslConfig() )
+          .withIsSecure( meta.isUseSsl() )
           .buildAndConnect();
       } catch ( MqttException e ) {
         stopAll();
@@ -116,7 +119,7 @@ public class MQTTProducer extends BaseStep implements StepInterface {
       throw new KettleStepException(
         BaseMessages.getString( PKG, "MQTTProducer.Error.QOS", environmentSubstitute( meta.getQOS() ) ) );
     }
-    mqttMessage.setPayload( ( row[ data.messageFieldIndex ] ).toString().getBytes() );
+    mqttMessage.setPayload( ( row[ data.messageFieldIndex ] ).toString().getBytes( defaultCharset() ) );
 
     try {
       data.mqttClient.publish( environmentSubstitute( meta.getTopic() ), mqttMessage );

@@ -30,6 +30,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -38,27 +39,31 @@ import org.pentaho.di.repository.StringObjectId;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.metastore.api.IMetaStore;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import java.util.Collections;
 
+import static com.google.common.collect.ImmutableMap.of;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.CLIENT_ID;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.MESSAGE_FIELD;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.MQTT_SERVER;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.PASSWORD;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.QOS;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.TOPIC;
-import static org.pentaho.di.trans.step.mqtt.MQTTProducerMeta.USERNAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CLIENT_ID;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MESSAGE_FIELD;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_SERVER;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.PASSWORD;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.QOS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.TOPIC;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USERNAME;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith ( MockitoJUnitRunner.class )
 public class MQTTProducerMetaTest {
 
   @Mock private IMetaStore metaStore;
-  @Mock Repository rep;
+  @Mock private Repository rep;
 
   @BeforeClass
   public static void setUpBeforeClass() throws KettleException {
@@ -120,13 +125,38 @@ public class MQTTProducerMetaTest {
     meta.setParentStepMeta( stepMeta );
 
     assertEquals( "    <MQTT_SERVER>mqtthost:1883</MQTT_SERVER>" + Const.CR
-      + "    <CLIENT_ID>client1</CLIENT_ID>" + Const.CR
-      + "    <TOPIC>test-topic</TOPIC>" + Const.CR
-      + "    <QOS>2</QOS>" + Const.CR
+        + "    <CLIENT_ID>client1</CLIENT_ID>" + Const.CR
+        + "    <TOPIC>test-topic</TOPIC>" + Const.CR
+        + "    <QOS>2</QOS>" + Const.CR
         + "    <MESSAGE_FIELD>temp-message</MESSAGE_FIELD>" + Const.CR
         + "    <USERNAME>testuser</USERNAME>" + Const.CR
-        + "    <PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>" + Const.CR,
+        + "    <PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>\n"
+        + "<SSL>\n"
+        + "<USE_SSL>false</USE_SSL>\n"
+        + "</SSL>" + Const.CR,
       meta.getXML() );
+  }
+
+  @Test
+  public void testRoundTripWithSSLStuff() {
+    MQTTProducerMeta meta = new MQTTProducerMeta();
+    meta.setMqttServer( "mqtthost:1883" );
+    meta.setTopic( "test-topic" );
+    meta.setQOS( "2" );
+    meta.setMessageField( "temp-message" );
+    meta.setSslConfig( of(
+      "sslKey", "sslVal",
+      "sslKey2", "sslVal2",
+      "sslKey3", "sslVal3"
+    ) );
+    meta.setUseSsl( true );
+
+    MQTTProducerMeta rehydrated = fromXml( meta.getXML() );
+
+    assertThat( true, is( rehydrated.isUseSsl() ) );
+    meta.getSslConfig().keySet().forEach( key ->
+      assertThat( meta.getSslConfig().get( key ), is( rehydrated.getSslConfig().get( key ) ) ) );
+
   }
 
   @Test
@@ -182,6 +212,22 @@ public class MQTTProducerMetaTest {
       + "    <QOS/>" + Const.CR
       + "    <MESSAGE_FIELD/>" + Const.CR
       + "    <USERNAME/>" + Const.CR
-      + "    <PASSWORD>Encrypted </PASSWORD>" + Const.CR, meta.getXML() );
+      + "    <PASSWORD>Encrypted </PASSWORD>\n"
+      + "<SSL>\n"
+      + "<USE_SSL>false</USE_SSL>\n"
+      + "</SSL>" + Const.CR, meta.getXML() );
+  }
+
+  public static MQTTProducerMeta fromXml( String metaXml ) {
+    Document doc;
+    try {
+      doc = XMLHandler.loadXMLString( "<step>" + metaXml + "</step>" );
+      Node stepNode = XMLHandler.getSubNode( doc, "step" );
+      MQTTProducerMeta mqttProducerMeta = new MQTTProducerMeta();
+      mqttProducerMeta.loadXML( stepNode, Collections.emptyList(), (IMetaStore) null );
+      return mqttProducerMeta;
+    } catch ( KettleXMLException e ) {
+      throw new RuntimeException( e );
+    }
   }
 }
