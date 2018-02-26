@@ -37,4 +37,12 @@ class MQTTConstants {
   static final String PASSWORD = "PASSWORD";
   static final String CLIENT_ID = "CLIENT_ID";
   static final String MESSAGE_FIELD = "MESSAGE_FIELD";
+  static final String KEEP_ALIVE_INTERVAL = "KEEP_ALIVE_INTERVAL";
+  static final String MAX_INFLIGHT = "MAX_INFLIGHT";
+  static final String CONNECTION_TIMEOUT = "CONNECTION_TIMEOUT";
+  static final String CLEAN_SESSION = "CLEAN_SESSION";
+  static final String STORAGE_LEVEL = "STORAGE_LEVEL";
+  static final String SERVER_URIS = "SERVER_URIS";
+  static final String MQTT_VERSION = "MQTT_VERSION";
+  static final String AUTOMATIC_RECONNECT = "AUTOMATIC_RECONNECT";
 }

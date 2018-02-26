@@ -40,7 +40,7 @@ import java.util.Collections;
 import static java.nio.charset.Charset.defaultCharset;
 
 public class MQTTProducer extends BaseStep implements StepInterface {
-  private static Class<?> PKG = MQTTProducerMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+  private static Class<?> PKG = MQTTProducer.class;
 
   private MQTTProducerMeta meta;
   private MQTTProducerData data;
@@ -96,12 +96,21 @@ public class MQTTProducer extends BaseStep implements StepInterface {
         data.mqttClient = MQTTClientBuilder.builder()
           .withBroker( meta.getMqttServer() )
           .withTopics( Collections.singletonList( meta.getTopic() ) )
+          .withClientId( meta.getClientId() )
           .withQos( meta.getQOS() )
           .withStep( this )
           .withUsername( meta.getUsername() )
           .withPassword( meta.getPassword() )
           .withSslConfig( meta.getSslConfig() )
           .withIsSecure( meta.isUseSsl() )
+          .withKeepAliveInterval( meta.getKeepAliveInterval() )
+          .withMaxInflight( meta.getMaxInflight() )
+          .withConnectionTimeout( meta.getConnectionTimeout() )
+          .withCleanSession( meta.getCleanSession() )
+          .withStorageLevel( meta.getStorageLevel() )
+          .withServerUris( meta.getServerUris() )
+          .withMqttVersion( meta.getMqttVersion() )
+          .withAutomaticReconnect( meta.getAutomaticReconnect() )
           .buildAndConnect();
       } catch ( MqttException e ) {
         stopAll();

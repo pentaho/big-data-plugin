@@ -62,6 +62,14 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import java.util.List;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.AUTOMATIC_RECONNECT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CLEAN_SESSION;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CONNECTION_TIMEOUT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.KEEP_ALIVE_INTERVAL;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MAX_INFLIGHT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_VERSION;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SERVER_URIS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.STORAGE_LEVEL;
 
 @SuppressWarnings ( "unused" )
 @StepDialog ( id = "MQTTProducer", image = "MQTTProducer.svg" )
@@ -82,6 +90,7 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
   private CTabFolder wTabFolder;
 
   private MqttDialogSecurityLayout securityLayout;
+  private MqttDialogOptionsLayout optionsLayout;
 
   public MQTTProducerDialog( Shell parent, Object in, TransMeta transMeta, String stepname ) {
     super( parent, (BaseStepMeta) in, transMeta, stepname );
@@ -198,6 +207,10 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
       props, wTabFolder, meta.getUsername(), meta.getPassword(), lsMod, transMeta,
       meta.getSslConfig(), meta.isUseSsl() );
     securityLayout.buildSecurityTab();
+
+    optionsLayout = new MqttDialogOptionsLayout( props, wTabFolder, lsMod, transMeta,
+      meta.retrieveOptions() );
+    optionsLayout.buildTab();
 
     getData();
 
@@ -373,6 +386,37 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
     meta.setPassword( securityLayout.password() );
     meta.setUseSsl( securityLayout.useSsl() );
     meta.setSslConfig( securityLayout.sslConfig() );
+
+    optionsLayout.retrieveOptions().stream()
+      .forEach( option -> {
+        switch ( option.getKey() ) {
+          case KEEP_ALIVE_INTERVAL:
+            meta.setKeepAliveInterval( option.getValue() );
+            break;
+          case MAX_INFLIGHT:
+            meta.setMaxInflight( option.getValue() );
+            break;
+          case CONNECTION_TIMEOUT:
+            meta.setConnectionTimeout( option.getValue() );
+            break;
+          case CLEAN_SESSION:
+            meta.setCleanSession( option.getValue() );
+            break;
+          case STORAGE_LEVEL:
+            meta.setStorageLevel( option.getValue() );
+            break;
+          case SERVER_URIS:
+            meta.setServerUris( option.getValue() );
+            break;
+          case MQTT_VERSION:
+            meta.setMqttVersion( option.getValue() );
+            break;
+          case AUTOMATIC_RECONNECT:
+            meta.setAutomaticReconnect( option.getValue() );
+            break;
+        }
+      } );
+
     dispose();
   }
 

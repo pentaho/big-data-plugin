@@ -113,7 +113,6 @@ class MqttDialogSecurityLayout {
   }
 
   void buildSecurityTab() {
-
     CTabItem wSecurityTab = new CTabItem( wTabFolder, SWT.NONE, 1 );
     wSecurityTab.setText( BaseMessages.getString( PKG, "MQTTDialog.Security.Tab" ) );
 
@@ -293,5 +292,4 @@ class MqttDialogSecurityLayout {
       .mapToObj( table::getItem )
       .collect( Collectors.toMap( strArray -> strArray[ 0 ], strArray -> strArray[ 1 ] ) );
   }
-
 }

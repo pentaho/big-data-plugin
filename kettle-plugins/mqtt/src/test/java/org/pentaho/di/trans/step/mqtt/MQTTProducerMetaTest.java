@@ -51,11 +51,19 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.AUTOMATIC_RECONNECT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CLEAN_SESSION;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CLIENT_ID;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CONNECTION_TIMEOUT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.KEEP_ALIVE_INTERVAL;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MAX_INFLIGHT;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MESSAGE_FIELD;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_SERVER;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_VERSION;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.PASSWORD;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.QOS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SERVER_URIS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.STORAGE_LEVEL;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.TOPIC;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.USERNAME;
 
@@ -89,6 +97,14 @@ public class MQTTProducerMetaTest {
       + "      <schema_name />\n"
       + "    </partitioning>\n"
       + "    <MQTT_SERVER>mqtthost:1883</MQTT_SERVER>\n"
+      + "    <KEEP_ALIVE_INTERVAL>1000</KEEP_ALIVE_INTERVAL>\n"
+      + "    <MAX_INFLIGHT>2000</MAX_INFLIGHT>\n"
+      + "    <CONNECTION_TIMEOUT>3000</CONNECTION_TIMEOUT>\n"
+      + "    <CLEAN_SESSION>true</CLEAN_SESSION>\n"
+      + "    <STORAGE_LEVEL>/Users/noname/temp</STORAGE_LEVEL>\n"
+      + "    <SERVER_URIS>mqttHost2:1883</SERVER_URIS>\n"
+      + "    <MQTT_VERSION>3</MQTT_VERSION>\n"
+      + "    <AUTOMATIC_RECONNECT>true</AUTOMATIC_RECONNECT>\n"
       + "    <PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>\n"
       + "    <USERNAME>testuser</USERNAME>\n"
       + "    <CLIENT_ID>client1</CLIENT_ID>\n"
@@ -106,6 +122,14 @@ public class MQTTProducerMetaTest {
     assertEquals( "tempvalue", meta.getMessageField() );
     assertEquals( "testuser", meta.getUsername() );
     assertEquals( "test", meta.getPassword() );
+    assertEquals( "1000", meta.getKeepAliveInterval() );
+    assertEquals( "2000", meta.getMaxInflight() );
+    assertEquals( "3000", meta.getConnectionTimeout() );
+    assertEquals( "true", meta.getCleanSession() );
+    assertEquals( "/Users/noname/temp", meta.getStorageLevel() );
+    assertEquals( "mqttHost2:1883", meta.getServerUris() );
+    assertEquals( "3", meta.getMqttVersion() );
+    assertEquals( "true", meta.getAutomaticReconnect() );
   }
 
   @Test
@@ -133,7 +157,15 @@ public class MQTTProducerMetaTest {
         + "    <PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>\n"
         + "<SSL>\n"
         + "<USE_SSL>false</USE_SSL>\n"
-        + "</SSL>" + Const.CR,
+        + "</SSL>" + Const.CR
+        + "    <KEEP_ALIVE_INTERVAL/>" + Const.CR
+        + "    <MAX_INFLIGHT/>" + Const.CR
+        + "    <CONNECTION_TIMEOUT/>" + Const.CR
+        + "    <CLEAN_SESSION/>" + Const.CR
+        + "    <STORAGE_LEVEL/>" + Const.CR
+        + "    <SERVER_URIS/>" + Const.CR
+        + "    <MQTT_VERSION/>" + Const.CR
+        + "    <AUTOMATIC_RECONNECT/>" + Const.CR,
       meta.getXML() );
   }
 
@@ -170,6 +202,14 @@ public class MQTTProducerMetaTest {
     when( rep.getStepAttributeString( stepId, MESSAGE_FIELD ) ).thenReturn( "the-field" );
     when( rep.getStepAttributeString( stepId, PASSWORD ) ).thenReturn( "Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce" );
     when( rep.getStepAttributeString( stepId, USERNAME ) ).thenReturn( "testuser" );
+    when( rep.getStepAttributeString( stepId, KEEP_ALIVE_INTERVAL ) ).thenReturn( "1000" );
+    when( rep.getStepAttributeString( stepId, MAX_INFLIGHT ) ).thenReturn( "2000" );
+    when( rep.getStepAttributeString( stepId, CONNECTION_TIMEOUT ) ).thenReturn( "3000" );
+    when( rep.getStepAttributeString( stepId, CLEAN_SESSION ) ).thenReturn( "true" );
+    when( rep.getStepAttributeString( stepId, STORAGE_LEVEL ) ).thenReturn( "/Users/noname/temp" );
+    when( rep.getStepAttributeString( stepId, SERVER_URIS ) ).thenReturn( "mqttHost2:1883" );
+    when( rep.getStepAttributeString( stepId, MQTT_VERSION ) ).thenReturn( "3" );
+    when( rep.getStepAttributeString( stepId, AUTOMATIC_RECONNECT ) ).thenReturn( "true" );
 
     meta.readRep( rep, metaStore, stepId, Collections.emptyList() );
     assertEquals( "mqttserver:1883", meta.getMqttServer() );
@@ -179,6 +219,14 @@ public class MQTTProducerMetaTest {
     assertEquals( "the-field", meta.getMessageField() );
     assertEquals( "testuser", meta.getUsername() );
     assertEquals( "test", meta.getPassword() );
+    assertEquals( "1000", meta.getKeepAliveInterval() );
+    assertEquals( "2000", meta.getMaxInflight() );
+    assertEquals( "3000", meta.getConnectionTimeout() );
+    assertEquals( "true", meta.getCleanSession() );
+    assertEquals( "/Users/noname/temp", meta.getStorageLevel() );
+    assertEquals( "mqttHost2:1883", meta.getServerUris() );
+    assertEquals( "3", meta.getMqttVersion() );
+    assertEquals( "true", meta.getAutomaticReconnect() );
   }
 
   @Test
@@ -192,7 +240,14 @@ public class MQTTProducerMetaTest {
     meta.setQOS( "2" );
     meta.setMessageField( "Messages" );
     meta.setUsername( "testuser" );
-    meta.setPassword( "test" );
+    meta.setPassword( "test" ); meta.setKeepAliveInterval( "1000" );
+    meta.setMaxInflight( "2000" );
+    meta.setConnectionTimeout( "3000" );
+    meta.setCleanSession( "true" );
+    meta.setStorageLevel( "/Users/noname/temp" );
+    meta.setServerUris( "mqttHost2:1883" );
+    meta.setMqttVersion( "3" );
+    meta.setAutomaticReconnect( "true" );
     meta.saveRep( rep, metaStore, transId, stepId );
     verify( rep ).saveStepAttribute( transId, stepId, MQTT_SERVER, "theserver:1883" );
     verify( rep ).saveStepAttribute( transId, stepId, CLIENT_ID, "client100" );
@@ -201,6 +256,14 @@ public class MQTTProducerMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, MESSAGE_FIELD, "Messages" );
     verify( rep ).saveStepAttribute( transId, stepId, USERNAME, "testuser" );
     verify( rep ).saveStepAttribute( transId, stepId, PASSWORD, "Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce" );
+    verify( rep ).saveStepAttribute( transId, stepId, KEEP_ALIVE_INTERVAL, "1000" );
+    verify( rep ).saveStepAttribute( transId, stepId, MAX_INFLIGHT, "2000" );
+    verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TIMEOUT, "3000" );
+    verify( rep ).saveStepAttribute( transId, stepId, CLEAN_SESSION, "true" );
+    verify( rep ).saveStepAttribute( transId, stepId, STORAGE_LEVEL, "/Users/noname/temp" );
+    verify( rep ).saveStepAttribute( transId, stepId, SERVER_URIS, "mqttHost2:1883" );
+    verify( rep ).saveStepAttribute( transId, stepId, MQTT_VERSION, "3" );
+    verify( rep ).saveStepAttribute( transId, stepId, AUTOMATIC_RECONNECT, "true" );
   }
 
   @Test
@@ -215,7 +278,15 @@ public class MQTTProducerMetaTest {
       + "    <PASSWORD>Encrypted </PASSWORD>\n"
       + "<SSL>\n"
       + "<USE_SSL>false</USE_SSL>\n"
-      + "</SSL>" + Const.CR, meta.getXML() );
+      + "</SSL>" + Const.CR
+      + "    <KEEP_ALIVE_INTERVAL/>" + Const.CR
+      + "    <MAX_INFLIGHT/>" + Const.CR
+      + "    <CONNECTION_TIMEOUT/>" + Const.CR
+      + "    <CLEAN_SESSION/>" + Const.CR
+      + "    <STORAGE_LEVEL/>" + Const.CR
+      + "    <SERVER_URIS/>" + Const.CR
+      + "    <MQTT_VERSION/>" + Const.CR
+      + "    <AUTOMATIC_RECONNECT/>" + Const.CR, meta.getXML() );
   }
 
   public static MQTTProducerMeta fromXml( String metaXml ) {
