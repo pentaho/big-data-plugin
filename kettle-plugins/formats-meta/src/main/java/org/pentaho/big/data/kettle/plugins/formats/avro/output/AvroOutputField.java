@@ -40,13 +40,13 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
 
   @Override
   public void setFormatType( AvroSpec.DataType avroType ) {
-    this.formatType = avroType.ordinal();
+    this.formatType = avroType.getId();
   }
 
   @Override
   public void setFormatType( int formatType ) {
     for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
-      if ( avroType.ordinal() == formatType ) {
+      if ( avroType.getId() == formatType ) {
         this.formatType = formatType;
       }
     }
@@ -59,7 +59,7 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
     } catch ( NumberFormatException nfe ) {
       for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
         if ( avroType.getName().equals( typeName ) ) {
-          this.formatType = avroType.ordinal();
+          this.formatType = avroType.getId();
         }
       }
     }

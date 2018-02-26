@@ -156,7 +156,7 @@ public abstract class AvroInputMetaBase extends
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
         if ( field.getAvroType() != null ) {
-          retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", field.getAvroType().getType() ) );
+          retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", field.getAvroType().getName() ) );
         }
         retval.append( "      </field>" ).append( Const.CR );
       }
@@ -209,7 +209,7 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
         if ( field.getAvroType() != null ) {
-          rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", field.getAvroType().getType() );
+          rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", field.getAvroType().getName() );
         }
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );

@@ -34,13 +34,13 @@ public class OrcOutputField extends BaseFormatOutputField implements IOrcOutputF
 
   @Override
   public void setFormatType( OrcSpec.DataType orcType ) {
-    this.formatType = orcType.ordinal();
+    this.formatType = orcType.getId();
   }
 
   @Override
   public void setFormatType( int formatType ) {
     for ( OrcSpec.DataType orcType : OrcSpec.DataType.values() ) {
-      if ( orcType.ordinal() == formatType ) {
+      if ( orcType.getId() == formatType ) {
         this.formatType = formatType;
       }
     }
