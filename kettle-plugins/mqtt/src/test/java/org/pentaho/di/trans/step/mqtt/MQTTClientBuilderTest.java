@@ -42,11 +42,14 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -95,8 +98,16 @@ public class MQTTClientBuilderTest {
       .withIsSecure( true )
       .withTopics( Collections.singletonList( "SomeTopic" ) )
       .withSslConfig( ImmutableMap.of( "ssl.trustStore", "/some/path" ) )
-      .withCallback( callback ).
-        buildAndConnect();
+      .withCallback( callback )
+      .withKeepAliveInterval( "1000" )
+      .withMaxInflight( "2000" )
+      .withConnectionTimeout( "3000" )
+      .withCleanSession( "true" )
+      .withStorageLevel( "/Users/NoName/Temp" )
+      .withServerUris( "127.0.0.1:3000" )
+      .withMqttVersion( "3" )
+      .withAutomaticReconnect( "true" )
+      .buildAndConnect();
     verify( client ).setCallback( callback );
     verify( factory ).getClient( anyString(), anyString(), any( MemoryPersistence.class ) );
     verify( client ).connect( connectOptsCapture.capture() );
@@ -107,6 +118,13 @@ public class MQTTClientBuilderTest {
     Properties props = opts.getSSLProperties();
     assertThat( props.size(), equalTo( 1 ) );
     assertThat( props.getProperty( "com.ibm.ssl.trustStore" ), equalTo( "/some/path" ) );
+    assertEquals( opts.getKeepAliveInterval(), 1000 );
+    assertEquals( opts.getMaxInflight(), 2000 );
+    assertEquals( opts.getConnectionTimeout(), 3000 );
+    assertEquals( opts.isCleanSession(), true );
+    assertArrayEquals( opts.getServerURIs(), new String[] { "ssl://127.0.0.1:3000" } );
+    assertEquals( opts.getMqttVersion(), 3 );
+    assertEquals( opts.isAutomaticReconnect(), true );
   }
 
   @Test

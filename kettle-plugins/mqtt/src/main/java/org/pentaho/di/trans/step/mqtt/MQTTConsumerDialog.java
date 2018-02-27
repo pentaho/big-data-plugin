@@ -49,6 +49,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.AUTOMATIC_RECONNECT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CLEAN_SESSION;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.CONNECTION_TIMEOUT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.KEEP_ALIVE_INTERVAL;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MAX_INFLIGHT;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_VERSION;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SERVER_URIS;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.STORAGE_LEVEL;
 
 @SuppressWarnings( "unused" )
 public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialogInterface {
@@ -64,6 +72,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   private final Point startingDimensions = new Point( 527, 612 );
 
   private MqttDialogSecurityLayout securityLayout;
+  private MqttDialogOptionsLayout optionsLayout;
 
   public MQTTConsumerDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, in, tr, sname );
@@ -78,6 +87,8 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     wQOS.setText( mqttMeta.getQos() );
 
     securityLayout.setUIText();
+
+
   }
 
   private void populateTopicsData() {
@@ -213,6 +224,9 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
       mqttMeta.getSslConfig(), mqttMeta.isUseSsl() );
     securityLayout.buildSecurityTab();
     buildFieldsTab();
+    optionsLayout = new MqttDialogOptionsLayout( props, wTabFolder, lsMod, transMeta,
+      mqttMeta.retrieveOptions() );
+    optionsLayout.buildTab();
   }
 
 
@@ -332,6 +346,36 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     mqttMeta.setPassword( securityLayout.password() );
     mqttMeta.setUseSsl( securityLayout.useSsl() );
     mqttMeta.setSslConfig( securityLayout.sslConfig() );
+
+    optionsLayout.retrieveOptions().stream()
+      .forEach( option -> {
+        switch ( option.getKey() ) {
+          case KEEP_ALIVE_INTERVAL:
+            mqttMeta.setKeepAliveInterval( option.getValue() );
+            break;
+          case MAX_INFLIGHT:
+            mqttMeta.setMaxInflight( option.getValue() );
+            break;
+          case CONNECTION_TIMEOUT:
+            mqttMeta.setConnectionTimeout( option.getValue() );
+            break;
+          case CLEAN_SESSION:
+            mqttMeta.setCleanSession( option.getValue() );
+            break;
+          case STORAGE_LEVEL:
+            mqttMeta.setStorageLevel( option.getValue() );
+            break;
+          case SERVER_URIS:
+            mqttMeta.setServerUris( option.getValue() );
+            break;
+          case MQTT_VERSION:
+            mqttMeta.setMqttVersion( option.getValue() );
+            break;
+          case AUTOMATIC_RECONNECT:
+            mqttMeta.setAutomaticReconnect( option.getValue() );
+            break;
+        }
+      } );
   }
 
 }

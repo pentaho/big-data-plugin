@@ -80,6 +80,14 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
         .withPassword( mqttConsumerMeta.getPassword() )
         .withIsSecure( mqttConsumerMeta.isUseSsl() )
         .withSslConfig( mqttConsumerMeta.getSslConfig() )
+        .withKeepAliveInterval( mqttConsumerMeta.getKeepAliveInterval() )
+        .withMaxInflight( mqttConsumerMeta.getMaxInflight() )
+        .withConnectionTimeout( mqttConsumerMeta.getConnectionTimeout() )
+        .withCleanSession( mqttConsumerMeta.getCleanSession() )
+        .withStorageLevel( mqttConsumerMeta.getStorageLevel() )
+        .withServerUris( mqttConsumerMeta.getServerUris() )
+        .withMqttVersion( mqttConsumerMeta.getMqttVersion() )
+        .withAutomaticReconnect( mqttConsumerMeta.getAutomaticReconnect() )
         .buildAndConnect();
     } catch ( MqttException e ) {
       mqttConsumer.stopAll();

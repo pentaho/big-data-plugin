@@ -72,5 +72,4 @@ public class SslConfigHelper {
   public List<String> vals() {
     return sslValues;
   }
-
 }

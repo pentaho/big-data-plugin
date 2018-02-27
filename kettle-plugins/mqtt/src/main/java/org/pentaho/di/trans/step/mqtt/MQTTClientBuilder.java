@@ -31,9 +31,11 @@ import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.trans.step.StepInterface;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,6 +78,14 @@ final class MQTTClientBuilder {
   private String username;
   private String password;
   private Map<String, String> sslConfig;
+  private String keepAliveInterval;
+  private String maxInflight;
+  private String connectionTimeout;
+  private String cleanSession;
+  private String storageLevel;
+  private String serverUris;
+  private String mqttVersion;
+  private String automaticReconnect;
   private MqttCallback callback;
   private String clientId = MqttAsyncClient.generateClientId();  // default
   private StepInterface step;
@@ -140,9 +150,48 @@ final class MQTTClientBuilder {
     return this;
   }
 
-
   MQTTClientBuilder withSslConfig( Map<String, String> sslConfig ) {
     this.sslConfig = sslConfig;
+    return this;
+  }
+
+  MQTTClientBuilder withKeepAliveInterval( String keepAliveInterval ) {
+    this.keepAliveInterval = keepAliveInterval;
+    return this;
+  }
+
+  MQTTClientBuilder withMaxInflight( String maxInflight ) {
+    this.maxInflight = maxInflight;
+    return this;
+  }
+
+  MQTTClientBuilder withConnectionTimeout( String connectionTimeout ) {
+    this.connectionTimeout = connectionTimeout;
+    return this;
+  }
+
+  MQTTClientBuilder withCleanSession( String cleanSession ) {
+    this.cleanSession = cleanSession;
+    return this;
+  }
+
+  MQTTClientBuilder withStorageLevel( String storageLevel ) {
+    this.storageLevel = storageLevel;
+    return this;
+  }
+
+  MQTTClientBuilder withServerUris( String serverUris ) {
+    this.serverUris = serverUris;
+    return this;
+  }
+
+  MQTTClientBuilder withMqttVersion( String mqttVersion ) {
+    this.mqttVersion = mqttVersion;
+    return this;
+  }
+
+  MQTTClientBuilder withAutomaticReconnect( String automaticReconnect ) {
+    this.automaticReconnect = automaticReconnect;
     return this;
   }
 
@@ -150,18 +199,27 @@ final class MQTTClientBuilder {
     validateArgs();
 
     String broker = getProtocol() + getBroker();
-    MqttClient client = clientFactory.getClient( broker, clientId,
-      new MemoryPersistence() );
+    MqttClientPersistence persistence = new MemoryPersistence();
+    if ( StringUtil.isEmpty( storageLevel ) ) {
+      step.getLogChannel().logDebug( "Using Memory Storage Level" );
+    } else {
+      step.getLogChannel().logDebug( "Using File Storage Level to " + storageLevel );
+      persistence = new MqttDefaultFilePersistence( storageLevel );
+    }
+    MqttClient client = clientFactory.getClient( broker, clientId, persistence );
 
     client.setCallback( callback );
 
     step.getLogChannel().logDebug( "Subscribing to topics with a quality of service level of " + qos );
+    step.getLogChannel().logDebug( "Server URIs is set to " + serverUris );
+    step.getLogChannel().logDebug( "Max Inflight is set to " + maxInflight );
+    step.getLogChannel().logDebug( "Automatic Reconnect is set to " + automaticReconnect );
     step.getLogChannel().logDebug( loggableOptions().toString() );
 
     client.connect( getOptions() );
     if ( topics != null && topics.size() > 0 ) {
       client.subscribe(
-        step.environmentSubstitute( topics.toArray( new String[ 0 ] ) ),
+        step.environmentSubstitute( topics.toArray( new String[ topics.size() ] ) ),
         initializedIntAray( Integer.parseInt( step.environmentSubstitute( this.qos ) ) )
       );
     }
@@ -207,6 +265,30 @@ final class MQTTClientBuilder {
     if ( !StringUtil.isEmpty( password ) ) {
       options.setPassword( step.environmentSubstitute( password ).toCharArray() );
     }
+
+    if ( !StringUtil.isEmpty( keepAliveInterval ) ) {
+      options.setKeepAliveInterval( Integer.parseInt( keepAliveInterval ) );
+    }
+    if ( !StringUtil.isEmpty( maxInflight ) ) {
+      options.setMaxInflight( Integer.parseInt( maxInflight ) );
+    }
+    if ( !StringUtil.isEmpty( connectionTimeout ) ) {
+      options.setConnectionTimeout( Integer.parseInt( connectionTimeout ) );
+    }
+    if ( !StringUtil.isEmpty( cleanSession ) ) {
+      options.setCleanSession( Boolean.parseBoolean( cleanSession ) );
+    }
+    if ( !StringUtil.isEmpty( serverUris ) ) {
+      options.setServerURIs(
+        Arrays.stream( serverUris.split( ";" ) ).map( uri -> getProtocol() + uri ).toArray( String[]::new ) );
+    }
+    if ( !StringUtil.isEmpty( mqttVersion ) ) {
+      options.setMqttVersion( Integer.parseInt( mqttVersion ) );
+    }
+    if ( !StringUtil.isEmpty( automaticReconnect ) ) {
+      options.setAutomaticReconnect( Boolean.parseBoolean( automaticReconnect ) );
+    }
+
     return options;
   }
 
@@ -217,7 +299,7 @@ final class MQTTClientBuilder {
     MqttConnectOptions loggableOptions = getOptions();
 
     Optional.ofNullable( loggableOptions.getSSLProperties() )
-      .orElseGet( () -> new Properties() )
+      .orElseGet( Properties::new )
       .keySet().stream()
       .filter( key -> key.toString().toUpperCase().contains( "PASSWORD" ) )
       .forEach( key -> loggableOptions.getSSLProperties().put( key, "*****" ) );
