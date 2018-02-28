@@ -200,20 +200,23 @@ final class MQTTClientBuilder {
 
     String broker = getProtocol() + getBroker();
     MqttClientPersistence persistence = new MemoryPersistence();
-    if ( StringUtil.isEmpty( storageLevel ) ) {
+    String storageLevelOption = step.environmentSubstitute( storageLevel );
+    if ( StringUtil.isEmpty( storageLevelOption ) ) {
       step.getLogChannel().logDebug( "Using Memory Storage Level" );
     } else {
-      step.getLogChannel().logDebug( "Using File Storage Level to " + storageLevel );
-      persistence = new MqttDefaultFilePersistence( storageLevel );
+      step.getLogChannel().logDebug( "Using File Storage Level to " + storageLevelOption );
+      persistence = new MqttDefaultFilePersistence( storageLevelOption );
     }
     MqttClient client = clientFactory.getClient( broker, clientId, persistence );
 
     client.setCallback( callback );
 
-    step.getLogChannel().logDebug( "Subscribing to topics with a quality of service level of " + qos );
-    step.getLogChannel().logDebug( "Server URIs is set to " + serverUris );
-    step.getLogChannel().logDebug( "Max Inflight is set to " + maxInflight );
-    step.getLogChannel().logDebug( "Automatic Reconnect is set to " + automaticReconnect );
+    step.getLogChannel().logDebug( "Subscribing to topics with a quality of service level of "
+      + step.environmentSubstitute( qos ) );
+    step.getLogChannel().logDebug( "Server URIs is set to " + step.environmentSubstitute( serverUris ) );
+    step.getLogChannel().logDebug( "Max Inflight is set to " + step.environmentSubstitute( maxInflight ) );
+    step.getLogChannel()
+      .logDebug( "Automatic Reconnect is set to " + step.environmentSubstitute( automaticReconnect ) );
     step.getLogChannel().logDebug( loggableOptions().toString() );
 
     client.connect( getOptions() );
@@ -266,27 +269,40 @@ final class MQTTClientBuilder {
       options.setPassword( step.environmentSubstitute( password ).toCharArray() );
     }
 
-    if ( !StringUtil.isEmpty( keepAliveInterval ) ) {
-      options.setKeepAliveInterval( Integer.parseInt( keepAliveInterval ) );
+    String optionValue = step.environmentSubstitute( keepAliveInterval );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
+      options.setKeepAliveInterval( Integer.parseInt( optionValue ) );
     }
-    if ( !StringUtil.isEmpty( maxInflight ) ) {
-      options.setMaxInflight( Integer.parseInt( maxInflight ) );
+
+    optionValue = step.environmentSubstitute( maxInflight );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
+      options.setMaxInflight( Integer.parseInt( optionValue ) );
     }
-    if ( !StringUtil.isEmpty( connectionTimeout ) ) {
-      options.setConnectionTimeout( Integer.parseInt( connectionTimeout ) );
+
+    optionValue = step.environmentSubstitute( connectionTimeout );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
+      options.setConnectionTimeout( Integer.parseInt( optionValue ) );
     }
-    if ( !StringUtil.isEmpty( cleanSession ) ) {
-      options.setCleanSession( Boolean.parseBoolean( cleanSession ) );
+
+    optionValue = step.environmentSubstitute( cleanSession );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
+      options.setCleanSession( Boolean.parseBoolean( optionValue ) );
     }
-    if ( !StringUtil.isEmpty( serverUris ) ) {
+
+    optionValue = step.environmentSubstitute( serverUris );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setServerURIs(
-        Arrays.stream( serverUris.split( ";" ) ).map( uri -> getProtocol() + uri ).toArray( String[]::new ) );
+        Arrays.stream( optionValue.split( ";" ) ).map( uri -> getProtocol() + uri ).toArray( String[]::new ) );
     }
-    if ( !StringUtil.isEmpty( mqttVersion ) ) {
-      options.setMqttVersion( Integer.parseInt( mqttVersion ) );
+
+    optionValue = step.environmentSubstitute( mqttVersion );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
+      options.setMqttVersion( Integer.parseInt( optionValue ) );
     }
-    if ( !StringUtil.isEmpty( automaticReconnect ) ) {
-      options.setAutomaticReconnect( Boolean.parseBoolean( automaticReconnect ) );
+
+    optionValue = step.environmentSubstitute( automaticReconnect );
+    if ( !StringUtil.isEmpty( optionValue ) ) {
+      options.setAutomaticReconnect( Boolean.parseBoolean( optionValue ) );
     }
 
     return options;

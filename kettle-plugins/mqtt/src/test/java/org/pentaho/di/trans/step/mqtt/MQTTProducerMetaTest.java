@@ -42,12 +42,16 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.collect.ImmutableMap.of;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -287,6 +291,23 @@ public class MQTTProducerMetaTest {
       + "    <SERVER_URIS/>" + Const.CR
       + "    <MQTT_VERSION/>" + Const.CR
       + "    <AUTOMATIC_RECONNECT/>" + Const.CR, meta.getXML() );
+  }
+
+  @Test
+  public void testRetrieveOptions() {
+    List<String> keys = Arrays
+      .asList( KEEP_ALIVE_INTERVAL, MAX_INFLIGHT, CONNECTION_TIMEOUT, CLEAN_SESSION, STORAGE_LEVEL, SERVER_URIS,
+        MQTT_VERSION, AUTOMATIC_RECONNECT );
+
+    MQTTProducerMeta meta = new MQTTProducerMeta();
+    meta.setDefault();
+    List<MqttOption> options = meta.retrieveOptions();
+    assertEquals( 8, options.size() );
+    for ( MqttOption option : options ) {
+      assertEquals( "", option.getValue() );
+      assertNotNull( option.getText() );
+      assertTrue( keys.contains( option.getKey() ) );
+    }
   }
 
   public static MQTTProducerMeta fromXml( String metaXml ) {
