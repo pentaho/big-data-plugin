@@ -1,24 +1,24 @@
 /*! ******************************************************************************
-  *
-  * Pentaho Data Integration
-  *
-  * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
-  *
-  *******************************************************************************
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************/
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet;
 
@@ -56,7 +56,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.util.StringUtil;
@@ -79,7 +78,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
-    implements StepDialogInterface {
+  implements StepDialogInterface {
   protected final Class<?> PKG = getClass();
   protected final Class<?> BPKG = BaseParquetStepDialog.class;
 
@@ -99,16 +98,17 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
   private static final int TABLE_ITEM_MARGIN = 2;
   private static final int TOOLTIP_SHOW_DELAY = 350;
   private static final int TOOLTIP_HIDE_DELAY = 2000;
+  private static final String DEFAULT_LOCAL_PATH = "file:///C:/";
   // width of the icon in a varfield
   protected static final int VAR_EXTRA_WIDTH = GUIResource.getInstance().getImageVariable().getBounds().width;
 
   protected static final String[] FILES_FILTERS = { "*.*" };
   protected static final String[] fileFilterNames =
-      new String[] { BaseMessages.getString( "System.FileType.AllFiles" ) };
+    new String[] { BaseMessages.getString( "System.FileType.AllFiles" ) };
 
   private static final String HDFS_SCHEME = "hdfs";
 
-  private static final String MAPRFS_CHEME = "maprfs";
+  private static final String MAPRFS_SCHEME = "maprfs";
 
   protected Image icon;
 
@@ -146,12 +146,12 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
         cancel();
       }
     } );
+
     int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
     getData( meta );
     updateLocation();
-    meta.setChanged( changed );
     shell.open();
     wStepname.setFocus();
     while ( !shell.isDisposed() ) {
@@ -162,28 +162,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     return stepname;
   }
 
-  protected void createUI(  ) {
-    Control prev = createHeader();
-
-    //main fields
-    prev = addFileWidgets( prev );
-
-    createFooter( shell );
-
-    Composite afterFile = new Composite( shell, SWT.NONE );
-    afterFile.setLayout( new FormLayout() );
-    Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    FormData fdSpacer = new FormData();
-    fdSpacer.height = 2;
-    fdSpacer.left = new FormAttachment( 0, 0 );
-    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
-    fdSpacer.right = new FormAttachment( 100, 0 );
-    separator.setLayoutData( fdSpacer );
-
-    new FD( afterFile ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
-
-    createAfterFile( afterFile );
-  }
+  protected abstract void createUI();
 
   protected Control createFooter( Composite shell ) {
 
@@ -202,9 +181,9 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
       wPreview = new Button( shell, SWT.PUSH );
       wPreview.setText( getBaseMsg( "BaseStepDialog.Preview" ) );
       wPreview.pack();
+      wPreview.addListener( SWT.Selection, lsPreview );
       int offset = wPreview.getBounds().width / 2;
       new FD( wPreview ).left( 50, -offset ).bottom( 100, 0 ).apply();
-      wPreview.addListener( SWT.Selection, lsPreview );
     }
     return wCancel;
   }
@@ -219,14 +198,11 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     if ( Utils.isEmpty( wStepname.getText() ) ) {
       return;
     }
-
     stepname = wStepname.getText();
 
     getInfo( meta, false );
     dispose();
   }
-
-  protected abstract Control createAfterFile( Composite container );
 
   protected abstract String getStepTitle();
 
@@ -234,23 +210,22 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
   /**
    * Read the data from the meta object and show it in this dialog.
    *
-   * @param meta
-   *          The meta object to obtain the data from.
+   * @param meta The meta object to obtain the data from.
    */
   protected abstract void getData( T meta );
 
   /**
    * Fill meta object from UI options.
    *
-   * @param meta
-   *          meta object
-   * @param preview
-   *          flag for preview or real options should be used. Currently, only one option is differ for preview - EOL
-   *          chars. It uses as "mixed" for be able to preview any file.
+   * @param meta    meta object
+   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview
+   *               - EOL
+   *                chars. It uses as "mixed" for be able to preview any file.
    */
   protected abstract void getInfo( T meta, boolean preview );
 
   protected abstract int getWidth();
+
   protected abstract int getHeight();
 
   protected abstract Listener getPreview();
@@ -287,6 +262,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     wStepname.addModifyListener( lsMod );
     new FD( wStepname ).left( 0, 0 ).top( wlStepname, FIELD_LABEL_SEP ).width( FIELD_MEDIUM ).rright().apply();
 
+    // separator
     Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
     FormData fdSpacer = new FormData();
     fdSpacer.height = 2;
@@ -302,7 +278,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
   protected void addIcon( Control bottom ) {
     String stepId = meta.getParentStepMeta().getStepID();
     icon = GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
-            ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
+      ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
     Composite iconCont = new Composite( shell, SWT.NONE );
     new FD( iconCont ).top( 0, 0 ).right( 100, 0 ).bottom( bottom, -MARGIN ).width( ConstUI.ICON_SIZE ).apply();
     RowLayout iconLayout = new RowLayout( SWT.VERTICAL );
@@ -321,12 +297,13 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     wlLocation.setText( getBaseMsg( "ParquetDialog.Location.Label" ) );
     props.setLook( wlLocation );
     new FD( wlLocation ).left( 0, 0 ).top( prev, MARGIN ).apply();
-    wLocation = new CCombo( shell, SWT.BORDER  | SWT.READ_ONLY  );
+    wLocation = new CCombo( shell, SWT.BORDER | SWT.READ_ONLY );
     try {
       List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
       availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
       wLocation.addListener( SWT.Selection, event -> {
         this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
+        this.wPath.setText( "" );
       } );
       if ( !availableVFSSchemes.isEmpty() ) {
         wLocation.select( 0 );
@@ -345,7 +322,13 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     props.setLook( wlPath );
     new FD( wlPath ).left( 0, 0 ).top( wLocation, FIELDS_SEP ).apply();
     wPath = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wPath.addModifyListener( event -> {
+      if ( wPreview != null ) {
+        wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
+      }
+    } );
     props.setLook( wPath );
+    wPath.addModifyListener( lsMod );
     new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
 
 
@@ -356,7 +339,6 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
       - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
-    wPath.addModifyListener( lsMod );
     return wPath;
   }
 
@@ -374,17 +356,47 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
         fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
         fileName = null;
       }
+
       FileObject selectedFile =
         fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
           fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
-        wPath.setText( selectedFile.getURL().toString() );
-        updateLocation();
+        String filePath = selectedFile.getURL().toString();
+        if ( !DEFAULT_LOCAL_PATH.equals( filePath ) ) {
+          wPath.setText( filePath );
+          updateLocation();
+        }
       }
     } catch ( KettleFileException ex ) {
-      log.logError( getBaseMsg( "ParquetInputDialog.FileBrowser.KettleFileException" ) );
+      log.logError( getBaseMsg( "ParquetDialog.FileBrowser.KettleFileException" ) );
     } catch ( FileSystemException ex ) {
-      log.logError( getBaseMsg( "ParquetInputDialog.FileBrowser.FileSystemException" ) );
+      log.logError( getBaseMsg( "ParquetDialog.FileBrowser.FileSystemException" ) );
+    }
+  }
+
+  private void updateLocation() {
+    String pathText = wPath.getText();
+    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
+    if ( scheme != null ) {
+      try {
+        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
+        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
+          VFSScheme s = availableVFSSchemes.get( i );
+          if ( scheme.equals( s.getScheme() ) ) {
+            wLocation.select( i );
+            selectedVFSScheme = s;
+          }
+        }
+      } catch ( KettleFileException ex ) {
+        log.logError( getBaseMsg( "ParquetInputDialog.FileBrowser.KettleFileException" ) );
+      } catch ( FileSystemException ex ) {
+        log.logError( getBaseMsg( "ParquetDialog.FileBrowser.FileSystemException" ) );
+      }
+    }
+    // do we have preview button?
+    if ( wPreview != null ) {
+      //update preview button
+      wPreview.setEnabled( !pathText.isEmpty() );
     }
   }
 
@@ -443,6 +455,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
       fd.left = new FormAttachment( numerator, offset );
       return this;
     }
+
     public FD left( int numerator ) {
       return left( numerator, 0 );
     }
@@ -491,7 +504,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     List<CustomVfsUiPanel> customVfsUiPanels = fileChooserDialog.getCustomVfsUiPanels();
     List<VFSScheme> vfsSchemes = new ArrayList<>();
     customVfsUiPanels.forEach( vfsPanel -> {
-      if ( !MAPRFS_CHEME.equals( vfsPanel.getVfsScheme() ) ) {
+      if ( !MAPRFS_SCHEME.equals( vfsPanel.getVfsScheme() ) ) {
         VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
         vfsSchemes.add( scheme );
       }
@@ -534,7 +547,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
           Point size = event.gc.textExtent( contents );
           int targetWidth = item.getBounds( colIdx ).width;
           int yOffset = Math.max( 0, ( event.height - size.y ) / 2 );
-            if ( size.x > targetWidth ) {
+          if ( size.x > targetWidth ) {
             contents = shortenText( event.gc, contents, targetWidth );
           }
           event.gc.drawText( contents, event.x + TABLE_ITEM_MARGIN, event.y + yOffset, true );
@@ -553,6 +566,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     toolTip.setShift( new Point( ConstUI.TOOLTIP_OFFSET, ConstUI.TOOLTIP_OFFSET ) );
     table.addMouseTrackListener( new MouseTrackAdapter() {
       @Override
+
       public void mouseHover( MouseEvent e ) {
         Point coord = new Point( e.x, e.y );
         TableItem item = table.getItem( coord );
@@ -619,38 +633,6 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
         }
       }
     } );
-  }
-
-  private void updateLocation() {
-    String pathText = wPath.getText();
-    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
-    if ( scheme != null ) {
-      try {
-        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
-        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
-          VFSScheme s = availableVFSSchemes.get( i );
-          if ( scheme.equals( s.getScheme() ) ) {
-            wLocation.select( i );
-            selectedVFSScheme = s;
-          }
-        }
-      } catch ( KettleFileException ex ) {
-        log.logError( getBaseMsg( "ParquetInputDialog.FileBrowser..KettleFileException" ) );
-      } catch ( FileSystemException ex ) {
-        log.logError( getBaseMsg( "ParquetInputDialog.FileBrowser.FileSystemException" ) );
-      }
-    }
-  }
-
-  protected static boolean checkForNonActiveShim( ClusterInitializationException ex ) {
-    Throwable cause = ex;
-    while ( cause != null ) {
-      if ( "NoShimSpecifiedException".equals( cause.getClass().getSimpleName() ) ) {
-        return true;
-      }
-      cause = cause.getCause();
-    }
-    return false;
   }
 
 }

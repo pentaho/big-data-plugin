@@ -39,6 +39,7 @@ public class BaseFormatOutputField implements IFormatOutputField {
   @Injection( name = "FIELD_NAME", group = "FIELDS" )
   protected String pentahoFieldName;
 
+  @Injection( name = "FIELD_NULLABLE", group = "FIELDS" )
   protected boolean allowNull;
 
   @Injection( name = "FIELD_IF_NULL", group = "FIELDS" )

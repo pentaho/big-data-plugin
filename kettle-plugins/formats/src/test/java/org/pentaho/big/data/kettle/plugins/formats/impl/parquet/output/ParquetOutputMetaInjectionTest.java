@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -32,7 +32,6 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 
 public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<ParquetOutputMeta> {
@@ -102,11 +101,11 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
 
     check( "FIELD_NAME", new StringGetter() {
       public String get() {
-        return meta.getOutputFields().get(0).getPentahoFieldName();
+        return meta.getOutputFields().get( 0 ).getPentahoFieldName();
       }
     } );
 
-    int supportedPdiTypes[] = {
+    int [] supportedPdiTypes = {
       ValueMetaInterface.TYPE_NUMBER,
       ValueMetaInterface.TYPE_STRING,
       ValueMetaInterface.TYPE_DATE,
@@ -123,15 +122,16 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
     for ( int j = 0; j < supportedPdiTypes.length; j++ ) {
       typeNames[ j ] = ValueMetaInterface.getTypeDescription( supportedPdiTypes[ j ] );
       String parquetTypeName = ParquetOutputMetaBase.convertToParquetType( supportedPdiTypes[ j ] );
-      for ( ParquetSpec.DataType parqueType : ParquetSpec.DataType.values() ) {
-        if ( parqueType.getName().equals( parquetTypeName ) ) {
-          typeIds[ j ] = parqueType.getId();
+      for ( ParquetSpec.DataType parquetType : ParquetSpec.DataType.values() ) {
+        if ( parquetType.getName().equals( parquetTypeName ) ) {
+          typeIds[ j ] = parquetType.getId();
+          break;
         }
       }
     }
     checkStringToInt( "FIELD_TYPE", new IntGetter() {
       public int get() {
-        return meta.getOutputFields().get(0).getFormatType();
+        return meta.getOutputFields().get( 0 ).getFormatType();
       }
     }, typeNames, typeIds );
 
@@ -150,32 +150,31 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
     };
     typeNames = new String[ supportedParquetTypes.length ];
     typeIds = new int[ supportedParquetTypes.length ];
-    for ( int i = 0; i < supportedParquetTypes.length; i++) {
+    for ( int i = 0; i < supportedParquetTypes.length; i++ ) {
       typeNames[ i ] = supportedParquetTypes[ i ].getName();
       typeIds[ i ] = supportedParquetTypes[ i ].getId();
     }
     checkStringToInt( "FIELD_PARQUET_TYPE", new IntGetter() {
       public int get() {
-        return meta.getOutputFields().get(0).getFormatType();
+        return meta.getOutputFields().get( 0 ).getFormatType();
       }
     }, typeNames, typeIds );
 
     check( "FIELD_PATH", new StringGetter() {
       public String get() {
-        return meta.getOutputFields().get(0).getFormatFieldName();
+        return meta.getOutputFields().get( 0 ).getFormatFieldName();
       }
     } );
     check( "FIELD_IF_NULL", new StringGetter() {
       public String get() {
-        return meta.getOutputFields().get(0).getDefaultValue();
+        return meta.getOutputFields().get( 0 ).getDefaultValue();
       }
     } );
     check( "FIELD_NULLABLE", new BooleanGetter() {
       public boolean get() {
-        return meta.getOutputFields().get(0).getAllowNull();
+        return meta.getOutputFields().get( 0 ).getAllowNull();
       }
     } );
-
 
     skipPropertyTest( "COMPRESSION" );
     skipPropertyTest( "PARQUET_VERSION" );

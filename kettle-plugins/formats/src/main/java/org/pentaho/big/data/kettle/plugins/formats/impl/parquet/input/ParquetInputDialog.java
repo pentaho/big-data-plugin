@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,28 +19,25 @@
  * limitations under the License.
  *
  ******************************************************************************/
-
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.util.Utils;
@@ -50,21 +47,19 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
-import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
-import org.pentaho.hadoop.shim.api.format.SchemaDescription;
+import org.pentaho.hadoop.shim.api.format.IParquetInputField;
+import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 
 public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> {
 
-  private static final Class<?> PKG = ParquetInputMeta.class;
-
-  private static final int DIALOG_WIDTH = 526;
-
-  private static final int DIALOG_HEIGHT = 506;
+  private static final int SHELL_WIDTH = 526;
+  private static final int SHELL_HEIGHT = 506;
 
   private static final int PARQUET_PATH_COLUMN_INDEX = 1;
 
@@ -72,61 +67,143 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
+  private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 4;
+
   private TableView wInputFields;
+
+  private Button wPassThruFields;
 
   public ParquetInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (ParquetInputMeta) in, transMeta, sname );
   }
 
   @Override
-  protected Control createAfterFile( Composite shell ) {
+  protected void createUI( ) {
+    Control prev = createHeader();
 
-    Button wGetFields = new Button( shell, SWT.PUSH );
-    wGetFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Get" ) );
-    wGetFields.addListener( SWT.Selection, event -> {
-      try {
-        getFields( );
-      } catch ( ClusterInitializationException ex ) {
-        if ( !BaseParquetStepDialog.checkForNonActiveShim( ex ) ) {
-          throw new RuntimeException( ex );
-        }
-      } catch ( Exception ex ) {
-        throw new RuntimeException( ex );
+    //main fields
+    prev = addFileWidgets( prev );
+
+    createFooter( shell );
+
+    Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
+    FormData fdSpacer = new FormData();
+    fdSpacer.height = 2;
+    fdSpacer.left = new FormAttachment( 0, 0 );
+    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
+    fdSpacer.right = new FormAttachment( 100, 0 );
+    separator.setLayoutData( fdSpacer );
+
+    Group fieldsContainer = new Group( shell, SWT.SHADOW_IN );
+    fieldsContainer.setLayout( new FormLayout() );
+    fieldsContainer.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
+    new FD( fieldsContainer ).left( 0, 0 ).top( prev, MARGIN ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
+
+    // Accept fields from previous steps?
+    //
+    wPassThruFields = new Button( fieldsContainer, SWT.CHECK );
+    wPassThruFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.PassThruFields.Label" ) );
+    wPassThruFields.setToolTipText( BaseMessages.getString( PKG, "ParquetInputDialog.PassThruFields.Tooltip" ) );
+    wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
+    props.setLook( wPassThruFields );
+    new FD( wPassThruFields ).left( 0, MARGIN ).top( 0, MARGIN ).apply();
+
+    //get fields button
+    lsGet = new Listener() {
+      public void handleEvent( Event e ) {
+        populateFieldsTable();
       }
-    } );
+    };
+    Button wGetFields = new Button( fieldsContainer, SWT.PUSH );
+    wGetFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
-    new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
+    new FD( wGetFields ).bottom( 100, -FIELDS_SEP ).right( 100, -MARGIN ).apply();
+    wGetFields.addListener( SWT.Selection, lsGet );
 
-    Label wlFields = new Label( shell, SWT.RIGHT );
-    wlFields.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
-    props.setLook( wlFields );
-    new FD( wlFields ).left( 0, 0 ).top( 0, FIELDS_SEP ).apply();
-    FormatInputOutputField[] fields = meta.inputFields;
-    int nrRows = fields == null ? 0 : fields.length;
+    // fields table
     ColumnInfo[] parameterColumns = new ColumnInfo[] {
-      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.AvroPath" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Path" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Name" ),
-          ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
-          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ) };
+        ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ),
+      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.SourceType" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true ) };
+    parameterColumns[0].setAutoResize( false );
+    parameterColumns[1].setUsingVariables( true );
+    parameterColumns[3].setAutoResize( false );
+
     wInputFields =
-        new TableView( transMeta, shell, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-            parameterColumns, nrRows, lsMod, props );
+      new TableView( transMeta, fieldsContainer, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
+        parameterColumns, 7, null, props );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 0 );
+    wInputFields.getTable().addListener( SWT.Resize, resizer );
+
     props.setLook( wInputFields );
-    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wlFields, FIELD_LABEL_SEP )
+    new FD( wInputFields ).left( 0, MARGIN ).right( 100, -MARGIN ).top( wPassThruFields, FIELDS_SEP )
       .bottom( wGetFields, -FIELDS_SEP ).apply();
+
+    wInputFields.setRowNums();
+    wInputFields.optWidth( true );
 
     for ( ColumnInfo col : parameterColumns ) {
       col.setAutoResize( false );
     }
-    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25 );
-    wInputFields.getTable().addListener( SWT.Resize, resizer );
+    resizer.addColumnResizeListeners( wInputFields.getTable() );
     setTruncatedColumn( wInputFields.getTable(), 1 );
     if ( !Const.isWindows() ) {
       addColumnTooltip( wInputFields.getTable(), 1 );
     }
-    return wGetFields;
+  }
+
+  protected void populateFieldsTable() {
+    try {
+      List<? extends IParquetInputField> inputFields = getInputFieldsFromParquetFile( false );
+      wInputFields.clearAll();
+      for ( IParquetInputField field : inputFields ) {
+        TableItem item = new TableItem( wInputFields.table, SWT.NONE );
+        if ( field != null ) {
+          setField( item, concatenateParquetNameAndType( field ), PARQUET_PATH_COLUMN_INDEX );
+          setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
+          setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
+          setField( item, ParquetSpec.DataType.getDataType( field.getFormatType() ).getName(), FIELD_SOURCE_TYPE_COLUMN_INDEX );
+        }
+      }
+
+      wInputFields.removeEmptyRows();
+      wInputFields.setRowNums();
+      wInputFields.optWidth( true );
+    } catch ( Exception ex ) {
+      logError( BaseMessages.getString( PKG, "ParquetInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
+      new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
+        "ParquetInput.Error.UnableToLoadSchemaFromContainerFile", getProcessedFileName() ), ex );
+    }
+  }
+
+  private String getProcessedFileName() {
+    return transMeta.environmentSubstitute( wPath.getText() );
+  }
+
+  private List<? extends IParquetInputField> getInputFieldsFromParquetFile( boolean failQuietly ) {
+    String parquetFileName = getProcessedFileName();
+    List<? extends IParquetInputField> inputFields = null;
+    try {
+      inputFields = ParquetInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), parquetFileName );
+    } catch ( Exception ex ) {
+      if ( !failQuietly ) {
+        logError( BaseMessages.getString( PKG, "ParquetInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
+        new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
+          "ParquetInput.Error.UnableToLoadSchemaFromContainerFile", parquetFileName ), ex );
+      }
+    }
+    return inputFields;
+  }
+
+  private void setField( TableItem item, String fieldValue, int fieldIndex ) {
+    if ( !Utils.isEmpty( fieldValue ) ) {
+      item.setText( fieldIndex, fieldValue );
+    }
   }
 
   /**
@@ -134,71 +211,42 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
    */
   @Override
   protected void getData( ParquetInputMeta meta ) {
-    if ( meta.inputFiles.fileName.length > 0 ) {
-      wPath.setText( meta.inputFiles.fileName[0] );
+    if ( meta.getFilename() != null && meta.getFilename().length() > 0 ) {
+      wPath.setText( meta.getFilename() );
     }
-    int nrFields = meta.inputFields.length;
-    for ( int i = 0; i < nrFields; i++ ) {
+    wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
+    int itemIndex = 0;
+    for ( IParquetInputField inputField : meta.getInputFields() ) {
       TableItem item = null;
-      if ( i < wInputFields.table.getItemCount() ) {
-        item = wInputFields.table.getItem( i );
+      if ( itemIndex < wInputFields.table.getItemCount() ) {
+        item = wInputFields.table.getItem( itemIndex );
       } else {
         item = new TableItem( wInputFields.table, SWT.NONE );
       }
 
-      FormatInputOutputField inputField = meta.inputFields[i];
-      if ( inputField.getPath() != null ) {
-        item.setText( PARQUET_PATH_COLUMN_INDEX, inputField.getPath() );
+      if ( inputField.getFormatFieldName() != null ) {
+        item.setText( PARQUET_PATH_COLUMN_INDEX,
+          concatenateParquetNameAndType( inputField ) );
       }
-      if ( inputField.getName() != null ) {
-        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getName() );
+      if ( inputField.getPentahoFieldName() != null ) {
+        item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getPentahoFieldName() );
       }
-      item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
+      if ( getTypeDesc( inputField.getPentahoType() ) != null ) {
+        item.setText( FIELD_TYPE_COLUMN_INDEX, getTypeDesc( inputField.getPentahoType() ) );
+      }
+      if ( getSourceTypeDesc( inputField.getFormatType() ) != null ) {
+        item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, getSourceTypeDesc( inputField.getFormatType() ) );
+      }
+      itemIndex++;
     }
   }
 
-  protected void getFields() throws Exception {
-    SchemaDescription schema =
-        ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), wPath.getText().trim() );
+  public String getTypeDesc( int type ) {
+    return ValueMetaFactory.getValueMetaName( type );
+  }
 
-    if ( schema.isEmpty() ) {
-      return;
-    }
-    Set<String> existKeys = new TreeSet<>();
-    if ( wInputFields.table.getItemCount() > 0 ) {
-      MessageDialog dialog = getFieldsChoiceDialog( shell, schema.getFieldsCount() );
-      int idx = dialog.open();
-      int choice = idx & 0xFF;
-      switch ( choice ) {
-        case 3:
-        case 255:
-          return; // cancel
-        case 2:
-          wInputFields.table.removeAll();
-          break;
-        case 0:
-          for ( int i = 0; i < wInputFields.table.getItemCount(); i++ ) {
-            TableItem tableItem = wInputFields.table.getItem( i );
-            String key = tableItem.getText( FIELD_NAME_COLUMN_INDEX );
-            if ( !Utils.isEmpty( key ) ) {
-              existKeys.add( key );
-            }
-          }
-          break;
-      }
-    }
-    for ( SchemaDescription.Field f : schema ) {
-      if ( existKeys.contains( f.formatFieldName ) ) {
-        continue;
-      }
-      TableItem item = new TableItem( wInputFields.table, SWT.NONE );
-
-      item.setText( PARQUET_PATH_COLUMN_INDEX, f.formatFieldName );
-      item.setText( FIELD_NAME_COLUMN_INDEX, f.formatFieldName );
-      item.setText( FIELD_TYPE_COLUMN_INDEX, ValueMetaFactory.getValueMetaName( f.pentahoValueMetaType ) );
-    }
-
-    meta.setChanged();
+  public String getSourceTypeDesc( int type ) {
+    return ParquetSpec.DataType.getDataType( type ).getName();
   }
 
   /**
@@ -209,28 +257,131 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     String filePath = wPath.getText();
     if ( filePath != null && !filePath.isEmpty() ) {
       meta.allocateFiles( 1 );
-      meta.inputFiles.fileName[0] = wPath.getText().trim();
+      meta.setFilename( wPath.getText().trim() );
     }
+
+    meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
+
+    List<? extends IParquetInputField> actualParquetFileInputFields = getInputFieldsFromParquetFile( true );
+
     int nrFields = wInputFields.nrNonEmpty();
-    meta.inputFields = new FormatInputOutputField[nrFields];
+    meta.setInputFields( new ParquetInputField[ nrFields ] );
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
-      FormatInputOutputField field = new FormatInputOutputField();
-      field.setPath( item.getText( PARQUET_PATH_COLUMN_INDEX ) );
-      field.setName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
-      field.setType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-      meta.inputFields[i] = field;
+      ParquetInputField field = new ParquetInputField();
+      field.setFormatFieldName( extractFieldName( item.getText( PARQUET_PATH_COLUMN_INDEX ) ) );
+      if ( actualParquetFileInputFields != null ) {
+        IParquetInputField actualParquetField = actualParquetFileInputFields.stream()
+          .filter( x -> field.getFormatFieldName().equals( x.getFormatFieldName() ) )
+          .findFirst( ).orElse( null );
+        if ( actualParquetField != null ) {
+          field.setFormatType( actualParquetField.getFormatType() );
+        } else {
+          field.setFormatType( extractParquetType( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) ).getId() );
+          item.setText( concatenateParquetNameAndType( field ) );
+        }
+      }
+      field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
+      field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      meta.inputFields[ i ] = field;
+    }
+  }
+
+  /**
+   * When all else fails, extract he parquet type from the field description.
+   *
+   * @see #concatenateParquetNameAndType(IParquetInputField)
+   */
+  private ParquetSpec.DataType extractParquetType( String parquetNameTypeFromUI ) {
+    if ( parquetNameTypeFromUI != null ) {
+      String uiType = StringUtils.substringBetween( parquetNameTypeFromUI, "(", ")" );
+      if ( uiType != null ) {
+        String uiTypeTrimmed = uiType.trim();
+        for ( ParquetSpec.DataType temp : ParquetSpec.DataType.values() ) {
+          if ( temp.getName().equalsIgnoreCase( uiTypeTrimmed ) ) {
+            return temp;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get the field name from the UI path column
+   *
+   * @see #concatenateParquetNameAndType(IParquetInputField)
+   */
+  private String extractFieldName( String parquetNameTypeFromUI ) {
+    if ( parquetNameTypeFromUI != null ) {
+      return StringUtils.substringBefore( parquetNameTypeFromUI, "(" ).trim();
+    }
+    return parquetNameTypeFromUI;
+  }
+
+  /**
+   * this method must be changed only with change {@link #extractParquetType(String)}
+   * since this method converts the field for show user and the extract methods myst convert to internal format
+   */
+  private String concatenateParquetNameAndType( IParquetInputField field ) {
+    String typeName;
+    ParquetSpec.DataType parquetDataType = ParquetSpec.DataType.getDataType( field.getFormatType() );
+    if ( parquetDataType == null ) {
+      typeName = "unknown";
+    } else {
+      typeName = ParquetSpec.DataType.getDataType( field.getFormatType() ).getName();
+    }
+    return field.getFormatFieldName() + " (" + typeName + ")";
+  }
+
+  private void doPreview() {
+    getInfo( meta, true );
+    TransMeta previewMeta =
+      TransPreviewFactory.generatePreviewTransformation( transMeta, meta, wStepname.getText() );
+    transMeta.getVariable( "Internal.Transformation.Filename.Directory" );
+    previewMeta.getVariable( "Internal.Transformation.Filename.Directory" );
+
+    EnterNumberDialog numberDialog =
+      new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( PKG,
+        "ParquetInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( PKG,
+        "ParquetInputDialog.PreviewSize.DialogMessage" ) );
+    int previewSize = numberDialog.open();
+
+    if ( previewSize > 0 ) {
+      TransPreviewProgressDialog progressDialog =
+        new TransPreviewProgressDialog( shell, previewMeta, new String[] { wStepname.getText() },
+          new int[] { previewSize } );
+      progressDialog.open();
+
+      Trans trans = progressDialog.getTrans();
+      String loggingText = progressDialog.getLoggingText();
+
+      if ( !progressDialog.isCancelled() ) {
+        if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
+          EnterTextDialog etd =
+            new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
+              BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+          etd.setReadOnly();
+          etd.open();
+        }
+      }
+
+      PreviewRowsDialog prd =
+        new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog
+          .getPreviewRowsMeta( wStepname.getText() ),
+          progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
+      prd.open();
     }
   }
 
   @Override
   protected int getWidth() {
-    return DIALOG_WIDTH;
+    return SHELL_WIDTH;
   }
 
   @Override
   protected int getHeight() {
-    return DIALOG_HEIGHT;
+    return SHELL_HEIGHT;
   }
 
   @Override
@@ -240,105 +391,10 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
   @Override
   protected Listener getPreview() {
-    // Preview the data
-    return event -> {
-      // Create the XML input step
-      ParquetInputMetaBase oneMeta = (ParquetInputMeta) meta.clone();
-      oneMeta.allocateFiles( 1 );
-      oneMeta.inputFiles.fileName[0] = wPath.getText().trim();
-
-      try {
-        SchemaDescription schema =
-            ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(),
-              oneMeta.inputFiles.fileName[0] );
-        List<FormatInputOutputField> fields = new ArrayList<>();
-        for ( SchemaDescription.Field f : schema ) {
-          FormatInputOutputField fo = new FormatInputOutputField();
-          fo.setPath( f.formatFieldName );
-          fo.setName( f.formatFieldName );
-          fo.setType( f.pentahoValueMetaType );
-          fields.add( fo );
-        }
-        oneMeta.inputFields = fields.toArray( new FormatInputOutputField[0] );
-      } catch ( Exception ex ) {
-        throw new RuntimeException( ex );
-      }
-
-      TransMeta previewMeta =
-          TransPreviewFactory.generatePreviewTransformation( transMeta, oneMeta, wStepname.getText() );
-
-      EnterNumberDialog numberDialog =
-          new EnterNumberDialog( shell, props.getDefaultPreviewSize(),
-              BaseMessages.getString( PKG, "ParquetInputDialog.PreviewSize.DialogTitle" ),
-              BaseMessages.getString( PKG, "ParquetInputDialog.PreviewSize.DialogMessage" ) );
-      int previewSize = numberDialog.open();
-      if ( previewSize > 0 ) {
-        TransPreviewProgressDialog progressDialog =
-            new TransPreviewProgressDialog( shell, previewMeta, new String[] {
-              wStepname.getText() },
-                new int[] {
-                  previewSize } );
-        progressDialog.open();
-
-        Trans trans = progressDialog.getTrans();
-        String loggingText = progressDialog.getLoggingText();
-
-        if ( !progressDialog.isCancelled() ) {
-          if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
-            EnterTextDialog etd =
-                new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
-                    BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
-            etd.setReadOnly();
-            etd.open();
-          }
-        }
-
-        PreviewRowsDialog prd =
-            new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(),
-                progressDialog.getPreviewRowsMeta( wStepname.getText() ),
-                progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
-        prd.open();
+    return new Listener() {
+      public void handleEvent( Event e ) {
+        doPreview();
       }
     };
-  }
-
-  static MessageDialog getFieldsChoiceDialog( Shell shell, int newFields ) {
-    MessageDialog messageDialog =
-      new MessageDialog( shell,
-        BaseMessages.getString( PKG, "ParquetInput.GetFieldsChoice.Title" ), // "Warning!"
-        null,
-        BaseMessages.getString( PKG, "ParquetInput.GetFieldsChoice.Message", "" + newFields ),
-        MessageDialog.WARNING, new String[] {
-        BaseMessages.getString( PKG, "ParquetInput.GetFieldsChoice.AddNew" ),
-        BaseMessages.getString( PKG, "ParquetInput.GetFieldsChoice.Add" ),
-        BaseMessages.getString( PKG, "ParquetInput.GetFieldsChoice.ClearAndAdd" ),
-        BaseMessages.getString( PKG, "ParquetInput.GetFieldsChoice.Cancel" ), }, 0 ) {
-
-        public void create() {
-          super.create();
-          getShell().setBackground( GUIResource.getInstance().getColorWhite() );
-        }
-
-        protected Control createMessageArea( Composite composite ) {
-          Control control = super.createMessageArea( composite );
-          imageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
-          messageLabel.setBackground( GUIResource.getInstance().getColorWhite() );
-          return control;
-        }
-
-        protected Control createDialogArea( Composite parent ) {
-          Control control = super.createDialogArea( parent );
-          control.setBackground( GUIResource.getInstance().getColorWhite() );
-          return control;
-        }
-
-        protected Control createButtonBar( Composite parent ) {
-          Control control = super.createButtonBar( parent );
-          control.setBackground( GUIResource.getInstance().getColorWhite() );
-          return control;
-        }
-      };
-    MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
-    return messageDialog;
   }
 }

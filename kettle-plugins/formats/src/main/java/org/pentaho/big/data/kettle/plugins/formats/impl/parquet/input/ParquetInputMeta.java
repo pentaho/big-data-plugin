@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,6 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettlePluginException;
@@ -41,6 +40,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.format.IParquetInputField;
 import org.pentaho.metastore.api.IMetaStore;
 
 @Step( id = "ParquetInput", image = "PI.svg", name = "ParquetInput.Name", description = "ParquetInput.Description",
@@ -86,15 +86,19 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
     return namedClusterService.getClusterTemplate();
   }
 
+  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
+    return namedClusterServiceLocator;
+  }
+
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
                          VariableSpace space, Repository repository, IMetaStore metaStore ) throws
     KettleStepException {
     try {
       for ( int i = 0; i < inputFields.length; i++ ) {
-        FormatInputOutputField field = inputFields[ i ];
-        String value = space.environmentSubstitute( field.getName() );
+        IParquetInputField field = inputFields[ i ];
+        String value = space.environmentSubstitute( field.getPentahoFieldName() );
         ValueMetaInterface v = ValueMetaFactory.createValueMeta( value,
-          field.getType() );
+          field.getPentahoType() );
         v.setOrigin( origin );
         rowMeta.addValueMeta( v );
       }

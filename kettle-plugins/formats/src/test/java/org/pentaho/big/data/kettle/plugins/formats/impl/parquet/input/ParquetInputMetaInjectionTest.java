@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -52,27 +52,21 @@ public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<Par
 
     check( "FIELD_NAME", new StringGetter() {
       public String get() {
-        return meta.inputFields[ 0 ].getName();
+        return meta.inputFields[ 0 ].getPentahoFieldName();
       }
     } );
 
     String[] typeNames = ValueMetaBase.getAllTypes();
     checkStringToInt( "FIELD_TYPE", new IntGetter() {
       public int get() {
-        return meta.inputFields[ 0 ].getType();
+        return meta.inputFields[ 0 ].getPentahoType();
       }
     }, typeNames, getTypeCodes( typeNames ) );
 
     check( "FIELD_PATH", new StringGetter() {
       public String get() {
-        return meta.inputFields[ 0 ].getPath();
+        return meta.inputFields[ 0 ].getFormatFieldName();
       }
     } );
-
-    checkStringToInt( "FIELD_SOURCE_TYPE", new IntGetter() {
-      public int get() {
-        return meta.inputFields[ 0 ].getSourceType();
-      }
-    }, typeNames, getTypeCodes( typeNames ) );
   }
 }
