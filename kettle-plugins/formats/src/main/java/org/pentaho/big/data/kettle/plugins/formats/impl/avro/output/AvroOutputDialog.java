@@ -28,6 +28,8 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -67,6 +69,7 @@ import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -76,7 +79,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
-
+  private static final int H_OFFSET_DATETIME_COMBO_BOX = 15;
   private static final String[] SUPPORTED_AVRO_TYPE_NAMES = {
     AvroSpec.DataType.STRING.getName(),
     AvroSpec.DataType.INTEGER.getName(),
@@ -103,6 +106,10 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   protected TextVar wNameSpace;
   protected TextVar wSchemaPath;
   protected Button wbSchemaBrowse;
+  private Button wDateInFileName;
+  private Button wTimeInFileName;
+  private Button wSpecifyDateTimeFormat;
+  private ComboVar wDateTimeFormat;
 
   public AvroOutputDialog( Shell parent, Object avroOutputMeta, TransMeta transMeta, String sname ) {
     this( parent, (AvroOutputMeta) avroOutputMeta, transMeta, sname );
@@ -377,6 +384,69 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     wCompression = createComboVar( wComp, meta.getCompressionTypes() );
     new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
 
+    wDateInFileName = new Button( wComp, SWT.CHECK );
+    new FD( wDateInFileName ).left( 0, 0 ).top( wCompression, FIELDS_SEP ).apply();
+    props.setLook( wDateInFileName );
+    wDateInFileName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.DateInFileName" ) );
+    wDateInFileName.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+        boolean isSelected = wDateInFileName.getSelection();
+        if ( isSelected ) {
+          wSpecifyDateTimeFormat.setSelection( false );
+          wDateTimeFormat.setText( "" );
+          wDateTimeFormat.setEnabled( false );
+        }
+      }
+    } );
+
+
+    wTimeInFileName = new Button( wComp, SWT.CHECK );
+    new FD( wTimeInFileName ).left( 0, 0 ).top( wDateInFileName, FIELDS_SEP ).apply();
+    props.setLook( wTimeInFileName );
+    wTimeInFileName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.TimeInFileName" ) );
+    wTimeInFileName.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+        boolean isSelected = wTimeInFileName.getSelection();
+        if ( isSelected ) {
+          wSpecifyDateTimeFormat.setSelection( false );
+          wDateTimeFormat.setText( "" );
+          wDateTimeFormat.setEnabled( false );
+        }
+      }
+    } );
+
+
+    wSpecifyDateTimeFormat = new Button( wComp, SWT.CHECK );
+    new FD( wSpecifyDateTimeFormat ).left( 0, 0 ).top( wTimeInFileName, FIELDS_SEP ).apply();
+    props.setLook( wSpecifyDateTimeFormat );
+    wSpecifyDateTimeFormat.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.SpecifyDateTimeFormat" ) );
+    wSpecifyDateTimeFormat.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+        boolean isSelected = wSpecifyDateTimeFormat.getSelection();
+        wDateTimeFormat.setEnabled( isSelected );
+        if ( !isSelected ) {
+          wDateTimeFormat.setText( "" );
+          wTimeInFileName.setEnabled( true );
+          wDateInFileName.setEnabled( true );
+        } else {
+          wTimeInFileName.setSelection( false );
+          wDateInFileName.setSelection( false );
+          wTimeInFileName.setEnabled( false );
+          wDateInFileName.setEnabled( false );
+        }
+      }
+    } );
+
+    String[] dates = Const.getDateFormats();
+    dates =
+        Arrays.stream( dates ).filter( d -> d.indexOf( '/' ) < 0 && d.indexOf( '\\' ) < 0 && d.indexOf( ':' ) < 0 )
+            .toArray( String[]::new ); // remove formats with slashes and colons
+    wDateTimeFormat = createComboVar( wComp, dates );
+    new FD( wDateTimeFormat ).left( 0, H_OFFSET_DATETIME_COMBO_BOX ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP ).width( 200 ).apply();
+    props.setLook( wDateTimeFormat );
   }
 
   protected ComboVar createComboVar( Composite container, String[] options ) {
@@ -441,6 +511,25 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     }
     populateFieldsUI( meta, wOutputFields );
     wCompression.setText( meta.getCompressionType() );
+    String dateTimeFormat = coalesce( meta.getDateTimeFormat() );
+    if ( !dateTimeFormat.isEmpty() ) {
+      wTimeInFileName.setSelection( false );
+      wDateInFileName.setSelection( false );
+      wTimeInFileName.setEnabled( false );
+      wDateInFileName.setEnabled( false );
+      wSpecifyDateTimeFormat.setSelection( true );
+      wDateTimeFormat.setText( dateTimeFormat );
+      wDateTimeFormat.setEnabled( true );
+    } else {
+      wTimeInFileName.setEnabled( true );
+      wDateInFileName.setEnabled( true );
+      wTimeInFileName.setSelection( meta.isTimeInFileName() );
+      wDateInFileName.setSelection( meta.isDateInFileName() );
+      wSpecifyDateTimeFormat.setSelection( false );
+      wDateTimeFormat.setEnabled( false );
+      wDateTimeFormat.setText( "" );
+    }
+
   }
 
   // ui -> meta
@@ -474,6 +563,15 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       field.setAllowNull( getNullableValue( item.getText( j++ ) ) );
 
       outputFields.add( field );
+    }
+    if ( wSpecifyDateTimeFormat.getSelection() ) {
+      meta.setTimeInFileName( false );
+      meta.setDateInFileName( false );
+      meta.setDateTimeFormat( wDateTimeFormat.getText().trim() );
+    } else {
+      meta.setTimeInFileName( wTimeInFileName.getSelection() );
+      meta.setDateInFileName( wDateInFileName.getSelection() );
+      meta.setDateTimeFormat( "" );
     }
     meta.setOutputFields( outputFields );
   }
