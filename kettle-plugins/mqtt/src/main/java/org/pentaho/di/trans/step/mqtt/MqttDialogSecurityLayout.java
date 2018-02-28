@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
+import com.google.common.collect.Lists;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -45,15 +46,18 @@ import org.pentaho.di.ui.core.widget.PasswordTextVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.sort;
 import static org.pentaho.di.ui.trans.step.BaseStreamingDialog.INPUT_WIDTH;
 
 /**
@@ -193,6 +197,7 @@ class MqttDialogSecurityLayout {
       @Override public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
         boolean selection = ( (Button) selectionEvent.getSource() ).getSelection();
         sslTable.setEnabled( selection );
+        sslTable.table.setEnabled( selection );
       }
     } );
 
@@ -222,6 +227,9 @@ class MqttDialogSecurityLayout {
     sslTable.setEnabled( sslEnabled );
     sslTable.table.setEnabled( sslEnabled );
 
+    sslTable.table.select( 0 );
+    sslTable.table.showSelection();
+
     wUsername.setText( username );
     wPassword.setText( password );
   }
@@ -229,14 +237,12 @@ class MqttDialogSecurityLayout {
   private void buildSSLTable( Composite parentWidget, Control relativePosition ) {
     ColumnInfo[] columns = getSSLColumns();
 
-    int fieldCount = 1;
-
     sslTable = new TableView(
       transMeta,
       parentWidget,
       SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI,
       columns,
-      fieldCount,
+      0,  // num of starting rows (will be added later)
       false,
       lsMod,
       props,
@@ -246,8 +252,8 @@ class MqttDialogSecurityLayout {
     sslTable.setSortable( false );
     sslTable.getTable().addListener( SWT.Resize, event -> {
       Table table = (Table) event.widget;
-      table.getColumn( 1 ).setWidth( 179 );
-      table.getColumn( 2 ).setWidth( 178 );
+      table.getColumn( 1 ).setWidth( 200 );
+      table.getColumn( 2 ).setWidth( 200 );
     } );
 
     populateSSLData();
@@ -256,13 +262,13 @@ class MqttDialogSecurityLayout {
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( relativePosition, 5 );
     fdData.bottom = new FormAttachment( 100, 0 );
-    fdData.width = INPUT_WIDTH + 10;
+    fdData.width = INPUT_WIDTH + 80;
 
     // resize the columns to fit the data in them
     stream( sslTable.getTable().getColumns() ).forEach( column -> {
       if ( column.getWidth() > 0 ) {
         // don't pack anything with a 0 width, it will resize it to make it visible (like the index column)
-        column.setWidth( 120 );
+        column.setWidth( 200 );
       }
     } );
 
@@ -274,7 +280,7 @@ class MqttDialogSecurityLayout {
       ColumnInfo.COLUMN_TYPE_TEXT, false, false );
 
     ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "MQTTDialog.Security.SSL.Column.Value" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+      ColumnInfo.COLUMN_TYPE_TEXT, false, false, 200 );
     value.setUsingVariables( true );
 
     return new ColumnInfo[] { optionName, value };
@@ -282,9 +288,18 @@ class MqttDialogSecurityLayout {
 
   private void populateSSLData() {
     sslTable.clearAll();
-    sslConfig.keySet().stream().sorted()
+    checkNotNull( sslTable.getItem( 0 ) );
+    checkState( sslTable.getItem( 0 ).length == 2 );
+
+    List<String> keys = Lists.newArrayList( sslConfig.keySet() );
+    sort( keys );
+
+    String firstKey = keys.remove( 0 );
+    sslTable.getTable().getItem( 0 ).setText( 1, firstKey );
+    sslTable.getTable().getItem( 0 ).setText( 2, sslConfig.get( firstKey ) );
+
+    keys.stream()
       .forEach( key -> sslTable.add( key, sslConfig.get( key ) ) );
-    sslTable.remove( 0 );  // blank row
   }
 
   private Map<String, String> tableToMap( TableView table ) {
