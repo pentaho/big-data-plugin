@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -123,8 +123,9 @@ public class AvroOutput extends BaseStep implements StepInterface {
     data.output.setOutputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
     data.output.setSchemaDescription( schemaDescription );
     IPentahoAvroOutputFormat.COMPRESSION compression;
+
     try {
-      compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getCompressionType().toUpperCase() );
+      compression = IPentahoAvroOutputFormat.COMPRESSION.valueOf( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getCompressionType() ).toUpperCase() );
     } catch ( Exception ex ) {
       compression = IPentahoAvroOutputFormat.COMPRESSION.UNCOMPRESSED;
     }
