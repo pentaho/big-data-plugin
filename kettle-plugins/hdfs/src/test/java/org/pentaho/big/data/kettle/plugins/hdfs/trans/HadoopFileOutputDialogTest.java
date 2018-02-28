@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,9 +22,16 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.eclipse.swt.custom.CCombo;
 import org.junit.Test;
+import org.pentaho.di.core.Const;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.any;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 /**
  * Created by bryan on 11/23/15.
@@ -71,5 +78,22 @@ public class HadoopFileOutputDialogTest {
   @Test
   public void testGetUrlPathRootPathWithoutSlash() {
     assertEquals( "/", HadoopFileOutputDialog.getUrlPath( "hdfs://myhost:8020" ) );
+  }
+
+  @Test
+  public void testFillWithSupportedDateFormats() {
+    HadoopFileOutputDialog dialog = mock( HadoopFileOutputDialog.class );
+    CCombo combo = mock( CCombo.class );
+
+    String[] dates = Const.getDateFormats();
+    assertEquals( 19, dates.length );
+
+    // currently there are 19 date formats, 9 of which contain ':' characters which are illegal in hadoop filenames
+    // if the formats returned change, the numbers on this test should be adjusted
+
+    doCallRealMethod().when( dialog ).fillWithSupportedDateFormats( any(), any() );
+    dialog.fillWithSupportedDateFormats( combo, dates );
+
+    verify( combo, times( 10 ) ).add( any() );
   }
 }
