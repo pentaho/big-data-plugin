@@ -22,6 +22,7 @@
 package org.pentaho.di.trans.step.mqtt;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +46,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
@@ -53,6 +56,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -354,6 +358,23 @@ public class MQTTConsumerMetaTest {
     assertTrue( meta.equals( deserMeta ) );
 
 
+  }
+
+  @Test
+  public void testRetrieveOptions() {
+    List<String> keys = Arrays
+      .asList( KEEP_ALIVE_INTERVAL, MAX_INFLIGHT, CONNECTION_TIMEOUT, CLEAN_SESSION, STORAGE_LEVEL, SERVER_URIS,
+        MQTT_VERSION, AUTOMATIC_RECONNECT );
+
+    MQTTConsumerMeta meta = new MQTTConsumerMeta();
+    meta.setDefault();
+    List<MqttOption> options = meta.retrieveOptions();
+    assertEquals( 8, options.size() );
+    for ( MqttOption option : options ) {
+      assertEquals( "", option.getValue() );
+      assertNotNull( option.getText() );
+      Assert.assertTrue( keys.contains( option.getKey() ) );
+    }
   }
 
   public static MQTTConsumerMeta fromXml( String metaXml ) {
