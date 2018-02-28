@@ -22,7 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
@@ -66,6 +68,14 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
   @InjectionDeep
   private List<AvroOutputField> outputFields = new ArrayList<AvroOutputField>();
 
+  @Injection( name = "OPTIONS_DATE_IN_FILE_NAME" )
+  protected boolean dateInFileName = false;
+
+  @Injection( name = "OPTIONS_TIME_IN_FILE_NAME" )
+  protected boolean timeInFileName = false;
+
+  @Injection( name = "OPTIONS_DATE_FORMAT" )
+  protected String dateTimeFormat = "";
   @Injection( name = "OPTIONS_COMPRESSION" ) protected String compressionType;
   @Injection( name = "SCHEMA_FILENAME" ) protected String schemaFilename;
   @Injection( name = "SCHEMA_NAMESPACE" ) protected String namespace;
@@ -91,6 +101,30 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
   public void setOutputFields( List<AvroOutputField> outputFields ) {
     this.outputFields = outputFields;
+  }
+
+  public boolean isDateInFileName() {
+    return dateInFileName;
+  }
+
+  public void setDateInFileName( boolean dateInFileName ) {
+    this.dateInFileName = dateInFileName;
+  }
+
+  public boolean isTimeInFileName() {
+    return timeInFileName;
+  }
+
+  public void setTimeInFileName( boolean timeInFileName ) {
+    this.timeInFileName = timeInFileName;
+  }
+
+  public String getDateTimeFormat() {
+    return dateTimeFormat;
+  }
+
+  public void setDateTimeFormat( String dateTimeFormat ) {
+    this.dateTimeFormat = dateTimeFormat;
   }
 
   @Override
@@ -119,6 +153,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       this.outputFields = avroOutputFields;
 
       compressionType = XMLHandler.getTagValue( stepnode, FieldNames.COMPRESSION );
+      dateTimeFormat = XMLHandler.getTagValue( stepnode, FieldNames.DATE_FORMAT );
+      dateInFileName = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.DATE_IN_FILE_NAME ) );
+      timeInFileName = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.TIME_IN_FILE_NAME ) );
       schemaFilename = XMLHandler.getTagValue( stepnode, FieldNames.SCHEMA_FILENAME );
       namespace = XMLHandler.getTagValue( stepnode, FieldNames.NAMESPACE );
       docValue = XMLHandler.getTagValue( stepnode, FieldNames.DOC_VALUE );
@@ -155,6 +192,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     retval.append( "    </fields>" ).append( Const.CR );
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.COMPRESSION, compressionType ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DATE_FORMAT, dateTimeFormat ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DATE_IN_FILE_NAME, dateInFileName ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.TIME_IN_FILE_NAME, timeInFileName ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.SCHEMA_FILENAME, schemaFilename ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.NAMESPACE, namespace ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.DOC_VALUE, docValue ) );
@@ -188,6 +228,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       }
       this.outputFields = avroOutputFields;
       compressionType = rep.getStepAttributeString( id_step, FieldNames.COMPRESSION );
+      dateTimeFormat = rep.getStepAttributeString( id_step, FieldNames.DATE_FORMAT );
+      dateInFileName = rep.getStepAttributeBoolean( id_step, FieldNames.DATE_IN_FILE_NAME );
+      timeInFileName = rep.getStepAttributeBoolean( id_step, FieldNames.TIME_IN_FILE_NAME );
       schemaFilename = rep.getStepAttributeString( id_step, FieldNames.SCHEMA_FILENAME );
       namespace = rep.getStepAttributeString( id_step, FieldNames.NAMESPACE );
       docValue = rep.getStepAttributeString( id_step, FieldNames.DOC_VALUE );
@@ -215,6 +258,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.COMPRESSION, compressionType );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.DATE_FORMAT, dateTimeFormat );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.DATE_IN_FILE_NAME, dateInFileName );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.TIME_IN_FILE_NAME, timeInFileName );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.SCHEMA_FILENAME, schemaFilename );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.NAMESPACE, namespace );
       rep.saveStepAttribute( id_transformation, id_step, FieldNames.DOC_VALUE, docValue );
@@ -382,6 +428,25 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     }
   }
 
+  public String constructOutputFilename( String file ) {
+    int endIndex = file.lastIndexOf( "." );
+    String name = endIndex > 0 ? file.substring( 0, endIndex ) : file;
+    String extension = endIndex <= 0 ? "" : file.substring( endIndex, file.length() );
+
+    if ( dateTimeFormat != null && !dateTimeFormat.isEmpty() ) {
+      String dateTimeFormatPattern = getParentStepMeta().getParentTransMeta().environmentSubstitute( dateTimeFormat );
+      name += new SimpleDateFormat( dateTimeFormatPattern ).format( new Date() );
+    } else {
+      if ( dateInFileName ) {
+        name += '_' + new SimpleDateFormat( "yyyyMMdd" ).format( new Date() );
+      }
+      if ( timeInFileName ) {
+        name += '_' + new SimpleDateFormat( "HHmmss" ).format( new Date() );
+      }
+    }
+    return name + extension;
+  }
+
   private static String getMsg( String key ) {
     return BaseMessages.getString( PKG, key );
   }
@@ -392,6 +457,9 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     public static final String RECORD_NAME = "recordName";
     public static final String DOC_VALUE = "docValue";
     public static final String NAMESPACE = "namespace";
+    public static final String DATE_IN_FILE_NAME = "dateInFileName";
+    public static final String TIME_IN_FILE_NAME = "timeInFileName";
+    public static final String DATE_FORMAT = "dateTimeFormat";
   }
 
 }
