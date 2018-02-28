@@ -360,6 +360,12 @@ public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInte
     wSetupTab.setControl( wSetupComp );
   }
 
+  @Override
+  public void setSize() {
+    setSize( shell );  // sets shell location and preferred size
+    shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT  );
+    shell.setSize(  SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT   ); // force initial size
+  }
 
   private void getData() {
     wMqttServer.setText( nullToEmpty( meta.getMqttServer() ) );
