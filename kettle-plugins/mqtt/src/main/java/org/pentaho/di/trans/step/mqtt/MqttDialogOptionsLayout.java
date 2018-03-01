@@ -103,14 +103,16 @@ public class MqttDialogOptionsLayout {
       false,
       lsMod,
       props,
-      false
+      false,
+      true,
+      null
     );
 
     optionsTable.setSortable( false );
     optionsTable.getTable().addListener( SWT.Resize, event -> {
       Table table = (Table) event.widget;
-      table.getColumn( 1 ).setWidth( 220 );
-      table.getColumn( 2 ).setWidth( 220 );
+      table.getColumn( 1 ).setWidth( 215 );
+      table.getColumn( 2 ).setWidth( 215 );
     } );
 
     populateTable();
@@ -118,7 +120,7 @@ public class MqttDialogOptionsLayout {
     FormData fdData = new FormData();
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( 0, 0 );
-    fdData.right = new FormAttachment( 100, 0 );
+    fdData.right = new FormAttachment( 100, -10 );
     fdData.width = INPUT_WIDTH + 10;
 
     // resize the columns to fit the data in them
