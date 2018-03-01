@@ -201,7 +201,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
   private TableView wFields;
   private FormData fdFields;
 
-  private HadoopFileOutputMeta input;
+  private TextFileOutputMeta input;
 
   private Button wMinWidth;
   private Listener lsMinWidth;
@@ -240,10 +240,11 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
 
   public HadoopFileOutputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
-    input = (HadoopFileOutputMeta) in;
-    namedClusterService = input.getNamedClusterService();
-    runtimeTestActionService = input.getRuntimeTestActionService();
-    runtimeTester = input.getRuntimeTester();
+    input = (TextFileOutputMeta) in;
+    HadoopFileOutputMeta hadoopFileOutputMeta = (HadoopFileOutputMeta) in;
+    namedClusterService = hadoopFileOutputMeta.getNamedClusterService();
+    runtimeTestActionService = hadoopFileOutputMeta.getRuntimeTestActionService();
+    runtimeTester = hadoopFileOutputMeta.getRuntimeTester();
     inputFields = new HashMap<String, Integer>();
   }
 
@@ -841,9 +842,9 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     wFormat.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format.Label" ) );
     props.setLook( wFormat );
 
-    for ( int i = 0; i < HadoopFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
+    for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
       wFormat.add( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format."
-        + HadoopFileOutputMeta.formatMapperLineTerminator[i] ) );
+        + TextFileOutputMeta.formatMapperLineTerminator[i] ) );
     }
     wFormat.select( 0 );
     wFormat.addModifyListener( lsMod );
@@ -1471,8 +1472,8 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     }
     if ( input.getFileFormat() != null ) {
       wFormat.select( 0 ); // default if not found: CR+LF
-      for ( int i = 0; i < HadoopFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
-        if ( input.getFileFormat().equalsIgnoreCase( HadoopFileOutputMeta.formatMapperLineTerminator[i] ) ) {
+      for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
+        if ( input.getFileFormat().equalsIgnoreCase( TextFileOutputMeta.formatMapperLineTerminator[i] ) ) {
           wFormat.select( i );
         }
       }
@@ -1558,7 +1559,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     dispose();
   }
 
-  private void getInfo( HadoopFileOutputMeta tfoi ) {
+  private void getInfo( TextFileOutputMeta tfoi ) {
     String ncName = ( (HadoopFileOutputMeta) tfoi ).getSourceConfigurationName();
     String fileName = wFilename.getText();
 
@@ -1571,7 +1572,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
     tfoi.setFileName( fileName );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
     tfoi.setCreateParentFolder( wCreateParentFolder.getSelection() );
-    tfoi.setFileFormat( HadoopFileOutputMeta.formatMapperLineTerminator[wFormat.getSelectionIndex()] );
+    tfoi.setFileFormat( TextFileOutputMeta.formatMapperLineTerminator[wFormat.getSelectionIndex()] );
     tfoi.setFileCompression( wCompression.getText() );
     tfoi.setEncoding( wEncoding.getText() );
     tfoi.setSeparator( wSeparator.getText() );
