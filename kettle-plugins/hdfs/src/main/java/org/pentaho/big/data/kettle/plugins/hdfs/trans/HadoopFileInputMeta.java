@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,7 +31,6 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -67,14 +66,6 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";
   public static final String S3_DEST_FILE = "S3-DEST-FILE-";
   private final NamedClusterService namedClusterService;
-
-  /** The environment of the selected file/folder */
-  @Injection( name = "ENVIRONMENT", group = "FILENAME_LINES" )
-  public String[] environment = {};
-
-  public HadoopFileInputMeta() {
-    this( null, null, null );
-  }
 
   public HadoopFileInputMeta( NamedClusterService namedClusterService,
                               RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
