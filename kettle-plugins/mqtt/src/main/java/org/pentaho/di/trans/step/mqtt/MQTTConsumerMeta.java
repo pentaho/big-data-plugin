@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -420,6 +421,21 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
       new MqttOption( AUTOMATIC_RECONNECT, BaseMessages.getString( PKG, "MQTTDialog.Options." + AUTOMATIC_RECONNECT ),
         automaticReconnect )
     );
+  }
+
+  @Override
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta,
+                     StepMeta stepMeta, RowMetaInterface prev, String[] input, String[] output,
+                     RowMetaInterface info, VariableSpace space, Repository repository,
+                     IMetaStore metaStore ) {
+    super.check( remarks, transMeta, stepMeta, prev, input, output, info, space, repository, metaStore );
+
+    MqttOption.checkInteger( remarks, stepMeta, space, KEEP_ALIVE_INTERVAL, keepAliveInterval );
+    MqttOption.checkInteger( remarks, stepMeta, space, MAX_INFLIGHT, maxInflight );
+    MqttOption.checkInteger( remarks, stepMeta, space, CONNECTION_TIMEOUT, connectionTimeout );
+    MqttOption.checkBoolean( remarks, stepMeta, space, CLEAN_SESSION, cleanSession );
+    MqttOption.checkVersion( remarks, stepMeta, space, mqttVersion );
+    MqttOption.checkBoolean( remarks, stepMeta, space, AUTOMATIC_RECONNECT, automaticReconnect );
   }
 
   @Override public boolean equals( Object o ) {

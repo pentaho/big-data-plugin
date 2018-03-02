@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -29,6 +30,8 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
@@ -289,6 +292,21 @@ public class MQTTProducerMeta extends BaseStepMeta implements StepMetaInterface 
     setServerUris( XMLHandler.getTagValue( stepnode, SERVER_URIS ) );
     setMqttVersion( XMLHandler.getTagValue( stepnode, MQTT_VERSION ) );
     setAutomaticReconnect( XMLHandler.getTagValue( stepnode, AUTOMATIC_RECONNECT ) );
+  }
+
+  @Override
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta,
+                     StepMeta stepMeta, RowMetaInterface prev, String[] input, String[] output,
+                     RowMetaInterface info, VariableSpace space, Repository repository,
+                     IMetaStore metaStore ) {
+    super.check( remarks, transMeta, stepMeta, prev, input, output, info, space, repository, metaStore );
+
+    MqttOption.checkInteger( remarks, stepMeta, space, KEEP_ALIVE_INTERVAL, keepAliveInterval );
+    MqttOption.checkInteger( remarks, stepMeta, space, MAX_INFLIGHT, maxInflight );
+    MqttOption.checkInteger( remarks, stepMeta, space, CONNECTION_TIMEOUT, connectionTimeout );
+    MqttOption.checkBoolean( remarks, stepMeta, space, CLEAN_SESSION, cleanSession );
+    MqttOption.checkVersion( remarks, stepMeta, space, mqttVersion );
+    MqttOption.checkBoolean( remarks, stepMeta, space, AUTOMATIC_RECONNECT, automaticReconnect );
   }
 
   public List<MqttOption> retrieveOptions() {

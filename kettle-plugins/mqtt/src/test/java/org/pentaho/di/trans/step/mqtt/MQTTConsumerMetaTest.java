@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
@@ -35,7 +36,9 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.EnvUtil;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
 import org.pentaho.di.trans.TransMeta;
@@ -82,6 +85,7 @@ import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.TRANSFORM
 
 @RunWith ( MockitoJUnitRunner.class )
 public class MQTTConsumerMetaTest {
+  private static Class PKG = MQTTConsumerMetaTest.class;
 
   @Mock private IMetaStore metastore;
   @Mock private Repository rep;
@@ -375,6 +379,53 @@ public class MQTTConsumerMetaTest {
       assertNotNull( option.getText() );
       Assert.assertTrue( keys.contains( option.getKey() ) );
     }
+  }
+
+  @Test
+  public void testCheckDefaults() {
+    List<CheckResultInterface> remarks = new ArrayList<>();
+    meta.check( remarks, null, null, null, null, null, null, new Variables(), null, null );
+
+    assertEquals( 0, remarks.size() );
+  }
+
+  @Test
+  public void testCheckFailAll() {
+    List<CheckResultInterface> remarks = new ArrayList<>();
+    meta.setKeepAliveInterval( "asdf" );
+    meta.setMaxInflight( "asdf" );
+    meta.setConnectionTimeout( "asdf" );
+    meta.setCleanSession( "asdf" );
+    meta.setAutomaticReconnect( "adsf" );
+    meta.setMqttVersion( "9" );
+    meta.check( remarks, null, null, null, null, null, null, new Variables(), null, null );
+
+    assertEquals( 6, remarks.size() );
+    assertEquals( BaseMessages
+        .getString( PKG, "MQTTMeta.CheckResult.NotANumber",
+          BaseMessages.getString( PKG, "MQTTDialog.Options." + KEEP_ALIVE_INTERVAL ) ),
+      remarks.get( 0 ).getText() );
+    assertEquals( BaseMessages
+        .getString( PKG, "MQTTMeta.CheckResult.NotANumber",
+          BaseMessages.getString( PKG, "MQTTDialog.Options." + MAX_INFLIGHT ) ),
+      remarks.get( 1 ).getText() );
+    assertEquals( BaseMessages
+        .getString( PKG, "MQTTMeta.CheckResult.NotANumber",
+          BaseMessages.getString( PKG, "MQTTDialog.Options." + CONNECTION_TIMEOUT ) ),
+      remarks.get( 2 ).getText() );
+    assertEquals( BaseMessages
+        .getString( PKG, "MQTTMeta.CheckResult.NotABoolean",
+          BaseMessages.getString( PKG, "MQTTDialog.Options." + CLEAN_SESSION ) ),
+      remarks.get( 3 ).getText() );
+    assertEquals( BaseMessages
+        .getString( PKG, "MQTTMeta.CheckResult.NotCorrectVersion",
+          BaseMessages.getString( PKG, "MQTTDialog.Options." + MQTT_VERSION ) ),
+      remarks.get( 4 ).getText() );
+    assertEquals(
+      BaseMessages
+        .getString( PKG, "MQTTMeta.CheckResult.NotABoolean",
+          BaseMessages.getString( PKG, "MQTTDialog.Options." + AUTOMATIC_RECONNECT ) ),
+      remarks.get( 5 ).getText() );
   }
 
   public static MQTTConsumerMeta fromXml( String metaXml ) {
