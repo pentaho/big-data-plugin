@@ -24,6 +24,7 @@ package org.pentaho.di.trans.step.mqtt;
 
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.i18n.BaseMessages;
@@ -35,7 +36,9 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static java.nio.charset.Charset.defaultCharset;
 
@@ -67,6 +70,19 @@ public class MQTTProducer extends BaseStep implements StepInterface {
     boolean isInitalized = super.init( stepMetaInterface, stepDataInterface );
     meta = ( (MQTTProducerMeta) stepMetaInterface );
     data = ( (MQTTProducerData) stepDataInterface );
+
+    List<CheckResultInterface> remarks = new ArrayList<>();
+    meta.check(
+      remarks, getTransMeta(), meta.getParentStepMeta(),
+      null, null, null, null, //these parameters are not used inside the method
+      variables, getRepository(), getMetaStore() );
+    boolean errorsPresent =
+      remarks.stream().filter( result -> result.getType() == CheckResultInterface.TYPE_RESULT_ERROR )
+        .peek( result -> logError( result.getText() ) )
+        .count() > 0;
+    if ( errorsPresent ) {
+      return false;
+    }
 
     return isInitalized;
   }
@@ -114,7 +130,7 @@ public class MQTTProducer extends BaseStep implements StepInterface {
           .buildAndConnect();
       } catch ( MqttException e ) {
         stopAll();
-        logError( e.getMessage() );
+        logError( e.toString() );
         return false;
       }
 

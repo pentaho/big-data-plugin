@@ -24,6 +24,7 @@ package org.pentaho.di.trans.step.mqtt;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang.BooleanUtils;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -286,7 +287,7 @@ final class MQTTClientBuilder {
 
     optionValue = step.environmentSubstitute( cleanSession );
     if ( !StringUtil.isEmpty( optionValue ) ) {
-      options.setCleanSession( Boolean.parseBoolean( optionValue ) );
+      options.setCleanSession( BooleanUtils.toBoolean( optionValue ) );
     }
 
     optionValue = step.environmentSubstitute( serverUris );
@@ -302,7 +303,7 @@ final class MQTTClientBuilder {
 
     optionValue = step.environmentSubstitute( automaticReconnect );
     if ( !StringUtil.isEmpty( optionValue ) ) {
-      options.setAutomaticReconnect( Boolean.parseBoolean( optionValue ) );
+      options.setAutomaticReconnect( BooleanUtils.toBoolean( optionValue ) );
     }
 
     return options;

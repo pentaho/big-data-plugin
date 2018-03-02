@@ -103,9 +103,7 @@ public class MqttDialogOptionsLayout {
       false,
       lsMod,
       props,
-      false,
-      true,
-      null
+      false
     );
 
     optionsTable.setSortable( false );
@@ -144,6 +142,8 @@ public class MqttDialogOptionsLayout {
       ColumnInfo.COLUMN_TYPE_TEXT, false, true );
     ColumnInfo optionValue = new ColumnInfo( BaseMessages.getString( PKG, "MQTTDialog.Options.Column.Value" ),
       ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    optionValue.setUsingVariables( true );
+
     return new ColumnInfo[] { optionName, optionValue };
   }
 

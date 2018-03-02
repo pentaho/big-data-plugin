@@ -22,7 +22,6 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
-
 import com.google.common.collect.ImmutableList;
 import org.apache.activemq.broker.BrokerService;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -188,7 +187,7 @@ public class MQTTStreamSourceTest {
     MqttException mqttException = mock( MqttException.class );
 
     when( clientFactory.getClient( any(), any(), any() ) ).thenReturn( mqttClient );
-    when( mqttException.getMessage() ).thenReturn( "There is an error connecting" );
+    when( mqttException.toString() ).thenReturn( "There is an error connecting" );
     doThrow( mqttException ).when( builder ).buildAndConnect();
     PowerMockito.when( MQTTClientBuilder.builder() ).thenReturn( builder );
 

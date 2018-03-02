@@ -91,7 +91,7 @@ public class MQTTStreamSource extends BlockingQueueStreamSource<List<Object>> {
         .buildAndConnect();
     } catch ( MqttException e ) {
       mqttConsumer.stopAll();
-      mqttConsumer.logError( e.getMessage() );
+      mqttConsumer.logError( e.toString() );
     }
   }
 

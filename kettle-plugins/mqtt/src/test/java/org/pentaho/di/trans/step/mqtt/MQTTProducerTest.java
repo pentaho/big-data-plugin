@@ -181,7 +181,7 @@ public class MQTTProducerTest {
     PowerMockito.mockStatic( MQTTClientBuilder.class );
     MQTTClientBuilder clientBuilder = spy( MQTTClientBuilder.class );
     MqttException mqttException = mock( MqttException.class );
-    when( mqttException.getMessage() ).thenReturn( "There was an error connecting" );
+    when( mqttException.toString() ).thenReturn( "There was an error connecting" );
     doThrow( mqttException ).when( clientBuilder ).buildAndConnect();
     PowerMockito.when( MQTTClientBuilder.builder() ).thenReturn( clientBuilder );
 
