@@ -54,6 +54,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepData;
+import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepStatus;
 import org.pentaho.di.trans.steps.abort.AbortMeta;
@@ -460,7 +461,8 @@ public class KafkaConsumerInputTest {
     trans.prepareExecution( new String[]{} );
     trans.startThreads();
     trans.waitUntilFinished();
-    Collection<StepStatus> stepStatuses = trans.getSteps().get( 0 ).step.subStatuses();
+    StepInterface kafkaStep = trans.getSteps().get( 0 ).step;
+    Collection<StepStatus> stepStatuses = kafkaStep.subStatuses();
     StepStatus recordsFromStream =
       stepStatuses.stream().filter( stepStatus -> stepStatus.getStepname().equals( "Get records from stream" ) )
         .findFirst().orElseThrow( RuntimeException::new );
@@ -469,6 +471,12 @@ public class KafkaConsumerInputTest {
         .findFirst().orElseThrow( RuntimeException::new );
     assertEquals( 3, recordsFromStream.getLinesRead() );
     assertEquals( 2, abort.getLinesRead() );
+
+    //I know this seems weird.  It proves the Abort stops kafka from reading new rows
+    Thread.sleep( 10 );
+    long linesInput = kafkaStep.getLinesInput();
+    Thread.sleep( 10 );
+    assertEquals( linesInput,  kafkaStep.getLinesInput() );
   }
 
   @Test
