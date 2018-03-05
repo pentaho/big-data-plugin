@@ -134,7 +134,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     wConnection.addModifyListener( lsMod );
     FormData fdConnection = new FormData();
     fdConnection.left = new FormAttachment( 0, 0 );
-    fdConnection.right = new FormAttachment( 75, 0 );
+    fdConnection.right = new FormAttachment( 0, 363 );
     fdConnection.top = new FormAttachment( wlConnection, 5 );
     wConnection.setLayoutData( fdConnection );
 
@@ -196,13 +196,13 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
     topicsTable.setSortable( false );
     topicsTable.getTable().addListener( SWT.Resize, event -> {
       Table table = (Table) event.widget;
-      table.getColumn( 1 ).setWidth( 316 );
+      table.getColumn( 1 ).setWidth( 330 );
     } );
 
     FormData fdData = new FormData();
     fdData.left = new FormAttachment( 0, 0 );
     fdData.top = new FormAttachment( controlAbove, 5 );
-    fdData.right = new FormAttachment( 0, 337 );
+    fdData.right = new FormAttachment( 0, 350 );
     fdData.bottom = new FormAttachment( controlBelow, -10 );
 
     // resize the columns to fit the data in them
