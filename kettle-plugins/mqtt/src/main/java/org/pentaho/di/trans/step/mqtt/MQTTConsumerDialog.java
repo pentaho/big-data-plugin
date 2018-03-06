@@ -69,7 +69,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   private ComboVar wQOS;
   private TableView fieldsTable;
 
-  private final Point startingDimensions = new Point( 527, 612 );
+  private final Point startingDimensions = new Point( 527, 676 );
 
   private MqttDialogSecurityLayout securityLayout;
   private MqttDialogOptionsLayout optionsLayout;
