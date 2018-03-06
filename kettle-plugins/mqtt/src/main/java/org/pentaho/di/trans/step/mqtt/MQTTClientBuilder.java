@@ -208,6 +208,11 @@ final class MQTTClientBuilder {
       step.getLogChannel().logDebug( "Using File Storage Level to " + storageLevelOption );
       persistence = new MqttDefaultFilePersistence( storageLevelOption );
     }
+
+    if ( StringUtil.isEmpty( clientId ) ) {
+      clientId = MqttAsyncClient.generateClientId();
+    }
+
     MqttClient client = clientFactory.getClient( broker, clientId, persistence );
 
     client.setCallback( callback );
