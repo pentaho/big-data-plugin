@@ -29,7 +29,6 @@ import com.amazonaws.services.pricing.model.GetProductsRequest;
 import com.amazonaws.services.pricing.model.GetProductsResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.pentaho.amazon.InstanceType;
-import org.pentaho.amazon.client.AbstractAmazonClient;
 import org.pentaho.amazon.client.api.PricingClient;
 
 import java.io.IOException;
@@ -49,9 +48,9 @@ public class PricingClientImpl implements PricingClient {
 
   private static final String FIELD_TYPE = "TERM_MATCH";
 
-  public PricingClientImpl( AWSPricing pricing ) {
+  public PricingClientImpl( AWSPricing pricing, String humanReadableRegion ) {
     this.pricing = pricing;
-    humanReadableRegion = AbstractAmazonClient.getHumanReadableRegion();
+    this.humanReadableRegion = humanReadableRegion;
   }
 
   private static Filter createProductFilter( String fieldType, String fieldName, String fieldValue ) {

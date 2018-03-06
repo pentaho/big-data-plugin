@@ -554,7 +554,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected AbstractModelList<String> populateRegions() {
     regions.clear();
     regions =
-      Arrays.stream( AmazonRegions.values() ).map( v -> v.getHumanReadableRegion() )
+      Arrays.stream( AmazonRegion.values() ).map( v -> v.getHumanReadableRegion() )
         .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
     return regions;
   }

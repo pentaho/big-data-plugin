@@ -47,7 +47,7 @@ public class PricingClientImplTest {
   @Before
   public void setUp() {
     AWSPricing awsPricing = PowerMockito.mock( AWSPricing.class );
-    pricingClient = PowerMockito.spy( new PricingClientImpl( awsPricing ) );
+    pricingClient = PowerMockito.spy( new PricingClientImpl( awsPricing, "US East (N. Virginia)" ) );
   }
 
   @Test
