@@ -29,8 +29,10 @@ import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
@@ -45,6 +47,10 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.LOCAL_ENVIRONMENT;
+import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.S3_ENVIRONMENT;
+import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.STATIC_ENVIRONMENT;
 
 @Step( id = "HadoopFileInputPlugin", image = "HDI.svg", name = "HadoopFileInputPlugin.Name",
     description = "HadoopFileInputPlugin.Description",
@@ -121,7 +127,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, new Variables() );
     }
-    if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) ) {
+    if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) && mappings != null ) {
       mappings.put( url, ncName );
     }
     return url;
@@ -158,5 +164,34 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
 
   public NamedClusterService getNamedClusterService() {
     return namedClusterService;
+  }
+
+  @Override
+  public FileInputList getFileInputList( VariableSpace space ) {
+    inputFiles.normalizeAllocation( inputFiles.fileName.length );
+    for ( int i = 0; i < environment.length; i++ ) {
+      if ( inputFiles.fileName[i].contains( "://" ) ) {
+        continue;
+      }
+      String sourceNc = environment[i];
+      sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? HadoopFileInputMeta.LOCAL_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? HadoopFileInputMeta.STATIC_SOURCE_FILE + i : sourceNc;
+      sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? HadoopFileInputMeta.S3_SOURCE_FILE + i : sourceNc;
+      String source = inputFiles.fileName[i];
+      if ( !Const.isEmpty( source ) ) {
+        inputFiles.fileName[i] = loadUrl( source, sourceNc, getParentStepMeta().getParentTransMeta().getMetaStore(), null );
+      } else {
+        inputFiles.fileName[i] = "";
+      }
+    }
+    return createFileList( space );
+  }
+
+  /**
+   * Created for test purposes
+   */
+  FileInputList createFileList( VariableSpace space ) {
+    return FileInputList.createFileList( space, inputFiles.fileName, inputFiles.fileMask, inputFiles.excludeFileMask,
+      inputFiles.fileRequired, inputFiles.includeSubFolderBoolean() );
   }
 }
