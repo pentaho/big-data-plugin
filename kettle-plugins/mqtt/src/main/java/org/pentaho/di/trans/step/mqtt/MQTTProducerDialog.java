@@ -75,7 +75,7 @@ import static org.pentaho.di.trans.step.mqtt.MQTTConstants.STORAGE_LEVEL;
 @StepDialog ( id = "MQTTProducer", image = "MQTTProducer.svg" )
 public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInterface {
   private static final int SHELL_MIN_WIDTH = 527;
-  private static final int SHELL_MIN_HEIGHT = 540;
+  private static final int SHELL_MIN_HEIGHT = 650;
   private static final int INPUT_WIDTH = 350;
 
   private static Class<?> PKG = MQTTProducerDialog.class;
