@@ -81,10 +81,20 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
   @Injection( name = "SCHEMA_NAMESPACE" ) protected String namespace;
   @Injection( name = "SCHEMA_RECORD_NAME" ) protected String recordName;
   @Injection( name = "SCHEMA_DOC_VALUE" ) protected String docValue;
+  @Injection( name = "OVERRIDE_OUTPUT" )
+  protected boolean overrideOutput;
 
   @Override
   public void setDefault() {
     // TODO Auto-generated method stub
+  }
+
+  public boolean isOverrideOutput() {
+    return overrideOutput;
+  }
+
+  public void setOverrideOutput( boolean overrideOutput ) {
+    this.overrideOutput = overrideOutput;
   }
 
   public String getFilename() {
@@ -135,6 +145,14 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
       filename = XMLHandler.getTagValue( stepnode, "filename" );
+      // Since we had override set to true in the previous release by default, we need to ensure that if the flag is
+      // missing in the transformation xml, we set the override flag to true
+      String override = XMLHandler.getTagValue( stepnode, FieldNames.OVERRIDE_OUTPUT );
+      if ( override != null && override.length() > 0 ) {
+        overrideOutput = "Y".equalsIgnoreCase( XMLHandler.getTagValue( stepnode, FieldNames.OVERRIDE_OUTPUT ) );
+      } else {
+        overrideOutput = true;
+      }
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
       List<AvroOutputField> avroOutputFields = new ArrayList<>();
@@ -172,6 +190,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     final String INDENT = "    ";
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", filename ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.OVERRIDE_OUTPUT, overrideOutput ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < outputFields.size(); i++ ) {
@@ -208,7 +227,14 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       throws KettleException {
     try {
       filename = rep.getStepAttributeString( id_step, "filename" );
-
+      // Since we had override set to true in the previous release by default, we need to ensure that if the flag is
+      // missing in the transformation xml, we set the override flag to true
+      String override = rep.getStepAttributeString( id_step, FieldNames.OVERRIDE_OUTPUT );
+      if ( override != null && override.length() > 0 ) {
+        overrideOutput = rep.getStepAttributeBoolean( id_step, FieldNames.OVERRIDE_OUTPUT );
+      } else {
+        overrideOutput = true;
+      }
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
 
@@ -245,6 +271,8 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       throws KettleException {
     try {
       rep.saveStepAttribute( id_transformation, id_step, "filename", filename );
+      rep.saveStepAttribute( id_transformation, id_step, FieldNames.OVERRIDE_OUTPUT, overrideOutput );
+
       for ( int i = 0; i < outputFields.size(); i++ ) {
         AvroOutputField field = outputFields.get( i );
 
@@ -454,6 +482,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
   protected static class FieldNames {
     public static final String COMPRESSION = "compression";
     public static final String SCHEMA_FILENAME = "schemaFilename";
+    public static final String OVERRIDE_OUTPUT = "overrideOutput";
     public static final String RECORD_NAME = "recordName";
     public static final String DOC_VALUE = "docValue";
     public static final String NAMESPACE = "namespace";
