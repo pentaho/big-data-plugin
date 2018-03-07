@@ -63,16 +63,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
       data = (AvroOutputData) sdi;
 
       if ( data.output == null ) {
-        try {
-          init();
-        } catch ( Throwable e ) {
-          String error = e.getMessage().replaceAll( "TRANS_NAME", getTrans().getName() );
-          error = error.replaceAll( "STEP_NAME", getStepname() );
-          getLogChannel().logError( error );
-          setErrors( 1 );
-          setOutputDone();
-          return false;
-        }
+        init();
       }
 
       Object[] currentRow = getRow();
@@ -119,7 +110,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
     }
     TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
     data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
-    data.output.setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ) );
+    data.output.setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ), meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {

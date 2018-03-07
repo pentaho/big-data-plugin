@@ -106,6 +106,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   protected TextVar wNameSpace;
   protected TextVar wSchemaPath;
   protected Button wbSchemaBrowse;
+  private Button wOverwriteExistingFile;
   private Button wDateInFileName;
   private Button wTimeInFileName;
   private Button wSpecifyDateTimeFormat;
@@ -122,6 +123,16 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
 
   // TODO name
   protected Control createAfterFile( Composite afterFile ) {
+    wOverwriteExistingFile = new Button( afterFile, SWT.CHECK );
+    wOverwriteExistingFile.setText( BaseMessages.getString( PKG, "AvroOutputDialog.OverwriteFile.Label" ) );
+    props.setLook( wOverwriteExistingFile );
+    new FD( wOverwriteExistingFile ).left( 0, 0 ).top( afterFile, FIELDS_SEP ).apply();
+    wOverwriteExistingFile.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        meta.setChanged();
+      }
+    } );
+
     CTabFolder wTabFolder = new CTabFolder( afterFile, SWT.BORDER );
     props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
     wTabFolder.setSimple( false );
@@ -130,7 +141,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     addSchemaTab( wTabFolder );
     addOptionsTab( wTabFolder );
 
-    new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    new FD( wTabFolder ).left( 0, 0 ).top( wOverwriteExistingFile, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
     return wTabFolder;
   }
@@ -494,6 +505,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
    * Read the data from the meta object and show it in this dialog.
    */
   protected void getData( AvroOutputMeta meta ) {
+    wOverwriteExistingFile.setSelection( meta.isOverrideOutput() );
+
     if ( meta.getFilename() != null ) {
       wPath.setText( meta.getFilename() );
     }
@@ -535,6 +548,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   // ui -> meta
   @Override
   protected void getInfo( AvroOutputMeta meta, boolean preview ) {
+    meta.setOverrideOutput( wOverwriteExistingFile.getSelection() );
     meta.setFilename( wPath.getText() );
     meta.setDocValue( wDocValue.getText() );
     meta.setNamespace( wNameSpace.getText() );
