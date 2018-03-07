@@ -36,6 +36,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.i18n.BaseMessages;
@@ -49,6 +50,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -68,6 +71,7 @@ public class MQTTClientBuilderTest {
   @Mock StepMeta meta;
 
   @Captor ArgumentCaptor<MqttConnectOptions> connectOptsCapture;
+  @Captor ArgumentCaptor<String> clientIdCapture;
 
   VariableSpace space = new Variables();
   MQTTClientBuilder builder = MQTTClientBuilder.builder();
@@ -78,7 +82,8 @@ public class MQTTClientBuilderTest {
       .withBroker( "127.0.0.1:101010" )
       .withStep( step );
     builder.clientFactory = factory;
-    when( factory.getClient( any(), any(), any() ) )
+
+    when( factory.getClient( any(), clientIdCapture.capture(), any() ) )
       .thenReturn( client );
     when( step.getParentVariableSpace() ).thenReturn( space );
     when( step.getLogChannel() ).thenReturn( logger );
@@ -187,6 +192,26 @@ public class MQTTClientBuilderTest {
     }
     verify( logger )
       .logError( BaseMessages.getString( MQTTConsumer.class, "MQTTClientBuilder.Error.QOS", "Step Name", "72" ) );
+  }
+
+  @Test
+  public void testEmptyClientId() throws MqttException {
+    builder
+      .withClientId( "asdf" )
+      .buildAndConnect();
+    assertEquals( "asdf", clientIdCapture.getValue() );
+
+    builder
+      .withClientId( null )
+      .buildAndConnect();
+    assertFalse( StringUtil.isEmpty( clientIdCapture.getValue() ) );
+    assertNotEquals( "asdf", clientIdCapture.getValue() );
+
+    builder
+      .withClientId( "" )
+      .buildAndConnect();
+    assertFalse( StringUtil.isEmpty( clientIdCapture.getValue() ) );
+    assertNotEquals( "asdf", clientIdCapture.getValue() );
   }
 
 }
