@@ -25,7 +25,7 @@ package org.pentaho.amazon.client.impl;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduce;
 import com.amazonaws.services.elasticmapreduce.AmazonElasticMapReduceClientBuilder;
-import org.pentaho.amazon.client.AbstractAmazonClient;
+import org.pentaho.amazon.client.AmazonClientCredentials;
 import org.pentaho.amazon.client.AbstractClientFactory;
 import org.pentaho.amazon.client.api.EmrClient;
 
@@ -33,13 +33,14 @@ import org.pentaho.amazon.client.api.EmrClient;
  * Created by Aliaksandr_Zhuk on 2/5/2018.
  */
 public class EmrClientFactory extends AbstractClientFactory<EmrClient> {
+
   @Override
   public EmrClient createClient( String accessKey, String secretKey, String region ) {
-    AbstractAmazonClient.initClientParameters( accessKey, secretKey, region );
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
 
     AmazonElasticMapReduce awsEmrClient =
-      AmazonElasticMapReduceClientBuilder.standard().withRegion( AbstractAmazonClient.getRegion() )
-        .withCredentials( new AWSStaticCredentialsProvider( AbstractAmazonClient.getAWSCredentials() ) )
+      AmazonElasticMapReduceClientBuilder.standard().withRegion( clientCredentials.getRegion() )
+        .withCredentials( new AWSStaticCredentialsProvider( clientCredentials.getAWSCredentials() ) )
         .build();
 
     EmrClient emrClient = new EmrClientImpl( awsEmrClient );

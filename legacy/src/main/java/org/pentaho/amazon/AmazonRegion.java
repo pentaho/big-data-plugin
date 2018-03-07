@@ -22,15 +22,11 @@
 
 package org.pentaho.amazon;
 
-import com.amazonaws.regions.RegionUtils;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by Aliaksandr_Zhuk on 1/11/2018.
  */
-public enum AmazonRegions {
+public enum AmazonRegion {
 
   US_EAST_1( "us-east-1", "N. Virginia", "US East" ),
   US_EAST_2( "us-east-2", "Ohio", "US East" ),
@@ -49,41 +45,29 @@ public enum AmazonRegions {
   SA_SaoPaulo( "sa-east-1", "Sao Paulo", "South America" ),
   US_GovCloud( "us-gov-west-1", "US", "AWS GovCloud" );
 
-  private final List<String> regionIds;
+  private String regionId;
+  private String city;
+  private String region;
 
-  AmazonRegions( String... regionIds ) {
-    this.regionIds = regionIds != null ? Arrays.asList( regionIds ) : null;
-  }
+  private static final AmazonRegion DEFAULT_REGION = AmazonRegion.US_EAST_1;
 
-
-  public List<String> getRegionIds() {
-    return regionIds;
+  AmazonRegion( String regionId, String city, String region ) {
+    this.regionId = regionId;
+    this.city = city;
+    this.region = region;
   }
 
   public String getHumanReadableRegion() {
-    return getHumanReadableRegion0();
+    StringBuilder sb = new StringBuilder( this.region ).append( " (" ).append( this.city ).append( ")" );
+    return sb.toString();
   }
 
-  private String getHumanReadableRegion0() {
-    return this.regionIds == null || regionIds.size() == 0
-      ? null : this.regionIds.get( 2 ) + " (" + this.regionIds.get( 1 ) + ")";
-  }
-
-  public String getFirstRegionId() {
-    return getFirstRegionId0();
-  }
-
-  private String getFirstRegionId0() {
-    return this.regionIds == null || regionIds.size() == 0
-      ? null : this.regionIds.get( 0 );
-  }
-
-  public com.amazonaws.regions.Region toAWSRegion() {
-    String s3regionId = getFirstRegionId();
-    if ( s3regionId == null ) { // US Standard
-      return RegionUtils.getRegion( "us-east-1" );
-    } else {
-      return RegionUtils.getRegion( s3regionId );
+  public static String extractRegionFromDescription( String humanReadableRegion ) {
+    for ( AmazonRegion region : AmazonRegion.values() ) {
+      if ( region.getHumanReadableRegion().equals( humanReadableRegion ) ) {
+        return region.regionId;
+      }
     }
+    return DEFAULT_REGION.regionId;
   }
 }

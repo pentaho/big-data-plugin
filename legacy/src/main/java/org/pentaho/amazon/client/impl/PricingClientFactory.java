@@ -26,7 +26,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.pricing.AWSPricing;
 import com.amazonaws.services.pricing.AWSPricingAsyncClientBuilder;
 import com.amazonaws.services.s3.model.Region;
-import org.pentaho.amazon.client.AbstractAmazonClient;
+import org.pentaho.amazon.client.AmazonClientCredentials;
 import org.pentaho.amazon.client.AbstractClientFactory;
 import org.pentaho.amazon.client.api.PricingClient;
 
@@ -35,14 +35,15 @@ import org.pentaho.amazon.client.api.PricingClient;
  */
 public class PricingClientFactory extends AbstractClientFactory<PricingClient> {
 
+  @Override
   public PricingClient createClient( String accessKey, String secretKey, String region ) {
-    AbstractAmazonClient.initClientParameters( accessKey, secretKey, region );
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
 
     AWSPricing awsPricingClient =
       AWSPricingAsyncClientBuilder.standard().withRegion( Region.US_Standard.toAWSRegion().getName() )
-        .withCredentials( new AWSStaticCredentialsProvider( AbstractAmazonClient.getAWSCredentials() ) ).build();
+        .withCredentials( new AWSStaticCredentialsProvider( clientCredentials.getAWSCredentials() ) ).build();
 
-    PricingClient pricingClient = new PricingClientImpl( awsPricingClient );
+    PricingClient pricingClient = new PricingClientImpl( awsPricingClient, region );
 
     return pricingClient;
   }

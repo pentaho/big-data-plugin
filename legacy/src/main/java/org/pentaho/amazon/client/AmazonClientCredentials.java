@@ -22,28 +22,32 @@
 
 package org.pentaho.amazon.client;
 
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.RegionUtils;
+import org.pentaho.amazon.AmazonRegion;
+
 /**
- * Created by Aliaksandr_Zhuk on 2/8/2018.
+ * Created by Aliaksandr_Zhuk on 2/5/2018.
  */
+public class AmazonClientCredentials {
 
-import org.junit.Assert;
-import org.junit.Test;
+  private BasicAWSCredentials credentials;
+  private String region;
 
-public class AbstractAmazonClientTest {
-
-  @Test public void testInitClientParameters_getValidRegion() {
-
-    String expectedRegion = "us-east-1";
-    String expectedHumanReadableRegion = "US East ( N. Virginia)";
-
-    AbstractAmazonClient.initClientParameters( "accessKey", "secretKey", "US East ( N. Virginia)" );
-
-    Assert.assertEquals( expectedRegion, AbstractAmazonClient.getRegion() );
-    Assert.assertEquals( expectedHumanReadableRegion, AbstractAmazonClient.getHumanReadableRegion() );
+  public AmazonClientCredentials( String accessKey, String secretKey, String region ) {
+    credentials = new BasicAWSCredentials( accessKey, secretKey );
+    this.region = extractRegion( region );
   }
 
-  @Test( expected = NullPointerException.class )
-  public void testInitClientParameters_getValidRegion1() {
-    AbstractAmazonClient.initClientParameters( "accessKey", "secretKey", null );
+  public BasicAWSCredentials getAWSCredentials() {
+    return credentials;
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  private String extractRegion( String region ) {
+    return RegionUtils.getRegion( AmazonRegion.extractRegionFromDescription( region ) ).getName();
   }
 }

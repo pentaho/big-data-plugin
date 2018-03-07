@@ -24,7 +24,7 @@ package org.pentaho.amazon.client.impl;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import org.pentaho.amazon.client.AbstractAmazonClient;
+import org.pentaho.amazon.client.AmazonClientCredentials;
 import org.pentaho.amazon.client.AbstractClientFactory;
 import org.pentaho.amazon.client.api.AimClient;
 
@@ -32,13 +32,14 @@ import org.pentaho.amazon.client.api.AimClient;
  * Created by Aliaksandr_Zhuk on 2/5/2018.
  */
 public class AimClientFactory extends AbstractClientFactory<AimClient> {
+
   @Override
   public AimClient createClient( String accessKey, String secretKey, String region ) {
-    AbstractAmazonClient.initClientParameters( accessKey, secretKey, region );
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
 
     AmazonIdentityManagement awsAimClient =
-      AmazonIdentityManagementClientBuilder.standard().withRegion( AbstractAmazonClient.getRegion() )
-        .withCredentials( new AWSStaticCredentialsProvider( AbstractAmazonClient.getAWSCredentials() ) ).build();
+      AmazonIdentityManagementClientBuilder.standard().withRegion( clientCredentials.getRegion() )
+        .withCredentials( new AWSStaticCredentialsProvider( clientCredentials.getAWSCredentials() ) ).build();
 
     AimClient aimClient = new AimClientImpl( awsAimClient );
     return aimClient;

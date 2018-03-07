@@ -22,7 +22,7 @@
 
 package org.pentaho.amazon;
 
-import com.amazonaws.regions.Region;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -30,34 +30,35 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
-public class AmazonRegionsTest {
-
-  @Test
-  public void testGetFirstRegionId_getValidId() {
-
-    String expectedRegionId = "us-east-1";
-
-    String regionId = AmazonRegions.US_EAST_1.getFirstRegionId();
-    assertEquals( expectedRegionId, regionId );
-  }
+public class AmazonRegionTest {
 
   @Test
   public void testGetHumanReadableRegion_getValidReadableRegion() {
 
     String expectedReadableRegion = "US East (N. Virginia)";
 
-    String readableRegion = AmazonRegions.US_EAST_1.getHumanReadableRegion();
+    String readableRegion = AmazonRegion.US_EAST_1.getHumanReadableRegion();
 
     assertEquals( expectedReadableRegion, readableRegion );
   }
 
   @Test
-  public void testToAWSRegion_getValidAwsRegion() {
+  public void testExtractRegionFromDescription_getValidRegion() {
 
-    String expectedAwsRegion = AmazonRegions.EU_Frankfurt.getFirstRegionId();
+    String expectedRegion = "us-east-1";
 
-    Region awsRegion = AmazonRegions.EU_Frankfurt.toAWSRegion();
+    String region = AmazonRegion.extractRegionFromDescription( "US East (N. Virginia)" );
 
-    assertEquals( expectedAwsRegion, awsRegion.getName() );
+    Assert.assertEquals( expectedRegion, region );
+  }
+
+  @Test
+  public void testExtractRegionFromDescription_getDefaultRegion() {
+
+    String expectedRegion = "us-east-1";
+
+    String region = AmazonRegion.extractRegionFromDescription( null );
+
+    Assert.assertEquals( expectedRegion, region );
   }
 }
