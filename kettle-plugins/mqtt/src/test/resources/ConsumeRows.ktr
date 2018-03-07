@@ -2,21 +2,21 @@
 <transformation>
   <info>
     <name>ConsumeRows</name>
-    <description />
-    <extended_description />
-    <trans_version />
+    <description/>
+    <extended_description/>
+    <trans_version/>
     <trans_type>Normal</trans_type>
     <directory>/</directory>
     <parameters>
     </parameters>
     <log>
       <trans-log-table>
-        <connection />
-        <schema />
-        <table />
-        <size_limit_lines />
-        <interval />
-        <timeout_days />
+        <connection/>
+        <schema/>
+        <table/>
+        <size_limit_lines/>
+        <interval/>
+        <timeout_days/>
         <field>
           <id>ID_BATCH</id>
           <enabled>Y</enabled>
@@ -41,37 +41,37 @@
           <id>LINES_READ</id>
           <enabled>Y</enabled>
           <name>LINES_READ</name>
-          <subject />
+          <subject/>
         </field>
         <field>
           <id>LINES_WRITTEN</id>
           <enabled>Y</enabled>
           <name>LINES_WRITTEN</name>
-          <subject />
+          <subject/>
         </field>
         <field>
           <id>LINES_UPDATED</id>
           <enabled>Y</enabled>
           <name>LINES_UPDATED</name>
-          <subject />
+          <subject/>
         </field>
         <field>
           <id>LINES_INPUT</id>
           <enabled>Y</enabled>
           <name>LINES_INPUT</name>
-          <subject />
+          <subject/>
         </field>
         <field>
           <id>LINES_OUTPUT</id>
           <enabled>Y</enabled>
           <name>LINES_OUTPUT</name>
-          <subject />
+          <subject/>
         </field>
         <field>
           <id>LINES_REJECTED</id>
           <enabled>Y</enabled>
           <name>LINES_REJECTED</name>
-          <subject />
+          <subject/>
         </field>
         <field>
           <id>ERRORS</id>
@@ -125,11 +125,11 @@
         </field>
       </trans-log-table>
       <perf-log-table>
-        <connection />
-        <schema />
-        <table />
-        <interval />
-        <timeout_days />
+        <connection/>
+        <schema/>
+        <table/>
+        <interval/>
+        <timeout_days/>
         <field>
           <id>ID_BATCH</id>
           <enabled>Y</enabled>
@@ -207,10 +207,10 @@
         </field>
       </perf-log-table>
       <channel-log-table>
-        <connection />
-        <schema />
-        <table />
-        <timeout_days />
+        <connection/>
+        <schema/>
+        <table/>
+        <timeout_days/>
         <field>
           <id>ID_BATCH</id>
           <enabled>Y</enabled>
@@ -273,10 +273,10 @@
         </field>
       </channel-log-table>
       <step-log-table>
-        <connection />
-        <schema />
-        <table />
-        <timeout_days />
+        <connection/>
+        <schema/>
+        <table/>
+        <timeout_days/>
         <field>
           <id>ID_BATCH</id>
           <enabled>Y</enabled>
@@ -349,10 +349,10 @@
         </field>
       </step-log-table>
       <metrics-log-table>
-        <connection />
-        <schema />
-        <table />
-        <timeout_days />
+        <connection/>
+        <schema/>
+        <table/>
+        <timeout_days/>
         <field>
           <id>ID_BATCH</id>
           <enabled>Y</enabled>
@@ -401,9 +401,9 @@
       </metrics-log-table>
     </log>
     <maxdate>
-      <connection />
-      <table />
-      <field />
+      <connection/>
+      <table/>
+      <field/>
       <offset>0.0</offset>
       <maxdiff>0.0</maxdiff>
     </maxdate>
@@ -414,7 +414,7 @@
     <feedback_shown>Y</feedback_shown>
     <feedback_size>50000</feedback_size>
     <using_thread_priorities>Y</using_thread_priorities>
-    <shared_objects_file />
+    <shared_objects_file/>
     <capture_step_performance>N</capture_step_performance>
     <step_performance_capturing_delay>1000</step_performance_capturing_delay>
     <step_performance_capturing_size_limit>100</step_performance_capturing_size_limit>
@@ -430,7 +430,7 @@
     <created_date>2018/02/06 09:29:52.668</created_date>
     <modified_user>-</modified_user>
     <modified_date>2018/02/06 09:29:52.668</modified_date>
-    <key_for_session_key />
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
     <is_key_private>N</is_key_private>
   </info>
   <notepads>
@@ -440,25 +440,108 @@
   <step>
     <name>MQTT Consumer</name>
     <type>MQTTConsumer</type>
-    <description />
+    <description/>
     <distribute>Y</distribute>
-    <custom_distribution />
+    <custom_distribution/>
     <copies>1</copies>
     <partitioning>
       <method>none</method>
-      <schema_name />
+      <schema_name/>
     </partitioning>
-    <TOPICS>${topic}</TOPICS>
-    <MSG_OUTPUT_NAME>Message</MSG_OUTPUT_NAME>
-    <NUM_MESSAGES>1000</NUM_MESSAGES>
-    <QOS>${qos}</QOS>
-    <PASSWORD>Encrypted 2be98afc86aa7f2e4cb79ce10ca97bcce</PASSWORD>
-    <USERNAME>${username}</USERNAME>
-    <MQTT_SERVER>${mqttServer}</MQTT_SERVER>
-    <TOPIC_OUTPUT_NAME>Topic</TOPIC_OUTPUT_NAME>
-    <DURATION>1000</DURATION>
-    <TRANSFORMATION_PATH>${Internal.Entry.Current.Directory}/ConsumeRowsSubtrans.ktr</TRANSFORMATION_PATH>
-    <cluster_schema />
+    <step-props secure="">
+      <group name="">
+        <property group="" name="MQTT_SERVER">
+          <value xsi:type="xs:string">${mqttServer}</value>
+        </property>
+        <property group="" name="TOPICS">
+          <value xsi:type="xs:string">${topics}</value>
+        </property>
+        <property group="" name="MSG_OUTPUT_NAME">
+          <value xsi:type="xs:string">Message</value>
+        </property>
+        <property group="" name="TOPIC_OUTPUT_NAME">
+          <value xsi:type="xs:string">Topic</value>
+        </property>
+        <property group="" name="QOS">
+          <value xsi:type="xs:string">${qos}</value>
+        </property>
+        <property group="" name="USERNAME">
+          <value xsi:type="xs:string">${username}</value>
+        </property>
+        <property group="" name="PASSWORD">
+          <value xsi:type="xs:string">test</value>
+        </property>
+        <property group="" name="KEEP_ALIVE_INTERVAL">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="MAX_INFLIGHT">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="CONNECTION_TIMEOUT">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="CLEAN_SESSION">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="STORAGE_LEVEL">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="SERVER_URIS">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="MQTT_VERSION">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="AUTOMATIC_RECONNECT">
+          <value xsi:type="xs:string"/>
+        </property>
+        <property group="" name="TRANSFORMATION_PATH">
+          <value xsi:type="xs:string">${Internal.Entry.Current.Directory}/ConsumeRowsSubtrans.ktr</value>
+        </property>
+        <property group="" name="NUM_MESSAGES">
+          <value xsi:type="xs:string">1000</value>
+        </property>
+        <property group="" name="DURATION">
+          <value xsi:type="xs:string">1000</value>
+        </property>
+      </group>
+      <group name="SSL">
+        <property group="SSL" name="USE_SSL">
+          <value xsi:type="xs:boolean">false</value>
+        </property>
+        <property group="SSL" name="SSL_KEYS">
+          <value xsi:type="xs:string">ssl.contextProvider</value>
+          <value xsi:type="xs:string">ssl.enabledCipherSuites</value>
+          <value xsi:type="xs:string">ssl.keyManager</value>
+          <value xsi:type="xs:string">ssl.keyStore</value>
+          <value xsi:type="xs:string">ssl.keyStorePassword</value>
+          <value xsi:type="xs:string">ssl.keyStoreProvider</value>
+          <value xsi:type="xs:string">ssl.keyStoreType</value>
+          <value xsi:type="xs:string">ssl.protocol</value>
+          <value xsi:type="xs:string">ssl.trustManager</value>
+          <value xsi:type="xs:string">ssl.trustStore</value>
+          <value xsi:type="xs:string">ssl.trustStorePassword</value>
+          <value xsi:type="xs:string">ssl.trustStoreProvider</value>
+          <value xsi:type="xs:string">ssl.trustStoreType</value>
+        </property>
+        <property group="SSL" name="SSL_VALUES">
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string">JKS</value>
+          <value xsi:type="xs:string">TLS</value>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+          <value xsi:type="xs:string"/>
+        </property>
+      </group>
+    </step-props>
+    <cluster_schema/>
     <remotesteps>
       <input>
       </input>
