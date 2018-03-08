@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatOutputField;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.IAvroOutputField;
 
@@ -52,7 +53,7 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
     }
   }
 
-  @Injection( name = "FIELD_TYPE", group = "FIELDS" )
+  @Injection( name = "FIELD_AVRO_TYPE", group = "FIELDS" )
   public void setFormatType( String typeName ) {
     try  {
       setFormatType( Integer.parseInt( typeName ) );
@@ -60,10 +61,23 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
       for ( AvroSpec.DataType avroType : AvroSpec.DataType.values() ) {
         if ( avroType.getName().equals( typeName ) ) {
           this.formatType = avroType.getId();
+          break;
         }
       }
     }
   }
+
+  @Injection( name = "FIELD_TYPE", group = "FIELDS" )
+  @Deprecated
+  public void setPentahoType( String typeName ) {
+    for ( int i = 0; i < ValueMetaInterface.typeCodes.length; i++ ) {
+      if ( typeName.equals( ValueMetaInterface.typeCodes[ i ] ) ) {
+        setFormatType( AvroOutputMetaBase.convertToAvroType( i ) );
+        break;
+      }
+    }
+  }
+
 
   public boolean isDecimalType() {
     return getAvroType().getName().equals( AvroSpec.DataType.DECIMAL.getName() );
