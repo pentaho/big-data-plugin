@@ -240,7 +240,7 @@ public class MQTTConsumerDialog extends BaseStreamingDialog implements StepDialo
   }
 
   private void buildFieldsTab() {
-    CTabItem wFieldsTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wFieldsTab = new CTabItem( wTabFolder, SWT.NONE, 3 );
     wFieldsTab.setText( BaseMessages.getString( PKG, "MQTTConsumerDialog.FieldsTab" ) );
 
     Composite wFieldsComp = new Composite( wTabFolder, SWT.NONE );

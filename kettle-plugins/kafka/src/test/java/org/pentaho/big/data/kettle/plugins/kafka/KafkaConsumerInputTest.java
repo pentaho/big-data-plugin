@@ -344,6 +344,7 @@ public class KafkaConsumerInputTest {
     kafkaMeta.setTransformationPath( getClass().getResource( "/consumerSub.ktr" ).getPath() );
     kafkaMeta.setBatchSize( "2" );
     kafkaMeta.setKafkaFactory( factory );
+    kafkaMeta.setSubStep( "Write to log" );
     int messageCount = 4;
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
@@ -366,6 +367,7 @@ public class KafkaConsumerInputTest {
     verifyRow( "key_1", "value_1", "1", "2", times( 1 ) );
     verifyRow( "key_2", "value_2", "2", "1", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "2", times( 1 ) );
+    assertEquals( 4, trans.getSteps().get( 0 ).step.getLinesWritten() );
   }
 
   @Test

@@ -45,8 +45,6 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.StringObjectId;
-import org.pentaho.di.resource.ResourceEntry;
-import org.pentaho.di.resource.ResourceReference;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
@@ -55,13 +53,13 @@ import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
@@ -75,6 +73,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ADVANCED_CONFIG;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_DURATION;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_SIZE;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CLUSTER_NAME;
@@ -85,6 +84,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.DIRECT_BOOTSTRAP_SERVERS;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TOPIC;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TRANSFORMATION_PATH;
+import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.SUB_STEP;
 
 @RunWith( MockitoJUnitRunner.class )
 public class KafkaConsumerInputMetaTest {
@@ -127,6 +127,7 @@ public class KafkaConsumerInputMetaTest {
         + "    <topic>one</topic>\n"
         + "    <consumerGroup>two</consumerGroup>\n"
         + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>\n"
+        + "    <SUB_STEP>Filter</SUB_STEP>\n"
         + "    <batchSize>12345</batchSize>\n"
         + "    <batchDuration>999</batchDuration>\n"
         + "    <OutputField kafkaName=\"key\" type=\"String\">three</OutputField>\n"
@@ -158,6 +159,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "one", meta.getTopics().get( 0 ) );
     assertEquals( "two", meta.getConsumerGroup() );
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getTransformationPath() );
+    assertEquals( "Filter", meta.getSubStep() );
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getFileName() );
     assertEquals( "12345", meta.getBatchSize() );
     assertEquals( "999", meta.getBatchDuration() );
@@ -196,12 +198,12 @@ public class KafkaConsumerInputMetaTest {
   }
 
   @Test
-  public void testXmlHasAllFields() throws Exception {
+  public void testXmlHasAllFields() {
     String clusterName = "some_cluster";
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     meta.setClusterName( clusterName );
 
-    ArrayList<String> topicList = new ArrayList<String>();
+    ArrayList<String> topicList = new ArrayList<>();
     topicList.add( "temperature" );
     meta.setTopics( topicList );
 
@@ -239,6 +241,7 @@ public class KafkaConsumerInputMetaTest {
         + "    <topic>temperature</topic>" + Const.CR
         + "    <consumerGroup>alert</consumerGroup>" + Const.CR
         + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>" + Const.CR
+        + "    <SUB_STEP/>" + Const.CR
         + "    <batchSize>54321</batchSize>" + Const.CR
         + "    <batchDuration>987</batchDuration>" + Const.CR
         + "    <connectionType>DIRECT</connectionType>" + Const.CR
@@ -267,6 +270,7 @@ public class KafkaConsumerInputMetaTest {
     when( rep.countNrStepAttributes( stepId, TOPIC ) ).thenReturn( 1 );
     when( rep.getStepAttributeString( stepId, CONSUMER_GROUP ) ).thenReturn( "hooligans" );
     when( rep.getStepAttributeString( stepId, TRANSFORMATION_PATH ) ).thenReturn( "/home/pentaho/atrans.ktr" );
+    when( rep.getStepAttributeString( stepId, SUB_STEP ) ).thenReturn( "Group By" );
     when( rep.getStepAttributeString( stepId, BATCH_SIZE ) ).thenReturn( "999" );
     when( rep.getStepAttributeString( stepId, BATCH_DURATION ) ).thenReturn( "111" );
     when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "CLUSTER" );
@@ -291,12 +295,12 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, "OutputField_timestamp" ) ).thenReturn( String.valueOf( now.getTime() ) );
     when( rep.getStepAttributeString( stepId, "OutputField_timestamp_type" ) ).thenReturn( "Integer" );
 
-    when( rep.getStepAttributeInteger( stepId, meta.ADVANCED_CONFIG + "_COUNT" ) ).thenReturn( 2L );
-    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config1" );
-    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_VALUE" ) )
+    when( rep.getStepAttributeInteger( stepId, ADVANCED_CONFIG + "_COUNT" ) ).thenReturn( 2L );
+    when( rep.getStepAttributeString( stepId, 0, ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config1" );
+    when( rep.getStepAttributeString( stepId, 0, ADVANCED_CONFIG + "_VALUE" ) )
       .thenReturn( "advancedPropertyValue1" );
-    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config2" );
-    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_VALUE" ) )
+    when( rep.getStepAttributeString( stepId, 1, ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config2" );
+    when( rep.getStepAttributeString( stepId, 1, ADVANCED_CONFIG + "_VALUE" ) )
       .thenReturn( "advancedPropertyValue2" );
 
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
@@ -304,6 +308,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "readings", meta.getTopics().get( 0 ) );
     assertEquals( "hooligans", meta.getConsumerGroup() );
     assertEquals( "/home/pentaho/atrans.ktr", meta.getTransformationPath() );
+    assertEquals( "Group By", meta.getSubStep() );
     assertEquals( "/home/pentaho/atrans.ktr", meta.getFileName() );
     assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
@@ -350,6 +355,7 @@ public class KafkaConsumerInputMetaTest {
     meta.setTopics( topicList );
     meta.setConsumerGroup( "alert" );
     meta.setTransformationPath( "/home/Pentaho/btrans.ktr" );
+    meta.setSubStep( "Group By" );
     meta.setBatchSize( "33" );
     meta.setBatchDuration( "10000" );
     meta.setConnectionType( DIRECT );
@@ -368,6 +374,7 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, 0, TOPIC, "temperature" );
     verify( rep ).saveStepAttribute( transId, stepId, CONSUMER_GROUP, "alert" );
     verify( rep ).saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, "/home/Pentaho/btrans.ktr" );
+    verify( rep ).saveStepAttribute( transId, stepId, SUB_STEP, "Group By" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_SIZE, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, "10000" );
     verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
@@ -399,11 +406,11 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_timestamp_type",
       meta.getTimestampField().getOutputType().toString() );
 
-    verify( rep, times( 1 ) ).saveStepAttribute( transId, stepId, meta.ADVANCED_CONFIG + "_COUNT", 2 );
-    verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_NAME", "advanced.property1" );
-    verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue1" );
-    verify( rep ).saveStepAttribute( transId, stepId, 1, meta.ADVANCED_CONFIG + "_NAME", "advanced.property2" );
-    verify( rep ).saveStepAttribute( transId, stepId, 1, meta.ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue2" );
+    verify( rep, times( 1 ) ).saveStepAttribute( transId, stepId, ADVANCED_CONFIG + "_COUNT", 2 );
+    verify( rep ).saveStepAttribute( transId, stepId, 0, ADVANCED_CONFIG + "_NAME", "advanced.property1" );
+    verify( rep ).saveStepAttribute( transId, stepId, 0, ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue1" );
+    verify( rep ).saveStepAttribute( transId, stepId, 1, ADVANCED_CONFIG + "_NAME", "advanced.property2" );
+    verify( rep ).saveStepAttribute( transId, stepId, 1, ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue2" );
   }
 
   @Test
@@ -479,15 +486,15 @@ public class KafkaConsumerInputMetaTest {
   }
 
   @Test
-  public void testDirecIsDefault() throws Exception {
+  public void testDirecIsDefault() {
     assertEquals( DIRECT, new KafkaConsumerInputMeta().getConnectionType() );
   }
 
   @Test
   public void testMDI() {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
-    meta.injectedConfigNames = Arrays.asList( "injectedName" );
-    meta.injectedConfigValues = Arrays.asList( "injectedValue" );
+    meta.injectedConfigNames = singletonList( "injectedName" );
+    meta.injectedConfigValues = singletonList( "injectedValue" );
     meta.applyInjectedProperties();
     assertThat( meta.getConfig().size(), Matchers.is( 1 ) );
     assertThat( meta.getConfig(), hasEntry( "injectedName", "injectedValue" ) );
@@ -563,7 +570,7 @@ public class KafkaConsumerInputMetaTest {
   public void testReferencedObjectHasDescription() {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     assertEquals( 1, meta.getReferencedObjectDescriptions().length );
-    assertTrue( meta.getReferencedObjectDescriptions()[ 0 ] instanceof String );
+    assertTrue( meta.getReferencedObjectDescriptions()[ 0 ] != null );
   }
 
   @Test

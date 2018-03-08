@@ -38,9 +38,11 @@ import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -206,6 +208,10 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
     setConsumerGroup( XMLHandler.getTagValue( stepnode, CONSUMER_GROUP ) );
     setTransformationPath( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
+    String subStepTag = XMLHandler.getTagValue( stepnode, SUB_STEP );
+    if ( !StringUtil.isEmpty( subStepTag ) ) {
+      setSubStep( subStepTag );
+    }
     setFileName( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
     setBatchSize( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) );
     setBatchDuration( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) );
@@ -260,6 +266,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
     setConsumerGroup( rep.getStepAttributeString( id_step, CONSUMER_GROUP ) );
     setTransformationPath( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
+    setSubStep( rep.getStepAttributeString( id_step, SUB_STEP ) );
     setFileName( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
     setBatchSize( rep.getStepAttributeString( id_step, BATCH_SIZE ) );
     setBatchDuration( rep.getStepAttributeString( id_step, BATCH_DURATION ) );
@@ -294,6 +301,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
     rep.saveStepAttribute( transId, stepId, CONSUMER_GROUP, consumerGroup );
     rep.saveStepAttribute( transId, stepId, TRANSFORMATION_PATH, transformationPath );
+    rep.saveStepAttribute( transId, stepId, SUB_STEP, getSubStep() );
     rep.saveStepAttribute( transId, stepId, BATCH_SIZE, batchSize );
     rep.saveStepAttribute( transId, stepId, BATCH_DURATION, batchDuration );
     rep.saveStepAttribute( transId, stepId, CONNECTION_TYPE, connectionType.name() );
@@ -315,15 +323,15 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     }
   }
 
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
-
+  public RowMeta getRowMeta( String origin, VariableSpace space ) throws KettleStepException {
+    RowMeta rowMeta = new RowMeta();
     putFieldOnRowMeta( getKeyField(), rowMeta, origin, space );
     putFieldOnRowMeta( getMessageField(), rowMeta, origin, space );
     putFieldOnRowMeta( getTopicField(), rowMeta, origin, space );
     putFieldOnRowMeta( getPartitionField(), rowMeta, origin, space );
     putFieldOnRowMeta( getOffsetField(), rowMeta, origin, space );
     putFieldOnRowMeta( getTimestampField(), rowMeta, origin, space );
+    return rowMeta;
   }
 
   private void putFieldOnRowMeta( KafkaConsumerField field, RowMetaInterface rowMeta,
@@ -462,6 +470,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
 
     retval.append( "    " ).append( XMLHandler.addTagValue( CONSUMER_GROUP, consumerGroup ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( TRANSFORMATION_PATH, transformationPath ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( SUB_STEP, getSubStep() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_SIZE, batchSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_DURATION, batchDuration ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );

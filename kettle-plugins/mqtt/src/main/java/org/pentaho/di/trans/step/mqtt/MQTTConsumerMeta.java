@@ -27,6 +27,7 @@ import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.util.serialization.Sensitive;
@@ -162,10 +163,11 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   }
 
 
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) {
+  public RowMeta getRowMeta() {
+    RowMeta rowMeta = new RowMeta();
     rowMeta.addValueMeta( new ValueMetaString( msgOutputName ) );
     rowMeta.addValueMeta( new ValueMetaString( topicOutputName ) );
+    return rowMeta;
   }
 
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta tr,

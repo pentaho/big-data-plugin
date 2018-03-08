@@ -33,14 +33,17 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 
+import static org.pentaho.di.i18n.BaseMessages.getString;
+
 /**
  * Streaming consumer of MQTT input.  @see <a href="http://mqtt.org/">mqtt</a>
  */
 public class MQTTConsumer extends BaseStreamStep implements StepInterface {
-
+  private static Class<?> PKG = MQTTConsumer.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
   public MQTTConsumer( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                        Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
+
   }
 
   public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
@@ -48,11 +51,14 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
     Preconditions.checkNotNull( stepMetaInterface );
     MQTTConsumerMeta mqttConsumerMeta = (MQTTConsumerMeta) stepMetaInterface;
 
-    RowMeta rowMeta = new RowMeta();
-    mqttConsumerMeta.getFields(
-      rowMeta, getStepname(), null, null, this, repository, metaStore );
-    window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
-    source = new MQTTStreamSource( mqttConsumerMeta, this );
+    try {
+      RowMeta rowMeta = mqttConsumerMeta.getRowMeta();
+      window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
+      source = new MQTTStreamSource( mqttConsumerMeta, this );
+    } catch ( Exception e ) {
+      getLogChannel().logError( getString( PKG, "MQTTInput.Error.FailureGettingFields" ), e );
+      init = false;
+    }
     return init;
   }
 

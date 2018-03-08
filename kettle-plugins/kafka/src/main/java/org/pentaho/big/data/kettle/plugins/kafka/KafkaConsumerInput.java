@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,7 +23,6 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.pentaho.di.core.exception.KettleStepException;
-import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -66,10 +65,8 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
       return false;
     }
 
-    kafkaConsumerInputData.outputRowMeta = new RowMeta();
     try {
-      kafkaConsumerInputMeta.getFields( kafkaConsumerInputData.outputRowMeta,
-        getStepname(), null, null, this, repository, metaStore );
+      kafkaConsumerInputData.outputRowMeta = kafkaConsumerInputMeta.getRowMeta( getStepname(), this );
     } catch ( KettleStepException e ) {
       log.logError( e.getMessage(), e );
     }
