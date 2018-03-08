@@ -423,7 +423,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     return defaultValue;
   }
 
-  public String convertToAvroType( int pdiType ) {
+  public static String convertToAvroType( int pdiType ) {
     switch ( pdiType ) {
       case ValueMetaInterface.TYPE_INET:
       case ValueMetaInterface.TYPE_STRING:
