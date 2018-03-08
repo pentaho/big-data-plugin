@@ -36,7 +36,6 @@ import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -45,6 +44,7 @@ import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -290,19 +290,19 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     namedClusterLoadSaveUtil
       .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
 
-    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+    if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
     }
-    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "default_config_url", m_defaultConfigURL ) );
     }
-    if ( !Const.isEmpty( m_targetTableName ) ) {
+    if ( !Utils.isEmpty( m_targetTableName ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "target_table_name", m_targetTableName ) );
     }
-    if ( !Const.isEmpty( m_targetMappingName ) ) {
+    if ( !Utils.isEmpty( m_targetMappingName ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "target_mapping_name", m_targetMappingName ) );
     }
-    if ( !Const.isEmpty( m_writeBufferSize ) ) {
+    if ( !Utils.isEmpty( m_writeBufferSize ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "write_buffer_size", m_writeBufferSize ) );
     }
     retval.append( "\n    " ).append( XMLHandler.addTagValue( "disable_wal", m_disableWriteToWAL ) );
@@ -380,19 +380,19 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
     namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
 
-    if ( !Const.isEmpty( m_coreConfigURL ) ) {
+    if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "core_config_url", m_coreConfigURL );
     }
-    if ( !Const.isEmpty( m_defaultConfigURL ) ) {
+    if ( !Utils.isEmpty( m_defaultConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "default_config_url", m_defaultConfigURL );
     }
-    if ( !Const.isEmpty( m_targetTableName ) ) {
+    if ( !Utils.isEmpty( m_targetTableName ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "target_table_name", m_targetTableName );
     }
-    if ( !Const.isEmpty( m_targetMappingName ) ) {
+    if ( !Utils.isEmpty( m_targetMappingName ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "target_mapping_name", m_targetMappingName );
     }
-    if ( !Const.isEmpty( m_writeBufferSize ) ) {
+    if ( !Utils.isEmpty( m_writeBufferSize ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "write_buffer_size", m_writeBufferSize );
     }
     rep.saveStepAttribute( id_transformation, id_step, 0, "disable_wal", m_disableWriteToWAL );

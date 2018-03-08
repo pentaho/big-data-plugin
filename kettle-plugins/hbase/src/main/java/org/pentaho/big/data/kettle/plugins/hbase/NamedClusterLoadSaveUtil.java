@@ -37,29 +37,41 @@ import org.w3c.dom.Node;
 
 /**
  * Created by bryan on 1/19/16.
+ * 
  */
 public class NamedClusterLoadSaveUtil {
+
+  /**
+   * specific for step namedclustertree
+   */
+  private static final String NAMED_CLUSTER_ENTRY = "NamedCluster";
+
   public static final String CLUSTER_NAME = "cluster_name";
   public static final String ZOOKEEPER_HOSTS = "zookeeper_hosts";
   public static final String ZOOKEEPER_PORT = "zookeeper_port";
 
+  /**
+   *  This method attempts to create named cluster based on parameters  in follow order:
+   *  <ol> 
+   *  <li> Load from metastore based on the name of namedCluster, if it is not possible than try next. 
+   *  <li> Load from embedded in the step entry. 
+   *  <li> Create a cluster template and populate only the zookeper information from step entry 
+   * </ol>
+   * @return named cluster which was created based on the logic above
+   */
   public NamedCluster loadClusterConfig( NamedClusterService namedClusterService, ObjectId id_jobentry, Repository rep,
                                          IMetaStore metaStore, Node entrynode,
                                          LogChannelInterface logChannelInterface ) {
-    // load from system first, then fall back to copy stored with job (AbstractMeta)
+    // Attempt to load from metastore
     NamedCluster nc = null;
     String clusterName = null;
     try {
-      // attempt to load from named cluster
       if ( entrynode != null ) {
         clusterName = XMLHandler.getTagValue( entrynode, CLUSTER_NAME ); //$NON-NLS-1$
       } else if ( rep != null ) {
         clusterName = rep.getJobEntryAttributeString( id_jobentry, CLUSTER_NAME ); //$NON-NLS-1$ //$NON-NLS-2$
       }
-
-      if ( metaStore != null && !StringUtils.isEmpty( clusterName ) && namedClusterService
-        .contains( clusterName, metaStore ) ) {
-        // pull config from NamedCluster
+      if ( metaStore != null && !StringUtils.isEmpty( clusterName ) && namedClusterService.contains( clusterName, metaStore ) ) {
         nc = namedClusterService.read( clusterName, metaStore );
       }
       if ( nc != null ) {
@@ -68,17 +80,20 @@ public class NamedClusterLoadSaveUtil {
     } catch ( Throwable t ) {
       logChannelInterface.logDebug( t.getMessage(), t );
     }
+    //attemp to load from embeded in step cluster information
+    if ( XMLHandler.getTagValue( entrynode, NAMED_CLUSTER_ENTRY ) != null ) {
+      return namedClusterService.getClusterTemplate().fromXmlForEmbed( entrynode );
+    }
 
+    // create cluster template and fill from step ( legacy fallback )
     nc = namedClusterService.getClusterTemplate();
     if ( !StringUtils.isEmpty( clusterName ) ) {
       nc.setName( clusterName );
     }
     if ( entrynode != null ) {
-      // load default values for cluster & legacy fallback
       nc.setZooKeeperHost( XMLHandler.getTagValue( entrynode, ZOOKEEPER_HOSTS ) ); //$NON-NLS-1$
       nc.setZooKeeperPort( XMLHandler.getTagValue( entrynode, ZOOKEEPER_PORT ) ); //$NON-NLS-1$
     } else if ( rep != null ) {
-      // load default values for cluster & legacy fallback
       try {
         nc.setZooKeeperHost( rep.getJobEntryAttributeString( id_jobentry, ZOOKEEPER_HOSTS ) );
         nc.setZooKeeperPort( rep.getJobEntryAttributeString( id_jobentry, ZOOKEEPER_PORT ) ); //$NON-NLS-1$
@@ -89,6 +104,24 @@ public class NamedClusterLoadSaveUtil {
     return nc;
   }
 
+  /**
+   * The method applies to the retval follow fields with follow order
+   * 
+   * <ul>
+   * <li> {@code <cluster_name> name of cluster </cluster_name> }
+   * <li> {@code <zookeeper_hosts> host of zookeper </zookeeper_hosts> }
+   * <li> {@code <zookeeper_port> port of zookeper </zookeeper_port> }
+   * <li> <pre>{@code  <NamedCluster>
+     <child>
+        <id>  </id>
+        <value> <value/>
+        <type> </type>
+      </child>
+      ...
+    </NamedCluster> }
+    </pre>
+   * </ul>
+   */
   public void getXml( StringBuilder retval, NamedClusterService namedClusterService, NamedCluster namedCluster,
                       IMetaStore metaStore, LogChannelInterface logChannelInterface ) {
     String namedClusterName = namedCluster.getName();
@@ -96,11 +129,9 @@ public class NamedClusterLoadSaveUtil {
     String m_zookeeperPort = namedCluster.getZooKeeperPort();
 
     if ( !StringUtils.isEmpty( namedClusterName ) ) {
-      retval.append( "\n    " )
-        .append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, namedClusterName ) ); //$NON-NLS-1$ //$NON-NLS-2$
       try {
         if ( metaStore != null && namedClusterService.contains( namedClusterName, metaStore ) ) {
-          // pull config from NamedCluster
           NamedCluster nc = namedClusterService.read( namedClusterName, metaStore );
           if ( nc != null ) {
             m_zookeeperHosts = nc.getZooKeeperHost();
@@ -111,15 +142,33 @@ public class NamedClusterLoadSaveUtil {
         logChannelInterface.logDebug( e.getMessage(), e );
       }
     }
-
     if ( !Utils.isEmpty( m_zookeeperHosts ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( ZOOKEEPER_HOSTS, m_zookeeperHosts ) );
     }
     if ( !Utils.isEmpty( m_zookeeperPort ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( ZOOKEEPER_PORT, m_zookeeperPort ) );
     }
+    //add full named cluster to use when metastore does not available
+    retval.append(  namedCluster.toXmlForEmbed( NAMED_CLUSTER_ENTRY ) );
   }
 
+  /**
+   * The method save to the rep follow fields with follow order
+   * <ul>
+   * <li> {@code <cluster_name> name of cluster </cluster_name> }
+   * <li> {@code <zookeeper_hosts> host of zookeper </zookeeper_hosts> }
+   * <li> {@code <zookeeper_port> port of zookeper </zookeeper_port> }
+   * <li> <pre>{@code  <NamedCluster>
+     <child>
+        <id>  </id>
+        <value> <value/>
+        <type> </type>
+      </child>
+      ...
+    </NamedCluster> }
+    </pre>
+   * </ul>
+   */
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step,
                        NamedClusterService namedClusterService, NamedCluster namedCluster,
                        LogChannelInterface logChannelInterface )
@@ -132,7 +181,6 @@ public class NamedClusterLoadSaveUtil {
       rep.saveStepAttribute( id_transformation, id_step, CLUSTER_NAME, namedClusterName ); //$NON-NLS-1$
       try {
         if ( namedClusterService.contains( namedClusterName, metaStore ) ) {
-          // pull config from NamedCluster
           NamedCluster nc = namedClusterService.read( namedClusterName, metaStore );
           m_zookeeperHosts = nc.getZooKeeperHost();
           m_zookeeperPort = nc.getZooKeeperPort();
@@ -148,5 +196,6 @@ public class NamedClusterLoadSaveUtil {
     if ( !Utils.isEmpty( m_zookeeperPort ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, ZOOKEEPER_PORT, m_zookeeperPort );
     }
+    rep.saveStepAttribute( id_transformation, id_step, NAMED_CLUSTER_ENTRY, namedCluster.toXmlForEmbed( NAMED_CLUSTER_ENTRY ) );
   }
 }
