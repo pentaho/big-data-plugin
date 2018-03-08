@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -270,7 +270,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   }
 
   private void buildFieldsTab() {
-    wFieldsTab = new CTabItem( wTabFolder, SWT.NONE );
+    wFieldsTab = new CTabItem( wTabFolder, SWT.NONE, 2 );
     wFieldsTab.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.FieldsTab" ) );
 
     wFieldsComp = new Composite( wTabFolder, SWT.NONE );
@@ -578,6 +578,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     }
 
     populateTopicsData();
+    populateSubSteps();
 
     if ( consumerMeta.getConsumerGroup() != null ) {
       wConsumerGroup.setText( consumerMeta.getConsumerGroup() );
