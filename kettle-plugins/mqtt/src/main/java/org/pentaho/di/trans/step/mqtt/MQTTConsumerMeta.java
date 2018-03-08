@@ -25,16 +25,13 @@ package org.pentaho.di.trans.step.mqtt;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.ObjectLocationSpecificationMethod;
 import org.pentaho.di.core.annotations.Step;
-import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.encryption.Encr;
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.util.serialization.Sensitive;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -51,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkState;
 import static java.util.stream.Collectors.toList;
 import static org.pentaho.di.trans.step.mqtt.MQTTClientBuilder.DEFAULT_SSL_OPTS;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.AUTOMATIC_RECONNECT;
@@ -62,6 +58,7 @@ import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MAX_INFLIGHT;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_SERVER;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MQTT_VERSION;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.MSG_OUTPUT_NAME;
+import static org.pentaho.di.trans.step.mqtt.MQTTConstants.PASSWORD;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.QOS;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SERVER_URIS;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SSL_GROUP;
@@ -83,50 +80,52 @@ import static org.pentaho.di.trans.step.mqtt.SslConfigHelper.conf;
 public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInterface {
   private static Class<?> PKG = MQTTConsumerMeta.class;
 
-  @Injection( name = MQTT_SERVER ) private String mqttServer = "";
+  @Injection ( name = MQTT_SERVER ) private String mqttServer = "";
 
-  @Injection( name = TOPICS ) private List<String> topics = new ArrayList<>();
+  @Injection ( name = TOPICS ) private List<String> topics = new ArrayList<>();
 
-  @Injection( name = MSG_OUTPUT_NAME ) private String msgOutputName = "Message";
+  @Injection ( name = MSG_OUTPUT_NAME ) private String msgOutputName = "Message";
 
-  @Injection( name = TOPIC_OUTPUT_NAME ) private String topicOutputName = "Topic";
+  @Injection ( name = TOPIC_OUTPUT_NAME ) private String topicOutputName = "Topic";
 
-  @Injection( name = QOS ) private String qos = "0";
+  @Injection ( name = QOS ) private String qos = "0";
 
-  @Injection( name = USERNAME ) private String username = "";
+  @Injection ( name = USERNAME ) private String username = "";
 
-  @Injection( name = PASSWORD ) private String password = "";
+  @Sensitive
+  @Injection ( name = PASSWORD ) private String password = "";
 
-  @Injection( name = USE_SSL, group = SSL_GROUP ) private Boolean useSsl = false;
+  @Injection ( name = USE_SSL, group = SSL_GROUP ) private Boolean useSsl = false;
 
-  @Injection( name = SSL_KEYS, group = SSL_GROUP )
+  @Injection ( name = SSL_KEYS, group = SSL_GROUP )
   public List<String> sslKeys = new ArrayList<>();
 
-  @Injection( name = SSL_VALUES, group = SSL_GROUP )
+  @Sensitive
+  @Injection ( name = SSL_VALUES, group = SSL_GROUP )
   public List<String> sslValues = new ArrayList<>();
 
-  @Injection( name = KEEP_ALIVE_INTERVAL )
+  @Injection ( name = KEEP_ALIVE_INTERVAL )
   private String keepAliveInterval = "";
 
-  @Injection( name = MAX_INFLIGHT )
+  @Injection ( name = MAX_INFLIGHT )
   private String maxInflight = "";
 
-  @Injection( name = CONNECTION_TIMEOUT )
+  @Injection ( name = CONNECTION_TIMEOUT )
   private String connectionTimeout = "";
 
-  @Injection( name = CLEAN_SESSION )
+  @Injection ( name = CLEAN_SESSION )
   private String cleanSession = "";
 
-  @Injection( name = STORAGE_LEVEL )
+  @Injection ( name = STORAGE_LEVEL )
   private String storageLevel = "";
 
-  @Injection( name = SERVER_URIS )
+  @Injection ( name = SERVER_URIS )
   private String serverUris = "";
 
-  @Injection( name = MQTT_VERSION )
+  @Injection ( name = MQTT_VERSION )
   private String mqttVersion = "";
 
-  @Injection( name = AUTOMATIC_RECONNECT )
+  @Injection ( name = AUTOMATIC_RECONNECT )
   private String automaticReconnect = "";
 
   public MQTTConsumerMeta() {
@@ -162,90 +161,6 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
     return getTransformationPath();
   }
 
-  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-    throws KettleException {
-    super.readRep( rep, metaStore, id_step, databases );
-    setMqttServer( rep.getStepAttributeString( id_step, MQTT_SERVER ) );
-    setMsgOutputName( rep.getStepAttributeString( id_step, MSG_OUTPUT_NAME ) );
-    setTopicOutputName( rep.getStepAttributeString( id_step, TOPIC_OUTPUT_NAME ) );
-    int topicCount = rep.countNrStepAttributes( id_step, TOPICS );
-    for ( int i = 0; i < topicCount; i++ ) {
-      topics.add( rep.getStepAttributeString( id_step, i, TOPICS ) );
-    }
-    setQos( rep.getStepAttributeString( id_step, QOS ) );
-    setUsername( rep.getStepAttributeString( id_step, USERNAME ) );
-    setPassword( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, PASSWORD ) ) );
-
-    setUseSsl( rep.getStepAttributeBoolean( id_step, USE_SSL ) );
-
-    int sslKeyCount = rep.countNrStepAttributes( id_step, SSL_KEYS );
-    int sslValCount = rep.countNrStepAttributes( id_step, SSL_VALUES );
-
-    checkState( sslKeyCount == sslValCount );
-    sslKeys.clear();
-    sslValues.clear();
-    for ( int j = 0; j < sslKeyCount; j++ ) {
-      String key = rep.getStepAttributeString( id_step, j, SSL_KEYS );
-      sslKeys.add( key );
-      String value = rep.getStepAttributeString( id_step, j, SSL_VALUES );
-      sslValues.add( maybeDecrypt( key, value ) );
-    }
-
-    setKeepAliveInterval( rep.getStepAttributeString( id_step, KEEP_ALIVE_INTERVAL ) );
-    setMaxInflight( rep.getStepAttributeString( id_step, MAX_INFLIGHT ) );
-    setConnectionTimeout( rep.getStepAttributeString( id_step, CONNECTION_TIMEOUT ) );
-    setCleanSession( rep.getStepAttributeString( id_step, CLEAN_SESSION ) );
-    setStorageLevel( rep.getStepAttributeString( id_step, STORAGE_LEVEL ) );
-    setServerUris( rep.getStepAttributeString( id_step, SERVER_URIS ) );
-    setMqttVersion( rep.getStepAttributeString( id_step, MQTT_VERSION ) );
-    setAutomaticReconnect( rep.getStepAttributeString( id_step, AUTOMATIC_RECONNECT ) );
-  }
-
-  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transId, ObjectId stepId )
-    throws KettleException {
-    super.saveRep( rep, metaStore, transId, stepId );
-    rep.saveStepAttribute( transId, stepId, MQTT_SERVER, mqttServer );
-    rep.saveStepAttribute( transId, stepId, MSG_OUTPUT_NAME, msgOutputName );
-    rep.saveStepAttribute( transId, stepId, TOPIC_OUTPUT_NAME, topicOutputName );
-    int i = 0;
-    for ( String topic : topics ) {
-      rep.saveStepAttribute( transId, stepId, i++, TOPICS, topic );
-    }
-    rep.saveStepAttribute( transId, stepId, QOS, qos );
-    rep.saveStepAttribute( transId, stepId, USERNAME, username );
-    rep.saveStepAttribute( transId, stepId, PASSWORD, Encr.encryptPasswordIfNotUsingVariables( password ) );
-
-    rep.saveStepAttribute( transId, stepId, USE_SSL, isUseSsl() );
-    checkState( sslKeys.size() == sslValues.size() );
-    for ( int j = 0; j < sslKeys.size(); j++ ) {
-      rep.saveStepAttribute( transId, stepId, SSL_KEYS, sslKeys.get( j ) );
-      rep.saveStepAttribute( transId, stepId, SSL_VALUES, maybeEncrypt( sslKeys.get( j ), sslValues.get( j ) ) );
-    }
-
-    rep.saveStepAttribute( transId, stepId, KEEP_ALIVE_INTERVAL, keepAliveInterval );
-    rep.saveStepAttribute( transId, stepId, MAX_INFLIGHT, maxInflight );
-    rep.saveStepAttribute( transId, stepId, CONNECTION_TIMEOUT, connectionTimeout );
-    rep.saveStepAttribute( transId, stepId, CLEAN_SESSION, cleanSession );
-    rep.saveStepAttribute( transId, stepId, STORAGE_LEVEL, storageLevel );
-    rep.saveStepAttribute( transId, stepId, SERVER_URIS, serverUris );
-    rep.saveStepAttribute( transId, stepId, MQTT_VERSION, mqttVersion );
-    rep.saveStepAttribute( transId, stepId, AUTOMATIC_RECONNECT, automaticReconnect );
-  }
-
-  private String maybeEncrypt( String keyName, String value ) {
-    return isSensitive( keyName )
-      ? Encr.encryptPasswordIfNotUsingVariables( value ) : value;
-  }
-
-  private String maybeDecrypt( String keyName, String value ) {
-    return isSensitive( keyName )
-      ? Encr.decryptPasswordOptionallyEncrypted( value ) : value;
-  }
-
-  private boolean isSensitive( String keyName ) {
-    return keyName.toUpperCase().contains( PASSWORD );
-  }
-
 
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
                          VariableSpace space, Repository repository, IMetaStore metaStore ) {
@@ -262,7 +177,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
     return new MQTTConsumerData();
   }
 
-  @SuppressWarnings( { "deprecation" } )
+  @SuppressWarnings ( { "deprecation" } )
   // can be removed once the new @StepDialog annotation supports OSGi
   public String getDialogClassName() {
     return "org.pentaho.di.trans.step.mqtt.MQTTConsumerDialog";

@@ -29,13 +29,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.pentaho.di.core.KettleClientEnvironment;
-import org.pentaho.di.core.Props;
+import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
-import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -70,22 +68,25 @@ public class MQTTProducerTest {
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    KettleClientEnvironment.init();
-    PluginRegistry.addPluginType( StepPluginType.getInstance() );
-    PluginRegistry.init();
-    if ( !Props.isInitialized() ) {
-      Props.init( 0 );
-    }
+
+//    KettleClientEnvironment.init();
+//    PluginRegistry.addPluginType( StepPluginType.getInstance() );
+//    PluginRegistry.init();
+//    if ( !Props.isInitialized() ) {
+//      Props.init( 0 );
+//    }
     StepPluginType.getInstance().handlePluginAnnotation(
       MQTTProducerMeta.class,
       MQTTProducerMeta.class.getAnnotation( org.pentaho.di.core.annotations.Step.class ),
       Collections.emptyList(), false, null );
+    KettleEnvironment.init();
   }
 
   @Before
   public void setup() throws Exception {
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
+    when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
     TransMeta transMeta = new TransMeta( getClass().getResource( "/ProduceFourRows.ktr" ).getPath() );
     trans = new Trans( transMeta );
