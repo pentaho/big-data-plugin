@@ -52,7 +52,7 @@ public class MQTTConsumer extends BaseStreamStep implements StepInterface {
     MQTTConsumerMeta mqttConsumerMeta = (MQTTConsumerMeta) stepMetaInterface;
 
     try {
-      RowMeta rowMeta = mqttConsumerMeta.getRowMeta();
+      RowMeta rowMeta = mqttConsumerMeta.getRowMeta( getStepname(), this );
       window = new FixedTimeStreamWindow<>( subtransExecutor, rowMeta, getDuration(), getBatchSize() );
       source = new MQTTStreamSource( mqttConsumerMeta, this );
     } catch ( Exception e ) {

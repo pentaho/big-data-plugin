@@ -146,7 +146,8 @@ public class MQTTProducerMetaTest {
     testMeta.setMqttServer( "mqttserver:1883" );
     StringObjectId stepId = new StringObjectId( "stepId" );
 
-    when( rep.getStepAttributeString( stepId, "step-xml" ) ).thenReturn( testMeta.getXML() );
+    String xml = testMeta.getXML();
+    when( rep.getStepAttributeString( stepId, "step-xml" ) ).thenReturn( xml );
 
     MQTTProducerMeta meta = new MQTTProducerMeta();
     meta.readRep( rep, metaStore, stepId, emptyList() );

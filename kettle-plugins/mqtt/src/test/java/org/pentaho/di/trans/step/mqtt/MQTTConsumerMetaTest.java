@@ -131,7 +131,8 @@ public class MQTTConsumerMetaTest {
 
     MQTTConsumerMeta testMeta = getTestMeta();
 
-    when( rep.getStepAttributeString( stepId, "step-xml" ) ).thenReturn( testMeta.getXML() );
+    String xml = testMeta.getXML();
+    when( rep.getStepAttributeString( stepId, "step-xml" ) ).thenReturn( xml );
 
     meta.readRep( rep, metastore, stepId, emptyList() );
 
