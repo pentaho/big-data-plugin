@@ -323,6 +323,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     }
   }
 
+  @Override
   public RowMeta getRowMeta( String origin, VariableSpace space ) throws KettleStepException {
     RowMeta rowMeta = new RowMeta();
     putFieldOnRowMeta( getKeyField(), rowMeta, origin, space );

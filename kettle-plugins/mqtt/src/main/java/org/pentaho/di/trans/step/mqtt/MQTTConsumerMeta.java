@@ -163,7 +163,8 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   }
 
 
-  public RowMeta getRowMeta() {
+  @Override
+  public RowMeta getRowMeta( String origin, VariableSpace space ) {
     RowMeta rowMeta = new RowMeta();
     rowMeta.addValueMeta( new ValueMetaString( msgOutputName ) );
     rowMeta.addValueMeta( new ValueMetaString( topicOutputName ) );
