@@ -181,7 +181,7 @@ public class MQTTConsumerMeta extends BaseStreamStepMeta implements StepMetaInte
   }
 
   @SuppressWarnings ( { "deprecation" } )
-  // can be removed once the new @StepDialog annotation supports OSGi
+  // can be removed once the new @PluginDialog annotation supports OSGi
   public String getDialogClassName() {
     return "org.pentaho.di.trans.step.mqtt.MQTTConsumerDialog";
   }

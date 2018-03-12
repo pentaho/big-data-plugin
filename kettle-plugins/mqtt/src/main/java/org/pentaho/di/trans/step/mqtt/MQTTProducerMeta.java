@@ -210,7 +210,7 @@ public class MQTTProducerMeta extends BaseSerializingMeta implements StepMetaInt
   }
 
   @SuppressWarnings ( { "deprecation" } )
-  // can be removed once the new @StepDialog annotation supports OSGi
+  // can be removed once the new @PluginDialog annotation supports OSGi
   @Override
   public String getDialogClassName() {
     return "org.pentaho.di.trans.step.mqtt.MQTTProducerDialog";
