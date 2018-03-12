@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -75,30 +75,6 @@ public class HadoopFileOutputMetaTest {
     runtimeTestActionService = mock( RuntimeTestActionService.class );
     runtimeTester = mock( RuntimeTester.class );
     MetaStoreConst.disableMetaStore = false;
-  }
-
-  /**
-   * Tests HadoopFileOutputMeta methods: 1. isFileAsCommand returns false 2. setFileAsCommand is not supported
-   */
-  @Test
-  public void testFileAsCommandOption() {
-
-    HadoopFileOutputMeta hadoopFileOutputMeta = new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
-
-    // we expect isFileAsCommand to be false
-    assertFalse( hadoopFileOutputMeta.isFileAsCommand() );
-
-    // we expect setFileAsCommand(true or false) to be unsupported
-    try {
-      hadoopFileOutputMeta.setFileAsCommand( true );
-    } catch ( Exception e ) {
-      // the expected message is "class name":" message from the package that HadoopFileOutputMeta is in
-      String expectedMessage =
-        e.getClass().getName() + ": "
-          + BaseMessages.getString( MessagePKG, "HadoopFileOutput.MethodNotSupportedException.Message" );
-      assertTrue( e.getMessage().equals( expectedMessage ) );
-    }
   }
 
   @Test

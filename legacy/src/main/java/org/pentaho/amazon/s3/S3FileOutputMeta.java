@@ -148,7 +148,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
       } else {
         this.useAwsDefaultCredentials = true;
       }
-      setFileAsCommand( false ); // commands cannot be executed in S3 file system; PDI-4707, 4655
       String filename = rep.getStepAttributeString( id_step, "file_name" );
       processFilename( filename );
     } catch ( Exception e ) {
@@ -172,7 +171,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
       } else {
         useAwsDefaultCredentials = true;
       }
-      setFileAsCommand( false ); // command cannot be executed in S3 file system; PDI-4707, 4655
       String filename = XMLHandler.getTagValue( stepnode, FILE_TAG, NAME_TAG );
       processFilename( filename );
     } catch ( Exception e ) {

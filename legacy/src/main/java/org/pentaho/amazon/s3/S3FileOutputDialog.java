@@ -1534,7 +1534,6 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     }
 
     tfoi.setFileName( wFilename.getText() );
-    tfoi.setFileAsCommand( false );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
     tfoi.setFileFormat( TextFileOutputMeta.formatMapperLineTerminator[ wFormat.getSelectionIndex() ] );
     tfoi.setFileCompression( wCompression.getText() );
