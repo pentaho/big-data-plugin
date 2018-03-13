@@ -39,6 +39,7 @@ public class BaseFormatOutputField implements IFormatOutputField {
   @Injection( name = "FIELD_NAME", group = "FIELDS" )
   protected String pentahoFieldName;
 
+  @Injection( name = "FIELD_NULLABLE", group = "FIELDS" )
   protected boolean allowNull;
 
   @Injection( name = "FIELD_IF_NULL", group = "FIELDS" )
@@ -118,7 +119,7 @@ public class BaseFormatOutputField implements IFormatOutputField {
 
   @Override
   public void setPrecision( String precision ) {
-    if ( precision == null ) {
+    if ( precision == null || precision.equals( "" ) ) {
       this.precision = DEFAULT_DECIMAL_PRECISION;
     } else {
       this.precision = Integer.valueOf( precision );
@@ -135,7 +136,7 @@ public class BaseFormatOutputField implements IFormatOutputField {
 
   @Override
   public void setScale( String scale ) {
-    if ( scale == null ) {
+    if ( scale == null || scale.equals( "" ) ) {
       this.scale = DEFAULT_DECIMAL_SCALE;
     } else {
       this.scale = Integer.valueOf( scale );

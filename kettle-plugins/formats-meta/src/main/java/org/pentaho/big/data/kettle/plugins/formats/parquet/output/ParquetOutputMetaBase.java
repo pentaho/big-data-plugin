@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,7 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -31,6 +30,7 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -43,6 +43,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.workarounds.ResolvableResource;
+import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -95,11 +96,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public String filename;
 
   @InjectionDeep
-  public FormatInputOutputField[] outputFields = new FormatInputOutputField[0];
+  private List<ParquetOutputField> outputFields = new ArrayList<ParquetOutputField>();
 
   @Override
   public void setDefault() {
-    outputFields = new FormatInputOutputField[ 0 ];
+    outputFields = new ArrayList<ParquetOutputField>();
     dictPageSize = String.valueOf( 1024 );
     extension = "parquet";
   }
@@ -160,11 +161,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     this.extension = extension;
   }
 
-  public FormatInputOutputField[] getOutputFields() {
+  public List<ParquetOutputField> getOutputFields() {
     return outputFields;
   }
 
-  public void setOutputFields( FormatInputOutputField[] outputFields ) {
+  public void setOutputFields( List<ParquetOutputField> outputFields ) {
     this.outputFields = outputFields;
   }
 
@@ -190,18 +191,23 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
+      List<ParquetOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-        FormatInputOutputField outputField = new FormatInputOutputField();
-        outputField.setPath( XMLHandler.getTagValue( fnode, "path" ) );
-        outputField.setName( XMLHandler.getTagValue( fnode, "name" ) );
-        outputField.setType( XMLHandler.getTagValue( fnode, "type" ) );
-        outputField.setNullable( "Y".equalsIgnoreCase( XMLHandler.getTagValue( fnode, "nullable" ) ) );
-        outputField.setIfNullValue( XMLHandler.getTagValue( fnode, "default" ) );
+        ParquetOutputField outputField = new ParquetOutputField();
+        outputField.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
+        outputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
+        int parquetTypeId = getParquetTypeId( XMLHandler.getTagValue( fnode, "type" ) );
+        outputField.setFormatType( parquetTypeId );
+        if ( parquetTypeId == ParquetSpec.DataType.DECIMAL.getId() ) {
+          outputField.setPrecision( XMLHandler.getTagValue( fnode, "precision" ) );
+          outputField.setScale( XMLHandler.getTagValue( fnode, "scale" ) );
+        }
+        outputField.setAllowNull( "Y".equalsIgnoreCase( XMLHandler.getTagValue( fnode, "nullable" ) ) );
+        outputField.setDefaultValue( XMLHandler.getTagValue( fnode, "default" ) );
         parquetOutputFields.add( outputField );
       }
-      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[ 0 ] );
+      this.outputFields = parquetOutputFields;
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
     }
@@ -229,22 +235,42 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     retval.append( "    " ).append( XMLHandler.addTagValue( "dateTimeFormat", dateTimeFormat ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
-    for ( int i = 0; i < outputFields.length; i++ ) {
-      FormatInputOutputField field = outputFields[ i ];
+    for ( int i = 0; i < outputFields.size(); i++ ) {
+      ParquetOutputField field = outputFields.get( i );
 
-      if ( field.getName() != null && field.getName().length() != 0 ) {
+      if ( field.getPentahoFieldName() != null && field.getPentahoFieldName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getPath() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.isNullable() ) );
-        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getIfNullValue() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getFormatType() ) );
+        if ( field.getParquetType() == ParquetSpec.DataType.DECIMAL ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
+          retval.append( "        " ).append( XMLHandler.addTagValue( "scale", field.getScale() ) );
+        }
+        retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getAllowNull() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getDefaultValue() ) );
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
     retval.append( "    </fields>" ).append( Const.CR );
 
     return retval.toString();
+  }
+
+  private int getParquetTypeId( String savedType ) {
+    int parquetTypeId = 0;
+    try {
+      parquetTypeId = Integer.parseInt( savedType );
+    } catch ( NumberFormatException e ) {
+      String parquetTypeName = convertToParquetType( savedType );
+      for ( ParquetSpec.DataType parquetType : ParquetSpec.DataType.values() ) {
+        if ( parquetType.getName().equals( parquetTypeName ) ) {
+          parquetTypeId = parquetType.getId();
+          break;
+        }
+      }
+    }
+    return parquetTypeId;
   }
 
   @Override
@@ -267,19 +293,22 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
 
-      List<FormatInputOutputField> parquetOutputFields = new ArrayList<>();
+      List<ParquetOutputField> parquetOutputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
-        FormatInputOutputField outputField = new FormatInputOutputField();
-
-        outputField.setPath( rep.getStepAttributeString( id_step, i, "path" ) );
-        outputField.setName( rep.getStepAttributeString( id_step, i, "name" ) );
-        outputField.setType( rep.getStepAttributeString( id_step, i, "type" ) );
-        outputField.setNullable( rep.getStepAttributeBoolean( id_step, i, "nullable" ) );
-        outputField.setIfNullValue( rep.getStepAttributeString( id_step, i, "default" ) );
-
+        ParquetOutputField outputField = new ParquetOutputField();
+        outputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
+        outputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
+        int parquetTypeId = getParquetTypeId( rep.getStepAttributeString( id_step, i, "type" ) );
+        outputField.setFormatType( parquetTypeId );
+        if ( parquetTypeId == ParquetSpec.DataType.DECIMAL.getId() ) {
+          outputField.setPrecision( rep.getStepAttributeString( id_step, i, "precision" ) );
+          outputField.setScale( rep.getStepAttributeString( id_step, i, "scale" ) );
+        }
+        outputField.setAllowNull( rep.getStepAttributeBoolean( id_step, i, "nullable" ) );
+        outputField.setDefaultValue( rep.getStepAttributeString( id_step, i, "default" ) );
         parquetOutputFields.add( outputField );
       }
-      this.outputFields = parquetOutputFields.toArray( new FormatInputOutputField[ 0 ] );
+      this.outputFields = parquetOutputFields;
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
@@ -301,15 +330,17 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
       rep.saveStepAttribute( id_transformation, id_step, "dateInFilename", dateInFilename );
       rep.saveStepAttribute( id_transformation, id_step, "timeInFilename", timeInFilename );
       rep.saveStepAttribute( id_transformation, id_step, "dateTimeFormat", dateTimeFormat );
-
-      for ( int i = 0; i < outputFields.length; i++ ) {
-        FormatInputOutputField field = outputFields[ i ];
-
-        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getPath() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getName() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.isNullable() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getIfNullValue() );
+      for ( int i = 0; i < outputFields.size(); i++ ) {
+        ParquetOutputField field = outputFields.get( i );
+        rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getFormatType() );
+        if ( field.getParquetType() == ParquetSpec.DataType.DECIMAL ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "precision", field.getPrecision() );
+          rep.saveStepAttribute( id_transformation, id_step, i, "scale", field.getScale() );
+        }
+        rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getAllowNull() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getDefaultValue() );
       }
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
@@ -365,6 +396,43 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     }
     return defaultValue;
   }
+
+  public static String convertToParquetType( String pdiType ) {
+    int pdiTypeId = -1;
+    for ( int i = 0; i < ValueMetaInterface.typeCodes.length; i++ ) {
+      if ( ValueMetaInterface.typeCodes[ i ].equals( pdiType ) ) {
+        pdiTypeId = i;
+        break;
+      }
+    }
+    return convertToParquetType( pdiTypeId );
+  }
+
+
+  public static String convertToParquetType( int pdiType ) {
+    switch ( pdiType ) {
+      case ValueMetaInterface.TYPE_INET:
+      case ValueMetaInterface.TYPE_STRING:
+        return ParquetSpec.DataType.UTF8.getName();
+      case ValueMetaInterface.TYPE_TIMESTAMP:
+        return ParquetSpec.DataType.TIMESTAMP_MILLIS.getName();
+      case ValueMetaInterface.TYPE_BINARY:
+        return ParquetSpec.DataType.BINARY.getName();
+      case ValueMetaInterface.TYPE_BIGNUMBER:
+        return ParquetSpec.DataType.DECIMAL.getName();
+      case ValueMetaInterface.TYPE_BOOLEAN:
+        return ParquetSpec.DataType.BOOLEAN.getName();
+      case ValueMetaInterface.TYPE_DATE:
+        return ParquetSpec.DataType.DATE.getName();
+      case ValueMetaInterface.TYPE_INTEGER:
+        return ParquetSpec.DataType.INT_64.getName();
+      case ValueMetaInterface.TYPE_NUMBER:
+        return ParquetSpec.DataType.DOUBLE.getName();
+      default:
+        return ParquetSpec.DataType.NULL.getName();
+    }
+  }
+
 
   public String getRowGroupSize() {
     return rowGroupSize;

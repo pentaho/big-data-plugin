@@ -2,7 +2,7 @@
   *
   * Pentaho Data Integration
   *
-  * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+  * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
   *
   *******************************************************************************
   *
@@ -47,12 +47,12 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
@@ -105,14 +105,14 @@ public abstract class BaseOrcStepDialog<T extends BaseStepMeta & StepMetaInterfa
   protected static final String[] fileFilterNames =
     new String[]{BaseMessages.getString( "System.FileType.AllFiles" )};
 
+  private static final String HDFS_SCHEME = "hdfs";
+
   protected Image icon;
 
   protected TextVar wPath;
   protected Button wbBrowse;
   protected VFSScheme selectedVFSScheme;
   protected CCombo wLocation;
-
-  private static final String HDFS_SCHEME = "hdfs";
 
   public BaseOrcStepDialog( Shell parent, T in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
