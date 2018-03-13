@@ -110,8 +110,8 @@ public class AvroInputMeta extends AvroInputMetaBase {
           }
         }
       }
-      for ( int i = 0; i < inputFields.size(); i++ ) {
-        AvroInputField field = inputFields.get( i );
+      for ( int i = 0; i < inputFields.length; i++ ) {
+        AvroInputField field = inputFields[ i ];
         String value = space.environmentSubstitute( field.getPentahoFieldName() );
         ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getPentahoType() );
         v.setOrigin( origin );
