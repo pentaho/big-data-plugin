@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.streaming.api.StreamSource;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -81,6 +82,7 @@ public class MQTTStreamSourceTest {
   @Mock MQTTConsumer mqttConsumer;
   @Mock MQTTConsumerMeta consumerMeta;
   @Mock LogChannelInterface logger;
+  @Mock StepMeta stepMeta;
 
   @Before
   public void startBroker() throws Exception {
@@ -99,6 +101,8 @@ public class MQTTStreamSourceTest {
     when( mqttConsumer.environmentSubstitute( any( String[].class ) ) )
       .thenAnswer( answer -> answer.getArguments()[ 0 ] );
     when( mqttConsumer.getLogChannel() ).thenReturn( logger );
+    when( mqttConsumer.getStepMeta() ).thenReturn( stepMeta );
+    when( stepMeta.getName() ).thenReturn( "Mqtt Step" );
   }
 
   @After
