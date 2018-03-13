@@ -32,7 +32,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -129,7 +128,9 @@ public class AvroInputMetaTest {
 
   @Test
   public void testGetFields_originShouldBeSetedToRowMeta() throws KettleStepException {
-    meta.setInputFields( Arrays.asList( field ) );
+    AvroInputField[] avroFields = new AvroInputField[ 1 ];
+    avroFields[0] =  field;
+    meta.inputFields =  avroFields;
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );
     ArgumentCaptor<ValueMetaInterface> argument = ArgumentCaptor.forClass( ValueMetaInterface.class );
     verify( rowMeta ).addValueMeta( argument.capture() );
@@ -138,7 +139,9 @@ public class AvroInputMetaTest {
 
   @Test
   public void testGetFields_theNameWasUpdatedByVariables() throws KettleStepException {
-    meta.setInputFields( Arrays.asList( field ) );
+    AvroInputField[] avroFields = new AvroInputField[ 1 ];
+    avroFields[0] =  field;
+    meta.inputFields =  avroFields;
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );
     verify( space ).environmentSubstitute( anyString() );
   }
@@ -149,7 +152,9 @@ public class AvroInputMetaTest {
 
     RowMetaInterface forMerge = mock( RowMetaInterface.class );
     RowMetaInterface[]  rmi = new RowMetaInterface[] { forMerge };
-    meta.setInputFields( Arrays.asList( field ) );
+    AvroInputField[] avroFields = new AvroInputField[ 1 ];
+    avroFields[0] =  field;
+    meta.inputFields =  avroFields;
     meta.getFields( rowMeta, origin, rmi, nextStep, space, repository, metaStore );
     verify( rowMeta ).mergeRowMeta( eq( forMerge ), eq( origin ) );
   }
@@ -157,8 +162,9 @@ public class AvroInputMetaTest {
   @Test
   public void testGetFields_infoMetaShouldNotBeMerged_ifWeDoNotHaveadditionalFields() throws KettleStepException {
     meta.inputFiles.passingThruFields = true;
-
-    meta.setInputFields( Arrays.asList( field ) );
+    AvroInputField[] avroFields = new AvroInputField[ 1 ];
+    avroFields[0] =  field;
+    meta.inputFields =  avroFields;
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );
     verify( rowMeta, never() ).mergeRowMeta( any( RowMetaInterface.class ), anyString() );
   }
@@ -166,8 +172,10 @@ public class AvroInputMetaTest {
   @Test( expected = KettleStepException.class )
   public void testGetFields_unknownPluginForFieldType() throws KettleStepException {
     AvroInputField fld = mock( AvroInputField.class );
+    AvroInputField[] avroFields = new AvroInputField[ 1 ];
+    avroFields[0] =  fld;
+    meta.inputFields =  avroFields;
 
-    meta.setInputFields( Arrays.asList( fld ) );
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );
   }
 
