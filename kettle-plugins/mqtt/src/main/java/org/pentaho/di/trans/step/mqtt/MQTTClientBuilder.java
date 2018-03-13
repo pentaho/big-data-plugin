@@ -33,7 +33,9 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.trans.step.StepInterface;
 
 import java.util.Arrays;
@@ -48,7 +50,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.pentaho.di.i18n.BaseMessages.getString;
 
-final class MQTTClientBuilder {
+public final class MQTTClientBuilder {
   private static final Class<?> PKG = MQTTClientBuilder.class;
 
   private static final String UNSECURE_PROTOCOL = "tcp://";
@@ -89,7 +91,9 @@ final class MQTTClientBuilder {
   private String automaticReconnect;
   private MqttCallback callback;
   private String clientId = MqttAsyncClient.generateClientId();  // default
-  private StepInterface step;
+  private VariableSpace variableSpace;
+  private LogChannelInterface logChannel;
+  private String stepName;
 
 
   @VisibleForTesting @FunctionalInterface interface ClientFactory {
@@ -102,7 +106,7 @@ final class MQTTClientBuilder {
   private MQTTClientBuilder() {
   }
 
-  static MQTTClientBuilder builder() {
+  public static MQTTClientBuilder builder() {
     return new MQTTClientBuilder();
   }
 
@@ -111,7 +115,7 @@ final class MQTTClientBuilder {
     return this;
   }
 
-  MQTTClientBuilder withBroker( String broker ) {
+  public MQTTClientBuilder withBroker( String broker ) {
     this.broker = broker;
     return this;
   }
@@ -121,7 +125,7 @@ final class MQTTClientBuilder {
     return this;
   }
 
-  MQTTClientBuilder withQos( String qos ) {
+  public MQTTClientBuilder withQos( String qos ) {
     this.qos = qos;
     return this;
   }
@@ -136,18 +140,35 @@ final class MQTTClientBuilder {
     return this;
   }
 
-  MQTTClientBuilder withUsername( String username ) {
+  public MQTTClientBuilder withUsername( String username ) {
     this.username = username;
     return this;
   }
 
-  MQTTClientBuilder withPassword( String password ) {
+  public MQTTClientBuilder withPassword( String password ) {
     this.password = password;
     return this;
   }
 
-  MQTTClientBuilder withStep( StepInterface step ) {
-    this.step = step;
+  public MQTTClientBuilder withStep( StepInterface step ) {
+    this.variableSpace = step;
+    this.logChannel = step.getLogChannel();
+    this.stepName = step.getStepMeta().getName();
+    return this;
+  }
+
+  public MQTTClientBuilder withVariables( VariableSpace step ) {
+    this.variableSpace = step;
+    return this;
+  }
+
+  public MQTTClientBuilder withLogChannel( LogChannelInterface logChannel ) {
+    this.logChannel = logChannel;
+    return this;
+  }
+
+  public MQTTClientBuilder withStepName( String stepName ) {
+    this.stepName = stepName;
     return this;
   }
 
@@ -156,7 +177,7 @@ final class MQTTClientBuilder {
     return this;
   }
 
-  MQTTClientBuilder withKeepAliveInterval( String keepAliveInterval ) {
+  public MQTTClientBuilder withKeepAliveInterval( String keepAliveInterval ) {
     this.keepAliveInterval = keepAliveInterval;
     return this;
   }
@@ -166,12 +187,12 @@ final class MQTTClientBuilder {
     return this;
   }
 
-  MQTTClientBuilder withConnectionTimeout( String connectionTimeout ) {
+  public MQTTClientBuilder withConnectionTimeout( String connectionTimeout ) {
     this.connectionTimeout = connectionTimeout;
     return this;
   }
 
-  MQTTClientBuilder withCleanSession( String cleanSession ) {
+  public MQTTClientBuilder withCleanSession( String cleanSession ) {
     this.cleanSession = cleanSession;
     return this;
   }
@@ -186,26 +207,26 @@ final class MQTTClientBuilder {
     return this;
   }
 
-  MQTTClientBuilder withMqttVersion( String mqttVersion ) {
+  public MQTTClientBuilder withMqttVersion( String mqttVersion ) {
     this.mqttVersion = mqttVersion;
     return this;
   }
 
-  MQTTClientBuilder withAutomaticReconnect( String automaticReconnect ) {
+  public MQTTClientBuilder withAutomaticReconnect( String automaticReconnect ) {
     this.automaticReconnect = automaticReconnect;
     return this;
   }
 
-  MqttClient buildAndConnect() throws MqttException {
+  public MqttClient buildAndConnect() throws MqttException {
     validateArgs();
 
     String broker = getProtocol() + getBroker();
     MqttClientPersistence persistence = new MemoryPersistence();
-    String storageLevelOption = step.environmentSubstitute( storageLevel );
+    String storageLevelOption = variableSpace.environmentSubstitute( storageLevel );
     if ( StringUtil.isEmpty( storageLevelOption ) ) {
-      step.getLogChannel().logDebug( "Using Memory Storage Level" );
+      logChannel.logDebug( "Using Memory Storage Level" );
     } else {
-      step.getLogChannel().logDebug( "Using File Storage Level to " + storageLevelOption );
+      logChannel.logDebug( "Using File Storage Level to " + storageLevelOption );
       persistence = new MqttDefaultFilePersistence( storageLevelOption );
     }
 
@@ -217,26 +238,25 @@ final class MQTTClientBuilder {
 
     client.setCallback( callback );
 
-    step.getLogChannel().logDebug( "Subscribing to topics with a quality of service level of "
-      + step.environmentSubstitute( qos ) );
-    step.getLogChannel().logDebug( "Server URIs is set to " + step.environmentSubstitute( serverUris ) );
-    step.getLogChannel().logDebug( "Max Inflight is set to " + step.environmentSubstitute( maxInflight ) );
-    step.getLogChannel()
-      .logDebug( "Automatic Reconnect is set to " + step.environmentSubstitute( automaticReconnect ) );
-    step.getLogChannel().logDebug( loggableOptions().toString() );
+    logChannel.logDebug( "Subscribing to topics with a quality of service level of "
+      + variableSpace.environmentSubstitute( qos ) );
+    logChannel.logDebug( "Server URIs is set to " + variableSpace.environmentSubstitute( serverUris ) );
+    logChannel.logDebug( "Max Inflight is set to " + variableSpace.environmentSubstitute( maxInflight ) );
+    logChannel.logDebug( "Automatic Reconnect is set to " + variableSpace.environmentSubstitute( automaticReconnect ) );
+    logChannel.logDebug( loggableOptions().toString() );
 
     client.connect( getOptions() );
     if ( topics != null && topics.size() > 0 ) {
       client.subscribe(
-        step.environmentSubstitute( topics.toArray( new String[ topics.size() ] ) ),
-        initializedIntAray( Integer.parseInt( step.environmentSubstitute( this.qos ) ) )
+        variableSpace.environmentSubstitute( topics.toArray( new String[ topics.size() ] ) ),
+        initializedIntAray( Integer.parseInt( variableSpace.environmentSubstitute( this.qos ) ) )
       );
     }
     return client;
   }
 
   private String getBroker() {
-    return step.environmentSubstitute( this.broker );
+    return variableSpace.environmentSubstitute( this.broker );
   }
 
   private String getProtocol() {
@@ -248,12 +268,12 @@ final class MQTTClientBuilder {
     checkArgument( getBroker().matches( "^[^ :/]+:\\d+" ),
       getString( PKG, "MQTTInput.Error.ConnectionURL" ) );
     try {
-      int qosVal = Integer.parseInt( step.environmentSubstitute( this.qos ) );
+      int qosVal = Integer.parseInt( variableSpace.environmentSubstitute( this.qos ) );
       checkArgument( qosVal >= 0 && qosVal <= 2 );
     } catch ( Exception e ) {
       String errorMsg = getString( PKG, "MQTTClientBuilder.Error.QOS",
-        step.getStepMeta().getName(), step.environmentSubstitute( qos ) );
-      step.getLogChannel().logError( errorMsg );
+        stepName, variableSpace.environmentSubstitute( qos ) );
+      logChannel.logError( errorMsg );
       throw new IllegalArgumentException( errorMsg );
     }
   }
@@ -269,44 +289,44 @@ final class MQTTClientBuilder {
       setSSLProps( options );
     }
     if ( !StringUtil.isEmpty( username ) ) {
-      options.setUserName( step.environmentSubstitute( username ) );
+      options.setUserName( variableSpace.environmentSubstitute( username ) );
     }
     if ( !StringUtil.isEmpty( password ) ) {
-      options.setPassword( step.environmentSubstitute( password ).toCharArray() );
+      options.setPassword( variableSpace.environmentSubstitute( password ).toCharArray() );
     }
 
-    String optionValue = step.environmentSubstitute( keepAliveInterval );
+    String optionValue = variableSpace.environmentSubstitute( keepAliveInterval );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setKeepAliveInterval( Integer.parseInt( optionValue ) );
     }
 
-    optionValue = step.environmentSubstitute( maxInflight );
+    optionValue = variableSpace.environmentSubstitute( maxInflight );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setMaxInflight( Integer.parseInt( optionValue ) );
     }
 
-    optionValue = step.environmentSubstitute( connectionTimeout );
+    optionValue = variableSpace.environmentSubstitute( connectionTimeout );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setConnectionTimeout( Integer.parseInt( optionValue ) );
     }
 
-    optionValue = step.environmentSubstitute( cleanSession );
+    optionValue = variableSpace.environmentSubstitute( cleanSession );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setCleanSession( BooleanUtils.toBoolean( optionValue ) );
     }
 
-    optionValue = step.environmentSubstitute( serverUris );
+    optionValue = variableSpace.environmentSubstitute( serverUris );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setServerURIs(
         Arrays.stream( optionValue.split( ";" ) ).map( uri -> getProtocol() + uri ).toArray( String[]::new ) );
     }
 
-    optionValue = step.environmentSubstitute( mqttVersion );
+    optionValue = variableSpace.environmentSubstitute( mqttVersion );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setMqttVersion( Integer.parseInt( optionValue ) );
     }
 
-    optionValue = step.environmentSubstitute( automaticReconnect );
+    optionValue = variableSpace.environmentSubstitute( automaticReconnect );
     if ( !StringUtil.isEmpty( optionValue ) ) {
       options.setAutomaticReconnect( BooleanUtils.toBoolean( optionValue ) );
     }

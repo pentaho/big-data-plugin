@@ -78,11 +78,6 @@ public class MQTTClientBuilderTest {
 
   @Before
   public void before() throws MqttException {
-    builder
-      .withBroker( "127.0.0.1:101010" )
-      .withStep( step );
-    builder.clientFactory = factory;
-
     when( factory.getClient( any(), clientIdCapture.capture(), any() ) )
       .thenReturn( client );
     when( step.getParentVariableSpace() ).thenReturn( space );
@@ -92,6 +87,12 @@ public class MQTTClientBuilderTest {
     when( step.environmentSubstitute( anyString() ) ).thenAnswer( ( answer -> answer.getArguments()[ 0 ] ) );
     when( step.environmentSubstitute( any( String[].class ) ) )
       .thenAnswer( ( answer -> answer.getArguments()[ 0 ] ) );
+
+    builder
+      .withBroker( "127.0.0.1:101010" )
+      .withStep( step );
+    builder.clientFactory = factory;
+
   }
 
   @Test
