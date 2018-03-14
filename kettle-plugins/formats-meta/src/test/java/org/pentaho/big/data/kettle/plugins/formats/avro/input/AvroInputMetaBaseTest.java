@@ -36,6 +36,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -106,9 +107,7 @@ public class AvroInputMetaBaseTest {
   @Test
   public void testGetXML() throws KettleStepException {
     when( field.getPentahoFieldName() ).thenReturn( "SampleName" );
-    AvroInputField[] avroFields = new AvroInputField[ 1 ];
-    avroFields[0] =  field;
-    meta.inputFields =  avroFields;
+    meta.setInputFields( Arrays.asList( field ) );
 
     assertNotNull( meta.getXML() );
     verify( meta ).getFilename();
@@ -121,9 +120,7 @@ public class AvroInputMetaBaseTest {
 
   @Test
   public void testSaveRep() throws KettleException {
-    AvroInputField[] avroFields = new AvroInputField[ 1 ];
-    avroFields[0] =  field;
-    meta.inputFields =  avroFields;
+    meta.setInputFields( Arrays.asList( field ) );
 
     meta.saveRep( rep, metaStore, id_transformation, id_step );
     verify( meta ).getFilename();
@@ -143,7 +140,7 @@ public class AvroInputMetaBaseTest {
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
 
-    AvroInputField field  = meta.inputFields[ 0 ];
+    AvroInputField field  = meta.getInputFields().get( 0 );
     assertEquals( "SampleName", field.getPentahoFieldName() );
     assertEquals( "SamplePath", field.getAvroFieldName() );
     assertEquals( "string", field.getAvroType().getType() );
@@ -168,7 +165,7 @@ public class AvroInputMetaBaseTest {
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
 
-    AvroInputField field = meta.inputFields[ 0 ];
+    AvroInputField field = meta.getInputFields().get( 0 );
     assertEquals( "SampleName", field.getPentahoFieldName() );
     assertEquals( "SamplePath", field.getAvroFieldName() );
     assertEquals( "string", field.getAvroType().getType() );

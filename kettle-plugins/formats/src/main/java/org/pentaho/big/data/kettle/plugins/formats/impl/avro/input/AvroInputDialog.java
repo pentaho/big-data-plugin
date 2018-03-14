@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -336,7 +337,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     }
     wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
     int itemIndex = 0;
-    for ( AvroInputField inputField : meta.inputFields ) {
+    for ( AvroInputField inputField : meta.getInputFields() ) {
       TableItem item = null;
       if ( itemIndex < wInputFields.table.getItemCount() ) {
         item = wInputFields.table.getItem( itemIndex );
@@ -375,7 +376,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
 
     int nrFields = wInputFields.nrNonEmpty();
-    meta.inputFields = new AvroInputField[ nrFields ];
+    ArrayList<AvroInputField> inputFields = new ArrayList<AvroInputField>();
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
@@ -383,8 +384,9 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       field.setAvroType( extractAvroType( item.getText( DISPLAYABLE_AVRO_PATH_COLUMN_INDEX ) ) );
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-      meta.inputFields[ i ] = field;
+      inputFields.add( field );
     }
+    meta.setInputFields( inputFields );
   }
 
   private String getSchemeFromPath( String path ) {
