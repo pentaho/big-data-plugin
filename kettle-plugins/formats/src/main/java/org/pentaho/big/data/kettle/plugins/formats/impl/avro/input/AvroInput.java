@@ -39,6 +39,7 @@ import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
@@ -71,7 +72,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
         data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
         data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
         data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
-        data.input.setInputFields( meta.getInputFields() );
+        data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
         data.reader = data.input.createRecordReader( null );
         data.rowIterator = data.reader.iterator();
       }
