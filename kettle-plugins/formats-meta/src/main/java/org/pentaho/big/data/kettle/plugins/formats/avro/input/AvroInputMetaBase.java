@@ -22,8 +22,10 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
@@ -50,7 +52,7 @@ import org.w3c.dom.Node;
  * @author Alexander Buloichik
  */
 public abstract class AvroInputMetaBase extends
-    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, AvroInputField> implements ResolvableResource {
+    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements ResolvableResource {
 
   private static final Class<?> PKG = AvroOutputMetaBase.class;
 
@@ -60,10 +62,11 @@ public abstract class AvroInputMetaBase extends
   @Injection( name = "SCHEMA_FILENAME" )
   protected String schemaFilename;
 
+  protected List<AvroInputField> inputFields = new ArrayList<AvroInputField>();
+
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
-    inputFields = new AvroInputField[0];
   }
 
 
@@ -97,6 +100,14 @@ public abstract class AvroInputMetaBase extends
     this.filename = filename;
   }
 
+  public List<AvroInputField> getInputFields() {
+    return inputFields;
+  }
+
+  public void setInputFields( List<AvroInputField> inputFields ) {
+    this.inputFields = inputFields;
+  }
+
   @Override
   public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
     readData( stepnode, metaStore );
@@ -109,7 +120,7 @@ public abstract class AvroInputMetaBase extends
       filename = XMLHandler.getTagValue( stepnode, "filename" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      this.inputFields = new AvroInputField[ nrfields];
+      List<AvroInputField> avroInputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
         AvroInputField inputField = new AvroInputField();
@@ -117,8 +128,10 @@ public abstract class AvroInputMetaBase extends
         inputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
         inputField.setPentahoType( XMLHandler.getTagValue( fnode, "type" ) );
         inputField.setAvroType( XMLHandler.getTagValue( fnode, "avro_type" ) );
-        this.inputFields[ i ] = inputField;
+        avroInputFields.add( inputField );
       }
+      this.inputFields = avroInputFields;
+
       schemaFilename = XMLHandler.getTagValue( stepnode, "schemaFilename" );
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
@@ -134,8 +147,8 @@ public abstract class AvroInputMetaBase extends
     retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
-    for ( int i = 0; i < inputFields.length; i++ ) {
-      AvroInputField field = inputFields[ i ];
+    for ( int i = 0; i < inputFields.size(); i++ ) {
+      AvroInputField field = inputFields.get( i );
 
       if ( field.getPentahoFieldName() != null && field.getPentahoFieldName().length() != 0 ) {
         retval.append( "      <field>" ).append( Const.CR );
@@ -165,15 +178,18 @@ public abstract class AvroInputMetaBase extends
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
 
-      this.inputFields = new AvroInputField[ nrfields];
+      List<AvroInputField> avroInputFields = new ArrayList<>();
       for ( int i = 0; i < nrfields; i++ ) {
         AvroInputField inputField = new AvroInputField();
+
         inputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
         inputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         inputField.setPentahoType( rep.getStepAttributeString( id_step, i, "type" ) );
         inputField.setAvroType( rep.getStepAttributeString( id_step, i, "avro_type" ) );
-        this.inputFields[ i ] = inputField;
+
+        avroInputFields.add( inputField );
       }
+      this.inputFields = avroInputFields;
       schemaFilename = rep.getStepAttributeString( id_step, "schemaFilename" );
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
@@ -186,8 +202,8 @@ public abstract class AvroInputMetaBase extends
     try {
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
       rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
-      for ( int i = 0; i < inputFields.length; i++ ) {
-        AvroInputField field = inputFields[ i ];
+      for ( int i = 0; i < inputFields.size(); i++ ) {
+        AvroInputField field = inputFields.get( i );
 
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getAvroFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
