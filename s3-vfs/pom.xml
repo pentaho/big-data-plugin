@@ -34,7 +34,7 @@
     <!-- Third-party dependencies -->
     <commons-io.version>1.4</commons-io.version>
     <commons-codec.version>1.10</commons-codec.version>
-    <commons-vfs2.version>2.1-20150824</commons-vfs2.version>
+    <commons-vfs2.version>2.2</commons-vfs2.version>
     <jets3t.version>0.9.4</jets3t.version>
 
     <!-- Test dependencies -->
