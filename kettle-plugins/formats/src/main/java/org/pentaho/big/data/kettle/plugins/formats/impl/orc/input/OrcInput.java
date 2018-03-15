@@ -43,6 +43,7 @@ import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcInputFormat;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
@@ -121,7 +122,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
   }
 
   public static List<? extends IOrcInputField> createSchemaFromMeta( OrcInputMetaBase meta ) {
-    return meta.getInputFields();
+    return Arrays.asList( meta.getInputFields() );
   }
 
   public static String getKettleVFSFileName( String path ) throws KettleFileException {
