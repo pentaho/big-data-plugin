@@ -23,9 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.orc.input;
 
 import java.util.List;
-import java.util.ArrayList;
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.orc.OrcInputField;
 import org.pentaho.di.core.Const;
@@ -52,14 +50,12 @@ import org.w3c.dom.Node;
  * @author Jacob Gminder
  */
 public abstract class OrcInputMetaBase extends
-    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, FormatInputOutputField> implements ResolvableResource {
-
-  protected List<OrcInputField> inputFields;
+    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, OrcInputField> implements ResolvableResource {
 
   public OrcInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
-    inputFields = new ArrayList<OrcInputField>();
+    inputFields = new OrcInputField[ 0 ];
   }
 
   public String getFilename() {
@@ -75,12 +71,17 @@ public abstract class OrcInputMetaBase extends
     inputFiles.fileName[0] = filename;
   }
 
-  public List<OrcInputField> getInputFields() {
+  public OrcInputField[] getInputFields() {
     return inputFields;
   }
 
-  public void setInputFields( List<OrcInputField> inputFields ) {
+  public void setInputFields( OrcInputField[] inputFields ) {
     this.inputFields = inputFields;
+  }
+
+  public void setInputFields( List<OrcInputField> inputFields ) {
+    this.inputFields = new OrcInputField[inputFields.size()];
+    this.inputFields = inputFields.toArray( this.inputFields );
   }
 
   @Override
@@ -106,8 +107,8 @@ public abstract class OrcInputMetaBase extends
     retval.append( "    </file>" ).append( Const.CR );
 
     retval.append( "    <fields>" ).append( Const.CR );
-    for ( int i = 0; i < inputFields.size(); i++ ) {
-      OrcInputField field = inputFields.get( i );
+    for ( int i = 0; i < inputFields.length; i++ ) {
+      OrcInputField field = inputFields[ i ];
       retval.append( "      <field>" ).append( Const.CR );
       retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
@@ -134,8 +135,8 @@ public abstract class OrcInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "include_subfolders", inputFiles.includeSubFolders[i] );
       }
 
-      for ( int i = 0; i < inputFields.size(); i++ ) {
-        OrcInputField field = inputFields.get( i );
+      for ( int i = 0; i < inputFields.length; i++ ) {
+        OrcInputField field = inputFields[ i ];
 
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
@@ -173,7 +174,7 @@ public abstract class OrcInputMetaBase extends
       inputFiles.includeSubFolders[i] = XMLHandler.getNodeValue( includeSubFoldersnode );
     }
 
-    inputFields = new ArrayList<>();
+    inputFields = new OrcInputField[ nrfields ];
     for ( int i = 0; i < nrfields; i++ ) {
       Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
 
@@ -182,7 +183,7 @@ public abstract class OrcInputMetaBase extends
       field.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
       field.setOrcType( XMLHandler.getTagValue( fnode, "orc_type" ) );
-      inputFields.add( field );
+      this.inputFields[ i ] = field;
     }
   }
 
@@ -211,7 +212,7 @@ public abstract class OrcInputMetaBase extends
       }
 
       int nrfields = rep.countNrStepAttributes( id_step, "field_name" );
-      inputFields = new ArrayList<>();
+      inputFields = new OrcInputField[ nrfields ];
       for ( int i = 0; i < nrfields; i++ ) {
         OrcInputField field = new OrcInputField();
         field.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
@@ -219,7 +220,7 @@ public abstract class OrcInputMetaBase extends
         field.setPentahoType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "type" ) ) );
         field.setOrcType( rep.getStepAttributeString( id_step, i, "orc_type" ) );
 
-        inputFields.add( field );
+        this.inputFields[ i ] = field;
       }
 
     } catch ( Exception e ) {
@@ -247,7 +248,7 @@ public abstract class OrcInputMetaBase extends
   @Override
   public void setDefault() {
     allocateFiles( 0 );
-    inputFields = new ArrayList<>();
+    inputFields = new OrcInputField[ 0 ];
   }
 
   @Override

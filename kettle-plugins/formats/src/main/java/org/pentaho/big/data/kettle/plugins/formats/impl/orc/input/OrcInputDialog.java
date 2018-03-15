@@ -21,7 +21,6 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -269,7 +268,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     List<? extends IOrcInputField> actualOrcFileInputFields = getInputFieldsFromOrcFile( true );
 
     int nrFields = wInputFields.nrNonEmpty();
-    meta.setInputFields( new ArrayList<>() );
+    meta.setInputFields( new OrcInputField[nrFields] );
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       OrcInputField field = new OrcInputField();
@@ -287,7 +286,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
       }
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
-      meta.getInputFields().add( field );
+      meta.getInputFields()[ i ] = field;
     }
   }
 
