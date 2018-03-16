@@ -41,7 +41,6 @@
     <pentaho-json.version>8.1.0.0-SNAPSHOT</pentaho-json.version>
     <pentaho-hadoop-shims-hdp26.version>8.1.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp26.version>
     <dependency.karaf.revision>3.0.3</dependency.karaf.revision>
-    <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5</plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
     <pentaho-registry.version>8.1.0.0-SNAPSHOT</pentaho-registry.version>
     <dependency.guava.revision>17.0</dependency.guava.revision>
     <dependency.maven-resources-plugin.revision>2.7</dependency.maven-resources-plugin.revision>
@@ -102,7 +101,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${plugin.org.codehaus.mojo.build-helper-maven-plugin.version}</version>
         <executions>
           <execution>
             <id>add-test-source</id>
