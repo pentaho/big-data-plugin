@@ -42,7 +42,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.di.core.Props;
-import org.pentaho.di.core.annotations.StepDialog;
+import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -72,7 +72,7 @@ import static org.pentaho.di.trans.step.mqtt.MQTTConstants.SERVER_URIS;
 import static org.pentaho.di.trans.step.mqtt.MQTTConstants.STORAGE_LEVEL;
 
 @SuppressWarnings ( "unused" )
-@StepDialog ( id = "MQTTProducer", image = "MQTTProducer.svg" )
+@PluginDialog ( id = "MQTTProducer", image = "MQTTProducer.svg", pluginType = PluginDialog.PluginType.STEP )
 public class MQTTProducerDialog extends BaseStepDialog implements StepDialogInterface {
   private static final int SHELL_MIN_WIDTH = 527;
   private static final int SHELL_MIN_HEIGHT = 650;
