@@ -23,6 +23,5 @@
     <module>kafka</module>
     <module>formats-meta</module>
     <module>formats</module>
-    <module>mqtt</module>
   </modules>
 </project>
