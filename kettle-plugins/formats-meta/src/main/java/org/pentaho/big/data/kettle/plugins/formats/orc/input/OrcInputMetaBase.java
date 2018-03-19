@@ -49,6 +49,7 @@ import org.w3c.dom.Node;
  *
  * @author Jacob Gminder
  */
+@SuppressWarnings( "deprecation" )
 public abstract class OrcInputMetaBase extends
     BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, OrcInputField> implements ResolvableResource {
 
@@ -90,6 +91,9 @@ public abstract class OrcInputMetaBase extends
 
     retval.append( "    " ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
     retval.append( "    <file>" ).append( Const.CR );
+    //we need the equals by size arrays for inputFiles.fileName[i], inputFiles.fileMask[i], inputFiles.fileRequired[i], inputFiles.includeSubFolders[i]
+    //to prevent the ArrayIndexOutOfBoundsException
+    inputFiles.normalizeAllocation( inputFiles.fileName.length );
     for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
       retval.append( "      " ).append( XMLHandler.addTagValue( "environment", inputFiles.environment[i] ) );
 

@@ -49,6 +49,7 @@ import org.w3c.dom.Node;
  *
  * @author Alexander Buloichik
  */
+@SuppressWarnings( "deprecation" )
 public abstract class AvroInputMetaBase extends
     BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, AvroInputField> implements ResolvableResource {
 
@@ -142,6 +143,11 @@ public abstract class AvroInputMetaBase extends
   public String getXML() {
     StringBuffer retval = new StringBuffer( 800 );
     final String INDENT = "    ";
+
+    //we need the equals by size arrays for inputFiles.fileName[i], inputFiles.fileMask[i], inputFiles.fileRequired[i], inputFiles.includeSubFolders[i]
+    //to prevent the ArrayIndexOutOfBoundsException
+    //This line was introduced to prevent future bug if we will suppport the several input files for avro like we do for orc and parquet
+    inputFiles.normalizeAllocation( inputFiles.fileName.length );
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );

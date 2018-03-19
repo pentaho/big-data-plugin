@@ -41,7 +41,6 @@ import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
 import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
-
 import java.util.List;
 
 /**
@@ -49,6 +48,7 @@ import java.util.List;
  *
  * @author <alexander_buloichik@epam.com>
  */
+@SuppressWarnings( "deprecation" )
 public abstract class ParquetInputMetaBase extends
   BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, ParquetInputField> implements ResolvableResource {
 
@@ -90,6 +90,9 @@ public abstract class ParquetInputMetaBase extends
 
     retval.append( "    " ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
     retval.append( "    <file>" ).append( Const.CR );
+    //we need the equals by size arrays for inputFiles.fileName[i], inputFiles.fileMask[i], inputFiles.fileRequired[i], inputFiles.includeSubFolders[i]
+    //to prevent the ArrayIndexOutOfBoundsException
+    inputFiles.normalizeAllocation( inputFiles.fileName.length );
     for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
       retval.append( "      " ).append( XMLHandler.addTagValue( "environment", inputFiles.environment[ i ] ) );
 
