@@ -60,15 +60,11 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   @Override
   public synchronized boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     try {
-      Object[] currentRow = getRow();
       if ( data.output == null ) {
-        if ( currentRow == null ) {
-          setOutputDone();
-          return true;
-        }
         init( getInputRowMeta() );
       }
 
+      Object[] currentRow = getRow();
       if ( currentRow != null ) {
         RowMetaAndData row = new RowMetaAndData( getInputRowMeta(), currentRow );
         data.writer.write( row );
