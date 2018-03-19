@@ -194,6 +194,7 @@
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
+        <include>org.pentaho:commons-xul-core</include>
         <include>org.pentaho.reporting.library:flute</include>
         <include>org.pentaho.reporting.library:libbase</include>
         <include>org.pentaho.reporting.library:libdocbundle</include>
@@ -239,6 +240,7 @@
         <include>xpp3:xpp3_min</include>
         <include>org.apache.kafka:kafka-clients</include>
         <include>pentaho:pentaho-metaverse-api</include>
+        <include>org.eclipse.paho:org.eclipse.paho.client.mqttv3</include>
       </includes>
     </dependencySet>
   </dependencySets>
