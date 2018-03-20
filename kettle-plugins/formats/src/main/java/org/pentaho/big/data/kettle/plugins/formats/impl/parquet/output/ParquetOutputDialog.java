@@ -220,11 +220,9 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
           ColumnInfo.COLUMN_TYPE_CCOMBO, NullableValuesEnum.getValuesArr(), true ) };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
-    List<ParquetOutputField> fields = meta.getOutputFields();
-    int nrRows = fields == null ? 0 : fields.size();
     wOutputFields =
         new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-            parameterColumns, nrRows, lsMod, props );
+            parameterColumns, 7, lsMod, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 10, 10, 10, 15, 5 );
     wOutputFields.getTable().addListener( SWT.Resize, resizer );
 
