@@ -360,6 +360,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     wNameSpace = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wNameSpace );
     new FD( wNameSpace ).left( 0, 0 ).top( wlNameSpace, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
+    wNameSpace.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.RequiredItem" ) );
 
     // Set up the RecordName Text Box
     Label wlRecordName = new Label( wAvroDetailsGroup, SWT.RIGHT );
@@ -369,6 +370,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
     wRecordName = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wRecordName );
     new FD( wRecordName ).left( 0, 0 ).top( wlRecordName, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
+    wRecordName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.RequiredItem" ) );
 
     // Set up the DocValue Text Box
     Label wlDocValue = new Label( wAvroDetailsGroup, SWT.RIGHT );
