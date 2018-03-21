@@ -361,7 +361,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
         fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
           fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
-        String filePath = selectedFile.getURL().toString();
+        String filePath = selectedFile.getName().getFriendlyURI();
         if ( !DEFAULT_LOCAL_PATH.equals( filePath ) ) {
           wPath.setText( filePath );
           updateLocation();
