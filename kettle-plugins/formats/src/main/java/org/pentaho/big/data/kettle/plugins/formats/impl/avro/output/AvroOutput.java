@@ -122,7 +122,9 @@ public class AvroOutput extends BaseStep implements StepInterface {
     data.output.setNameSpace( parentTransMeta.environmentSubstitute( meta.getNamespace() ) );
     data.output.setRecordName( parentTransMeta.environmentSubstitute( meta.getRecordName() ) );
     data.output.setDocValue( parentTransMeta.environmentSubstitute( meta.getDocValue() ) );
-    data.output.setSchemaFilename( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getSchemaFilename() ) ) );
+    if ( meta.getSchemaFilename() != null ) {
+      data.output.setSchemaFilename( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getSchemaFilename() ) ) );
+    }
     data.writer = data.output.createRecordWriter();
   }
 
