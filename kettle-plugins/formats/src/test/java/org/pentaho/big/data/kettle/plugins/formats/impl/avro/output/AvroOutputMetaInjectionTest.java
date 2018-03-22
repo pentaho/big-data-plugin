@@ -100,6 +100,16 @@ public class AvroOutputMetaInjectionTest extends BaseMetadataInjectionTest<AvroO
         return meta.isOverrideOutput();
       }
     } );
+    check( "FIELD_DECIMAL_PRECISION", new IntGetter() {
+      public int get() {
+        return meta.getOutputFields().get( 0 ).getPrecision();
+      }
+    } );
+    check( "FIELD_DECIMAL_SCALE", new IntGetter() {
+      public int get() {
+        return meta.getOutputFields().get( 0 ).getScale();
+      }
+    } );
 
 
     int supportedPdiTypes[] = {

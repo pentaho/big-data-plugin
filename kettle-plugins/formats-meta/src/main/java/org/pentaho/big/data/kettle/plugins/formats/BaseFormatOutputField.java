@@ -45,8 +45,10 @@ public class BaseFormatOutputField implements IFormatOutputField {
   @Injection( name = "FIELD_IF_NULL", group = "FIELDS" )
   protected String defaultValue;
 
+  @Injection( name = "FIELD_DECIMAL_PRECISION", group = "FIELDS" )
   protected int precision;
 
+  @Injection( name = "FIELD_DECIMAL_SCALE", group = "FIELDS" )
   protected int scale;
 
   @Override
