@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2016 by Pentaho : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -70,9 +70,9 @@ public class HadoopExitTest {
     Object[] row2 = new Object[] { 1, 0 };
     when( stepMockHelper.processRowsStepDataInterface.getInValueOrdinal() ).thenReturn( 1 );
     RowSet mockInputRowSet = stepMockHelper.getMockInputRowSet( row1, row2 );
-    hadoopExit.getInputRowSets().add( mockInputRowSet );
+    hadoopExit.addRowSetToInputRowSets( mockInputRowSet );
     RowSet outputRowSet = mock( RowSet.class );
-    hadoopExit.getOutputRowSets().add( outputRowSet );
+    hadoopExit.addRowSetToOutputRowSets( outputRowSet );
     RowMetaInterface rowMetaInterface = mock( RowMetaInterface.class );
     when( rowMetaInterface.clone() ).thenReturn( rowMetaInterface );
     when( stepMockHelper.processRowsStepDataInterface.getOutputRowMeta() ).thenReturn( rowMetaInterface );
