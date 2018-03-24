@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sun.jna.Platform;
+import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -44,8 +45,11 @@ import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.vfs.AliasedFileObject;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
@@ -498,7 +502,7 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
           cmds.add( environmentSubstitute( Joiner.on( ',' ).join( libs.keySet() ) ) );
         }
 
-        cmds.add( environmentSubstitute( jar ) );
+        cmds.add( resolvePath( environmentSubstitute( jar ) ) );
 
         break;
       }
@@ -773,5 +777,19 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
 
   @Override
   public void beforeExecution( Job arg0, JobEntryCopy arg1, JobEntryInterface arg2 ) {
+  }
+
+  private String resolvePath( String jarPath ) {
+    if ( jarPath != null && !jarPath.isEmpty() ) {
+      try {
+        FileObject fileObject = KettleVFS.getFileObject( jarPath );
+        if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
+          return  ( (AliasedFileObject) fileObject ).getOriginalURIString();
+        }
+      } catch ( KettleFileException e ) {
+        throw new RuntimeException( e );
+      }
+    }
+    return jarPath;
   }
 }
