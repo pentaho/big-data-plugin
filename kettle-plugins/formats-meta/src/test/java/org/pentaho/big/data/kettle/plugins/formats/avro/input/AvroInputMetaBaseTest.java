@@ -112,6 +112,8 @@ public class AvroInputMetaBaseTest {
     assertNotNull( meta.getXML() );
     verify( meta ).getFilename();
     verify( meta ).getSchemaFilename();
+    verify( meta ).isUseFieldAsInputStream();
+    verify( meta ).getInputStreamFieldName();
 
     verify( field ).getAvroFieldName();
     verify( field, times( 3 ) ).getPentahoFieldName();
@@ -125,6 +127,8 @@ public class AvroInputMetaBaseTest {
     meta.saveRep( rep, metaStore, id_transformation, id_step );
     verify( meta ).getFilename();
     verify( meta ).getSchemaFilename();
+    verify( meta ).isUseFieldAsInputStream();
+    verify( meta ).getInputStreamFieldName();
 
     verify( field ).getAvroFieldName();
     verify( field ).getPentahoFieldName();
@@ -139,6 +143,8 @@ public class AvroInputMetaBaseTest {
     meta.loadXML( node, databases, metaStore );
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
+    assertEquals( "StreamFieldName", meta.getInputStreamFieldName() );
+    assertEquals( true, meta.isUseFieldAsInputStream() );
 
     AvroInputField field  = meta.getInputFields()[0];
     assertEquals( "SampleName", field.getPentahoFieldName() );
@@ -150,6 +156,8 @@ public class AvroInputMetaBaseTest {
   public void testReadRepL() throws KettleException, URISyntaxException, SAXException, IOException, ParserConfigurationException {
     when( rep.getStepAttributeString( eq( id_step ), eq( "filename" ) ) ).thenReturn( "SampleFileName" );
     when( rep.getStepAttributeString( eq( id_step ), eq( "schemaFilename" ) ) ).thenReturn( "SampleSchemaFileName" );
+    when( rep.getStepAttributeString( eq( id_step ), eq(  "stream_fieldname" ) ) ).thenReturn( "StreamFieldName" );
+    when( rep.getStepAttributeBoolean( eq( id_step ), eq(  "useStreamField" ) ) ).thenReturn( true );
 
     when( rep.countNrStepAttributes( eq( id_step ), eq( "type" ) ) ).thenReturn( 1 );
 
@@ -164,6 +172,9 @@ public class AvroInputMetaBaseTest {
     meta.readRep( rep, metaStore, id_step, databases );
     assertEquals( "SampleFileName", meta.getFilename() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
+    assertEquals( "StreamFieldName", meta.getInputStreamFieldName() );
+    assertEquals( true, meta.isUseFieldAsInputStream() );
+
 
     AvroInputField field = meta.getInputFields()[0];
     assertEquals( "SampleName", field.getPentahoFieldName() );

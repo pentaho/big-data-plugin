@@ -95,8 +95,9 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
     wTabFolder.setSimple( false );
 
-    addFieldsTab( wTabFolder );
+    addFileTab( wTabFolder );
     addSchemaTab( wTabFolder );
+    addFieldsTab( wTabFolder );
 
     new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
     wTabFolder.setSelection( 0 );
@@ -280,7 +281,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       .rright().apply();
 
     wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
-    props.setLook( wbBrowse );
+    props.setLook( wbSchemaBrowse );
     wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbSchemaBrowse.addListener( SWT.Selection, event -> browseForFileInputPathForSchema() );
     int bOffset =
@@ -373,6 +374,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     meta.setFilename( wPath.getText() );
     meta.setSchemaFilename( wSchemaPath.getText() );
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
+    meta.setUseFieldAsInputStream( wbGetFileFromField.getSelection() );
+    meta.setInputStreamFieldName( wFieldNameCombo.getText() );
 
     int nrFields = wInputFields.nrNonEmpty();
     meta.inputFields = new AvroInputField[ nrFields ];
@@ -460,4 +463,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       }
     };
   }
+
+
+
 }
