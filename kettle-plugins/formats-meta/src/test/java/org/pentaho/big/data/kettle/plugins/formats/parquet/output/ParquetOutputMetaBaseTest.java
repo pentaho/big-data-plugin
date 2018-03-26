@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,5 +72,13 @@ public class ParquetOutputMetaBaseTest {
 
     metaBase.getXML();
     verify( namedClusterEmbedManager ).registerUrl( eq( "hc://HC/fileName" ) );
+  }
+
+  @Test
+  public void setCompressionType() {
+    metaBase.setCompressionType( "gzip" );
+    Assert.assertTrue( metaBase.compressionType.equals( "GZIP" ) );
+    metaBase.setCompressionType( "abc" );
+    Assert.assertTrue( metaBase.compressionType.equals( "NONE" ) );
   }
 }
