@@ -1,29 +1,32 @@
 /*! ******************************************************************************
-  *
-  * Pentaho Data Integration
-  *
-  * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
-  *
-  *******************************************************************************
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at
-  *
-  *    http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************/
+ *
+ * Pentaho Data Integration
+ *
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -32,10 +35,14 @@ import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.VerifyEvent;
@@ -53,14 +60,20 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
+import org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -68,9 +81,11 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
@@ -78,7 +93,7 @@ import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
-    implements StepDialogInterface {
+  implements StepDialogInterface {
   protected final Class<?> PKG = getClass();
   protected final Class<?> BPKG = BaseAvroStepDialog.class;
 
@@ -103,20 +118,27 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected static final String[] FILES_FILTERS = { "*.*" };
   protected static final String[] fileFilterNames =
-      new String[] { BaseMessages.getString( "System.FileType.AllFiles" ) };
+    new String[] { BaseMessages.getString( "System.FileType.AllFiles" ) };
 
   protected Image icon;
 
   protected TextVar wPath;
   protected Button wbBrowse;
+  protected Button wbGetFileFromField;
+  protected ComboVar wFieldNameCombo;
   protected VFSScheme selectedVFSScheme;
   protected CCombo wLocation;
+  protected boolean isInputStep;
+  private Map<String, Integer> incomingFields = new HashMap<String, Integer>();
 
   private static final String HDFS_SCHEME = "hdfs";
 
   public BaseAvroStepDialog( Shell parent, T in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
     meta = in;
+    if ( meta instanceof AvroInputMeta ) {
+      isInputStep = true;
+    }
   }
 
   @Override
@@ -159,11 +181,13 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     return stepname;
   }
 
-  protected void createUI(  ) {
+  protected void createUI() {
     Control prev = createHeader();
 
     //main fields
-    prev = addFileWidgets( prev );
+    if ( !isInputStep ) {
+      prev = addFileWidgets( shell, prev );
+    }
 
     createFooter( shell );
 
@@ -230,23 +254,22 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   /**
    * Read the data from the meta object and show it in this dialog.
    *
-   * @param meta
-   *          The meta object to obtain the data from.
+   * @param meta The meta object to obtain the data from.
    */
   protected abstract void getData( T meta );
 
   /**
    * Fill meta object from UI options.
    *
-   * @param meta
-   *          meta object
-   * @param preview
-   *          flag for preview or real options should be used. Currently, only one option is differ for preview - EOL
-   *          chars. It uses as "mixed" for be able to preview any file.
+   * @param meta    meta object
+   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview
+   *               - EOL
+   *                chars. It uses as "mixed" for be able to preview any file.
    */
   protected abstract void getInfo( T meta, boolean preview );
 
   protected abstract int getWidth();
+
   protected abstract int getHeight();
 
   protected abstract Listener getPreview();
@@ -298,7 +321,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   protected void addIcon( Control bottom ) {
     String stepId = meta.getParentStepMeta().getStepID();
     icon = GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
-            ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
+      ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
     Composite iconCont = new Composite( shell, SWT.NONE );
     new FD( iconCont ).top( 0, 0 ).right( 100, 0 ).bottom( bottom, -MARGIN ).width( ConstUI.ICON_SIZE ).apply();
     RowLayout iconLayout = new RowLayout( SWT.VERTICAL );
@@ -312,12 +335,12 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     props.setLook( wIcon );
   }
 
-  protected Control addFileWidgets( Control prev ) {
-    Label wlLocation = new Label( shell, SWT.RIGHT );
+  protected Control addFileWidgets( Composite parent, Control prev ) {
+    Label wlLocation = new Label( parent, SWT.RIGHT );
     wlLocation.setText( getBaseMsg( "AvroDialog.Location.Label" ) );
     props.setLook( wlLocation );
     new FD( wlLocation ).left( 0, 0 ).top( prev, MARGIN ).apply();
-    wLocation = new CCombo( shell, SWT.BORDER  | SWT.READ_ONLY  );
+    wLocation = new CCombo( parent, SWT.BORDER | SWT.READ_ONLY );
     try {
       List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
       availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
@@ -337,11 +360,11 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     wLocation.addModifyListener( lsMod );
     new FD( wLocation ).left( 0, 0 ).top( wlLocation, FIELD_LABEL_SEP ).width( FIELD_SMALL ).apply();
 
-    Label wlPath = new Label( shell, SWT.RIGHT );
+    Label wlPath = new Label( parent, SWT.RIGHT );
     wlPath.setText( getBaseMsg( "AvroDialog.Filename.Label" ) );
     props.setLook( wlPath );
     new FD( wlPath ).left( 0, 0 ).top( wLocation, FIELDS_SEP ).apply();
-    wPath = new TextVar( transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wPath = new TextVar( transMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wPath.addModifyListener( event -> {
       if ( wPreview != null ) {
         wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
@@ -351,8 +374,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     wPath.addModifyListener( lsMod );
     new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
 
-
-    wbBrowse = new Button( shell, SWT.PUSH );
+    wbBrowse = new Button( parent, SWT.PUSH );
     props.setLook( wbBrowse );
     wbBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
@@ -378,8 +400,8 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       }
 
       FileObject selectedFile =
-          fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
-              fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
+        fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
+          fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
         String filePath = selectedFile.getURL().toString();
         if ( !DEFAULT_LOCAL_PATH.equals( filePath ) ) {
@@ -475,6 +497,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
       fd.left = new FormAttachment( numerator, offset );
       return this;
     }
+
     public FD left( int numerator ) {
       return left( numerator, 0 );
     }
@@ -564,7 +587,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
           Point size = event.gc.textExtent( contents );
           int targetWidth = item.getBounds( colIdx ).width;
           int yOffset = Math.max( 0, ( event.height - size.y ) / 2 );
-            if ( size.x > targetWidth ) {
+          if ( size.x > targetWidth ) {
             contents = shortenText( event.gc, contents, targetWidth );
           }
           event.gc.drawText( contents, event.x + TABLE_ITEM_MARGIN, event.y + yOffset, true );
@@ -649,6 +672,127 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
         }
       }
     } );
+  }
+
+  /**
+   * Used only for AvroInput at the moment but here because we anticipate using for output as well at a later date.
+   * There is no MetaBase for avro so there is cast in this method to pull the step data into the ui.
+   *
+   * @param wTabFolder
+   */
+  protected void addFileTab( CTabFolder wTabFolder ) {
+    AvroInputMetaBase avroBaseMeta = (AvroInputMetaBase) meta;
+
+    // Create & Set up a new Tab Item
+    CTabItem wTab = new CTabItem( wTabFolder, SWT.NONE );
+    wTab.setText( getBaseMsg( "AvroDialog.File.TabTitle" ) );
+    Composite wTabComposite = new Composite( wTabFolder, SWT.NONE );
+    wTab.setControl( wTabComposite );
+    props.setLook( wTabComposite );
+    FormLayout formLayout = new FormLayout();
+    formLayout.marginHeight = MARGIN;
+    wTabComposite.setLayout( formLayout );
+
+    // Set up the File settings Group
+    Group wFileSettingsGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
+    props.setLook( wFileSettingsGroup );
+    wFileSettingsGroup.setText( getBaseMsg( "AvroDialog.File.FileSettingsTitle" ) );
+
+    FormLayout layout = new FormLayout();
+    layout.marginHeight = MARGIN;
+    layout.marginWidth = MARGIN;
+    wFileSettingsGroup.setLayout( layout );
+    new FD( wFileSettingsGroup ).top( 0, 0 ).right( 100, -MARGIN ).left( 0, MARGIN ).apply();
+
+    int RADIO_BUTTON_WIDTH = 150;
+    Button wbSpecifyFileName = new Button( wFileSettingsGroup, SWT.RADIO );
+    wbSpecifyFileName.setText( getBaseMsg( "AvroDialog.File.SpecifyFileName" ) );
+    props.setLook( wbSpecifyFileName );
+    new FD( wbSpecifyFileName ).left( 0, 0 ).top( 0, 0 ).width( RADIO_BUTTON_WIDTH ).apply();
+
+    wbGetFileFromField = new Button( wFileSettingsGroup, SWT.RADIO );
+    wbGetFileFromField.setText( getBaseMsg( "AvroDialog.File.GetDataFromField" ) );
+    props.setLook( wbGetFileFromField );
+    new FD( wbGetFileFromField ).left( 0, 0 ).top( wbSpecifyFileName, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH ).apply();
+
+    //Make a composite to hold the dynamic right side of the group
+    Composite wFileSettingsDynamicArea = new Composite( wFileSettingsGroup, SWT.NONE );
+    props.setLook( wFileSettingsDynamicArea );
+    FormLayout fileSettingsDynamicAreaLayout = new FormLayout();
+    wFileSettingsDynamicArea.setLayout( fileSettingsDynamicAreaLayout );
+    new FD( wFileSettingsDynamicArea ).right( 100, 0 ).left( wbSpecifyFileName, 10 ).top( 0, -MARGIN ).apply();
+
+    //Put the File selection stuff in it
+    Composite wFileSetting = new Composite( wFileSettingsDynamicArea, SWT.NONE );
+    FormLayout fileSettingLayout = new FormLayout();
+    wFileSetting.setLayout( fileSettingLayout );
+    new FD( wFileSetting ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + 2 * MARGIN ).top( 0, 0 ).apply();
+    addFileWidgets( wFileSetting, wFileSetting );
+
+    //Setup StreamingFieldName
+    Composite wCompStreamFieldName = new Composite( wFileSettingsDynamicArea, SWT.NONE );
+    props.setLook( wCompStreamFieldName );
+    FormLayout fieldNameLayout = new FormLayout();
+    fieldNameLayout.marginHeight = MARGIN;
+    wCompStreamFieldName.setLayout( fieldNameLayout );
+    new FD( wCompStreamFieldName ).left( 0, 0 ).top( 0, 0 ).apply();
+
+    Label fieldNameLabel = new Label( wCompStreamFieldName, SWT.NONE );
+    fieldNameLabel.setText( getBaseMsg( "AvroDialog.FieldName.Label" ) );
+    props.setLook( fieldNameLabel );
+    new FD( fieldNameLabel ).left( 0, 0 ).top( wCompStreamFieldName, 0 ).apply();
+    wFieldNameCombo = new ComboVar( transMeta, wCompStreamFieldName, SWT.LEFT | SWT.BORDER );
+    updateIncomingFieldList( wFieldNameCombo );
+    new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH )
+      .apply();
+
+    //Setup the radio button event handler
+    SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
+      @Override
+      public void widgetSelected( SelectionEvent e ) {
+        wFileSetting.setVisible( !wbGetFileFromField.getSelection() );
+        wCompStreamFieldName.setVisible( wbGetFileFromField.getSelection() );
+      }
+    };
+    wbSpecifyFileName.addSelectionListener( fileSettingRadioSelectionAdapter );
+    wbGetFileFromField.addSelectionListener( fileSettingRadioSelectionAdapter );
+
+    //Set widgets from Meta
+    wbSpecifyFileName.setSelection( !avroBaseMeta.isUseFieldAsInputStream() );
+    wbGetFileFromField.setSelection( avroBaseMeta.isUseFieldAsInputStream() );
+    fileSettingRadioSelectionAdapter.widgetSelected( null );
+    wFieldNameCombo
+      .setText( avroBaseMeta.getInputStreamFieldName() == null ? "" : avroBaseMeta.getInputStreamFieldName() );
+
+  }
+
+  private void updateIncomingFieldList( ComboVar comboVar ) {
+    // Search the fields in the background
+    StepMeta stepMeta = transMeta.findStep( stepname );
+    if ( stepMeta != null ) {
+      try {
+        RowMetaInterface row = transMeta.getPrevStepFields( stepMeta );
+        incomingFields.clear();
+        // Remember these fields...
+        for ( int i = 0; i < row.size(); i++ ) {
+          incomingFields.put( row.getValueMeta( i ).getName(), Integer.valueOf( i ) );
+        }
+        final Map<String, Integer> fields = new HashMap<String, Integer>();
+
+        // Add the currentMeta fields...
+        fields.putAll( incomingFields );
+
+        Set<String> keySet = fields.keySet();
+        List<String> entries = new ArrayList<String>( keySet );
+
+        String[] fieldNames = entries.toArray( new String[ entries.size() ] );
+
+        Const.sortStrings( fieldNames );
+        comboVar.setItems( fieldNames );
+      } catch ( KettleException e ) {
+        logError( getBaseMsg( "System.Dialog.GetFieldsFailed.Message" ) );
+      }
+    }
   }
 
 }

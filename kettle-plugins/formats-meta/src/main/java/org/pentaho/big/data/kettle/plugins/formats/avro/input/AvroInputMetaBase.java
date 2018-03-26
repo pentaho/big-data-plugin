@@ -60,6 +60,12 @@ public abstract class AvroInputMetaBase extends
   @Injection( name = "SCHEMA_FILENAME" )
   protected String schemaFilename;
 
+  @Injection( name = "STREAM_FIELDNAME" )
+  protected String inputStreamFieldName;
+
+  @Injection( name = "USE_INPUT_STREAM" )
+  protected boolean useFieldAsInputStream;
+
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
@@ -120,6 +126,9 @@ public abstract class AvroInputMetaBase extends
       String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
       inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
       filename = XMLHandler.getTagValue( stepnode, "filename" );
+      useFieldAsInputStream = ValueMetaBase.convertStringToBoolean(
+        XMLHandler.getTagValue( stepnode, "useStreamField" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "useStreamField" ) );
+      inputStreamFieldName = XMLHandler.getTagValue( stepnode, "stream_fieldname" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
       this.inputFields = new AvroInputField[ nrfields];
@@ -145,6 +154,8 @@ public abstract class AvroInputMetaBase extends
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "useStreamField", isUseFieldAsInputStream() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "stream_fieldname", getInputStreamFieldName() ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < inputFields.length; i++ ) {
@@ -174,6 +185,8 @@ public abstract class AvroInputMetaBase extends
 
       inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
       filename = rep.getStepAttributeString( id_step, "filename" );
+      useFieldAsInputStream = rep.getStepAttributeBoolean( id_step, "useStreamField" );
+      inputStreamFieldName = rep.getStepAttributeString( id_step, "stream_fieldname" );
 
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
@@ -199,6 +212,9 @@ public abstract class AvroInputMetaBase extends
     try {
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
       rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
+      rep.saveStepAttribute( id_transformation, id_step, "useStreamField", isUseFieldAsInputStream() );
+      rep.saveStepAttribute( id_transformation, id_step, "stream_fieldname", getInputStreamFieldName() );
+
       for ( int i = 0; i < inputFields.length; i++ ) {
         AvroInputField field = inputFields[ i ];
 
@@ -251,4 +267,19 @@ public abstract class AvroInputMetaBase extends
     this.schemaFilename = schemaFilename;
   }
 
+  public String getInputStreamFieldName() {
+    return inputStreamFieldName;
+  }
+
+  public void setInputStreamFieldName( String inputStreamFieldName ) {
+    this.inputStreamFieldName = inputStreamFieldName;
+  }
+
+  public boolean isUseFieldAsInputStream() {
+    return useFieldAsInputStream;
+  }
+
+  public void setUseFieldAsInputStream( boolean useFieldAsInputStream ) {
+    this.useFieldAsInputStream = useFieldAsInputStream;
+  }
 }

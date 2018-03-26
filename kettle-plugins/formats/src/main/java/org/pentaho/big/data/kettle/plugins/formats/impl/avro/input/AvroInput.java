@@ -39,6 +39,7 @@ import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -73,6 +74,16 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
         data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
         data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
         data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
+        if ( meta.isUseFieldAsInputStream() ) {
+          data.input.setInputStreamFieldName( meta.getInputStreamFieldName() );
+          Object[] inputToStepRow = getRow();
+
+          int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
+          if ( fieldIndex == -1 ) {
+            throw new KettleException( "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
+          }
+          data.input.setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+        }
         data.reader = data.input.createRecordReader( null );
         data.rowIterator = data.reader.iterator();
       }

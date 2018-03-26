@@ -11,6 +11,8 @@
     </partitioning>
     <passing_through_fields>N</passing_through_fields>
     <filename>SampleFileName</filename>
+    <useStreamField>Y</useStreamField>
+    <stream_fieldname>StreamFieldName</stream_fieldname>
     <fields>
       <field>
         <path>SamplePath</path>
