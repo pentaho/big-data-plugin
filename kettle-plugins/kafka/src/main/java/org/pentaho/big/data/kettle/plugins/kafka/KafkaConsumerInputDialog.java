@@ -304,15 +304,6 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     fieldsLayout.marginWidth = 15;
     wOptionsComp.setLayout( fieldsLayout );
 
-    Label optionsLabel = new Label( wOptionsComp, SWT.LEFT );
-    props.setLook( optionsLabel );
-    optionsLabel.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OptionsLabel" ) );
-    FormData fdlOptions = new FormData();
-    fdlOptions.left = new FormAttachment( 0, 0 );
-    fdlOptions.top = new FormAttachment( 0, 0 );
-    fdlOptions.right = new FormAttachment( 50, 0 );
-    optionsLabel.setLayoutData( fdlOptions );
-
     FormData optionsFormData = new FormData();
     optionsFormData.left = new FormAttachment( 0, 0 );
     optionsFormData.top = new FormAttachment( wOptionsComp, 0 );
@@ -320,7 +311,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     optionsFormData.bottom = new FormAttachment( 100, 0 );
     wOptionsComp.setLayoutData( optionsFormData );
 
-    buildOptionsTable( wOptionsComp, optionsLabel );
+    buildOptionsTable( wOptionsComp );
 
     wOptionsComp.layout();
     wOptionsTab.setControl( wOptionsComp );
@@ -371,7 +362,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     fieldsTable.setLayoutData( fdData );
   }
 
-  private void buildOptionsTable( Composite parentWidget, Control relativePosition ) {
+  private void buildOptionsTable( Composite parentWidget ) {
     ColumnInfo[] columns = getOptionsColumns();
 
     if ( consumerMeta.getConfig().size() == 0 ) {
@@ -408,7 +399,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     FormData fdData = new FormData();
     fdData.left = new FormAttachment( 0, 0 );
-    fdData.top = new FormAttachment( relativePosition, 5 );
+    fdData.top = new FormAttachment( 0, 0 );
     fdData.right = new FormAttachment( 100, 0 );
     fdData.bottom = new FormAttachment( 100, 0 );
 
