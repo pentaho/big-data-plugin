@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -32,4 +32,14 @@ import org.pentaho.di.trans.steps.file.BaseFileInputFiles;
 public class FormatInputFile extends BaseFileInputFiles {
 
   public String[] environment = {};
+
+  /**
+   * we need to reallocate {@link #environment} too since it can have other length
+   */
+  @Override
+  public void normalizeAllocation( int length ) {
+    super.normalizeAllocation( length );
+    environment = normalizeAllocation( environment, length );
+  }
+
 }

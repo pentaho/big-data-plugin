@@ -25,10 +25,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -47,10 +50,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
@@ -58,6 +63,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
@@ -86,22 +92,37 @@ public class AvroInputMetaBaseTest {
 
   private AvroInputMetaBase meta;
 
+  private static final String FILE_NAME_VALID_PATH = "path/to/file";
+
+  private VariableSpace variableSpace;
+
   @Before
   public void setUp() throws KettlePluginException {
     when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     meta = spy( new AvroInputMetaBase() {
-
       @Override
       public StepDataInterface getStepData() {
         return null;
       }
-
       @Override
-      public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-          Trans trans ) {
+      public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans ) {
         return null;
       }
     } );
+
+    NamedClusterEmbedManager  manager = mock( NamedClusterEmbedManager.class );
+
+    TransMeta parentTransMeta = mock( TransMeta.class );
+    doReturn( manager ).when( parentTransMeta ).getNamedClusterEmbedManager();
+
+    StepMeta parentStepMeta = mock( StepMeta.class );
+    doReturn( parentTransMeta ).when( parentStepMeta ).getParentTransMeta();
+
+    meta.setParentStepMeta( parentStepMeta );
+    variableSpace = mock( VariableSpace.class );
+
+    doReturn( "<def>" ).when( variableSpace ).environmentSubstitute( anyString() );
+    doReturn( FILE_NAME_VALID_PATH ).when( variableSpace ).environmentSubstitute( FILE_NAME_VALID_PATH );
   }
 
   @Test
@@ -118,6 +139,21 @@ public class AvroInputMetaBaseTest {
     verify( field ).getAvroFieldName();
     verify( field, times( 3 ) ).getPentahoFieldName();
     verify( field ).getTypeDesc();
+  }
+
+  @Test
+  public void testGetXmlWorksIfWeUpdateOnlyPartOfInputFilesInformation() throws Exception {
+    meta.inputFiles = new FormatInputFile();
+    meta.inputFiles.fileName = new String[] { FILE_NAME_VALID_PATH };
+
+    meta.getXML();
+
+    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.fileMask.length );
+    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.excludeFileMask.length );
+    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.fileRequired.length );
+    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.includeSubFolders.length );
+    //specific for bigdata format
+    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.environment.length );
   }
 
   @Test
