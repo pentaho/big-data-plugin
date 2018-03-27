@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,7 +43,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
@@ -468,15 +467,6 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fieldsLayout.marginWidth = 15;
     wOptionsComp.setLayout( fieldsLayout );
 
-    Label optionsLabel = new Label( wOptionsComp, SWT.LEFT );
-    props.setLook( optionsLabel );
-    optionsLabel.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Label" ) );
-    FormData fdlOptions = new FormData();
-    fdlOptions.left = new FormAttachment( 0, 0 );
-    fdlOptions.top = new FormAttachment( 0, 0 );
-    fdlOptions.right = new FormAttachment( 50, 0 );
-    optionsLabel.setLayoutData( fdlOptions );
-
     FormData optionsFormData = new FormData();
     optionsFormData.left = new FormAttachment( 0, 0 );
     optionsFormData.top = new FormAttachment( wOptionsComp, 0 );
@@ -484,13 +474,13 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     optionsFormData.bottom = new FormAttachment( 100, 0 );
     wOptionsComp.setLayoutData( optionsFormData );
 
-    buildOptionsTable( wOptionsComp, optionsLabel );
+    buildOptionsTable( wOptionsComp );
 
     wOptionsComp.layout();
     wOptionsTab.setControl( wOptionsComp );
   }
 
-  private void buildOptionsTable( Composite parentWidget, Control relativePosition ) {
+  private void buildOptionsTable( Composite parentWidget ) {
     ColumnInfo[] columns = getOptionsColumns();
 
     if ( meta.getConfig().size() == 0 ) {
@@ -527,7 +517,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
 
     FormData fdData = new FormData();
     fdData.left = new FormAttachment( 0, 0 );
-    fdData.top = new FormAttachment( relativePosition, 5 );
+    fdData.top = new FormAttachment( 0, 0 );
     fdData.right = new FormAttachment( 100, 0 );
     fdData.bottom = new FormAttachment( 100, 0 );
 
