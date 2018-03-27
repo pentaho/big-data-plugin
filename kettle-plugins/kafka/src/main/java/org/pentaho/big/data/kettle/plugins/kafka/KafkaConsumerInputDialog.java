@@ -527,7 +527,6 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       lsMod,
       props,
       false,
-      true,
       lsFocusInTopic
     );
 
