@@ -83,6 +83,7 @@ import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlank
 public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobEntryInterface, JobEntryListener {
   public static final String JOB_TYPE_JAVA_SCALA = "Java or Scala";
   public static final String JOB_TYPE_PYTHON = "Python";
+  public static final String HADOOP_CLUSTER_PREFIX = "hc://";
 
   private static Class<?> PKG = JobEntrySparkSubmit.class; // for i18n purposes, needed by Translator2!!
 
@@ -522,6 +523,9 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
       List<String> argArray = parseCommandLine( args );
       for ( String anArg : argArray ) {
         if ( !Const.isEmpty( anArg ) ) {
+          if ( anArg.startsWith( HADOOP_CLUSTER_PREFIX ) ) {
+            anArg = resolvePath( environmentSubstitute( anArg ) );
+          }
           cmds.add( anArg );
         }
       }
@@ -779,10 +783,10 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
   public void beforeExecution( Job arg0, JobEntryCopy arg1, JobEntryInterface arg2 ) {
   }
 
-  private String resolvePath( String jarPath ) {
-    if ( jarPath != null && !jarPath.isEmpty() ) {
+  private String resolvePath( String path ) {
+    if ( path != null && !path.isEmpty() ) {
       try {
-        FileObject fileObject = KettleVFS.getFileObject( jarPath );
+        FileObject fileObject = KettleVFS.getFileObject( path );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
           return  ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
@@ -790,6 +794,6 @@ public class JobEntrySparkSubmit extends JobEntryBase implements Cloneable, JobE
         throw new RuntimeException( e );
       }
     }
-    return jarPath;
+    return path;
   }
 }
