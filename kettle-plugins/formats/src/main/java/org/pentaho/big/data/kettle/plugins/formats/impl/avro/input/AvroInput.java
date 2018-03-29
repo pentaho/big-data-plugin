@@ -40,11 +40,13 @@ import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   public static long SPLIT_SIZE = 128 * 1024 * 1024;
+  private Object[] inputToStepRow;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
@@ -58,51 +60,81 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     meta = (AvroInputMeta) smi;
     data = (AvroInputData) sdi;
-    try {
-      if ( data.input == null || data.reader == null || data.rowIterator == null ) {
-        FormatService formatService;
-        try {
-          formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
-        } catch ( ClusterInitializationException e ) {
-          throw new KettleException( "can't get service format shim ", e );
-        }
-        if ( meta.getFilename() == null ) {
-          throw new KettleException( "No output files defined" );
-        }
 
-        data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-        data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
-        data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
-        data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
-        if ( meta.isUseFieldAsInputStream() ) {
-          data.input.setInputStreamFieldName( meta.getInputStreamFieldName() );
-          Object[] inputToStepRow = getRow();
-
-          int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
-          if ( fieldIndex == -1 ) {
-            throw new KettleException( "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
+    do {
+      try {
+        if ( data.input == null || data.reader == null || data.rowIterator == null ) {
+          FormatService formatService;
+          try {
+            formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+            inputToStepRow = getRow();
+            if ( inputToStepRow == null && meta.isUseFieldAsInputStream() ) {
+              fileFinishedHousekeeping();
+              break; //We have processed all rows streaming in
+            }
+          } catch ( ClusterInitializationException e ) {
+            throw new KettleException( "can't get service format shim ", e );
           }
-          data.input.setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+          if ( meta.getFilename() == null ) {
+            throw new KettleException( "No output files defined" );
+          }
+
+          data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+          data.input
+            .setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+          data.input.setInputSchemaFile(
+            meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
+          data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
+          if ( meta.isUseFieldAsInputStream() ) {
+            data.input.setInputStreamFieldName( meta.getInputStreamFieldName() );
+            int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
+            if ( fieldIndex == -1 ) {
+              throw new KettleException(
+                "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
+            }
+
+            data.input
+              .setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+          }
+          data.reader = data.input.createRecordReader( null );
+          data.rowIterator = data.reader.iterator();
         }
-        data.reader = data.input.createRecordReader( null );
-        data.rowIterator = data.reader.iterator();
+        if ( data.rowIterator.hasNext() ) {
+          RowMetaAndData row = data.rowIterator.next();
+
+          //Merge the incoming avro data row with the fields that entered the AvroInputStep, if any
+          if ( getInputRowMeta() != null && inputToStepRow != null ) {
+            row.mergeRowMetaAndData( new RowMetaAndData( getInputRowMeta(), inputToStepRow ), null );
+          }
+
+          putRow( row.getRowMeta(), row.getData() );
+          return true;
+        }
+        //Finished with Avro file
+        fileFinishedHousekeeping();
+
+      } catch ( KettleException ex ) {
+        throw ex;
+      } catch ( Exception ex ) {
+        throw new KettleException( ex );
       }
-      if ( data.rowIterator.hasNext() ) {
-        RowMetaAndData row = data.rowIterator.next();
-        putRow( row.getRowMeta(), row.getData() );
-        return true;
-      } else {
+
+    } while ( meta.isUseFieldAsInputStream() );
+
+    setOutputDone();
+    return false;
+  }
+
+  private void fileFinishedHousekeeping() {
+    try {
+      if ( data.reader != null ) {
         data.reader.close();
-        data.reader = null;
-        data.input = null;
-        setOutputDone();
-        return false;
       }
-    } catch ( KettleException ex ) {
-      throw ex;
-    } catch ( Exception ex ) {
-      throw new KettleException( ex );
+    } catch ( IOException e ) {
+      //Don't care if we can't close
     }
+    data.reader = null;
+    data.input = null;
   }
 
   @Override
