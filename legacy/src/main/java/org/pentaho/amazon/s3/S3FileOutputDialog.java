@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,13 +22,8 @@
 
 package org.pentaho.amazon.s3;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.amazonaws.auth.AWSCredentials;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -89,6 +84,13 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInterface {
   private static Class<?> BASE_PKG = TextFileOutputMeta.class; // for i18n purposes, needed by Translator2!! $NON-NLS-1$
@@ -225,6 +227,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   private Button wSpecifyFormat;
   private FormData fdlSpecifyFormat, fdSpecifyFormat;
 
+  private Label wlUseAwsDefaultCredentials;
+  private Button wUseAwsDefaultCredentials;
+  private FormData fdlUseAwsDefaultCredentials, fdUseAwsDefaultCredentials;
+
   private ColumnInfo[] colinf;
 
   private Map<String, Integer> inputFields;
@@ -340,13 +346,38 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fdSecretKey.right = new FormAttachment( 100, 0 );
     wSecretKey.setLayoutData( fdSecretKey );
 
+    wlUseAwsDefaultCredentials = new Label( wFileComp, SWT.RIGHT );
+    wlUseAwsDefaultCredentials
+      .setText( BaseMessages.getString( PKG, "S3FileOutputDialog.GetCredentialsAtRuntime.Label" ) );
+    props.setLook( wlUseAwsDefaultCredentials );
+    fdlUseAwsDefaultCredentials = new FormData();
+    fdlUseAwsDefaultCredentials.left = new FormAttachment( 0, 0 );
+    fdlUseAwsDefaultCredentials.top = new FormAttachment( wSecretKey, margin );
+    fdlUseAwsDefaultCredentials.right = new FormAttachment( middle, -margin );
+    wlUseAwsDefaultCredentials.setLayoutData( fdlUseAwsDefaultCredentials );
+    wUseAwsDefaultCredentials = new Button( wFileComp, SWT.CHECK );
+    props.setLook( wUseAwsDefaultCredentials );
+    wUseAwsDefaultCredentials
+      .setToolTipText( BaseMessages.getString( PKG, "S3FileOutputDialog.GetCredentialsAtRuntime.Tooltip" ) );
+    fdUseAwsDefaultCredentials = new FormData();
+    fdUseAwsDefaultCredentials.left = new FormAttachment( middle, 0 );
+    fdUseAwsDefaultCredentials.top = new FormAttachment( wSecretKey, margin );
+    fdUseAwsDefaultCredentials.right = new FormAttachment( 100, 0 );
+    wUseAwsDefaultCredentials.setLayoutData( fdUseAwsDefaultCredentials );
+    wUseAwsDefaultCredentials.addSelectionListener( new SelectionAdapter() {
+      @Override
+      public void widgetSelected( SelectionEvent e ) {
+        input.setChanged();
+      }
+    } );
+
     // Filename line
     wlFilename = new Label( wFileComp, SWT.RIGHT );
     wlFilename.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Filename.Label" ) );
     props.setLook( wlFilename );
     fdlFilename = new FormData();
     fdlFilename.left = new FormAttachment( 0, 0 );
-    fdlFilename.top = new FormAttachment( wSecretKey, margin );
+    fdlFilename.top = new FormAttachment( wUseAwsDefaultCredentials, margin );
     fdlFilename.right = new FormAttachment( middle, -margin );
     wlFilename.setLayoutData( fdlFilename );
 
@@ -355,22 +386,23 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbFilename.setText( BaseMessages.getString( BASE_PKG, "System.Button.Browse" ) );
     fdbFilename = new FormData();
     fdbFilename.right = new FormAttachment( 100, 0 );
-    fdbFilename.top = new FormAttachment( wSecretKey, margin );
+    fdbFilename.top = new FormAttachment( wUseAwsDefaultCredentials, margin );
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wFilename.setText( "s3://s3/" );
     props.setLook( wFilename );
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
     fdFilename.left = new FormAttachment( middle, 0 );
-    fdFilename.top = new FormAttachment( wSecretKey, margin );
+    fdFilename.top = new FormAttachment( wUseAwsDefaultCredentials, margin );
     fdFilename.right = new FormAttachment( wbFilename, -margin );
     wFilename.setLayoutData( fdFilename );
 
     // Open new File at Init
     wlDoNotOpenNewFileInit = new Label( wFileComp, SWT.RIGHT );
     wlDoNotOpenNewFileInit.setText( BaseMessages
-        .getString( BASE_PKG, "TextFileOutputDialog.DoNotOpenNewFileInit.Label" ) );
+      .getString( BASE_PKG, "TextFileOutputDialog.DoNotOpenNewFileInit.Label" ) );
     props.setLook( wlDoNotOpenNewFileInit );
     fdlDoNotOpenNewFileInit = new FormData();
     fdlDoNotOpenNewFileInit.left = new FormAttachment( 0, 0 );
@@ -379,7 +411,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wlDoNotOpenNewFileInit.setLayoutData( fdlDoNotOpenNewFileInit );
     wDoNotOpenNewFileInit = new Button( wFileComp, SWT.CHECK );
     wDoNotOpenNewFileInit.setToolTipText( BaseMessages.getString( BASE_PKG,
-        "TextFileOutputDialog.DoNotOpenNewFileInit.Tooltip" ) );
+      "TextFileOutputDialog.DoNotOpenNewFileInit.Tooltip" ) );
     props.setLook( wDoNotOpenNewFileInit );
     fdDoNotOpenNewFileInit = new FormData();
     fdDoNotOpenNewFileInit.left = new FormAttachment( middle, 0 );
@@ -420,7 +452,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     // FileNameField Line
     wlFileNameField = new Label( wFileComp, SWT.RIGHT );
-    wlFileNameField.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FileNameField.Label" ) ); //$NON-NLS-1$
+    wlFileNameField
+      .setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FileNameField.Label" ) ); //$NON-NLS-1$
     props.setLook( wlFileNameField );
     fdlFileNameField = new FormData();
     fdlFileNameField.left = new FormAttachment( 0, 0 );
@@ -609,7 +642,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wDateTimeFormat.setLayoutData( fdDateTimeFormat );
     String[] dats = Const.getDateFormats();
     for ( int x = 0; x < dats.length; x++ ) {
-      wDateTimeFormat.add( dats[x] );
+      wDateTimeFormat.add( dats[ x ] );
     }
 
     wbShowFiles = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
@@ -627,9 +660,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
         String[] files = tfoi.getFiles( transMeta );
         if ( files != null && files.length > 0 ) {
           EnterSelectionDialog esd =
-              new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
-                  "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                    "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
+            new EnterSelectionDialog( shell, files, BaseMessages.getString( BASE_PKG,
+              "TextFileOutputDialog.SelectOutputFiles.DialogTitle" ), BaseMessages.getString( BASE_PKG,
+              "TextFileOutputDialog.SelectOutputFiles.DialogMessage" ) );
           esd.setViewOnly();
           esd.open();
         } else {
@@ -848,7 +881,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
     for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
       wFormat.add( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Format."
-        + TextFileOutputMeta.formatMapperLineTerminator[i] ) );
+        + TextFileOutputMeta.formatMapperLineTerminator[ i ] ) );
     }
     wFormat.select( 0 );
     wFormat.addModifyListener( lsMod );
@@ -1032,49 +1065,49 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     // Prepare a list of possible formats...
     String[] nums = Const.getNumberFormats();
     int totsize = dats.length + nums.length;
-    String[] formats = new String[totsize];
+    String[] formats = new String[ totsize ];
     for ( int x = 0; x < dats.length; x++ ) {
-      formats[x] = dats[x];
+      formats[ x ] = dats[ x ];
     }
     for ( int x = 0; x < nums.length; x++ ) {
-      formats[dats.length + x] = nums[x];
+      formats[ dats.length + x ] = nums[ x ];
     }
 
-    colinf = new ColumnInfo[FieldsCols];
-    colinf[0] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NameColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
-    colinf[1] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TypeColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
-    colinf[2] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FormatColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, formats );
-    colinf[3] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.LengthColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[4] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.PrecisionColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[5] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.CurrencyColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[6] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.DecimalColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[7] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.GroupColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false );
-    colinf[8] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TrimTypeColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaString.trimTypeDesc, true );
-    colinf[9] =
-        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NullColumn.Column" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf = new ColumnInfo[ FieldsCols ];
+    colinf[ 0 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NameColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { "" }, false );
+    colinf[ 1 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TypeColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
+    colinf[ 2 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FormatColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_CCOMBO, formats );
+    colinf[ 3 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.LengthColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[ 4 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.PrecisionColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[ 5 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.CurrencyColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[ 6 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.DecimalColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[ 7 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.GroupColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false );
+    colinf[ 8 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.TrimTypeColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaString.trimTypeDesc, true );
+    colinf[ 9 ] =
+      new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.NullColumn.Column" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false );
 
     wFields =
-        new TableView( transMeta, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod,
-            props );
+      new TableView( transMeta, wFieldsComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod,
+        props );
 
     fdFields = new FormData();
     fdFields.left = new FormAttachment( 0, 0 );
@@ -1190,13 +1223,17 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
           // Setup file type filtering
           String[] fileFilters = new String[] { "*.txt", "*.csv", "*" };
           String[] fileFilterNames =
-              new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                  BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+            new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
+              BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+              BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+
+          if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
+            wFilename.setText( "s3://s3/" );
+          }
 
           FileObject selectedFile =
-              getFileChooserHelper().browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),
-                  VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
+            getFileChooserHelper().browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),
+              VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
           if ( selectedFile != null ) {
             String filename = selectedFile.getName().getURI();
             String extension = wExtension.getText();
@@ -1309,10 +1346,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     Set<String> keySet = fields.keySet();
     List<String> entries = new ArrayList<String>( keySet );
 
-    String[] fieldNames = entries.toArray( new String[entries.size()] );
+    String[] fieldNames = entries.toArray( new String[ entries.size() ] );
 
     Const.sortStrings( fieldNames );
-    colinf[0].setComboValues( fieldNames );
+    colinf[ 0 ].setComboValues( fieldNames );
   }
 
   private void setDateTimeFormat() {
@@ -1363,8 +1400,8 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
         }
       } catch ( KettleException ke ) {
         new ErrorDialog( shell,
-            BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogTitle" ), BaseMessages
-                .getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogMessage" ), ke );
+          BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogTitle" ), BaseMessages
+          .getString( BASE_PKG, "TextFileOutputDialog.FailedToGetFields.DialogMessage" ), ke );
       }
       gotPreviousFields = true;
     }
@@ -1390,7 +1427,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     if ( input.getFileFormat() != null ) {
       wFormat.select( 0 ); // default if not found: CR+LF
       for ( int i = 0; i < TextFileOutputMeta.formatMapperLineTerminator.length; i++ ) {
-        if ( input.getFileFormat().equalsIgnoreCase( TextFileOutputMeta.formatMapperLineTerminator[i] ) ) {
+        if ( input.getFileFormat().equalsIgnoreCase( TextFileOutputMeta.formatMapperLineTerminator[ i ] ) ) {
           wFormat.select( i );
         }
       }
@@ -1417,6 +1454,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       wSecretKey.setText( input.getSecretKey() );
     }
 
+    wUseAwsDefaultCredentials.setSelection( input.getUseAwsDefaultCredentials() );
     wSplitEvery.setText( "" + input.getSplitEvery() );
 
     wEnclForced.setSelection( input.isEnclosureForced() );
@@ -1439,7 +1477,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     logDebug( "getting fields info..." );
 
     for ( int i = 0; i < input.getOutputFields().length; i++ ) {
-      TextFileField field = input.getOutputFields()[i];
+      TextFileField field = input.getOutputFields()[ i ];
 
       TableItem item = wFields.table.getItem( i );
       if ( field.getName() != null ) {
@@ -1489,10 +1527,16 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   private void getInfo( S3FileOutputMeta tfoi ) {
     tfoi.setAccessKey( wAccessKey.getText() );
     tfoi.setSecretKey( wSecretKey.getText() );
+    tfoi.setUseAwsDefaultCredentials( wUseAwsDefaultCredentials.getSelection() );
+
+    if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
+      wFilename.setText( "s3://s3/" );
+    }
+
     tfoi.setFileName( wFilename.getText() );
     tfoi.setFileAsCommand( false );
     tfoi.setDoNotOpenNewFileInit( wDoNotOpenNewFileInit.getSelection() );
-    tfoi.setFileFormat( TextFileOutputMeta.formatMapperLineTerminator[wFormat.getSelectionIndex()] );
+    tfoi.setFileFormat( TextFileOutputMeta.formatMapperLineTerminator[ wFormat.getSelectionIndex() ] );
     tfoi.setFileCompression( wCompression.getText() );
     tfoi.setEncoding( wEncoding.getText() );
     tfoi.setSeparator( wSeparator.getText() );
@@ -1539,7 +1583,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       field.setGroupingSymbol( item.getText( 8 ) );
       field.setTrimType( ValueMetaString.getTrimTypeByDesc( item.getText( 9 ) ) );
       field.setNullString( item.getText( 10 ) );
-      ( tfoi.getOutputFields() )[i] = field;
+      ( tfoi.getOutputFields() )[ i ] = field;
     }
   }
 
@@ -1591,7 +1635,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
-          .getString( BASE_PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
+        .getString( BASE_PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
     }
 
   }
@@ -1627,7 +1671,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     }
 
     for ( int i = 0; i < input.getOutputFields().length; i++ ) {
-      input.getOutputFields()[i].setTrimType( ValueMetaInterface.TRIM_TYPE_BOTH );
+      input.getOutputFields()[ i ].setTrimType( ValueMetaInterface.TRIM_TYPE_BOTH );
     }
 
     wFields.optWidth( true );
@@ -1651,7 +1695,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
 
       VfsFileChooserDialog fileChooserDialog =
-          Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
+        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
@@ -1663,13 +1707,10 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   protected FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
-
-    if ( !Const.isEmpty( wAccessKey.getText() ) || !Const.isEmpty( wSecretKey.getText() ) ) {
-      // create a FileSystemOptions with user & password
+    AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
+    if ( credentials != null ) {
       StaticUserAuthenticator userAuthenticator =
-          new StaticUserAuthenticator( null, getVariableSpace().environmentSubstitute( wAccessKey.getText() ),
-              getVariableSpace().environmentSubstitute( wSecretKey.getText() ) );
-
+        new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
     }
     return opts;

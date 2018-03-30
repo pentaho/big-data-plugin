@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -56,6 +56,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   private static final String ACCESS_KEY_TAG = "access_key";
   private static final String SECRET_KEY_TAG = "secret_key";
+  private static final String USE_AWS_DEFAULT_CREDENTIALS = "use_aws_default_credentials";
   private static final String FILE_TAG = "file";
   private static final String NAME_TAG = "name";
 
@@ -63,9 +64,12 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   @Injection( name = "AWS_ACCESS_KEY" )
   private String accessKey = null;
-  
+
   @Injection( name = "AWS_SECRET_KEY" )
   private String secretKey = null;
+
+  @Injection( name = "USE_AWS_DEFAULT_CREDENTIALS" )
+  private boolean useAwsDefaultCredentials;
 
   public String getAccessKey() {
     return accessKey;
@@ -83,6 +87,14 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     this.secretKey = secretKey;
   }
 
+  public void setUseAwsDefaultCredentials( boolean useDefaultAwsCredentials ) {
+    this.useAwsDefaultCredentials = useDefaultAwsCredentials;
+  }
+
+  public boolean getUseAwsDefaultCredentials() {
+    return useAwsDefaultCredentials;
+  }
+
   @Override
   public void setDefault() {
     // call the base classes method
@@ -90,7 +102,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
     // now set the default for the
     // filename to an empty string
-    setFileName( "" );
+    setFileName( "s3://s3/" );
   }
 
   @Override
@@ -102,6 +114,8 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
         XMLHandler.addTagValue( ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
     retval.append( "      " ).append(
         XMLHandler.addTagValue( SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
+    retval.append( "      " ).append(
+      XMLHandler.addTagValue( USE_AWS_DEFAULT_CREDENTIALS, useAwsDefaultCredentials ) );
 
     return retval.toString();
   }
@@ -115,6 +129,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
           .encryptPasswordIfNotUsingVariables( accessKey ) );
       rep.saveStepAttribute( id_transformation, id_step, SECRET_KEY_TAG, Encr
           .encryptPasswordIfNotUsingVariables( secretKey ) );
+      rep.saveStepAttribute( id_transformation, id_step, USE_AWS_DEFAULT_CREDENTIALS, useAwsDefaultCredentials );
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
@@ -127,6 +142,12 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
       super.readRep( rep, metaStore, id_step, databases );
       setAccessKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, ACCESS_KEY_TAG ) ) );
       setSecretKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, SECRET_KEY_TAG ) ) );
+      String useDefaultAwsCredentials = rep.getStepAttributeString( id_step, USE_AWS_DEFAULT_CREDENTIALS );
+      if ( useDefaultAwsCredentials == null || "N".equalsIgnoreCase( useDefaultAwsCredentials ) ) {
+        this.useAwsDefaultCredentials = false;
+      } else {
+        this.useAwsDefaultCredentials = true;
+      }
       setFileAsCommand( false ); // commands cannot be executed in S3 file system; PDI-4707, 4655
       String filename = rep.getStepAttributeString( id_step, "file_name" );
       processFilename( filename );
@@ -145,6 +166,12 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
       super.readData( stepnode );
       accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, ACCESS_KEY_TAG ) );
       secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, SECRET_KEY_TAG ) );
+      String basicAwsCredentials = XMLHandler.getTagValue( stepnode, USE_AWS_DEFAULT_CREDENTIALS );
+      if ( basicAwsCredentials == null || "N".equalsIgnoreCase( basicAwsCredentials ) ) {
+        useAwsDefaultCredentials = false;
+      } else {
+        useAwsDefaultCredentials = true;
+      }
       setFileAsCommand( false ); // command cannot be executed in S3 file system; PDI-4707, 4655
       String filename = XMLHandler.getTagValue( stepnode, FILE_TAG, NAME_TAG );
       processFilename( filename );
@@ -168,6 +195,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    */
   protected void processFilename( String filename ) throws Exception {
     if ( Const.isEmpty( filename ) ) {
+      filename = "s3://s3/";
       setFileName( filename );
       return;
     }

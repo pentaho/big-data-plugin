@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon.s3;
 
+import com.amazonaws.auth.AWSCredentials;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -65,10 +66,18 @@ public class S3FileOutput extends TextFileOutput {
     try {
       FileSystemOptions opts = new FileSystemOptions();
       S3FileOutputMeta s3Meta = (S3FileOutputMeta) meta;
+
+      AWSCredentials credentials = null;
+      if ( s3Meta.getUseAwsDefaultCredentials() ) {
+        credentials = S3CredentialsProvider.getAWSCredentials();
+      } else {
+        String accessKey = Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getAccessKey() ) );
+        String secretKey = Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getSecretKey() ) );
+        credentials = S3CredentialsProvider.getAWSCredentials( accessKey, secretKey );
+      }
+
       DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts,
-          new StaticUserAuthenticator( null,
-            Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getAccessKey() ) ),
-            Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getSecretKey() ) ) ) );
+        new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() ) );
       return opts;
     } catch ( FileSystemException e ) {
       throw new KettleFileException( e );
