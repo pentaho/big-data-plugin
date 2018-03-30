@@ -705,10 +705,6 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     new FD( wFileSettingsGroup ).top( 0, 0 ).right( 100, -MARGIN ).left( 0, MARGIN ).apply();
 
     int RADIO_BUTTON_WIDTH = 150;
-    Label separator = new Label( wFileSettingsGroup, SWT.SEPARATOR | SWT.VERTICAL );
-    props.setLook( separator );
-    new FD( separator ).left( 0, RADIO_BUTTON_WIDTH ).top( 0, 0 ).bottom( 100, 0 ).apply();
-
     Button wbSpecifyFileName = new Button( wFileSettingsGroup, SWT.RADIO );
     wbSpecifyFileName.setText( getBaseMsg( "AvroDialog.File.SpecifyFileName" ) );
     props.setLook( wbSpecifyFileName );
@@ -730,7 +726,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     Composite wFileSetting = new Composite( wFileSettingsDynamicArea, SWT.NONE );
     FormLayout fileSettingLayout = new FormLayout();
     wFileSetting.setLayout( fileSettingLayout );
-    new FD( wFileSetting ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN ).top( 0, 0 ).apply();
+    new FD( wFileSetting ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + 2 * MARGIN ).top( 0, 0 ).apply();
     addFileWidgets( wFileSetting, wFileSetting );
 
     //Setup StreamingFieldName
