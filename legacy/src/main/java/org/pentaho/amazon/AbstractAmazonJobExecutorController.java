@@ -22,7 +22,6 @@
 
 package org.pentaho.amazon;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -65,7 +64,10 @@ import org.pentaho.ui.xul.binding.BindingConvertor;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.components.XulButton;
 import org.pentaho.ui.xul.components.XulMenuList;
+import org.pentaho.ui.xul.components.XulRadio;
+import org.pentaho.ui.xul.components.XulRadioGroup;
 import org.pentaho.ui.xul.components.XulTextbox;
+import org.pentaho.ui.xul.containers.XulDeck;
 import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.ui.xul.swt.tags.SwtDialog;
@@ -100,6 +102,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String EMR_ROLE = "emrRole";
   public static final String CMD_LINE_ARGS = "commandLineArgs";
   public static final String BLOCKING = "blocking";
+  public static final String RUN_ON_NEW_CLUSTER = "runOnNewCluster";
   public static final String LOGGING_INTERVAL = "loggingInterval";
   public static final String ALIVE = "alive";
 
@@ -125,6 +128,10 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String XUL_AMAZON_EMR_JOB_ENTRY_DIALOG = "amazon-emr-job-entry-dialog";
   public static final String XUL_AMAZON_EMR_ERROR_DIALOG = "amazon-emr-error-dialog";
   public static final String XUL_AMAZON_EMR_ERROR_MESSAGE = "amazon-emr-error-message";
+  public static final String XUL_CLUSTER_TAB = "cluster-tab";
+  public static final String XUL_NEW_CLUSTER_DECK = "new-cluster";
+  public static final String XUL_EXISTING_CLUSTER_DECK = "existing-cluster";
+  public static final String XUL_CLUSTER_MODE = "cluster-mode";
 
   private static final String EC2_DEFAULT_ROLE = "EMR_EC2_DefaultRole";
   private static final String EMR_DEFAULT_ROLE = "EMR_DefaultRole";
@@ -147,18 +154,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected String masterInstanceType;
   protected String slaveInstanceType;
 
-  public String getRegion() {
-    return region;
-  }
-
-  public void setRegion( String region ) {
-    String previousVal = this.region;
-    String newVal = region;
-
-    this.region = region;
-    firePropertyChange( REGION, previousVal, newVal );
-  }
-
   protected String region;
   protected String emrRelease;
 
@@ -167,6 +162,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
   protected String commandLineArgs;
   protected boolean blocking;
+  protected boolean runOnNewCluster;
   protected String loggingInterval = "60"; // 60 seconds
 
   protected VfsFileChooserDialog fileChooserDialog;
@@ -355,39 +351,62 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       .createBinding( XUL_ACCESS_KEY, "value", XUL_EMR_SETTINGS, "disabled", secretKeyIsEmpty( container ) );
     bindingFactory
       .createBinding( XUL_SECRET_KEY, "value", XUL_EMR_SETTINGS, "disabled", accessKeyIsEmpty( container ) );
+  }
 
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EMR_SETTINGS, "disabled",
-        jobFlowIdIsNotEmpty( container ) );
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EC2_ROLE, "disabled",
-        jobFlowIdIsFilled( container ) );
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EMR_ROLE, "disabled",
-        jobFlowIdIsFilled( container ) );
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_MASTER_INSTANCE_TYPE, "disabled",
-        jobFlowIdIsFilled( container ) );
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_SLAVE_INSTANCE_TYPE, "disabled",
-        jobFlowIdIsFilled( container ) );
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_EMR_RELEASE, "disabled",
-        jobFlowIdIsFilled( container ) );
-    bindingFactory
-      .createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", XUL_NUM_INSTANCES, "disabled",
-        jobFlowIdIsFilled( container ) );
+  private static void disableAwsConnection( XulDomContainer container ) {
+    XulButton connectButton = (XulButton) container.getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
+    connectButton.setDisabled( disableConnectButton( container ) );
+  }
+
+  public void updateClusterState() {
+    XulRadioGroup clusterModes =
+      (XulRadioGroup) getXulDomContainer().getDocumentRoot().getElementById( XUL_CLUSTER_MODE );
+    XulRadio newClusterMode = (XulRadio) clusterModes.getFirstChild();
+
+    XulDeck clusterModeTab = (XulDeck) getXulDomContainer().getDocumentRoot().getElementById( XUL_CLUSTER_TAB );
+    disableAwsConnection( getXulDomContainer() );
+
+    if ( newClusterMode.isSelected() ) {
+      this.runOnNewCluster = true;
+      clusterModeTab.setSelectedIndex( 0 );
+    } else {
+      fixFocusLostOnTab();
+      clusterModeTab.setSelectedIndex( 1 );
+      this.runOnNewCluster = false;
+    }
+  }
+
+  //need for mac os to avoid getting NullPointerException after switching to Existing tab
+  private void fixFocusLostOnTab() {
+    XulTextbox jobEntryName = (XulTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_NAME );
+    jobEntryName.setFocus();
+  }
+
+  private static String getTextBoxValueById( XulDomContainer container, String xulTextBoxName ) {
+    ExtTextbox textbox = (ExtTextbox) container.getDocumentRoot().getElementById( xulTextBoxName );
+    return textbox.getValue();
+  }
+
+  private static boolean disableConnectButton( XulDomContainer container ) {
+    String secretKeyValue = getTextBoxValueById( container, XUL_SECRET_KEY );
+    String accessKeyValue = getTextBoxValueById( container, XUL_ACCESS_KEY );
+    XulRadio existingClusterMode = (XulRadio) container.getDocumentRoot().getElementById( XUL_EXISTING_CLUSTER_DECK );
+
+    if ( existingClusterMode.isSelected() ) {
+      return true;
+    }
+
+    if ( Strings.isNullOrEmpty( accessKeyValue ) || Strings.isNullOrEmpty( secretKeyValue ) ) {
+      return true;
+    }
+
+    return false;
   }
 
   private static BindingConvertor<String, Boolean> accessKeyIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
       @Override public Boolean sourceToTarget( String value ) {
-        ExtTextbox accessKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
-        ExtTextbox jobFlowIdBox =
-          (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
-
-        String[] fieldsValues = { value, accessKeyBox.getValue(), jobFlowIdBox.getValue() };
-        return hideFields( fieldsValues );
+        return disableConnectButton( container );
       }
 
       @Override public String targetToSource( Boolean value ) {
@@ -399,71 +418,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   private static BindingConvertor<String, Boolean> secretKeyIsEmpty( XulDomContainer container ) {
     return new BindingConvertor<String, Boolean>() {
       @Override public Boolean sourceToTarget( String value ) {
-        ExtTextbox secretKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
-        ExtTextbox jobFlowIdBox =
-          (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
-
-        String[] fieldsValues = { value, secretKeyBox.getValue(), jobFlowIdBox.getValue() };
-        return hideFields( fieldsValues );
+        return disableConnectButton( container );
       }
 
       @Override public String targetToSource( Boolean value ) {
         throw new AbstractMethodError( "Boolean to String conversion is not supported" );
       }
     };
-  }
-
-  private static BindingConvertor<String, Boolean> jobFlowIdIsNotEmpty( XulDomContainer container ) {
-    return new BindingConvertor<String, Boolean>() {
-      @Override public Boolean sourceToTarget( String value ) {
-        ExtTextbox accessKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
-        ExtTextbox secretKeyBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
-
-        String[] fieldsValues = { accessKeyBox.getValue(), secretKeyBox.getValue(), value };
-        return hideFields( fieldsValues );
-      }
-
-      @Override public String targetToSource( Boolean value ) {
-        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
-      }
-    };
-  }
-
-  private static BindingConvertor<String, Boolean> jobFlowIdIsFilled( XulDomContainer container ) {
-    return new BindingConvertor<String, Boolean>() {
-      @Override public Boolean sourceToTarget( String value ) {
-        XulMenuList<String> masterInstanceMenu =
-          (XulMenuList<String>) container.getDocumentRoot().getElementById( XUL_MASTER_INSTANCE_TYPE );
-
-        if ( !Strings.isNullOrEmpty( value ) ) {
-          return true;
-        }
-        return ( masterInstanceMenu.getElements().size() < 1 );
-      }
-
-      @Override public String targetToSource( Boolean value ) {
-        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
-      }
-    };
-  }
-
-  @VisibleForTesting
-  public static boolean hideFields( String... fieldValues ) {
-
-    if ( fieldValues.length == 0 ) {
-      return false;
-    }
-
-    if ( !Strings.isNullOrEmpty( fieldValues[ fieldValues.length - 1 ] ) ) {
-      return true;
-    }
-
-    for ( int i = 0; i < fieldValues.length - 1; i++ ) {
-      if ( Strings.isNullOrEmpty( fieldValues[ i ] ) ) {
-        return true;
-      }
-    }
-    return false;
   }
 
   protected AbstractModelList<String> populateEc2Roles() {
@@ -748,7 +709,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.loggingInterval = ( (Text) tempBox.getTextControl() ).getText();
   }
 
-
   public List<String> getValidationWarnings() {
     List<String> warnings = new ArrayList<String>();
 
@@ -765,23 +725,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Region.Error" ) );
     }
 
-    if ( StringUtil.isEmpty( getHadoopJobFlowId() ) ) {
-      if ( StringUtil.isEmpty( getEc2Role() ) ) {
-        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Ec2Role.Error" ) );
-      }
-      if ( StringUtil.isEmpty( getEmrRole() ) ) {
-        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRole.Error" ) );
-      }
-      if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
-        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.MasterInstanceType.Error" ) );
-      }
-      if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
-        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SlaveInstanceType.Error" ) );
-      }
-      if ( StringUtil.isEmpty( getEmrRelease() ) ) {
-        warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRelease.Error" ) );
-      }
-    }
+    warnings.addAll( collectClusterWarnings() );
 
     if ( StringUtil.isEmpty( getHadoopJobName() ) ) {
       warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobFlowName.Error" ) );
@@ -796,6 +740,41 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     }
 
     return warnings;
+  }
+
+  private List<String> collectClusterWarnings() {
+
+    List<String> newClusterWarnings = new ArrayList<>();
+    List<String> existingClusterWarnings = new ArrayList<>();
+
+    if ( StringUtil.isEmpty( getEc2Role() ) ) {
+      newClusterWarnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.Ec2Role.Error" ) );
+    }
+    if ( StringUtil.isEmpty( getEmrRole() ) ) {
+      newClusterWarnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRole.Error" ) );
+    }
+    if ( StringUtil.isEmpty( getMasterInstanceType() ) ) {
+      newClusterWarnings
+        .add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.MasterInstanceType.Error" ) );
+    }
+    if ( StringUtil.isEmpty( getSlaveInstanceType() ) ) {
+      newClusterWarnings
+        .add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.SlaveInstanceType.Error" ) );
+    }
+    if ( StringUtil.isEmpty( getEmrRelease() ) ) {
+      newClusterWarnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.EmrRelease.Error" ) );
+    }
+
+    if ( StringUtil.isEmpty( getHadoopJobFlowId() ) ) {
+      existingClusterWarnings
+        .add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.JobFlowId.Error" ) );
+    }
+
+    if ( isRunOnNewCluster() ) {
+      return newClusterWarnings;
+    }
+
+    return existingClusterWarnings;
   }
 
   protected String buildValidationErrorMessages() {
@@ -828,6 +807,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     getJobEntry().setEmrRole( getEmrRole() );
     getJobEntry().setCmdLineArgs( getCommandLineArgs() );
     getJobEntry().setAlive( isAlive() );
+    getJobEntry().setRunOnNewCluster( isRunOnNewCluster() );
     getJobEntry().setBlocking( getBlocking() );
     getJobEntry().setLoggingInterval( getLoggingInterval() );
 
@@ -985,6 +965,16 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     namedClusterMenu.setSelectedItem( selectedRelease );
   }
 
+  protected void initializeClusterSelection() {
+    XulRadio newCluster = (XulRadio) container.getDocumentRoot().getElementById( XUL_NEW_CLUSTER_DECK );
+    XulRadio existingCluster = (XulRadio) container.getDocumentRoot().getElementById( XUL_EXISTING_CLUSTER_DECK );
+
+    newCluster.setSelected( this.runOnNewCluster );
+    existingCluster.setSelected( !this.runOnNewCluster );
+
+    updateClusterState();
+  }
+
   protected void beforeInit() {
 
     suppressEventHandling = true;
@@ -1005,6 +995,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       setEc2Role( getJobEntry().getEc2Role() );
       setEmrRole( getJobEntry().getEmrRole() );
       setCommandLineArgs( getJobEntry().getCmdLineArgs() );
+      setRunOnNewCluster( getJobEntry().isRunOnNewCluster() );
       setBlocking( getJobEntry().getBlocking() );
       setAlive( getJobEntry().getAlive() );
       setLoggingInterval( getJobEntry().getLoggingInterval() );
@@ -1021,6 +1012,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     initializeMasterInstanceSelection();
     initializeSlaveInstanceSelection();
     initializeReleaseSelection();
+    initializeClusterSelection();
   }
 
   protected abstract String getDialogElementId();
@@ -1244,6 +1236,18 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     firePropertyChange( SECRET_KEY, previousVal, newVal );
   }
 
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion( String region ) {
+    String previousVal = this.region;
+    String newVal = region;
+
+    this.region = region;
+    firePropertyChange( REGION, previousVal, newVal );
+  }
+
   public String getStagingDir() {
     return stagingDir;
   }
@@ -1359,6 +1363,20 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.commandLineArgs = commandLineArgs;
 
     firePropertyChange( CMD_LINE_ARGS, previousVal, newVal );
+  }
+
+  public boolean isRunOnNewCluster() {
+    return runOnNewCluster;
+  }
+
+
+  public void setRunOnNewCluster( boolean selected ) {
+    boolean previousVal = this.runOnNewCluster;
+    boolean newVal = selected;
+
+    this.runOnNewCluster = selected;
+
+    firePropertyChange( RUN_ON_NEW_CLUSTER, previousVal, newVal );
   }
 
   public boolean getBlocking() {

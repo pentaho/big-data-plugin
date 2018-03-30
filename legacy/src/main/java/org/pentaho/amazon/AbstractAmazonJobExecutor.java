@@ -38,7 +38,6 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.Log4jFileAppender;
 import org.pentaho.di.core.logging.LogWriter;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 
@@ -193,7 +192,7 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
       s3Client.putObjectInBucket( stagingBucketName, key, tmpFile );
       String stagingS3FileUrl = getStagingS3FileUrl( stagingBucketName );
 
-      if ( StringUtil.isEmpty( hadoopJobFlowId ) ) {
+      if ( runOnNewCluster ) {
         // Determine the instances for Hadoop cluster.
         String numInstancesS = environmentSubstitute( numInstances );
         try {

@@ -23,6 +23,7 @@
 package org.pentaho.amazon;
 
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entry.JobEntryDialogInterface;
@@ -36,6 +37,7 @@ import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.XulRunner;
 import org.pentaho.ui.xul.binding.BindingFactory;
 import org.pentaho.ui.xul.binding.DefaultBindingFactory;
+import org.pentaho.ui.xul.containers.XulDialog;
 import org.pentaho.ui.xul.swt.SwtXulLoader;
 import org.pentaho.ui.xul.swt.SwtXulRunner;
 
@@ -116,6 +118,7 @@ public abstract class AbstractAmazonJobEntryDialog<E extends AbstractAmazonJobEn
     bf.setDocument( container.getDocumentRoot() );
     controller = createController( container, jobEntry, bf );
     container.addEventHandler( controller );
+    setDialogSize();
 
     // Load up the SWT-XUL runtime and initialize it with our container
     final XulRunner runner = new SwtXulRunner();
@@ -126,5 +129,20 @@ public abstract class AbstractAmazonJobEntryDialog<E extends AbstractAmazonJobEn
   @Override
   public JobEntryInterface open() {
     return controller.open();
+  }
+
+  private void setDialogSize() {
+    XulSpoonSettingsManager settingsManager = XulSpoonSettingsManager.getInstance();
+    XulDialog dialog = controller.getDialog();
+
+    if ( Const.isWindows() ) {
+      settingsManager.storeSetting( controller.getDialogElementId() + ".Width", String.valueOf( dialog.getWidth() ) );
+      settingsManager.storeSetting( controller.getDialogElementId() + ".Height", String.valueOf( dialog.getHeight() ) );
+    } else {
+      settingsManager.storeSetting( controller.getDialogElementId() + ".Width",
+        String.valueOf( dialog.getAttributeValue( "linuxWidth" ) ) );
+      settingsManager.storeSetting( controller.getDialogElementId() + ".Height",
+        String.valueOf( dialog.getAttributeValue( "linuxHeight" ) ) );
+    }
   }
 }
