@@ -724,13 +724,13 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     props.setLook( wFileSettingsDynamicArea );
     FormLayout fileSettingsDynamicAreaLayout = new FormLayout();
     wFileSettingsDynamicArea.setLayout( fileSettingsDynamicAreaLayout );
-    new FD( wFileSettingsDynamicArea ).right( 100, 0 ).left( wbSpecifyFileName, 10 ).top( 0, -MARGIN ).apply();
+    new FD( wFileSettingsDynamicArea ).right( 100, 0 ).left( wbSpecifyFileName, MARGIN ).top( 0, -MARGIN ).apply();
 
     //Put the File selection stuff in it
     Composite wFileSetting = new Composite( wFileSettingsDynamicArea, SWT.NONE );
     FormLayout fileSettingLayout = new FormLayout();
     wFileSetting.setLayout( fileSettingLayout );
-    new FD( wFileSetting ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN ).top( 0, 0 ).apply();
+    new FD( wFileSetting ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
     addFileWidgets( wFileSetting, wFileSetting );
 
     //Setup StreamingFieldName
