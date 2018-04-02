@@ -264,6 +264,61 @@ public class EmrClientImplTest {
     Assert.assertEquals( expectedStopSteps, stopSteps );
   }
 
+  @Test
+  public void testRemoveLineBreaks_whenBootstrapActionStringIsNull(){
+
+    String bootstrapStringWithBreaks = null;
+    String expectedString = null;
+
+    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+
+    Assert.assertEquals( expectedString, resultBootstrapString );
+  }
+
+  @Test
+  public void testRemoveLineBreaks_whenBootstrapActionStringIsSpaces(){
+
+    String bootstrapStringWithBreaks = "  ";
+    String expectedString = "";
+
+    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+
+    Assert.assertEquals( expectedString, resultBootstrapString );
+  }
+
+  @Test
+  public void testRemoveLineBreaks_whenBootstrapActionStringIsEmpty(){
+
+    String bootstrapStringWithBreaks = "";
+    String expectedString = "";
+
+    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+
+    Assert.assertEquals( expectedString, resultBootstrapString );
+  }
+
+  @Test
+  public void testRemoveLineBreaks_whenBootstrapActionStringIsNotNull(){
+
+    String bootstrapStringWithBreaks = " --bootstrap-action\n \"s3://hive-input/copymyfile.sh\" --args\n\n   s3://hive-input/input1/weblogs_small.txt   \n   ";
+    String expectedString = "--bootstrap-action \"s3://hive-input/copymyfile.sh\" --args s3://hive-input/input1/weblogs_small.txt";
+
+    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+
+    Assert.assertEquals( expectedString, resultBootstrapString );
+  }
+
+  @Test
+  public void testRemoveLineBreaks_whenBootstrapActionStringEqualsToExpectedString(){
+
+    String bootstrapStringWithBreaks = "--bootstrap-action \"s3://hive-input/copymyfile.sh\" --args s3://hive-input/input1/weblogs_small.txt";
+    String expectedString = "--bootstrap-action \"s3://hive-input/copymyfile.sh\" --args s3://hive-input/input1/weblogs_small.txt";
+
+    String resultBootstrapString = emrClient.removeLineBreaks( bootstrapStringWithBreaks );
+
+    Assert.assertEquals( expectedString, resultBootstrapString );
+  }
+
   private void setJobEntryFields() {
     jobEntry.setAlive( false );
     jobEntry.setHadoopJobName( "Test Job Executor" );

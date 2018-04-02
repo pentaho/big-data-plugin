@@ -332,18 +332,28 @@ public class EmrClientImpl implements EmrClient {
     return stepConfig;
   }
 
+  @VisibleForTesting
+  public static String removeLineBreaks( String multiLineFieldValue ) {
+    if ( StringUtil.isEmpty( multiLineFieldValue ) ) {
+      return multiLineFieldValue;
+    }
+    return multiLineFieldValue.replaceAll( "\\s+", " " ).trim();
+  }
+
   private List<StepConfig> initSteps( String stagingS3FileUrl, String stepType,
                                       String mainClass,
                                       AbstractAmazonJobEntry jobEntry ) {
     List<StepConfig> steps = new ArrayList<>();
     StepConfig config = null;
 
+    String cmdLineArgs = removeLineBreaks( jobEntry.getCmdLineArgs() );
+
     if ( stepType.equals( STEP_HIVE ) ) {
-      config = initHiveStep( stagingS3FileUrl, jobEntry.getCmdLineArgs() );
+      config = initHiveStep( stagingS3FileUrl, cmdLineArgs );
     }
 
     if ( stepType.equals( STEP_EMR ) ) {
-      List<String> jarStepArgs = parseJarStepArgs( jobEntry.getCmdLineArgs() );
+      List<String> jarStepArgs = parseJarStepArgs( cmdLineArgs );
       config = initHadoopStep( stagingS3FileUrl, mainClass, jarStepArgs );
     }
 
@@ -379,7 +389,7 @@ public class EmrClientImpl implements EmrClient {
   }
 
   private List<BootstrapActionConfig> initBootstrapActions( String bootstrapActions ) {
-    List<BootstrapActionConfig> actionConfigs = configBootstrapActions( bootstrapActions );
+    List<BootstrapActionConfig> actionConfigs = configBootstrapActions( removeLineBreaks( bootstrapActions ) );
     return actionConfigs;
   }
 

@@ -45,6 +45,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
   protected String cmdLineArgs;
   protected boolean alive;
   protected boolean blocking;
+  protected boolean runOnNewCluster = true;
   protected String loggingInterval = "60"; // 60 seconds default
 
   public String getHadoopJobName() {
@@ -165,6 +166,14 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
 
   public void setBlocking( boolean blocking ) {
     this.blocking = blocking;
+  }
+
+  public boolean isRunOnNewCluster() {
+    return runOnNewCluster;
+  }
+
+  public void setRunOnNewCluster( boolean runOnNewCluster ) {
+    this.runOnNewCluster = runOnNewCluster;
   }
 
   public String getLoggingInterval() {

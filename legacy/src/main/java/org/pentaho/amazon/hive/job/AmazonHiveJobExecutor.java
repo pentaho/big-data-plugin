@@ -139,6 +139,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
     stagingDir = XMLHandler.getTagValue( entrynode, "staging_dir" );
     cmdLineArgs = XMLHandler.getTagValue( entrynode, "command_line_args" );
     alive = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "alive" ) );
+    runOnNewCluster = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "runOnNewCluster" ) );
     blocking = "Y".equalsIgnoreCase( XMLHandler.getTagValue( entrynode, "blocking" ) );
     loggingInterval = XMLHandler.getTagValue( entrynode, "logging_interval" );
   }
@@ -168,6 +169,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
     retval.append( "      " ).append( XMLHandler.addTagValue( "staging_dir", stagingDir ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "command_line_args", cmdLineArgs ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "alive", alive ) );
+    retval.append( "      " ).append( XMLHandler.addTagValue( "runOnNewCluster", runOnNewCluster ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "blocking", blocking ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "logging_interval", loggingInterval ) );
 
@@ -203,6 +205,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       setStagingDir( rep.getJobEntryAttributeString( id_jobentry, "staging_dir" ) );
       setCmdLineArgs( rep.getJobEntryAttributeString( id_jobentry, "command_line_args" ) );
       setAlive( rep.getJobEntryAttributeBoolean( id_jobentry, "alive" ) );
+      setRunOnNewCluster( rep.getJobEntryAttributeBoolean( id_jobentry, "runOnNewCluster" ) );
       setBlocking( rep.getJobEntryAttributeBoolean( id_jobentry, "blocking" ) );
       setLoggingInterval( rep.getJobEntryAttributeString( id_jobentry, "logging_interval" ) );
 
@@ -238,6 +241,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       rep.saveJobEntryAttribute( id_job, getObjectId(), "command_line_args", cmdLineArgs );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "alive", alive );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "blocking", blocking );
+      rep.saveJobEntryAttribute( id_job, getObjectId(), "runOnNewCluster", runOnNewCluster );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "logging_interval", loggingInterval );
     } else {
       throw new KettleException( BaseMessages.getString( PKG, "AmazonHiveJobExecutor.SaveToRepository.Error" ) );
