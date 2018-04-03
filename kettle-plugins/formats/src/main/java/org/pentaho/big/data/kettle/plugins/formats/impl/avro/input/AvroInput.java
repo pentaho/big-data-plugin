@@ -75,8 +75,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           } catch ( ClusterInitializationException e ) {
             throw new KettleException( "can't get service format shim ", e );
           }
-          if ( meta.getFilename() == null ) {
-            throw new KettleException( "No output files defined" );
+          if ( meta.getFilename() == null && !meta.isUseFieldAsInputStream() ) {
+            throw new KettleException( "No input files defined" );
           }
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
