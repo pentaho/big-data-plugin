@@ -8,9 +8,9 @@
           xmlns:pen="http://www.pentaho.org/2008/xul"
           title="${JobEntryDialog.Title}"
           resizable="true"
-          height="620"
+          height="617"
           width="452"
-          linuxHeight="652"
+          linuxHeight="660"
           linuxWidth="517"
           appicon="AWS-HIVE.png"
           buttons="">
@@ -91,11 +91,11 @@
                             <vbox padding="0">
                               <label value="${AmazonElasticMapReduceJobExecutor.Region.Label}"/>
                               <hbox padding="0">
-                                <menulist id="region" width="124" height="10">
+                                <menulist id="region" width="160">
                                   <menupopup>
                                   </menupopup>
                                 </menulist>
-                                <spacer/>
+                                <hbox padding="0" spacing="0" width="1"></hbox>
                                 <button id="emr-settings"
                                         label="${AmazonElasticMapReduceJobExecutor.EmrSettings.Connect}"
                                         onclick="jobEntryController.getEmrSettings()" disabled="true"/>
@@ -107,7 +107,7 @@
                     </grid>
                     <hbox width="5" padding="0"></hbox>
                   </hbox>
-                  <hbox height="6"></hbox>
+                  <hbox height="8"></hbox>
                 </groupbox>
                 <hbox height="7"></hbox>
                 <groupbox>
@@ -139,7 +139,7 @@
                     </grid>
                     <vbox padding="0">
                       <hbox padding="0" height="8"></hbox>
-                      <vbox padding="0" flex="1" spacing="0" width="1" bgcolor="#F2F2F2"></vbox>
+                      <separator padding="0" flex="1" spacing="0" width="2" orient="VERTICAL"/>
                       <hbox padding="0" height="10"></hbox>
                     </vbox>
                     <deck padding="0" spacing="0" id="cluster-tab" selectedIndex="0">

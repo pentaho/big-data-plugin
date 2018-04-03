@@ -517,6 +517,13 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     regions =
       Arrays.stream( AmazonRegion.values() ).map( v -> v.getHumanReadableRegion() )
         .collect( Collectors.toCollection( AbstractModelList<String>::new ) );
+
+    String region = getJobEntry().getRegion();
+
+    if ( region == null && regions.size() > 0 ) {
+      getJobEntry().setRegion( regions.get( 0 ) );
+    }
+
     return regions;
   }
 
