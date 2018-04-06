@@ -568,7 +568,9 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     }
 
     populateTopicsData();
-    populateSubSteps();
+    if ( consumerMeta.getSubStep() != null ) {
+      wSubStep.setText( consumerMeta.getSubStep() );
+    }
 
     if ( consumerMeta.getConsumerGroup() != null ) {
       wConsumerGroup.setText( consumerMeta.getConsumerGroup() );
