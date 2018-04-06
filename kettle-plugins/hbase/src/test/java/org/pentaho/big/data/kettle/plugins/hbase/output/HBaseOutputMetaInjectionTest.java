@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -65,6 +65,12 @@ public class HBaseOutputMetaInjectionTest extends BaseMetadataInjectionTest<HBas
         return meta.getTargetMappingName();
       }
     } );
+    check( "DELETE_ROW_KEY", new BooleanGetter()  {
+      @Override
+      public boolean get() {
+        return meta.getDeleteRowKey();
+      }
+    } );
     check( "DISABLE_WRITE_TO_WAL", new BooleanGetter() {
       public boolean get() {
         return meta.getDisableWriteToWAL();
@@ -118,5 +124,5 @@ public class HBaseOutputMetaInjectionTest extends BaseMetadataInjectionTest<HBas
       }
     } );
   }
-  
+
 }

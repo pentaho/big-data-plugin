@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,7 +43,7 @@ import java.util.Map;
  * Class providing an output step for writing data to an HBase table according to meta data column/type mapping info
  * stored in a separate HBase table called "pentaho_mappings". See org.pentaho.hbase.mapping.Mapping for details on the
  * meta data format.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseOutputData extends BaseStepData implements StepDataInterface {
@@ -61,7 +61,7 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
 
   /**
    * Sets up a new target table put operation using the connection shim
-   * 
+   *
    * @param inRowMeta
    *          the incoming kettle row meta data
    * @param keyIndex
@@ -81,9 +81,8 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
    *           if a problem occurs when initializing the new put operation
    */
   public static HBasePut initializeNewPut( RowMetaInterface inRowMeta, int keyIndex, Object[] kettleRow,
-                                           Mapping tableMapping, ByteConversionUtil bu,
-                                           HBaseTableWriteOperationManager hBaseTableWriteOperationManager,
-                                           boolean writeToWAL ) throws Exception {
+      Mapping tableMapping, ByteConversionUtil bu, HBaseTableWriteOperationManager hBaseTableWriteOperationManager,
+      boolean writeToWAL ) throws Exception {
     ValueMetaInterface keyvm = inRowMeta.getValueMeta( keyIndex );
 
     if ( keyvm.isNull( kettleRow[keyIndex] ) ) {
@@ -92,8 +91,7 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
 
     byte[] encodedKey = bu.encodeKeyValue( kettleRow[keyIndex], keyvm, tableMapping.getKeyType() );
 
-    HBasePut hBaseTablePut = hBaseTableWriteOperationManager
-      .createPut( bu.encodeKeyValue( kettleRow[ keyIndex ], keyvm, tableMapping.getKeyType() ) );
+    HBasePut hBaseTablePut = hBaseTableWriteOperationManager.createPut( encodedKey );
     hBaseTablePut.setWriteToWAL( writeToWAL );
     return hBaseTablePut;
   }
@@ -101,7 +99,7 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
   /**
    * Adds those incoming kettle field values that are defined in the table mapping for the current row to the target
    * table put operation
-   * 
+   *
    * @param inRowMeta
    *          the incoming kettle row meta data
    * @param kettleRow
@@ -118,7 +116,7 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
    *           if a problem occurs when adding a column to the put operation
    */
   public static void addColumnsToPut( RowMetaInterface inRowMeta, Object[] kettleRow, int keyIndex,
-                                      Map<String, HBaseValueMetaInterface> columnsMappedByAlias, HBasePut hBasePut, ByteConversionUtil bu )
+      Map<String, HBaseValueMetaInterface> columnsMappedByAlias, HBasePut hBasePut, ByteConversionUtil bu )
     throws KettleException {
 
     for ( int i = 0; i < inRowMeta.size(); i++ ) {
@@ -160,4 +158,5 @@ public class HBaseOutputData extends BaseStepData implements StepDataInterface {
 
     return result;
   }
+
 }
