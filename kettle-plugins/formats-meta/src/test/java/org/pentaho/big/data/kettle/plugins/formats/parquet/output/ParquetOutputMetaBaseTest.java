@@ -76,9 +76,38 @@ public class ParquetOutputMetaBaseTest {
 
   @Test
   public void setCompressionType() {
+    metaBase.setCompressionType( "snappy" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    metaBase.setCompressionType( "Snappy" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.SNAPPY.toString() ) );
+    metaBase.setCompressionType( "SNAPPY" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.SNAPPY.toString() ) );
     metaBase.setCompressionType( "gzip" );
-    Assert.assertTrue( metaBase.compressionType.equals( "GZIP" ) );
-    metaBase.setCompressionType( "abc" );
-    Assert.assertTrue( metaBase.compressionType.equals( "NONE" ) );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.GZIP.toString() ) );
+    metaBase.setCompressionType( "Gzip" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.GZIP.toString() ) );
+    metaBase.setCompressionType( "GZIP" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.GZIP.toString() ) );
+    metaBase.setCompressionType( "None" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.NONE.toString() ) );
+    metaBase.setCompressionType( "none" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.NONE.toString() ) );
+    metaBase.setCompressionType( "NONE" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.CompressionType.NONE.toString() ) );
+  }
+
+  public void setParquetVersion() {
+    metaBase.setParquetVersion( "Parquet 1.0" );
+    Assert.assertTrue( metaBase.getParquetVersion().equals( ParquetOutputMetaBase.ParquetVersion.PARQUET_1.toString() ) );
+    metaBase.setCompressionType( "PARQUET_1" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.ParquetVersion.PARQUET_1.toString() ) );
+    metaBase.setCompressionType( "Parquet 2.0" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.ParquetVersion.PARQUET_2.toString() ) );
+    metaBase.setCompressionType( "PARQUET_2" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.ParquetVersion.PARQUET_2.toString() ) );
+    metaBase.setCompressionType( "1235" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.ParquetVersion.PARQUET_1.toString() ) );
+    metaBase.setCompressionType( "ABC" );
+    Assert.assertTrue( metaBase.getCompressionType().equals( ParquetOutputMetaBase.ParquetVersion.PARQUET_1.toString() ) );
   }
 }

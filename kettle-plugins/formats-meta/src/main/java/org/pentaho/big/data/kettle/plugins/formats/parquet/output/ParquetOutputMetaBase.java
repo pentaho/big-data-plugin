@@ -452,7 +452,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   }
 
   public CompressionType getCompressionType( VariableSpace vspace ) {
-    return parseReplace( compressionType, vspace, str -> CompressionType.valueOf( str ), CompressionType.NONE );
+    return parseReplace( compressionType, vspace, str -> findCompressionType( str ), CompressionType.NONE );
   }
 
   public String getParquetVersion() {
@@ -461,11 +461,11 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setParquetVersion( String value ) {
     parquetVersion =
-      StringUtil.isVariable( value ) ? value : parseFromToString( value, ParquetVersion.values(), null ).name();
+      StringUtil.isVariable( value ) ? value : parseFromToString( value, ParquetVersion.values(), CompressionType.NONE ).name();
   }
 
   public ParquetVersion getParquetVersion( VariableSpace vspace ) {
-    return parseReplace( parquetVersion, vspace, str -> ParquetVersion.valueOf( str ), ParquetVersion.PARQUET_1 );
+    return parseReplace( parquetVersion, vspace, str -> findParquetVersion( str ), ParquetVersion.PARQUET_1 );
   }
 
   public int getDataPageSize( VariableSpace vspace ) {
@@ -500,6 +500,21 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     return getStrings( ParquetVersion.values() );
   }
 
+  private  CompressionType findCompressionType( String str ) {
+    try {
+      return CompressionType.valueOf( str );
+    } catch ( Throwable th ) {
+      return parseFromToString( str, CompressionType.values(), CompressionType.NONE );
+    }
+  }
+
+  private  ParquetVersion findParquetVersion( String str ) {
+    try {
+      return ParquetVersion.valueOf( str );
+    } catch ( Throwable th ) {
+      return parseFromToString( str, ParquetVersion.values(), ParquetVersion.PARQUET_1 );
+    }
+  }
   public static enum CompressionType {
     NONE( "None" ), SNAPPY( "Snappy" ), GZIP( "GZIP" );
 

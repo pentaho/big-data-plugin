@@ -341,17 +341,24 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
   }
 
   public void setCompressionType( String value ) {
-    compressionType = StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), null ).name();
+    compressionType = StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), CompressionType.NONE ).name();
   }
 
   public CompressionType getCompressionType( VariableSpace vspace ) {
-    return parseReplace( compressionType, vspace, str -> CompressionType.valueOf( str ), CompressionType.NONE );
+    return parseReplace( compressionType, vspace, str -> findCompressionType( str ), CompressionType.NONE );
   }
 
   public String[] getCompressionTypes() {
     return getStrings( CompressionType.values() );
   }
 
+  private  CompressionType findCompressionType( String str ) {
+    try {
+      return CompressionType.valueOf( str );
+    } catch ( Throwable th ) {
+      return parseFromToString( str, CompressionType.values(), CompressionType.NONE );
+    }
+  }
   public static enum CompressionType {
     NONE( getMsg( "OrcOutput.CompressionType.NONE" ) ),
     ZLIB( getMsg( "OrcOutput.CompressionType.ZLIB" ) ),
