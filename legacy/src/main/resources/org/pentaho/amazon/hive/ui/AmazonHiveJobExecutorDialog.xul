@@ -10,7 +10,7 @@
           resizable="true"
           height="682"
           width="465"
-          linuxHeight="727"
+          linuxHeight="742"
           linuxWidth="514"
           appicon="AWS-HIVE.png"
           buttons="">
@@ -27,7 +27,7 @@
             <hbox width="5"></hbox>
             <vbox flex="1">
               <label value="${JobEntry.Name.Label}"/>
-              <textbox id="jobentry-name" height="14" flex="1" multiline="false" width="200"/>
+              <textbox id="jobentry-name" flex="1" multiline="false" width="200"/>
             </vbox>
             <hbox flex="1">
               <spacer flex="1"/>
@@ -69,8 +69,7 @@
                           <vbox>
                             <label value="${AmazonHiveJobExecutor.AWSAccessKey.Label}"/>
                             <textbox pen:customclass="variabletextbox" type="password" id="access-key" flex="1"
-                                     multiline="false"
-                                     width="263" height="21"/>
+                                     multiline="false" width="263"/>
                           </vbox>
                         </row>
                         <row>
@@ -79,8 +78,7 @@
                             <vbox padding="0">
                               <label value="${AmazonHiveJobExecutor.AWSSecretKey.Label}"/>
                               <textbox pen:customclass="variabletextbox" type="password" id="secret-key" flex="1"
-                                       multiline="false"
-                                       width="263" height="21"/>
+                                       multiline="false" width="263"/>
                               <hbox padding="0"></hbox>
                             </vbox>
                           </hbox>
