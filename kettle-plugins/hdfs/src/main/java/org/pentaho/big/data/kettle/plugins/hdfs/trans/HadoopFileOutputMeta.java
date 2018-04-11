@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -30,7 +30,6 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -76,18 +75,6 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
     // now set the default for the
     // filename to an empty string
     setFileName( "" );
-    super.setFileAsCommand( false );
-  }
-
-  @Override
-  public void setFileAsCommand( boolean fileAsCommand ) {
-    // Don't do anything. We want to keep this property as false
-    // Throwing a KettleStepException would be desirable but then we
-    // need to change the base class' method which is
-    // open source.
-
-    throw new RuntimeException( new RuntimeException( BaseMessages.getString( PKG,
-        "HadoopFileOutput.MethodNotSupportedException.Message" ) ) );
   }
 
   public String getSourceConfigurationName() {
