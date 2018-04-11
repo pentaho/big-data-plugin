@@ -199,10 +199,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
         int parquetTypeId = getParquetTypeId( XMLHandler.getTagValue( fnode, "type" ) );
         outputField.setFormatType( parquetTypeId );
-        if ( parquetTypeId == ParquetSpec.DataType.DECIMAL.getId() ) {
-          outputField.setPrecision( XMLHandler.getTagValue( fnode, "precision" ) );
-          outputField.setScale( XMLHandler.getTagValue( fnode, "scale" ) );
-        }
+        outputField.setPrecision( XMLHandler.getTagValue( fnode, "precision" ) );
+        outputField.setScale( XMLHandler.getTagValue( fnode, "scale" ) );
         outputField.setAllowNull( "Y".equalsIgnoreCase( XMLHandler.getTagValue( fnode, "nullable" ) ) );
         outputField.setDefaultValue( XMLHandler.getTagValue( fnode, "default" ) );
         parquetOutputFields.add( outputField );
@@ -243,10 +241,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getFormatType() ) );
-        if ( field.getParquetType() == ParquetSpec.DataType.DECIMAL ) {
-          retval.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
-          retval.append( "        " ).append( XMLHandler.addTagValue( "scale", field.getScale() ) );
-        }
+        retval.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "scale", field.getScale() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "nullable", field.getAllowNull() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "default", field.getDefaultValue() ) );
         retval.append( "      </field>" ).append( Const.CR );
@@ -300,10 +296,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         outputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         int parquetTypeId = getParquetTypeId( rep.getStepAttributeString( id_step, i, "type" ) );
         outputField.setFormatType( parquetTypeId );
-        if ( parquetTypeId == ParquetSpec.DataType.DECIMAL.getId() ) {
-          outputField.setPrecision( rep.getStepAttributeString( id_step, i, "precision" ) );
-          outputField.setScale( rep.getStepAttributeString( id_step, i, "scale" ) );
-        }
+        outputField.setPrecision( rep.getStepAttributeString( id_step, i, "precision" ) );
+        outputField.setScale( rep.getStepAttributeString( id_step, i, "scale" ) );
         outputField.setAllowNull( rep.getStepAttributeBoolean( id_step, i, "nullable" ) );
         outputField.setDefaultValue( rep.getStepAttributeString( id_step, i, "default" ) );
         parquetOutputFields.add( outputField );
@@ -335,10 +329,8 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getFormatType() );
-        if ( field.getParquetType() == ParquetSpec.DataType.DECIMAL ) {
-          rep.saveStepAttribute( id_transformation, id_step, i, "precision", field.getPrecision() );
-          rep.saveStepAttribute( id_transformation, id_step, i, "scale", field.getScale() );
-        }
+        rep.saveStepAttribute( id_transformation, id_step, i, "precision", field.getPrecision() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "scale", field.getScale() );
         rep.saveStepAttribute( id_transformation, id_step, i, "nullable", field.getAllowNull() );
         rep.saveStepAttribute( id_transformation, id_step, i, "default", field.getDefaultValue() );
       }
