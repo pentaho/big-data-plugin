@@ -140,6 +140,8 @@ public abstract class AvroInputMetaBase extends
         inputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
         inputField.setPentahoType( XMLHandler.getTagValue( fnode, "type" ) );
         inputField.setAvroType( XMLHandler.getTagValue( fnode, "avro_type" ) );
+        String stringFormat = XMLHandler.getTagValue( fnode, "format" );
+        inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
         this.inputFields[ i ] = inputField;
       }
       schemaFilename = XMLHandler.getTagValue( stepnode, "schemaFilename" );
@@ -175,6 +177,9 @@ public abstract class AvroInputMetaBase extends
         if ( field.getAvroType() != null ) {
           retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", field.getAvroType().getName() ) );
         }
+        if ( field.getStringFormat() != null ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
+        }
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -204,6 +209,8 @@ public abstract class AvroInputMetaBase extends
         inputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         inputField.setPentahoType( rep.getStepAttributeString( id_step, i, "type" ) );
         inputField.setAvroType( rep.getStepAttributeString( id_step, i, "avro_type" ) );
+        String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
+        inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
         this.inputFields[ i ] = inputField;
       }
       schemaFilename = rep.getStepAttributeString( id_step, "schemaFilename" );
@@ -229,6 +236,9 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
         if ( field.getAvroType() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", field.getAvroType().getName() );
+        }
+        if ( field.getStringFormat() != null ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
         }
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );

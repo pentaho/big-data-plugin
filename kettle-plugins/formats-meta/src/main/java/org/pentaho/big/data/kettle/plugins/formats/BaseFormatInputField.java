@@ -38,6 +38,7 @@ public class BaseFormatInputField extends BaseFileField implements IFormatInputF
   private int formatType;
   private int precision = 0;
   private int scale = 0;
+  private String stringFormat = "";
 
   @Override
   public String getFormatFieldName() {
@@ -91,6 +92,16 @@ public class BaseFormatInputField extends BaseFileField implements IFormatInputF
 
   @Override public void setScale( int scale ) {
     this.scale = scale;
+  }
+
+  @Override
+  public String getStringFormat() {
+    return stringFormat;
+  }
+
+  @Override
+  public void setStringFormat( String stringFormat ) {
+    this.stringFormat = stringFormat == null ? "" : stringFormat;
   }
 
   public void setPentahoType( String value ) {

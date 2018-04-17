@@ -118,6 +118,9 @@ public abstract class OrcInputMetaBase extends
       retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "orc_type", field.getOrcType().getName() ) );
+      if ( field.getStringFormat() != null ) {
+        retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
+      }
       retval.append( "      </field>" ).append( Const.CR );
     }
     retval.append( "    </fields>" ).append( Const.CR );
@@ -146,6 +149,9 @@ public abstract class OrcInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
         rep.saveStepAttribute( id_transformation, id_step, i, "orc_type", field.getOrcType().getName() );
+        if ( field.getStringFormat() != null ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
+        }
       }
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
@@ -187,6 +193,8 @@ public abstract class OrcInputMetaBase extends
       field.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
       field.setOrcType( XMLHandler.getTagValue( fnode, "orc_type" ) );
+      String stringFormat = XMLHandler.getTagValue( fnode, "format" );
+      field.setStringFormat( stringFormat == null ? "" : stringFormat );
       this.inputFields[ i ] = field;
     }
   }
@@ -223,6 +231,8 @@ public abstract class OrcInputMetaBase extends
         field.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         field.setPentahoType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "type" ) ) );
         field.setOrcType( rep.getStepAttributeString( id_step, i, "orc_type" ) );
+        String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
+        field.setStringFormat( stringFormat == null ? "" : stringFormat );
 
         this.inputFields[ i ] = field;
       }

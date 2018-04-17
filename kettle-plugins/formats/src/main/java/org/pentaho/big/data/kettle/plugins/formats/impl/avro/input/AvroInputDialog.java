@@ -70,13 +70,13 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
 
-  private static final int DISPLAYABLE_AVRO_PATH_COLUMN_INDEX = 1;
+  private static final int AVRO_PATH_COLUMN_INDEX = 1;
 
   private static final int FIELD_NAME_COLUMN_INDEX = 2;
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
-  private static final int AVRO_PATH_COLUMN_INDEX = 4;
+  private static final int FORMAT_COLUMN_INDEX = 4;
 
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
@@ -148,11 +148,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       for ( IAvroInputField field : defaultFields ) {
         TableItem item = new TableItem( wInputFields.table, SWT.NONE );
         if ( field != null ) {
-          setField( item, concatenateAvroNameAndType( field.getDisplayableAvroFieldName(), field.getAvroType() ),
-              DISPLAYABLE_AVRO_PATH_COLUMN_INDEX );
+          setField( item, concatenateAvroNameAndType( field.getDisplayableAvroFieldName(), field.getAvroType() ), AVRO_PATH_COLUMN_INDEX );
           setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
           setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
-          setField( item, field.getAvroFieldName(), AVRO_PATH_COLUMN_INDEX );
+          setField( item, field.getStringFormat(), FORMAT_COLUMN_INDEX );
         }
       }
 
@@ -206,27 +205,22 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
-    ColumnInfo[] parameterColumns =
-        new ColumnInfo[] { new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false, true ), new ColumnInfo( BaseMessages.getString( PKG,
-                "AvroInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false ), new ColumnInfo(
-                    BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Type" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
-                    ValueMetaFactory.getValueMetaNames() ), new ColumnInfo( BaseMessages.getString( PKG,
-                        "AvroInputDialog.Fields.column.SourceType" ), ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory
-                            .getValueMetaNames(), true ) };
+    ColumnInfo avroPathColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+    ColumnInfo nameColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo typeColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Type" ), ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
+    ColumnInfo formatColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Format" ), ColumnInfo.COLUMN_TYPE_CCOMBO, Const.getDateFormats() );
+
+    ColumnInfo[] parameterColumns = new ColumnInfo[] { avroPathColumnInfo, nameColumnInfo, typeColumnInfo, formatColumnInfo };
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     parameterColumns[3].setAutoResize( false );
 
-    wInputFields =
-        new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-            parameterColumns, 7, null, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 0 );
+    wInputFields = new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL, parameterColumns, 7, null, props );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 40, 20, 20, 20 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
-    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wPassThruFields, FIELDS_SEP ).bottom( wGetFields,
-        -FIELDS_SEP ).apply();
+    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( wPassThruFields, FIELDS_SEP ).bottom( wGetFields, -FIELDS_SEP ).apply();
 
     wInputFields.setRowNums();
     wInputFields.optWidth( true );
@@ -347,10 +341,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
       if ( inputField.getAvroFieldName() != null ) {
         if ( inputField.getAvroType() != null ) {
-          item.setText( DISPLAYABLE_AVRO_PATH_COLUMN_INDEX,
+          item.setText( AVRO_PATH_COLUMN_INDEX,
               concatenateAvroNameAndType( inputField.getDisplayableAvroFieldName(), inputField.getAvroType() ) );
         } else {
-          item.setText( DISPLAYABLE_AVRO_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
+          item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
         }
       }
       if ( inputField.getPentahoFieldName() != null ) {
@@ -359,8 +353,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       if ( inputField.getTypeDesc() != null ) {
         item.setText( FIELD_TYPE_COLUMN_INDEX, inputField.getTypeDesc() );
       }
-      if ( inputField.getAvroFieldName() != null ) {
-        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getAvroFieldName() );
+      if ( inputField.getStringFormat() != null ) {
+        item.setText( FORMAT_COLUMN_INDEX, inputField.getStringFormat() );
+      } else {
+        item.setText( FORMAT_COLUMN_INDEX, "" );
       }
       itemIndex++;
     }
@@ -382,12 +378,20 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
-      field.setFormatFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) );
-      field.setAvroType( extractAvroType( item.getText( DISPLAYABLE_AVRO_PATH_COLUMN_INDEX ) ) );
+      field.setFormatFieldName( extractFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) ) );
+      field.setAvroType( extractAvroType( item.getText( AVRO_PATH_COLUMN_INDEX ) ) );
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      field.setStringFormat( item.getText( FORMAT_COLUMN_INDEX ) );
       meta.inputFields[ i ] = field;
     }
+  }
+
+  private String extractFieldName( String parquetNameTypeFromUI ) {
+    if ( ( parquetNameTypeFromUI != null ) && ( parquetNameTypeFromUI.indexOf( "(" ) >= 0 ) ) {
+      return StringUtils.substringBefore( parquetNameTypeFromUI, "(" ).trim();
+    }
+    return parquetNameTypeFromUI;
   }
 
   private String getSchemeFromPath( String path ) {
