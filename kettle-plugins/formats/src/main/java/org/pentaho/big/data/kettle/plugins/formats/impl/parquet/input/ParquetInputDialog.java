@@ -67,7 +67,9 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
 
   private static final int FIELD_TYPE_COLUMN_INDEX = 3;
 
-  private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 4;
+  private static final int FORMAT_COLUMN_INDEX = 4;
+
+  private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 5;
 
   private TableView wInputFields;
 
@@ -121,15 +123,13 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
-    ColumnInfo[] parameterColumns = new ColumnInfo[] {
-      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Path" ),
-        ColumnInfo.COLUMN_TYPE_TEXT, false, true ),
-      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Name" ),
-        ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
-      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ),
-        ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() ),
-      new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.SourceType" ),
-        ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true ) };
+    ColumnInfo parquetPathColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+    ColumnInfo nameColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo typeColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Type" ), ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames() );
+    ColumnInfo formatColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.Format" ), ColumnInfo.COLUMN_TYPE_CCOMBO, Const.getDateFormats() );
+    ColumnInfo sourceTypeColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.column.SourceType" ), ColumnInfo.COLUMN_TYPE_TEXT, ValueMetaFactory.getValueMetaNames(), true );
+
+    ColumnInfo[] parameterColumns = new ColumnInfo[] {parquetPathColumnInfo, nameColumnInfo, typeColumnInfo, formatColumnInfo, sourceTypeColumnInfo};
     parameterColumns[0].setAutoResize( false );
     parameterColumns[1].setUsingVariables( true );
     parameterColumns[3].setAutoResize( false );
@@ -137,7 +137,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     wInputFields =
       new TableView( transMeta, fieldsContainer, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
         parameterColumns, 7, null, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 50, 25, 25, 0 );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 40, 20, 20, 20, 0 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
 
     props.setLook( wInputFields );
@@ -167,6 +167,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
           setField( item, concatenateParquetNameAndType( field ), PARQUET_PATH_COLUMN_INDEX );
           setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
           setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
+          setField( item, field.getStringFormat(), FORMAT_COLUMN_INDEX );
           setField( item, ParquetSpec.DataType.getDataType( field.getFormatType() ).getName(), FIELD_SOURCE_TYPE_COLUMN_INDEX );
         }
       }
@@ -237,6 +238,11 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       if ( getSourceTypeDesc( inputField.getFormatType() ) != null ) {
         item.setText( FIELD_SOURCE_TYPE_COLUMN_INDEX, getSourceTypeDesc( inputField.getFormatType() ) );
       }
+      if ( inputField.getStringFormat() != null ) {
+        item.setText( FORMAT_COLUMN_INDEX, inputField.getStringFormat() );
+      } else {
+        item.setText( FORMAT_COLUMN_INDEX, "" );
+      }
       itemIndex++;
     }
   }
@@ -283,6 +289,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       }
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
+      field.setStringFormat( item.getText( FORMAT_COLUMN_INDEX ) );
       meta.inputFields[ i ] = field;
     }
   }

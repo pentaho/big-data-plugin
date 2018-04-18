@@ -120,6 +120,9 @@ public abstract class ParquetInputMetaBase extends
         retval.append( "        " )
           .append( XMLHandler.addTagValue( "parquet_type", field.getParquetType().getName() ) );
       }
+      if ( field.getStringFormat() != null ) {
+        retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
+      }
       retval.append( "      </field>" ).append( Const.CR );
     }
     retval.append( "    </fields>" ).append( Const.CR );
@@ -149,6 +152,9 @@ public abstract class ParquetInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field.getTypeDesc() );
         if ( field.getParquetType() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "parquet_type", field.getParquetType().getName() );
+        }
+        if ( field.getStringFormat() != null ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
         }
       }
     } catch ( Exception e ) {
@@ -191,6 +197,8 @@ public abstract class ParquetInputMetaBase extends
       field.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
       field.setParquetType( XMLHandler.getTagValue( fnode, "parquet_type" ) );
+      String stringFormat = XMLHandler.getTagValue( fnode, "format" );
+      field.setStringFormat( stringFormat == null ? "" : stringFormat );
       this.inputFields[ i ] = field;
     }
   }
@@ -227,6 +235,8 @@ public abstract class ParquetInputMetaBase extends
         field.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "field_name" ) );
         field.setPentahoType( rep.getStepAttributeString( id_step, i, "field_type" ) );
         field.setParquetType( rep.getStepAttributeString( id_step, i, "parquet_type" ) );
+        String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
+        field.setStringFormat( stringFormat == null ? "" : stringFormat );
         this.inputFields[ i ] = field;
       }
 

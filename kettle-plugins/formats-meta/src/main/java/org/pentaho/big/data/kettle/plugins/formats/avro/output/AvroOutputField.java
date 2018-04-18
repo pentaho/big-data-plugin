@@ -80,16 +80,16 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
 
 
   public boolean isDecimalType() {
-    return getAvroType().getName().equals( AvroSpec.DataType.DECIMAL.getName() );
+    return getAvroType().equals( AvroSpec.DataType.DECIMAL );
   }
 
   @Override
   public void setPrecision( String precision ) {
-    if ( precision == null ) {
-      this.precision = AvroSpec.DEFAULT_DECIMAL_PRECISION;
+    if ( ( precision == null ) || ( precision.trim().length() == 0 ) ) {
+      this.precision = isDecimalType() ? AvroSpec.DEFAULT_DECIMAL_PRECISION : 0;
     } else {
       this.precision = Integer.valueOf( precision );
-      if ( this.precision <= 0 ) {
+      if ( ( this.precision <= 0 ) && isDecimalType() ) {
         this.precision = AvroSpec.DEFAULT_DECIMAL_PRECISION;
       }
     }
@@ -97,12 +97,12 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
 
   @Override
   public void setScale( String scale ) {
-    if ( scale == null ) {
-      this.scale = AvroSpec.DEFAULT_DECIMAL_SCALE;
+    if ( ( scale == null ) || ( scale.trim().length() == 0 ) ) {
+      this.scale = isDecimalType() ? AvroSpec.DEFAULT_DECIMAL_SCALE : 0;
     } else {
       this.scale = Integer.valueOf( scale );
-      if ( this.scale < 0 ) {
-        this.scale = AvroSpec.DEFAULT_DECIMAL_SCALE;
+      if ( ( this.scale < 0 ) ) {
+        this.scale = isDecimalType() ? AvroSpec.DEFAULT_DECIMAL_SCALE : 0;
       }
     }
   }

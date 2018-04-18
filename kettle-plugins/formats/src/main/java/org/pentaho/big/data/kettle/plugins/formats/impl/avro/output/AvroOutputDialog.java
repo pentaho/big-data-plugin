@@ -569,12 +569,17 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       field.setFormatFieldName( item.getText( j++ ) );
       field.setPentahoFieldName( item.getText( j++ ) );
       field.setFormatType( item.getText( j++ ) );
-      if ( field.isDecimalType() ) {
+
+      if ( field.getAvroType().equals( AvroSpec.DataType.DECIMAL ) ) {
         field.setPrecision( item.getText( j++ ) );
+        field.setScale( item.getText( j++ ) );
+      } else if ( field.getAvroType().equals( AvroSpec.DataType.FLOAT ) || field.getAvroType().equals( AvroSpec.DataType.DOUBLE ) ) {
+        j++;
         field.setScale( item.getText( j++ ) );
       } else {
         j += 2;
       }
+
       field.setDefaultValue( item.getText( j++ ) );
       field.setAllowNull( getNullableValue( item.getText( j++ ) ) );
 
@@ -634,9 +639,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
       item.setText( i++, coalesce( field.getFormatFieldName() ) );
       item.setText( i++, coalesce( field.getPentahoFieldName() ) );
       item.setText( i++, coalesce( field.getAvroType().getName() ) );
-      if ( field.isDecimalType() ) {
+      if ( field.getAvroType().equals( AvroSpec.DataType.DECIMAL ) ) {
         item.setText( i++, coalesce( String.valueOf( field.getPrecision() ) ) );
         item.setText( i++, coalesce( String.valueOf( field.getScale() ) ) );
+      } else if ( field.getAvroType().equals( AvroSpec.DataType.FLOAT ) || field.getAvroType().equals( AvroSpec.DataType.DOUBLE ) ) {
+        i++;
+        item.setText( i++, field.getScale() > 0 ? String.valueOf( field.getScale() ) : "" );
       } else {
         i += 2;
       }
@@ -709,9 +717,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
   }
 
   private void getFieldsFromPreviousStep( RowMetaInterface row, TableView tableView, int keyColumn,
-      int[] nameColumn, int[] dataTypeColumn, int lengthColumn,
-      int precisionColumn, boolean optimizeWidth,
-      TableItemInsertListener listener ) {
+                                          int[] nameColumn, int[] dataTypeColumn, int lengthColumn,
+                                          int precisionColumn, boolean optimizeWidth,
+                                          TableItemInsertListener listener ) {
     if ( row == null || row.size() == 0 ) {
       return; // nothing to do
     }
@@ -764,15 +772,17 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
         TableItem tableItem = new TableItem( table, SWT.NONE );
 
         for ( int c = 0; c < nameColumn.length; c++ ) {
-          tableItem.setText( nameColumn[ c ], Const.NVL( v.getName(), "" ) );
+          tableItem.setText( nameColumn[c], Const.NVL( v.getName(), "" ) );
         }
+
+        String avroTypeName = meta.convertToAvroType( v.getType() );
         if ( dataTypeColumn != null ) {
           for ( int c = 0; c < dataTypeColumn.length; c++ ) {
-            tableItem.setText( dataTypeColumn[ c ], meta.convertToAvroType( v.getType() ) );
+            tableItem.setText( dataTypeColumn[c], avroTypeName );
           }
         }
 
-        if ( meta.convertToAvroType( v.getType() ).equals( AvroSpec.DataType.DECIMAL.getName() ) ) {
+        if ( avroTypeName.equals( AvroSpec.DataType.DECIMAL.getName() ) ) {
           if ( lengthColumn > 0 && v.getLength() > 0 ) {
             tableItem.setText( lengthColumn, Integer.toString( v.getLength() ) );
           } else {
@@ -785,6 +795,10 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
           } else {
             // Set the default scale
             tableItem.setText( precisionColumn, Integer.toString( AvroSpec.DEFAULT_DECIMAL_SCALE ) );
+          }
+        } else if ( avroTypeName.equals( AvroSpec.DataType.FLOAT.getName() ) || avroTypeName.equals( AvroSpec.DataType.DOUBLE.getName() ) ) {
+          if ( precisionColumn > 0 && v.getPrecision() > 0 ) {
+            tableItem.setText( precisionColumn, Integer.toString( v.getPrecision() ) );
           }
         }
 

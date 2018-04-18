@@ -68,4 +68,33 @@ public class ParquetOutputField extends BaseFormatOutputField implements IParque
     }
   }
 
+  public boolean isDecimalType() {
+    return getParquetType().equals( ParquetSpec.DataType.DECIMAL );
+  }
+
+
+  @Override
+  public void setPrecision( String precision ) {
+    if ( ( precision == null ) || ( precision.trim().length() == 0 ) ) {
+      this.precision = isDecimalType() ? ParquetSpec.DEFAULT_DECIMAL_PRECISION : 0;
+    } else {
+      this.precision = Integer.valueOf( precision );
+      if ( ( this.precision <= 0 ) && isDecimalType() ) {
+        this.precision = ParquetSpec.DEFAULT_DECIMAL_PRECISION;
+      }
+    }
+  }
+
+  @Override
+  public void setScale( String scale ) {
+    if ( ( scale == null ) || ( scale.trim().length() == 0 ) ) {
+      this.scale = isDecimalType() ? ParquetSpec.DEFAULT_DECIMAL_SCALE : 0;
+    } else {
+      this.scale = Integer.valueOf( scale );
+      if ( ( this.scale < 0 ) ) {
+        this.scale = isDecimalType() ? ParquetSpec.DEFAULT_DECIMAL_SCALE : 0;
+      }
+    }
+  }
+
 }

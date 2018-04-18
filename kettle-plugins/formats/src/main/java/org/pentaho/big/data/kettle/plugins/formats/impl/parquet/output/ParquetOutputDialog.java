@@ -470,12 +470,17 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
           field.setFormatType( parqueType.getId() );
         }
       }
+
       if ( field.getParquetType().equals( ParquetSpec.DataType.DECIMAL ) ) {
         field.setPrecision( item.getText( j++ ) );
+        field.setScale( item.getText( j++ ) );
+      } else if ( field.getParquetType().equals( ParquetSpec.DataType.FLOAT ) || field.getParquetType().equals( ParquetSpec.DataType.DOUBLE ) ) {
+        j++;
         field.setScale( item.getText( j++ ) );
       } else {
         j += 2;
       }
+
       field.setDefaultValue( item.getText( j++ ) );
       field.setAllowNull( NullableValuesEnum.YES.getValue().equals( item.getText( j++ ) ) );
       outputFields.add( field );
@@ -489,13 +494,18 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
       item.setText( i++, coalesce( field.getFormatFieldName() ) );
       item.setText( i++, coalesce( field.getPentahoFieldName() ) );
       item.setText( i++, coalesce( field.getParquetType().getName() ) );
+
       if ( field.getParquetType().equals( ParquetSpec.DataType.DECIMAL ) ) {
-        item.setText( i++, Integer.toString( field.getPrecision() ) );
-        item.setText( i++, Integer.toString( field.getScale() ) );
+        item.setText( i++, coalesce( String.valueOf( field.getPrecision() ) ) );
+        item.setText( i++, coalesce( String.valueOf( field.getScale() ) ) );
+      } else if ( field.getParquetType().equals( ParquetSpec.DataType.FLOAT ) || field.getParquetType().equals( ParquetSpec.DataType.DOUBLE ) ) {
+        item.setText( i++, "" );
+        item.setText( i++, field.getScale() > 0 ? String.valueOf( field.getScale() ) : "" );
       } else {
         item.setText( i++, "" );
         item.setText( i++, "" );
       }
+
       item.setText( i++, coalesce( field.getDefaultValue() ) );
       item.setText( i++, field.getAllowNull() ? NullableValuesEnum.YES.getValue() : NullableValuesEnum.NO.getValue() );
     } );
@@ -571,13 +581,15 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
         for ( int c = 0; c < nameColumn.length; c++ ) {
           tableItem.setText( nameColumn[ c ], Const.NVL( v.getName(), "" ) );
         }
+
+        String parquetTypeName = meta.convertToParquetType( v.getType() );
         if ( dataTypeColumn != null ) {
           for ( int c = 0; c < dataTypeColumn.length; c++ ) {
-            tableItem.setText( dataTypeColumn[ c ], meta.convertToParquetType( v.getType() ) );
+            tableItem.setText( dataTypeColumn[ c ], parquetTypeName );
           }
         }
 
-        if ( meta.convertToParquetType( v.getType() ).equals( ParquetSpec.DataType.DECIMAL.getName() ) ) {
+        if ( parquetTypeName.equals( ParquetSpec.DataType.DECIMAL.getName() ) ) {
           if ( lengthColumn > 0 && v.getLength() > 0 ) {
             tableItem.setText( lengthColumn, Integer.toString( v.getLength() ) );
           } else {
@@ -590,6 +602,10 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
           } else {
             // Set the default scale
             tableItem.setText( precisionColumn, Integer.toString( ParquetSpec.DEFAULT_DECIMAL_SCALE ) );
+          }
+        } else if ( parquetTypeName.equals( ParquetSpec.DataType.FLOAT.getName() ) || parquetTypeName.equals( ParquetSpec.DataType.DOUBLE.getName() ) ) {
+          if ( precisionColumn > 0 && v.getPrecision() > 0 ) {
+            tableItem.setText( precisionColumn, Integer.toString( v.getPrecision() ) );
           }
         }
 
