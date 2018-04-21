@@ -73,6 +73,12 @@
       <version>${jets3t.version}</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <version>1.11.275</version>
+      <scope>compile</scope>
+    </dependency>
 
     <!-- Test dependencies -->
     <dependency>

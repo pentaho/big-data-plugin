@@ -1,32 +1,21 @@
 /*!
-* Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-*/
+ * Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
-package org.pentaho.s3.vfs;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+package org.pentaho.s3n.vfs;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -40,15 +29,42 @@ import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Bucket;
 import org.jets3t.service.model.S3Object;
 
-public class S3FileObject extends AbstractFileObject {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+public class S3NFileObject extends AbstractFileObject {
 
   public static final String DELIMITER = "/";
+  protected static Map<String, S3Object[]> s3ChildrenMap = new HashMap<String, S3Object[]>();
+  protected Set<String> folders = new HashSet<String>();
   private S3Bucket bucket = null;
-  private S3FileSystem fileSystem = null;
+  private S3NFileSystem fileSystem = null;
 
-  protected S3FileObject( final AbstractFileName name, final S3FileSystem fileSystem ) throws FileSystemException {
+  protected S3NFileObject( final AbstractFileName name, final S3NFileSystem fileSystem ) throws FileSystemException {
     super( name, fileSystem );
     this.fileSystem = fileSystem;
+  }
+
+  static S3Object getS3Object( String name, S3NDataContent s3DataContent )
+      throws NoSuchAlgorithmException, IOException {
+    S3Object object = new S3Object( name );
+    if ( s3DataContent != null ) {
+      if ( s3DataContent.isUseTempFileOnUploadData() ) {
+        object = new S3Object( s3DataContent.asFile() );
+        object.setName( name );
+      } else {
+        object = new S3Object( name, s3DataContent.asByteArrayStream().toByteArray() );
+      }
+    }
+    return object;
   }
 
   protected String getS3BucketName() {
@@ -88,7 +104,8 @@ public class S3FileObject extends AbstractFileObject {
     return getS3Object( deleteIfAlreadyExists, needContent, null );
   }
 
-  S3Object getS3Object( boolean deleteIfAlreadyExists, boolean needContent, S3DataContent s3DataContent ) throws Exception {
+  S3Object getS3Object( boolean deleteIfAlreadyExists, boolean needContent, S3NDataContent s3DataContent )
+      throws Exception {
     try {
       if ( getName().getPath().indexOf( DELIMITER, 1 ) == -1 ) {
         return null;
@@ -117,25 +134,13 @@ public class S3FileObject extends AbstractFileObject {
     return null;
   }
 
-  static S3Object getS3Object( String name, S3DataContent s3DataContent ) throws NoSuchAlgorithmException, IOException {
-    S3Object object = new S3Object( name );
-    if ( s3DataContent != null ) {
-      if ( s3DataContent.isUseTempFileOnUploadData() ) {
-        object = new S3Object( s3DataContent.asFile() );
-        object.setName( name );
-      } else {
-        object = new S3Object( name, s3DataContent.asByteArrayStream().toByteArray() );
-      }
-    }
-    return object;
-  }
-
   private S3Object getObjectFromS3( String name, Boolean needContent ) throws ServiceException, IOException {
     S3Object s3Object;
     if ( needContent ) {
       s3Object = fileSystem.getS3Service().getObject( getS3BucketName(), name );
     } else {
-      s3Object = (S3Object) fileSystem.getS3Service().getObjectDetails( getS3BucketName(), name, null, null, null, null );
+      s3Object =
+          (S3Object) fileSystem.getS3Service().getObjectDetails( getS3BucketName(), name, null, null, null, null );
     }
     return s3Object;
   }
@@ -145,7 +150,7 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   protected OutputStream doGetOutputStream( final boolean append ) throws Exception {
-    S3DataContent s3DataContent = new S3DataContent();
+    S3NDataContent s3DataContent = new S3NDataContent();
     s3DataContent.load();
     final OutputStream output = s3DataContent.getDataToUpload();
     final PipedInputStream pis = new PipedInputStream();
@@ -194,7 +199,7 @@ public class S3FileObject extends AbstractFileObject {
       // ignored
     }
     if ( getName().getPath().equals( "" ) || getName().getPath().equals( DELIMITER ) || getName().getPath()
-      .endsWith( DELIMITER ) ) {
+        .endsWith( DELIMITER ) ) {
       return FileType.FOLDER;
     }
     String s3Path = getBucketRelativeS3Path();
@@ -213,7 +218,7 @@ public class S3FileObject extends AbstractFileObject {
           return FileType.FOLDER;
         }
       } catch ( S3ServiceException se ) {
-       // ignored
+        // ignored
       }
     }
     if ( objectEndsWithDelimiter != null ) {
@@ -251,7 +256,7 @@ public class S3FileObject extends AbstractFileObject {
       S3Object obj = new S3Object( bucket, name );
       fileSystem.getS3Service().putObject( bucket, obj );
 
-      ( (S3FileObject) getParent() ).folders.add( getName().getBaseName() );
+      ( (S3NFileObject) getParent() ).folders.add( getName().getBaseName() );
       s3ChildrenMap.remove( getS3BucketName() );
     }
   }
@@ -288,11 +293,11 @@ public class S3FileObject extends AbstractFileObject {
     } else if ( filetype.equals( FileType.FOLDER ) ) {
       key = key + DELIMITER;                            // Delete a folder.
       fileSystem.getS3Service().deleteObject( bucket,
-        key );          // The folder will not get deleted if its key does not end with DELIMITER.
+          key );          // The folder will not get deleted if its key does not end with DELIMITER.
     } else {
       return;
     }
-    ( (S3FileObject) getParent() ).folders.remove( getName().getBaseName() );
+    ( (S3NFileObject) getParent() ).folders.remove( getName().getBaseName() );
     s3ChildrenMap.remove( getS3BucketName() );
   }
 
@@ -320,16 +325,13 @@ public class S3FileObject extends AbstractFileObject {
     return true;
   }
 
-  protected Set<String> folders = new HashSet<String>();
-  protected static Map<String, S3Object[]> s3ChildrenMap = new HashMap<String, S3Object[]>();
-
   protected String[] doListChildren() throws Exception {
     S3Bucket bucket = getS3Bucket();
     if ( bucket == null && ( getName().getPath().equals( "" ) || getName().getPath().equals( DELIMITER ) ) ) {
       S3Bucket[] buckets = fileSystem.getS3Service().listAllBuckets();
-      String[] children = new String[ buckets.length ];
+      String[] children = new String[buckets.length];
       for ( int i = 0; i < buckets.length; i++ ) {
-        children[ i ] = buckets[ i ].getName();
+        children[i] = buckets[i].getName();
       }
       return children;
     } else {
@@ -371,7 +373,7 @@ public class S3FileObject extends AbstractFileObject {
           }
         }
       }
-      return vfsChildren.toArray( new String[] { } );
+      return vfsChildren.toArray( new String[] {} );
     }
   }
 

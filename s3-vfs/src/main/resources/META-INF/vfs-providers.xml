@@ -3,4 +3,8 @@
     <scheme name="s3"/>
     <if-available class-name="org.jets3t.service.S3Service"/>
   </provider>
+  <provider class-name="org.pentaho.s3n.vfs.S3NFileProvider">
+    <scheme name="s3n"/>
+    <if-available class-name="org.jets3t.service.S3Service"/>
+  </provider>
 </providers>
