@@ -23,16 +23,13 @@
 package org.pentaho.amazon.s3;
 
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
-import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
@@ -56,44 +53,10 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
   private static final String ACCESS_KEY_TAG = "access_key";
   private static final String SECRET_KEY_TAG = "secret_key";
-  private static final String USE_AWS_DEFAULT_CREDENTIALS = "use_aws_default_credentials";
   private static final String FILE_TAG = "file";
   private static final String NAME_TAG = "name";
 
   private static final Pattern OLD_STYLE_FILENAME = Pattern.compile( "^[s|S]3:\\/\\/([0-9a-zA-Z]{20}):(.+)@(.+)$" );
-
-  @Injection( name = "AWS_ACCESS_KEY" )
-  private String accessKey = null;
-
-  @Injection( name = "AWS_SECRET_KEY" )
-  private String secretKey = null;
-
-  @Injection( name = "USE_AWS_DEFAULT_CREDENTIALS" )
-  private boolean useAwsDefaultCredentials;
-
-  public String getAccessKey() {
-    return accessKey;
-  }
-
-  public void setAccessKey( String accessKey ) {
-    this.accessKey = accessKey;
-  }
-
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  public void setSecretKey( String secretKey ) {
-    this.secretKey = secretKey;
-  }
-
-  public void setUseAwsDefaultCredentials( boolean useDefaultAwsCredentials ) {
-    this.useAwsDefaultCredentials = useDefaultAwsCredentials;
-  }
-
-  public boolean getUseAwsDefaultCredentials() {
-    return useAwsDefaultCredentials;
-  }
 
   @Override
   public void setDefault() {
@@ -108,15 +71,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   @Override
   public String getXML() {
     StringBuffer retval = new StringBuffer( 1000 );
-
     retval.append( super.getXML() );
-    retval.append( "      " ).append(
-        XMLHandler.addTagValue( ACCESS_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
-    retval.append( "      " ).append(
-        XMLHandler.addTagValue( SECRET_KEY_TAG, Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
-    retval.append( "      " ).append(
-      XMLHandler.addTagValue( USE_AWS_DEFAULT_CREDENTIALS, useAwsDefaultCredentials ) );
-
     return retval.toString();
   }
 
@@ -125,11 +80,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     throws KettleException {
     try {
       super.saveRep( rep, metaStore, id_transformation, id_step );
-      rep.saveStepAttribute( id_transformation, id_step, ACCESS_KEY_TAG, Encr
-          .encryptPasswordIfNotUsingVariables( accessKey ) );
-      rep.saveStepAttribute( id_transformation, id_step, SECRET_KEY_TAG, Encr
-          .encryptPasswordIfNotUsingVariables( secretKey ) );
-      rep.saveStepAttribute( id_transformation, id_step, USE_AWS_DEFAULT_CREDENTIALS, useAwsDefaultCredentials );
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
@@ -140,14 +90,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
     throws KettleException {
     try {
       super.readRep( rep, metaStore, id_step, databases );
-      setAccessKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, ACCESS_KEY_TAG ) ) );
-      setSecretKey( Encr.decryptPasswordOptionallyEncrypted( rep.getStepAttributeString( id_step, SECRET_KEY_TAG ) ) );
-      String useDefaultAwsCredentials = rep.getStepAttributeString( id_step, USE_AWS_DEFAULT_CREDENTIALS );
-      if ( useDefaultAwsCredentials == null || "N".equalsIgnoreCase( useDefaultAwsCredentials ) ) {
-        this.useAwsDefaultCredentials = false;
-      } else {
-        this.useAwsDefaultCredentials = true;
-      }
       String filename = rep.getStepAttributeString( id_step, "file_name" );
       processFilename( filename );
     } catch ( Exception e ) {
@@ -163,14 +105,6 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   public void readData( Node stepnode ) throws KettleXMLException {
     try {
       super.readData( stepnode );
-      accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, ACCESS_KEY_TAG ) );
-      secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( stepnode, SECRET_KEY_TAG ) );
-      String basicAwsCredentials = XMLHandler.getTagValue( stepnode, USE_AWS_DEFAULT_CREDENTIALS );
-      if ( basicAwsCredentials == null || "N".equalsIgnoreCase( basicAwsCredentials ) ) {
-        useAwsDefaultCredentials = false;
-      } else {
-        useAwsDefaultCredentials = true;
-      }
       String filename = XMLHandler.getTagValue( stepnode, FILE_TAG, NAME_TAG );
       processFilename( filename );
     } catch ( Exception e ) {
@@ -193,19 +127,9 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
    */
   protected void processFilename( String filename ) throws Exception {
     if ( Const.isEmpty( filename ) ) {
-      filename = "s3://s3/";
+      filename = "s3n://s3n/";
       setFileName( filename );
       return;
-    }
-    // it it's an old-style filename - use and then remove keys from the filename
-    Matcher matcher = OLD_STYLE_FILENAME.matcher( filename );
-    if ( matcher.matches() ) {
-      // old style filename is URL encoded
-      accessKey = decodeAccessKey( matcher.group( 1 ) );
-      secretKey = decodeAccessKey( matcher.group( 2 ) );
-      setFileName( "s3://" + matcher.group( 3 ) );
-    } else {
-      setFileName( filename );
     }
   }
 

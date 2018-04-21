@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,50 +34,7 @@ public class S3FileOutputMetaProcessFilenameTest {
   @Before
   public void beforeTest() {
     meta = new S3FileOutputMeta();
-    meta.setAccessKey( "" );
-    meta.setSecretKey( "" );
     meta.setFileName( "" );
   }
 
-  @Test
-  public void testProcessFilenameOldStyleNotEncoded() throws Exception {
-    String name = "s3://AAAAAAABBBBBBBBB333A:Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS@s3/dbahdano/empty";
-    meta.processFilename( name );
-    check( "AAAAAAABBBBBBBBB333A", "Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS", "s3://s3/dbahdano/empty" );
-  }
-
-  @Test
-  public void testProcessFilenameCapitalLetter() throws Exception {
-    String name = "S3://AAAAAAABBBBBBBBB333A:Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS@s3/dbahdano/empty";
-    meta.processFilename( name );
-    check( "AAAAAAABBBBBBBBB333A", "Qqqqqqqqqqq+uP777777/RRRRRRRRRRRR+dWvhzS", "s3://s3/dbahdano/empty" );
-  }
-
-  @Test
-  public void testProcessFilenameOldStyleEncoded() throws Exception {
-    String name = "s3://AAAAAAABBBBBBBBB333A:Q123456789%2BqwertyUIO%2FREFfJUW7FdNY%2BdWvhzS@s3/dbahdano/empty";
-    meta.processFilename( name );
-    check( "AAAAAAABBBBBBBBB333A", "Q123456789+qwertyUIO/REFfJUW7FdNY+dWvhzS", "s3://s3/dbahdano/empty" );
-  }
-
-  @Test
-  public void testProcessFilenameNewStyle1() throws Exception {
-    String name = "s3://s3/dbahdano/empty";
-    meta.processFilename( name );
-    check( "", "", "s3://s3/dbahdano/empty" );
-  }
-
-  @Test
-  public void testProcessFilenameNewStyle2() throws Exception {
-    String name = "s3://s/dbahdano/empty";
-    meta.processFilename( name );
-    check( "", "", "s3://s/dbahdano/empty" );
-  }
-
-  private void check( String expectedAccessKey, String expectedSecretKey, String expectedFilename ) throws Exception {
-    assertEquals( "Access keys are not equal", expectedAccessKey, meta.getAccessKey() );
-    assertEquals( "Secret keys are not equal", expectedSecretKey, meta.getSecretKey() );
-    assertEquals( "File names are not equal", expectedFilename, meta.getFileName() );
-
-  }
 }

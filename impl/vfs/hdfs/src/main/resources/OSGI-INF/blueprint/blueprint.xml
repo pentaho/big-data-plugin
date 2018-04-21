@@ -19,14 +19,6 @@
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
-    <argument ref="hadoopFileSystemService"/>
-    <argument ref="namedClusterService"/>
-    <argument ref="hdfsFileNameParser" />
-    <argument value="s3n" type="java.lang.String"/>
-  </bean>
-
-
-  <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
       <argument ref="hadoopFileSystemService"/>
       <argument ref="namedClusterService"/>
       <argument ref="maprfsFileNameParser" />
