@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,6 @@ package org.pentaho.amazon.s3;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.database.DatabaseMeta;
 
@@ -35,8 +34,6 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Document;
 
 import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 public class S3FileOutputMetaTest {
   S3FileOutputMeta meta = new S3FileOutputMeta();
@@ -57,14 +54,4 @@ public class S3FileOutputMetaTest {
     meta.loadXML( doc.getFirstChild(), Collections.<DatabaseMeta>emptyList(), (IMetaStore) null );
   }
 
-
-  @Test
-  public void testGetAccessKey() throws Exception {
-    assertEquals( "Problem with reading Accesskey", "1", meta.getAccessKey() );
-  }
-
-  @Test
-  public void testGetSecretKey() throws Exception {
-    assertEquals( "Problem with reading Secretkey", "2", meta.getSecretKey() );
-  }
 }

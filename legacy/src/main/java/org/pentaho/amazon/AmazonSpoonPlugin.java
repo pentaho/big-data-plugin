@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,7 +22,7 @@
 
 package org.pentaho.amazon;
 
-import org.pentaho.amazon.s3.S3VfsFileChooserDialog;
+import org.pentaho.amazon.s3.S3NVfsFileChooserDialog;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.gui.GUIOption;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
@@ -38,7 +38,7 @@ public class AmazonSpoonPlugin implements LifecycleListener, GUIOption<Object> {
 
   public void onStart( LifeEventHandler arg0 ) throws LifecycleException {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
-    Spoon.getInstance().getVfsFileChooserDialog( null, null ).addVFSUIPanel( s3Priority, new S3VfsFileChooserDialog( dialog, null, null ) );
+    Spoon.getInstance().getVfsFileChooserDialog( null, null ).addVFSUIPanel( s3Priority, new S3NVfsFileChooserDialog( dialog, null, null ) );
   }
 
   public void onExit( LifeEventHandler arg0 ) throws LifecycleException {
