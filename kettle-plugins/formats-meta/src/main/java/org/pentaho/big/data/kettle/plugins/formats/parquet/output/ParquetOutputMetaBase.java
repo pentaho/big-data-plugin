@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2017-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -376,7 +376,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
 
   public void setCompressionType( String value ) {
     compressionType =
-      StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), null ).name();
+      StringUtil.isVariable( value ) ? value : parseFromToString( value, CompressionType.values(), CompressionType.NONE ).name();
   }
 
   public CompressionType getCompressionType( VariableSpace vspace ) {
@@ -470,7 +470,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   protected static <T> T parseFromToString( String str, T[] values, T defaultValue ) {
     if ( !Utils.isEmpty( str ) ) {
       for ( T type : values ) {
-        if ( str.equals( type.toString() ) ) {
+        if ( str.equalsIgnoreCase( type.toString() ) ) {
           return type;
         }
       }
