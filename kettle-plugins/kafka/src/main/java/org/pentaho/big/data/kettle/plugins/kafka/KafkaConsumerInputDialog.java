@@ -622,7 +622,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     String id = plugin.getIds()[ 0 ];
     if ( id != null ) {
       return GUIResource.getInstance().getImagesSteps().get( id ).getAsBitmapForSize( shell.getDisplay(),
-        ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
+        ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE );
     }
     return null;
   }

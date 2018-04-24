@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -193,7 +193,7 @@ public class JobEntrySparkSubmitDialog extends JobEntryDialog implements JobEntr
     Label lblIcon = new Label( shell, SWT.NONE );
     props.setLook( lblIcon );
     lblIcon.setImage( GUIResource.getInstance().getImage( "org/pentaho/di/ui/job/entries/spark/img/spark.svg",
-        getClass().getClassLoader(), ConstUI.ICON_SIZE, ConstUI.ICON_SIZE ) );
+        getClass().getClassLoader(), ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
     lblIcon.setLayoutData( fd( null, fa( 0, 0 ), fa( 100, 0 ) ) );
 
     Label lblEntryName = new Label( shell, SWT.NONE );
