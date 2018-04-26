@@ -43,8 +43,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -276,20 +274,15 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
   }
 
   protected void addIcon( Control bottom ) {
+    Label wicon = new Label( shell, SWT.RIGHT );
     String stepId = meta.getParentStepMeta().getStepID();
-    icon = GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
-      ConstUI.ICON_SIZE, ConstUI.ICON_SIZE );
-    Composite iconCont = new Composite( shell, SWT.NONE );
-    new FD( iconCont ).top( 0, 0 ).right( 100, 0 ).bottom( bottom, -MARGIN ).width( ConstUI.ICON_SIZE ).apply();
-    RowLayout iconLayout = new RowLayout( SWT.VERTICAL );
-    iconLayout.pack = true;
-    iconLayout.justify = true;
-    iconLayout.marginHeight = iconLayout.marginWidth = 0;
-    iconCont.setLayout( iconLayout );
-    Label wIcon = new Label( iconCont, SWT.RIGHT );
-    wIcon.setImage( icon );
-    wIcon.setLayoutData( new RowData( ConstUI.ICON_SIZE, ConstUI.ICON_SIZE ) );
-    props.setLook( wIcon );
+    wicon.setImage( GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
+        ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
+    FormData fdlicon = new FormData();
+    fdlicon.top = new FormAttachment( 0, 0 );
+    fdlicon.right = new FormAttachment( 100, 0 );
+    wicon.setLayoutData( fdlicon );
+    props.setLook( wicon );
   }
 
   protected Control addFileWidgets( Control prev ) {
