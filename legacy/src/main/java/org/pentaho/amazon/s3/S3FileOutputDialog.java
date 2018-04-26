@@ -225,7 +225,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   private boolean gotPreviousFields = false;
 
-  private S3VfsFileChooserHelper helper = null;
+  private S3NVfsFileChooserHelper helper = null;
   private VfsFileChooserDialog fileChooserDialog = null;
 
   public S3FileOutputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
@@ -317,7 +317,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    wFilename.setText( "s3://s3/" );
+    wFilename.setText( "s3n://s3n/" );
     props.setLook( wFilename );
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
@@ -1155,7 +1155,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
               BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
 
           if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
-            wFilename.setText( "s3://s3/" );
+            wFilename.setText( "s3n://s3n/" );
           }
 
           FileObject selectedFile =
@@ -1445,7 +1445,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   private void getInfo( S3FileOutputMeta tfoi ) {
     if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
-      wFilename.setText( "s3://s3/" );
+      wFilename.setText( "s3n://s3n/" );
     }
 
     tfoi.setFileName( wFilename.getText() );
@@ -1596,9 +1596,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     return this.getClass().getName();
   }
 
-  protected S3VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
+  protected S3NVfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
     if ( helper == null ) {
-      helper = new S3VfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
+      helper = new S3NVfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
     }
     return helper;
   }
@@ -1606,7 +1606,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if ( this.fileChooserDialog == null ) {
       FileObject initialFile = null;
-      FileObject defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+      FileObject defaultInitialFile = KettleVFS.getFileObject( "s3n://s3n" );
 
       VfsFileChooserDialog fileChooserDialog =
         Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );

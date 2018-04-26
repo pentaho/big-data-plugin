@@ -65,7 +65,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
 
     // now set the default for the
     // filename to an empty string
-    setFileName( "s3://s3/" );
+    setFileName( "s3n://s3n" );
   }
 
   @Override
