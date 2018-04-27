@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2017-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -106,7 +106,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     data.input.setSchema( schema );
 
     String inputFileName = environmentSubstitute( meta.inputFiles.fileName[ 0 ] );
-    FileObject inputFileObject = KettleVFS.getFileObject( inputFileName );
+    FileObject inputFileObject = KettleVFS.getFileObject( inputFileName, getTransMeta() );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
       inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }
