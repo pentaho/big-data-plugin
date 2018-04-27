@@ -2,7 +2,7 @@
   *
   * Pentaho Data Integration
   *
-  * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+  * Copyright (C) 2017-2018 by Hitachi Vantara : http://www.pentaho.com
   *
   *******************************************************************************
   *
@@ -369,7 +369,7 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
         fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
           fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
-        wPath.setText( selectedFile.getURL().toString() );
+        wPath.setText( selectedFile.getName().getFriendlyURI() );
         updateLocation();
       }
     } catch ( KettleFileException ex ) {
