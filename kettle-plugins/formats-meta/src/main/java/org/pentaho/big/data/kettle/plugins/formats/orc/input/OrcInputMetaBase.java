@@ -223,7 +223,7 @@ public abstract class OrcInputMetaBase extends
         }
       }
 
-      int nrfields = rep.countNrStepAttributes( id_step, "field_name" );
+      int nrfields = rep.countNrStepAttributes( id_step, "name" );
       inputFields = new OrcInputField[ nrfields ];
       for ( int i = 0; i < nrfields; i++ ) {
         OrcInputField field = new OrcInputField();
