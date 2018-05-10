@@ -36,6 +36,8 @@
     <commons-codec.version>1.10</commons-codec.version>
     <commons-vfs2.version>2.2</commons-vfs2.version>
     <jets3t.version>0.9.4</jets3t.version>
+    <slf4j-api.version>1.7.7</slf4j-api.version>
+    <slf4j-log4j12.version>1.7.7</slf4j-log4j12.version>
 
     <!-- Test dependencies -->
     <junit.version>4.4</junit.version>
@@ -79,6 +81,18 @@
       <version>1.11.275</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j-log4j12.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Test dependencies -->
     <dependency>
@@ -98,6 +112,11 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-bundle</artifactId>
+      <version>1.11.314</version>
     </dependency>
   </dependencies>
 </project>
