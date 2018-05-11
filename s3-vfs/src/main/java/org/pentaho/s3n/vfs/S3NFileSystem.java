@@ -48,7 +48,9 @@ public class S3NFileSystem extends AbstractFileSystem implements FileSystem {
   public AmazonS3 getS3Client() {
     if ( client == null ) {
       try {
-        client = AmazonS3ClientBuilder.defaultClient();
+        client = AmazonS3ClientBuilder.standard()
+          .enableForceGlobalBucketAccess()
+          .build();
       } catch ( Throwable t ) {
         System.out.println( "Could not get an S3Client" );
         t.printStackTrace();
