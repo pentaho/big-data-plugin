@@ -21,8 +21,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>pentaho</groupId>
-            <artifactId>pentaho-big-data-api-hbase</artifactId>
+            <groupId>org.pentaho</groupId>
+            <artifactId>shim-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

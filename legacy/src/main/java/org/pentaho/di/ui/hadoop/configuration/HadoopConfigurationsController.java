@@ -26,10 +26,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopConfigurationInfo;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 
 import java.util.List;
@@ -50,21 +49,22 @@ public class HadoopConfigurationsController extends AbstractXulEventHandler {
     spoon.getDisplay().asyncExec( new Runnable() {
       @Override public void run() {
         try {
-          List<HadoopConfigurationInfo> hadoopConfigurationInfos =
-            HadoopConfigurationBootstrap.getInstance().getHadoopConfigurationInfos();
-          Shell shell = spoon.getShell();
-          if ( hadoopConfigurationInfos.size() == 0 ) {
-            new NoHadoopConfigurationsXulDialog( shell ).open();
-          } else {
-            String shimId = new HadoopConfigurationsXulDialog( shell, hadoopConfigurationInfos ).open();
-            if ( !Const.isEmpty( shimId ) ) {
-              try {
-                HadoopConfigurationBootstrap.getInstance().setActiveShim( shimId );
-              } catch ( ConfigurationException e ) {
-                logger.error( e.getMessage(), e );
-              }
-            }
-          }
+          //todo:no more active shim require needed - here ui rethink when select shim for step
+//          List<HadoopConfigurationInfo> hadoopConfigurationInfos =
+//            HadoopConfigurationBootstrap.getInstance().getHadoopConfigurationInfos();
+//          Shell shell = spoon.getShell();
+//          if ( hadoopConfigurationInfos.size() == 0 ) {
+//            new NoHadoopConfigurationsXulDialog( shell ).open();
+//          } else {
+//            String shimId = new HadoopConfigurationsXulDialog( shell, hadoopConfigurationInfos ).open();
+//            if ( !Const.isEmpty( shimId ) ) {
+//              try {
+//                HadoopConfigurationBootstrap.getInstance().setActiveShim( shimId );
+//              } catch ( ConfigurationException e ) {
+//                logger.error( e.getMessage(), e );
+//              }
+//            }
+//          }
         } catch ( Exception e ) {
           logger.error( e.getMessage(), e );
         }

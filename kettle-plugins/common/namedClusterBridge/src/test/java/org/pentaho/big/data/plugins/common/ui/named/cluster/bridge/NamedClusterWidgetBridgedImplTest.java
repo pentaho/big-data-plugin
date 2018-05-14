@@ -58,8 +58,8 @@ public class NamedClusterWidgetBridgedImplTest {
 
   @Test
   public void testGetSelectedNamedCluster() {
-    org.pentaho.big.data.api.cluster.NamedCluster namedCluster = mock(
-      org.pentaho.big.data.api.cluster.NamedCluster.class );
+    org.pentaho.hadoop.shim.api.cluster.NamedCluster namedCluster = mock(
+      org.pentaho.hadoop.shim.api.cluster.NamedCluster.class );
     String testName = "testName";
     when( namedCluster.getName() ).thenReturn( testName );
     when( namedClusterWidget.getSelectedNamedCluster() ).thenReturn( namedCluster );

@@ -27,8 +27,9 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
-import org.pentaho.bigdata.api.hdfs.HadoopFileStatus;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileStatus;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
+
 
 import java.io.InputStream;
 import java.io.OutputStream;

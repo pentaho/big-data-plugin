@@ -28,10 +28,10 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
@@ -149,14 +149,24 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
-    return getMetaStoreFactory( metastore ).loadElement( clusterName );
+    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    NamedCluster namedCluster = factory.loadElement( clusterName );
+    if ( namedCluster != null ) {
+      validateClusterId( namedCluster );
+    }
+    return namedCluster;
   }
 
   @Override
   public void update( NamedCluster namedCluster, IMetaStore metastore ) throws MetaStoreException {
-    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
-    factory.deleteElement( namedCluster.getName() );
-    factory.saveElement( new NamedClusterImpl( namedCluster ) );
+     MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    List<NamedCluster> namedClusters = list( metastore );
+    for ( NamedCluster nc : namedClusters ) {
+      if ( namedCluster.getConfigId().equals( nc.getConfigId() ) ) {
+        factory.deleteElement( nc.getName() );
+        factory.saveElement( new NamedClusterImpl( namedCluster ) );
+      }
+    }
   }
 
   @Override
@@ -166,7 +176,12 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
-    return new ArrayList<NamedCluster>( getMetaStoreFactory( metastore ).getElements() );
+    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    List<NamedCluster> namedClusters = new ArrayList<NamedCluster>(factory.getElements());
+    for ( NamedCluster nc : namedClusters ) {
+      validateClusterId( nc );
+    }
+    return namedClusters;
   }
 
   @Override
@@ -191,6 +206,7 @@ public class NamedClusterManager implements NamedClusterService {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( nc.getName().equals( namedCluster ) ) {
+          validateClusterId( nc );
           return nc;
         }
       }
@@ -203,4 +219,41 @@ public class NamedClusterManager implements NamedClusterService {
   public Map<String, Object> getProperties() {
     return properties;
   }
+
+  @Override
+  public NamedCluster getNamedClusterByHost( String hostName, IMetaStore metastore ) {
+    if ( metastore == null || hostName == null ) {
+      return null;
+    }
+    try {
+      List<NamedCluster> namedClusters = list( metastore );
+      for ( NamedCluster nc : namedClusters ) {
+        if ( nc.getHdfsHost().equals( hostName ) ) {
+          validateClusterId( nc );
+          return nc;
+        }
+      }
+    } catch ( MetaStoreException e ) {
+      return null;
+    }
+    return null;
+  }
+
+  @Override
+  public void updateNamedClusterTemplate( String hostName, int port, boolean isMapr ) {
+    clusterTemplate.setHdfsHost( hostName );
+    if ( port > 0 ) {
+      clusterTemplate.setHdfsPort( String.valueOf( port ) );
+    } else {
+      clusterTemplate.setHdfsPort( "" );
+    }
+    clusterTemplate.setMapr( isMapr );
+  }
+
+  private void validateClusterId(NamedCluster nc) {
+    if ( nc.getConfigId() == null ) {
+      nc.setConfigId( nc.getShimIdentifier() );
+    }
+  }
+
 }

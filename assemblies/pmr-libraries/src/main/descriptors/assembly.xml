@@ -7,7 +7,7 @@
   <fileSets>
     <fileSet>
       <directory>target/dependencies/pentaho-karaf-assembly</directory>
-      <outputDirectory>system/karaf</outputDirectory>
+      <outputDirectory>/system/karaf</outputDirectory>
       <!--<excludes>
         <exclude>plugins/</exclude>
         <exclude>system/karaf/etc/org.apache.karaf.features.cfg</exclude>
@@ -15,16 +15,16 @@
     </fileSet>
     <fileSet>
       <directory>target/classes</directory>
-      <outputDirectory>.</outputDirectory>
+      <outputDirectory>/</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>target/simple-jndi</directory>
-      <outputDirectory>.</outputDirectory>
+      <outputDirectory>/</outputDirectory>
     </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>lib</outputDirectory>
+      <outputDirectory>/lib</outputDirectory>
       <unpack>false</unpack>
       <scope>runtime</scope>
       <useProjectArtifact>false</useProjectArtifact>
@@ -145,6 +145,7 @@
         <include>org.codehaus.groovy:groovy</include>
         <include>org.codehaus.jackson:jackson-core-asl</include>
         <include>org.codehaus.jackson:jackson-jaxrs</include>
+        <include>org.codehaus.jackson:jackson-mapper-asl</include>
         <include>org.drools:knowledge-api</include>
         <include>org.drools:drools-compiler</include>
         <include>org.drools:drools-core</include>
@@ -191,7 +192,6 @@
         <include>pentaho-kettle:kettle-core</include>
         <include>pentaho-kettle:kettle-engine</include>
         <include>pentaho-kettle:kettle-ui-swt</include>
-        <include>org.pentaho:commons-xul-core</include>
         <include>org.pentaho.reporting.library:flute</include>
         <include>org.pentaho.reporting.library:libbase</include>
         <include>org.pentaho.reporting.library:libdocbundle</include>
@@ -213,11 +213,10 @@
         <include>pentaho:metastore</include>
         <include>pentaho:mondrian</include>
         <include>pentaho:pentaho-capability-manager</include>
-        <include>org.pentaho:commons-database-model</include>
-        <include>org.pentaho:pentaho-hadoop-shims-api</include>
+        <include>pentaho:pentaho-database-model</include>
         <include>pentaho:pentaho-metadata</include>
         <include>pentaho:pentaho-osgi-utils-api</include>
-        <include>org.pentaho:pentaho-registry</include>
+        <include>pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
         <include>org.pentaho.reporting.engine:classic-core</include>
         <include>pentaho:salesforce-partner</include>
@@ -239,6 +238,8 @@
         <include>org.apache.kafka:kafka-clients</include>
         <include>org.mortbay.jetty:servlet-api</include>
         <include>pentaho:pentaho-metaverse-api</include>
+        <include>org.pentaho:commons-xul-core</include>
+        <include>org.pentaho:commons-database-model</include>
       </includes>
     </dependencySet>
   </dependencySets>
