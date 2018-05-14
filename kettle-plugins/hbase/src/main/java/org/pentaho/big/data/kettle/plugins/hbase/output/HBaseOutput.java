@@ -39,6 +39,7 @@ import org.pentaho.bigdata.api.hbase.table.HBaseDelete;
 import org.pentaho.bigdata.api.hbase.table.HBasePut;
 import org.pentaho.bigdata.api.hbase.table.HBaseTable;
 import org.pentaho.bigdata.api.hbase.table.HBaseTableWriteOperationManager;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;

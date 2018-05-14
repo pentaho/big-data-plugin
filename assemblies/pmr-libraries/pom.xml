@@ -723,7 +723,7 @@
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
       <version>${pdi.version}</version>
-	  <exclusions>
+	    <exclusions>
         <exclusion>
           <artifactId>jackson-jaxrs</artifactId>
           <groupId>org.codehaus.jackson</groupId>

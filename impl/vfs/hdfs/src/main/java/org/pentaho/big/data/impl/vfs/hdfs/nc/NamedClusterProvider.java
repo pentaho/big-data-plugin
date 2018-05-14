@@ -87,7 +87,7 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
                                FileNameParser fileNameParser,
                                String[] schemes,
                                MetastoreLocatorOsgi metaStore ) throws FileSystemException {
-    super( hadoopFileSystemLocator, namedClusterService, fileSystemManager, fileNameParser, schemes );
+    super( hadoopFileSystemLocator, namedClusterService, fileSystemManager, fileNameParser, schemes, metaStore );
     this.metaStoreService = metaStore;
   }
 

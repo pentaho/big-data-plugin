@@ -112,12 +112,12 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }
 
-    data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class );
+    data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class, meta.getNamedCluster() );
 
     // Pentaho 8.0 transformations will have the formatType set to 0. Get the fields from the schema and set the
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField> actualFileFields =
-      ParquetInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), inputFileName );
+      ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), inputFileName );
 
     if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.size() == 0 ) ) {
       data.splits = new ArrayList<>(  );
@@ -167,7 +167,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   public static List<? extends IParquetInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
                                                                    NamedCluster namedCluster, String path ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
-    IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class );
+    IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class, namedCluster );
     FileObject inputFileObject = KettleVFS.getFileObject( path );
     if ( AliasedFileObject.isAliasedFile( inputFileObject ) ) {
       path = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();

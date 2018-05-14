@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -39,8 +40,9 @@ public class HBaseInputMetaInjectionTest extends BaseMetadataInjectionTest<HBase
     NamedClusterServiceLocator namedClusterServiceLocator = Mockito.mock( NamedClusterServiceLocator.class );
     RuntimeTestActionService runtimeTestActionService = Mockito.mock( RuntimeTestActionService.class );
     RuntimeTester runtimeTester = Mockito.mock( RuntimeTester.class );
+    MetastoreLocatorOsgi metaStore = Mockito.mock( MetastoreLocatorOsgi.class );
 
-    setup( new HBaseInputMeta( namedClusterService, namedClusterServiceLocator, runtimeTestActionService, runtimeTester ) );
+    setup( new HBaseInputMeta( namedClusterService, namedClusterServiceLocator, runtimeTestActionService, runtimeTester, metaStore ) );
   }
 
   @Test

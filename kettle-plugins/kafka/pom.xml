@@ -51,27 +51,27 @@
       <version>${kafka-clients.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims-api.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims-api.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${metastore.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-jaas</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims-api.version}</version>
       <scope>provided</scope>
     </dependency>
     <!--

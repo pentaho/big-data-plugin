@@ -77,8 +77,20 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   }
 
   @Override
+  public String getConfigId() {
+    return delegate.getConfigId();
+  }
+
+  @Override
+  public void setConfigId( String id ) {
+    delegate.setConfigId( id );
+  }
+
+
+  @Override
   public void replaceMeta( NamedCluster nc ) {
     delegate.setName( nc.getName() );
+    delegate.setConfigId( nc.getConfigId() );
     delegate.setShimIdentifier( nc.getShimIdentifier() );
     delegate.setHdfsHost( nc.getHdfsHost() );
     delegate.setHdfsPort( nc.getHdfsPort() );
