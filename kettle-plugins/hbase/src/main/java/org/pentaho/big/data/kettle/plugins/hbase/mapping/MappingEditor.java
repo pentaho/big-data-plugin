@@ -140,9 +140,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   protected TransMeta m_transMeta;
 
   public MappingEditor( Shell shell, Composite parent, ConfigurationProducer configProducer,
-      FieldProducer fieldProducer, int tableViewStyle, boolean allowTableCreate, PropsUI props, TransMeta transMeta,
-      NamedClusterService namedClusterService, RuntimeTestActionService runtimeTestActionService,
-      RuntimeTester runtimeTester, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                        FieldProducer fieldProducer, int tableViewStyle, boolean allowTableCreate, PropsUI props,
+                        TransMeta transMeta, NamedClusterService namedClusterService,
+                        RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
+                        NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( parent, SWT.NONE );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     m_shell = shell;
@@ -181,8 +182,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       fd.right = new FormAttachment( middle, -margin );
       namedClusterLabel.setLayoutData( fd );
 
-      namedClusterWidget =
-          new NamedClusterWidgetImpl( this, false, namedClusterService, runtimeTestActionService, runtimeTester );
+      namedClusterWidget = new NamedClusterWidgetImpl( this, false, namedClusterService, runtimeTestActionService, runtimeTester );
       namedClusterWidget.initiate();
       props.setLook( namedClusterWidget );
       fd = new FormData();
@@ -194,7 +194,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       m_currentConfiguration = m_configProducer.getCurrentConfiguration();
     }
 
-    parent.addDisposeListener( new DisposeListener() {
+    parent.addDisposeListener(
+        new DisposeListener() {
       @Override
       public void widgetDisposed( DisposeEvent de ) {
         try {
@@ -318,14 +319,19 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
     // fields
     ColumnInfo[] colinf =
-        new ColumnInfo[] { new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false ), new ColumnInfo( Messages.getString(
-                "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_CCOMBO, false ), new ColumnInfo( Messages
-                    .getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_CCOMBO, false ),
+        new ColumnInfo[] {
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ), ColumnInfo.COLUMN_TYPE_TEXT,
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+              false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_NAME" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ), new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ),
-                  ColumnInfo.COLUMN_TYPE_CCOMBO, false ), new ColumnInfo( Messages.getString(
-                      "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT, false ), };
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT,
+              false ), };
 
     m_keyCI = colinf[1];
     m_keyCI.setComboValues( new String[] { "N", "Y" } );

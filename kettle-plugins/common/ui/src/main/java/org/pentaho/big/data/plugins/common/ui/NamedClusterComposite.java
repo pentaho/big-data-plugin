@@ -23,6 +23,7 @@
 package org.pentaho.big.data.plugins.common.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -167,6 +168,7 @@ public class NamedClusterComposite extends Composite {
     noGatewayComposite.setSize( noGatewayComposite.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 
     createStorageGroup( noGatewayComposite, namedCluster, namedClusterService );
+    createShimVendorGroup( noGatewayComposite, namedCluster, namedClusterService );
     createHdfsGroup( noGatewayComposite, namedCluster );
     createJobTrackerGroup( noGatewayComposite, namedCluster );
     createZooKeeperGroup( noGatewayComposite, namedCluster );
@@ -306,6 +308,54 @@ public class NamedClusterComposite extends Composite {
     gridLayout.marginWidth = 0;
     twoColumnsComposite.setLayout( gridLayout );
     return twoColumnsComposite;
+  }
+
+  private void createShimVendorGroup( Composite parentComposite, final NamedCluster cluster, final NamedClusterService namedClusterService ) {
+    Composite container = new Composite( parentComposite, SWT.NONE );
+    props.setLook( container );
+    GridLayout gridLayout = new GridLayout( ONE_COLUMN, false );
+    gridLayout.marginWidth = 0;
+    gridLayout.marginBottom = 5;
+    container.setLayout( gridLayout );
+
+    // Create a storage type Label
+    createLabel( container, "Vendor shim", labelGridData );
+
+    // Create a storage type Drop Down
+    final CCombo shimVendorCombo = new CCombo( container, SWT.BORDER );
+    String[] vendorList = new String[]{ "cdh513", "hdp26" };
+    shimVendorCombo.setItems( vendorList );
+    shimVendorCombo.select( Arrays.asList(vendorList).indexOf( cluster.getShimIdentifier() ) );
+    props.setLook( shimVendorCombo );
+
+    shimVendorCombo.addSelectionListener( new SelectionAdapter() {
+      public void widgetSelected( SelectionEvent e ) {
+        super.widgetSelected( e );
+        int index = shimVendorCombo.getSelectionIndex();
+        if ( index == -1 ) {
+          index = 0;
+        }
+        cluster.setShimIdentifier( vendorList[index] );
+      }
+    } );
+    shimVendorCombo.addFocusListener( new FocusListener() {
+
+      @Override
+      public void focusLost( FocusEvent e ) {
+        String uiInputText = shimVendorCombo.getText();
+        int selectedIndex;
+        if ( Arrays.asList(vendorList).contains( uiInputText ) ) {
+          selectedIndex = Arrays.asList(vendorList).indexOf( uiInputText );
+          cluster.setShimIdentifier( vendorList[selectedIndex] );
+          shimVendorCombo.select( selectedIndex );
+        }
+      }
+
+      @Override
+      public void focusGained( FocusEvent e ) {
+        // should not do any thing on enter focus
+      }
+    } );
   }
 
   private void createStorageGroup( Composite parentComposite, final NamedCluster cluster, final NamedClusterService namedClusterService ) {

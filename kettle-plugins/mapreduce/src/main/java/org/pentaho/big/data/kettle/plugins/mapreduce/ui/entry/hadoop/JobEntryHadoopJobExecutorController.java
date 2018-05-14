@@ -218,6 +218,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       setHadoopJobName( jobEntry.getHadoopJobName() );
       setSimple( jobEntry.isSimple() );
       setJarUrl( jobEntry.getJarUrl() );
+      aConf.setSelectedNamedCluster( jobEntry.getNamedCluster() );
       populateDriverMenuList();
       setDriverClass( jobEntry.getDriverClass() );
       sConf.setCommandLineArgs( jobEntry.getCmdLineArgs() );
@@ -276,7 +277,6 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       aConf.setOutputKeyClass( jobEntry.getOutputKeyClass() );
       aConf.setOutputValueClass( jobEntry.getOutputValueClass() );
       aConf.setOutputFormatClass( jobEntry.getOutputFormatClass() );
-      aConf.setSelectedNamedCluster( jobEntry.getNamedCluster() );
       aConf.setNumMapTasks( jobEntry.getNumMapTasks() );
       aConf.setNumReduceTasks( jobEntry.getNumReduceTasks() );
     }

@@ -58,6 +58,7 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
@@ -97,6 +98,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
+  private MetastoreLocatorOsgi metaStoreService;
   private final RuntimeTester runtimeTester;
 
   protected NamedCluster namedCluster;
@@ -166,12 +168,13 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public HBaseInputMeta( NamedClusterService namedClusterService,
                          NamedClusterServiceLocator namedClusterServiceLocator,
-                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+                         RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester, MetastoreLocatorOsgi metaStore ) {
     this.namedClusterService = namedClusterService;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
+    this.metaStoreService = metaStore;
   }
 
   /**
@@ -587,6 +590,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore )
     throws KettleXMLException {
     System.out.println( "loading data" );
+
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
+
     this.namedCluster =
       namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
 
@@ -637,6 +645,11 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
+
     namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
 
     if ( !Const.isEmpty( m_coreConfigURL ) ) {
@@ -685,6 +698,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
 
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
+
     this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, getLog() );
 
     HBaseService hBaseService = null;
@@ -730,6 +747,10 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   @Override public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
       String[] input, String[] output, RowMetaInterface info, VariableSpace variableSpace, Repository repository, IMetaStore metaStore ) {
+
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
 
     RowMeta r = new RowMeta();
     try {

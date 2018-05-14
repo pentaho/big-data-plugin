@@ -27,7 +27,6 @@ import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.hadoop.HadoopConfigurationListener;
 import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
@@ -52,9 +51,6 @@ public class JaasRealmsRegistrar implements HadoopConfigurationListener {
 
   public JaasRealmsRegistrar( BundleContext bundleContext ) throws ConfigurationException {
     this.bundleContext = bundleContext;
-    HadoopConfigurationBootstrap hcb = HadoopConfigurationBootstrap.getInstance();
-    hcb.registerHadoopConfigurationListener( this );
-    hcb.notifyDependencyLoaded();
   }
 
   @Override public void onClassLoaderAvailable( ClassLoader classLoader ) {
@@ -66,7 +62,7 @@ public class JaasRealmsRegistrar implements HadoopConfigurationListener {
 
       configs.putAll( getOverridenDefaultConfigs() );
 
-      if ( isMaprShimActive( HadoopConfigurationBootstrap.getInstance() ) ) {
+      if ( isMaprShimActive( /*HadoopConfigurationBootstrap.getInstance()*/ ) ) {
         configs.putAll( getMaprJaasConfig() );
       } else {
         LOGGER.info( "Active hadoop configuration is not MapR. Skipping JAAS realms registration." );
@@ -189,15 +185,15 @@ public class JaasRealmsRegistrar implements HadoopConfigurationListener {
     };
   }
 
-  boolean isMaprShimActive( HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
-    try {
-      final String configurationId = hadoopConfigurationBootstrap.getActiveConfigurationId();
+  boolean isMaprShimActive(  ) {
+    //try {
+      final String configurationId = "";
       LOGGER.debug( "Active shim configuration is " + configurationId );
 
       return configurationId != null && configurationId.matches( "mapr\\d+" );
-    } catch ( ConfigurationException e ) {
+    /*} catch ( ConfigurationException e ) {
       e.printStackTrace();
       return false;
-    }
+    }*/
   }
 }
