@@ -98,7 +98,8 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     swtXulLoader.setOuterContext( shell );
 
     container =
-      swtXulLoader.loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/ui/entry/JobEntryHadoopJobExecutorDialog.xul",
+      swtXulLoader
+        .loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/ui/entry/JobEntryHadoopJobExecutorDialog.xul",
         bundle ); //$NON-NLS-1$
 
     final XulRunner runner = new SwtXulRunner();

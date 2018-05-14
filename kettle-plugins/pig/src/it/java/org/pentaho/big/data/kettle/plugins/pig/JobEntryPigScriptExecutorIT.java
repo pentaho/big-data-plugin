@@ -26,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.KettleEnvironment;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.job.JobMeta;
 
@@ -67,9 +66,9 @@ public class JobEntryPigScriptExecutorIT {
 
   @Test
   public void testRegressionTutorialLocal() throws Exception {
-    Field providerField = HadoopConfigurationBootstrap.class.getDeclaredField( "provider" );
-    providerField.setAccessible( true );
-    providerField.set( HadoopConfigurationBootstrap.getInstance(), NoArgJobEntryPigScriptExecutor.getProvider() );
+    //Field providerField = HadoopConfigurationBootstrap.class.getDeclaredField( "provider" );
+    //providerField.setAccessible( true );
+    //providerField.set( HadoopConfigurationBootstrap.getInstance(), NoArgJobEntryPigScriptExecutor.getProvider() );
 
     System.setProperty( "KETTLE_PLUGIN_CLASSES", NoArgJobEntryPigScriptExecutor.class.getCanonicalName() );
     KettleEnvironment.init();
