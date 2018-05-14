@@ -12,7 +12,7 @@
           width="452"
           linuxHeight="674"
           linuxWidth="517"
-          appicon="AWS-HIVE.png"
+          appicon="EMR.png"
           buttons="">
 
     <vbox>
@@ -31,7 +31,7 @@
             </vbox>
             <hbox flex="1">
               <spacer flex="1"/>
-              <image src="AWS-HIVE.png"/>
+              <image src="EMR.png"/>
             </hbox>
           </row>
         </rows>
