@@ -23,13 +23,12 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
-import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -43,6 +42,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
+import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.hadoop.shim.api.format.IAvroLookupField;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
@@ -176,7 +176,7 @@ public class AvroInput extends BaseStep {
                                                                NamedCluster namedCluster, String schemaPath,
                                                                String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
-    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class, namedCluster );
     in.setInputSchemaFile( schemaPath );
     in.setInputFile( dataPath );
     return in.getLeafFields();
@@ -213,7 +213,7 @@ public class AvroInput extends BaseStep {
       outRowMeta = new RowMeta();
     }
 
-    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class, meta.getNamedCluster() );
     meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
     data.input.setIncomingRowMeta( getInputRowMeta() );
     data.input.setOutputRowMeta( outRowMeta );

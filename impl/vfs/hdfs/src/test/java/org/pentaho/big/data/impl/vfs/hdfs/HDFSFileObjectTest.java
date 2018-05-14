@@ -30,9 +30,10 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.bigdata.api.hdfs.HadoopFileStatus;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemPath;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileStatus;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemPath;
+
 
 import java.io.InputStream;
 import java.io.OutputStream;

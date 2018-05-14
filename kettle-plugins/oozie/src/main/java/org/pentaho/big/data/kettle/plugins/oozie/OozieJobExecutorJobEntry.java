@@ -32,17 +32,16 @@ import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.HadoopClientServices;
+import org.pentaho.hadoop.shim.api.HadoopClientServicesException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
-import org.pentaho.bigdata.api.oozie.OozieJobInfo;
-import org.pentaho.bigdata.api.oozie.OozieService;
-import org.pentaho.bigdata.api.oozie.OozieServiceException;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -51,6 +50,8 @@ import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.hadoop.shim.api.oozie.OozieJobInfo;
+import org.pentaho.hadoop.shim.api.oozie.OozieServiceException;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
@@ -72,7 +73,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
-  private OozieService oozieService = null;
+  private HadoopClientServices hadoopClientServices = null;
 
   public OozieJobExecutorJobEntry(
     NamedClusterService namedClusterService,
@@ -89,7 +90,6 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     namedClusterServiceLocator = null;
     runtimeTestActionService = null;
     runtimeTester = null;
-
   }
 
   @Override
@@ -130,19 +130,17 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
 
     if ( checkOozieConnection && !StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
       try {
-        // oozie url is valid and client & ws versions are compatible
-        oozieService = getOozieService( config );
-        oozieService.getProtocolUrl();
-        oozieService.validateWSVersion();
-      } catch ( OozieServiceException e ) {
+        hadoopClientServices = getHadoopClientServices(config);
+        hadoopClientServices.getOozieProtocolUrl();
+        hadoopClientServices.validateOozieWSVersion();
+      } catch ( HadoopClientServicesException e ) {
         if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
           || ( e.getCause() != null
           && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
           messages
             .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
         } else {
-          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
-            "ValidationMessages.Incompatible.Oozie.Versions", oozieService.getClientBuildVersion() ) );
+          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Incompatible.Oozie.Versions" ) );
         }
       }
     }
@@ -157,7 +155,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         Properties props = getProperties( config );
 
         // make sure it has at minimum a workflow definition (need app path)
-        if ( checkOozieConnection && !oozieService.hasAppPath( props ) ) {
+        if ( checkOozieConnection && !hadoopClientServices.hasOozieAppPath( props ) ) {
           messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
             "ValidationMessages.App.Path.Property.Missing" ) );
         }
@@ -266,10 +264,11 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       @Override
       public void run() {
 
-        OozieService oozieService = getOozieService();
+        HadoopClientServices hadoopClientServices = getHadoopClientServices();
+
         try {
-          oozieService.validateWSVersion();
-        } catch ( OozieServiceException e ) {
+          hadoopClientServices.validateOozieWSVersion();
+        } catch ( HadoopClientServicesException e ) {
 
           setJobResultFailed( jobResult );
 
@@ -280,7 +279,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
               e );
           } else {
             logError( BaseMessages.getString( OozieJobExecutorJobEntry.class,
-              "ValidationMessages.Incompatible.Oozie.Versions", oozieService.getClientBuildVersion() ), e );
+              "ValidationMessages.Incompatible.Oozie.Versions" ), e );
           }
         }
 
@@ -292,7 +291,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
             jobProps.setProperty( USER_NAME, getVariableSpace().environmentSubstitute( "${" + USER_NAME + "}" ) );
           }
 
-          OozieJobInfo job = oozieService.run( jobProps );
+          OozieJobInfo job = hadoopClientServices.runOozie( jobProps );
           if ( JobEntryUtils.asBoolean( getJobConfig().getBlockingExecution(), variables ) ) {
             while ( job.isRunning() ) {
               // System.out.println("Still running " + jobId + "...");
@@ -318,6 +317,10 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           setJobResultFailed( jobResult );
           logError( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.Props.Loading" ),
             e );
+        } catch ( HadoopClientServicesException e ) {
+          setJobResultFailed( jobResult );
+          logError(
+                  BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.OozieClient" ), e );
         } catch ( OozieServiceException e ) {
           setJobResultFailed( jobResult );
           logError(
@@ -351,17 +354,17 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     return getVariableSpace().environmentSubstitute( oozieUrl );
   }
 
-  public OozieService getOozieService() {
-    return getOozieService( jobConfig );
+  public HadoopClientServices getHadoopClientServices() {
+    return getHadoopClientServices( jobConfig );
   }
 
-  public OozieService getOozieService( OozieJobExecutorConfig config ) {
+  public HadoopClientServices getHadoopClientServices( OozieJobExecutorConfig config ) {
     try {
       NamedCluster cluster = getNamedCluster( config ).clone();
       cluster.setOozieUrl( getEffectiveOozieUrl( config ) );
       return namedClusterServiceLocator.getService(
-        cluster,
-        OozieService.class );
+              cluster,
+              HadoopClientServices.class );
     } catch ( ClusterInitializationException e ) {
       logError( "Cluster initialization failure on service load", e );
     } catch ( MetaStoreException e ) {
@@ -369,6 +372,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     }
     return null;
   }
+
 
   public RuntimeTestActionService getRuntimeTestActionService() {
     return runtimeTestActionService;

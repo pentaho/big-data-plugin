@@ -51,21 +51,21 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.big.data.kettle.plugins.hbase.input.HBaseInput;
 import org.pentaho.big.data.kettle.plugins.hbase.input.Messages;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
-import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
-import org.pentaho.bigdata.api.hbase.table.HBaseTable;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
+import org.pentaho.hadoop.shim.api.hbase.table.HBaseTable;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -140,9 +140,10 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
   protected TransMeta m_transMeta;
 
   public MappingEditor( Shell shell, Composite parent, ConfigurationProducer configProducer,
-      FieldProducer fieldProducer, int tableViewStyle, boolean allowTableCreate, PropsUI props, TransMeta transMeta,
-      NamedClusterService namedClusterService, RuntimeTestActionService runtimeTestActionService,
-      RuntimeTester runtimeTester, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                        FieldProducer fieldProducer, int tableViewStyle, boolean allowTableCreate, PropsUI props,
+                        TransMeta transMeta, NamedClusterService namedClusterService,
+                        RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
+                        NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( parent, SWT.NONE );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     m_shell = shell;
@@ -181,8 +182,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       fd.right = new FormAttachment( middle, -margin );
       namedClusterLabel.setLayoutData( fd );
 
-      namedClusterWidget =
-          new NamedClusterWidgetImpl( this, false, namedClusterService, runtimeTestActionService, runtimeTester );
+      namedClusterWidget = new NamedClusterWidgetImpl( this, false, namedClusterService, runtimeTestActionService, runtimeTester );
       namedClusterWidget.initiate();
       props.setLook( namedClusterWidget );
       fd = new FormData();
@@ -194,7 +194,8 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       m_currentConfiguration = m_configProducer.getCurrentConfiguration();
     }
 
-    parent.addDisposeListener( new DisposeListener() {
+    parent.addDisposeListener(
+        new DisposeListener() {
       @Override
       public void widgetDisposed( DisposeEvent de ) {
         try {
@@ -318,14 +319,19 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
 
     // fields
     ColumnInfo[] colinf =
-        new ColumnInfo[] { new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ),
-            ColumnInfo.COLUMN_TYPE_TEXT, false ), new ColumnInfo( Messages.getString(
-                "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_CCOMBO, false ), new ColumnInfo( Messages
-                    .getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_CCOMBO, false ),
+        new ColumnInfo[] {
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_ALIAS" ), ColumnInfo.COLUMN_TYPE_TEXT,
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_KEY" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_FAMILY" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+              false ),
           new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_NAME" ), ColumnInfo.COLUMN_TYPE_TEXT,
-              false ), new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ),
-                  ColumnInfo.COLUMN_TYPE_CCOMBO, false ), new ColumnInfo( Messages.getString(
-                      "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT, false ), };
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_TYPE" ), ColumnInfo.COLUMN_TYPE_CCOMBO,
+              false ),
+          new ColumnInfo( Messages.getString( "HBaseInputDialog.Fields.FIELD_INDEXED" ), ColumnInfo.COLUMN_TYPE_TEXT,
+              false ), };
 
     m_keyCI = colinf[1];
     m_keyCI.setComboValues( new String[] { "N", "Y" } );
@@ -1159,7 +1165,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       }
 
       if ( vm.getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED ) {
-        item.setText( 6, m_admin.getConnection().getService().getByteConversionUtil().objectIndexValuesToString( vm
+        item.setText( 6, m_admin.getConnection().getByteConversionUtil().objectIndexValuesToString( vm
             .getIndex() ) );
       }
     }

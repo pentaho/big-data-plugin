@@ -21,7 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.hive;
 
-import org.pentaho.big.data.api.jdbc.DriverLocator;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -88,22 +88,12 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
         retval += "BOOLEAN";
         break;
 
-      //  Hive does not support DATE until 0.12
       case ValueMetaInterface.TYPE_DATE:
-        if ( isDriverVersion( 0, 12 ) ) {
-          retval += "DATE";
-        } else {
-          throw new IllegalArgumentException( "Date types not supported in this version of Hive" );
-        }
+        retval += "DATE";
         break;
 
-      // Hive does not support DATE until 0.8
       case ValueMetaInterface.TYPE_TIMESTAMP:
-        if ( isDriverVersion( 0, 8 ) ) {
-          retval += "TIMESTAMP";
-        } else {
-          throw new IllegalArgumentException( "Timestamp types not supported in this version of Hive" );
-        }
+        retval += "TIMESTAMP";
         break;
 
       case ValueMetaInterface.TYPE_STRING:
@@ -175,15 +165,7 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
 
   @Override
   public String generateColumnAlias( int columnIndex, String suggestedName ) {
-    if ( isDriverVersion( 0, 6 ) ) {
       return suggestedName;
-    } else {
-      // For version 0.5 and prior:
-      // Column aliases are currently not supported in Hive.  The default column alias
-      // generated is in the format '_col##' where ## = column index.  Use this format
-      // so the result can be mapped back correctly.
-      return ALIAS_SUFFIX + String.valueOf( columnIndex ); //$NON-NLS-1$
-    }
   }
 
   /**
@@ -226,10 +208,7 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
    */
   @Override
   public String getTruncateTableStatement( String tableName ) {
-    if ( isDriverVersion( 0, 11 ) ) {
-      return TRUNCATE_TABLE + tableName;
-    }
-    return null;
+    return TRUNCATE_TABLE + tableName;
   }
 
   @Override
