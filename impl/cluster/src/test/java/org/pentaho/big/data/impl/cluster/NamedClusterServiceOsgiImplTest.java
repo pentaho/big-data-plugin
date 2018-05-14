@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -18,8 +18,8 @@ package org.pentaho.big.data.impl.cluster;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
 import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
 import org.pentaho.metastore.api.IMetaStore;
@@ -74,7 +74,7 @@ public class NamedClusterServiceOsgiImplTest {
   @Test
   public void updateTest() throws Exception {
     mockNamedClusterServiceOsgi.update( mockNamedClusterOsgi, mockMetastore );
-    verify( mockNamedClusterService ).update( any( NamedCluster.class ) , eq( mockMetastore ) );
+    verify( mockNamedClusterService ).update( any( NamedCluster.class ), eq( mockMetastore ) );
   }
 
   @Test
@@ -109,7 +109,7 @@ public class NamedClusterServiceOsgiImplTest {
 
   @Test
   public void getPropertiesTest() throws Exception {
-    mockNamedClusterServiceOsgi.getProperties( );
-    verify( mockNamedClusterService ).getProperties( );
+    mockNamedClusterServiceOsgi.getProperties();
+    verify( mockNamedClusterService ).getProperties();
   }
 }

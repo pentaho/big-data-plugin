@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,7 +34,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by bryan on 8/28/15.
@@ -48,7 +50,7 @@ public class HadoopClusterDelegateBridgeImplTest {
   private Shell shell;
   private String testNamedClusterName;
 
-  private static org.pentaho.big.data.api.cluster.NamedCluster nameMatches( NamedCluster namedCluster ) {
+  private static org.pentaho.hadoop.shim.api.cluster.NamedCluster nameMatches( NamedCluster namedCluster ) {
     return argThat( new NamedClusterNameMatcher( namedCluster ) );
   }
 
@@ -91,7 +93,7 @@ public class HadoopClusterDelegateBridgeImplTest {
     verify( hadoopClusterDelegate ).delNamedCluster( eq( iMetaStore ), nameMatches( namedCluster ) );
   }
 
-  private static class NamedClusterNameMatcher extends ArgumentMatcher<org.pentaho.big.data.api.cluster.NamedCluster> {
+  private static class NamedClusterNameMatcher extends ArgumentMatcher<org.pentaho.hadoop.shim.api.cluster.NamedCluster> {
     private final NamedCluster namedCluster;
 
     NamedClusterNameMatcher( NamedCluster namedCluster ) {
@@ -99,8 +101,7 @@ public class HadoopClusterDelegateBridgeImplTest {
     }
 
     @Override public boolean matches( Object argument ) {
-      return argument instanceof org.pentaho.big.data.api.cluster.NamedCluster && ( (org.pentaho.big.data.api.cluster
-        .NamedCluster) argument ).getName().equals( namedCluster.getName() );
+      return argument instanceof org.pentaho.hadoop.shim.api.cluster.NamedCluster && ( (org.pentaho.hadoop.shim.api.cluster.NamedCluster) argument ).getName().equals( namedCluster.getName() );
     }
   }
 }

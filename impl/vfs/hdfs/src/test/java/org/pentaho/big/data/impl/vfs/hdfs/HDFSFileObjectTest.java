@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -30,9 +30,10 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.bigdata.api.hdfs.HadoopFileStatus;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemPath;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileStatus;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemPath;
+
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -173,7 +174,7 @@ public class HDFSFileObjectTest {
   private void testDoListChildrenInternal( String childPathName ) throws Exception {
     HadoopFileStatus hadoopFileStatus = mock( HadoopFileStatus.class );
     HadoopFileStatus[] hadoopFileStatuses = {
-        hadoopFileStatus
+      hadoopFileStatus
     };
     HadoopFileSystemPath childPath = mock( HadoopFileSystemPath.class );
     when( hadoopFileStatus.getPath() ).thenReturn( childPath );
@@ -181,6 +182,6 @@ public class HDFSFileObjectTest {
     when( hadoopFileSystem.listStatus( hadoopFileSystemPath ) ).thenReturn( hadoopFileStatuses );
     String[] children = hdfsFileObject.doListChildren();
     assertEquals( 1, children.length );
-    assertEquals( childPathName, children[0] );
+    assertEquals( childPathName, children[ 0 ] );
   }
 }

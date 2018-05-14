@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,9 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
-import org.pentaho.bigdata.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
 
 import java.io.IOException;
 

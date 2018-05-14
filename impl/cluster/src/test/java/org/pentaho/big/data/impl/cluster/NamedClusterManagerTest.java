@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,7 +28,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -44,11 +44,21 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.never;
 
 /**
  * Created by bryan on 7/14/15.
@@ -68,8 +78,8 @@ public class NamedClusterManagerTest {
     // the protected method NamedClusterManager.getMetaStoreFactory() will always create a new Factory
     // by reading xml from local store.  For these tests, create a Mockito spy that will always return the mock
     // MetaStore factory
-    namedClusterManager = spy(namedClusterManager);
-    doReturn(metaStoreFactory).when(namedClusterManager).getMetaStoreFactory(metaStore);
+    namedClusterManager = spy( namedClusterManager );
+    doReturn( metaStoreFactory ).when( namedClusterManager ).getMetaStoreFactory( metaStore );
 
     namedClusterManager.putMetaStoreFactory( metaStore, metaStoreFactory );
   }
@@ -92,7 +102,7 @@ public class NamedClusterManagerTest {
 
     namedClusterManager.setBundleContext( context );
     namedClusterManager.initProperties();
-    Map<String, Object>  prop = namedClusterManager.getProperties();
+    Map<String, Object> prop = namedClusterManager.getProperties();
     assertEquals( dictionary.size(), prop.keySet().size() );
     Enumeration<String> keys = dictionary.keys();
     while ( keys.hasMoreElements() ) {
@@ -107,7 +117,7 @@ public class NamedClusterManagerTest {
     BundleContext context = mock( BundleContext.class );
     namedClusterManager.setBundleContext( context );
     namedClusterManager.initProperties();
-    Map<String, Object>  prop = namedClusterManager.getProperties();
+    Map<String, Object> prop = namedClusterManager.getProperties();
     assertEquals( 0, prop.keySet().size() );
   }
 
@@ -118,7 +128,7 @@ public class NamedClusterManagerTest {
     when( context.getServiceReference( anyString() ) ).thenReturn( reference );
     namedClusterManager.setBundleContext( context );
     namedClusterManager.initProperties();
-    Map<String, Object>  prop = namedClusterManager.getProperties();
+    Map<String, Object> prop = namedClusterManager.getProperties();
     assertEquals( 0, prop.keySet().size() );
   }
 
@@ -156,9 +166,12 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     String testName = "testName";
     namedCluster.setName( testName );
-    namedClusterManager.update( namedCluster, metaStore );
-    verify( metaStoreFactory ).deleteElement( testName );
-    verify( metaStoreFactory ).saveElement( eq( namedCluster ) );
+    List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
+    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
+      new MetaStoreException() );
+    NamedClusterImpl updatedNamedCluster = new NamedClusterImpl();
+    updatedNamedCluster.setName( testName + "updated" );
+    namedClusterManager.update( updatedNamedCluster, metaStore );
   }
 
   @Test
@@ -173,7 +186,7 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     namedCluster.setName( "testName" );
     List<NamedClusterImpl> value = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements() ).thenReturn( value );
+    when( metaStoreFactory.getElements( true ) ).thenReturn( value );
     assertEquals( value, namedClusterManager.list( metaStore ) );
   }
 
@@ -209,7 +222,7 @@ public class NamedClusterManagerTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getName() ).thenReturn( testName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements() ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
+    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
       new MetaStoreException() );
     assertNull( namedClusterManager.getNamedClusterByName( testName, null ) );
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByName( testName, metaStore ) );
@@ -218,42 +231,44 @@ public class NamedClusterManagerTest {
   }
 
   @Test
-  public void testGetMetaStoreFactoryEmbeddedMetaStoreSuccess()  throws MetaStoreException {
+  public void testGetMetaStoreFactoryEmbeddedMetaStoreSuccess() throws MetaStoreException {
     NamedClusterManager namedClusterManager = new NamedClusterManager();
     MetaStoreFactory<NamedClusterImpl> metaStoreFactoryFirst = null;
     MetaStoreFactory<NamedClusterImpl> metaStoreFactorySecond = null;
 
-    EmbeddedMetaStore embeddedMetaStore = mock(EmbeddedMetaStore.class);
+    EmbeddedMetaStore embeddedMetaStore = mock( EmbeddedMetaStore.class );
 
     // get the metastore factory - the first time called, it should create a new one and cache it
-    metaStoreFactoryFirst = namedClusterManager.getMetaStoreFactory(embeddedMetaStore);
+    metaStoreFactoryFirst = namedClusterManager.getMetaStoreFactory( embeddedMetaStore );
 
     // get the metastore factory again - this time it should return the same instance as the first (the cached instance)
-    metaStoreFactorySecond = namedClusterManager.getMetaStoreFactory(embeddedMetaStore);
+    metaStoreFactorySecond = namedClusterManager.getMetaStoreFactory( embeddedMetaStore );
 
-    assertNotNull( "metaStoreFactoryFirst is expected to NOT be null", metaStoreFactoryFirst);
-    assertNotNull( "metaStoreFactorySecond is expected to NOT be null", metaStoreFactoryFirst);
-    assertEquals( "Called NamedClusterManager.getMetaStoreFactory twice, passing in the same EmbeddedMetaStore.  " +
-            "Both calls should return the same instance of MetaStoreFactory", metaStoreFactoryFirst, metaStoreFactorySecond);
+    assertNotNull( "metaStoreFactoryFirst is expected to NOT be null", metaStoreFactoryFirst );
+    assertNotNull( "metaStoreFactorySecond is expected to NOT be null", metaStoreFactoryFirst );
+    assertEquals( "Called NamedClusterManager.getMetaStoreFactory twice, passing in the same EmbeddedMetaStore.  "
+      + "Both calls should return the same instance of MetaStoreFactory", metaStoreFactoryFirst, metaStoreFactorySecond );
   }
 
   @Test
-  public void testGetMetaStoreFactoryNonEmbeddedMetaStore()  throws MetaStoreException {
+  public void testGetMetaStoreFactoryNonEmbeddedMetaStore() throws MetaStoreException {
     NamedClusterManager namedClusterManager = new NamedClusterManager();
     MetaStoreFactory<NamedClusterImpl> metaStoreFactoryFirst = null;
     MetaStoreFactory<NamedClusterImpl> metaStoreFactorySecond = null;
 
-    DelegatingMetaStore nonEmbeddedMetaStore = mock(DelegatingMetaStore.class);
+    DelegatingMetaStore nonEmbeddedMetaStore = mock( DelegatingMetaStore.class );
 
     // get the metastore factory - the first time called, it should create a new one and cache it
-    metaStoreFactoryFirst = namedClusterManager.getMetaStoreFactory(nonEmbeddedMetaStore);
+    metaStoreFactoryFirst = namedClusterManager.getMetaStoreFactory( nonEmbeddedMetaStore );
 
     // get the metastore factory again - this time it should return the same instance as the first (the cached instance)
-    metaStoreFactorySecond = namedClusterManager.getMetaStoreFactory(nonEmbeddedMetaStore);
+    metaStoreFactorySecond = namedClusterManager.getMetaStoreFactory( nonEmbeddedMetaStore );
 
-    assertNotNull( "metaStoreFactoryFirst is expected to NOT be null", metaStoreFactoryFirst);
-    assertNotNull( "metaStoreFactorySecond is expected to NOT be null", metaStoreFactoryFirst);
-    assertNotEquals( "Called NamedClusterManager.getMetaStoreFactory twice, passing in the same non EmbeddedMetaStore.  " +
-            "Both calls should return the different instances of MetaStoreFactory", metaStoreFactoryFirst, metaStoreFactorySecond);
+    assertNotNull( "metaStoreFactoryFirst is expected to NOT be null", metaStoreFactoryFirst );
+    assertNotNull( "metaStoreFactorySecond is expected to NOT be null", metaStoreFactoryFirst );
+    assertNotEquals(
+      "Called NamedClusterManager.getMetaStoreFactory twice, passing in the same non EmbeddedMetaStore.  "
+        + "Both calls should return the different instances of MetaStoreFactory", metaStoreFactoryFirst,
+      metaStoreFactorySecond );
   }
 }
