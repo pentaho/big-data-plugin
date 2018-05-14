@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
@@ -7,7 +7,7 @@
     <artifactId>pentaho-big-data-impl-shim</artifactId>
     <version>9.0.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>pentaho-big-data-impl-shim-jaas</artifactId>
+  <artifactId>pentaho-big-data-impl-shim-initializer</artifactId>
   <version>9.0.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
@@ -19,33 +19,8 @@
   <dependencies>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-jaas</artifactId>
+      <artifactId>pentaho-big-data-api-initializer</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-legacy</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
-      <version>4.3.1</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -53,9 +28,39 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-legacy</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-api</artifactId>
+      <version>${pentaho-hadoop-shims-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>0.20.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.aries.blueprint</groupId>
+      <artifactId>org.apache.aries.blueprint.core</artifactId>
+      <version>1.4.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+      <version>4.3.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${dependency.slf4j.revision}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -80,7 +85,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,*</Import-Package>
+            <Import-Package>!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

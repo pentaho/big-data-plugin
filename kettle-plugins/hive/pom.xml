@@ -13,14 +13,14 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-initializer</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-jdbc</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -35,14 +35,14 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>

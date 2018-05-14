@@ -8,6 +8,7 @@
     <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-legacy</artifactId>
+  <packaging>bundle</packaging>
   <version>9.0.0.0-SNAPSHOT</version>
   <licenses>
     <license>
@@ -126,6 +127,11 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-common-shim</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>
@@ -413,9 +419,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
   </dependencies>
   <build>
@@ -451,6 +457,26 @@
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
           <testFailureIgnore>true</testFailureIgnore>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${dependency.maven-bundle-plugin.version}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <DynamicImport-Package>*</DynamicImport-Package>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Import-Package>
+              org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.log4j.*
+            </Import-Package>
+            <Export-Package>
+
+            </Export-Package>
+            <Embed-Dependency>*aws*
+            </Embed-Dependency>
+          </instructions>
         </configuration>
       </plugin>
     </plugins>
