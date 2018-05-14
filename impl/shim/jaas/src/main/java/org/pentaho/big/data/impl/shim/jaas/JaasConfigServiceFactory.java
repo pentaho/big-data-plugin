@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,17 +21,16 @@
  ******************************************************************************/
 package org.pentaho.big.data.impl.shim.jaas;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceFactory;
-import org.pentaho.bigdata.api.jaas.JaasConfigService;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
+import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceFactory;
+
+import java.util.Properties;
 
 public class JaasConfigServiceFactory implements NamedClusterServiceFactory<JaasConfigService> {
-  private final HadoopConfiguration hadoopConfiguration;
 
   public JaasConfigServiceFactory(
-    @SuppressWarnings( "unused" ) boolean isActiveConfiguration, HadoopConfiguration hadoopConfiguration ) {
-    this.hadoopConfiguration = hadoopConfiguration;
+    @SuppressWarnings( "unused" ) boolean isActiveConfiguration, Object hadoopConfiguration ) {
   }
   @Override public Class<JaasConfigService> getServiceClass() {
     return JaasConfigService.class;
@@ -42,6 +41,6 @@ public class JaasConfigServiceFactory implements NamedClusterServiceFactory<Jaas
   }
 
   @Override public JaasConfigService create( NamedCluster namedCluster ) {
-    return new JaasConfigServiceImpl( hadoopConfiguration.getConfigProperties() );
+    return new JaasConfigServiceImpl( new Properties() );
   }
 }

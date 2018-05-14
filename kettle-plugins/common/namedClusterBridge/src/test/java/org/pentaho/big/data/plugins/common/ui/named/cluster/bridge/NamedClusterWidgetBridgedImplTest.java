@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -58,8 +58,8 @@ public class NamedClusterWidgetBridgedImplTest {
 
   @Test
   public void testGetSelectedNamedCluster() {
-    org.pentaho.big.data.api.cluster.NamedCluster namedCluster = mock(
-      org.pentaho.big.data.api.cluster.NamedCluster.class );
+    org.pentaho.hadoop.shim.api.cluster.NamedCluster namedCluster = mock(
+      org.pentaho.hadoop.shim.api.cluster.NamedCluster.class );
     String testName = "testName";
     when( namedCluster.getName() ).thenReturn( testName );
     when( namedClusterWidget.getSelectedNamedCluster() ).thenReturn( namedCluster );

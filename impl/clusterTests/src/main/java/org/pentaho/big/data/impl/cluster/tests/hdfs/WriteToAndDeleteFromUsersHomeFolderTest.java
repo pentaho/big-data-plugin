@@ -2,7 +2,7 @@
  *
  *  Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  * ******************************************************************************
  *
@@ -21,13 +21,13 @@
 
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemPath;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemPath;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.oozie;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntryController;
 import org.pentaho.big.data.kettle.plugins.job.BlockableJobConfig;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
@@ -415,16 +415,16 @@ public class OozieJobExecutorJobEntryController extends
           sb.append( warning ).append( "\n" );
         }
         showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
-          .toString() );
+                .toString() );
         return;
       }
     } catch ( RuntimeException re ) {
       showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ),
-        re.getMessage() );
+              re.getMessage() );
       throw re;
     }
     showInfoDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Info.Dialog.Title" ), BaseMessages
-      .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
+            .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
   }
 
   /**

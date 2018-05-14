@@ -1,18 +1,23 @@
 /*******************************************************************************
+ *
  * Pentaho Big Data
- * <p>
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
- * <p>
+ *
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ *
  * ******************************************************************************
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.hbase.input;
@@ -44,23 +49,23 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.ConfigurationProducer;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingEditor;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
-import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.ColumnFilter;
-import org.pentaho.bigdata.api.hbase.mapping.ColumnFilterFactory;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilter;
+import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilterFactory;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.row.ValueMeta;
@@ -94,9 +99,7 @@ import java.util.Set;
  */
 public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterface, ConfigurationProducer {
 
-  /**
-   * various UI bits and pieces for the dialog
-   */
+  /** various UI bits and pieces for the dialog */
   private Label m_stepnameLabel;
   private Text m_stepnameText;
 
@@ -130,9 +133,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
   private Button m_mappingNamesBut;
   private CCombo m_mappingNamesCombo;
 
-  /**
-   * Store the mapping information in the step's meta data
-   */
+  /** Store the mapping information in the step's meta data */
   private Button m_storeMappingInStepMetaData;
 
   // Key start line
@@ -265,8 +266,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     fd.right = new FormAttachment( middle, -margin );
     namedClusterLab.setLayoutData( fd );
 
-    namedClusterWidget =
-      new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
+    namedClusterWidget = new NamedClusterWidgetImpl( wConfigComp, false, namedClusterService, runtimeTestActionService, runtimeTester );
     namedClusterWidget.initiate();
     props.setLook( namedClusterWidget );
     fd = new FormData();
@@ -1088,10 +1088,8 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
             new MessageDialog( shell, BaseMessages.getString( HBaseInputMeta.PKG,
               "HBaseInputDialog.Error.IssuesWithMapping.Title" ), null, BaseMessages.getString( HBaseInputMeta.PKG,
               "HBaseInputDialog.Error.IssuesWithMapping" ) + ":\n\n" + p.toString(), MessageDialog.WARNING,
-              new String[] {
-                BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonOK" ),
-                BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonCancel" ) },
-              0 );
+                  new String[] { BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonOK" ),
+                      BaseMessages.getString( HBaseInputMeta.PKG, "HBaseInputDialog.Error.IssuesWithMapping.ButtonCancel" ) }, 0 );
           MessageDialog.setDefaultImage( GUIResource.getInstance().getImageSpoon() );
           int idx = md.open() & 0xFF;
           if ( idx == 1 || idx == 255 /* 255 = escape pressed */ ) {
@@ -1267,8 +1265,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
     }
 
     boolean displayFieldsEmbeddedMapping =
-      ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const
-        .isEmpty( m_mappingNamesCombo.getText() ) ) );
+      ( ( m_mappingEditor.getMapping( false, null, false ) != null && Const.isEmpty( m_mappingNamesCombo.getText() ) ) );
     boolean displayFieldsMappingFromHBase =
       ( !Const.isEmpty( m_coreConfigText.getText() ) || !Const.isEmpty( zookeeperQuorumText ) )
         && !Const.isEmpty( m_mappedTableNamesCombo.getText() ) && !Const.isEmpty( m_mappingNamesCombo.getText() );
@@ -1521,10 +1518,7 @@ public class HBaseInputDialog extends BaseStepDialog implements StepDialogInterf
         connection = getHBaseConnection();
         MappingAdmin admin = new MappingAdmin( connection );
 
-        String mappedTableName =
-          MappingAdmin.getTableNameFromVariable( m_currentMeta, m_mappedTableNamesCombo.getText().trim() );
-
-        List<String> mappingNames = admin.getMappingNames( mappedTableName );
+        List<String> mappingNames = admin.getMappingNames( m_mappedTableNamesCombo.getText().trim() );
 
         for ( String n : mappingNames ) {
           m_mappingNamesCombo.add( n );

@@ -9,6 +9,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="hdfsFileNameParser" />
     <argument value="hdfs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -16,6 +17,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="maprfsFileNameParser" />
     <argument value="maprfs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -23,6 +25,7 @@
       <argument ref="namedClusterService"/>
       <argument ref="maprfsFileNameParser" />
       <argument value="escalefs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -30,6 +33,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="maprfsFileNameParser" />
     <argument value="wasb" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
@@ -37,6 +41,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="maprfsFileNameParser" />
     <argument value="wasbs" type="java.lang.String"/>
+    <argument ref="metastoreLocatorOsgi" />
   </bean>
 
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider" scope="singleton">
@@ -48,6 +53,6 @@
   </bean>
 
   <reference id="metastoreLocatorOsgi" interface="org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi"/>
-  <reference id="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
-  <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+  <reference id="hadoopFileSystemService" interface="org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator"/>
+  <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 </blueprint>

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -40,7 +40,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettlePluginException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.KettleURLClassLoader;
 import org.pentaho.di.core.plugins.PluginAnnotationType;
@@ -53,20 +52,19 @@ import org.pentaho.di.core.plugins.PluginTypeCategoriesOrder;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entry.JobEntryInterface;
-import org.pentaho.hadoop.shim.ConfigurationException;
 
 @PluginTypeCategoriesOrder( getNaturalCategoriesOrder = { "JobCategory.Category.General", "JobCategory.Category.Mail",
-    "JobCategory.Category.FileManagement", "JobCategory.Category.Conditions", "JobCategory.Category.Scripting",
-    "JobCategory.Category.BulkLoading", "JobCategory.Category.BigData", "JobCategory.Category.DataQuality",
-    "JobCategory.Category.XML", "JobCategory.Category.Utility", "JobCategory.Category.Repository",
-    "JobCategory.Category.FileTransfer", "JobCategory.Category.FileEncryption", "JobCategory.Category.Palo",
-    "JobCategory.Category.Experimental", "JobCategory.Category.Deprecated" }, i18nPackageClass = JobMeta.class )
+  "JobCategory.Category.FileManagement", "JobCategory.Category.Conditions", "JobCategory.Category.Scripting",
+  "JobCategory.Category.BulkLoading", "JobCategory.Category.BigData", "JobCategory.Category.DataQuality",
+  "JobCategory.Category.XML", "JobCategory.Category.Utility", "JobCategory.Category.Repository",
+  "JobCategory.Category.FileTransfer", "JobCategory.Category.FileEncryption", "JobCategory.Category.Palo",
+  "JobCategory.Category.Experimental", "JobCategory.Category.Deprecated" }, i18nPackageClass = JobMeta.class )
 @PluginMainClassType( JobEntryInterface.class )
 @PluginAnnotationType( JobEntry.class )
 public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
   private static final ShimDependentJobEntryPluginType instance = new ShimDependentJobEntryPluginType();
   private final Map<Set<String>, KettleURLClassLoader> classLoaderMap =
-      new HashMap<Set<String>, KettleURLClassLoader>();
+    new HashMap<Set<String>, KettleURLClassLoader>();
 
   private ShimDependentJobEntryPluginType() {
     super( ShimDependentJobEntry.class, "SHIM_DEPENDENT_JOBENTRY", "Shim Dependent Job entry" );
@@ -79,8 +77,8 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
   @Override
   public List<PluginFolderInterface> getPluginFolders() {
     return Arrays.<PluginFolderInterface>asList( new PluginFolder( new File( ShimDependentJobEntryPluginType.class
-        .getProtectionDomain().getCodeSource().getLocation().getPath() ).getParentFile().toURI().toString()
-        + "plugins/", false, true ) {
+      .getProtectionDomain().getCodeSource().getLocation().getPath() ).getParentFile().toURI().toString()
+      + "plugins/", false, true ) {
       @Override
       public FileObject[] findJarFiles( final boolean includeLibJars ) throws KettleFileException {
         try {
@@ -111,7 +109,7 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
 
   @Override
   public void handlePluginAnnotation( Class<?> clazz, Annotation annotation, List<String> libraries,
-      boolean nativePluginType, URL pluginFolder ) throws KettlePluginException {
+                                      boolean nativePluginType, URL pluginFolder ) throws KettlePluginException {
     String idList = extractID( annotation );
     if ( Const.isEmpty( idList ) ) {
       throw new KettlePluginException( "No ID specified for plugin with class: " + clazz.getName() );
@@ -121,29 +119,30 @@ public class ShimDependentJobEntryPluginType extends JobEntryPluginType {
     String[] ids = idList.split( "," );
     super.handlePluginAnnotation( clazz, annotation, libraries, nativePluginType, pluginFolder );
     PluginInterface plugin =
-        PluginRegistry.getInstance().findPluginWithId( ShimDependentJobEntryPluginType.class, ids[0] );
-    URL[] urls = new URL[libraries.size()];
+      PluginRegistry.getInstance().findPluginWithId( ShimDependentJobEntryPluginType.class, ids[ 0 ] );
+    URL[] urls = new URL[ libraries.size() ];
     for ( int i = 0; i < libraries.size(); i++ ) {
       File jarfile = new File( libraries.get( i ) );
       try {
-        urls[i] = new URL( URLDecoder.decode( jarfile.toURI().toURL().toString(), "UTF-8" ) );
+        urls[ i ] = new URL( URLDecoder.decode( jarfile.toURI().toURL().toString(), "UTF-8" ) );
       } catch ( Exception e ) {
         throw new KettlePluginException( e );
       }
     }
-    try {
-      Set<String> librarySet = new HashSet<String>( libraries );
-      KettleURLClassLoader classloader = classLoaderMap.get( librarySet );
-      if ( classloader == null ) {
-        classloader =
-            new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
-                .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
-        classLoaderMap.put( librarySet, classloader );
-      }
-      PluginRegistry.getInstance().addClassLoader( classloader, plugin );
-    } catch ( ConfigurationException e ) {
-      throw new KettlePluginException( e );
-    }
+    // try {
+    Set<String> librarySet = new HashSet<String>( libraries );
+    KettleURLClassLoader classloader = classLoaderMap.get( librarySet );
+    //todo: what the ?? when multishim, any classloader needed to be put? or big-data-plugin classloader here
+    //      if ( classloader == null ) {
+    //        classloader =
+    //            new KettleURLClassLoader( urls, HadoopConfigurationBootstrap.getHadoopConfigurationProvider()
+    //                .getActiveConfiguration().getHadoopShim().getClass().getClassLoader() );
+    //        classLoaderMap.put( librarySet, classloader );
+    //      }
+    //      PluginRegistry.getInstance().addClassLoader( classloader, plugin );
+    //    } catch ( ConfigurationException e ) {
+    //      throw new KettlePluginException( e );
+    //    }
   }
 
   @Override
