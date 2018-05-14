@@ -29,13 +29,13 @@ import com.google.common.collect.Maps;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.HadoopClientServices;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntry;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryUtils;
-import org.pentaho.bigdata.api.sqoop.SqoopService;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.database.DatabaseInterface;
@@ -298,9 +298,9 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       NamedCluster namedCluster = config.getNamedCluster().clone();
       namedCluster.copyVariablesFrom( this );
 
-      SqoopService service = namedClusterServiceLocator.getService( namedCluster, SqoopService.class );
+      HadoopClientServices hadoopClientServices = namedClusterServiceLocator.getService( namedCluster, HadoopClientServices.class );
 
-      int result = service.runTool( args, properties );
+      int result = hadoopClientServices.runSqoop( args, properties );
       if ( result != 0 ) {
         setJobResultFailed( jobResult );
       }

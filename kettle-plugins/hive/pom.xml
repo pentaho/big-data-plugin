@@ -5,23 +5,13 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-big-data-kettle-plugins-hive</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <version>9.0.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <dependencies>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-initializer</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-jdbc</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -34,14 +24,14 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -82,7 +72,8 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <DynamicImport-Package>com.cloudera.impala.jdbc41</DynamicImport-Package>
+            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.jdbc,*</Import-Package>
             <Bundle-Activator>org.pentaho.big.data.kettle.plugins.hive.Activator</Bundle-Activator>
           </instructions>
         </configuration>

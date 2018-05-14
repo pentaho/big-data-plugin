@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-pig</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <version>9.0.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -18,24 +18,9 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-pig</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-initializer</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -93,8 +78,8 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
+      <artifactId>pentaho-hadoop-shims-common-fragment-V1</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -105,9 +90,9 @@
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-impl-shim-pig</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
+      <artifactId>pentaho-metastore-locator-api</artifactId>
+      <version>${pentaho-osgi-bundles.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
@@ -132,7 +117,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

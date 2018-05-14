@@ -21,13 +21,11 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.pmr;
 
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.inOrder;
 
@@ -38,8 +36,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.core.variables.VariableSpace;

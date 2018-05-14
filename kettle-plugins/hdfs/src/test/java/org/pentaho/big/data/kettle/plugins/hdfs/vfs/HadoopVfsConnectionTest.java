@@ -23,7 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.hdfs.vfs;
 
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.variables.Variables;

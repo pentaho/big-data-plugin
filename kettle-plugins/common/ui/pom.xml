@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-common</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <version>9.0.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -18,24 +18,31 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>17.0</version>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-ui-swt</artifactId>
       <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

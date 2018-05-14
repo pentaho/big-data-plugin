@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <version>9.0.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <profiles>
     <profile>
@@ -33,6 +33,16 @@
         <module>samples</module>
         <module>pmr-libraries</module>
         <module>legacy-plugin</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>standalone</id>
+      <modules>
+        <module>samples</module>
+        <module>features</module>
+        <module>pmr-libraries</module>
+        <module>legacy-plugin</module>
+        <module>standalone</module>
       </modules>
     </profile>
   </profiles>

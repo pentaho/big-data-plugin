@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-kettle-plugins-common</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-kettle-plugins-common-named-cluster-bridge</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <version>9.0.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -18,14 +18,9 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>

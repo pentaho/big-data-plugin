@@ -8,10 +8,10 @@
     <parent>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-big-data-kettle-plugins</artifactId>
-        <version>8.3.0.0-SNAPSHOT</version>
+        <version>9.0.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>pentaho-big-data-kettle-plugins-hbase-meta</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <dependencies>
         <dependency>
@@ -21,8 +21,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>pentaho</groupId>
-            <artifactId>pentaho-big-data-api-hbase</artifactId>
+            <groupId>org.pentaho</groupId>
+            <artifactId>shim-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

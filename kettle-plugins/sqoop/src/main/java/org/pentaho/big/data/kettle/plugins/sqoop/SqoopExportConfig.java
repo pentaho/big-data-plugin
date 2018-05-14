@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 
 /**
  * Configuration for a Sqoop Export

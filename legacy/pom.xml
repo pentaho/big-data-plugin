@@ -5,10 +5,11 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-bundles</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-legacy</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <version>9.0.0.0-SNAPSHOT</version>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -17,11 +18,6 @@
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
-  <scm>
-    <connection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</connection>
-    <developerConnection>scm:git:git@github.com:${github.user}/${project.artifactId}.git</developerConnection>
-    <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
-  </scm>
   <properties>
     <common.version>3.3.0-v20070426</common.version>
     <xmlpull.revision>1.1.3.1</xmlpull.revision>
@@ -33,6 +29,7 @@
     <hbase.version>0.90.3</hbase.version>
     <xml-apis.version>2.0.2</xml-apis.version>
     <commands.version>3.3.0-I20070605-0010</commands.version>
+    <avro.version>1.6.2</avro.version>
     <httpcomponents-client.version>4.5.3</httpcomponents-client.version>
     <libthrift.version>0.6</libthrift.version>
     <publish-sonar-phase>site</publish-sonar-phase>
@@ -44,11 +41,6 @@
     <org.powermock.version>1.6.2</org.powermock.version>
   </properties>
   <dependencies>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-    </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
@@ -144,6 +136,7 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
@@ -184,6 +177,7 @@
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>kettle-log4j-core</artifactId>
       <version>${pdi.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
@@ -360,13 +354,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.pig</groupId>
       <artifactId>pig</artifactId>
       <version>${pig.version}</version>
@@ -409,9 +396,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pentaho-hadoop-shims-api.version}</version>
     </dependency>
   </dependencies>
   <build>
@@ -447,6 +434,26 @@
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
           <testFailureIgnore>true</testFailureIgnore>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>${dependency.maven-bundle-plugin.version}</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <DynamicImport-Package>*</DynamicImport-Package>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Import-Package>
+              org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.log4j.*
+            </Import-Package>
+            <Export-Package>
+
+            </Export-Package>
+            <Embed-Dependency>*aws*
+            </Embed-Dependency>
+          </instructions>
         </configuration>
       </plugin>
     </plugins>

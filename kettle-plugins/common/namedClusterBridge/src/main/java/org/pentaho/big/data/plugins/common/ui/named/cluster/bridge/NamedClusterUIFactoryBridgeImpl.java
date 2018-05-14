@@ -24,7 +24,7 @@ package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterDialogImpl;

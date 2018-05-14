@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-impl-shim</artifactId>
-    <version>8.3.0.0-SNAPSHOT</version>
+    <version>9.0.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>pentaho-big-data-impl-shim-shimTests</artifactId>
-  <version>8.3.0.0-SNAPSHOT</version>
+  <version>9.0.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>a Pentaho open source project</description>
@@ -19,26 +19,6 @@
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-initializer</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-hdfs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-impl-shim-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -46,12 +26,6 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-legacy</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -88,10 +62,15 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-hadoop-shims.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>org.pentaho</groupId>
+          <artifactId>shim-api</artifactId>
+          <version>9.0.0.0-SNAPSHOT</version>
+      </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -103,7 +82,12 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,*</Import-Package>
+            <Import-Package>
+              org.pentaho.hadoop.shim.api.cluster,org.pentaho.bigdata.api.hdfs.*,
+              org.pentaho.hadoop.shim.api.hdfs.*,
+              !org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,
+              !org.pentaho.hadoop.*,!org.pentaho.yarn.*,*
+            </Import-Package>
           </instructions>
         </configuration>
       </plugin>

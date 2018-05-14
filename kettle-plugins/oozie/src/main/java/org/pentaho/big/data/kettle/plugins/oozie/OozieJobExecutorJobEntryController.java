@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.oozie;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntryController;
 import org.pentaho.big.data.kettle.plugins.job.BlockableJobConfig;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
@@ -401,31 +401,7 @@ public class OozieJobExecutorJobEntryController extends
     }
   }
 
-  /**
-   * Make sure everything required is entered and valid
-   */
-  @Bindable
-  public void testSettings() {
-    syncModel();
-    try {
-      List<String> warnings = jobEntry.getValidationWarnings( getConfig() );
-      if ( !warnings.isEmpty() ) {
-        StringBuilder sb = new StringBuilder();
-        for ( String warning : warnings ) {
-          sb.append( warning ).append( "\n" );
-        }
-        showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ), sb
-          .toString() );
-        return;
-      }
-    } catch ( RuntimeException re ) {
-      showErrorDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationError.Dialog.Title" ),
-        re.getMessage() );
-      throw re;
-    }
-    showInfoDialog( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Info.Dialog.Title" ), BaseMessages
-      .getString( OozieJobExecutorJobEntry.class, "ValidationMsg.OK" ) );
-  }
+
 
   /**
    * Open the VFS file browser to allow for selection of the workflow job properties configuration file.
