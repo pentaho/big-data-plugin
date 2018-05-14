@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -181,6 +181,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
+    this.setShimIdentifier( nc.getShimIdentifier() );
     this.setStorageScheme( nc.getStorageScheme() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );

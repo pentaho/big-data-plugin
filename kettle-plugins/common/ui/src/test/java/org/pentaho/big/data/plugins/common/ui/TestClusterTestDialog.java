@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -29,12 +29,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 import org.pentaho.runtime.test.RuntimeTester;

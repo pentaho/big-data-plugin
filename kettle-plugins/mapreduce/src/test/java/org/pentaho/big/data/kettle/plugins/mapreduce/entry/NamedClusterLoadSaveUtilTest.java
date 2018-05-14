@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,9 +24,9 @@ package org.pentaho.big.data.kettle.plugins.mapreduce.entry;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop.JobEntryHadoopJobExecutor;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -48,10 +48,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.eq;
 
 /**
  * Created by bryan on 1/13/16.

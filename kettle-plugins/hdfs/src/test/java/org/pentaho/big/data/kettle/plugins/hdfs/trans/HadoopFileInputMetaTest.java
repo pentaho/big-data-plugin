@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -26,8 +26,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.variables.VariableSpace;

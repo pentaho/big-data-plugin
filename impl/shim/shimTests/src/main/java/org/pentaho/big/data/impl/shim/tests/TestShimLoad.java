@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,11 +22,8 @@
 
 package org.pentaho.big.data.impl.shim.tests;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
-import org.pentaho.hadoop.shim.ConfigurationException;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
@@ -50,39 +47,28 @@ public class TestShimLoad extends BaseRuntimeTest {
   private static final Class<?> PKG = TestShimLoad.class;
   private final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
-  private final HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
 
   public TestShimLoad( MessageGetterFactory messageGetterFactory ) {
-    this( messageGetterFactory, HadoopConfigurationBootstrap.getInstance() );
-  }
-
-  public TestShimLoad( MessageGetterFactory messageGetterFactory,
-                       HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
     super( NamedCluster.class, HADOOP_CONFIGURATION_MODULE, HADOOP_CONFIGURATION_TEST_SHIM_LOAD,
       messageGetterFactory.create( PKG ).getMessage( TEST_SHIM_LOAD_NAME ), true, new HashSet<String>() );
     this.messageGetterFactory = messageGetterFactory;
     messageGetter = messageGetterFactory.create( PKG );
-    this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;
   }
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
     try {
-      hadoopConfigurationBootstrap.getProvider();
-      String activeConfigurationId = hadoopConfigurationBootstrap.getActiveConfigurationId();
+      NamedCluster namedCluster = (NamedCluster) objectUnderTest;
+      String shimIdentifier = namedCluster.getShimIdentifier();
+
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.INFO,
-          messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_DESC, activeConfigurationId ),
-          messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_MESSAGE, activeConfigurationId ),
+          messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_DESC, shimIdentifier ),
+          messageGetter.getMessage( TEST_SHIM_LOAD_SHIM_LOADED_MESSAGE, shimIdentifier ),
           ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
-    } catch ( NoShimSpecifiedException e ) {
+    } catch ( Exception e ) {
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
           messageGetter.getMessage( TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ), e.getMessage(), e,
-          ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
-    } catch ( ConfigurationException e ) {
-      return new RuntimeTestResultSummaryImpl(
-        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
-          messageGetter.getMessage( TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC ), e.getMessage(), e,
           ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
     }
   }

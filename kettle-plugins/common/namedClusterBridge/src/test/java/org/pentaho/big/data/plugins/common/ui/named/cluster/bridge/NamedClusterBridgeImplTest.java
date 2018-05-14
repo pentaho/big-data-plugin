@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,7 +28,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.hadoop.HadoopSpoonPlugin;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;

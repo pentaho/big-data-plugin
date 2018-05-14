@@ -34,7 +34,7 @@
     <argument ref="driverLocator"/>
   </bean>
 
-  <reference id="driverLocator" interface="org.pentaho.big.data.api.jdbc.DriverLocator"/>
+  <reference id="driverLocator" interface="org.pentaho.hadoop.shim.api.jdbc.DriverLocator"/>
 
   <!--<bean id="hive2DatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2DatabaseDialect"/>
   <bean id="hive2SimbaDatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2SimbaDatabaseDialect"/>

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,14 +27,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop.JobEntryHadoopJobExecutor;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJarInfo;
-import org.pentaho.bigdata.api.mapreduce.MapReduceService;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJarInfo;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
@@ -218,6 +218,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       setHadoopJobName( jobEntry.getHadoopJobName() );
       setSimple( jobEntry.isSimple() );
       setJarUrl( jobEntry.getJarUrl() );
+      aConf.setSelectedNamedCluster( jobEntry.getNamedCluster() );
       populateDriverMenuList();
       setDriverClass( jobEntry.getDriverClass() );
       sConf.setCommandLineArgs( jobEntry.getCmdLineArgs() );
@@ -276,7 +277,6 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       aConf.setOutputKeyClass( jobEntry.getOutputKeyClass() );
       aConf.setOutputValueClass( jobEntry.getOutputValueClass() );
       aConf.setOutputFormatClass( jobEntry.getOutputFormatClass() );
-      aConf.setSelectedNamedCluster( jobEntry.getNamedCluster() );
       aConf.setNumMapTasks( jobEntry.getNumMapTasks() );
       aConf.setNumReduceTasks( jobEntry.getNumReduceTasks() );
     }

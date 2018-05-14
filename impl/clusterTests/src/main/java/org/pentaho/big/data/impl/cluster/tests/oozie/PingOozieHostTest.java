@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,10 +22,10 @@
 
 package org.pentaho.big.data.impl.cluster.tests.oozie;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.network.ConnectivityTestFactory;

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -75,8 +75,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;

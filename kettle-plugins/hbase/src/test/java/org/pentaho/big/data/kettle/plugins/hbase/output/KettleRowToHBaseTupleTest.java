@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -38,13 +38,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.big.data.kettle.plugins.hbase.output.KettleRowToHBaseTuple.FieldException;
-import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping.KeyType;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping.TupleMapping;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.table.HBasePut;
-import org.pentaho.bigdata.api.hbase.table.HBaseTableWriteOperationManager;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping.KeyType;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping.TupleMapping;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.table.HBasePut;
+import org.pentaho.hadoop.shim.api.hbase.table.HBaseTableWriteOperationManager;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaString;
@@ -98,21 +98,21 @@ public class KettleRowToHBaseTupleTest {
 
     ByteConversionUtil byteConversionUtil = Mockito.mock( ByteConversionUtil.class );
 
-    String row[] = { "key", "family", "@@@binary@@@column", "value", "public" };
+    String[] row = { "key", "family", "@@@binary@@@column", "value", "public" };
 
     HBaseTableWriteOperationManager writeManager = Mockito.mock( HBaseTableWriteOperationManager.class );
 
     HBasePut put = Mockito.mock( HBasePut.class );
 
-    when( writeManager.createPut( row[0].getBytes() ) ).thenReturn( put );
+    when( writeManager.createPut( row[ 0 ].getBytes() ) ).thenReturn( put );
 
-    when( byteConversionUtil.encodeKeyValue( row[0], keyMeta, KeyType.STRING ) ).thenReturn( row[0].getBytes() );
+    when( byteConversionUtil.encodeKeyValue( row[ 0 ], keyMeta, KeyType.STRING ) ).thenReturn( row[ 0 ].getBytes() );
 
     rowConverter.createTuplePut( writeManager, byteConversionUtil, row, true );
 
-    verify( put, times( 1 ) ).addColumn( eq( row[1] ), eq( "column" ), eq( true ), any() );
-    verify( put, times( 1 ) ).addColumn( eq( row[1] ), eq( MappingUtils.TUPLE_MAPPING_VISIBILITY ), eq( false ),
-        any() );
+    verify( put, times( 1 ) ).addColumn( eq( row[ 1 ] ), eq( "column" ), eq( true ), any() );
+    verify( put, times( 1 ) ).addColumn( eq( row[ 1 ] ), eq( MappingUtils.TUPLE_MAPPING_VISIBILITY ), eq( false ),
+      any() );
     verify( put, times( 1 ) ).setWriteToWAL( true );
 
     try {

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,18 +26,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition.MappingColumn;
 import org.pentaho.big.data.kettle.plugins.hbase.input.HBaseInput;
 import org.pentaho.big.data.kettle.plugins.hbase.input.Messages;
-import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;

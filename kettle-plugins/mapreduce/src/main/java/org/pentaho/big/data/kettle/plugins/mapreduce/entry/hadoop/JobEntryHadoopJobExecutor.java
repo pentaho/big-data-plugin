@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,18 +23,18 @@
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr.JobEntryHadoopTransJobExecutor;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJobAdvanced;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJobBuilder;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJobSimple;
-import org.pentaho.bigdata.api.mapreduce.MapReduceService;
-import org.pentaho.bigdata.api.mapreduce.TaskCompletionEvent;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobAdvanced;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobBuilder;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJobSimple;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
+import org.pentaho.hadoop.shim.api.mapreduce.TaskCompletionEvent;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
