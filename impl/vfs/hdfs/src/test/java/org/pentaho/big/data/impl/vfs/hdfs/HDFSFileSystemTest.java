@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,7 +28,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
 
 import java.util.ArrayList;
 import java.util.Collection;

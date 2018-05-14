@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,17 +22,12 @@
 
 package org.pentaho.big.data.impl.shim.tests;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
-import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
 import org.pentaho.di.core.variables.Variables;
-import org.pentaho.hadoop.shim.ConfigurationException;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
-import org.pentaho.hadoop.shim.api.Configuration;
-import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
@@ -56,40 +51,27 @@ public class TestShimConfig extends BaseRuntimeTest {
   public static final String TEST_SHIM_CONFIG_FS_NOMATCH_MESSAGE = "TestShimConfig.FileSystemNoMatch.Message";
 
   private static final Class<?> PKG = TestShimConfig.class;
-
   private final MessageGetterFactory messageGetterFactory;
   private final MessageGetter messageGetter;
-  private final HadoopConfigurationBootstrap hadoopConfigurationBootstrap;
+  private HadoopFileSystemLocator hadoopFileSystemLocator;
 
-  public TestShimConfig( MessageGetterFactory messageGetterFactory ) {
-    this( messageGetterFactory, HadoopConfigurationBootstrap.getInstance() );
-  }
-
-  public TestShimConfig( MessageGetterFactory messageGetterFactory,
-                         HadoopConfigurationBootstrap hadoopConfigurationBootstrap ) {
+  public TestShimConfig( HadoopFileSystemLocator hadoopFileSystemLocator, MessageGetterFactory messageGetterFactory ) {
     super( NamedCluster.class, TestShimLoad.HADOOP_CONFIGURATION_MODULE, HADOOP_CONFIGURATION_TEST_SHIM_CONFIG,
       messageGetterFactory.create( PKG ).getMessage( TEST_SHIM_CONFIG_NAME ), true,
       new HashSet<>( Arrays.asList( TestShimLoad.HADOOP_CONFIGURATION_TEST_SHIM_LOAD ) ) );
     this.messageGetterFactory = messageGetterFactory;
     messageGetter = messageGetterFactory.create( PKG );
-    this.hadoopConfigurationBootstrap = hadoopConfigurationBootstrap;
+    this.hadoopFileSystemLocator = hadoopFileSystemLocator;
   }
 
   @Override public RuntimeTestResultSummary runTest( Object objectUnderTest ) {
-    String activeConfigurationId = "";
     try {
-      activeConfigurationId = hadoopConfigurationBootstrap.getWillBeActiveConfigurationId();
       // Get the active shim
-      HadoopConfigurationProvider hadoopConfigurationProvider = hadoopConfigurationBootstrap.getProvider();
-
-      HadoopConfiguration hadoopConfiguration = hadoopConfigurationProvider.getActiveConfiguration();
-      activeConfigurationId = hadoopConfiguration.getIdentifier();
-      Configuration config = hadoopConfiguration.getHadoopShim().createConfiguration();
-      String defaultFS = config.get( HadoopFileSystem.FS_DEFAULT_NAME );
+      NamedCluster namedCluster = (NamedCluster) objectUnderTest;
+      HadoopFileSystem hadoopFileSystem = hadoopFileSystemLocator.getHadoopFilesystem( namedCluster );
+      String defaultFS = hadoopFileSystem.getFsDefaultName();
 
       // Get the named cluster
-      NamedCluster namedCluster = (NamedCluster) objectUnderTest;
-
       // The connection information might be parameterized. Since we aren't tied to a transformation or job, in order to
       // use a parameter, the value would have to be set as a system property or in kettle.properties, etc.
       // Here we try to resolve the parameters if we can:
@@ -118,16 +100,11 @@ public class TestShimConfig extends BaseRuntimeTest {
           messageGetter.getMessage( TEST_SHIM_CONFIG_FS_MATCH_DESC ),
           messageGetter.getMessage( TEST_SHIM_CONFIG_FS_MATCH_MESSAGE ),
           ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
-    } catch ( NoShimSpecifiedException e ) {
+    } catch ( Exception e ) {
       return new RuntimeTestResultSummaryImpl(
         new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
           messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_NO_SHIM_SPECIFIED_DESC ), e.getMessage(), e,
           ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
-    } catch ( ConfigurationException e ) {
-      return new RuntimeTestResultSummaryImpl(
-        new ClusterRuntimeTestEntry( messageGetterFactory, RuntimeTestEntrySeverity.ERROR,
-          messageGetter.getMessage( TestShimLoad.TEST_SHIM_LOAD_UNABLE_TO_LOAD_SHIM_DESC, activeConfigurationId ),
-          e.getMessage(), e, ClusterRuntimeTestEntry.DocAnchor.SHIM_LOAD ) );
     }
   }
 }

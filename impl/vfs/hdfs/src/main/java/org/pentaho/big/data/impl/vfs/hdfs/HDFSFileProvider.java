@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -20,6 +20,7 @@ package org.pentaho.big.data.impl.vfs.hdfs;
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystem;
+import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.UserAuthenticationData;
@@ -27,11 +28,13 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
 import org.apache.commons.vfs2.provider.FileNameParser;
 import org.apache.commons.vfs2.provider.GenericFileName;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterConfigBuilder;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +46,7 @@ import java.util.Collections;
 public class HDFSFileProvider extends AbstractOriginatingFileProvider {
 
   protected static Logger logger = LoggerFactory.getLogger( HDFSFileProvider.class );
+  private MetastoreLocatorOsgi metaStoreService;
   /**
    * The scheme this provider was designed to support
    */
@@ -71,31 +75,36 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
 
   @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator,
-                           NamedClusterService namedClusterService ) throws FileSystemException {
+                           NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore )
+    throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService,
-      (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager() );
+      (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(), metaStore );
   }
 
   @Deprecated
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           DefaultFileSystemManager fileSystemManager ) throws FileSystemException {
+                           DefaultFileSystemManager fileSystemManager, MetastoreLocatorOsgi metaStore )
+    throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService, fileSystemManager, HDFSFileNameParser.getInstance(),
-      new String[] { SCHEME, MAPRFS } );
+      new String[] { SCHEME, MAPRFS }, metaStore );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           FileNameParser fileNameParser, String schema ) throws FileSystemException {
+                           FileNameParser fileNameParser, String schema, MetastoreLocatorOsgi metaStore )
+    throws FileSystemException {
     this( hadoopFileSystemLocator, namedClusterService,
       (DefaultFileSystemManager) KettleVFS.getInstance().getFileSystemManager(),
-      fileNameParser, new String[] { schema } );
+      fileNameParser, new String[] { schema }, metaStore );
   }
 
   public HDFSFileProvider( HadoopFileSystemLocator hadoopFileSystemLocator, NamedClusterService namedClusterService,
-                           DefaultFileSystemManager fileSystemManager, FileNameParser fileNameParser, String[] schemes )
+                           DefaultFileSystemManager fileSystemManager, FileNameParser fileNameParser, String[] schemes,
+                           MetastoreLocatorOsgi metaStore )
     throws FileSystemException {
     super();
     this.hadoopFileSystemLocator = hadoopFileSystemLocator;
     this.namedClusterService = namedClusterService;
+    this.metaStoreService = metaStore;
     setFileNameParser( fileNameParser );
     fileSystemManager.addProvider( schemes, this );
   }
@@ -105,15 +114,7 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
     GenericFileName genericFileName = (GenericFileName) name.getRoot();
     String hostName = genericFileName.getHostName();
     int port = genericFileName.getPort();
-    // TODO: load from metastore
-    NamedCluster namedCluster = namedClusterService.getClusterTemplate();
-    namedCluster.setHdfsHost( hostName );
-    if ( port > 0 ) {
-      namedCluster.setHdfsPort( String.valueOf( port ) );
-    } else {
-      namedCluster.setHdfsPort( "" );
-    }
-    namedCluster.setMapr( MAPRFS.equals( name.getScheme() ) );
+    NamedCluster namedCluster = resolveNamedCluster( hostName, port, name );
     try {
       return new HDFSFileSystem( name, fileSystemOptions, hadoopFileSystemLocator.getHadoopFilesystem( namedCluster,
         URI.create( name.getURI() == null ? "" : name.getURI() ) ) );
@@ -126,4 +127,17 @@ public class HDFSFileProvider extends AbstractOriginatingFileProvider {
     return capabilities;
   }
 
+  @Override
+  public FileSystemConfigBuilder getConfigBuilder() {
+    return NamedClusterConfigBuilder.getInstance( metaStoreService, namedClusterService );
+  }
+
+  private NamedCluster resolveNamedCluster( String hostName, int port, final FileName name ) {
+    NamedCluster namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
+    if ( namedCluster == null ) {
+      namedClusterService.updateNamedClusterTemplate( hostName, port, MAPRFS.equals( name.getScheme() ) );
+      namedCluster = namedClusterService.getClusterTemplate();
+    }
+    return namedCluster;
+  }
 }

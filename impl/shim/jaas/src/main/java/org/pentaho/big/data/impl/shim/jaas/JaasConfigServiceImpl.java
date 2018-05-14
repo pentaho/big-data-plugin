@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,7 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.impl.shim.jaas;
 
-import org.pentaho.bigdata.api.jaas.JaasConfigService;
+import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 
 import java.util.Properties;
 

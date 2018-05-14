@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,12 +23,12 @@
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.HBaseRowToKettleTuple;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.ColumnFilter;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.Result;
-import org.pentaho.bigdata.api.hbase.table.ResultScannerBuilder;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilter;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.Result;
+import org.pentaho.hadoop.shim.api.hbase.table.ResultScannerBuilder;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -26,11 +26,10 @@ import org.jdom.input.SAXBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
@@ -43,13 +42,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 /**
  * Created by bryan on 11/23/15.
@@ -108,10 +111,10 @@ public class HadoopFileOutputMetaTest {
     NamedCluster nc = mock( NamedCluster.class );
     NamedCluster nc2 = mock( NamedCluster.class );
     MetaStoreConst.disableMetaStore = true;
-    
+
     when( namedClusterService.getClusterTemplate() ).thenReturn( nc );
     when( nc.fromXmlForEmbed( any() ) ).thenReturn( nc2 );
-    when( nc2.processURLsubstitution( eq( url ), any( ), any() ) ).thenReturn( desiredUrl );
+    when( nc2.processURLsubstitution( eq( url ), any(), any() ) ).thenReturn( desiredUrl );
     assertEquals( desiredUrl, hadoopFileOutputMeta.getProcessedUrl( null, url ) );
   }
 
@@ -179,9 +182,9 @@ public class HadoopFileOutputMetaTest {
       .thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
     when( mockRep.getStepAttributeString( anyObject(), eq( "source_configuration_name" ) ) ).thenReturn(
-        TEST_CLUSTER_NAME );
+      TEST_CLUSTER_NAME );
     HadoopFileOutputMeta hadoopFileOutputMeta =
-        new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+      new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
     hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
     when( mockRep.getStepAttributeString( anyObject(), eq( "file_name" ) ) ).thenReturn( "Bad Url In Repo" );
 
@@ -191,7 +194,7 @@ public class HadoopFileOutputMetaTest {
   @Test
   public void testSaveSourceCalledFromGetXmlWithEmbeddedCluster() throws Exception {
     HadoopFileOutputMeta hadoopFileOutputMeta =
-        new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+      new HadoopFileOutputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
     hadoopFileOutputMeta.setSourceConfigurationName( TEST_CLUSTER_NAME );
     // set required data for step - empty
     hadoopFileOutputMeta.setOutputFields( new TextFileField[] {} );
@@ -201,7 +204,7 @@ public class HadoopFileOutputMetaTest {
     NamedCluster mockNamedCluster = mock( NamedCluster.class );
     when( namedClusterService.getNamedClusterByName( eq( TEST_CLUSTER_NAME ), any() ) ).thenReturn( mockNamedCluster );
     when( mockNamedCluster.toXmlForEmbed( NAMED_CLUSTER_TAG ) ).thenReturn(
-        "<" + NAMED_CLUSTER_TAG + ">" + EMBEDDED_XML + "</" + NAMED_CLUSTER_TAG + ">" );
+      "<" + NAMED_CLUSTER_TAG + ">" + EMBEDDED_XML + "</" + NAMED_CLUSTER_TAG + ">" );
 
     Document hadoopOutputMetaStep = getDocumentFromString( spy.getXML(), new SAXBuilder() );
     Element clusterElement = getChildElementByTagName( hadoopOutputMetaStep.getRootElement(), NAMED_CLUSTER_TAG );

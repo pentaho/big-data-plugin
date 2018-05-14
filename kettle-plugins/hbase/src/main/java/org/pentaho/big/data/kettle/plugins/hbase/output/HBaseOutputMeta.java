@@ -24,17 +24,17 @@ package org.pentaho.big.data.kettle.plugins.hbase.output;
 
 import java.util.List;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseMappingImpl;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.annotations.Step;
@@ -44,6 +44,7 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -73,35 +74,47 @@ import com.google.common.annotations.VisibleForTesting;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 @Step( id = "HBaseOutput", image = "HBO.svg", name = "HBaseOutput.Name", description = "HBaseOutput.Description",
-    categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "Products/HBase_Output",
-    i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
+  categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+  documentationUrl = "Products/HBase_Output",
+  i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
 @InjectionSupported( localizationPrefix = "HBaseOutput.Injection.", groups = { "MAPPING" } )
 public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected static Class<?> PKG = HBaseOutputMeta.class;
 
-  /** path/url to hbase-site.xml */
+  /**
+   * path/url to hbase-site.xml
+   */
   @Injection( name = "HBASE_SITE_XML_URL" )
   protected String m_coreConfigURL;
 
-  /** path/url to hbase-default.xml */
+  /**
+   * path/url to hbase-default.xml
+   */
   @Injection( name = "HBASE_DEFAULT_XML_URL" )
   protected String m_defaultConfigURL;
 
-  /** the name of the HBase table to write to */
+  /**
+   * the name of the HBase table to write to
+   */
   @Injection( name = "TARGET_TABLE_NAME" )
   protected String m_targetTableName;
 
-  /** the name of the mapping for columns/types for the target table */
+  /**
+   * the name of the mapping for columns/types for the target table
+   */
   @Injection( name = "TARGET_MAPPING_NAME" )
   protected String m_targetMappingName;
 
-  /** if true then the incoming column with row key from the mapping will be deleted */
+  /**
+   * if true then the incoming column with row key from the mapping will be deleted
+   */
   @Injection( name = "DELETE_ROW_KEY" )
   protected boolean m_deleteRowKey;
 
-  /** if true then the WAL will not be written to */
+  /**
+   * if true then the WAL will not be written to
+   */
   @Injection( name = "DISABLE_WRITE_TO_WAL" )
   protected boolean m_disableWriteToWAL;
 
@@ -126,6 +139,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
+  private MetastoreLocatorOsgi metaStoreService;
   private ServiceStatus serviceStatus = ServiceStatus.OK;
 
   public NamedClusterService getNamedClusterService() {
@@ -146,30 +160,30 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   public HBaseOutputMeta( NamedClusterService namedClusterService,
                           NamedClusterServiceLocator namedClusterServiceLocator,
-                          RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+                          RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
+                          MetastoreLocatorOsgi metaStore ) {
     this( namedClusterService, namedClusterServiceLocator,
-      runtimeTestActionService, runtimeTester, new NamedClusterLoadSaveUtil() );
+      runtimeTestActionService, runtimeTester, new NamedClusterLoadSaveUtil(), metaStore );
   }
 
   @VisibleForTesting
   protected HBaseOutputMeta( NamedClusterService namedClusterService,
                              NamedClusterServiceLocator namedClusterServiceLocator,
                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
-                             NamedClusterLoadSaveUtil namedClusterLoadSaveUtil ) {
+                             NamedClusterLoadSaveUtil namedClusterLoadSaveUtil, MetastoreLocatorOsgi metaStore ) {
     this.namedClusterService = namedClusterService;
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.runtimeTestActionService = runtimeTestActionService;
 
     this.runtimeTester = runtimeTester;
     this.namedClusterLoadSaveUtil = namedClusterLoadSaveUtil;
-
+    this.metaStoreService = metaStore;
   }
 
   /**
    * Set the mapping to use for decoding the row
    *
-   * @param m
-   *          the mapping to use
+   * @param m the mapping to use
    */
   public void setMapping( Mapping m ) {
     m_mapping = m;
@@ -267,18 +281,18 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
-      String[] input, String[] output, RowMetaInterface info ) {
+                     String[] input, String[] output, RowMetaInterface info ) {
 
     CheckResult cr;
 
     if ( ( prev == null ) || ( prev.size() == 0 ) ) {
       cr = new CheckResult(
-          CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
+        CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
       remarks.add( cr );
     } else {
       cr =
-          new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is connected to previous one, receiving " + prev.size()
-              + " fields", stepMeta );
+        new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is connected to previous one, receiving " + prev.size()
+          + " fields", stepMeta );
       remarks.add( cr );
     }
 
@@ -301,7 +315,8 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     }
     StringBuilder retval = new StringBuilder();
     namedClusterLoadSaveUtil
-      .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
+      .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(),
+        getLog() );
 
     if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
@@ -332,7 +347,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
-      TransMeta transMeta, Trans trans ) {
+                                TransMeta transMeta, Trans trans ) {
     return new HBaseOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
   }
 
@@ -342,6 +357,10 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
 
   @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore )
     throws KettleXMLException {
+
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
 
     this.namedCluster =
       namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, null, metaStore, stepnode, getLog() );
@@ -385,8 +404,12 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
   @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
     throws KettleException {
 
-    this.namedCluster = namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, getLog() );
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
 
+    this.namedCluster =
+      namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, getLog() );
     m_coreConfigURL = rep.getStepAttributeString( id_step, 0, "core_config_url" );
     m_defaultConfigURL = rep.getStepAttributeString( id_step, 0, "default_config_url" );
     m_targetTableName = rep.getStepAttributeString( id_step, 0, "target_table_name" );
@@ -409,8 +432,15 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     }
   }
 
-  @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
-    namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
+  @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
+    throws KettleException {
+
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
+
+    namedClusterLoadSaveUtil
+      .saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, getLog() );
 
     if ( !Utils.isEmpty( m_coreConfigURL ) ) {
       rep.saveStepAttribute( id_transformation, id_step, 0, "core_config_url", m_coreConfigURL );

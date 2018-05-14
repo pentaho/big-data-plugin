@@ -65,7 +65,8 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Export-Package>com.pentaho.big.data.bundles.impl.shim.common</Export-Package>
+            <Bundle-Version>${pentaho-osgi-bundles.version}</Bundle-Version>
+            <Export-Package>com.pentaho.big.data.bundles.impl.shim.common;version=${pentaho-osgi-bundles.version}</Export-Package>
           </instructions>
         </configuration>
       </plugin>

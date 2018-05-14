@@ -24,11 +24,16 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${project.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-hdfs</artifactId>
+      <artifactId>metastore</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
