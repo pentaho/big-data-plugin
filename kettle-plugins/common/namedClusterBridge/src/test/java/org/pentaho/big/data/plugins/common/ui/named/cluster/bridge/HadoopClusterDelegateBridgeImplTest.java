@@ -48,7 +48,7 @@ public class HadoopClusterDelegateBridgeImplTest {
   private Shell shell;
   private String testNamedClusterName;
 
-  private static org.pentaho.big.data.api.cluster.NamedCluster nameMatches( NamedCluster namedCluster ) {
+  private static org.pentaho.hadoop.shim.api.cluster.NamedCluster nameMatches( NamedCluster namedCluster ) {
     return argThat( new NamedClusterNameMatcher( namedCluster ) );
   }
 
@@ -91,7 +91,7 @@ public class HadoopClusterDelegateBridgeImplTest {
     verify( hadoopClusterDelegate ).delNamedCluster( eq( iMetaStore ), nameMatches( namedCluster ) );
   }
 
-  private static class NamedClusterNameMatcher extends ArgumentMatcher<org.pentaho.big.data.api.cluster.NamedCluster> {
+  private static class NamedClusterNameMatcher extends ArgumentMatcher<org.pentaho.hadoop.shim.api.cluster.NamedCluster> {
     private final NamedCluster namedCluster;
 
     NamedClusterNameMatcher( NamedCluster namedCluster ) {
@@ -99,8 +99,7 @@ public class HadoopClusterDelegateBridgeImplTest {
     }
 
     @Override public boolean matches( Object argument ) {
-      return argument instanceof org.pentaho.big.data.api.cluster.NamedCluster && ( (org.pentaho.big.data.api.cluster
-        .NamedCluster) argument ).getName().equals( namedCluster.getName() );
+      return argument instanceof org.pentaho.hadoop.shim.api.cluster.NamedCluster && ( (org.pentaho.hadoop.shim.api.cluster.NamedCluster) argument ).getName().equals( namedCluster.getName() );
     }
   }
 }

@@ -24,9 +24,8 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
 import java.io.IOException;
 
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.bigdata.api.format.FormatService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
@@ -40,6 +39,7 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroOutputFormat;
 
 public class AvroOutput extends BaseStep implements StepInterface {
@@ -63,7 +63,16 @@ public class AvroOutput extends BaseStep implements StepInterface {
       data = (AvroOutputData) sdi;
 
       if ( data.output == null ) {
+        try {
         init();
+        } catch ( Throwable e ) {
+          String error = e.getMessage().replaceAll( "TRANS_NAME", getTrans().getName() );
+          error = error.replaceAll( "STEP_NAME", getStepname() );
+          getLogChannel().logError( error );
+          setErrors( 1 );
+          setOutputDone();
+          return false;
+        }
       }
 
       Object[] currentRow = getRow();
@@ -109,7 +118,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
       throw new KettleException( "can't get service format shim ", e );
     }
     TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
-    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, meta.getNamedCluster() );
     data.output.setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ), meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
     IPentahoAvroOutputFormat.COMPRESSION compression;

@@ -39,7 +39,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -49,6 +48,7 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
 import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
@@ -77,6 +77,9 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   @MetaStoreAttribute
   private String name;
+
+  @MetaStoreAttribute
+  private String configId;
 
   @MetaStoreAttribute
   private String shimIdentifier;
@@ -143,6 +146,16 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public String getName() {
     return name;
+  }
+
+  @Override
+  public String getConfigId() {
+    return configId;
+  }
+
+  @Override
+  public void setConfigId( String id ) {
+    this.configId = id;
   }
 
   public String getShimIdentifier() {
@@ -233,6 +246,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
+    this.setConfigId( nc.getConfigId() );
+    this.setShimIdentifier( nc.getShimIdentifier() );
     this.setStorageScheme( nc.getStorageScheme() );
     this.setHdfsHost( nc.getHdfsHost() );
     this.setHdfsPort( nc.getHdfsPort() );

@@ -57,7 +57,7 @@
            interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepExternalResourceConsumer"
            ref="kafkaProducerERC"/>
 
-  <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+  <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
   <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>
-  <reference id="namedClusterServiceLocator" interface="org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator"/>
+  <reference id="namedClusterServiceLocator" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator"/>
 </blueprint>

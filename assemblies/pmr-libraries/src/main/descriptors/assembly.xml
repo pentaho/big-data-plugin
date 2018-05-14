@@ -214,7 +214,6 @@
         <include>pentaho:mondrian</include>
         <include>pentaho:pentaho-capability-manager</include>
         <include>org.pentaho:commons-database-model</include>
-        <include>org.pentaho:pentaho-hadoop-shims-api</include>
         <include>pentaho:pentaho-metadata</include>
         <include>pentaho:pentaho-osgi-utils-api</include>
         <include>org.pentaho:pentaho-registry</include>

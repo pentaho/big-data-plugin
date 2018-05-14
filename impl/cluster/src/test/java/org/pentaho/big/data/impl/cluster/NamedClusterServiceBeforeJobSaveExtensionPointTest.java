@@ -17,7 +17,7 @@
 package org.pentaho.big.data.impl.cluster;
 
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
 import org.pentaho.di.job.Job;

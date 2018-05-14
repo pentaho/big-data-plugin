@@ -22,7 +22,7 @@
 
 package org.pentaho.di.core.hadoop;
 
-import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 
 /**
  * Created by bryan on 8/19/15.

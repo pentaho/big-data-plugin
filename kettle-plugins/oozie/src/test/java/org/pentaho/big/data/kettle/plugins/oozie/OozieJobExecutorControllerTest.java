@@ -28,9 +28,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
@@ -179,27 +179,6 @@ public class OozieJobExecutorControllerTest {
   public void testSetModeToggleLabel_UnsupportedJobEntryMode() {
     controller.setModeToggleLabel( JobEntryMode.ADVANCED_COMMAND_LINE );
     fail( "JobEntryMode.ADVANCED_COMMAND_LINE is not supported, should have gotten a RuntimeException" );
-  }
-
-  @Test
-  public void testTestSettings_ErrorsFound() throws Exception {
-    TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
-    ctr.setConfig( new OozieJobExecutorConfig() );
-    ctr.testSettings();
-    assertTrue( ctr.getShownErrors().size() > 0 );
-  }
-
-  @Test
-  public void testTestSettings_NoErrors() throws Exception {
-    TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
-
-    // the dummy test job entry will return no errors when getValidationMessages is called
-    ctr.setJobEntry( new TestOozieJobExecutorJobEntry() );
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    ctr.setConfig( config );
-    ctr.testSettings();
-    assertTrue( ctr.wasInfoShown() );
   }
 
   @Test
