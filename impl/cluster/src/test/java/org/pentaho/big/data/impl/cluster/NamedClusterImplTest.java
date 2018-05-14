@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -24,7 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -245,12 +245,14 @@ public class NamedClusterImplTest {
     namedCluster.setName( null );
     String scheme = "testScheme";
     assertEquals(
-        scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":" + namedClusterHdfsPort,
-        namedCluster.generateURL( "testScheme", metaStore, null ) );
+      scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":"
+        + namedClusterHdfsPort,
+      namedCluster.generateURL( "testScheme", metaStore, null ) );
     assertNull( namedCluster.generateURL( null, metaStore, null ) );
     assertEquals(
-        scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":" + namedClusterHdfsPort,
-        namedCluster.generateURL( "testScheme", null, null ) );
+      scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":"
+        + namedClusterHdfsPort,
+      namedCluster.generateURL( "testScheme", null, null ) );
   }
 
   @Test
@@ -354,7 +356,7 @@ public class NamedClusterImplTest {
     String incomingURL = "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
-  
+
   @Test
   public void testProcessURLSubstitution_Gateway() throws MetaStoreException {
     namedCluster.setUseGateway( true );
@@ -428,7 +430,7 @@ public class NamedClusterImplTest {
 
   @Test
   public void testProcessURLsubstitutionNC() throws Exception {
-    assertEquals("hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@namedClusterHdfsHost:12345/input/file.txt",
+    assertEquals( "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@namedClusterHdfsHost:12345/input/file.txt",
       namedCluster.processURLsubstitution( "hc://cluster/input/file.txt", metaStore, null ) );
   }
 
@@ -493,7 +495,7 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsPort( "${" + portVar + "}" );
     namedCluster.setHdfsUsername( "${" + usernameVar + "}" );
     namedCluster.setHdfsPassword( "${" + passwordVar + "}" );
-    assertEquals( scheme + ":",      namedCluster.generateURL( scheme, metaStore, variableSpace ) );
+    assertEquals( scheme + ":", namedCluster.generateURL( scheme, metaStore, variableSpace ) );
   }
 
   @Test
@@ -502,9 +504,9 @@ public class NamedClusterImplTest {
     System.out.println( clusterXml );
 
     Element node =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-            new ByteArrayInputStream( clusterXml.getBytes() ) )
-            .getDocumentElement();
+      DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+        new ByteArrayInputStream( clusterXml.getBytes() ) )
+        .getDocumentElement();
 
     NamedCluster nc = new NamedClusterImpl();
     nc = nc.fromXmlForEmbed( node );

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -43,17 +43,17 @@ import java.util.List;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.HBaseConnectionException;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition.MappingColumn;
-import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.mapping.MappingFactory;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -61,7 +61,6 @@ import org.pentaho.di.core.variables.VariableSpace;
 
 /**
  * @author Tatsiana_Kasiankova
- *
  */
 public class MappingUtilsTest {
 
@@ -106,7 +105,7 @@ public class MappingUtilsTest {
   @Test
   public void testGetMappingAdmin_ClusterInitializationExceptionToHBaseConnectionException() throws Exception {
     ClusterInitializationException clusterInitializationException =
-        new ClusterInitializationException( new Exception( "ClusterInitializationException" ) );
+      new ClusterInitializationException( new Exception( "ClusterInitializationException" ) );
     try {
       when( cProducerMock.getHBaseConnection() ).thenThrow( clusterInitializationException );
       MappingUtils.getMappingAdmin( cProducerMock );
@@ -167,8 +166,8 @@ public class MappingUtilsTest {
     HBaseService hBaseService = mock( HBaseService.class );
     HBaseConnection hBaseConnection = mock( HBaseConnection.class );
     when(
-        hBaseService.getHBaseConnection( any( VariableSpace.class ), anyString(), anyString(),
-            any( LogChannelInterface.class ) ) ).thenReturn( hBaseConnection );
+      hBaseService.getHBaseConnection( any( VariableSpace.class ), anyString(), anyString(),
+        any( LogChannelInterface.class ) ) ).thenReturn( hBaseConnection );
     VariableSpace variableSpace = mock( VariableSpace.class );
 
     MappingUtils.getMappingAdmin( hBaseService, variableSpace, "SITE_CONFIG", "DEFAULT_CONFIG" );
@@ -184,11 +183,11 @@ public class MappingUtilsTest {
     HBaseValueMetaInterface valueMeta = mock( HBaseValueMetaInterface.class );
     when( valueMeta.isString() ).thenReturn( true );
     when(
-        valueMetaInterfaceFactory.createHBaseValueMetaInterface( same( "FAMILY" ), same( "COLUMN_NAME" ),
-            same( "ALIAS" ), anyInt(), anyInt(), anyInt() ) ).thenReturn( valueMeta );
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( same( "FAMILY" ), same( "COLUMN_NAME" ),
+        same( "ALIAS" ), anyInt(), anyInt(), anyInt() ) ).thenReturn( valueMeta );
 
     HBaseValueMetaInterface column =
-        MappingUtils.buildNonKeyValueMeta( "ALIAS", "FAMILY", "COLUMN_NAME", STRING_TYPE, "INDEXED_VALS", hBaseService );
+      MappingUtils.buildNonKeyValueMeta( "ALIAS", "FAMILY", "COLUMN_NAME", STRING_TYPE, "INDEXED_VALS", hBaseService );
 
     assertNotNull( column );
     verify( valueMeta ).setHBaseTypeFromString( STRING_TYPE );
@@ -207,7 +206,7 @@ public class MappingUtilsTest {
   public void testGetMapping_UndefinedColumns() throws Exception {
     HBaseService hBaseService = mock( HBaseService.class );
     MappingDefinition mappingDefinition = buildMappingDefinitionForGetMapping();
-    mappingDefinition.setMappingColumns( Collections.<MappingColumn> emptyList() );
+    mappingDefinition.setMappingColumns( Collections.<MappingColumn>emptyList() );
     MappingUtils.getMapping( mappingDefinition, hBaseService );
   }
 
@@ -279,14 +278,14 @@ public class MappingUtilsTest {
     HBaseValueMetaInterface keyValueMeta = mock( HBaseValueMetaInterface.class );
     when( keyValueMeta.isString() ).thenReturn( true );
     when(
-        valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), same( KEY_STRING ),
-            anyInt(), anyInt(), anyInt() ) ).thenReturn( keyValueMeta );
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), same( KEY_STRING ),
+        anyInt(), anyInt(), anyInt() ) ).thenReturn( keyValueMeta );
 
     HBaseValueMetaInterface valueValueMeta = mock( HBaseValueMetaInterface.class );
     when( keyValueMeta.isString() ).thenReturn( true );
     when(
-        valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), same( VALUE_STRING ),
-            anyInt(), anyInt(), anyInt() ) ).thenReturn( valueValueMeta );
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), same( VALUE_STRING ),
+        anyInt(), anyInt(), anyInt() ) ).thenReturn( valueValueMeta );
 
     MappingFactory mappingFactory = mock( MappingFactory.class );
     when( hBaseService.getMappingFactory() ).thenReturn( mappingFactory );
@@ -305,22 +304,22 @@ public class MappingUtilsTest {
     HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = mock( HBaseValueMetaInterfaceFactory.class );
     when( hBaseService.getHBaseValueMetaInterfaceFactory() ).thenReturn( valueMetaInterfaceFactory );
     when(
-        valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), anyString(), anyInt(),
-            anyInt(), anyInt() ) ).thenAnswer( new Answer<HBaseValueMetaInterface>() {
+      valueMetaInterfaceFactory.createHBaseValueMetaInterface( anyString(), anyString(), anyString(), anyInt(),
+        anyInt(), anyInt() ) ).thenAnswer( new Answer<HBaseValueMetaInterface>() {
 
-      @Override
-      public HBaseValueMetaInterface answer( InvocationOnMock invocation ) throws Throwable {
-        Object[] args = invocation.getArguments();
-        String columnFamily = (String) args[FAMILIY_ARG_INDEX];
-        String columnName = (String) args[NAME_ARG_INDEX];
-        String alias = (String) args[ALIAS_ARG_INDEX];
-        HBaseValueMetaInterface valueMeta = mock( HBaseValueMetaInterface.class );
-        when( valueMeta.getAlias() ).thenReturn( alias );
-        when( valueMeta.getColumnFamily() ).thenReturn( columnFamily );
-        when( valueMeta.getColumnName() ).thenReturn( columnName );
-        return valueMeta;
-      }
-    } );
+          @Override
+          public HBaseValueMetaInterface answer( InvocationOnMock invocation ) throws Throwable {
+            Object[] args = invocation.getArguments();
+            String columnFamily = (String) args[ FAMILIY_ARG_INDEX ];
+            String columnName = (String) args[ NAME_ARG_INDEX ];
+            String alias = (String) args[ ALIAS_ARG_INDEX ];
+            HBaseValueMetaInterface valueMeta = mock( HBaseValueMetaInterface.class );
+            when( valueMeta.getAlias() ).thenReturn( alias );
+            when( valueMeta.getColumnFamily() ).thenReturn( columnFamily );
+            when( valueMeta.getColumnName() ).thenReturn( columnName );
+            return valueMeta;
+          }
+        } );
 
     MappingFactory mappingFactory = mock( MappingFactory.class );
     when( hBaseService.getMappingFactory() ).thenReturn( mappingFactory );

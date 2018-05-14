@@ -1,33 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
            xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd">
-  <bean id="testShimLoad" class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader"
-        factory-method="create" scope="singleton">
-    <argument ref="blueprintBundleContext"/>
-    <argument>
-      <value type="java.lang.String">org.pentaho.big.data.impl.shim.tests.TestShimLoad</value>
-    </argument>
-    <argument>
-      <list>
-        <ref component-id="messageGetterFactory"/>
-      </list>
-    </argument>
+
+  <bean id="testShimLoad" class="org.pentaho.big.data.impl.shim.tests.TestShimLoad">
+    <argument ref="messageGetterFactory"/>
   </bean>
 
-  <bean id="testShimConfig" class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader"
-        factory-method="create" scope="singleton">
-    <argument ref="blueprintBundleContext"/>
-    <argument>
-      <value type="java.lang.String">org.pentaho.big.data.impl.shim.tests.TestShimConfig</value>
-    </argument>
-    <argument>
-      <list>
-        <ref component-id="messageGetterFactory"/>
-      </list>
-    </argument>
+  <bean id="testShimConfig" class="org.pentaho.big.data.impl.shim.tests.TestShimConfig">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="messageGetterFactory"/>
   </bean>
 
   <service ref="testShimLoad" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <service ref="testShimConfig" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <reference id="messageGetterFactory" interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
+  <reference id="hadoopFileSystemService" interface="org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator"/>
 </blueprint>

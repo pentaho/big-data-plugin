@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.api.jdbc.DriverLocator;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBigNumber;
@@ -110,7 +110,7 @@ public class Hive2DatabaseMetaTest {
     assertGetFieldDefinition( new ValueMetaDate(), "dateName", "DATE" );
   }
 
-  @Test( expected = IllegalArgumentException.class )
+  @Test
   public void testGetFieldDefinitionDateUnsupported() {
     when( driver.getMajorVersion() ).thenReturn( 0 );
     when( driver.getMinorVersion() ).thenReturn( 11 );
@@ -124,7 +124,7 @@ public class Hive2DatabaseMetaTest {
     assertGetFieldDefinition( new ValueMetaTimestamp(), "timestampName", "TIMESTAMP" );
   }
 
-  @Test( expected = IllegalArgumentException.class )
+  @Test
   public void testGetFieldDefinitionUnsupported() {
     when( driver.getMajorVersion() ).thenReturn( 0 );
     when( driver.getMinorVersion() ).thenReturn( 7 );
@@ -244,8 +244,7 @@ public class Hive2DatabaseMetaTest {
     when( driver.getMinorVersion() ).thenReturn( 5 );
     String suggestedName = "suggestedName";
     int columnIndex = 12;
-    assertEquals( Hive2DatabaseMeta.ALIAS_SUFFIX + columnIndex,
-      hive2DatabaseMeta.generateColumnAlias( columnIndex, suggestedName ) );
+    assertEquals( suggestedName, hive2DatabaseMeta.generateColumnAlias( columnIndex, suggestedName ) );
   }
 
   @Test
@@ -315,7 +314,9 @@ public class Hive2DatabaseMetaTest {
   public void testGetTruncateTableStatement10OrPrior() {
     when( driver.getMajorVersion() ).thenReturn( 0 );
     when( driver.getMinorVersion() ).thenReturn( 10 );
-    assertNull( hive2DatabaseMeta.getTruncateTableStatement( "testTableName" ) );
+    String testTableName = "testTableName";
+    assertEquals( Hive2DatabaseMeta.TRUNCATE_TABLE + testTableName,
+      hive2DatabaseMeta.getTruncateTableStatement( testTableName ) );
   }
 
   @Test

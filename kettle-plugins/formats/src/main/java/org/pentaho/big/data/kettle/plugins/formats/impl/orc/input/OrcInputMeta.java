@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,12 +21,14 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.orc.input.OrcInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -55,11 +57,13 @@ public class OrcInputMeta extends OrcInputMetaBase {
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
+  private MetastoreLocatorOsgi metaStoreService;
 
   public OrcInputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
-      NamedClusterService namedClusterService ) {
+                       NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
+    this.metaStoreService = metaStore;
   }
 
   @Override
@@ -74,7 +78,15 @@ public class OrcInputMeta extends OrcInputMetaBase {
   }
 
   public NamedCluster getNamedCluster() {
-    return namedClusterService.getClusterTemplate();
+    NamedCluster namedCluster =
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename() );
+    return namedCluster;
+  }
+
+  public NamedCluster getNamedCluster( String fileUri ) {
+    NamedCluster namedCluster =
+      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, fileUri );
+    return namedCluster;
   }
 
   public NamedClusterServiceLocator getNamedClusterServiceLocator() {

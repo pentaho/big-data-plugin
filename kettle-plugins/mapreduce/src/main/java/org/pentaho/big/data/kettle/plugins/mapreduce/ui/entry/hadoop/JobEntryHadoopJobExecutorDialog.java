@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,8 +24,8 @@ package org.pentaho.big.data.kettle.plugins.mapreduce.ui.entry.hadoop;
 
 import org.dom4j.DocumentException;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop.JobEntryHadoopJobExecutor;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.i18n.BaseMessages;
@@ -98,7 +98,8 @@ public class JobEntryHadoopJobExecutorDialog extends JobEntryDialog implements J
     swtXulLoader.setOuterContext( shell );
 
     container =
-      swtXulLoader.loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/ui/entry/JobEntryHadoopJobExecutorDialog.xul",
+      swtXulLoader
+        .loadXul( "org/pentaho/big/data/kettle/plugins/mapreduce/ui/entry/JobEntryHadoopJobExecutorDialog.xul",
         bundle ); //$NON-NLS-1$
 
     final XulRunner runner = new SwtXulRunner();

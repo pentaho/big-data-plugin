@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,10 +25,11 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputField;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 
@@ -40,8 +41,9 @@ public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<Par
   public void setup() {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
+    MetastoreLocatorOsgi metaStoreLocator = mock( MetastoreLocatorOsgi.class );
     setup( new ParquetInputMeta( namedClusterServiceLocator,
-      namedClusterService ) );
+      namedClusterService, metaStoreLocator ) );
   }
 
   @Test

@@ -35,5 +35,15 @@
         <module>legacy-plugin</module>
       </modules>
     </profile>
+    <profile>
+      <id>standalone</id>
+      <modules>
+        <module>samples</module>
+        <module>features</module>
+        <module>pmr-libraries</module>
+        <module>legacy-plugin</module>
+        <module>standalone</module>
+      </modules>
+    </profile>
   </profiles>
 </project>
