@@ -63,7 +63,16 @@ public class AvroOutput extends BaseStep implements StepInterface {
       data = (AvroOutputData) sdi;
 
       if ( data.output == null ) {
+        try {
         init();
+        } catch ( Throwable e ) {
+          String error = e.getMessage().replaceAll( "TRANS_NAME", getTrans().getName() );
+          error = error.replaceAll( "STEP_NAME", getStepname() );
+          getLogChannel().logError( error );
+          setErrors( 1 );
+          setOutputDone();
+          return false;
+        }
       }
 
       Object[] currentRow = getRow();
