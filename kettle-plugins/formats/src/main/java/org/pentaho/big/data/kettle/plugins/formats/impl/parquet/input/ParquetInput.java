@@ -117,7 +117,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     // Pentaho 8.0 transformations will have the formatType set to 0. Get the fields from the schema and set the
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField> actualFileFields =
-      ParquetInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), inputFileName );
+      ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), inputFileName );
     Map<String, IParquetInputField> fieldNamesToTypes = actualFileFields.stream().collect(
       Collectors.toMap( IParquetInputField::getFormatFieldName, Function.identity() ) );
 

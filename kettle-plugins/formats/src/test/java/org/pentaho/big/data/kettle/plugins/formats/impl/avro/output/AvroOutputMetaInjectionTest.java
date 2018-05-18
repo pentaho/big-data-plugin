@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -39,8 +40,9 @@ public class AvroOutputMetaInjectionTest extends BaseMetadataInjectionTest<AvroO
   public void setup() {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
+    MetastoreLocatorOsgi metaStoreLocator = mock( MetastoreLocatorOsgi.class );
     setup( new AvroOutputMeta( namedClusterServiceLocator,
-      namedClusterService ) );
+      namedClusterService, metaStoreLocator ) );
   }
 
   @Test
