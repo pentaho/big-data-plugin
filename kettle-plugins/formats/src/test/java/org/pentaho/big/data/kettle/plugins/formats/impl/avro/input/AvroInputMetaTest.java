@@ -49,6 +49,7 @@ import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.plugins.Plugin;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -71,6 +72,9 @@ public class AvroInputMetaTest {
 
   @Mock
   private NamedClusterService namedClusterService;
+
+  @Mock
+  private MetastoreLocatorOsgi metaStoreLocator;
 
   @Mock
   private StepMeta nextStep;
@@ -104,7 +108,7 @@ public class AvroInputMetaTest {
 
   @Before
   public void setUp() throws KettlePluginException {
-    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService );
+    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService, metaStoreLocator );
     when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     when( field.getPentahoType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
 

@@ -36,6 +36,7 @@ import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogLevel;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBoolean;
@@ -87,6 +88,8 @@ public class AvroInputTest {
   @Mock
   private NamedClusterService mockNamedClusterService;
   @Mock
+  private MetastoreLocatorOsgi mockMetaStoreLocator;
+  @Mock
   private FormatService mockFormatService;
   @Mock
   private AvroInputData sdi;
@@ -110,7 +113,7 @@ public class AvroInputTest {
     currentInputRow = 0;
     setInputRows();
     setAvroRows();
-    avroInputMeta = new AvroInputMeta( mockNamedClusterServiceLocator, mockNamedClusterService );
+    avroInputMeta = new AvroInputMeta( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
     avroInputMeta.setUseFieldAsInputStream( true );
     avroInputMeta.setInputStreamFieldName( INPUT_STREAM_FIELD_NAME );
     when( mockPentahoAvroInputFormat.getInputStreamFieldName() ).thenReturn( INPUT_STREAM_FIELD_NAME );
