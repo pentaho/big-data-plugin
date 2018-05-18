@@ -47,7 +47,7 @@ import org.w3c.dom.Node;
 
 @Step( id = "S3FileOutputPlugin", image = "S3O.svg", name = "S3FileOutput.Name",
     description = "S3FileOutput.Description",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/S3+File+Output",
+    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/S3_File_Output",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
     i18nPackageName = "org.pentaho.amazon.s3" )
 @InjectionSupported( localizationPrefix = "S3FileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
