@@ -37,7 +37,6 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.hadoop.HadoopConfigurationBootstrap;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -75,15 +74,15 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   }
 
   public String getMainClass( URL localJarUrl ) throws Exception {
-    HadoopShim shim =
-      HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+    HadoopShim shim = null;
+    //HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
 
     final Class<?> mainClass = util.getMainClassFromManifest( localJarUrl, shim.getClass().getClassLoader() );
     if ( mainClass != null ) {
       return mainClass.getName();
     } else {
       List<Class<?>> classesWithMains =
-        util.getClassesInJarWithMain( localJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
+          util.getClassesInJarWithMain( localJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
       if ( !classesWithMains.isEmpty() ) {
         return classesWithMains.get( 0 ).getName();
       }
