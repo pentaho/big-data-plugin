@@ -74,8 +74,9 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   }
 
   public String getMainClass( URL localJarUrl ) throws Exception {
+    //todo: here we should select named cluster according to step or url
     HadoopShim shim = null;
-    //HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+        //HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
 
     final Class<?> mainClass = util.getMainClassFromManifest( localJarUrl, shim.getClass().getClassLoader() );
     if ( mainClass != null ) {
