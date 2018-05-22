@@ -32,6 +32,7 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 
@@ -41,8 +42,9 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
   public void setup() {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
+    MetastoreLocatorOsgi metaStoreService = mock( MetastoreLocatorOsgi.class );
     setup( new ParquetOutputMeta( namedClusterServiceLocator,
-      namedClusterService ) );
+      namedClusterService, metaStoreService ) );
   }
 
   @Test
