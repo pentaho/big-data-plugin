@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -68,6 +69,7 @@ public class AvroInputMeta extends AvroInputMetaBase {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
   private MetastoreLocatorOsgi metaStoreService;
+  private Boolean testing = false;
 
   public AvroInputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
       NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
@@ -88,9 +90,14 @@ public class AvroInputMeta extends AvroInputMetaBase {
   }
 
   public NamedCluster getNamedCluster() {
-    NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename() );
-    return namedCluster;
+    if ( !testing ) {
+      NamedCluster namedCluster =
+              NamedClusterResolver.resolveNamedCluster(namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename());
+      return namedCluster;
+    } else {
+      namedClusterService.getClusterTemplate();
+      return null;
+    }
   }
 
   public NamedCluster getNamedCluster( String fileUri ) {
@@ -132,5 +139,10 @@ public class AvroInputMeta extends AvroInputMetaBase {
     } catch ( KettlePluginException e ) {
       throw new KettleStepException( "Unable to create value type", e );
     }
+  }
+
+  @VisibleForTesting
+  void setTesting( Boolean isTesting ) {
+    testing = isTesting;
   }
 }
