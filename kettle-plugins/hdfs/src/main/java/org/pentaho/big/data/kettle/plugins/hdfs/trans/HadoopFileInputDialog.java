@@ -81,7 +81,6 @@ import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.entries.copyfiles.JobEntryCopyFiles;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
@@ -373,7 +372,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   private Button wAddResult;
 
-  private HadoopFileInputMeta input;
+  private TextFileInputMeta input;
+
+  private HadoopFileInputMeta hadoopFileInputMeta;
 
   private ToolBar tb;
 
@@ -395,9 +396,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   public HadoopFileInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
-    input = (HadoopFileInputMeta) in;
-    namedClusterService = input.getNamedClusterService();
-    input.setVariableSpace( variables );
+    input = (TextFileInputMeta) in;
+    hadoopFileInputMeta = (HadoopFileInputMeta) input;
+    namedClusterService = hadoopFileInputMeta.getNamedClusterService();
+    hadoopFileInputMeta.setVariableSpace( variables );
     firstClickOnDateLocale = true;
   }
 
@@ -613,7 +615,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private void showFiles() {
-    HadoopFileInputMeta tfii = new HadoopFileInputMeta();
+    TextFileInputMeta tfii = new TextFileInputMeta();
     getInfo( tfii );
     String[] files = tfii.getFilePaths( transMeta );
     if ( files != null && files.length > 0 ) {
@@ -665,7 +667,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     ToolItem deleteToolItem = new ToolItem( tb, SWT.PUSH );
     deleteToolItem.setImage( GUIResource.getInstance().getImageDelete() );
-    deleteToolItem.setToolTipText( BaseMessages.getString( JobEntryCopyFiles.class, "JobCopyFiles.FilenameDelete.Tooltip" ) );
+    deleteToolItem.setToolTipText( BaseMessages.getString( PKG, "JobCopyFiles.FilenameDelete.Tooltip" ) );
     deleteToolItem.addSelectionListener( new SelectionAdapter() {
       public void widgetSelected( SelectionEvent arg0 ) {
 
@@ -2018,13 +2020,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   /**
-   * Read the data from the HadoopFileInputMeta object and show it in this dialog.
+   * Read the data from the TextFileInputMeta object and show it in this dialog.
    *
    * @param meta
-   *          The HadoopFileInputMeta object to obtain the data from.
+   *          The TextFileInputMeta object to obtain the data from.
    */
-  public void getData( HadoopFileInputMeta meta ) {
-    final HadoopFileInputMeta in = meta;
+  public void getData( TextFileInputMeta meta ) {
+    final TextFileInputMeta in = meta;
 
     wAccFilenames.setSelection( in.isAcceptingFilenames() );
     wPassThruFields.setSelection( in.inputFiles.passingThruFields );
@@ -2039,11 +2041,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
       for ( int i = 0; i < in.getFileName().length; i++ ) {
         String sourceUrl = in.getFileName()[i];
-        String clusterName = input.getClusterNameBy( sourceUrl );
+        String clusterName = hadoopFileInputMeta.getClusterNameBy( sourceUrl );
         String environment = STATIC_ENVIRONMENT;
-        if ( in.environment != null && i < in.environment.length && in.environment[i] != null ) {
-          environment = in.environment[i];
-        }
         if ( clusterName != null ) {
           clusterName =
               clusterName.startsWith( HadoopFileInputMeta.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
@@ -2051,7 +2050,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
           clusterName = clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
           sourceUrl = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
-            || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl : input.getUrlPath( sourceUrl );
+            || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl : hadoopFileInputMeta.getUrlPath( sourceUrl );
           environment = clusterName;
         }
 
@@ -2175,7 +2174,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wStepname.selectAll();
   }
 
-  private void getFieldsData( HadoopFileInputMeta in, boolean insertAtTop ) {
+  private void getFieldsData( TextFileInputMeta in, boolean insertAtTop ) {
     for ( int i = 0; i < in.inputFiles.inputFields.length; i++ ) {
       BaseFileInputField field = in.inputFiles.inputFields[i];
 
@@ -2282,10 +2281,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     dispose();
   }
 
-  private void getInfo( HadoopFileInputMeta meta ) {
+  private void getInfo( TextFileInputMeta meta ) {
     stepname = wStepname.getText(); // return value
 
-    // copy info to HadoopFileInputMeta class (input)
+    // copy info to TextFileInputMeta class (input)
     meta.inputFiles.acceptingFilenames = wAccFilenames.getSelection();
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
     meta.inputFiles.acceptingField = wAccField.getText();
@@ -2326,16 +2325,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     Map<String, String> namedClusterURLMappings = new HashMap<String, String>();
     String[] fileNames = new String[wFilenameList.getItems( 1 ).length];
-    meta.environment = wFilenameList.getItems( 0 );
+    String[] nameClusterList = wFilenameList.getItems( 0 );
 
-    for ( int i = 0; i < meta.environment.length; i++ ) {
-      String sourceNc = meta.environment[i];
+    for ( int i = 0; i < nameClusterList.length; i++ ) {
+      String sourceNc = nameClusterList[i];
       sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? HadoopFileInputMeta.LOCAL_SOURCE_FILE + i : sourceNc;
       sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? HadoopFileInputMeta.STATIC_SOURCE_FILE + i : sourceNc;
       sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? HadoopFileInputMeta.S3_SOURCE_FILE + i : sourceNc;
       String source = wFilenameList.getItems( 1 )[i];
       if ( !Const.isEmpty( source ) ) {
-        fileNames[i] = input.loadUrl( source, sourceNc, getMetaStore(), namedClusterURLMappings );
+        fileNames[i] = hadoopFileInputMeta.loadUrl( source, sourceNc, getMetaStore(), namedClusterURLMappings );
       } else {
         fileNames[i] = "";
       }
@@ -2346,7 +2345,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     meta.inputFiles.setFileRequired( wFilenameList.getItems( 3 ) );
     meta.inputFiles.setIncludeSubFolders( wFilenameList.getItems( 4 ) );
 
-    input.setNamedClusterURLMapping( namedClusterURLMappings );
+    hadoopFileInputMeta.setNamedClusterURLMapping( namedClusterURLMappings );
 
     for ( int i = 0; i < nrfields; i++ ) {
       BaseFileInputField field = new BaseFileInputField();
@@ -2414,9 +2413,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   // Get the data layout
   private void getCSV() {
-    HadoopFileInputMeta meta = new HadoopFileInputMeta();
+    TextFileInputMeta meta = new TextFileInputMeta();
     getInfo( meta );
-    HadoopFileInputMeta previousMeta = (HadoopFileInputMeta) meta.clone();
+    TextFileInputMeta previousMeta = (TextFileInputMeta) meta.clone();
     FileInputList textFileList = meta.getTextFileList( transMeta );
     InputStream fileInputStream = null;
     InputStream inputStream = null;
@@ -2606,7 +2605,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   // Preview the data
   private void preview() {
     // Create the XML input step
-    HadoopFileInputMeta oneMeta = new HadoopFileInputMeta();
+    TextFileInputMeta oneMeta = new TextFileInputMeta();
     getInfo( oneMeta );
 
     if ( oneMeta.isAcceptingFilenames() ) {
@@ -2657,7 +2656,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   // Get the first x lines
   private void first( boolean skipHeaders ) {
-    HadoopFileInputMeta info = new HadoopFileInputMeta();
+    TextFileInputMeta info = new TextFileInputMeta();
     getInfo( info );
 
     try {
@@ -2703,7 +2702,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   // Get the first x lines
   private List<String> getFirst( int nrlines, boolean skipHeaders ) throws KettleException {
-    HadoopFileInputMeta meta = new HadoopFileInputMeta();
+    TextFileInputMeta meta = new TextFileInputMeta();
     getInfo( meta );
     FileInputList textFileList = meta.getTextFileList( transMeta );
 
@@ -2777,7 +2776,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private void getFixed() {
-    HadoopFileInputMeta info = new HadoopFileInputMeta();
+    TextFileInputMeta info = new TextFileInputMeta();
     getInfo( info );
 
     Shell sh = new Shell( shell, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX | SWT.MIN );
@@ -2846,7 +2845,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     }
   }
 
-  private Vector<TextFileInputFieldInterface> getFields( HadoopFileInputMeta info, List<String> rows ) {
+  private Vector<TextFileInputFieldInterface> getFields( TextFileInputMeta info, List<String> rows ) {
     Vector<TextFileInputFieldInterface> fields = new Vector<TextFileInputFieldInterface>();
 
     int maxsize = 0;
@@ -3050,7 +3049,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
               wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, S3_ENVIRONMENT );
             } else if ( isCluster ) {
-              url = input.getUrlPath( url );
+              url = hadoopFileInputMeta.getUrlPath( url );
               wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
                   clusterName );
             }
