@@ -177,6 +177,7 @@ public class AvroInputMetaTest {
 
   @Test
   public void testGetNamedCluster() throws KettleStepException {
+    meta.setTesting( true );
     NamedCluster nc = meta.getNamedCluster();
     verify( namedClusterService ).getClusterTemplate();
     //since namedClusterService is mock it should return null
