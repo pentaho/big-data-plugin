@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -104,7 +104,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
-    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName, getTransMeta() );
+    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
     if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
     }
@@ -176,16 +176,10 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
     meta = (ParquetOutputMeta) smi;
     data = (ParquetOutputData) sdi;
-    if ( !super.init( smi, sdi ) ) {
-      return false;
+    if ( super.init( smi, sdi ) ) {
+      return true;
     }
-
-    //Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
-    if ( getTransMeta().getNamedClusterEmbedManager() != null ) {
-      getTransMeta().getNamedClusterEmbedManager()
-        .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
-    }
-    return true;
+    return false;
   }
 
   public static SchemaDescription createSchemaFromMeta( ParquetOutputMetaBase meta ) {
