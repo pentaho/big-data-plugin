@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -67,11 +67,6 @@ public abstract class ParquetInputMetaBase extends
     retval.append( "    <file>" ).append( Const.CR );
     for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
       retval.append( "      " ).append( XMLHandler.addTagValue( "environment", inputFiles.environment[i] ) );
-
-      if ( parentStepMeta != null && parentStepMeta.getParentTransMeta() != null ) {
-        parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( inputFiles.fileName[i] );
-      }
-
       retval.append( "      " ).append( XMLHandler.addTagValue( "name", inputFiles.fileName[i] ) );
       retval.append( "      " ).append( XMLHandler.addTagValue( "filemask", inputFiles.fileMask[i] ) );
       retval.append( "      " ).append( XMLHandler.addTagValue( "exclude_filemask", inputFiles.excludeFileMask[i] ) );

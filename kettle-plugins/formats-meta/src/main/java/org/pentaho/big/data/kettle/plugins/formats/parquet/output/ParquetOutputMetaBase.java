@@ -211,10 +211,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
   public String getXML() {
     StringBuffer retval = new StringBuffer( 800 );
 
-    if ( parentStepMeta != null && parentStepMeta.getParentTransMeta() != null ) {
-      parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( filename );
-    }
-
     retval.append( "    " ).append( XMLHandler.addTagValue( "filename", filename ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "overrideOutput", overrideOutput ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( "compression", compressionType ) );
