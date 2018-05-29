@@ -28,16 +28,20 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.injection.InjectionSupported;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.resource.ResourceNamingInterface;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileOutputMeta;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import java.util.Map;
 
 @Step( id = "HadoopFileOutputPlugin", image = "HDO.svg", name = "HadoopFileOutputPlugin.Name",
     description = "HadoopFileOutputPlugin.Description",
@@ -165,5 +169,12 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
 
   public RuntimeTestActionService getRuntimeTestActionService() {
     return runtimeTestActionService;
+  }
+
+  @Override
+  public String exportResources( VariableSpace space, Map<String, org.pentaho.di.resource.ResourceDefinition>
+          definitions, ResourceNamingInterface resourceNamingInterface, Repository repository, IMetaStore metaStore )
+          throws KettleException {
+    return null;
   }
 }
