@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -61,13 +61,15 @@ public abstract class NamedClusterResolver {
   public static NamedCluster resolveNamedCluster( NamedClusterServiceLocator namedClusterServiceLocator,
                                                   NamedClusterService namedClusterService,
                                                   MetastoreLocatorOsgi metaStoreService, String fileUri ) {
-    NamedCluster namedCluster;
-    String scheme = extractScheme( fileUri );
-    String hostName = extractHostName( fileUri );
-    if ( scheme.equals( "hc" ) ) {
-      namedCluster = namedClusterService.getNamedClusterByName( hostName, metaStoreService.getMetastore() );
-    } else {
-      namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
+    NamedCluster namedCluster = null;
+    if ( fileUri != null ) {
+      String scheme = extractScheme( fileUri );
+      String hostName = extractHostName( fileUri );
+      if ( scheme.equals( "hc" ) ) {
+        namedCluster = namedClusterService.getNamedClusterByName( hostName, metaStoreService.getMetastore() );
+      } else {
+        namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
+      }
     }
     if ( namedCluster == null ) {
       namedCluster =
