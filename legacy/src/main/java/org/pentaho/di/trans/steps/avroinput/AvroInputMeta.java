@@ -83,7 +83,8 @@ import org.w3c.dom.Node;
     // categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Deprecated",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+Input",
-    i18nPackageName = "org.pentaho.di.trans.steps.avroinput" )
+    i18nPackageName = "org.pentaho.di.trans.steps.avroinput",
+    suggestedStep = "AvroInput.SuggestedStep" )
 @InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "AVRO_FIELDS", "LOOKUP_FIELDS" } )
 public class AvroInputMeta extends BaseStepMeta implements StepMetaInterface {
 
