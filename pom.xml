@@ -68,7 +68,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.httpcomponents-client.revision>4.5.3</dependency.httpcomponents-client.revision>
     <commons-database.version>9.0.0.0-SNAPSHOT</commons-database.version>
-    <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
+    <codehaus-jackson.version>1.5.2</codehaus-jackson.version>
+    <fasterxml-jackson.version>2.9.5</fasterxml-jackson.version>
     <pentaho-reporting.version>9.0.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
     <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
@@ -95,6 +96,57 @@
     <pentaho-karaf.version>9.0.0.0-SNAPSHOT</pentaho-karaf.version>
     <pentaho-metaverse.version>9.0.0.0-SNAPSHOT</pentaho-metaverse.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-mapper-asl</artifactId>
+        <version>${codehaus-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.jackson</groupId>
+        <artifactId>jackson-core-asl</artifactId>
+        <version>${codehaus-jackson.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-smile</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-cbor</artifactId>
+        <version>${fasterxml-jackson.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>

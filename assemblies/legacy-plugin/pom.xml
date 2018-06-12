@@ -121,12 +121,10 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
-      <version>${dependency.jackson.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
-      <version>${dependency.jackson.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
