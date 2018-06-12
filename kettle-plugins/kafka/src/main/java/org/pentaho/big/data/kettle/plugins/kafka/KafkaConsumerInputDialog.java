@@ -549,7 +549,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   @Override
   protected void getData() {
     if ( meta.getTransformationPath() != null ) {
-      wTransPath.setText( meta.getTransformationPath() );
+      // wTransPath.setText( meta.getTransformationPath() );
     }
 
     try {
@@ -594,11 +594,11 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     specificationMethod = meta.getSpecificationMethod();
     switch ( specificationMethod ) {
       case FILENAME:
-        wTransPath.setText( Const.NVL( meta.getFileName(), "" ) );
+        // wTransPath.setText( Const.NVL( meta.getFileName(), "" ) );
         break;
       case REPOSITORY_BY_NAME:
         String fullPath = Const.NVL( meta.getDirectoryPath(), "" ) + "/" + Const.NVL( meta.getTransName(), "" );
-        wTransPath.setText( fullPath );
+        // wTransPath.setText( fullPath );
         break;
       case REPOSITORY_BY_REFERENCE:
         referenceObjectId = meta.getTransObjectId();
@@ -692,7 +692,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
                       .getPath( transMeta.getRepositoryDirectory().getPath(),
                               transInf.getRepositoryDirectory().getPath() );
       String fullPath = Const.NVL( path, "" ) + "/" + Const.NVL( transInf.getName(), "" );
-      wTransPath.setText( fullPath );
+      // wTransPath.setText( fullPath );
     } catch ( KettleException e ) {
       new ErrorDialog( shell,
               BaseMessages.getString( PKG, "JobEntryTransDialog.Exception.UnableToReferenceObjectId.Title" ),
