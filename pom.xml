@@ -68,7 +68,6 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.httpcomponents-client.revision>4.5.3</dependency.httpcomponents-client.revision>
     <commons-database.version>9.0.0.0-SNAPSHOT</commons-database.version>
-    <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
     <pentaho-reporting.version>9.0.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
     <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
@@ -83,7 +82,7 @@
     <dependency.commons-vfs-revision>2.2</dependency.commons-vfs-revision>
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
     <pentaho-hadoop-shims-api.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-api.version>
-    <dependency.avro.revision>1.6.2</dependency.avro.revision>
+    <apache-avro.version>1.8.2</apache-avro.version>
     <dependency.cxf.revision>3.0.13</dependency.cxf.revision>
     <aws-java-sdk.version>1.11.275</aws-java-sdk.version>
     <dependency.osgi.revision>4.3.1</dependency.osgi.revision>
@@ -95,6 +94,16 @@
     <pentaho-karaf.version>9.0.0.0-SNAPSHOT</pentaho-karaf.version>
     <pentaho-metaverse.version>9.0.0.0-SNAPSHOT</pentaho-metaverse.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${apache-avro.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>
