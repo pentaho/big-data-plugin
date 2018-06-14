@@ -65,7 +65,7 @@ public abstract class NamedClusterResolver {
     if ( fileUri != null ) {
       String scheme = extractScheme( fileUri );
       String hostName = extractHostName( fileUri );
-      if ( scheme.equals( "hc" ) ) {
+      if ( scheme != null && scheme.equals( "hc" ) ) {
         namedCluster = namedClusterService.getNamedClusterByName( hostName, metaStoreService.getMetastore() );
       } else {
         namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
@@ -84,9 +84,11 @@ public abstract class NamedClusterResolver {
     try {
       List<NamedCluster> namedClusters = namedClusterService.list( metaStoreService.getMetastore() );
       for ( NamedCluster nc : namedClusters ) {
-        FormatService formatService = namedClusterServiceLocator.getService( nc, FormatService.class );
-        if ( formatService != null ) {
-          return nc;
+        if ( namedClusterServiceLocator.getDefaultShim().equals( nc.getShimIdentifier() ) ) {
+          FormatService formatService = namedClusterServiceLocator.getService( nc, FormatService.class );
+          if ( formatService != null ) {
+            return nc;
+          }
         }
       }
     } catch ( MetaStoreException e ) {
