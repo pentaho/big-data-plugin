@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.Before;
@@ -63,6 +64,7 @@ import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -70,8 +72,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
@@ -345,6 +347,7 @@ public class KafkaConsumerInputTest {
     kafkaMeta.setBatchSize( "2" );
     kafkaMeta.setKafkaFactory( factory );
     kafkaMeta.setSubStep( "Write to log" );
+    kafkaMeta.setAutoCommit( false );
     int messageCount = 4;
     messages.put( topic, createRecords( topic.topic(), messageCount ) );
     records = new ConsumerRecords<>( messages );
@@ -368,6 +371,11 @@ public class KafkaConsumerInputTest {
     verifyRow( "key_2", "value_2", "2", "1", times( 1 ) );
     verifyRow( "key_3", "value_3", "3", "2", times( 1 ) );
     assertEquals( 4, trans.getSteps().get( 0 ).step.getLinesWritten() );
+    Map<TopicPartition, OffsetAndMetadata> map = new HashMap<>();
+    map.put( topic, new OffsetAndMetadata( 2 ) );
+    verify( consumer ).commitSync( map );
+    map.put( topic, new OffsetAndMetadata( 4 ) );
+    verify( consumer ).commitSync( map );
   }
 
   @Test
