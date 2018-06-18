@@ -64,6 +64,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -74,6 +75,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ADVANCED_CONFIG;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.AUTO_COMMIT;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_DURATION;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.BATCH_SIZE;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.CLUSTER_NAME;
@@ -165,6 +167,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "999", meta.getBatchDuration() );
     assertEquals( CLUSTER, meta.getConnectionType() );
     assertEquals( "some_host:123,some_other_host:456", meta.getDirectBootstrapServers() );
+    assertTrue( meta.isAutoCommit() );
 
     assertEquals( "three", meta.getKeyField().getOutputName() );
     assertEquals( KafkaConsumerField.Type.String, meta.getKeyField().getOutputType() );
@@ -246,6 +249,7 @@ public class KafkaConsumerInputMetaTest {
         + "    <batchDuration>987</batchDuration>" + Const.CR
         + "    <connectionType>DIRECT</connectionType>" + Const.CR
         + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
+        + "    <AUTO_COMMIT>Y</AUTO_COMMIT>" + Const.CR
         + "    <OutputField kafkaName=\"key\"  type=\"String\" >kafkaKey</OutputField>" + Const.CR
         + "    <OutputField kafkaName=\"message\"  type=\"String\" >kafkaMessage</OutputField>" + Const.CR
         + "    <OutputField kafkaName=\"topic\"  type=\"String\" >topic</OutputField>" + Const.CR
@@ -275,6 +279,7 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, BATCH_DURATION ) ).thenReturn( "111" );
     when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "CLUSTER" );
     when( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) ).thenReturn( "unused" );
+    when( rep.getStepAttributeString( stepId, AUTO_COMMIT ) ).thenReturn( "N" );
 
     when( rep.getStepAttributeString( stepId, "OutputField_key" ) ).thenReturn( "machineId" );
     when( rep.getStepAttributeString( stepId, "OutputField_key_type" ) ).thenReturn( "String" );
@@ -314,6 +319,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
     assertEquals( CLUSTER, meta.getConnectionType() );
     assertEquals( "unused", meta.getDirectBootstrapServers() );
+    assertFalse( meta.isAutoCommit() );
 
     assertEquals( KafkaConsumerField.Name.KEY, meta.getKeyField().getKafkaName() );
     assertEquals( "machineId", meta.getKeyField().getOutputName() );
@@ -379,6 +385,7 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, "10000" );
     verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
     verify( rep ).saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, "kafkaServer:9092" );
+    verify( rep ).saveStepAttribute( transId, stepId, AUTO_COMMIT, true );
 
     verify( rep ).saveStepAttribute( transId, stepId, "OutputField_key", meta.getKeyField().getOutputName() );
     verify( rep )
@@ -570,7 +577,7 @@ public class KafkaConsumerInputMetaTest {
   public void testReferencedObjectHasDescription() {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     assertEquals( 1, meta.getReferencedObjectDescriptions().length );
-    assertTrue( meta.getReferencedObjectDescriptions()[ 0 ] != null );
+    assertNotNull( meta.getReferencedObjectDescriptions()[ 0 ] );
   }
 
   @Test

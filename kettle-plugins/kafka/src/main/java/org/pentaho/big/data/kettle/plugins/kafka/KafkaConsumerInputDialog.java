@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.annotations.PluginDialog;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -77,6 +78,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
 @SuppressWarnings( { "FieldCanBeLocal", "unused" } )
+@PluginDialog( id = "KafkaConsumerInput", pluginType = PluginDialog.PluginType.STEP, image = "KafkaConsumerInput.svg" )
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   public static final int INPUT_WIDTH = 350;
@@ -107,6 +109,8 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   private Button wbCluster;
   private Label wlBootstrapServers;
   private TextVar wBootstrapServers;
+  private Button wbAutoCommit;
+  private Button wbManualCommit;
 
   public KafkaConsumerInputDialog( Shell parent, Object in, TransMeta tr, String sname ) {
     super( parent, in, tr, sname );
@@ -121,6 +125,39 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   @Override protected void createAdditionalTabs() {
     buildFieldsTab();
     buildOptionsTab();
+    buildOffsetManagement();
+  }
+
+  private void buildOffsetManagement() {
+    Group wOffsetGroup = new Group( wBatchComp, SWT.SHADOW_ETCHED_IN );
+    wOffsetGroup.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.OffsetManagement" ) );
+    FormLayout flOffsetGroup = new FormLayout();
+    flOffsetGroup.marginHeight = 15;
+    flOffsetGroup.marginWidth = 15;
+    wOffsetGroup.setLayout( flOffsetGroup );
+
+    FormData fdOffsetGroup = new FormData();
+    fdOffsetGroup.top = new FormAttachment( wBatchSize, 15 );
+    fdOffsetGroup.left = new FormAttachment( 0, 0 );
+    fdOffsetGroup.right = new FormAttachment( 100, 0 );
+    wOffsetGroup.setLayoutData( fdOffsetGroup );
+    props.setLook( wOffsetGroup );
+
+    wbAutoCommit = new Button( wOffsetGroup, SWT.RADIO );
+    wbAutoCommit.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.AutoOffset" ) );
+    FormData fdbAutoCommit = new FormData();
+    fdbAutoCommit.top = new FormAttachment( 0, 0 );
+    fdbAutoCommit.left = new FormAttachment( 0, 0 );
+    wbAutoCommit.setLayoutData( fdbAutoCommit );
+    props.setLook( wbAutoCommit );
+
+    wbManualCommit = new Button( wOffsetGroup, SWT.RADIO );
+    wbManualCommit.setText( BaseMessages.getString( PKG, "KafkaConsumerInputDialog.ManualOffset" ) );
+    FormData fdbManualCommit = new FormData();
+    fdbManualCommit.left = new FormAttachment( 0, 0 );
+    fdbManualCommit.top = new FormAttachment( wbAutoCommit, 10, SWT.BOTTOM );
+    wbManualCommit.setLayoutData( fdbManualCommit );
+    props.setLook( wbManualCommit );
   }
 
   @Override protected void buildSetup( Composite wSetupComp ) {
@@ -554,7 +591,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
 
     try {
       List<String> names = consumerMeta.getNamedClusterService().listNames( spoonInstance.getMetaStore() );
-      wClusterName.setItems( names.toArray( new String[ names.size() ] ) );
+      wClusterName.setItems( names.toArray( new String[ 0 ] ) );
     } catch ( MetaStoreException e ) {
       log.logError( "Failed to get defined named clusters", e );
     }
@@ -590,6 +627,9 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
       wbDirect.setSelection( false );
     }
     toggleVisibility( isDirect() );
+
+    wbAutoCommit.setSelection( consumerMeta.isAutoCommit() );
+    wbManualCommit.setSelection( !consumerMeta.isAutoCommit() );
 
     specificationMethod = meta.getSpecificationMethod();
     switch ( specificationMethod ) {
@@ -639,6 +679,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     consumerMeta.setConsumerGroup( wConsumerGroup.getText() );
     consumerMeta.setConnectionType( wbDirect.getSelection() ? DIRECT : CLUSTER );
     consumerMeta.setDirectBootstrapServers( wBootstrapServers.getText() );
+    consumerMeta.setAutoCommit( wbAutoCommit.getSelection() );
     setFieldsFromTable();
     setOptionsFromTable();
   }
