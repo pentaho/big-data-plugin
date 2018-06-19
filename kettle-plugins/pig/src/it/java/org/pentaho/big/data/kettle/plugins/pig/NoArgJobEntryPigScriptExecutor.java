@@ -71,7 +71,7 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
   }
 
   private static NamedClusterServiceLocator initNamedClusterServiceLocator() throws ConfigurationException {
-    NamedClusterServiceLocatorImpl namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( mock( ClusterInitializer.class ) );
+    NamedClusterServiceLocatorImpl namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( mock( ClusterInitializer.class ), "" );
     namedClusterServiceLocator.factoryAdded( new PigServiceFactoryImpl( provider.getConfiguration( null ).getHadoopShim(), provider.getConfiguration( null ).getPigShim()  ), Collections.emptyMap() );
     return namedClusterServiceLocator;
   }
