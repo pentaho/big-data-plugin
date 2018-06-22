@@ -23,6 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.pig;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl.SERVICE_RANKING;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -35,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.VFS;
 import org.apache.pig.ExecType;
@@ -54,6 +57,8 @@ import org.pentaho.hadoop.shim.api.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
+import org.pentaho.metastore.stores.memory.MemoryMetaStore;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -71,8 +76,15 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
   }
 
   private static NamedClusterServiceLocator initNamedClusterServiceLocator() throws ConfigurationException {
-    NamedClusterServiceLocatorImpl namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( mock( ClusterInitializer.class ), "" );
-    namedClusterServiceLocator.factoryAdded( new PigServiceFactoryImpl( provider.getConfiguration( null ).getHadoopShim(), provider.getConfiguration( null ).getPigShim()  ), Collections.emptyMap() );
+    MemoryMetaStore memoryMetaStore = new MemoryMetaStore();
+    memoryMetaStore.setName( "memoryMetastore" );
+    MetastoreLocator mockMetastoreLocator = mock( MetastoreLocator.class );
+    when( mockMetastoreLocator.getMetastore() ).thenReturn( memoryMetaStore );
+    NamedClusterServiceLocatorImpl namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( mock( ClusterInitializer.class ), "hdp26", mockMetastoreLocator );
+    namedClusterServiceLocator.factoryAdded(
+      new PigServiceFactoryImpl( provider.getConfiguration( null ).getHadoopShim(),
+        provider.getConfiguration( null ).getPigShim() ), ImmutableMap
+        .of( "shim", "hdp26" ) );
     return namedClusterServiceLocator;
   }
 
