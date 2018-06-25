@@ -21,7 +21,6 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import javafx.util.Pair;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleStepException;
@@ -36,6 +35,7 @@ import org.pentaho.di.trans.streaming.common.BaseStreamStep;
 import org.pentaho.di.trans.streaming.common.FixedTimeStreamWindow;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,7 +90,7 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
     return true;
   }
 
-  private void commitOffsets( Pair<List<List<Object>>, Result> rowsAndResult ) {
+  private void commitOffsets( Map.Entry<List<List<Object>>, Result> rowsAndResult ) {
     ( (KafkaStreamSource) source ).commitOffsets( rowsAndResult.getKey() );
   }
 }
