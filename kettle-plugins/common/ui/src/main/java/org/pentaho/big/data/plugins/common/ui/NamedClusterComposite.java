@@ -24,6 +24,7 @@ package org.pentaho.big.data.plugins.common.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -54,6 +55,8 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
+import org.pentaho.hadoop.shim.spi.ShimIdentifierInterface;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 
 public class NamedClusterComposite extends Composite {
 
@@ -323,7 +326,15 @@ public class NamedClusterComposite extends Composite {
 
     // Create a storage type Drop Down
     final CCombo shimVendorCombo = new CCombo( container, SWT.BORDER );
-    String[] vendorList = new String[]{ "cdh513", "hdp26" };
+    List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
+    String[] vendorList = new String[ shimIdentifers.size() ];
+
+    int i = 0;
+    for ( ShimIdentifierInterface shim : shimIdentifers ) {
+      vendorList[ i ] = shim.getId();
+      i++;
+    }
+
     shimVendorCombo.setItems( vendorList );
     shimVendorCombo.select( Arrays.asList(vendorList).indexOf( cluster.getShimIdentifier() ) );
     props.setLook( shimVendorCombo );
