@@ -33,15 +33,12 @@
     <hbase.version>0.90.3</hbase.version>
     <xml-apis.version>2.0.2</xml-apis.version>
     <commands.version>3.3.0-I20070605-0010</commands.version>
-    <avro.version>1.6.2</avro.version>
     <httpcomponents-client.version>4.5.3</httpcomponents-client.version>
     <libthrift.version>0.6</libthrift.version>
     <publish-sonar-phase>site</publish-sonar-phase>
     <oozie.version>3.1.3-incubating</oozie.version>
     <high-scale-lib.version>1.1.2</high-scale-lib.version>
     <xpp3.revision>1.1.4c</xpp3.revision>
-    <jackson.version>1.5.2</jackson.version>
-    <jackson-databind.version>2.9.2</jackson-databind.version>
     <jline.version>0.9.94</jline.version>
     <easymock.version>3.0</easymock.version>
     <org.powermock.version>1.6.2</org.powermock.version>
@@ -68,9 +65,12 @@
       <version>${oozie.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -141,7 +141,6 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>${avro.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.core</groupId>
