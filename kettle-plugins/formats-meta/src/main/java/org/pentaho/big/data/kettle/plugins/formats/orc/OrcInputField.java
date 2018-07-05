@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.orc;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatInputField;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.hadoop.shim.api.format.OrcSpec;
@@ -35,10 +36,13 @@ public class OrcInputField extends BaseFormatInputField implements IOrcInputFiel
     return OrcSpec.DataType.getDataType( getFormatType() );
   }
 
+  @Override
   public void setOrcType( OrcSpec.DataType orcType ) {
     setFormatType( orcType.getId() );
   }
 
+  @Injection( name = "ORC_TYPE", group = "FIELDS" )
+  @Override
   public void setOrcType( String orcType ) {
     for ( OrcSpec.DataType tmpType : OrcSpec.DataType.values() ) {
       if ( tmpType.getName().equalsIgnoreCase( orcType ) ) {
