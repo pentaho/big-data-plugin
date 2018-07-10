@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -103,18 +103,21 @@ public class PopupMenuFactory {
       } else {
         vs = spoon.getActiveJob();
       }
+      spoon.getTreeManager().update( HadoopClusterFolderProvider.STRING_NAMED_CLUSTERS );
       ncDelegate.newNamedCluster( vs, spoon.metaStore, spoon.getShell() );
     }
   }
 
   class EditNamedClusterCommand implements NamedClusterCommand {
     public void execute() {
+      spoon.getTreeManager().update( HadoopClusterFolderProvider.STRING_NAMED_CLUSTERS );
       ncDelegate.editNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
     }
   }
 
   class DuplicateNamedClusterCommand implements NamedClusterCommand {
     public void execute() {
+      spoon.getTreeManager().update( HadoopClusterFolderProvider.STRING_NAMED_CLUSTERS );
       ncDelegate.dupeNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
     }
   }
@@ -135,6 +138,7 @@ public class PopupMenuFactory {
       if ( response != RESULT_YES ) {
         return;
       }
+      spoon.getTreeManager().update( HadoopClusterFolderProvider.STRING_NAMED_CLUSTERS );
       ncDelegate.delNamedCluster( spoon.metaStore, selectedNamedCluster );
     }
   }
