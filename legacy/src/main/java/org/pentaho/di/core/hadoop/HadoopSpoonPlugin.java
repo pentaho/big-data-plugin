@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,6 +29,9 @@ import org.pentaho.di.core.lifecycle.LifecycleException;
 import org.pentaho.di.core.lifecycle.LifecycleListener;
 import org.pentaho.di.core.util.ExecutorUtil;
 import org.pentaho.di.ui.core.namedcluster.NamedClusterUIHelper;
+import org.pentaho.di.ui.spoon.Spoon;
+
+import java.util.function.Supplier;
 
 @LifecyclePlugin( id = "HadoopSpoonPlugin", name = "Hadoop Spoon Plugin" )
 public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
@@ -36,6 +39,7 @@ public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
   @SuppressWarnings( "unused" )
   private static Class<?> PKG = HadoopSpoonPlugin.class;
 
+  private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   public static final String HDFS_SCHEME = "hdfs";
   public static final String HDFS_SCHEME_DISPLAY_NAME = "HDFS";
   public static final String MAPRFS_SCHEME = "maprfs";
@@ -48,6 +52,11 @@ public class HadoopSpoonPlugin implements LifecycleListener, GUIOption<Object> {
         NamedClusterUIHelper.getNamedClusterUIFactory();
       }
     } );
+    Spoon spoon = spoonSupplier.get();
+    if ( spoon != null ) {
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new HadoopClusterFolderProvider() );
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new HadoopClusterFolderProvider() );
+    }
   }
 
   public void onExit( LifeEventHandler arg0 ) throws LifecycleException {

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -93,6 +93,7 @@ public class HadoopClusterViewTreeExtension implements ExtensionPointInterface {
     if ( selection instanceof NamedCluster ) {
       NamedCluster selectedNamedCluster = (NamedCluster) selection;
       try {
+        spoon.getTreeManager().update( HadoopClusterFolderProvider.STRING_NAMED_CLUSTERS );
         ncDelegate.get().editNamedCluster( spoon.metaStore, selectedNamedCluster, spoon.getShell() );
       } catch ( InterruptedException e ) {
         throw new KettleException( "Interrupted while waiting on " + HadoopClusterDelegate.class.getCanonicalName(),
