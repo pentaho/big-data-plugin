@@ -39,6 +39,13 @@
     <argument value="wasbs" type="java.lang.String"/>
   </bean>
 
+  <bean id="adlprovider" class="org.pentaho.big.data.impl.vfs.hdfs.HDFSFileProvider" scope="singleton">
+    <argument ref="hadoopFileSystemService"/>
+    <argument ref="namedClusterService"/>
+    <argument ref="maprfsFileNameParser" />
+    <argument value="adl" type="java.lang.String"/>
+  </bean>
+
   <bean class="org.pentaho.big.data.impl.vfs.hdfs.nc.NamedClusterProvider" scope="singleton">
     <argument ref="hadoopFileSystemService"/>
     <argument ref="namedClusterService"/>

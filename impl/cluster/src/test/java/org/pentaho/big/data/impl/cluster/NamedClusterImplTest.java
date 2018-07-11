@@ -374,6 +374,24 @@ public class NamedClusterImplTest {
   }
 
   @Test
+  public void testProcessURLWASBSFullSubstitution() throws MetaStoreException {
+    namedCluster.setHdfsHost( "hostname" );
+    namedCluster.setHdfsPort( "12340" );
+    namedCluster.setStorageScheme( "wasbs" );
+    String incomingURL = "wasbs://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+  }
+
+  @Test
+  public void testProcessURLADLFullSubstitution() throws MetaStoreException {
+    namedCluster.setHdfsHost( "hostname" );
+    namedCluster.setHdfsPort( "12340" );
+    namedCluster.setStorageScheme( "adl" );
+    String incomingURL = "adl://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
+    assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
+  }
+
+  @Test
   public void testProcessURLHostVariableNull() throws MetaStoreException {
     namedCluster.setHdfsHost( "${hostUrl}" );
     namedCluster.setStorageScheme( "hdfs" );

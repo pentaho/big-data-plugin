@@ -34,6 +34,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.vfs2.FileName;
@@ -68,6 +69,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   public static final String HDFS_SCHEME = "hdfs";
   public static final String MAPRFS_SCHEME = "maprfs";
   public static final String WASB_SCHEME = "wasb";
+  public static final String WASBS_SCHEME = "wasbs";
+  public static final String ADLS_SCHEME = "adl";
   public static final String NC_SCHEME = "hc";
   public static final String INDENT = "  ";
   public static final String ROOT_INDENT = "    ";
@@ -311,8 +314,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
         if ( variableSpace != null ) {
           String filePath = variableSpace.environmentSubstitute( path );
           StringBuilder pattern = new StringBuilder();
-          pattern.append( "^(" ).append( HDFS_SCHEME ).append( "|" ).append( WASB_SCHEME ).append( "|" ).append(
-              MAPRFS_SCHEME ).append( "|" ).append( NC_SCHEME ).append( "):\\/\\/" );
+
+          pattern.append( "^(" ).append(String.join("|", HDFS_SCHEME, WASB_SCHEME, WASBS_SCHEME, MAPRFS_SCHEME, NC_SCHEME, ADLS_SCHEME)).append( "):\\/\\/" );
           Pattern r = Pattern.compile( pattern.toString() );
           Matcher m = r.matcher( filePath );
           prependCluster = !m.find();

@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.vfs;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -181,7 +182,11 @@ public class HadoopVfsFileChooserDialog extends CustomVfsUiPanel {
     NamedCluster nc = getNamedClusterWidget().getSelectedNamedCluster();
     // The Named Cluster may be hdfs, maprfs or wasb.  We need to detect it here since the named
     // cluster was just selected.
-    schemeName = "wasb".equals( nc.getStorageScheme() ) ? "wasb" : "hdfs";
+    if(!Lists.newArrayList("wasb", "wasbs", "adl").contains(nc.getStorageScheme())) {
+      schemeName = "hdfs";
+    } else {
+      schemeName = nc.getStorageScheme();
+    }
 
     FileObject root = rootFile;
     try {
