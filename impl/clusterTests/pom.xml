@@ -95,8 +95,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Bundle-Version>${pentaho-osgi-bundles.version}</Bundle-Version>
-            <Export-Package>org.pentaho.big.data.impl.cluster.tests;version=${pentaho-osgi-bundles.version}</Export-Package>
+            <Export-Package>org.pentaho.big.data.impl.cluster.tests</Export-Package>
           </instructions>
         </configuration>
       </plugin>
