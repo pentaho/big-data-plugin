@@ -17,10 +17,12 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.apache.commons.vfs2.provider.URLFileName;
 import org.apache.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -51,7 +53,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doReturn;
@@ -187,4 +188,25 @@ public class HadoopFileInputMetaTest {
     assertEquals( "urlFromCluster", hadoopFileInputMetaSpy.inputFiles.fileName[0] );
   }
 
+  @Test
+  public void testGetUrl() {
+    final HadoopFileInputMeta meta = Mockito.mock( HadoopFileInputMeta.class );
+    final URLFileName mockFileName = Mockito.mock( URLFileName.class );
+    final String scheme = "hdfs";
+    final String hostName = "svqxbdcn6cdh512n1.pentahoqa.com";
+    final String rootUrl = scheme + "://" + hostName + ":8020/";
+    final String path = "wordcount/input";
+    final String url = rootUrl + path;
+
+    Mockito.doReturn( hostName ).when( mockFileName ).getHostName();
+    Mockito.doReturn( scheme ).when( mockFileName ).getScheme();
+
+    Mockito.doReturn( mockFileName ).when( meta ).getUrlFileName( url );
+    Mockito.doReturn( rootUrl ).when( mockFileName ).getRootURI();
+    Mockito.doCallRealMethod().when( meta ).getUrlHostName( url );
+    Mockito.doCallRealMethod().when( meta ).getUrlPath( url );
+
+    Assert.assertEquals( hostName, meta.getUrlHostName( url ) );
+    Assert.assertEquals( "/" + path, meta.getUrlPath( url ) );
+  }
 }

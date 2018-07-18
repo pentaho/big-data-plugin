@@ -32,6 +32,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
@@ -58,7 +59,7 @@ import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDial
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileinput" )
 @InjectionSupported( localizationPrefix = "HadoopFileInput.Injection.", groups = { "FILENAME_LINES", "FIELDS", "FILTERS" } )
-public class HadoopFileInputMeta extends TextFileInputMeta {
+public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFileMeta {
 
   // is not used. Can we delete it?
   private VariableSpace variableSpace;
@@ -129,6 +130,13 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     }
     if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) && mappings != null ) {
       mappings.put( url, ncName );
+      // in addition to the url as-is, add the public uri string version of the url (hidden password) to the map,
+      // since that is the value that the data-lineage analyzer will have access to for cluster lookup
+      try {
+        mappings.put( KettleVFS.getFileObject( url ).getPublicURIString(), ncName );
+      } catch ( final KettleFileException e ) {
+        // no-op
+      }
     }
     return url;
   }
@@ -141,19 +149,27 @@ public class HadoopFileInputMeta extends TextFileInputMeta {
     return this.namedClusterURLMapping;
   }
 
+  @Override
+  public String getClusterName( final String url ) {
+    String clusterName = null;
+    try {
+      clusterName = getClusterNameBy( KettleVFS.getFileObject( url ).getParent().getPublicURIString() );
+    } catch ( final KettleFileException | FileSystemException e ) {
+      // no-op
+    }
+    return clusterName;
+  }
+
   public String getClusterNameBy( String url ) {
     return this.namedClusterURLMapping.get( url );
   }
 
   public String getUrlPath( String incomingURL ) {
     String path = null;
-    try {
-      String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
-      FileName fileName = KettleVFS.getInstance().getFileSystemManager().resolveURI( noVariablesURL );
+    FileName fileName = getUrlFileName( incomingURL );
+    if ( fileName != null ) {
       String root = fileName.getRootURI();
       path = incomingURL.substring( root.length() - 1 );
-    } catch ( FileSystemException e ) {
-      path = null;
     }
     return path;
   }

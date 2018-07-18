@@ -10,7 +10,7 @@
     <pen:di-plugin type="org.pentaho.di.core.plugins.JobEntryPluginType"/>
   </bean>
 
-  <bean id="JobEntrySparkSubmitAnalyzer" class=" org.pentaho.di.job.entries.spark.JobEntrySparkSubmitAnalyzer"/>
+  <bean id="JobEntrySparkSubmitAnalyzer" class="org.pentaho.di.job.entries.spark.JobEntrySparkSubmitAnalyzer"/>
   <service id="jobEntrySparkSubmitAnalyzerService"
            interface="org.pentaho.metaverse.api.analyzer.kettle.jobentry.IJobEntryAnalyzer"
            ref="JobEntrySparkSubmitAnalyzer"/>
