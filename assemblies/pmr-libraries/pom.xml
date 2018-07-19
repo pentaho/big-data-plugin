@@ -812,7 +812,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pdi-osgi-bridge-core</artifactId>
-      <version>${pdi-osgi-bridge.version}</version>
+      <version>${dependency.pdi-osgi-bridge-core.revision}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
