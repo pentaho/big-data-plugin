@@ -123,6 +123,7 @@
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>kettle-log4j-core</artifactId>
       <version>${pdi.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>libthrift</groupId>
