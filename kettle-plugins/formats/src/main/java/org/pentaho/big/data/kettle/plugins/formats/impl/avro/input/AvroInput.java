@@ -79,7 +79,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
             throw new KettleException( "No input files defined" );
           }
 
-          data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+          data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class, meta.getNamedCluster() );
           data.input
             .setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
           data.input.setInputSchemaFile(
@@ -151,7 +151,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   public static List<? extends IAvroInputField> getDefaultFields( NamedClusterServiceLocator namedClusterServiceLocator,
                                                                    NamedCluster namedCluster, String schemaPath, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
-    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class, namedCluster );
     in.setInputSchemaFile( schemaPath );
     in.setInputFile( dataPath );
     return in.getFields();
