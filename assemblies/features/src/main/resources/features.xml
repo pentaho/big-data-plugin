@@ -1,4 +1,25 @@
 <features name="pentaho-big-data-features" xmlns="http://karaf.apache.org/xmlns/features/v1.2.1">
+  <feature name="pentaho-big-data-common" version="1.0">
+    <bundle>wrap:mvn:org.apache.avro/avro/1.6.2</bundle>
+    <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
+    <bundle>wrap:mvn:commons-cli/commons-cli/1.2</bundle>
+    <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
+    <bundle>wrap:mvn:org.apache.httpcomponents/httpclient/4.5.3</bundle>
+    <bundle>wrap:mvn:org.apache.httpcomponents/httpcore/4.4</bundle>
+    <bundle>wrap:mvn:org.codehaus.jackson/jackson-core-asl/1.5.2</bundle>
+    <bundle>wrap:mvn:org.codehaus.jackson/jackson-mapper-asl/1.5.2</bundle>
+    <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
+    <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
+    <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
+    <bundle>wrap:mvn:org.pentaho.di.plugins/kettle-log4j-core/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>wrap:mvn:libthrift/libthrift/0.6</bundle>
+    <bundle>wrap:mvn:org.slf4j/slf4j-api/1.7.7</bundle>
+    <bundle>wrap:mvn:org.slf4j/slf4j-log4j12/1.7.7</bundle>
+    <bundle>wrap:mvn:xmlpull/xmlpull/1.1.3.1</bundle>
+    <bundle>wrap:mvn:xpp3/xpp3_min/1.1.4c</bundle>
+    <bundle>wrap:mvn:com.thoughtworks.xstream/xstream/1.4.10</bundle>
+  </feature>
+
   <feature name="pentaho-big-data-plugin-osgi" version="1.0">
     <feature>pentaho-big-data-plugin-testless-osgi</feature>
     <feature>pentaho-big-data-plugin-tests</feature>
@@ -35,7 +56,6 @@
   </feature>
   <feature name="pentaho-big-data-plugin-base" version="1.0">
     <feature>pentaho-client-minimal</feature>
-    <bundle>mvn:pentaho/pentaho-big-data-legacy/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pdi-osgi-bridge-activator/${pdi-osgi-bridge.version}</bundle>
     <bundle>mvn:pentaho/pentaho-blueprint-collection-utils/${pentaho-osgi-bundles.version}</bundle>
@@ -52,6 +72,7 @@
   </feature>
   <feature name="pentaho-big-data-plugin-api" version="1.0">
     <feature>pentaho-big-data-plugin-base</feature>
+    <feature>pentaho-big-data-common</feature>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-cluster-service-locator/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-initializer/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-hdfs/${pentaho-hadoop-shims.version}</bundle>
