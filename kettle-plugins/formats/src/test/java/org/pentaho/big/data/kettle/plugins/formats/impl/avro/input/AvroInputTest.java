@@ -134,7 +134,7 @@ public class AvroInputTest {
       e.printStackTrace();
     }
 
-    when( mockFormatService.createInputFormat( IPentahoAvroInputFormat.class ) )
+    when( mockFormatService.createInputFormat( IPentahoAvroInputFormat.class, avroInputMeta.getNamedCluster() ) )
       .thenReturn( mockPentahoAvroInputFormat );
     when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
