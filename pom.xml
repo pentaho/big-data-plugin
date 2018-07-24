@@ -93,6 +93,7 @@
     <platform.version>8.1.0.0-SNAPSHOT</platform.version>
     <pentaho-karaf.version>8.1.0.0-SNAPSHOT</pentaho-karaf.version>
     <pentaho-metaverse.version>8.1.0.0-SNAPSHOT</pentaho-metaverse.version>
+    <dependency.commons-httpclient.version>3.1</dependency.commons-httpclient.version>
   </properties>
 
   <dependencyManagement>

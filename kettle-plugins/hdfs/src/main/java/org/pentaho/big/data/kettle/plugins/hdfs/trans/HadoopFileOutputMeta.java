@@ -45,7 +45,7 @@ import org.w3c.dom.Node;
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopfileoutput" )
 @InjectionSupported( localizationPrefix = "HadoopFileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
-public class HadoopFileOutputMeta extends TextFileOutputMeta {
+public class HadoopFileOutputMeta extends TextFileOutputMeta implements HadoopFileMeta {
 
   // for message resolution
   private static Class<?> PKG = HadoopFileOutputMeta.class;
@@ -109,20 +109,37 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta {
       // if we already have a metastore use it
       metaStore = metastore;
     }
-    NamedCluster c = null;
-    if ( metaStore != null ) {
-      // If we have a metastore get the cluster from it.
-      c = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
-    } else {
-      // Still no metastore, try to make a named cluster from the embedded xml
-      if ( namedClusterService.getClusterTemplate() != null ) {
-        c = namedClusterService.getClusterTemplate().fromXmlForEmbed( embeddedNamedClusterNode );
-      }
-    }
+    NamedCluster c = getNamedCluster();
     if ( c != null ) {
       url = c.processURLsubstitution( url, metaStore, new Variables() );
     }
     return url;
+  }
+
+  @Override
+  public String getClusterName( final String url ) {
+    final NamedCluster cluster = getNamedCluster();
+    return cluster == null ? null : cluster.getName();
+  }
+
+
+  public NamedCluster getNamedCluster() {
+
+    NamedCluster cluster = null;
+    if ( metaStore != null ) {
+      // If we have a metastore get the cluster from it.
+      cluster = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
+    } else {
+      // Still no metastore, try to make a named cluster from the embedded xml
+      if ( namedClusterService.getClusterTemplate() != null ) {
+        cluster = namedClusterService.getClusterTemplate().fromXmlForEmbed( embeddedNamedClusterNode );
+      }
+    }
+    return cluster;
+  }
+
+  public String getUrlPath( String incomingURL ) {
+    return getProcessedUrl( null, incomingURL );
   }
 
   protected void saveSource( StringBuilder retVal, String fileName ) {
