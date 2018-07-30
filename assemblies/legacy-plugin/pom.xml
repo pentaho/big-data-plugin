@@ -33,6 +33,16 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-cdh513-hbase-comparators</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-hdp26-hbase-comparators</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
       <version>${pentaho-s3-vfs.version}</version>

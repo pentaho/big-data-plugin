@@ -24,6 +24,8 @@
             </outputFileNameMapping>
             <includes>
               <include>pentaho:pentaho-big-data-legacy</include>
+              <include>org.pentaho:pentaho-hadoop-shims-cdh513-hbase-comparators</include>
+              <include>org.pentaho:pentaho-hadoop-shims-hdp26-hbase-comparators</include>
             </includes>
         </dependencySet>
         <dependencySet>
