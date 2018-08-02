@@ -30,7 +30,7 @@
               <include>org.pentaho:pentaho-hadoop-shims-emr59-hbase-comparators</include>
               <include>org.pentaho:pentaho-hadoop-shims-emr511-hbase-comparators</include>
               <include>org.pentaho:pentaho-hadoop-shims-hdi35-hbase-comparators</include>
-              <include>org.pentaho:pentaho-hadoop-shims-hdp25-hbase-comparators</include>
+<!--              <include>org.pentaho:pentaho-hadoop-shims-hdp25-hbase-comparators</include> -->
               <include>org.pentaho:pentaho-hadoop-shims-mapr60-hbase-comparators</include>
               <include>org.pentaho:pentaho-hadoop-shims-mapr520-hbase-comparators</include>
             </includes>
