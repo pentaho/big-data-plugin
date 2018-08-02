@@ -62,11 +62,13 @@
       <artifactId>pentaho-hadoop-shims-hdi35-hbase-comparators</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!--
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp25-hbase-comparators</artifactId>
       <version>${project.version}</version>
     </dependency>
+    -->
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-mapr60-hbase-comparators</artifactId>
