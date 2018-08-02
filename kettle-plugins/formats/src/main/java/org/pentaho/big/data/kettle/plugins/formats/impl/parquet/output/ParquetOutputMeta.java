@@ -38,7 +38,7 @@ import org.pentaho.di.trans.step.StepMeta;
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Parquet_Output",
   i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
-@InjectionSupported( localizationPrefix = "ParquetOutput.Injection.", groups = { "FILENAME_LINES", "FIELDS" }, hide = {
+@InjectionSupported( localizationPrefix = "ParquetOutput.Injection.", groups = { "FILENAME_LINES", "FIELDS", "FILENAME" }, hide = {
   "FIELD_POSITION", "FIELD_LENGTH", "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",
   "FIELD_DECIMAL", "FIELD_GROUP", "FIELD_REPEAT", "FIELD_TRIM_TYPE", "FIELD_NULL_STRING"
 } )
