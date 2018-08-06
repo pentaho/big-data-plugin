@@ -79,6 +79,9 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   private String name;
 
   @MetaStoreAttribute
+  private String configId;
+
+  @MetaStoreAttribute
   private String shimIdentifier;
 
   @MetaStoreAttribute
@@ -143,6 +146,16 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public String getName() {
     return name;
+  }
+
+  @Override
+  public String getConfigId() {
+    return configId;
+  }
+
+  @Override
+  public void setConfigId( String id ) {
+    this.configId = id;
   }
 
   public String getShimIdentifier() {
@@ -233,6 +246,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public void replaceMeta( NamedCluster nc ) {
     this.setName( nc.getName() );
+    this.setConfigId( nc.getConfigId() );
     this.setShimIdentifier( nc.getShimIdentifier() );
     this.setStorageScheme( nc.getStorageScheme() );
     this.setHdfsHost( nc.getHdfsHost() );
