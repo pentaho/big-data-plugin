@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -38,7 +38,7 @@ import org.pentaho.di.trans.step.StepMeta;
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
   documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Parquet_Output",
   i18nPackageName = "org.pentaho.di.trans.steps.parquet" )
-@InjectionSupported( localizationPrefix = "ParquetOutput.Injection.", groups = { "FILENAME_LINES", "FIELDS", "FILENAME" }, hide = {
+@InjectionSupported( localizationPrefix = "ParquetOutput.Injection.", groups = { "FILENAME_LINES", "FIELDS" }, hide = {
   "FIELD_POSITION", "FIELD_LENGTH", "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",
   "FIELD_DECIMAL", "FIELD_GROUP", "FIELD_REPEAT", "FIELD_TRIM_TYPE", "FIELD_NULL_STRING"
 } )

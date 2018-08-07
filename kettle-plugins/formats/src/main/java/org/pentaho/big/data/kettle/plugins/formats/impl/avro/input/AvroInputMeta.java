@@ -47,7 +47,7 @@ import org.pentaho.metastore.api.IMetaStore;
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Avro_Input",
     i18nPackageName = "org.pentaho.di.trans.steps.avro" )
-@InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "FIELDS", "AVRO_FILENAME" }, hide = {
+@InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "FIELDS" }, hide = {
         "FILEMASK", "EXCLUDE_FILEMASK", "FILE_REQUIRED", "INCLUDE_SUBFOLDERS", "FIELD_POSITION", "FIELD_LENGTH",
         "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",
         "FIELD_DECIMAL", "FIELD_GROUP", "FIELD_REPEAT", "FIELD_TRIM_TYPE",
