@@ -149,14 +149,24 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
-    return getMetaStoreFactory( metastore ).loadElement( clusterName );
+    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    NamedCluster namedCluster = factory.loadElement( clusterName );
+    if ( namedCluster != null ) {
+      validateClusterId( namedCluster );
+    }
+    return namedCluster;
   }
 
   @Override
   public void update( NamedCluster namedCluster, IMetaStore metastore ) throws MetaStoreException {
-    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
-    factory.deleteElement( namedCluster.getName() );
-    factory.saveElement( new NamedClusterImpl( namedCluster ) );
+     MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    List<NamedCluster> namedClusters = list( metastore );
+    for ( NamedCluster nc : namedClusters ) {
+      if ( namedCluster.getConfigId().equals( nc.getConfigId() ) ) {
+        factory.deleteElement( nc.getName() );
+        factory.saveElement( new NamedClusterImpl( namedCluster ) );
+      }
+    }
   }
 
   @Override
@@ -166,7 +176,12 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
-    return new ArrayList<NamedCluster>( getMetaStoreFactory( metastore ).getElements() );
+    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+    List<NamedCluster> namedClusters = new ArrayList<NamedCluster>(factory.getElements());
+    for ( NamedCluster nc : namedClusters ) {
+      validateClusterId( nc );
+    }
+    return namedClusters;
   }
 
   @Override
@@ -191,6 +206,7 @@ public class NamedClusterManager implements NamedClusterService {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( nc.getName().equals( namedCluster ) ) {
+          validateClusterId( nc );
           return nc;
         }
       }
@@ -213,6 +229,7 @@ public class NamedClusterManager implements NamedClusterService {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( nc.getHdfsHost().equals( hostName ) ) {
+          validateClusterId( nc );
           return nc;
         }
       }
@@ -232,4 +249,11 @@ public class NamedClusterManager implements NamedClusterService {
     }
     clusterTemplate.setMapr( isMapr );
   }
+
+  private void validateClusterId(NamedCluster nc) {
+    if ( nc.getConfigId() == null ) {
+      nc.setConfigId( nc.getShimIdentifier() );
+    }
+  }
+
 }
