@@ -101,16 +101,17 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   private ComboVar wDateTimeFormat;
 
   private static final ParquetSpec.DataType[] SUPPORTED_PARQUET_TYPES = {
-    ParquetSpec.DataType.UTF8,
+    ParquetSpec.DataType.BINARY,
+    ParquetSpec.DataType.BOOLEAN,
+    ParquetSpec.DataType.DATE,
+    ParquetSpec.DataType.DECIMAL,
+    ParquetSpec.DataType.DOUBLE,
+    ParquetSpec.DataType.FLOAT,
     ParquetSpec.DataType.INT_32,
     ParquetSpec.DataType.INT_64,
-    ParquetSpec.DataType.FLOAT,
-    ParquetSpec.DataType.DOUBLE,
-    ParquetSpec.DataType.BOOLEAN,
-    ParquetSpec.DataType.DECIMAL,
-    ParquetSpec.DataType.DATE,
+    ParquetSpec.DataType.INT_96,
     ParquetSpec.DataType.TIMESTAMP_MILLIS,
-    ParquetSpec.DataType.BINARY
+    ParquetSpec.DataType.UTF8
   };
 
 
