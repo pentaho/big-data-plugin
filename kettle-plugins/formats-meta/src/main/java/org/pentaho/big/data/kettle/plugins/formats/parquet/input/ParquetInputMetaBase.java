@@ -135,13 +135,15 @@ public abstract class ParquetInputMetaBase extends
     throws KettleException {
     try {
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
-      for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
-        rep.saveStepAttribute( id_transformation, id_step, i, "environment", inputFiles.environment[ i ] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_name", inputFiles.fileName[ i ] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_mask", inputFiles.fileMask[ i ] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "exclude_file_mask", inputFiles.excludeFileMask[ i ] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "file_required", inputFiles.fileRequired[ i ] );
-        rep.saveStepAttribute( id_transformation, id_step, i, "include_subfolders", inputFiles.includeSubFolders[ i ] );
+      if ( !( inputFiles.fileName.length == 1 && inputFiles.fileName[0].equalsIgnoreCase( "" ) ) ) {
+        for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "environment", inputFiles.environment[i] );
+          rep.saveStepAttribute( id_transformation, id_step, i, "file_name", inputFiles.fileName[i] );
+          rep.saveStepAttribute( id_transformation, id_step, i, "file_mask", inputFiles.fileMask[i] );
+          rep.saveStepAttribute( id_transformation, id_step, i, "exclude_file_mask", inputFiles.excludeFileMask[i] );
+          rep.saveStepAttribute( id_transformation, id_step, i, "file_required", inputFiles.fileRequired[i] );
+          rep.saveStepAttribute( id_transformation, id_step, i, "include_subfolders", inputFiles.includeSubFolders[i] );
+        }
       }
 
       for ( int i = 0; i < inputFields.length; i++ ) {
