@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -36,8 +37,6 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -50,7 +49,6 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.workarounds.ResolvableResource;
-import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -161,7 +159,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
         AvroOutputField outputField = new AvroOutputField();
         outputField.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
         outputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
-        outputField.setFormatType( convertToAvroType(  XMLHandler.getTagValue( fnode, "type" ) ) );
+        outputField.setFormatType( AvroTypeConverter.convertToAvroType(  XMLHandler.getTagValue( fnode, "type" ) ) );
         outputField.setPrecision( XMLHandler.getTagValue( fnode, "precision" ) );
         outputField.setScale( XMLHandler.getTagValue( fnode, "scale" ) );
         outputField.setAllowNull( XMLHandler.getTagValue( fnode, "nullable" ) );
@@ -244,7 +242,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
 
         outputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
         outputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
-        outputField.setFormatType( convertToAvroType( rep.getStepAttributeString( id_step, i, "type" ) ) );
+        outputField.setFormatType( AvroTypeConverter.convertToAvroType( rep.getStepAttributeString( id_step, i, "type" ) ) );
         outputField.setPrecision( rep.getStepAttributeString( id_step, i, "precision" ) );
         outputField.setScale( rep.getStepAttributeString( id_step, i, "scale" ) );
         outputField.setAllowNull( rep.getStepAttributeString( id_step, i, "nullable" ) );
@@ -429,39 +427,6 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
       }
     }
     return defaultValue;
-  }
-
-  public static String convertToAvroType( int pdiType ) {
-    switch ( pdiType ) {
-      case ValueMetaInterface.TYPE_INET:
-      case ValueMetaInterface.TYPE_STRING:
-        return AvroSpec.DataType.STRING.getName();
-      case ValueMetaInterface.TYPE_TIMESTAMP:
-        return AvroSpec.DataType.TIMESTAMP_MILLIS.getName();
-      case ValueMetaInterface.TYPE_BINARY:
-        return AvroSpec.DataType.BYTES.getName();
-      case ValueMetaInterface.TYPE_BIGNUMBER:
-        return AvroSpec.DataType.DECIMAL.getName();
-      case ValueMetaInterface.TYPE_BOOLEAN:
-        return AvroSpec.DataType.BOOLEAN.getName();
-      case ValueMetaInterface.TYPE_DATE:
-        return AvroSpec.DataType.DATE.getName();
-      case ValueMetaInterface.TYPE_INTEGER:
-        return AvroSpec.DataType.LONG.getName();
-      case ValueMetaInterface.TYPE_NUMBER:
-        return AvroSpec.DataType.DOUBLE.getName();
-      default:
-        return AvroSpec.DataType.NULL.getName();
-    }
-  }
-
-  private String convertToAvroType( String type ) {
-    int pdiType = ValueMetaFactory.getIdForValueMeta( type );
-    if ( pdiType > 0 ) {
-      return convertToAvroType( pdiType );
-    } else {
-      return type;
-    }
   }
 
   public String constructOutputFilename( String file ) {
