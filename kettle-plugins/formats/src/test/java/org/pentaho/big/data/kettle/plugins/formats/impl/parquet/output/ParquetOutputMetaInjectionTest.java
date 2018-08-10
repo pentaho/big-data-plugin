@@ -29,6 +29,7 @@ import static org.mockito.Mockito.*;
 
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -121,7 +122,7 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
     int[] typeIds = new int[ supportedPdiTypes.length ];
     for ( int j = 0; j < supportedPdiTypes.length; j++ ) {
       typeNames[ j ] = ValueMetaInterface.getTypeDescription( supportedPdiTypes[ j ] );
-      String parquetTypeName = ParquetOutputMetaBase.convertToParquetType( supportedPdiTypes[ j ] );
+      String parquetTypeName = ParquetTypeConverter.convertToParquetType( supportedPdiTypes[ j ] );
       for ( ParquetSpec.DataType parquetType : ParquetSpec.DataType.values() ) {
         if ( parquetType.getName().equals( parquetTypeName ) ) {
           typeIds[ j ] = parquetType.getId();

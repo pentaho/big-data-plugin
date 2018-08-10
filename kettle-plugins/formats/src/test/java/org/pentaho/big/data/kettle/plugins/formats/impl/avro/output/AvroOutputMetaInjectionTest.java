@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -128,7 +129,7 @@ public class AvroOutputMetaInjectionTest extends BaseMetadataInjectionTest<AvroO
     int[] typeIds = new int[ supportedPdiTypes.length ];
     for ( int j = 0; j < supportedPdiTypes.length; j++ ) {
       typeNames[ j ] = ValueMetaInterface.getTypeDescription( supportedPdiTypes[ j ] );
-      String avroTypeName = AvroOutputMetaBase.convertToAvroType( supportedPdiTypes[ j ] );
+      String avroTypeName = AvroTypeConverter.convertToAvroType( supportedPdiTypes[ j ] );
       for ( AvroSpec.DataType avrotType : AvroSpec.DataType.values() ) {
         if ( avrotType.getName().equals( avroTypeName ) ) {
           typeIds[ j ] = avrotType.getId();
