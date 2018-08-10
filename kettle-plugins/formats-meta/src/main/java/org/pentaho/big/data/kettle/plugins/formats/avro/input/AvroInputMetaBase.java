@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
+import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -41,6 +42,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
 import org.pentaho.di.workarounds.ResolvableResource;
+import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -139,7 +141,12 @@ public abstract class AvroInputMetaBase extends
         inputField.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
         inputField.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
         inputField.setPentahoType( XMLHandler.getTagValue( fnode, "type" ) );
-        inputField.setAvroType( XMLHandler.getTagValue( fnode, "avro_type" ) );
+        String avroType = XMLHandler.getTagValue( fnode, "avro_type" );
+        if ( avroType != null && !avroType.equalsIgnoreCase( "null" ) ) {
+          inputField.setAvroType( avroType );
+        } else {
+          inputField.setAvroType( AvroTypeConverter.convertToAvroType( inputField.getPentahoType() ) );
+        }
         String stringFormat = XMLHandler.getTagValue( fnode, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
         this.inputFields[ i ] = inputField;
@@ -174,8 +181,11 @@ public abstract class AvroInputMetaBase extends
         retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getAvroFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-        if ( field.getAvroType() != null ) {
-          retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", field.getAvroType().getName() ) );
+        AvroSpec.DataType avroDataType = field.getAvroType();
+        if ( avroDataType != null &&  !avroDataType.equals( AvroSpec.DataType.NULL ) ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", avroDataType.getName() ) );
+        } else {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", AvroTypeConverter.convertToAvroType( field.getTypeDesc() ) ) );
         }
         if ( field.getStringFormat() != null ) {
           retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
@@ -208,7 +218,12 @@ public abstract class AvroInputMetaBase extends
         inputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
         inputField.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "name" ) );
         inputField.setPentahoType( rep.getStepAttributeString( id_step, i, "type" ) );
-        inputField.setAvroType( rep.getStepAttributeString( id_step, i, "avro_type" ) );
+        String avroType = rep.getStepAttributeString( id_step, i, "avro_type" );
+        if ( avroType != null && !avroType.equalsIgnoreCase( "null" ) ) {
+          inputField.setAvroType( avroType );
+        } else {
+          inputField.setAvroType( AvroTypeConverter.convertToAvroType( inputField.getPentahoType() ) );
+        }
         String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
         this.inputFields[ i ] = inputField;
@@ -234,8 +249,11 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getAvroFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        if ( field.getAvroType() != null ) {
-          rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", field.getAvroType().getName() );
+        AvroSpec.DataType avroDataType = field.getAvroType();
+        if ( avroDataType != null &&  !avroDataType.equals( AvroSpec.DataType.NULL ) ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", avroDataType.getName() );
+        } else {
+          rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", AvroTypeConverter.convertToAvroType( field.getTypeDesc() ) );
         }
         if ( field.getStringFormat() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );

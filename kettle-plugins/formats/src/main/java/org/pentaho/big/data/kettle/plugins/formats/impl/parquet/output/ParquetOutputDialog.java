@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.BaseParquetStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -583,7 +584,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
           tableItem.setText( nameColumn[ c ], Const.NVL( v.getName(), "" ) );
         }
 
-        String parquetTypeName = meta.convertToParquetType( v.getType() );
+        String parquetTypeName = ParquetTypeConverter.convertToParquetType( v.getType() );
         if ( dataTypeColumn != null ) {
           for ( int c = 0; c < dataTypeColumn.length; c++ ) {
             tableItem.setText( dataTypeColumn[ c ], parquetTypeName );
