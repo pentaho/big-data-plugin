@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.avro.output;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
@@ -72,7 +73,7 @@ public class AvroOutputField extends BaseFormatOutputField implements IAvroOutpu
   public void setPentahoType( String typeName ) {
     for ( int i = 0; i < ValueMetaInterface.typeCodes.length; i++ ) {
       if ( typeName.equals( ValueMetaInterface.typeCodes[ i ] ) ) {
-        setFormatType( AvroOutputMetaBase.convertToAvroType( i ) );
+        setFormatType( AvroTypeConverter.convertToAvroType( i ) );
         break;
       }
     }

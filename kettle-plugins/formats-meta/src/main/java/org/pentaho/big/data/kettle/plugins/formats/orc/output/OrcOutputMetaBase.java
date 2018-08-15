@@ -30,7 +30,6 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
-import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -43,7 +42,6 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.workarounds.ResolvableResource;
-import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -423,29 +421,6 @@ public abstract class OrcOutputMetaBase extends BaseStepMeta implements StepMeta
       }
     }
     return outputFileName;
-  }
-  public String convertToOrcType( int pdiType ) {
-    switch ( pdiType ) {
-      case ValueMetaInterface.TYPE_INET:
-      case ValueMetaInterface.TYPE_STRING:
-        return OrcSpec.DataType.STRING.getName();
-      case ValueMetaInterface.TYPE_TIMESTAMP:
-        return OrcSpec.DataType.TIMESTAMP.getName();
-      case ValueMetaInterface.TYPE_BINARY:
-        return OrcSpec.DataType.BINARY.getName();
-      case ValueMetaInterface.TYPE_BIGNUMBER:
-        return OrcSpec.DataType.DECIMAL.getName();
-      case ValueMetaInterface.TYPE_BOOLEAN:
-        return OrcSpec.DataType.BOOLEAN.getName();
-      case ValueMetaInterface.TYPE_DATE:
-        return OrcSpec.DataType.DATE.getName();
-      case ValueMetaInterface.TYPE_INTEGER:
-        return OrcSpec.DataType.INTEGER.getName();
-      case ValueMetaInterface.TYPE_NUMBER:
-        return OrcSpec.DataType.DOUBLE.getName();
-      default:
-        return OrcSpec.DataType.NULL.getName();
-    }
   }
 
   private static String getMsg( String key ) {

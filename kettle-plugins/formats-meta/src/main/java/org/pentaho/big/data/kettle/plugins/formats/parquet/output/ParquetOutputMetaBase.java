@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -30,7 +31,6 @@ import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
-import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -258,7 +258,7 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     try {
       parquetTypeId = Integer.parseInt( savedType );
     } catch ( NumberFormatException e ) {
-      String parquetTypeName = convertToParquetType( savedType );
+      String parquetTypeName = ParquetTypeConverter.convertToParquetType( savedType );
       for ( ParquetSpec.DataType parquetType : ParquetSpec.DataType.values() ) {
         if ( parquetType.getName().equals( parquetTypeName ) ) {
           parquetTypeId = parquetType.getId();
@@ -388,43 +388,6 @@ public abstract class ParquetOutputMetaBase extends BaseStepMeta implements Step
     }
     return defaultValue;
   }
-
-  public static String convertToParquetType( String pdiType ) {
-    int pdiTypeId = -1;
-    for ( int i = 0; i < ValueMetaInterface.typeCodes.length; i++ ) {
-      if ( ValueMetaInterface.typeCodes[ i ].equals( pdiType ) ) {
-        pdiTypeId = i;
-        break;
-      }
-    }
-    return convertToParquetType( pdiTypeId );
-  }
-
-
-  public static String convertToParquetType( int pdiType ) {
-    switch ( pdiType ) {
-      case ValueMetaInterface.TYPE_INET:
-      case ValueMetaInterface.TYPE_STRING:
-        return ParquetSpec.DataType.UTF8.getName();
-      case ValueMetaInterface.TYPE_TIMESTAMP:
-        return ParquetSpec.DataType.TIMESTAMP_MILLIS.getName();
-      case ValueMetaInterface.TYPE_BINARY:
-        return ParquetSpec.DataType.BINARY.getName();
-      case ValueMetaInterface.TYPE_BIGNUMBER:
-        return ParquetSpec.DataType.DECIMAL.getName();
-      case ValueMetaInterface.TYPE_BOOLEAN:
-        return ParquetSpec.DataType.BOOLEAN.getName();
-      case ValueMetaInterface.TYPE_DATE:
-        return ParquetSpec.DataType.DATE.getName();
-      case ValueMetaInterface.TYPE_INTEGER:
-        return ParquetSpec.DataType.INT_64.getName();
-      case ValueMetaInterface.TYPE_NUMBER:
-        return ParquetSpec.DataType.DOUBLE.getName();
-      default:
-        return ParquetSpec.DataType.NULL.getName();
-    }
-  }
-
 
   public String getRowGroupSize() {
     return rowGroupSize;

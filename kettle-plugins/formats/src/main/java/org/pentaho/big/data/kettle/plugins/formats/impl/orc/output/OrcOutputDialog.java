@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.orc.BaseOrcStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.orc.OrcTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.orc.output.OrcOutputField;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -693,7 +694,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
           tableItem.setText( nameColumn[ c ], Const.NVL( v.getName(), "" ) );
         }
 
-        String orcTypeName = meta.convertToOrcType( v.getType() );
+        String orcTypeName = OrcTypeConverter.convertToOrcType( v.getType() );
         if ( dataTypeColumn != null ) {
           for ( int c = 0; c < dataTypeColumn.length; c++ ) {
             tableItem.setText( dataTypeColumn[ c ], orcTypeName );

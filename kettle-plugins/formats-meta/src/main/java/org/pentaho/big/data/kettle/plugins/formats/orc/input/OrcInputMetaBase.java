@@ -26,6 +26,7 @@ import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.orc.OrcInputField;
+import org.pentaho.big.data.kettle.plugins.formats.orc.OrcTypeConverter;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -41,6 +42,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
 import org.pentaho.di.workarounds.ResolvableResource;
+import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -117,7 +119,13 @@ public abstract class OrcInputMetaBase extends
       retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-      retval.append( "        " ).append( XMLHandler.addTagValue( "orc_type", field.getOrcType().getName() ) );
+      OrcSpec.DataType orcDataType = field.getOrcType();
+      if ( orcDataType != null && orcDataType.getName() != null && !orcDataType.getName().equalsIgnoreCase( OrcSpec.DataType.NULL.getName() ) ) {
+        retval.append( "        " ).append( XMLHandler.addTagValue( "orc_type", orcDataType.getName() ) );
+      } else {
+        retval.append( "        " ).append( XMLHandler.addTagValue( "orc_type", OrcTypeConverter.convertToOrcType( field.getTypeDesc() ) ) );
+      }
+
       if ( field.getStringFormat() != null ) {
         retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
       }
@@ -150,7 +158,13 @@ public abstract class OrcInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
-        rep.saveStepAttribute( id_transformation, id_step, i, "orc_type", field.getOrcType().getName() );
+        OrcSpec.DataType orcDataType = field.getOrcType();
+        if ( orcDataType != null && orcDataType.getName() != null && !orcDataType.getName().equalsIgnoreCase( OrcSpec.DataType.NULL.getName() ) ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "orc_type", orcDataType.getName() );
+        } else {
+          rep.saveStepAttribute( id_transformation, id_step, i, "orc_type", OrcTypeConverter.convertToOrcType( field.getTypeDesc() ) );
+        }
+
         if ( field.getStringFormat() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
         }
@@ -194,7 +208,12 @@ public abstract class OrcInputMetaBase extends
       field.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
       field.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
-      field.setOrcType( XMLHandler.getTagValue( fnode, "orc_type" ) );
+      String orcType = XMLHandler.getTagValue( fnode, "orc_type" );
+      if ( orcType != null && !orcType.equalsIgnoreCase( "null" ) ) {
+        field.setOrcType( orcType );
+      } else {
+        field.setOrcType( OrcTypeConverter.convertToOrcType( field.getPentahoType() ) );
+      }
       String stringFormat = XMLHandler.getTagValue( fnode, "format" );
       field.setStringFormat( stringFormat == null ? "" : stringFormat );
       this.inputFields[ i ] = field;
