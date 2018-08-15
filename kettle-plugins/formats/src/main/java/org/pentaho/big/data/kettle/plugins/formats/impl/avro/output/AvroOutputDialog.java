@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
@@ -775,7 +776,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog<AvroOutputMeta> impleme
           tableItem.setText( nameColumn[c], Const.NVL( v.getName(), "" ) );
         }
 
-        String avroTypeName = meta.convertToAvroType( v.getType() );
+        String avroTypeName = AvroTypeConverter.convertToAvroType( v.getType() );
         if ( dataTypeColumn != null ) {
           for ( int c = 0; c < dataTypeColumn.length; c++ ) {
             tableItem.setText( dataTypeColumn[c], avroTypeName );
