@@ -118,25 +118,29 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField> actualFileFields =
       ParquetInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), inputFileName );
-    Map<String, IParquetInputField> fieldNamesToTypes = actualFileFields.stream().collect(
-      Collectors.toMap( IParquetInputField::getFormatFieldName, Function.identity() ) );
 
-    for ( ParquetInputField f : meta.getInputFields() ) {
-      if ( fieldNamesToTypes.containsKey( f.getFormatFieldName() ) ) {
-        if ( f.getFormatType() == 0 ) {
-          f.setFormatType( fieldNamesToTypes.get( f.getFormatFieldName() ).getFormatType() );
+    if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.size() == 0 ) ) {
+      data.splits = new ArrayList<>(  );
+    } else {
+      Map<String, IParquetInputField> fieldNamesToTypes = actualFileFields.stream().collect(
+        Collectors.toMap( IParquetInputField::getFormatFieldName, Function.identity() ) );
+      for ( ParquetInputField f : meta.getInputFields() ) {
+        if ( fieldNamesToTypes.containsKey( f.getFormatFieldName() ) ) {
+          if ( f.getFormatType() == 0 ) {
+            f.setFormatType( fieldNamesToTypes.get( f.getFormatFieldName() ).getFormatType() );
+          }
+          f.setPrecision( fieldNamesToTypes.get( f.getFormatFieldName() ).getPrecision() );
+          f.setScale( fieldNamesToTypes.get( f.getFormatFieldName() ).getScale() );
         }
-        f.setPrecision( fieldNamesToTypes.get( f.getFormatFieldName() ).getPrecision() );
-        f.setScale( fieldNamesToTypes.get( f.getFormatFieldName() ).getScale() );
       }
+
+      data.input.setSchema( createSchemaFromMeta( meta ) );
+      data.input.setInputFile( inputFileName );
+      data.input.setSplitSize( SPLIT_SIZE );
+
+      data.splits = data.input.getSplits();
+      logDebug( "Input split count: {0}", data.splits.size() );
     }
-
-    data.input.setSchema( createSchemaFromMeta( meta ) );
-    data.input.setInputFile( inputFileName );
-    data.input.setSplitSize( SPLIT_SIZE );
-
-    data.splits = data.input.getSplits();
-    logDebug( "Input split count: {0}", data.splits.size() );
     data.currentSplit = 0;
   }
 

@@ -72,8 +72,8 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
   private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 5;
 
   private TableView wInputFields;
-
   private Button wPassThruFields;
+  private Button wIgnoreEmptyFolder;
 
   public ParquetInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (ParquetInputMeta) in, transMeta, sname );
@@ -96,10 +96,17 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     fdSpacer.right = new FormAttachment( 100, 0 );
     separator.setLayoutData( fdSpacer );
 
+    wIgnoreEmptyFolder = new Button( shell, SWT.CHECK );
+    wIgnoreEmptyFolder.setText( BaseMessages.getString( PKG, "ParquetInputDialog.IgnoreEmptyFolder.Label" ) );
+    wIgnoreEmptyFolder.setToolTipText( BaseMessages.getString( PKG, "ParquetInputDialog.IgnoreEmptyFolder.Tooltip" ) );
+    wIgnoreEmptyFolder.setOrientation( SWT.LEFT_TO_RIGHT );
+    props.setLook( wIgnoreEmptyFolder );
+    new FD( wIgnoreEmptyFolder ).left( 0, 0 ).top( prev, MARGIN ).apply();
+
     Group fieldsContainer = new Group( shell, SWT.SHADOW_IN );
     fieldsContainer.setLayout( new FormLayout() );
     fieldsContainer.setText( BaseMessages.getString( PKG, "ParquetInputDialog.Fields.Label" ) );
-    new FD( fieldsContainer ).left( 0, 0 ).top( prev, MARGIN ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
+    new FD( fieldsContainer ).left( 0, 0 ).top( wIgnoreEmptyFolder, MARGIN ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
 
     // Accept fields from previous steps?
     //
@@ -109,6 +116,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
     props.setLook( wPassThruFields );
     new FD( wPassThruFields ).left( 0, MARGIN ).top( 0, MARGIN ).apply();
+
 
     //get fields button
     lsGet = new Listener() {
@@ -216,6 +224,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
       wPath.setText( meta.getFilename() );
     }
     wPassThruFields.setSelection( meta.inputFiles.passingThruFields );
+    wIgnoreEmptyFolder.setSelection( meta.isIgnoreEmptyFolder() );
     int itemIndex = 0;
     for ( IParquetInputField inputField : meta.getInputFields() ) {
       TableItem item = null;
@@ -267,6 +276,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     }
 
     meta.inputFiles.passingThruFields = wPassThruFields.getSelection();
+    meta.setIgnoreEmptyFolder( wIgnoreEmptyFolder.getSelection() );
 
     List<? extends IParquetInputField> actualParquetFileInputFields = getInputFieldsFromParquetFile( true );
 
@@ -283,7 +293,16 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
         if ( actualParquetField != null ) {
           field.setFormatType( actualParquetField.getFormatType() );
         } else {
-          field.setFormatType( extractParquetType( item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ) ).getId() );
+          ParquetSpec.DataType sourceType = extractParquetType( item.getText( PARQUET_PATH_COLUMN_INDEX ) );
+          if ( ( sourceType == null ) ) {
+            String uiTypeTrimmed = item.getText( FIELD_SOURCE_TYPE_COLUMN_INDEX ).trim();
+            for ( ParquetSpec.DataType temp : ParquetSpec.DataType.values() ) {
+              if ( temp.getName().equalsIgnoreCase( uiTypeTrimmed ) ) {
+                sourceType = temp;
+              }
+            }
+          }
+          field.setFormatType( sourceType.getId() );
           item.setText( concatenateParquetNameAndType( field ) );
         }
       }
