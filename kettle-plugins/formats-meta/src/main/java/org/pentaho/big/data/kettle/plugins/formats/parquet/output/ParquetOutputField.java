@@ -22,6 +22,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.parquet.output;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.hadoop.shim.api.format.IParquetOutputField;
@@ -62,7 +63,7 @@ public class ParquetOutputField extends BaseFormatOutputField implements IParque
   public void setPentahoType( String typeName ) {
     for ( int i = 0; i < ValueMetaInterface.typeCodes.length; i++ ) {
       if ( typeName.equals( ValueMetaInterface.typeCodes[ i ] ) ) {
-        setFormatType( ParquetOutputMetaBase.convertToParquetType( i ) );
+        setFormatType( ParquetTypeConverter.convertToParquetType( i ) );
         break;
       }
     }

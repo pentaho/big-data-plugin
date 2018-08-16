@@ -30,6 +30,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
@@ -40,6 +41,7 @@ import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
 import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.hadoop.shim.api.format.ParquetSpec;
 import org.w3c.dom.Node;
 import java.util.List;
 
@@ -116,9 +118,13 @@ public abstract class ParquetInputMetaBase extends
       retval.append( "        " ).append( XMLHandler.addTagValue( "path", field.getFormatFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
       retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
-      if ( field.getParquetType() != null ) {
+      ParquetSpec.DataType parquetType = field.getParquetType();
+      if ( parquetType != null  && !parquetType.equals( ParquetSpec.DataType.NULL ) ) {
         retval.append( "        " )
-          .append( XMLHandler.addTagValue( "parquet_type", field.getParquetType().getName() ) );
+          .append( XMLHandler.addTagValue( "parquet_type", parquetType.getName() ) );
+      } else {
+        retval.append( "        " )
+            .append( XMLHandler.addTagValue( "parquet_type", ParquetTypeConverter.convertToParquetType( field.getTypeDesc() ) ) );
       }
       if ( field.getStringFormat() != null ) {
         retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
@@ -152,8 +158,11 @@ public abstract class ParquetInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "path", field.getFormatFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field.getTypeDesc() );
-        if ( field.getParquetType() != null ) {
-          rep.saveStepAttribute( id_transformation, id_step, i, "parquet_type", field.getParquetType().getName() );
+        ParquetSpec.DataType parquetType = field.getParquetType();
+        if ( parquetType != null  && !parquetType.equals( ParquetSpec.DataType.NULL ) ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "parquet_type", parquetType.getName() );
+        } else {
+          rep.saveStepAttribute( id_transformation, id_step, i, "parquet_type", ParquetTypeConverter.convertToParquetType( field.getTypeDesc() ) );
         }
         if ( field.getStringFormat() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
@@ -198,7 +207,13 @@ public abstract class ParquetInputMetaBase extends
       field.setFormatFieldName( XMLHandler.getTagValue( fnode, "path" ) );
       field.setPentahoFieldName( XMLHandler.getTagValue( fnode, "name" ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
-      field.setParquetType( XMLHandler.getTagValue( fnode, "parquet_type" ) );
+      String parquetType = XMLHandler.getTagValue( fnode, "parquet_type" );
+      if ( parquetType != null && !parquetType.equalsIgnoreCase( "null" ) ) {
+        field.setParquetType( parquetType );
+      } else {
+        field.setParquetType( ParquetTypeConverter.convertToParquetType( field.getPentahoType() ) );
+      }
+
       String stringFormat = XMLHandler.getTagValue( fnode, "format" );
       field.setStringFormat( stringFormat == null ? "" : stringFormat );
       this.inputFields[ i ] = field;
@@ -236,7 +251,12 @@ public abstract class ParquetInputMetaBase extends
         field.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
         field.setPentahoFieldName( rep.getStepAttributeString( id_step, i, "field_name" ) );
         field.setPentahoType( rep.getStepAttributeString( id_step, i, "field_type" ) );
-        field.setParquetType( rep.getStepAttributeString( id_step, i, "parquet_type" ) );
+        String parquetType = rep.getStepAttributeString( id_step, i, "parquet_type" );
+        if ( parquetType != null && !parquetType.equalsIgnoreCase( "null" ) ) {
+          field.setParquetType( parquetType );
+        } else {
+          field.setParquetType( ParquetTypeConverter.convertToParquetType( field.getPentahoType() ) );
+        }
         String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
         field.setStringFormat( stringFormat == null ? "" : stringFormat );
         this.inputFields[ i ] = field;
@@ -255,7 +275,6 @@ public abstract class ParquetInputMetaBase extends
     inputFiles.fileRequired = new String[ nrFiles ];
     inputFiles.includeSubFolders = new String[ nrFiles ];
   }
-
   /**
    * TODO: remove from base
    */
