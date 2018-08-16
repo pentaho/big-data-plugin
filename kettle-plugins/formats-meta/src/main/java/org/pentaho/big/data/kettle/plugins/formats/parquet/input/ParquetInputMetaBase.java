@@ -29,6 +29,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
@@ -54,10 +55,22 @@ import java.util.List;
 public abstract class ParquetInputMetaBase extends
   BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, ParquetInputField> implements ResolvableResource {
 
+  /** If receiving input rows, should we pass through existing fields? */
+  @Injection( name = "IGNORE_EMPTY_FOLDER" )
+  boolean ignoreEmptyFolder = false;
+
   public ParquetInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
     inputFiles = new FormatInputFile();
     inputFields = new ParquetInputField[ 0 ];
+  }
+
+  public boolean isIgnoreEmptyFolder() {
+    return ignoreEmptyFolder;
+  }
+
+  public void setIgnoreEmptyFolder( boolean ignoreEmptyFolder ) {
+    this.ignoreEmptyFolder = ignoreEmptyFolder;
   }
 
   public String getFilename() {
@@ -91,6 +104,7 @@ public abstract class ParquetInputMetaBase extends
     StringBuilder retval = new StringBuilder( 1500 );
 
     retval.append( "    " ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( "ignore_empty_folder", ignoreEmptyFolder ) );
     retval.append( "    <file>" ).append( Const.CR );
     //we need the equals by size arrays for inputFiles.fileName[i], inputFiles.fileMask[i], inputFiles.fileRequired[i], inputFiles.includeSubFolders[i]
     //to prevent the ArrayIndexOutOfBoundsException
@@ -140,6 +154,7 @@ public abstract class ParquetInputMetaBase extends
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
     throws KettleException {
     try {
+      rep.saveStepAttribute( id_transformation, id_step, "ignore_empty_folder", ignoreEmptyFolder );
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
       if ( !( inputFiles.fileName.length == 1 && inputFiles.fileName[0].equalsIgnoreCase( "" ) ) ) {
         for ( int i = 0; i < inputFiles.fileName.length; i++ ) {
@@ -182,8 +197,11 @@ public abstract class ParquetInputMetaBase extends
 
     String passThroughFields = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false"
       : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
+    String skipIfNoFile = XMLHandler.getTagValue( stepnode, "ignore_empty_folder" ) == null ? "false"
+      : XMLHandler.getTagValue( stepnode, "ignore_empty_folder" );
     allocateFiles( nrfiles );
     inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passThroughFields );
+    ignoreEmptyFolder = ValueMetaBase.convertStringToBoolean( skipIfNoFile );
     for ( int i = 0; i < nrfiles; i++ ) {
       Node envnode = XMLHandler.getSubNodeByNr( filenode, "environment", i );
       Node filenamenode = XMLHandler.getSubNodeByNr( filenode, "name", i );
@@ -229,6 +247,7 @@ public abstract class ParquetInputMetaBase extends
       allocateFiles( nrfiles );
 
       inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
+      ignoreEmptyFolder = rep.getStepAttributeBoolean( id_step, "ignore_empty_folder" );
       for ( int i = 0; i < nrfiles; i++ ) {
         inputFiles.environment[ i ] = rep.getStepAttributeString( id_step, i, "environment" );
         inputFiles.fileName[ i ] = rep.getStepAttributeString( id_step, i, "file_name" );
