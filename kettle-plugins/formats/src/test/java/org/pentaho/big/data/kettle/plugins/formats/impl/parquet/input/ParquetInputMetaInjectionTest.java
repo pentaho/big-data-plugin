@@ -56,6 +56,13 @@ public class ParquetInputMetaInjectionTest extends BaseMetadataInjectionTest<Par
       }
     } );
 
+    check( "IGNORE_EMPTY_FOLDER", new BooleanGetter() {
+      public boolean get() {
+        return meta.isIgnoreEmptyFolder();
+      }
+    } );
+
+
     String[] typeNames = ValueMetaBase.getAllTypes();
     checkStringToInt( "FIELD_TYPE", new IntGetter() {
       public int get() {
