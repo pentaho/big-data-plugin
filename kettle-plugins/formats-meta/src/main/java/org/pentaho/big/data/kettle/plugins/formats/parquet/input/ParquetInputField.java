@@ -22,6 +22,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.parquet.input;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatInputField;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.IParquetInputField;
 import org.pentaho.hadoop.shim.api.format.ParquetSpec;
@@ -32,6 +33,7 @@ public class ParquetInputField extends BaseFormatInputField implements IParquetI
     setFormatType( parquetType.getId() );
   }
 
+  @Injection( name = "PARQUET_TYPE", group = "FIELDS" )
   @Override
   public void setParquetType( String parquetType ) {
     for ( ParquetSpec.DataType tmpType : ParquetSpec.DataType.values() ) {

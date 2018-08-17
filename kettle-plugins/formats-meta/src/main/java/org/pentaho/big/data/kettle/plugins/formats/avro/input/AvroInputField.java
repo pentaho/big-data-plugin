@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatInputField;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
@@ -53,6 +54,7 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     setFormatType( avroType.getId() );
   }
 
+  @Injection( name = "AVRO_TYPE", group = "FIELDS" )
   @Override
   public void setAvroType( String avroType ) {
     for ( AvroSpec.DataType tmpType : AvroSpec.DataType.values() ) {
