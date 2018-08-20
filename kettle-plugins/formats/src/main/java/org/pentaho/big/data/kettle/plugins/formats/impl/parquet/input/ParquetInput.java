@@ -121,6 +121,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
 
     if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.size() == 0 ) ) {
       data.splits = new ArrayList<>(  );
+      logBasic( "No Parquet input files found." );
     } else {
       Map<String, IParquetInputField> fieldNamesToTypes = actualFileFields.stream().collect(
         Collectors.toMap( IParquetInputField::getFormatFieldName, Function.identity() ) );
