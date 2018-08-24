@@ -132,6 +132,7 @@ public class KafkaConsumerInputTest {
   public void setUp() {
     KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
     when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
+    when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
 
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
     NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
