@@ -58,7 +58,7 @@ public abstract class HadoopBaseStepAnalyzer<M extends BaseFileMeta> extends Ext
   }
 
   @Override public String getResourceOutputNodeType() {
-    return DictionaryConst.NODE_TYPE_HDFS_FIELD;
+    return DictionaryConst.NODE_TYPE_FILE_FIELD;
   }
 
   @Override
@@ -87,7 +87,7 @@ public abstract class HadoopBaseStepAnalyzer<M extends BaseFileMeta> extends Ext
       if ( StringUtils.isNotBlank( hostName ) ) {
         resourceNode.setProperty( DictionaryConst.PROPERTY_HOST_NAME, hostName );
         // update the default "File" type to "HDFS File"
-        resourceNode.setProperty( DictionaryConst.PROPERTY_TYPE, DictionaryConst.NODE_TYPE_HDFS_FILE );
+        resourceNode.setProperty( DictionaryConst.PROPERTY_TYPE, DictionaryConst.NODE_TYPE_FILE );
 
         final String clusterName = hMeta.getClusterName( resource.getName() );
         if ( StringUtils.isNotBlank( clusterName ) ) {
