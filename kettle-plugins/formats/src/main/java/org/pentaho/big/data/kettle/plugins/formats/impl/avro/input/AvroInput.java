@@ -156,4 +156,5 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     in.setInputFile( dataPath );
     return in.getFields();
   }
+
 }
