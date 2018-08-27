@@ -55,7 +55,7 @@ import org.w3c.dom.Node;
 public abstract class AvroInputMetaBase extends
     BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, AvroInputField> implements ResolvableResource {
 
-  private static final Class<?> PKG = AvroOutputMetaBase.class;
+  public static final Class<?> PKG = AvroOutputMetaBase.class;
 
   @Injection( name = "AVRO_FILENAME" )
   private String filename;
@@ -68,6 +68,9 @@ public abstract class AvroInputMetaBase extends
 
   @Injection( name = "USE_INPUT_STREAM" )
   protected boolean useFieldAsInputStream;
+
+  @Injection( name = "IS_COMPLEX")
+  protected boolean isComplex;
 
   public AvroInputMetaBase() {
     additionalOutputFields = new BaseFileInputAdditionalField();
@@ -131,6 +134,8 @@ public abstract class AvroInputMetaBase extends
       filename = XMLHandler.getTagValue( stepnode, "filename" );
       useFieldAsInputStream = ValueMetaBase.convertStringToBoolean(
         XMLHandler.getTagValue( stepnode, "useStreamField" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "useStreamField" ) );
+      isComplex = ValueMetaBase.convertStringToBoolean(
+        XMLHandler.getTagValue( stepnode, "isComplex" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "isComplex" ) );
       inputStreamFieldName = XMLHandler.getTagValue( stepnode, "stream_fieldname" );
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
@@ -170,6 +175,7 @@ public abstract class AvroInputMetaBase extends
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "useStreamField", isUseFieldAsInputStream() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "isComplex", isComplex() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "stream_fieldname", getInputStreamFieldName() ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
@@ -207,6 +213,7 @@ public abstract class AvroInputMetaBase extends
       inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
       filename = rep.getStepAttributeString( id_step, "filename" );
       useFieldAsInputStream = rep.getStepAttributeBoolean( id_step, "useStreamField" );
+      isComplex = rep.getStepAttributeBoolean( id_step, "isComplex" );
       inputStreamFieldName = rep.getStepAttributeString( id_step, "stream_fieldname" );
 
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
@@ -241,6 +248,7 @@ public abstract class AvroInputMetaBase extends
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
       rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
       rep.saveStepAttribute( id_transformation, id_step, "useStreamField", isUseFieldAsInputStream() );
+      rep.saveStepAttribute( id_transformation, id_step, "isComplex", isComplex() );
       rep.saveStepAttribute( id_transformation, id_step, "stream_fieldname", getInputStreamFieldName() );
 
       for ( int i = 0; i < inputFields.length; i++ ) {
@@ -315,5 +323,13 @@ public abstract class AvroInputMetaBase extends
 
   public void setUseFieldAsInputStream( boolean useFieldAsInputStream ) {
     this.useFieldAsInputStream = useFieldAsInputStream;
+  }
+
+  public boolean isComplex() {
+    return isComplex;
+  }
+
+  public void setComplex( boolean complex ) {
+    isComplex = complex;
   }
 }
