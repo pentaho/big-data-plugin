@@ -60,6 +60,7 @@ import org.pentaho.di.job.entry.JobEntryCopy;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.dictionary.MetaverseAnalyzers;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -75,7 +76,8 @@ import static org.pentaho.di.job.entry.validator.JobEntryValidatorUtils.notBlank
  * More information on the options is here: http://spark.apache.org/docs/1.2.0/submitting-applications.html
  */
 
-@JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/spark.svg", id = "SparkSubmit",
+@JobEntry( image = "org/pentaho/di/ui/job/entries/spark/img/spark.svg",
+  id = MetaverseAnalyzers.JobEntrySparkSubmitAnalyzer.ID,
   name = "JobEntrySparkSubmit.Title", description = "JobEntrySparkSubmit.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.spark",
