@@ -23,6 +23,7 @@
 package org.pentaho.di.job.entries.spark;
 
 import org.pentaho.di.job.entry.JobEntryInterface;
+import org.pentaho.dictionary.MetaverseAnalyzers;
 import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.MetaverseAnalyzerException;
 import org.pentaho.metaverse.api.analyzer.kettle.jobentry.JobEntryAnalyzer;
@@ -38,7 +39,6 @@ import java.util.Set;
 public class JobEntrySparkSubmitAnalyzer extends JobEntryAnalyzer<JobEntrySparkSubmit> {
 
   private static final String CLASS_NAME = "className";
-  private static final String APPLICATION_JAR = "applicationJar";
   private static final String PY_FILE = "pyFile";
 
   private Logger log = LoggerFactory.getLogger( JobEntrySparkSubmitAnalyzer.class );
@@ -54,7 +54,8 @@ public class JobEntrySparkSubmitAnalyzer extends JobEntryAnalyzer<JobEntrySparkS
   protected void customAnalyze( JobEntrySparkSubmit entry, IMetaverseNode rootNode ) throws MetaverseAnalyzerException {
     if ( JobEntrySparkSubmit.JOB_TYPE_JAVA_SCALA.equals( entry.getJobType() ) ) {
       rootNode.setProperty( CLASS_NAME, entry.environmentSubstitute( entry.getClassName() ) );
-      rootNode.setProperty( APPLICATION_JAR, entry.environmentSubstitute( entry.getJar() ) );
+      rootNode.setProperty( MetaverseAnalyzers.JobEntrySparkSubmitAnalyzer.APPLICATION_JAR,
+        entry.environmentSubstitute( entry.getJar() ) );
     } else if ( JobEntrySparkSubmit.JOB_TYPE_PYTHON.equals( entry.getJobType() ) ) {
       rootNode.setProperty( PY_FILE, entry.environmentSubstitute( entry.getPyFile() ) );
     }
