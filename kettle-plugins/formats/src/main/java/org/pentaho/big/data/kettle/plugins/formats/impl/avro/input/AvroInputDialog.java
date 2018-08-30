@@ -277,7 +277,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
-    ColumnInfo avroPathColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+    ColumnInfo avroPathColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     ColumnInfo avroTypeColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.avro.type" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
     ColumnInfo avroIndexColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.avro.indexedValues" ), ColumnInfo.COLUMN_TYPE_TEXT, false, true );
     ColumnInfo nameColumnInfo = new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT, false, false );
