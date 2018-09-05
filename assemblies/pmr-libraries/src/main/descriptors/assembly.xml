@@ -76,7 +76,7 @@
         <include>xmlpull:xmlpull</include>
         <include>xpp3:xpp3_min</include>
         <include>com.thoughtworks.xstream:xstream</include>
-        <include>dom4j:dom4j</include>
+        <include>org.dom4j:dom4j</include>
         <include>eigenbase:eigenbase-properties</include>
         <include>eigenbase:eigenbase-resgen</include>
         <include>eigenbase:eigenbase-xom</include>
