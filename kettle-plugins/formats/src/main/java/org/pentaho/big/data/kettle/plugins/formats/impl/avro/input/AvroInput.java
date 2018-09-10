@@ -99,10 +99,11 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           }
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-
+          data.input.setIsComplex( true );
           data.input.setVariableSpace( this );
           data.input.setIncomingFields( new Object[]{} ); //********* fix this
-          data.input.setOutputRowMeta( null ); //***** fix this
+          data.input.setOutputRowMeta( outRowMeta );
+          meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
 
           data.input
             .setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
@@ -169,6 +170,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           }
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+          data.input.setIsComplex( false );
           data.input
             .setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
           data.input.setInputSchemaFile(
