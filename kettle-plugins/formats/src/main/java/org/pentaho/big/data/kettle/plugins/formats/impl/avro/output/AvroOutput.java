@@ -118,7 +118,7 @@ public class AvroOutput extends BaseStep implements StepInterface {
       throw new KettleException( "can't get service format shim ", e );
     }
     TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
-    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, meta.getNamedCluster() );
     data.output.setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ), meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
     IPentahoAvroOutputFormat.COMPRESSION compression;

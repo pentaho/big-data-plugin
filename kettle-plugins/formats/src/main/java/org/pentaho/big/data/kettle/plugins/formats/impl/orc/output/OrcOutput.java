@@ -116,7 +116,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
       throw new KettleException( "No output files defined" );
     }
 
-    data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class );
+    data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class, meta.getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
