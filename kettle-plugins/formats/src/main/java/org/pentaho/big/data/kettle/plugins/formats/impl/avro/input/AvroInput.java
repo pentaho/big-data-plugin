@@ -53,7 +53,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
   public AvroInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                    Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -101,7 +101,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
           data.input.setIsComplex( true );
           data.input.setVariableSpace( this );
-          data.input.setIncomingFields( new Object[]{} ); //********* fix this
+          data.input.setIncomingFields( new Object[] {} ); //********* fix this
           data.input.setOutputRowMeta( outRowMeta );
           meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
 
@@ -240,7 +240,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   }
 
   public static List<? extends IAvroInputField> getDefaultFields( NamedClusterServiceLocator namedClusterServiceLocator,
-                                                                   NamedCluster namedCluster, String schemaPath, String dataPath ) throws Exception {
+                                                                  NamedCluster namedCluster, String schemaPath,
+                                                                  String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
     in.setInputSchemaFile( schemaPath );
@@ -248,4 +249,13 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     return in.getFields();
   }
 
+  public static List<? extends IAvroInputField> getLeafFields( NamedClusterServiceLocator namedClusterServiceLocator,
+                                                               NamedCluster namedCluster, String schemaPath,
+                                                               String dataPath ) throws Exception {
+    FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
+    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    in.setInputSchemaFile( schemaPath );
+    in.setInputFile( dataPath );
+    return in.getLeafFields();
+  }
 }
