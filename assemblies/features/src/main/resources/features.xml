@@ -78,14 +78,6 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hive/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-spark/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-kafka/${project.version}</bundle>
-    <feature>pentaho-big-data-kettle-plugins-formats</feature>
-  </feature>
-  <feature name="pentaho-big-data-kettle-plugins-formats" version="1.0">
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
-    <bundle>wrap:mvn:org.apache.avro/avro/${apache-avro.version}</bundle>
-    <bundle>wrap:mvn:com.thoughtworks.paranamer/paranamer/${thoughtworks.paranamer.version}</bundle>
-    <bundle>wrap:mvn:org.codehaus.jackson/jackson-core-asl/${codehaus.jackson.version}</bundle>
-    <bundle>wrap:mvn:org.codehaus.jackson/jackson-mapper-asl/${codehaus.jackson.version}</bundle>
-  </feature>
+    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle></feature>
 </features>
