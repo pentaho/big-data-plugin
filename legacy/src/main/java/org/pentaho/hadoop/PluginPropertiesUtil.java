@@ -22,7 +22,6 @@
 
 package org.pentaho.hadoop;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleFileException;
@@ -83,7 +82,9 @@ public class PluginPropertiesUtil {
     }
     try {
       return new PropertiesConfigurationProperties( propFile );
-    } catch ( ConfigurationException e ) {
+    } catch ( Exception e ) {
+      // Do not catch ConfigurationException. Different shims will use different
+      // packages for this exception.
       throw new IOException( e );
     }
   }
