@@ -131,10 +131,8 @@ public class AvroInputMetaBaseTest {
     meta.setInputFields( Arrays.asList( field ) );
 
     assertNotNull( meta.getXML() );
-    verify( meta ).getFilename();
-    verify( meta ).getSchemaFilename();
-    verify( meta ).isUseFieldAsInputStream();
-    verify( meta ).getInputStreamFieldName();
+    verify( meta ).getDataLocation();
+    verify( meta ).getSchemaLocation();
 
     verify( field ).getAvroFieldName();
     verify( field, times( 3 ) ).getPentahoFieldName();
@@ -161,10 +159,8 @@ public class AvroInputMetaBaseTest {
     meta.setInputFields( Arrays.asList( field ) );
 
     meta.saveRep( rep, metaStore, id_transformation, id_step );
-    verify( meta ).getFilename();
-    verify( meta ).getSchemaFilename();
-    verify( meta ).isUseFieldAsInputStream();
-    verify( meta ).getInputStreamFieldName();
+    verify( meta ).getDataLocation();
+    verify( meta ).getSchemaLocation();
 
     verify( field ).getAvroFieldName();
     verify( field ).getPentahoFieldName();
@@ -177,10 +173,8 @@ public class AvroInputMetaBaseTest {
     Path path = Paths.get( resource.toURI() );
     Node node =  DocumentBuilderFactory.newInstance().newDocumentBuilder().parse( Files.newInputStream( path ) ).getDocumentElement();
     meta.loadXML( node, databases, metaStore );
-    assertEquals( "SampleFileName", meta.getFilename() );
-    assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
-    assertEquals( "StreamFieldName", meta.getInputStreamFieldName() );
-    assertEquals( true, meta.isUseFieldAsInputStream() );
+    assertEquals( "SampleFileName", meta.getDataLocation() );
+    assertEquals( "SampleSchemaFileName", meta.getSchemaLocation() );
 
     AvroInputField field  = meta.getInputFields()[0];
     assertEquals( "SampleName", field.getPentahoFieldName() );
@@ -188,33 +182,4 @@ public class AvroInputMetaBaseTest {
     assertEquals( "string", field.getAvroType().getType() );
   }
 
-  @Test
-  public void testReadRepL() throws KettleException, URISyntaxException, SAXException, IOException, ParserConfigurationException {
-    when( rep.getStepAttributeString( eq( id_step ), eq( "filename" ) ) ).thenReturn( "SampleFileName" );
-    when( rep.getStepAttributeString( eq( id_step ), eq( "schemaFilename" ) ) ).thenReturn( "SampleSchemaFileName" );
-    when( rep.getStepAttributeString( eq( id_step ), eq(  "stream_fieldname" ) ) ).thenReturn( "StreamFieldName" );
-    when( rep.getStepAttributeBoolean( eq( id_step ), eq(  "useStreamField" ) ) ).thenReturn( true );
-
-    when( rep.countNrStepAttributes( eq( id_step ), eq( "type" ) ) ).thenReturn( 1 );
-
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "path" ) ) ).thenReturn( "SamplePath" );
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "name" ) ) ).thenReturn( "SampleName" );
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "type" ) ) ).thenReturn( "0" );
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "nullable" ) ) ).thenReturn( "SampleDefault" );
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "default" ) ) ).thenReturn( "false" );
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "sourcetype" ) ) ).thenReturn( "0" );
-    when( rep.getStepAttributeString( eq( id_step ), anyInt(), eq( "avro_type" ) ) ).thenReturn( "string" );
-
-    meta.readRep( rep, metaStore, id_step, databases );
-    assertEquals( "SampleFileName", meta.getFilename() );
-    assertEquals( "SampleSchemaFileName", meta.getSchemaFilename() );
-    assertEquals( "StreamFieldName", meta.getInputStreamFieldName() );
-    assertEquals( true, meta.isUseFieldAsInputStream() );
-
-
-    AvroInputField field = meta.getInputFields()[0];
-    assertEquals( "SampleName", field.getPentahoFieldName() );
-    assertEquals( "SamplePath", field.getAvroFieldName() );
-    assertEquals( "string", field.getAvroType().getType() );
-  }
 }
