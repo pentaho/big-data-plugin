@@ -9,10 +9,14 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <passing_through_fields>N</passing_through_fields>
-    <filename>SampleFileName</filename>
-    <useStreamField>Y</useStreamField>
-    <stream_fieldname>StreamFieldName</stream_fieldname>
+     <passing_through_fields>N</passing_through_fields>
+     <dataLocation>SampleFileName</dataLocation>
+     <dataLocationType>0</dataLocationType>
+     <schemaLocation>SampleSchemaFileName</schemaLocation>
+     <schemaLocationType>0</schemaLocationType>
+     <isCacheSchemas>N</isCacheSchemas>
+     <isDataBinaryEncoded>Y</isDataBinaryEncoded>
+     <allowNullForMissingFields>Y</allowNullForMissingFields>
     <fields>
       <field>
         <path>SamplePath</path>

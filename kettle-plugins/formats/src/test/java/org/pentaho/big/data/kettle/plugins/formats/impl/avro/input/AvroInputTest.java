@@ -32,6 +32,7 @@ import org.mockito.stubbing.Answer;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -111,8 +112,7 @@ public class AvroInputTest {
     setInputRows();
     setAvroRows();
     avroInputMeta = new AvroInputMeta( mockNamedClusterServiceLocator, mockNamedClusterService );
-    avroInputMeta.setUseFieldAsInputStream( true );
-    avroInputMeta.setInputStreamFieldName( INPUT_STREAM_FIELD_NAME );
+    avroInputMeta.setDataLocation( INPUT_STREAM_FIELD_NAME, AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
     when( mockPentahoAvroInputFormat.getInputStreamFieldName() ).thenReturn( INPUT_STREAM_FIELD_NAME );
 
     avroInputMeta.setParentStepMeta( mockStepMeta );
