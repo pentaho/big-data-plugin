@@ -91,6 +91,9 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           }
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+          data.input.setOutputRowMeta( outRowMeta );
+          meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
+
           if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME) {
             data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
           } else if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME) {
