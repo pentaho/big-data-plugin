@@ -134,16 +134,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     List<? extends IAvroInputField> defaultFields = null;
     try {
-      if ( schemaFileName != null && !schemaFileName.isEmpty() ) {
-        defaultFields =
-          AvroInput.getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName,
-            avroFileName );
-      } else {
-        defaultFields =
-          AvroInput.getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName,
-            avroFileName );
-      }
-
+      defaultFields = AvroInput.getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
       if ( defaultFields != null ) {
         wInputFields.clearAll();
         for ( IAvroInputField field : defaultFields ) {
