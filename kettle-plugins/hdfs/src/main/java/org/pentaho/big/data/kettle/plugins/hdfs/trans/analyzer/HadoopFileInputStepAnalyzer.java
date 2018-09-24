@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans.analyzer;
 import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputMeta;
 import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.MetaverseAnalyzerException;
+import org.pentaho.metaverse.api.analyzer.kettle.step.IClonableStepAnalyzer;
 
 public class HadoopFileInputStepAnalyzer extends HadoopBaseStepAnalyzer<HadoopFileInputMeta> {
 
@@ -85,5 +86,10 @@ public class HadoopFileInputStepAnalyzer extends HadoopBaseStepAnalyzer<HadoopFi
     rootNode.setProperty( "dateFormatLenient", meta.content.dateFormatLenient );
     rootNode.setProperty( "dateFormatLocale", meta.content.dateFormatLocale );
     rootNode.setProperty( "addFilenamesToResult", meta.inputFiles.isaddresult );
+  }
+
+  @Override
+  public IClonableStepAnalyzer newInstance() {
+    return new HadoopFileInputStepAnalyzer();
   }
 }
