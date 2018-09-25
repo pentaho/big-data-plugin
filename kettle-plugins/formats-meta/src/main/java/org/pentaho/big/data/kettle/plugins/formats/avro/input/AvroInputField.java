@@ -23,7 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import org.pentaho.big.data.kettle.plugins.formats.BaseFormatInputField;
-
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -49,12 +48,16 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
   protected String m_resolvedFieldName;
   //protected String m_resolvedDefaultValue;
 
-  /** Index of this field in the incoming row stream */
+  /**
+   * Index of this field in the incoming row stream
+   */
   //private int m_inputIndex = -1;
 
   private String indexedValues;
   protected ValueMetaInterface m_fieldVM;
-  /** The name of the variable to hold this field's values */
+  /**
+   * The name of the variable to hold this field's values
+   */
   public String m_variableName = "";
 
   private ValueMeta tempValueMeta;
@@ -114,7 +117,7 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     this.indexedValues = indexedValues;
   }
 
-////////////////////  End added methods / variables ///////////////////////////////
+  ////////////////////  End added methods / variables ///////////////////////////////
 
   @Override
   public String getAvroFieldName() {

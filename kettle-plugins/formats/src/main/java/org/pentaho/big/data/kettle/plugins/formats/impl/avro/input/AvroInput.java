@@ -54,7 +54,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
   public AvroInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                    Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -71,7 +71,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           try {
             formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
             inputToStepRow = getRow();
-            if ( inputToStepRow == null && ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
+            if ( inputToStepRow == null && ( meta.getDataLocationType()
+              == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
               fileFinishedHousekeeping();
               break; //We have processed all rows streaming in
             }
@@ -93,31 +94,39 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
           data.input.setOutputRowMeta( outRowMeta );
-          meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
-          data.input.setInputFields( Arrays.asList(meta.getInputFields()) );
+          data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
+          data.input.setIsDataBinaryEncoded( meta.isDataBinaryEncoded() );
 
-          if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME) {
-            data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
-          } else if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME) {
+          if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
+            meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
+            data.input.setInputFile(
+              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
+            data.input.setInputStreamFieldName( null );
+          } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
             data.input.setInputStreamFieldName( meta.getDataLocation() );
             int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
             if ( fieldIndex == -1 ) {
               throw new KettleException(
                 "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
             }
-            data.input.setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+            data.input
+              .setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
           } else {
             throw new KettleException( "Unknown field location type" );
           }
-          if (meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME) {
-            data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
+          if ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
+            data.input.setInputSchemaFile(
+              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
           } else {
             // Need to handle schema coming from field.
           }
 
+          data.input.setIncomingFields( inputToStepRow );
           data.reader = data.input.createRecordReader( null );
           data.rowIterator = data.reader.iterator();
         }
+
+
         if ( data.rowIterator.hasNext() ) {
           RowMetaAndData row = data.rowIterator.next();
 

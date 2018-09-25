@@ -22,12 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.UriParser;
@@ -89,6 +83,12 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
   implements StepDialogInterface {
@@ -265,9 +265,8 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
    * Fill meta object from UI options.
    *
    * @param meta    meta object
-   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview
-   *               - EOL
-   *                chars. It uses as "mixed" for be able to preview any file.
+   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview -
+   *                EOL chars. It uses as "mixed" for be able to preview any file.
    */
   protected abstract void getInfo( T meta, boolean preview );
 
@@ -325,7 +324,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     Label wicon = new Label( shell, SWT.RIGHT );
     String stepId = meta.getParentStepMeta().getStepID();
     wicon.setImage( GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
-        ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
+      ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
     FormData fdlicon = new FormData();
     fdlicon.top = new FormAttachment( 0, 0 );
     fdlicon.right = new FormAttachment( 100, 0 );
@@ -760,10 +759,14 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     wbGetDataFromField.addSelectionListener( fileSettingRadioSelectionAdapter );
 
     //Set widgets from Meta
-    wbGetDataFromFile.setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
-    wbGetDataFromField.setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+    wbGetDataFromFile
+      .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+    wbGetDataFromField
+      .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     fileSettingRadioSelectionAdapter.widgetSelected( null );
-    wFieldNameCombo.setText( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? "" : avroBaseMeta.getDataLocation() );
+    wFieldNameCombo.setText(
+      avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? "" :
+        avroBaseMeta.getDataLocation() );
 
     // Create file encoding Drop Down
     Label encodingLabel = new Label( wTabComposite, SWT.NONE );
@@ -771,7 +774,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     new FD( encodingLabel ).top( wFileSettingsGroup, 10 ).left( 0, MARGIN ).apply();
 
     encodingCombo = new CCombo( wTabComposite, SWT.BORDER | SWT.READ_ONLY );
-    String[] availFormats = {"Binary", "JSON"};
+    String[] availFormats = { "Binary", "JSON" };
     encodingCombo.setItems( availFormats );
     encodingCombo.select( 0 );
     new FD( encodingCombo ).top( encodingLabel, 5 ).left( 0, MARGIN ).right( 0, MARGIN + 100 ).apply();

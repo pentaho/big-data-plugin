@@ -21,30 +21,6 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,6 +44,27 @@ import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class AvroInputMetaBaseTest {
@@ -104,13 +101,15 @@ public class AvroInputMetaBaseTest {
       public StepDataInterface getStepData() {
         return null;
       }
+
       @Override
-      public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans ) {
+      public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
+                                    TransMeta transMeta, Trans trans ) {
         return null;
       }
     } );
 
-    NamedClusterEmbedManager  manager = mock( NamedClusterEmbedManager.class );
+    NamedClusterEmbedManager manager = mock( NamedClusterEmbedManager.class );
 
     TransMeta parentTransMeta = mock( TransMeta.class );
     doReturn( manager ).when( parentTransMeta ).getNamedClusterEmbedManager();
@@ -168,15 +167,18 @@ public class AvroInputMetaBaseTest {
   }
 
   @Test
-  public void testLoadXML() throws KettleException, URISyntaxException, SAXException, IOException, ParserConfigurationException {
-    URL resource =  getClass().getClassLoader().getResource( getClass().getPackage().getName().replace( ".", "/" ) + "/AvroInput.xml" );
+  public void testLoadXML()
+    throws KettleException, URISyntaxException, SAXException, IOException, ParserConfigurationException {
+    URL resource = getClass().getClassLoader()
+      .getResource( getClass().getPackage().getName().replace( ".", "/" ) + "/AvroInput.xml" );
     Path path = Paths.get( resource.toURI() );
-    Node node =  DocumentBuilderFactory.newInstance().newDocumentBuilder().parse( Files.newInputStream( path ) ).getDocumentElement();
+    Node node = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse( Files.newInputStream( path ) )
+      .getDocumentElement();
     meta.loadXML( node, databases, metaStore );
     assertEquals( "SampleFileName", meta.getDataLocation() );
     assertEquals( "SampleSchemaFileName", meta.getSchemaLocation() );
 
-    AvroInputField field  = meta.getInputFields()[0];
+    AvroInputField field = meta.getInputFields()[ 0 ];
     assertEquals( "SampleName", field.getPentahoFieldName() );
     assertEquals( "SamplePath", field.getAvroFieldName() );
     assertEquals( "string", field.getAvroType().getType() );
