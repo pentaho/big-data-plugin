@@ -1,4 +1,4 @@
-package org.pentaho.big.data.kettle.plugins.hbase;
+package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
@@ -18,19 +18,16 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
   private String columnFamily;
   private String mappingName;
   private String tableName;
-  private String hBaseType;
   private boolean isLongOrDouble = true;
 
-  public AELHBaseValueMetaImpl( boolean isKey, String alias, String columnName, String columnFamily, String mappingName, String tableName, String hBaseType ) {
+  public AELHBaseValueMetaImpl( boolean isKey, String alias, String columnName, String columnFamily, String mappingName, String tableName ) {
     super( alias );
-    setType( getHBaseTypeFromString( hBaseType ) );
     this.isKey = isKey;
     this.alias = alias;
     this.columnName = columnName;
     this.columnFamily = columnFamily;
     this.mappingName = mappingName;
     this.tableName = tableName;
-    this.hBaseType = hBaseType;
   }
 
   @Override
@@ -161,7 +158,6 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
     this.isLongOrDouble = ld;
   }
 
-  //TODO: add format
   @Override
   public void getXml( StringBuilder retval ) {
     String format = getConversionMask();
@@ -180,37 +176,5 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
   @Override
   public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step, int count ) throws KettleException {
     //noop in AEL
-  }
-
-  /**
-   * TODO: look at utility methods from shim
-   */
-  private int getHBaseTypeFromString( String hBaseType ) {
-
-    if ( hBaseType.equalsIgnoreCase( "Integer" ) ) {
-      setIsLongOrDouble( false );
-      return ValueMeta.getType( hBaseType );
-    }
-    if ( hBaseType.equalsIgnoreCase( "Long" ) ) {
-      setIsLongOrDouble( true );
-      return ValueMeta.getType( "Integer" );
-    }
-    if ( hBaseType.equals( "Float" ) ) {
-      setIsLongOrDouble( false );
-      return ValueMeta.getType( "Number" );
-    }
-    if ( hBaseType.equals( "Double" ) ) {
-      setIsLongOrDouble( true );
-      return ValueMeta.getType( "Number" );
-    }
-
-    // default
-    int type = ValueMeta.getType( hBaseType );
-    if ( type == ValueMetaInterface.TYPE_NONE ) {
-      throw new IllegalArgumentException( BaseMessages.getString( PKG,
-          "HBaseValueMeta.Error.UnknownType", hBaseType ) );
-    }
-
-    return type;
   }
 }

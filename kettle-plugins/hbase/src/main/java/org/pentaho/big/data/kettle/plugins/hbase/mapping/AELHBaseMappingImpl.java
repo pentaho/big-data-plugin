@@ -1,5 +1,6 @@
-package org.pentaho.big.data.kettle.plugins.hbase;
+package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
+import org.pentaho.big.data.kettle.plugins.hbase.input.AELHBaseValueMetaImpl;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.di.core.Const;
@@ -10,10 +11,12 @@ import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.w3c.dom.Node;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AELHBaseMappingImpl implements Mapping {
+public class AELHBaseMappingImpl implements Mapping, Serializable {
+  private static final long serialVersionUID = 1L;
 
   private String tableName;
   private String mappingName;
@@ -25,24 +28,6 @@ public class AELHBaseMappingImpl implements Mapping {
 
   public AELHBaseMappingImpl() {
   }
-
-//  public AELHBaseMappingImpl( String tableName, String mappingName, String keyName, String keyTypeAsString, Map<String, HBaseValueMetaInterface> mappedColumns ){
-//    this.tableName = tableName;
-//    this.mappingName = mappingName;
-//    this.keyName = keyName;
-//    this.keyTypeAsString = keyTypeAsString;
-//    //this.keyType = KeyType.valueOf( keyTypeAsString );
-//    this.numMappedColumns = mappedColumns.size();
-//    this.mappedColumns = mappedColumns;
-//  }
-//
-//  public AELHBaseMappingImpl( String tableName, Mapping rawMapping, Map<String, HBaseValueMetaInterface> mappedColumns ) {
-//    this.tableName = tableName;
-//    this.keyName = rawMapping.getKeyName();
-//    this.keyTypeAsString = rawMapping.getKeyType().toString();
-//    this.numMappedColumns = mappedColumns.size();
-//    this.mappedColumns = mappedColumns;
-//  }
 
   @Override
   public String addMappedColumn( HBaseValueMetaInterface hBaseValueMetaInterface, boolean b ) throws Exception {
@@ -148,49 +133,37 @@ public class AELHBaseMappingImpl implements Mapping {
 
   @Override
   public String getXML() {
-    StringBuffer retval = new StringBuffer();
-
     if ( Const.isEmpty( getKeyName() ) ) {
       return ""; // nothing defined
     }
 
-    retval.append( "\n     " ).append( XMLHandler.openTag( "mapping" ) );
-    retval.append( "\n      " ).append(
-        XMLHandler.addTagValue( "mapping_name", getMappingName() ) );
-    retval.append( "\n      " ).append(
-        XMLHandler.addTagValue( "table_name", getTableName() ) );
+    String retString = "";
 
-    retval.append( "\n      " ).append( XMLHandler.addTagValue( "key", getKeyName() ) );
-    retval.append( "\n      " ).append(
-        XMLHandler.addTagValue( "key_type", getKeyType().toString() ) );
-
+    retString += XMLHandler.openTag( "mapping" );
+    retString += XMLHandler.addTagValue( "mapping_name", getMappingName() );
+    retString += XMLHandler.addTagValue( "table_name", getTableName() );
+    retString += XMLHandler.addTagValue( "key", getKeyName() );
+    retString += XMLHandler.addTagValue( "key_type", getKeyType().toString() );
     if ( mappedColumns.size() > 0 ) {
-      retval.append( "\n        " ).append( XMLHandler.openTag( "mapped_columns" ) );
+      retString += XMLHandler.openTag( "mapped_columns" );
 
       for ( String alias : mappedColumns.keySet() ) {
         HBaseValueMetaInterface vm = mappedColumns.get( alias );
 
-        retval.append( "\n        " ).append( XMLHandler.openTag( "mapped_column" ) );
-
-        retval.append( "\n          " ).append(
-            XMLHandler.addTagValue( "alias", alias ) );
-        retval.append( "\n          " ).append(
-            XMLHandler.addTagValue( "column_family", vm.getColumnFamily() ) );
-        retval.append( "\n          " ).append(
-            XMLHandler.addTagValue( "column_name", vm.getColumnName() ) );
-        retval.append( "\n          " ).append(
-            XMLHandler.addTagValue( "type",
-                vm.getHBaseTypeDesc() ) );
+        retString += XMLHandler.openTag( "mapped_column" );
+        retString += XMLHandler.addTagValue( "alias", alias );
+        retString += XMLHandler.addTagValue( "column_family", vm.getColumnFamily() );
+        retString += XMLHandler.addTagValue( "column_name", vm.getColumnName() );
+        retString += XMLHandler.addTagValue( "type", vm.getHBaseTypeDesc() );
+        retString += XMLHandler.closeTag( "mapped_column" );
       }
 
-      retval.append( "\n        " )
-          .append( XMLHandler.closeTag( "mapped_column" ) );
+      retString += XMLHandler.closeTag( "mapped_columns" );
     }
-    retval.append( "\n        " ).append( XMLHandler.closeTag( "mapped_columns" ) );
 
-    retval.append( "\n     " ).append( XMLHandler.closeTag( "mapping" ) );
+    retString += XMLHandler.closeTag( "mapping" );
 
-    return retval.toString();
+    return retString;
   }
 
   @Override
@@ -246,15 +219,8 @@ public class AELHBaseMappingImpl implements Mapping {
         }
         String type = XMLHandler.getTagValue( fieldNode, "type" );
 
-        AELHBaseValueMetaImpl vm = new AELHBaseValueMetaImpl( false, alias, colName, colFam, getMappingName(), getTableName(), type );
+        AELHBaseValueMetaImpl vm = new AELHBaseValueMetaImpl( false, alias, colName, colFam, getMappingName(), getTableName() );
         vm.setHBaseTypeFromString( type );
-
-//        String indexedV = XMLHandler.getTagValue( fieldNode, "indexed_vals" );
-//        if ( !Const.isEmpty( indexedV ) ) {
-//          Object[] nomVals = AELHBaseValueMetaImpl.stringIndexListToObjects( indexedV );
-//          hbvm.setIndex( nomVals );
-//          hbvm.setStorageType( ValueMetaInterface.STORAGE_TYPE_INDEXED );
-//        }
 
         try {
           addMappedColumn( vm, isTupleMapping() );

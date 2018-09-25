@@ -28,6 +28,7 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.hbase.*;
+import org.pentaho.big.data.kettle.plugins.hbase.mapping.AELHBaseMappingImpl;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
@@ -638,7 +639,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       if ( tempMapping.loadXML( stepnode ) ) {
         m_mapping = tempMapping;
       } else {
-        throw new RuntimeException( "There is no meta data to inflate meta object" );
+        getLog().logError( "There is no meta data to inflate meta object" );
       }
 
       Node fields = XMLHandler.getSubNode( stepnode, "output_fields" );
@@ -651,7 +652,6 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
           m_outputFields.add( createFromNode( XMLHandler.getSubNodeByNr( fields, "field", i ) ) );
         }
       }
-      //TODO: else - load from mappings
     }
   }
 
@@ -674,8 +674,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     String tableName = XMLHandler.getTagValue( fieldNode, "table_name" );
     String mappingName = XMLHandler.getTagValue( fieldNode, "mapping_name" );
 
-    AELHBaseValueMetaImpl vm = new AELHBaseValueMetaImpl( isKey.equalsIgnoreCase( "Y" ), alias, columnName, columnFamily, tableName, mappingName, typeS );
-
+    AELHBaseValueMetaImpl vm = new AELHBaseValueMetaImpl( isKey.equalsIgnoreCase( "Y" ), alias, columnName, columnFamily, tableName, mappingName );
+    vm.setHBaseTypeFromString( typeS );
     return vm;
   }
 
