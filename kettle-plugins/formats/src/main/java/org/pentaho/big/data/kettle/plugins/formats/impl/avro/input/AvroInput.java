@@ -93,11 +93,13 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
           data.input.setOutputRowMeta( outRowMeta );
-          meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
           data.input.setInputFields( Arrays.asList(meta.getInputFields()) );
+          data.input.setIsDataBinaryEncoded( meta.isDataBinaryEncoded() );
 
           if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME) {
+            meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
             data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
+            data.input.setInputStreamFieldName( null );
           } else if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME) {
             data.input.setInputStreamFieldName( meta.getDataLocation() );
             int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
@@ -115,9 +117,12 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
             // Need to handle schema coming from field.
           }
 
+          data.input.setIncomingFields( inputToStepRow );
           data.reader = data.input.createRecordReader( null );
           data.rowIterator = data.reader.iterator();
         }
+
+
         if ( data.rowIterator.hasNext() ) {
           RowMetaAndData row = data.rowIterator.next();
 
