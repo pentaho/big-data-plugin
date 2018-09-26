@@ -116,16 +116,27 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
     return ValueMeta.getTypeDesc( getType() );
   }
 
-  //TODO: pull from HBaseValueMetaInterfaceImpl - Expand for other types
   @Override
   public Object decodeColumnValue( byte[] rawColValue ) throws KettleException {
     return Bytes.toString( rawColValue );
   }
 
-  //TODO: expand types
   @Override
   public byte[] encodeColumnValue( Object columnValue, ValueMetaInterface colMeta ) throws KettleException {
-    return Bytes.toBytes( colMeta.getString( columnValue ) );
+    byte[] encoded = null;
+    switch ( colMeta.getType() ){
+      case TYPE_NUMBER:
+        Double d = colMeta.getNumber( columnValue );
+        encoded = Bytes.toBytes( d.floatValue() );
+        break;
+      case TYPE_INTEGER:
+        Long l = colMeta.getInteger( columnValue );
+        encoded = Bytes.toBytes( l );
+        break;
+      default:
+        encoded = Bytes.toBytes( colMeta.getString( columnValue ) );
+    }
+    return encoded;
   }
 
   @Override
