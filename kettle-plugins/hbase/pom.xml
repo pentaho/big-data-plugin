@@ -16,7 +16,6 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
     <easymock.versin>3.0</easymock.versin>
-    <hbase.version>1.1.1</hbase.version>
   </properties>
   <dependencies>
     <dependency>
@@ -48,6 +47,12 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.adaptive</groupId>
+      <artifactId>pdi-spark-hbase</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -121,12 +126,6 @@
       <artifactId>easymock</artifactId>
       <version>${easymock.versin}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-client</artifactId>
-      <version>${hbase.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
