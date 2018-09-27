@@ -73,7 +73,7 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
 
   @Test
   public void testGetResourceOutputNodeType() throws Exception {
-    assertEquals( DictionaryConst.NODE_TYPE_HDFS_FIELD, analyzer.getResourceOutputNodeType() );
+    assertEquals( DictionaryConst.NODE_TYPE_FILE_FIELD, analyzer.getResourceOutputNodeType() );
   }
 
   @Test
@@ -104,6 +104,6 @@ public abstract class HadoopBaseStepAnalyzerTest<A extends HadoopBaseStepAnalyze
     when( hMeta.getUrlHostName( filePath ) ).thenReturn( hostName );
     resourceNode = analyzer.createResourceNode( getMetaMock(), remoteResource );
     assertNotNull( resourceNode );
-    assertEquals( DictionaryConst.NODE_TYPE_HDFS_FILE, resourceNode.getType() );
+    assertEquals( DictionaryConst.NODE_TYPE_FILE, resourceNode.getType() );
   }
 }
