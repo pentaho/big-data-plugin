@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans.analyzer;
 import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta;
 import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.MetaverseAnalyzerException;
+import org.pentaho.metaverse.api.analyzer.kettle.step.IClonableStepAnalyzer;
 
 public class HadoopFileOutputStepAnalyzer extends HadoopBaseStepAnalyzer<HadoopFileOutputMeta> {
 
@@ -72,5 +73,10 @@ public class HadoopFileOutputStepAnalyzer extends HadoopBaseStepAnalyzer<HadoopF
     rootNode.setProperty( "fastDataDump", meta.isFastDump() );
     rootNode.setProperty( "splitEveryRows", meta.getSplitEvery() );
     rootNode.setProperty( "endingLine", meta.getEndedLine() );
+  }
+
+  @Override
+  public IClonableStepAnalyzer newInstance() {
+    return new HadoopFileOutputStepAnalyzer();
   }
 }
