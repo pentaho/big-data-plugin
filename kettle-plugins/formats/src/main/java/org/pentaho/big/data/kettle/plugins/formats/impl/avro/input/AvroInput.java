@@ -44,6 +44,7 @@ import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
@@ -93,6 +94,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
           data.input.setOutputRowMeta( outRowMeta );
           meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
+          data.input.setInputFields( Arrays.asList(meta.getInputFields()) );
 
           if (meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME) {
             data.input.setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
@@ -163,15 +165,6 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   protected IBaseFileInputReader createReader( AvroInputMeta meta, AvroInputData data, FileObject file )
     throws Exception {
     return null;
-  }
-
-  public static List<? extends IAvroInputField> getDefaultFields( NamedClusterServiceLocator namedClusterServiceLocator,
-                                                                   NamedCluster namedCluster, String schemaPath, String dataPath ) throws Exception {
-    FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
-    IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-    in.setInputSchemaFile( schemaPath );
-    in.setInputFile( dataPath );
-    return in.getFields();
   }
 
   public static List<? extends IAvroInputField> getLeafFields( NamedClusterServiceLocator namedClusterServiceLocator,
