@@ -31,6 +31,7 @@ import org.pentaho.big.data.kettle.plugins.hbase.LogInjector;
 import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
+import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseMappingImpl;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.bigdata.api.hbase.mapping.MappingFactory;
