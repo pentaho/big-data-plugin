@@ -371,7 +371,7 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
      * a missing HBaseService.  Try loading
      * from KTR
      */
-    if( tempMapping == null ) {
+    if ( tempMapping == null ) {
       tempMapping = new AELHBaseMappingImpl();
     }
 
