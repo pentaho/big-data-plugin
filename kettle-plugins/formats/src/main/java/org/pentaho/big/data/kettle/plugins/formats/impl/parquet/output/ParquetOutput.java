@@ -104,7 +104,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       throw new KettleException( "No output files defined" );
     }
 
-    data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class );
+    data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class, meta.getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName, getTransMeta() );
