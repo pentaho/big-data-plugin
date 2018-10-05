@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -45,6 +45,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   public static final String SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE =
     "Spoon.Dialog.ErrorSavingNamedCluster.Message";
   public static Class<?> PKG = HadoopClusterDelegateImpl.class; // for i18n purposes, needed by Translator2!!
+  public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "NamedClusterDialog.HadoopClusters" );
 
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -83,7 +84,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
 
       if ( newname != null ) { // null: CANCEL
         saveNamedCluster( metaStore, ncCopy );
-        spoon.refreshTree();
+        spoon.refreshTree( STRING_NAMED_CLUSTERS );
       }
     }
   }
@@ -93,7 +94,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       metaStore = spoon.getMetaStore();
     }
     deleteNamedCluster( metaStore, namedCluster );
-    spoon.refreshTree();
+    spoon.refreshTree( STRING_NAMED_CLUSTERS );
     spoon.setShellText();
   }
 
@@ -108,7 +109,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     if ( result != null ) {
       deleteNamedCluster( metaStore, namedCluster );
       saveNamedCluster( metaStore, namedClusterDialogImpl.getNamedCluster() );
-      spoon.refreshTree();
+      spoon.refreshTree( STRING_NAMED_CLUSTERS );
       if ( namedClusterDialogImpl.getNamedCluster() != null ) {
         return namedClusterDialogImpl.getNamedCluster().getName();
       }
@@ -136,7 +137,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       }
 
       saveNamedCluster( metaStore, nc );
-      spoon.refreshTree();
+      spoon.refreshTree( STRING_NAMED_CLUSTERS );
       return nc.getName();
     }
     return null;
