@@ -35,7 +35,6 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 
