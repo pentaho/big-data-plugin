@@ -24,11 +24,15 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.meta;
 
+import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.exception.KettleException;
+
+import java.math.BigDecimal;
 
 @RunWith( MockitoJUnitRunner.class )
 public class AELHBaseValueMetaTest {
@@ -68,6 +72,112 @@ public class AELHBaseValueMetaTest {
     String stubType = stubValueMeta.getHBaseTypeDesc();
 
     Assert.assertEquals( "Float", stubType );
+  }
+
+  @Test
+  public void decodeNullBytesTest() throws KettleException {
+    Object shouldBeNull = stubValueMeta.decodeColumnValue( null );
+
+    Assert.assertNull( shouldBeNull );
+  }
+
+  @Test
+  public void decodeStringIntoBytes() throws KettleException {
+    stubValueMeta.setType( 2 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( "stubString" ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeNumberIntoBytes() throws KettleException {
+    stubValueMeta.setType( 1 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 2.2 ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeIntegerIntoBytes() throws KettleException {
+    stubValueMeta.setType( 5 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1 ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBigNumberIntoBytes() throws KettleException {
+    stubValueMeta.setType( 6 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes(  "9.9999999" ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeNullBytesTest() throws KettleException {
+    Object shouldBeNull = stubValueMeta.encodeColumnValue( null, stubValueMeta );
+
+    Assert.assertNull( shouldBeNull );
+  }
+
+  @Test
+  public void encodeStringIntoBytes() throws KettleException {
+    stubValueMeta.setType( 2 );
+    Object str = stubValueMeta.encodeColumnValue( "stubString", stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeNumberIntoBytes() throws KettleException {
+    stubValueMeta.setType( 1 );
+    Object str = stubValueMeta.encodeColumnValue(2.2, stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeIntegerIntoBytes() throws KettleException {
+    stubValueMeta.setType( 5 );
+    Object str = stubValueMeta.encodeColumnValue(1L, stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeBigNumberIntoBytes() throws KettleException {
+    stubValueMeta.setType( 6 );
+    Object str = stubValueMeta.encodeColumnValue( new BigDecimal(  9.9999999 ), stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void integerIsNotLongOrDoubleTest() {
+    stubValueMeta.setHBaseTypeFromString( "Integer" );
+
+    Assert.assertFalse( stubValueMeta.getIsLongOrDouble() );
+  }
+
+  @Test
+  public void longIsLongOrDouble() {
+    stubValueMeta.setHBaseTypeFromString( "Long" );
+
+    Assert.assertTrue( stubValueMeta.getIsLongOrDouble() );
+  }
+
+  @Test
+  public void floatIsNotLongOrDouble() {
+    stubValueMeta.setHBaseTypeFromString( "Float" );
+
+    Assert.assertFalse( stubValueMeta.getIsLongOrDouble() );
+  }
+
+  @Test
+  public void doubleIsLongOrDouble() {
+    stubValueMeta.setHBaseTypeFromString( "Double" );
+
+    Assert.assertTrue( stubValueMeta.getIsLongOrDouble() );
   }
 }
 

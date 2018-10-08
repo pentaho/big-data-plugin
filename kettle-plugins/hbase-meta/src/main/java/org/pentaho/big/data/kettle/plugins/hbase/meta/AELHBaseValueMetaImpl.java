@@ -35,6 +35,9 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
 public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMetaInterface {
   private boolean isKey;
   private String alias;
@@ -142,23 +145,145 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
 
   @Override
   public Object decodeColumnValue( byte[] rawColValue ) throws KettleException {
-    return Bytes.toString( rawColValue );
+    // just return null if this column doesn't have a value for the row
+    if ( rawColValue == null ) {
+      return null;
+    }
+
+    if ( isString() ) {
+      String convertedString = Bytes.toString( rawColValue );
+      if ( getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED ) {
+        // need to return the integer index of this value
+        Object[] legalVals = getIndex();
+        int foundIndex = -1;
+        for ( int i = 0; i < legalVals.length; i++ ) {
+          if ( legalVals[ i ].toString().trim().equals( convertedString.trim() ) ) {
+            foundIndex = i;
+            break;
+          }
+        }
+        if ( foundIndex >= 0 ) {
+          return new Integer( foundIndex );
+        }
+        throw new KettleException( BaseMessages.getString( PKG,
+            "HBaseValueMeta.Error.IllegalIndexedColumnValue", convertedString,
+            getAlias() ) );
+      } else {
+        return convertedString;
+      }
+    }
+
+    if ( isNumber() ) {
+      if ( rawColValue.length == Bytes.SIZEOF_FLOAT ) {
+        float floatResult = Bytes.toFloat( rawColValue );
+        return new Double( floatResult );
+      }
+
+      if ( rawColValue.length == Bytes.SIZEOF_DOUBLE ) {
+        return new Double( Bytes.toDouble( rawColValue ) );
+      }
+    }
+
+    if ( isInteger() ) {
+      if ( rawColValue.length == Bytes.SIZEOF_INT ) {
+        int intResult = Bytes.toInt( rawColValue );
+        return new Long( intResult );
+      }
+
+      if ( rawColValue.length == Bytes.SIZEOF_LONG ) {
+        return new Long( Bytes.toLong( rawColValue ) );
+      }
+      if ( rawColValue.length == Bytes.SIZEOF_SHORT ) {
+        // be lenient on reading from HBase - accept and convert shorts
+        // even though our mapping defines only longs and integers
+        // TODO add short to the types that can be mapped?
+        short tempShort = Bytes.toShort( rawColValue );
+        return new Long( tempShort );
+      }
+
+      throw new KettleException( BaseMessages.getString( PKG,
+          "HBaseValueMeta.Error.IllegalIntegerLength" ) );
+
+    }
+
+    if ( isBigNumber() ) {
+      String temp = Bytes.toString( rawColValue );
+
+      BigDecimal result = new BigDecimal( temp );
+      //BigDecimal result = decodeBigDecimal( rawColValue, bytesUtil );
+
+      if ( result == null ) {
+        throw new KettleException( BaseMessages.getString( PKG,
+            "HBaseValueMeta.Error.UnableToDecodeBigDecimal" ) );
+      }
+
+      return result;
+    }
+
+    if ( isBinary() ) {
+      // just return the raw array of bytes
+      return rawColValue;
+    }
+
+    if ( isDate() ) {
+      if ( rawColValue.length != Bytes.SIZEOF_LONG ) {
+        throw new KettleException( BaseMessages.getString( PKG,
+            "HBaseValueMeta.Error.DateValueLengthNotEqualToLong" ) );
+      }
+      long millis = Bytes.toLong( rawColValue );
+      Date d = new Date( millis );
+      return d;
+    }
+
+    throw new KettleException( BaseMessages.getString( PKG,
+        "HBaseValueMeta.Error.UnknownTypeForColumn" ) );
   }
 
   @Override
   public byte[] encodeColumnValue( Object columnValue, ValueMetaInterface colMeta ) throws KettleException {
+    if ( columnValue == null ) {
+      return null;
+    }
+
     byte[] encoded = null;
     switch ( colMeta.getType() ) {
-      case TYPE_NUMBER:
-        Double d = colMeta.getNumber( columnValue );
-        encoded = Bytes.toBytes( d.floatValue() );
+      case TYPE_STRING:
+        String toEncode = colMeta.getString( columnValue );
+        encoded = Bytes.toBytes( toEncode );
         break;
       case TYPE_INTEGER:
         Long l = colMeta.getInteger( columnValue );
-        encoded = Bytes.toBytes( l );
+        if ( getIsLongOrDouble() ) {
+          encoded = Bytes.toBytes( l.longValue() );
+        } else {
+          encoded = Bytes.toBytes( l.intValue() );
+        }
         break;
-      default:
-        encoded = Bytes.toBytes( colMeta.getString( columnValue ) );
+      case TYPE_NUMBER:
+        Double d = colMeta.getNumber( columnValue );
+        if ( getIsLongOrDouble() ) {
+          encoded = Bytes.toBytes( d.doubleValue() );
+        } else {
+          encoded = Bytes.toBytes( d.floatValue() );
+        }
+        break;
+      case TYPE_DATE:
+        Date date = colMeta.getDate( columnValue );
+        encoded = Bytes.toBytes( date.getTime() );
+        break;
+      case TYPE_BOOLEAN:
+        Boolean b = colMeta.getBoolean( columnValue );
+        String boolString = ( b.booleanValue() ) ? "Y" : "N";
+        encoded = Bytes.toBytes( boolString );
+        break;
+      case TYPE_BIGNUMBER:
+        BigDecimal bd = colMeta.getBigNumber( columnValue );
+        String bds = bd.toString();
+        encoded = Bytes.toBytes( bds );
+        break;
+      case TYPE_BINARY:
+        encoded = colMeta.getBinary( columnValue );
+        break;
     }
     return encoded;
   }
