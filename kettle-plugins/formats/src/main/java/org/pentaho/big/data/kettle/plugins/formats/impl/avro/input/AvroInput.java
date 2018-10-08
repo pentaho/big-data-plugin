@@ -26,9 +26,12 @@ import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -51,7 +54,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
   public AvroInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                    Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -68,37 +71,62 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           try {
             formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
             inputToStepRow = getRow();
-            if ( inputToStepRow == null && meta.isUseFieldAsInputStream() ) {
+            if ( inputToStepRow == null && ( meta.getDataLocationType()
+              == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
               fileFinishedHousekeeping();
               break; //We have processed all rows streaming in
             }
           } catch ( ClusterInitializationException e ) {
             throw new KettleException( "can't get service format shim ", e );
           }
-          if ( meta.getFilename() == null && !meta.isUseFieldAsInputStream() ) {
-            throw new KettleException( "No input files defined" );
+          if ( meta.getDataLocation() == null ) {
+            throw new KettleException( "No data location defined" );
+          }
+
+          // setup the output row meta
+          RowMetaInterface outRowMeta = null;
+          outRowMeta = getInputRowMeta();
+          if ( outRowMeta != null ) {
+            outRowMeta = outRowMeta.clone();
+          } else {
+            outRowMeta = new RowMeta();
           }
 
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-          data.input
-            .setInputFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
-          data.input.setInputSchemaFile(
-            meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaFilename() ) );
+          data.input.setOutputRowMeta( outRowMeta );
           data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
-          if ( meta.isUseFieldAsInputStream() ) {
-            data.input.setInputStreamFieldName( meta.getInputStreamFieldName() );
+          data.input.setIsDataBinaryEncoded( meta.isDataBinaryEncoded() );
+
+          if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
+            meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
+            data.input.setInputFile(
+              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
+            data.input.setInputStreamFieldName( null );
+          } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
+            data.input.setInputStreamFieldName( meta.getDataLocation() );
             int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
             if ( fieldIndex == -1 ) {
               throw new KettleException(
                 "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
             }
-
             data.input
               .setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+          } else {
+            throw new KettleException( "Unknown field location type" );
           }
+          if ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
+            data.input.setInputSchemaFile(
+              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
+          } else {
+            // Need to handle schema coming from field.
+          }
+
+          data.input.setIncomingFields( inputToStepRow );
           data.reader = data.input.createRecordReader( null );
           data.rowIterator = data.reader.iterator();
         }
+
+
         if ( data.rowIterator.hasNext() ) {
           RowMetaAndData row = data.rowIterator.next();
 
@@ -119,7 +147,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
         throw new KettleException( ex );
       }
 
-    } while ( meta.isUseFieldAsInputStream() );
+    } while ( ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) );
 
     setOutputDone();
     return false;
@@ -148,12 +176,13 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     return null;
   }
 
-  public static List<? extends IAvroInputField> getDefaultFields( NamedClusterServiceLocator namedClusterServiceLocator,
-                                                                   NamedCluster namedCluster, String schemaPath, String dataPath ) throws Exception {
+  public static List<? extends IAvroInputField> getLeafFields( NamedClusterServiceLocator namedClusterServiceLocator,
+                                                               NamedCluster namedCluster, String schemaPath,
+                                                               String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class );
     in.setInputSchemaFile( schemaPath );
     in.setInputFile( dataPath );
-    return in.getFields();
+    return in.getLeafFields();
   }
 }
