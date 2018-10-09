@@ -138,9 +138,15 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         for ( IAvroInputField field : defaultFields ) {
           TableItem item = new TableItem( wInputFields.table, SWT.NONE );
           if ( field != null ) {
-            setField( item, field.getDisplayableAvroFieldName(), AVRO_PATH_COLUMN_INDEX );
+            String avroFieldName = field.getDisplayableAvroFieldName();
+            int index = avroFieldName.indexOf( "[" );
+            if ( index > 0 ) {
+              String indexValue = avroFieldName.substring( index + 1, avroFieldName.length() - 1 );
+              avroFieldName = avroFieldName.substring( 0, index ) + "[]";
+              setField( item, indexValue, AVRO_INDEXED_VALUES_COLUMN_INDEX );
+            }
+            setField( item, avroFieldName, AVRO_PATH_COLUMN_INDEX );
             setField( item, field.getAvroType().getName(), AVRO_TYPE_COLUMN_INDEX );
-            setField( item, field.getIndexedValues(), AVRO_INDEXED_VALUES_COLUMN_INDEX );
             setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
             setField( item, ValueMetaFactory.getValueMetaName( field.getPentahoType() ), FIELD_TYPE_COLUMN_INDEX );
             setField( item, field.getStringFormat(), FORMAT_COLUMN_INDEX );
@@ -256,13 +262,13 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     // fields table
     ColumnInfo avroPathColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT,
-        false, false );
+        false, true );
     ColumnInfo avroTypeColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.avro.type" ),
         ColumnInfo.COLUMN_TYPE_TEXT, false, true );
     ColumnInfo avroIndexColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.avro.indexedValues" ),
-        ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     ColumnInfo nameColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT,
         false, false );
@@ -536,13 +542,17 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       }
 
       if ( inputField.getAvroFieldName() != null ) {
-        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
+          String avroFieldName = inputField.getDisplayableAvroFieldName();
+          int index = avroFieldName.indexOf( "[" );
+          if ( index > 0 ) {
+            String indexValue = avroFieldName.substring( index + 1, avroFieldName.length() - 1 );
+            avroFieldName = avroFieldName.substring( 0, index ) + "[]";
+            item.setText( AVRO_INDEXED_VALUES_COLUMN_INDEX, indexValue );
+          }
+          item.setText( AVRO_PATH_COLUMN_INDEX, avroFieldName );
       }
       if ( inputField.getAvroType() != null ) {
         item.setText( AVRO_TYPE_COLUMN_INDEX, inputField.getAvroType().getName() );
-      }
-      if ( inputField.getIndexedValues() != null ) {
-        item.setText( AVRO_INDEXED_VALUES_COLUMN_INDEX, inputField.getIndexedValues() );
       }
       if ( inputField.getPentahoFieldName() != null ) {
         item.setText( FIELD_NAME_COLUMN_INDEX, inputField.getPentahoFieldName() );
@@ -592,9 +602,18 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
-      field.setFormatFieldName( extractFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) ) );
+
+      String avroFieldName = extractFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) );
+      String indexValue = item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX );
+      if ( indexValue.length() > 0 ) {
+        int bracketIndex = avroFieldName.indexOf( '[' );
+        if ( bracketIndex > 0 ) {
+          avroFieldName = avroFieldName.substring( 0, bracketIndex );
+        }
+        avroFieldName += "[" + indexValue + "]";
+      }
+      field.setFormatFieldName( avroFieldName );
       field.setAvroType( item.getText( AVRO_TYPE_COLUMN_INDEX ) );
-      field.setIndexedValues( item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
       field.setPentahoType( ValueMetaFactory.getIdForValueMeta( item.getText( FIELD_TYPE_COLUMN_INDEX ) ) );
       field.setStringFormat( item.getText( FORMAT_COLUMN_INDEX ) );
