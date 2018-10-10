@@ -168,26 +168,26 @@ public abstract class AvroInputMetaBase
 
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
-      String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false" :
-        XMLHandler.getTagValue( stepnode, "passing_through_fields" );
+      String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false"
+        : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
       inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
       dataLocation = XMLHandler.getTagValue( stepnode, "dataLocation" );
       dataLocationType =
-        XMLHandler.getTagValue( stepnode, "dataLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() :
-          Integer.parseInt( XMLHandler.getTagValue( stepnode, "dataLocationType" ) );
+        XMLHandler.getTagValue( stepnode, "dataLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal()
+          : Integer.parseInt( XMLHandler.getTagValue( stepnode, "dataLocationType" ) );
       isDataBinaryEncoded = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) == null ? "false" :
-          XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) );
+        XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) == null ? "false"
+          : XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) );
       schemaLocation = XMLHandler.getTagValue( stepnode, "schemaLocation" );
       schemaLocationType =
-        XMLHandler.getTagValue( stepnode, "schemaLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() :
-          Integer.parseInt( XMLHandler.getTagValue( stepnode, "schemaLocationType" ) );
+        XMLHandler.getTagValue( stepnode, "schemaLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal()
+          : Integer.parseInt( XMLHandler.getTagValue( stepnode, "schemaLocationType" ) );
       isCacheSchemas = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) == null ? "false" :
-          XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) );
+        XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) == null ? "false"
+          : XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) );
       allowNullForMissingFields = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) == null ? "false" :
-          XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) );
+        XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) == null ? "false"
+          : XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) );
 
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
@@ -206,6 +206,10 @@ public abstract class AvroInputMetaBase
         }
         String stringFormat = XMLHandler.getTagValue( fnode, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
+        String indexedValues = XMLHandler.getTagValue( fnode, "indexed_vals" );
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          inputField.setIndexedValues( indexedValues );
+        }
         this.inputFields[ i ] = inputField;
       }
     } catch ( Exception e ) {
@@ -254,6 +258,10 @@ public abstract class AvroInputMetaBase
         if ( field.getStringFormat() != null ) {
           retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
         }
+        String indexedValues = field.getIndexedValues();
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "indexed_vals", indexedValues ) );
+        }
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -293,6 +301,10 @@ public abstract class AvroInputMetaBase
         }
         String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
+        String indexedValues = rep.getStepAttributeString( id_step, i, "indexed_vals" );
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          inputField.setIndexedValues( indexedValues );
+        }
         this.inputFields[ i ] = inputField;
       }
     } catch ( Exception e ) {
@@ -328,6 +340,10 @@ public abstract class AvroInputMetaBase
         }
         if ( field.getStringFormat() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
+        }
+        String indexedValues = field.getIndexedValues();
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "indexed_vals", indexedValues );
         }
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
