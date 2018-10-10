@@ -69,6 +69,7 @@ public abstract class AvroInputMetaBase
   private int schemaLocationType = LocationDescriptor.FILE_NAME.ordinal();
   private boolean isCacheSchemas;
   private boolean allowNullForMissingFields;
+  private int format;
 
   public String getDataLocation() {
     return dataLocation;
@@ -89,6 +90,14 @@ public abstract class AvroInputMetaBase
 
   public void setDataBinaryEncoded( boolean idDataBinaryEncoded ) {
     this.isDataBinaryEncoded = idDataBinaryEncoded;
+  }
+
+  public void setFormat( int formatIndex ) {
+    this.format = formatIndex;
+  }
+
+  public int getFormat() {
+    return this.format;
   }
 
   public String getSchemaLocation() {
@@ -168,26 +177,29 @@ public abstract class AvroInputMetaBase
 
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
-      String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false" :
-        XMLHandler.getTagValue( stepnode, "passing_through_fields" );
+      String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false"
+        : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
       inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
       dataLocation = XMLHandler.getTagValue( stepnode, "dataLocation" );
+      format =
+          XMLHandler.getTagValue( stepnode, "format" ) == null ? LocationDescriptor.FILE_NAME.ordinal()
+            : Integer.parseInt( XMLHandler.getTagValue( stepnode, "format" ) );
       dataLocationType =
-        XMLHandler.getTagValue( stepnode, "dataLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() :
-          Integer.parseInt( XMLHandler.getTagValue( stepnode, "dataLocationType" ) );
+        XMLHandler.getTagValue( stepnode, "dataLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal()
+          : Integer.parseInt( XMLHandler.getTagValue( stepnode, "dataLocationType" ) );
       isDataBinaryEncoded = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) == null ? "false" :
-          XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) );
+        XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) == null ? "false"
+          : XMLHandler.getTagValue( stepnode, "isDataBinaryEncoded" ) );
       schemaLocation = XMLHandler.getTagValue( stepnode, "schemaLocation" );
       schemaLocationType =
-        XMLHandler.getTagValue( stepnode, "schemaLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() :
-          Integer.parseInt( XMLHandler.getTagValue( stepnode, "schemaLocationType" ) );
+        XMLHandler.getTagValue( stepnode, "schemaLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal()
+          : Integer.parseInt( XMLHandler.getTagValue( stepnode, "schemaLocationType" ) );
       isCacheSchemas = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) == null ? "false" :
-          XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) );
+        XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) == null ? "false"
+          : XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) );
       allowNullForMissingFields = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) == null ? "false" :
-          XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) );
+        XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) == null ? "false"
+          : XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) );
 
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
@@ -227,6 +239,7 @@ public abstract class AvroInputMetaBase
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocation", getDataLocation() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "format", getFormat() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocationType", dataLocationType ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "isDataBinaryEncoded", isDataBinaryEncoded() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocation", getSchemaLocation() ) );
@@ -269,6 +282,7 @@ public abstract class AvroInputMetaBase
     try {
       inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
       dataLocation = rep.getStepAttributeString( id_step, "dataLocation" );
+      format = (int) rep.getStepAttributeInteger( id_step, "format" );
       dataLocationType = (int) rep.getStepAttributeInteger( id_step, "dataLocationType" );
       isDataBinaryEncoded = rep.getStepAttributeBoolean( id_step, "isDataBinaryEncoded" );
       schemaLocation = rep.getStepAttributeString( id_step, "schemaLocation" );
@@ -306,6 +320,7 @@ public abstract class AvroInputMetaBase
     try {
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
       rep.saveStepAttribute( id_transformation, id_step, "dataLocation", getDataLocation() );
+      rep.saveStepAttribute( id_transformation, id_step, "format", getFormat() );
       rep.saveStepAttribute( id_transformation, id_step, "dataLocationType", dataLocationType );
       rep.saveStepAttribute( id_transformation, id_step, "isDataBinaryEncoded", isDataBinaryEncoded() );
       rep.saveStepAttribute( id_transformation, id_step, "schemaLocation", getSchemaLocation() );

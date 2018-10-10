@@ -29,14 +29,10 @@ import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.VerifyEvent;
@@ -52,14 +48,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.Const;
@@ -669,115 +663,6 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
         }
       }
     } );
-  }
-
-  /**
-   * Used only for AvroInput at the moment but here because we anticipate using for output as well at a later date.
-   * There is no MetaBase for avro so there is cast in this method to pull the step data into the ui.
-   *
-   * @param wTabFolder
-   */
-  protected void addFileTab( CTabFolder wTabFolder ) {
-    AvroInputMetaBase avroBaseMeta = (AvroInputMetaBase) meta;
-
-    // Create & Set up a new Tab Item
-    CTabItem wTab = new CTabItem( wTabFolder, SWT.NONE );
-    wTab.setText( getBaseMsg( "AvroDialog.File.TabTitle" ) );
-    Composite wTabComposite = new Composite( wTabFolder, SWT.NONE );
-    wTab.setControl( wTabComposite );
-    props.setLook( wTabComposite );
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginHeight = MARGIN;
-    wTabComposite.setLayout( formLayout );
-
-    // Set up the File settings Group
-    Group wFileSettingsGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
-    props.setLook( wFileSettingsGroup );
-    wFileSettingsGroup.setText( getBaseMsg( "AvroDialog.File.FileSettingsTitle" ) );
-
-    FormLayout layout = new FormLayout();
-    layout.marginHeight = MARGIN;
-    layout.marginWidth = MARGIN;
-    wFileSettingsGroup.setLayout( layout );
-    new FD( wFileSettingsGroup ).top( 0, 0 ).right( 100, -MARGIN ).left( 0, MARGIN ).apply();
-
-    int RADIO_BUTTON_WIDTH = 150;
-    Label separator = new Label( wFileSettingsGroup, SWT.SEPARATOR | SWT.VERTICAL );
-    props.setLook( separator );
-    new FD( separator ).left( 0, RADIO_BUTTON_WIDTH ).top( 0, 0 ).bottom( 100, 0 ).apply();
-
-    wbGetDataFromFile = new Button( wFileSettingsGroup, SWT.RADIO );
-    wbGetDataFromFile.setText( getBaseMsg( "AvroDialog.File.SpecifyFileName" ) );
-    props.setLook( wbGetDataFromFile );
-    new FD( wbGetDataFromFile ).left( 0, 0 ).top( 0, 0 ).width( RADIO_BUTTON_WIDTH ).apply();
-
-    wbGetDataFromField = new Button( wFileSettingsGroup, SWT.RADIO );
-    wbGetDataFromField.setText( getBaseMsg( "AvroDialog.File.GetDataFromField" ) );
-    props.setLook( wbGetDataFromField );
-    new FD( wbGetDataFromField ).left( 0, 0 ).top( wbGetDataFromFile, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH ).apply();
-
-    //Make a composite to hold the dynamic right side of the group
-    Composite wFileSettingsDynamicArea = new Composite( wFileSettingsGroup, SWT.NONE );
-    props.setLook( wFileSettingsDynamicArea );
-    FormLayout fileSettingsDynamicAreaLayout = new FormLayout();
-    wFileSettingsDynamicArea.setLayout( fileSettingsDynamicAreaLayout );
-    new FD( wFileSettingsDynamicArea ).right( 100, 0 ).left( wbGetDataFromFile, MARGIN ).top( 0, -MARGIN ).apply();
-
-    //Put the File selection stuff in it
-    wDataFileComposite = new Composite( wFileSettingsDynamicArea, SWT.NONE );
-    FormLayout fileSettingLayout = new FormLayout();
-    wDataFileComposite.setLayout( fileSettingLayout );
-    new FD( wDataFileComposite ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
-    addFileWidgets( wDataFileComposite, wDataFileComposite );
-
-    //Setup StreamingFieldName
-    wDataFieldComposite = new Composite( wFileSettingsDynamicArea, SWT.NONE );
-    props.setLook( wDataFieldComposite );
-    FormLayout fieldNameLayout = new FormLayout();
-    fieldNameLayout.marginHeight = MARGIN;
-    wDataFieldComposite.setLayout( fieldNameLayout );
-    new FD( wDataFieldComposite ).left( 0, 0 ).top( 0, 0 ).apply();
-
-    Label fieldNameLabel = new Label( wDataFieldComposite, SWT.NONE );
-    fieldNameLabel.setText( getBaseMsg( "AvroDialog.FieldName.Label" ) );
-    props.setLook( fieldNameLabel );
-    new FD( fieldNameLabel ).left( 0, 0 ).top( wDataFieldComposite, 0 ).apply();
-    wFieldNameCombo = new ComboVar( transMeta, wDataFieldComposite, SWT.LEFT | SWT.BORDER );
-    updateIncomingFieldList( wFieldNameCombo );
-    new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-      .apply();
-
-    //Setup the radio button event handler
-    SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
-      @Override
-      public void widgetSelected( SelectionEvent e ) {
-        wDataFileComposite.setVisible( !wbGetDataFromField.getSelection() );
-        wDataFieldComposite.setVisible( wbGetDataFromField.getSelection() );
-      }
-    };
-    wbGetDataFromFile.addSelectionListener( fileSettingRadioSelectionAdapter );
-    wbGetDataFromField.addSelectionListener( fileSettingRadioSelectionAdapter );
-
-    //Set widgets from Meta
-    wbGetDataFromFile
-      .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
-    wbGetDataFromField
-      .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
-    fileSettingRadioSelectionAdapter.widgetSelected( null );
-    wFieldNameCombo.setText(
-      avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? "" :
-        avroBaseMeta.getDataLocation() );
-
-    // Create file encoding Drop Down
-    Label encodingLabel = new Label( wTabComposite, SWT.NONE );
-    encodingLabel.setText( getBaseMsg( "AvroDialog.Encoding.Label" ) );
-    new FD( encodingLabel ).top( wFileSettingsGroup, 10 ).left( 0, MARGIN ).apply();
-
-    encodingCombo = new CCombo( wTabComposite, SWT.BORDER | SWT.READ_ONLY );
-    String[] availFormats = { "Binary", "JSON" };
-    encodingCombo.setItems( availFormats );
-    encodingCombo.select( 0 );
-    new FD( encodingCombo ).top( encodingLabel, 5 ).left( 0, MARGIN ).right( 0, MARGIN + 100 ).apply();
   }
 
   protected void updateIncomingFieldList( ComboVar comboVar ) {
