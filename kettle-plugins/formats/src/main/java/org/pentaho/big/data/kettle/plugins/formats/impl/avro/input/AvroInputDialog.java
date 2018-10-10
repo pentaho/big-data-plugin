@@ -74,12 +74,13 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
 
-  private static final int AVRO_PATH_COLUMN_INDEX = 1;
-  private static final int AVRO_TYPE_COLUMN_INDEX = 2;
-  private static final int AVRO_INDEXED_VALUES_COLUMN_INDEX = 3;
-  private static final int FIELD_NAME_COLUMN_INDEX = 4;
-  private static final int FIELD_TYPE_COLUMN_INDEX = 5;
-  private static final int FORMAT_COLUMN_INDEX = 6;
+  private static final int AVRO_ORIGINAL_PATH_COLUMN_INDEX = 1;
+  private static final int AVRO_DISPLAY_PATH_COLUMN_INDEX = 2;
+  private static final int AVRO_TYPE_COLUMN_INDEX = 3;
+  private static final int AVRO_INDEXED_VALUES_COLUMN_INDEX = 4;
+  private static final int FIELD_NAME_COLUMN_INDEX = 5;
+  private static final int FIELD_TYPE_COLUMN_INDEX = 6;
+  private static final int FORMAT_COLUMN_INDEX = 7;
 
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
@@ -138,7 +139,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         for ( IAvroInputField field : defaultFields ) {
           TableItem item = new TableItem( wInputFields.table, SWT.NONE );
           if ( field != null ) {
-            setField( item, field.getDisplayableAvroFieldName(), AVRO_PATH_COLUMN_INDEX );
+            setField( item, field.getDisplayableAvroFieldName(), AVRO_ORIGINAL_PATH_COLUMN_INDEX );
+            setField( item, clearIndexFromFieldName( field.getDisplayableAvroFieldName() ), AVRO_DISPLAY_PATH_COLUMN_INDEX );
             setField( item, field.getAvroType().getName(), AVRO_TYPE_COLUMN_INDEX );
             setField( item, field.getIndexedValues(), AVRO_INDEXED_VALUES_COLUMN_INDEX );
             setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
@@ -254,15 +256,18 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
-    ColumnInfo avroPathColumnInfo =
-      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_TEXT,
-        false, false );
+    ColumnInfo avroOriginalPathColumnInfo =
+      new ColumnInfo( "Original Avro Path", ColumnInfo.COLUMN_TYPE_TEXT,
+        false, true );
+    ColumnInfo avroDisplayPathColumnInfo =
+      new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Path" ), ColumnInfo.COLUMN_TYPE_NONE,
+        false, true );
     ColumnInfo avroTypeColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.avro.type" ),
         ColumnInfo.COLUMN_TYPE_TEXT, false, true );
     ColumnInfo avroIndexColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.avro.indexedValues" ),
-        ColumnInfo.COLUMN_TYPE_TEXT, false, true );
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     ColumnInfo nameColumnInfo =
       new ColumnInfo( BaseMessages.getString( PKG, "AvroInputDialog.Fields.column.Name" ), ColumnInfo.COLUMN_TYPE_TEXT,
         false, false );
@@ -272,17 +277,17 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       ColumnInfo.COLUMN_TYPE_CCOMBO, Const.getDateFormats() );
 
     ColumnInfo[] parameterColumns =
-      new ColumnInfo[] { avroPathColumnInfo, avroTypeColumnInfo, avroIndexColumnInfo, nameColumnInfo, typeColumnInfo,
-        formatColumnInfo };
-    parameterColumns[ 0 ].setAutoResize( false );
-    parameterColumns[ 2 ].setAutoResize( false );
-    parameterColumns[ 3 ].setUsingVariables( true );
-    parameterColumns[ 5 ].setAutoResize( false );
+      new ColumnInfo[] { avroOriginalPathColumnInfo, avroDisplayPathColumnInfo, avroTypeColumnInfo, avroIndexColumnInfo,
+        nameColumnInfo, typeColumnInfo, formatColumnInfo };
+    parameterColumns[ 1 ].setAutoResize( false );
+    parameterColumns[ 3 ].setAutoResize( false );
+    parameterColumns[ 4 ].setUsingVariables( true );
+    parameterColumns[ 6 ].setAutoResize( false );
 
     wInputFields =
       new TableView( transMeta, wComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL,
-        parameterColumns, 7, null, props );
-    ColumnsResizer resizer = new ColumnsResizer( 0, 20, 15, 15, 20, 15, 15 );
+        parameterColumns, 8, null, props );
+    ColumnsResizer resizer = new ColumnsResizer( 0, 0, 20, 15, 15, 20, 15, 15 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
     new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( 0, Const.MARGIN * 2 ).bottom( wGetFields, -FIELDS_SEP )
       .apply();
@@ -536,7 +541,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       }
 
       if ( inputField.getAvroFieldName() != null ) {
-        item.setText( AVRO_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
+        item.setText( AVRO_ORIGINAL_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
+        item.setText( AVRO_DISPLAY_PATH_COLUMN_INDEX, clearIndexFromFieldName( inputField.getDisplayableAvroFieldName() ) );
       }
       if ( inputField.getAvroType() != null ) {
         item.setText( AVRO_TYPE_COLUMN_INDEX, inputField.getAvroType().getName() );
@@ -592,7 +598,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
-      field.setFormatFieldName( extractFieldName( item.getText( AVRO_PATH_COLUMN_INDEX ) ) );
+      field.setFormatFieldName( extractFieldName( item.getText( AVRO_ORIGINAL_PATH_COLUMN_INDEX ) ) );
       field.setAvroType( item.getText( AVRO_TYPE_COLUMN_INDEX ) );
       field.setIndexedValues( item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
@@ -657,6 +663,16 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
           wStepname.getText() ), progressDialog.getPreviewRows( wStepname.getText() ), loggingText );
       prd.open();
     }
+  }
+
+  private String clearIndexFromFieldName( String fieldName ) {
+    String cleanFieldName = fieldName;
+    int bracketPos = cleanFieldName.indexOf( "[" );
+    if ( bracketPos > 0 ) {
+      cleanFieldName = cleanFieldName.substring( 0, bracketPos ) + "[]";
+    }
+
+    return cleanFieldName;
   }
 
   @Override

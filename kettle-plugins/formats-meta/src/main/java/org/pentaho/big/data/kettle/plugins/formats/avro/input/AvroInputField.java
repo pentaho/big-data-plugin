@@ -30,6 +30,8 @@ import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,7 +43,7 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
 
   ///////// Below added methods/variables to this object /////////////
   private List<String> pathParts;
-  private List<String> indexedVals;
+  private List<String> indexedVals = new ArrayList<>();
 
   private boolean m_isValid;
   protected String m_cleansedVariableName;
@@ -53,7 +55,6 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
    */
   //private int m_inputIndex = -1;
 
-  private String indexedValues;
   protected ValueMetaInterface m_fieldVM;
   /**
    * The name of the variable to hold this field's values
@@ -80,17 +81,9 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     this.pathParts = pathParts;
   }
 
-  public void setIndexedVals( List<String> mindexedVals ) {
-    this.indexedVals = mindexedVals;
-  }
-
   public List<String> getPathParts() {
 
     return pathParts;
-  }
-
-  public List<String> getIndexedVals() {
-    return indexedVals;
   }
 
   public ValueMeta getTempValueMeta() {
@@ -109,12 +102,26 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     this.tempParts = tempParts;
   }
 
+  public void setIndexedVals( List<String> mindexedVals ) {
+    this.indexedVals = mindexedVals;
+    //addIndexToFormatFieldName();
+  }
+
+  public List<String> getIndexedVals() {
+    int bracketPos = formatFieldName.indexOf( '[' );
+    if ( indexedVals.isEmpty() && bracketPos > 0 ) {
+      String values = formatFieldName.substring( bracketPos + 1, formatFieldName.length() - 1 );
+      indexedVals = Arrays.asList( values.split( "\\s*,\\s*" ) );
+    }
+    return indexedVals;
+  }
+
   public String getIndexedValues() {
-    return indexedValues;
+    return String.join( " , ", getIndexedVals() );
   }
 
   public void setIndexedValues( String indexedValues ) {
-    this.indexedValues = indexedValues;
+    setIndexedVals( Arrays.asList( indexedValues.split( "\\s*,\\s*" ) ) );
   }
 
   ////////////////////  End added methods / variables ///////////////////////////////
@@ -163,5 +170,10 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     return ValueMetaFactory.getValueMetaName( getPentahoType() );
   }
 
-
+  private void addIndexToFormatFieldName() {
+    int bracketPos = formatFieldName.indexOf( "[" );
+    if ( bracketPos > 0 && !indexedVals.isEmpty() ) {
+      formatFieldName = formatFieldName.substring( 0, bracketPos ) + "[" + getIndexedValues() + "]";
+    }
+  }
 }
