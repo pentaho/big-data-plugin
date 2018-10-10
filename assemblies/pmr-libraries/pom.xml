@@ -245,7 +245,7 @@
     <dependency>
       <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch</artifactId>
-      <version>2.2.0</version>
+      <version>6.4.2</version>
     </dependency>
     <dependency>
       <groupId>feed4j</groupId>
@@ -1034,7 +1034,7 @@
         <exclusion>
           <artifactId>xbean</artifactId>
           <groupId>org.apache.xbean</groupId>
-        </exclusion>        
+        </exclusion>
         <exclusion>
           <artifactId>jackson-core-asl</artifactId>
           <groupId>org.codehaus.jackson</groupId>
