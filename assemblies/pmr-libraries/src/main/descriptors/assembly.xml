@@ -56,6 +56,7 @@
         <include>commons-beanutils:commons-beanutils</include>
         <include>commons-cli:commons-cli</include>
         <include>commons-collections:commons-collections</include>
+        <include>commons-configuration:commons-configuration</include>
         <include>commons-dbcp:commons-dbcp</include>
         <include>commons-digester:commons-digester</include>
         <include>commons-discovery:commons-discovery</include>
@@ -68,6 +69,7 @@
         <include>commons-math:commons-math</include>
         <include>commons-pool:commons-pool</include>
         <include>commons-validator:commons-validator</include>
+        <include>org.apache.commons:commons-configuration2</include>
         <include>org.apache.commons:commons-vfs2</include>
         <include>com.sun.jersey.contribs:jersey-apache-client</include>
         <include>com.sun.jersey:jersey-bundle</include>
