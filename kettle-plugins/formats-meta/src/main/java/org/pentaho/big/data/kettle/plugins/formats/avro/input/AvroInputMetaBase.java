@@ -62,6 +62,12 @@ public abstract class AvroInputMetaBase
     FILE_NAME, FIELD_NAME, FIELD_CONTAINING_FILE_NAME;
   }
 
+  public static enum SourceFormat {
+    AVRO_USE_SCHEMA, DATUM_JSON, DATUM_BINARY, AVRO_ALT_SCHEMA;
+
+    public static final SourceFormat[] values = values();
+  }
+
   private String dataLocation;
   private int dataLocationType = LocationDescriptor.FILE_NAME.ordinal();
   private boolean isDataBinaryEncoded = true;

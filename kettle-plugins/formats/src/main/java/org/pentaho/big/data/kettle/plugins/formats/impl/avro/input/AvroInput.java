@@ -95,7 +95,13 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
           data.input.setOutputRowMeta( outRowMeta );
           data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
-          data.input.setIsDataBinaryEncoded( meta.isDataBinaryEncoded() );
+          AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
+          if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
+            data.input.setDatum( true );
+          }
+          if ( sourceFormat != AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
+            data.input.setIsDataBinaryEncoded( true );
+          }
 
           if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
             meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
@@ -104,6 +110,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
             data.input.setInputStreamFieldName( null );
           } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
             data.input.setInputStreamFieldName( meta.getDataLocation() );
+            data.input.setUseFieldAsInputStream( true );
             int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
             if ( fieldIndex == -1 ) {
               throw new KettleException(
@@ -118,7 +125,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
             data.input.setInputSchemaFile(
               meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
           } else {
-            // Need to handle schema coming from field.
+            data.input.setUseFieldAsSchema( true );
+            data.input.setSchemaFieldName( meta.getSchemaLocation() );
           }
 
           data.input.setIncomingFields( inputToStepRow );
