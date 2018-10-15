@@ -121,9 +121,12 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   protected ComboVar wFieldNameCombo;
   protected CCombo encodingCombo;
   protected VFSScheme selectedVFSScheme;
+  protected VFSScheme selectedSchemaVFSScheme;
   protected CCombo wLocation;
   protected Composite wDataFileComposite;
   protected Composite wDataFieldComposite;
+  protected TextVar wSchemaPath;
+  protected CCombo wSchemaLocation;
 
   protected boolean isInputStep;
   private Map<String, Integer> incomingFields = new HashMap<String, Integer>();
@@ -168,6 +171,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     shell.setSize( getWidth(), height );
     getData( meta );
     updateLocation();
+    updateSchemaLocation();
     shell.open();
     wStepname.setFocus();
     while ( !shell.isDisposed() ) {
@@ -418,6 +422,32 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
           if ( scheme.equals( s.getScheme() ) ) {
             wLocation.select( i );
             selectedVFSScheme = s;
+          }
+        }
+      } catch ( KettleFileException ex ) {
+        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
+      } catch ( FileSystemException ex ) {
+        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
+      }
+    }
+    // do we have preview button?
+    if ( wPreview != null ) {
+      //update preview button
+      wPreview.setEnabled( !pathText.isEmpty() );
+    }
+  }
+
+  protected void updateSchemaLocation() {
+    String pathText = wSchemaPath.getText();
+    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
+    if ( scheme != null ) {
+      try {
+        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
+        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
+          VFSScheme s = availableVFSSchemes.get( i );
+          if ( scheme.equals( s.getScheme() ) ) {
+            wSchemaLocation.select( i );
+            selectedSchemaVFSScheme = s;
           }
         }
       } catch ( KettleFileException ex ) {
