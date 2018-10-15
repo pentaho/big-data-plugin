@@ -231,10 +231,10 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
         String processedPassword = password;
         switch ( direction ) {
           case ENCRYPT:
-            processedPassword = Encr.encryptPassword( password );
+            processedPassword = Encr.encryptPasswordIfNotUsingVariables( password );
             break;
           case DECRYPT:
-            processedPassword = Encr.decryptPassword( password );
+            processedPassword = Encr.decryptPasswordOptionallyEncrypted( password );
             break;
           default:
             throw new InvalidParameterException( "direction must be 'ENCODE' or 'DECODE'" );
