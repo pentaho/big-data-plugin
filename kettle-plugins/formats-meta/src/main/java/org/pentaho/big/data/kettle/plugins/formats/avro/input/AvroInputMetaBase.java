@@ -224,6 +224,10 @@ public abstract class AvroInputMetaBase
         }
         String stringFormat = XMLHandler.getTagValue( fnode, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
+        String indexedValues = XMLHandler.getTagValue( fnode, "indexed_vals" );
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          inputField.setIndexedValues( indexedValues );
+        }
         this.inputFields[ i ] = inputField;
       }
     } catch ( Exception e ) {
@@ -273,6 +277,10 @@ public abstract class AvroInputMetaBase
         if ( field.getStringFormat() != null ) {
           retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
         }
+        String indexedValues = field.getIndexedValues();
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "indexed_vals", indexedValues ) );
+        }
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
@@ -313,6 +321,10 @@ public abstract class AvroInputMetaBase
         }
         String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
+        String indexedValues = rep.getStepAttributeString( id_step, i, "indexed_vals" );
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          inputField.setIndexedValues( indexedValues );
+        }
         this.inputFields[ i ] = inputField;
       }
     } catch ( Exception e ) {
@@ -349,6 +361,10 @@ public abstract class AvroInputMetaBase
         }
         if ( field.getStringFormat() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
+        }
+        String indexedValues = field.getIndexedValues();
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "indexed_vals", indexedValues );
         }
       }
       super.saveRep( rep, metaStore, id_transformation, id_step );
