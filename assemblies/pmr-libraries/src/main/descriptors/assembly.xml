@@ -31,6 +31,7 @@
       <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
       </outputFileNameMapping>
       <includes>
+        <include>io.reactivex.rxjava2:rxjava</include>
         <include>ascsapjco3wrp:ascsapjco3wrp</include>
         <include>asm:asm</include>
         <include>bouncycastle:bcmail-jdk14</include>
