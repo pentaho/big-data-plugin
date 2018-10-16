@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
+import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -86,20 +87,15 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
 
   private TableView wInputFields;
-  protected TextVar wSchemaPath;
   protected Button wbSchemaBrowse;
   protected Composite wSchemaFileComposite;
   protected Composite wSchemaFieldComposite;
   protected Group wSourceGroup;
   Button wbGetSchemaFromFile;
   Button wbGetSchemaFromField;
-  Button wFieldContainsSchemaPath;
-  Button wCacheSchemas;
   private Button m_getLookupFieldsBut;
   ComboVar wSchemaFieldNameCombo;
   private TableView m_lookupView;
-
-
   private Button wPassThruFields;
   private Button wAllowNullValues;
 
@@ -480,10 +476,37 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wSchemaFileComposite.setLayout( schemaFileLayout );
     new FD( wSchemaFileComposite ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
 
+    Label wlLocation = new Label( wSchemaFileComposite, SWT.RIGHT );
+    wlLocation.setText( getBaseMsg( "AvroDialog.Location.Label" ) );
+    props.setLook( wlLocation );
+    new FD( wlLocation ).left( 0, 0 ).top( 0, MARGIN ).apply();
+    wSchemaLocation = new CCombo( wSchemaFileComposite, SWT.BORDER | SWT.READ_ONLY );
+
+
+    try {
+      List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
+      availableVFSSchemes.forEach( scheme -> wSchemaLocation.add( scheme.getSchemeName() ) );
+      wSchemaLocation.addListener( SWT.Selection, event -> {
+        this.selectedSchemaVFSScheme = availableVFSSchemes.get( wSchemaLocation.getSelectionIndex() );
+        this.wSchemaPath.setText( "" );
+      } );
+      if ( !availableVFSSchemes.isEmpty() ) {
+        wSchemaLocation.select( 0 );
+        this.selectedSchemaVFSScheme = availableVFSSchemes.get( wSchemaLocation.getSelectionIndex() );
+      }
+    } catch ( KettleFileException ex ) {
+      log.logError( getBaseMsg( "AvroDialog.FileBrowser.KettleFileException" ) );
+    } catch ( FileSystemException ex ) {
+      log.logError( getBaseMsg( "AvroDialog.FileBrowser.FileSystemException" ) );
+    }
+
+    wSchemaLocation.addModifyListener( lsMod );
+    new FD( wSchemaLocation ).left( 0, 0 ).top( wlLocation, FIELD_LABEL_SEP ).width( FIELD_SMALL ).apply();
+
     Label wlSchemaPath = new Label( wSchemaFileComposite, SWT.RIGHT );
     wlSchemaPath.setText( BaseMessages.getString( PKG, "AvroInputDialog.Schema.FileName" ) );
     props.setLook( wlSchemaPath );
-    new FD( wlSchemaPath ).left( 0, 0 ).top( 0, MARGIN ).apply();
+    new FD( wlSchemaPath ).left( 0, 0 ).top( wSchemaLocation, MARGIN ).apply();
 
     wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wSchemaPath );
@@ -514,20 +537,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     new FD( wSchemaFieldNameCombo ).left( 0, 0 ).top( fieldNameSchemaLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
         .apply();
 
-    // Accept fields from previous steps?
-    wFieldContainsSchemaPath = new Button( wSchemaFieldComposite, SWT.CHECK );
-    wFieldContainsSchemaPath.setText( BaseMessages.getString( PKG, "AvroInputDialog.FieldContainsSchemaPath.Label" ) );
-    wFieldContainsSchemaPath.setOrientation( SWT.LEFT_TO_RIGHT );
-    props.setLook( wFieldContainsSchemaPath );
-    new FD( wFieldContainsSchemaPath ).left( 0, 0 ).top( wSchemaFieldNameCombo, 10 ).apply();
-
-    // Accept fields from previous steps?
-    wCacheSchemas = new Button( wSchemaFieldComposite, SWT.CHECK );
-    wCacheSchemas.setText( BaseMessages.getString( PKG, "AvroInputDialog.CacheSchemas.Label" ) );
-    wCacheSchemas.setOrientation( SWT.LEFT_TO_RIGHT );
-    props.setLook( wCacheSchemas );
-    new FD( wCacheSchemas ).left( 0, 0 ).top( wFieldContainsSchemaPath, 5 ).apply();
-
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionSchemaAdapter = new SelectionAdapter() {
       @Override
@@ -553,7 +562,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       String fileName;
       if ( Utils.isEmpty( path ) ) {
         fileChooserDialog = getVfsFileChooserDialog( null, null );
-        fileName = SCHEMA_SCHEME_DEFAULT + "://";
+        fileName = selectedSchemaVFSScheme.getScheme() + "://";
       } else {
         FileObject initialFile = getInitialFile( wSchemaPath.getText() );
         FileObject rootFile = initialFile.getFileSystem().getRoot();
@@ -562,10 +571,11 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       }
 
       FileObject selectedFile =
-        fileChooserDialog.open( shell, null, getSchemeFromPath( path ), true, fileName, FILES_FILTERS,
+        fileChooserDialog.open( shell, null, selectedSchemaVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
           fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
       if ( selectedFile != null ) {
         wSchemaPath.setText( selectedFile.getURL().toString() );
+        updateSchemaLocation();
       }
     } catch ( KettleFileException ex ) {
       log.logError( getBaseMsg( "AvroInputDialog.SchemaFileBrowser.KettleFileException" ) );
@@ -595,9 +605,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wSchemaFieldComposite.setVisible( false );
     wSourceGroup.setVisible( meta.getFormat() > 0 );
 
-    wFieldContainsSchemaPath.setSelection( false );
-    wCacheSchemas.setSelection( false );
-
     if ( meta.getDataLocation() != null ) {
       if ( ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) ) {
         wPath.setText( meta.getDataLocation() );
@@ -619,17 +626,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         wbGetSchemaFromField.setSelection( true );
         wSchemaFileComposite.setVisible( false );
         wSchemaFieldComposite.setVisible( true );
-        wFieldContainsSchemaPath.setSelection( false );
-        wCacheSchemas.setSelection( meta.isCacheSchemas() );
-      } else if ( ( meta.getSchemaLocationType()
-        == AvroInputMetaBase.LocationDescriptor.FIELD_CONTAINING_FILE_NAME ) ) {
-        wSchemaFieldNameCombo.setText( meta.getSchemaLocation() );
-        wbGetSchemaFromFile.setSelection( false );
-        wbGetSchemaFromField.setSelection( true );
-        wSchemaFileComposite.setVisible( false );
-        wSchemaFieldComposite.setVisible( true );
-        wFieldContainsSchemaPath.setSelection( true );
-        wCacheSchemas.setSelection( meta.isCacheSchemas() );
       }
     }
 
@@ -682,13 +678,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     }
 
     if ( wbGetSchemaFromField.getSelection() ) {
-      if ( wFieldContainsSchemaPath.getSelection() ) {
-        meta.setSchemaLocation( wSchemaFieldNameCombo.getText(),
-          AvroInputMetaBase.LocationDescriptor.FIELD_CONTAINING_FILE_NAME );
-      } else {
-        meta.setSchemaLocation( wSchemaFieldNameCombo.getText(), AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
-      }
-      meta.setCacheSchemas( wCacheSchemas.getSelection() );
+      meta.setSchemaLocation( wSchemaFieldNameCombo.getText(), AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
     } else {
       meta.setSchemaLocation( wSchemaPath.getText(), AvroInputMetaBase.LocationDescriptor.FILE_NAME );
       meta.setCacheSchemas( false );
@@ -718,18 +708,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       return StringUtils.substringBefore( parquetNameTypeFromUI, "(" ).trim();
     }
     return parquetNameTypeFromUI;
-  }
-
-  private String getSchemeFromPath( String path ) {
-    if ( Utils.isEmpty( path ) ) {
-      return SCHEMA_SCHEME_DEFAULT;
-    }
-    int endIndex = path.indexOf( ':' );
-    if ( endIndex > 0 ) {
-      return path.substring( 0, endIndex );
-    } else {
-      return SCHEMA_SCHEME_DEFAULT;
-    }
   }
 
   private void doPreview() {
