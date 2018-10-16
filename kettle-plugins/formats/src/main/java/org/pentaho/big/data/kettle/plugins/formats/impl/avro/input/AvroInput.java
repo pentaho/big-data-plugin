@@ -112,7 +112,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           try {
             formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
             inputToStepRow = getRow();
-            if ( inputToStepRow == null && ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
+            if ( inputToStepRow == null && ( meta.getDataLocationType()
+              == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
               fileFinishedHousekeeping();
               break; //We have processed all rows streaming in
             }
@@ -136,7 +137,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           data.input.setOutputRowMeta( outRowMeta );
           data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
           AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
-          if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
+          if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
+            || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
             data.input.setDatum( true );
           }
           if ( sourceFormat != AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
@@ -148,7 +150,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           if ( getInputRowMeta() != null ) {
             for ( AvroLookupField lookupField : meta.getLookupFields() ) {
               IndexedLookupField indexedLookupField = resolveLookupField( lookupField );
-              if ( indexedLookupField != null) {
+              if ( indexedLookupField != null ) {
                 lookupFields.add( indexedLookupField );
               }
             }
@@ -168,12 +170,14 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
               throw new KettleException(
                 "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
             }
-            data.input.setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+            data.input
+              .setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
           } else {
             throw new KettleException( "Unknown field location type" );
           }
           if ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
-            data.input.setInputSchemaFile( meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
+            data.input.setInputSchemaFile(
+              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
           } else {
             data.input.setUseFieldAsSchema( true );
             data.input.setSchemaFieldName( meta.getSchemaLocation() );
@@ -213,19 +217,19 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     return false;
   }
 
-  private void updateVariableSpaceWithLookupFields(RowMetaInterface rowMeta) {
-    for ( IAvroLookupField lookupField : data.input.getLookupFields( ) ) {
+  private void updateVariableSpaceWithLookupFields( RowMetaInterface rowMeta ) {
+    for ( IAvroLookupField lookupField : data.input.getLookupFields() ) {
       String valueToSet = "";
       try {
-        ValueMetaInterface valueMeta = rowMeta.getValueMeta( ( (IndexedLookupField)lookupField).getIndex( ) );
-        if ( valueMeta.isNull( this.inputToStepRow[( (IndexedLookupField)lookupField).getIndex( )] ) ) {
-          if ( !Const.isEmpty( lookupField.getDefaultValue( ) ) ) {
-            valueToSet = lookupField.getDefaultValue( );
+        ValueMetaInterface valueMeta = rowMeta.getValueMeta( ( (IndexedLookupField) lookupField ).getIndex() );
+        if ( valueMeta.isNull( this.inputToStepRow[ ( (IndexedLookupField) lookupField ).getIndex() ] ) ) {
+          if ( !Const.isEmpty( lookupField.getDefaultValue() ) ) {
+            valueToSet = lookupField.getDefaultValue();
           } else {
             valueToSet = "null";
           }
         } else {
-          valueToSet = valueMeta.getString( this.inputToStepRow[((IndexedLookupField)lookupField).getIndex( )] );
+          valueToSet = valueMeta.getString( this.inputToStepRow[ ( (IndexedLookupField) lookupField ).getIndex() ] );
         }
       } catch ( Exception e ) {
         valueToSet = "null";

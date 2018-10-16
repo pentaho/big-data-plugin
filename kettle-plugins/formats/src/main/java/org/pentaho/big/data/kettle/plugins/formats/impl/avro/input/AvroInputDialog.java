@@ -130,14 +130,16 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     List<? extends IAvroInputField> defaultFields = null;
     try {
-      defaultFields = AvroInput.getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
+      defaultFields = AvroInput
+        .getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
       if ( defaultFields != null ) {
         wInputFields.clearAll();
         for ( IAvroInputField field : defaultFields ) {
           TableItem item = new TableItem( wInputFields.table, SWT.NONE );
           if ( field != null ) {
             setField( item, field.getDisplayableAvroFieldName(), AVRO_ORIGINAL_PATH_COLUMN_INDEX );
-            setField( item, clearIndexFromFieldName( field.getDisplayableAvroFieldName() ), AVRO_DISPLAY_PATH_COLUMN_INDEX );
+            setField( item, clearIndexFromFieldName( field.getDisplayableAvroFieldName() ),
+              AVRO_DISPLAY_PATH_COLUMN_INDEX );
             setField( item, field.getAvroType().getName(), AVRO_TYPE_COLUMN_INDEX );
             setField( item, field.getIndexedValues(), AVRO_INDEXED_VALUES_COLUMN_INDEX );
             setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
@@ -201,8 +203,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     colinf2[ 0 ].setAutoResize( false );
     colinf2[ 1 ].setAutoResize( false );
     colinf2[ 2 ].setAutoResize( false );
-    m_lookupView = new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER, colinf2, 1, lsMod, props );
-    new FD( m_lookupView ).top(0, Const.MARGIN * 2).bottom( m_getLookupFieldsBut, -Const.MARGIN * 2 ).left( 0, 0 ).right( 100, 0 ).apply();
+    m_lookupView =
+      new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER, colinf2, 1, lsMod, props );
+    new FD( m_lookupView ).top( 0, Const.MARGIN * 2 ).bottom( m_getLookupFieldsBut, -Const.MARGIN * 2 ).left( 0, 0 )
+      .right( 100, 0 ).apply();
 
     ColumnsResizer resizer = new ColumnsResizer( 0, 33, 33, 34 );
     resizer.addColumnResizeListeners( m_lookupView.getTable() );
@@ -284,7 +288,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         parameterColumns, 8, null, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 0, 20, 15, 15, 20, 15, 15 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
-   new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( 0, Const.MARGIN * 2 ).bottom( wGetFields, -FIELDS_SEP ).apply();
+    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( 0, Const.MARGIN * 2 ).bottom( wGetFields, -FIELDS_SEP )
+      .apply();
 
     wInputFields.setRowNums();
     wInputFields.optWidth( true );
@@ -340,10 +345,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     encodingCombo = new CCombo( wTabComposite, SWT.BORDER | SWT.READ_ONLY );
     String[] availFormats = {
-        BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.JsonDatum.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.BinaryDatum.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.AlternateSchema.Label" )
+      BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.JsonDatum.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.BinaryDatum.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.AlternateSchema.Label" )
     };
 
     encodingCombo.setItems( availFormats );
@@ -411,7 +416,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wFieldNameCombo = new ComboVar( transMeta, wDataFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wFieldNameCombo );
     new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-        .apply();
+      .apply();
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
@@ -426,13 +431,13 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     //Set widgets from Meta
     wbGetDataFromFile
-        .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     wbGetDataFromField
-        .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     fileSettingRadioSelectionAdapter.widgetSelected( null );
     wFieldNameCombo.setText(
-        avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
-            : avroBaseMeta.getDataLocation() );
+      avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
+        : avroBaseMeta.getDataLocation() );
 
     // Set up the Source Group
     wSourceGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
@@ -457,7 +462,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wbGetSchemaFromField = new Button( wSourceGroup, SWT.RADIO );
     wbGetSchemaFromField.setText( getBaseMsg( "AvroDialog.File.GetDataFromField" ) );
     props.setLook( wbGetSchemaFromField );
-    new FD( wbGetSchemaFromField ).left( 0, 0 ).top( wbGetSchemaFromFile, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH ).apply();
+    new FD( wbGetSchemaFromField ).left( 0, 0 ).top( wbGetSchemaFromFile, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH )
+      .apply();
 
     //Make a composite to hold the dynamic right side of the group
     Composite wSchemaSettingsDynamicArea = new Composite( wSourceGroup, SWT.NONE );
@@ -622,17 +628,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
         wbGetSchemaFromField.setSelection( true );
         wSchemaFileComposite.setVisible( false );
         wSchemaFieldComposite.setVisible( true );
-(??)        wFieldContainsSchemaPath.setSelection( false );
-(??)        wCacheSchemas.setSelection( meta.isCacheSchemas() );
-(??)      } else if ( ( meta.getSchemaLocationType()
-(??)        == AvroInputMetaBase.LocationDescriptor.FIELD_CONTAINING_FILE_NAME ) ) {
-(??)        wSchemaFieldNameCombo.setText( meta.getSchemaLocation() );
-(??)        wbGetSchemaFromFile.setSelection( false );
-(??)        wbGetSchemaFromField.setSelection( true );
-(??)        wSchemaFileComposite.setVisible( false );
-(??)        wSchemaFieldComposite.setVisible( true );
-(??)        wFieldContainsSchemaPath.setSelection( true );
-(??)        wCacheSchemas.setSelection( meta.isCacheSchemas() );
       }
     }
 
@@ -650,7 +645,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
       if ( inputField.getAvroFieldName() != null ) {
         item.setText( AVRO_ORIGINAL_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
-        item.setText( AVRO_DISPLAY_PATH_COLUMN_INDEX, clearIndexFromFieldName( inputField.getDisplayableAvroFieldName() ) );
+        item.setText( AVRO_DISPLAY_PATH_COLUMN_INDEX,
+          clearIndexFromFieldName( inputField.getDisplayableAvroFieldName() ) );
       }
       if ( inputField.getAvroType() != null ) {
         item.setText( AVRO_TYPE_COLUMN_INDEX, inputField.getAvroType().getName() );
