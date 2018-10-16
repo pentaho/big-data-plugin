@@ -27,11 +27,14 @@ import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
 import org.pentaho.bigdata.api.format.FormatService;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -40,14 +43,29 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.BaseFileInputStep;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
+import org.pentaho.hadoop.shim.api.format.IAvroLookupField;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
+
+  public class IndexedLookupField extends AvroLookupField {
+    int index = -1;
+
+    public int getIndex() {
+      return index;
+    }
+
+    public void setIndex( int index ) {
+      this.index = index;
+    }
+  }
+
   public static long SPLIT_SIZE = 128 * 1024 * 1024;
   private Object[] inputToStepRow;
 
@@ -58,6 +76,29 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
+
+  private IndexedLookupField resolveLookupField( IAvroLookupField lookupField ) {
+    IndexedLookupField indexedLookupField = new IndexedLookupField();
+    RowMetaInterface inputRowMeta = getInputRowMeta();
+
+    int index = inputRowMeta.indexOfValue( lookupField.getFieldName() );
+    if ( index < 0 ) {
+      return null;
+    }
+    indexedLookupField.setIndex( index );
+
+    String variableName = lookupField.getVariableName();
+    if ( Const.isEmpty( variableName ) ) {
+      return null;
+    }
+    indexedLookupField.setVariableName( variableName.replaceAll( "\\.", "_" ) );
+
+    indexedLookupField.setFieldName( this.environmentSubstitute( lookupField.getFieldName() ) );
+    indexedLookupField.setDefaultValue( this.environmentSubstitute( lookupField.getDefaultValue() ) );
+
+    return indexedLookupField;
+  }
+
 
   @Override
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
@@ -96,12 +137,25 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
           data.input.setOutputRowMeta( outRowMeta );
           data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
           AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
-          if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
+          if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
+            || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
             data.input.setDatum( true );
           }
           if ( sourceFormat != AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
             data.input.setIsDataBinaryEncoded( true );
           }
+
+          data.input.setVariableSpace( this );
+          ArrayList<IndexedLookupField> lookupFields = new ArrayList<>();
+          if ( getInputRowMeta() != null ) {
+            for ( AvroLookupField lookupField : meta.getLookupFields() ) {
+              IndexedLookupField indexedLookupField = resolveLookupField( lookupField );
+              if ( indexedLookupField != null ) {
+                lookupFields.add( indexedLookupField );
+              }
+            }
+          }
+          data.input.setLookupFields( lookupFields );
 
           if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
             meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
@@ -136,6 +190,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
 
         if ( data.rowIterator.hasNext() ) {
+          updateVariableSpaceWithLookupFields( getInputRowMeta() );
+
           RowMetaAndData row = data.rowIterator.next();
 
           //Merge the incoming avro data row with the fields that entered the AvroInputStep, if any
@@ -159,6 +215,28 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
     setOutputDone();
     return false;
+  }
+
+  private void updateVariableSpaceWithLookupFields( RowMetaInterface rowMeta ) {
+    for ( IAvroLookupField lookupField : data.input.getLookupFields() ) {
+      String valueToSet = "";
+      try {
+        ValueMetaInterface valueMeta = rowMeta.getValueMeta( ( (IndexedLookupField) lookupField ).getIndex() );
+        if ( valueMeta.isNull( this.inputToStepRow[ ( (IndexedLookupField) lookupField ).getIndex() ] ) ) {
+          if ( !Const.isEmpty( lookupField.getDefaultValue() ) ) {
+            valueToSet = lookupField.getDefaultValue();
+          } else {
+            valueToSet = "null";
+          }
+        } else {
+          valueToSet = valueMeta.getString( this.inputToStepRow[ ( (IndexedLookupField) lookupField ).getIndex() ] );
+        }
+      } catch ( Exception e ) {
+        valueToSet = "null";
+      }
+
+      this.setVariable( lookupField.getVariableName(), valueToSet );
+    }
   }
 
   private void fileFinishedHousekeeping() {

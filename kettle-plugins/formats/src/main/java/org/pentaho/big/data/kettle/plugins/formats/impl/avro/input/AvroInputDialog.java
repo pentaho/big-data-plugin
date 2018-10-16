@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.Const;
@@ -69,6 +70,7 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
@@ -118,7 +120,6 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     return wTabFolder;
   }
 
-
   protected void populateNestedFieldsTable() {
     // this schema overrides any that might be in a container file
     String schemaFileName = wSchemaPath.getText();
@@ -137,7 +138,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
           TableItem item = new TableItem( wInputFields.table, SWT.NONE );
           if ( field != null ) {
             setField( item, field.getDisplayableAvroFieldName(), AVRO_ORIGINAL_PATH_COLUMN_INDEX );
-            setField( item, clearIndexFromFieldName( field.getDisplayableAvroFieldName() ), AVRO_DISPLAY_PATH_COLUMN_INDEX );
+            setField( item, clearIndexFromFieldName( field.getDisplayableAvroFieldName() ),
+              AVRO_DISPLAY_PATH_COLUMN_INDEX );
             setField( item, field.getAvroType().getName(), AVRO_TYPE_COLUMN_INDEX );
             setField( item, field.getIndexedValues(), AVRO_INDEXED_VALUES_COLUMN_INDEX );
             setField( item, field.getPentahoFieldName(), FIELD_NAME_COLUMN_INDEX );
@@ -343,10 +345,10 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     encodingCombo = new CCombo( wTabComposite, SWT.BORDER | SWT.READ_ONLY );
     String[] availFormats = {
-        BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.JsonDatum.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.BinaryDatum.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.AlternateSchema.Label" )
+      BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.JsonDatum.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.BinaryDatum.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.AlternateSchema.Label" )
     };
 
     encodingCombo.setItems( availFormats );
@@ -414,7 +416,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wFieldNameCombo = new ComboVar( transMeta, wDataFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wFieldNameCombo );
     new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-        .apply();
+      .apply();
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
@@ -429,13 +431,13 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
     //Set widgets from Meta
     wbGetDataFromFile
-        .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     wbGetDataFromField
-        .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     fileSettingRadioSelectionAdapter.widgetSelected( null );
     wFieldNameCombo.setText(
-        avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
-            : avroBaseMeta.getDataLocation() );
+      avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
+        : avroBaseMeta.getDataLocation() );
 
     // Set up the Source Group
     wSourceGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
@@ -511,17 +513,17 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wSchemaPath );
     new FD( wSchemaPath ).left( 0, 0 ).top( wlSchemaPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH )
-        .rright().apply();
+      .rright().apply();
 
     wbSchemaBrowse = new Button( wSchemaFileComposite, SWT.PUSH );
     props.setLook( wbSchemaBrowse );
     wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbSchemaBrowse.addListener( SWT.Selection, event -> browseForFileInputPathForSchema() );
     int bOffset =
-        ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.computeSize( SWT.DEFAULT,
-            SWT.DEFAULT, false ).y ) / 2;
+      ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.computeSize( SWT.DEFAULT,
+        SWT.DEFAULT, false ).y ) / 2;
     new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
-        .apply();
+      .apply();
 
     wSchemaFieldComposite = new Composite( wSchemaSettingsDynamicArea, SWT.NONE );
     FormLayout schemaFieldLayout = new FormLayout();
@@ -535,7 +537,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     wSchemaFieldNameCombo = new ComboVar( transMeta, wSchemaFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wSchemaFieldNameCombo );
     new FD( wSchemaFieldNameCombo ).left( 0, 0 ).top( fieldNameSchemaLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-        .apply();
+      .apply();
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionSchemaAdapter = new SelectionAdapter() {
@@ -643,7 +645,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
 
       if ( inputField.getAvroFieldName() != null ) {
         item.setText( AVRO_ORIGINAL_PATH_COLUMN_INDEX, inputField.getDisplayableAvroFieldName() );
-        item.setText( AVRO_DISPLAY_PATH_COLUMN_INDEX, clearIndexFromFieldName( inputField.getDisplayableAvroFieldName() ) );
+        item.setText( AVRO_DISPLAY_PATH_COLUMN_INDEX,
+          clearIndexFromFieldName( inputField.getDisplayableAvroFieldName() ) );
       }
       if ( inputField.getAvroType() != null ) {
         item.setText( AVRO_TYPE_COLUMN_INDEX, inputField.getAvroType().getName() );
@@ -664,7 +667,34 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       }
       itemIndex++;
     }
+
+    setVariableTableFields( meta.getLookupFields() );
   }
+
+  protected void setVariableTableFields( List<AvroLookupField> fields ) {
+    m_lookupView.clearAll();
+
+    for ( AvroLookupField f : fields ) {
+      TableItem item = new TableItem( m_lookupView.table, SWT.NONE );
+
+      if ( !Const.isEmpty( f.fieldName ) ) {
+        item.setText( 1, f.fieldName );
+      }
+
+      if ( !Const.isEmpty( f.variableName ) ) {
+        item.setText( 2, f.variableName );
+      }
+
+      if ( !Const.isEmpty( f.defaultValue ) ) {
+        item.setText( 3, f.defaultValue );
+      }
+    }
+
+    m_lookupView.removeEmptyRows();
+    m_lookupView.setRowNums();
+    m_lookupView.optWidth( true );
+  }
+
 
   /**
    * Fill meta object from UI options.
@@ -701,6 +731,32 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
       field.setStringFormat( item.getText( FORMAT_COLUMN_INDEX ) );
       meta.inputFields[ i ] = field;
     }
+
+    nrFields = m_lookupView.nrNonEmpty();
+    if ( nrFields > 0 ) {
+      List<AvroLookupField> varFields = new ArrayList<AvroLookupField>();
+
+      for ( int i = 0; i < nrFields; i++ ) {
+        TableItem item = m_lookupView.getNonEmpty( i );
+        AvroLookupField newField = new AvroLookupField();
+        boolean add = false;
+
+        newField.fieldName = item.getText( 1 ).trim();
+        if ( !Const.isEmpty( item.getText( 2 ) ) ) {
+          newField.variableName = item.getText( 2 ).trim();
+          add = true;
+          if ( !Const.isEmpty( item.getText( 3 ) ) ) {
+            newField.defaultValue = item.getText( 3 ).trim();
+          }
+        }
+
+        if ( add ) {
+          varFields.add( newField );
+        }
+      }
+      meta.setLookupFields( varFields );
+    }
+
   }
 
   private String extractFieldName( String parquetNameTypeFromUI ) {
