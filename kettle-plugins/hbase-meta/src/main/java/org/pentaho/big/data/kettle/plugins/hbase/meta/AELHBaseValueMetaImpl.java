@@ -210,7 +210,6 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
       String temp = Bytes.toString( rawColValue );
 
       BigDecimal result = new BigDecimal( temp );
-      //BigDecimal result = decodeBigDecimal( rawColValue, bytesUtil );
 
       if ( result == null ) {
         throw new KettleException( BaseMessages.getString( PKG,
@@ -223,6 +222,22 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
     if ( isBinary() ) {
       // just return the raw array of bytes
       return rawColValue;
+    }
+
+    if ( isBoolean() ) {
+      // try as a string first
+      Boolean result = decodeBoolFromString( rawColValue );
+      if ( result == null ) {
+        // try as a number
+        result = decodeBoolFromNumber( rawColValue );
+      }
+
+      if ( result != null ) {
+        return result;
+      }
+
+      throw new KettleException( BaseMessages.getString( PKG,
+          "HBaseValueMeta.Error.UnableToDecodeBoolean" ) );
     }
 
     if ( isDate() ) {
@@ -345,6 +360,91 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
   @Override
   public void saveRep( Repository rep, ObjectId id_transformation, ObjectId id_step, int count ) throws KettleException {
     //noop in AEL
+  }
+
+  /**
+   * Decodes a boolean value from an array of bytes that is assumed to hold a string.]
+   * Lifted from Shim to support AEL conversions
+   *
+   * @param rawEncoded an array of bytes holding the string representation of a boolean value
+   * @return a Boolean object or null if it can't be decoded from the supplied array of bytes.
+   */
+  public static Boolean decodeBoolFromString( byte[] rawEncoded ) {
+
+    String tempString = Bytes.toString( rawEncoded );
+    if ( tempString.equalsIgnoreCase( "Y" ) || tempString.equalsIgnoreCase( "N" )
+        || tempString.equalsIgnoreCase( "YES" )
+        || tempString.equalsIgnoreCase( "NO" )
+        || tempString.equalsIgnoreCase( "TRUE" )
+        || tempString.equalsIgnoreCase( "FALSE" )
+        || tempString.equalsIgnoreCase( "T" ) || tempString.equalsIgnoreCase( "F" )
+        || tempString.equalsIgnoreCase( "1" ) || tempString.equalsIgnoreCase( "0" ) ) {
+
+      return Boolean.valueOf( tempString.equalsIgnoreCase( "Y" )
+          || tempString.equalsIgnoreCase( "YES" )
+          || tempString.equalsIgnoreCase( "TRUE" )
+          || tempString.equalsIgnoreCase( "T" )
+          || tempString.equalsIgnoreCase( "1" ) );
+    }
+    return null;
+  }
+
+  /**
+   * Decodes a boolean value from an array of bytes that is assumed to hold a number.
+   * Lifted from Shim to support AEL conversions
+   *
+   * @param rawEncoded an array of bytes holding the numerical representation of a boolean value
+   * @return a Boolean object or null if it can't be decoded from the supplied array of bytes.
+   */
+  public static Boolean decodeBoolFromNumber( byte[] rawEncoded ) {
+
+    if ( rawEncoded == null ) {
+      return null;
+    }
+
+    if ( rawEncoded.length == Bytes.SIZEOF_BYTE ) {
+      byte val = rawEncoded[ 0 ];
+      if ( val == 0 || val == 1 ) {
+        return new Boolean( val == 1 );
+      }
+    }
+
+    if ( rawEncoded.length == Bytes.SIZEOF_SHORT ) {
+      short tempShort = Bytes.toShort( rawEncoded );
+
+      if ( tempShort == 0 || tempShort == 1 ) {
+        return new Boolean( tempShort == 1 );
+      }
+    }
+
+    if ( rawEncoded.length == Bytes.SIZEOF_INT
+        || rawEncoded.length == Bytes.SIZEOF_FLOAT ) {
+      int tempInt = Bytes.toInt( rawEncoded );
+      if ( tempInt == 1 || tempInt == 0 ) {
+        return new Boolean( tempInt == 1 );
+      }
+
+      float tempFloat = Bytes.toFloat( rawEncoded );
+      if ( tempFloat == 0.0f || tempFloat == 1.0f ) {
+        return new Boolean( tempFloat == 1.0f );
+      }
+    }
+
+    if ( rawEncoded.length == Bytes.SIZEOF_LONG
+        || rawEncoded.length == Bytes.SIZEOF_DOUBLE ) {
+      long tempLong = Bytes.toLong( rawEncoded );
+      if ( tempLong == 0L || tempLong == 1L ) {
+        return new Boolean( tempLong == 1L );
+      }
+
+      double tempDouble = Bytes.toDouble( rawEncoded );
+      if ( tempDouble == 0.0 || tempDouble == 1.0 ) {
+        return new Boolean( tempDouble == 1.0 );
+      }
+    }
+
+    // not identifiable from a number
+    return null;
   }
 }
 
