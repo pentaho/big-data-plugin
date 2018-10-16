@@ -189,8 +189,8 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh513-package</artifactId>
-      <version>${pentaho-hadoop-shims-cdh513.version}</version>
+      <artifactId>pentaho-hadoop-shims-cdh514-package</artifactId>
+      <version>${pentaho-hadoop-shims-cdh514.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -204,6 +204,19 @@
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp26-package</artifactId>
       <version>${pentaho-hadoop-shims-hdp26.version}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-hdp30-package</artifactId>
+      <version>${pentaho-hadoop-shims-hdp30.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -285,13 +298,19 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh513-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh514-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
                   <artifactId>pentaho-hadoop-shims-hdp26-package</artifactId>
+                  <type>zip</type>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.pentaho</groupId>
+                  <artifactId>pentaho-hadoop-shims-hdp30-package</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
