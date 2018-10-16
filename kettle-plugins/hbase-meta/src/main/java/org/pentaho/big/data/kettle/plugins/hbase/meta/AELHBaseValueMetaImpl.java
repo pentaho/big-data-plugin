@@ -246,7 +246,16 @@ public class AELHBaseValueMetaImpl extends ValueMetaBase implements HBaseValueMe
     }
 
     byte[] encoded = null;
-    switch ( colMeta.getType() ) {
+
+    /**
+     * BACKLOG-26151 -
+     * When doing type conversions, the type of this HBase value
+     * is given by outputType, the colMeta then converts based on
+     * the type of the incoming value
+     */
+    int outputType = this.getType();
+
+    switch ( outputType ) {
       case TYPE_STRING:
         String toEncode = colMeta.getString( columnValue );
         encoded = Bytes.toBytes( toEncode );
