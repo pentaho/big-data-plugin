@@ -33,6 +33,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.di.core.exception.KettleException;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @RunWith( MockitoJUnitRunner.class )
 public class AELHBaseValueMetaTest {
@@ -43,6 +44,9 @@ public class AELHBaseValueMetaTest {
     stubValueMeta = new AELHBaseValueMetaImpl( true, "testAlias",
         "testColumnName", "testColumnFamily", "testMappingName",
         "testTableName" );
+
+    stubValueMeta.setMappingName( "testMappingName" );
+    stubValueMeta.setTableName( "testTableName" );
 
     stubValueMeta.setType( 5 );
     stubValueMeta.setIsLongOrDouble( false );
@@ -82,7 +86,7 @@ public class AELHBaseValueMetaTest {
   }
 
   @Test
-  public void decodeStringIntoBytes() throws KettleException {
+  public void decodeStringIntoObject() throws KettleException {
     stubValueMeta.setType( 2 );
     Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( "stubString" ) );
 
@@ -90,7 +94,7 @@ public class AELHBaseValueMetaTest {
   }
 
   @Test
-  public void decodeNumberIntoBytes() throws KettleException {
+  public void decodeNumberIntoObject() throws KettleException {
     stubValueMeta.setType( 1 );
     Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 2.2 ) );
 
@@ -98,7 +102,15 @@ public class AELHBaseValueMetaTest {
   }
 
   @Test
-  public void decodeIntegerIntoBytes() throws KettleException {
+  public void decodeFloadIntoObject() throws KettleException {
+    stubValueMeta.setType( 1 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 2.2f ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeIntegerIntoObject() throws KettleException {
     stubValueMeta.setType( 5 );
     Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1 ) );
 
@@ -106,9 +118,99 @@ public class AELHBaseValueMetaTest {
   }
 
   @Test
-  public void decodeBigNumberIntoBytes() throws KettleException {
+  public void decodeLongIntoObject() throws KettleException {
+    stubValueMeta.setType( 5 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1L ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeShortIntoObject() throws KettleException {
+    stubValueMeta.setType( 5 );
+    short i = 1;
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( i ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBigNumberIntoObject() throws KettleException {
     stubValueMeta.setType( 6 );
     Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes(  "9.9999999" ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBooleanStringIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( "1" ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBooleanFloatIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1.0f ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBooleanLongIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1L ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBooleanDoubleIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1.0 ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBooleanBytesIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    byte i = 1;
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( i ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  public void decodeBooleanShortIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    short i = 1;
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( i ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBooleanIntoObject() throws KettleException {
+    stubValueMeta.setType( 4 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1 ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeBytesIntoObject() throws KettleException {
+    stubValueMeta.setType( 8 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1010 ) );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void decodeDateIntoObject() throws KettleException {
+    stubValueMeta.setType( 3 );
+    Object str = stubValueMeta.decodeColumnValue( Bytes.toBytes( 1539717565559l ) );
 
     Assert.assertNotNull( str );
   }
@@ -148,6 +250,30 @@ public class AELHBaseValueMetaTest {
   public void encodeBigNumberIntoBytes() throws KettleException {
     stubValueMeta.setType( 6 );
     Object str = stubValueMeta.encodeColumnValue( new BigDecimal(  9.9999999 ), stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeDateIntoBytes() throws KettleException {
+    stubValueMeta.setType( 3 );
+    Object str = stubValueMeta.encodeColumnValue( new Date(), stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeBooleanIntoBytes() throws KettleException {
+    stubValueMeta.setType( 4 );
+    Object str = stubValueMeta.encodeColumnValue( Boolean.TRUE, stubValueMeta );
+
+    Assert.assertNotNull( str );
+  }
+
+  @Test
+  public void encodeBinaryIntoBytes() throws KettleException {
+    stubValueMeta.setType( 8 );
+    Object str = stubValueMeta.encodeColumnValue( new byte[]{ 1, 0, 1 }, stubValueMeta );
 
     Assert.assertNotNull( str );
   }
