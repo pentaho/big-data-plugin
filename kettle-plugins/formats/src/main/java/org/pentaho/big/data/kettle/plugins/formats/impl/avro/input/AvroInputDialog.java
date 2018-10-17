@@ -533,7 +533,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     Label fieldNameSchemaLabel = new Label( wSchemaFieldComposite, SWT.NONE );
     fieldNameSchemaLabel.setText( getBaseMsg( "AvroDialog.FieldName.Label" ) );
     props.setLook( fieldNameSchemaLabel );
-    new FD( fieldNameSchemaLabel ).left( 0, 0 ).top( wSchemaFieldComposite, 0 ).apply();
+    new FD( fieldNameSchemaLabel ).left( 0, 0 ).top( 0, MARGIN ).apply();
     wSchemaFieldNameCombo = new ComboVar( transMeta, wSchemaFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wSchemaFieldNameCombo );
     new FD( wSchemaFieldNameCombo ).left( 0, 0 ).top( fieldNameSchemaLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
