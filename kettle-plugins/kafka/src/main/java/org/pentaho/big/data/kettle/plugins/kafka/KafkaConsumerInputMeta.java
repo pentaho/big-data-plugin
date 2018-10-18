@@ -44,6 +44,7 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.core.util.serialization.BaseSerializingMeta;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -588,5 +589,13 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
       injectedConfigNames = null;
       injectedConfigValues = null;
     }
+  }
+
+  /**
+   * copyObject must be implemented for support of {@link #withVariables(VariableSpace)}
+   * In this case, a clone() is sufficient.
+   */
+  @Override public BaseSerializingMeta copyObject() {
+    return (BaseSerializingMeta) this.clone();
   }
 }
