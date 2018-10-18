@@ -24,12 +24,17 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.provider.UriParser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -40,6 +45,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Display;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
@@ -100,6 +106,9 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   private TableView m_lookupView;
   private Button wPassThruFields;
   private Button wAllowNullValues;
+  private VFSScheme selectedSchemaVFSScheme;
+  private TextVar wSchemaPath;
+  private CCombo wSchemaLocation;
 
   public AvroInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (AvroInputMeta) in, transMeta, sname );
@@ -812,6 +821,73 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     }
 
     return cleanFieldName;
+  }
+
+  @Override
+  public String open() {
+    Shell parent = getParent();
+    Display display = parent.getDisplay();
+
+    shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE );
+    props.setLook( shell );
+    setShellImage( shell, meta );
+
+    lsMod = new ModifyListener() {
+      public void modifyText( ModifyEvent e ) {
+        meta.setChanged();
+      }
+    };
+    changed = meta.hasChanged();
+
+    createUI();
+
+    // Detect X or ALT-F4 or something that kills this window...
+    shell.addShellListener( new ShellAdapter() {
+      public void shellClosed( ShellEvent e ) {
+        cancel();
+      }
+    } );
+
+    int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
+    shell.setMinimumSize( getWidth(), height );
+    shell.setSize( getWidth(), height );
+    getData( meta );
+    updateLocation();
+    updateSchemaLocation();
+    shell.open();
+    wStepname.setFocus();
+    while ( !shell.isDisposed() ) {
+      if ( !display.readAndDispatch() ) {
+        display.sleep();
+      }
+    }
+    return stepname;
+  }
+
+  protected void updateSchemaLocation() {
+    String pathText = wSchemaPath.getText();
+    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
+    if ( scheme != null ) {
+      try {
+        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
+        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
+          VFSScheme s = availableVFSSchemes.get( i );
+          if ( scheme.equals( s.getScheme() ) ) {
+            wSchemaLocation.select( i );
+            selectedSchemaVFSScheme = s;
+          }
+        }
+      } catch ( KettleFileException ex ) {
+        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
+      } catch ( FileSystemException ex ) {
+        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
+      }
+    }
+    // do we have preview button?
+    if ( wPreview != null ) {
+      //update preview button
+      wPreview.setEnabled( !pathText.isEmpty() );
+    }
   }
 
   @Override
