@@ -158,12 +158,8 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
 
   @Override
   public String getDisplayableAvroFieldName() {
-    String displayableAvroFieldName = formatFieldName;
-    if ( formatFieldName.contains( FILENAME_DELIMITER ) ) {
-      displayableAvroFieldName = formatFieldName.split( FILENAME_DELIMITER )[ 0 ];
-    }
 
-    return displayableAvroFieldName;
+    return formatFieldName;
   }
 
   public String getTypeDesc() {
