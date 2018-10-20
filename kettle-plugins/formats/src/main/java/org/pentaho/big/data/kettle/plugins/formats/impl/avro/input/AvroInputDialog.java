@@ -865,8 +865,8 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
   }
 
   protected void updateSchemaLocation() {
-    String pathText = wSchemaPath.getText();
-    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
+    String schemaPath = wSchemaPath.getText();
+    String scheme = schemaPath.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( schemaPath );
     if ( scheme != null ) {
       try {
         List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
@@ -886,7 +886,7 @@ public class AvroInputDialog extends BaseAvroStepDialog<AvroInputMeta> {
     // do we have preview button?
     if ( wPreview != null ) {
       //update preview button
-      wPreview.setEnabled( !pathText.isEmpty() );
+      wPreview.setEnabled( !wPath.getText().isEmpty() );
     }
   }
 
