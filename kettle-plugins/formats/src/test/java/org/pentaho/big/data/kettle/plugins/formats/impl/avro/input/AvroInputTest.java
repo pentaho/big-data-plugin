@@ -177,15 +177,6 @@ public class AvroInputTest {
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
     for ( int rowNum = 0; rowNum < 4; rowNum++ ) {
       assertEquals( 0, rowMeta.get( rowNum ).indexOfValue( "str" ) );
-      assertEquals( 3, rowMeta.get( rowNum ).indexOfValue( INPUT_STREAM_FIELD_NAME ) );
-      assertEquals( 4, rowMeta.get( rowNum ).indexOfValue( PASS_FIELD_NAME ) );
-      if ( rowNum < 2 ) {
-        assertEquals( "avroFile1", dataCaptured.get( rowNum )[ 3 ] );
-        assertEquals( "pass1", dataCaptured.get( rowNum )[ 4 ] );
-      } else {
-        assertEquals( "avroFile2", dataCaptured.get( rowNum )[ 3 ] );
-        assertEquals( "pass2", dataCaptured.get( rowNum )[ 4 ] );
-      }
       assertEquals( "string" + ( rowNum % 2 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
     }
 

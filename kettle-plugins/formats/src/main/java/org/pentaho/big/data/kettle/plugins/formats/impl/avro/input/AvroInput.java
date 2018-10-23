@@ -118,14 +118,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
         if ( data.rowIterator.hasNext() ) {
           updateVariableSpaceWithLookupFields( getInputRowMeta() );
-
           RowMetaAndData row = data.rowIterator.next();
-
-          //Merge the incoming avro data row with the fields that entered the AvroInputStep, if any
-          if ( getInputRowMeta() != null && inputToStepRow != null ) {
-            row.mergeRowMetaAndData( new RowMetaAndData( getInputRowMeta(), inputToStepRow ), null );
-          }
-
           putRow( row.getRowMeta(), row.getData() );
           return true;
         }
@@ -231,6 +224,8 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     }
 
     data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
+    data.input.setIncomingRowMeta( getInputRowMeta() );
     data.input.setOutputRowMeta( outRowMeta );
     Boolean isDatum = false;
     Boolean useFieldAsSchema = false;
@@ -280,7 +275,6 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     data.input.setLookupFields( lookupFields );
 
     if ( inputFileName != null  ) {
-      meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
       data.input.setInputFile( inputFileName );
       data.input.setInputStreamFieldName( null );
     } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
