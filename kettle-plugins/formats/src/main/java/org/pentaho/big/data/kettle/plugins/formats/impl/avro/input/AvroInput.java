@@ -26,6 +26,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
 import org.pentaho.bigdata.api.format.FormatService;
@@ -50,7 +51,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
 
@@ -108,86 +111,10 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     do {
       try {
         if ( data.input == null || data.reader == null || data.rowIterator == null ) {
-          FormatService formatService;
-          try {
-            formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
-            inputToStepRow = getRow();
-            if ( inputToStepRow == null && ( meta.getDataLocationType()
-              == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
-              fileFinishedHousekeeping();
-              break; //We have processed all rows streaming in
-            }
-          } catch ( ClusterInitializationException e ) {
-            throw new KettleException( "can't get service format shim ", e );
+          if ( !initializeSource() ) {
+            break; //We have processed all rows streaming in
           }
-          if ( meta.getDataLocation() == null ) {
-            throw new KettleException( "No data location defined" );
-          }
-
-          // setup the output row meta
-          RowMetaInterface outRowMeta = null;
-          outRowMeta = getInputRowMeta();
-          if ( outRowMeta != null ) {
-            outRowMeta = outRowMeta.clone();
-          } else {
-            outRowMeta = new RowMeta();
-          }
-
-          data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
-          data.input.setOutputRowMeta( outRowMeta );
-          data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
-          AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
-          if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
-            || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
-            data.input.setDatum( true );
-          }
-          if ( sourceFormat != AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
-            data.input.setIsDataBinaryEncoded( true );
-          }
-
-          data.input.setVariableSpace( this );
-          ArrayList<IndexedLookupField> lookupFields = new ArrayList<>();
-          if ( getInputRowMeta() != null ) {
-            for ( AvroLookupField lookupField : meta.getLookupFields() ) {
-              IndexedLookupField indexedLookupField = resolveLookupField( lookupField );
-              if ( indexedLookupField != null ) {
-                lookupFields.add( indexedLookupField );
-              }
-            }
-          }
-          data.input.setLookupFields( lookupFields );
-
-          if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
-            meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
-            data.input.setInputFile(
-              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() ) );
-            data.input.setInputStreamFieldName( null );
-          } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
-            data.input.setInputStreamFieldName( meta.getDataLocation() );
-            data.input.setUseFieldAsInputStream( true );
-            int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
-            if ( fieldIndex == -1 ) {
-              throw new KettleException(
-                "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
-            }
-            data.input
-              .setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
-          } else {
-            throw new KettleException( "Unknown field location type" );
-          }
-          if ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
-            data.input.setInputSchemaFile(
-              meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() ) );
-          } else {
-            data.input.setUseFieldAsSchema( true );
-            data.input.setSchemaFieldName( meta.getSchemaLocation() );
-          }
-
-          data.input.setIncomingFields( inputToStepRow );
-          data.reader = data.input.createRecordReader( null );
-          data.rowIterator = data.reader.iterator();
         }
-
 
         if ( data.rowIterator.hasNext() ) {
           updateVariableSpaceWithLookupFields( getInputRowMeta() );
@@ -270,5 +197,150 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     in.setInputSchemaFile( schemaPath );
     in.setInputFile( dataPath );
     return in.getLeafFields();
+  }
+
+  /**
+   *
+   * @return false if no rows to process
+   * @throws Exception
+   */
+  private boolean initializeSource() throws Exception {
+    FormatService formatService;
+    try {
+      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+      inputToStepRow = getRow();
+      if ( inputToStepRow == null && ( meta.getDataLocationType()
+        == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
+        fileFinishedHousekeeping();
+        return false;
+      }
+    } catch ( ClusterInitializationException e ) {
+      throw new KettleException( "can't get service format shim ", e );
+    }
+    if ( meta.getDataLocation() == null ) {
+      throw new KettleException( "No data location defined" );
+    }
+
+    // setup the output row meta
+    RowMetaInterface outRowMeta = null;
+    outRowMeta = getInputRowMeta();
+    if ( outRowMeta != null ) {
+      outRowMeta = outRowMeta.clone();
+    } else {
+      outRowMeta = new RowMeta();
+    }
+
+    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class );
+    data.input.setOutputRowMeta( outRowMeta );
+    Boolean isDatum = false;
+    Boolean useFieldAsSchema = false;
+    String inputSchemaFileName = null;
+    String inputFileName = null;
+    data.input.setVariableSpace( this );
+
+    AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
+    if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
+      || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
+      isDatum = true;
+    }
+    if ( sourceFormat != AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
+      data.input.setIsDataBinaryEncoded( true );
+    }
+
+    if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
+      inputFileName =
+        meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getDataLocation() );
+    }
+
+    if ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) {
+      inputSchemaFileName =
+        meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getSchemaLocation() );
+      data.input.setInputSchemaFile( inputSchemaFileName );
+    } else {
+      useFieldAsSchema = true;
+      data.input.setSchemaFieldName( meta.getSchemaLocation() );
+    }
+    data.input.setDatum( isDatum );
+    data.input.setUseFieldAsSchema( useFieldAsSchema );
+
+    if ( !isDatum && inputFileName != null ) {
+      checkForLegacyFieldNames( inputSchemaFileName, inputFileName );
+    }
+    data.input.setInputFields( Arrays.asList( meta.getInputFields() ) );
+
+    ArrayList<IndexedLookupField> lookupFields = new ArrayList<>();
+    if ( getInputRowMeta() != null ) {
+      for ( AvroLookupField lookupField : meta.getLookupFields() ) {
+        IndexedLookupField indexedLookupField = resolveLookupField( lookupField );
+        if ( indexedLookupField != null ) {
+          lookupFields.add( indexedLookupField );
+        }
+      }
+    }
+    data.input.setLookupFields( lookupFields );
+
+    if ( inputFileName != null  ) {
+      meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
+      data.input.setInputFile( inputFileName );
+      data.input.setInputStreamFieldName( null );
+    } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
+      data.input.setInputStreamFieldName( meta.getDataLocation() );
+      data.input.setUseFieldAsInputStream( true );
+      int fieldIndex = getInputRowMeta().indexOfValue( data.input.getInputStreamFieldName() );
+      if ( fieldIndex == -1 ) {
+        throw new KettleException(
+          "Field '" + data.input.getInputStreamFieldName() + "' was not found in step's input fields" );
+      }
+      data.input
+        .setInputStream( new ByteArrayInputStream( getInputRowMeta().getBinary( inputToStepRow, fieldIndex ) ) );
+    } else {
+      throw new KettleException( "Unknown field location type" );
+    }
+
+    data.input.setIncomingFields( inputToStepRow );
+    data.reader = data.input.createRecordReader( null );
+    data.rowIterator = data.reader.iterator();
+
+    return true;
+  }
+
+  public void checkForLegacyFieldNames( String schemaFileName, String avroFileName ) {
+    // This routine will detect any field names in the schema that use the "_delimiter_" hack introduced in 8.0, find
+    // the truncated avro field names in the field list and rename them to what the avro file actually has.
+    try {
+      if ( !data.input.isUseFieldAsInputStream() ) {
+        List<? extends IAvroInputField> rawAvroFields = AvroInput
+          .getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
+        Map<String, String> hackedFieldNames = new HashMap<String, String>();
+        int pointer;
+        String fieldName;
+        for ( IAvroInputField rawField : rawAvroFields ) {
+          fieldName = rawField.getAvroFieldName();
+          pointer = fieldName.indexOf( AvroInputField.FILENAME_DELIMITER );
+          if ( pointer >= 0 ) {
+            hackedFieldNames.put( fieldName.substring( 0, pointer ), fieldName );
+          }
+        }
+        if ( hackedFieldNames.size() > 0 ) {
+          //remove any items that also have the short fieldNname in the avro file
+          rawAvroFields.stream().forEach( rawField -> {
+            if ( hackedFieldNames.containsKey( rawField.getAvroFieldName() ) ) {
+              hackedFieldNames.remove( rawField.getAvroFieldName() );
+            }
+          } );
+        }
+
+        //Now expand fieldNames that need it
+        if ( hackedFieldNames.size() > 0 ) {
+          for ( AvroInputField field : meta.getInputFields() ) {
+            if ( hackedFieldNames.containsKey( field.getName() ) ) {
+              field.setAvroFieldName( hackedFieldNames.get( field.getName() ) );
+            }
+          }
+        }
+      }
+    } catch ( Exception e ) {
+      // Swallow any exception - Inability to check for legacy hacked fields should not be fatal in itself
+    }
   }
 }

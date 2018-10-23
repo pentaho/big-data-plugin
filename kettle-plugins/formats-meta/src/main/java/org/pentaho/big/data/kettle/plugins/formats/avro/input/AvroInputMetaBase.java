@@ -197,7 +197,10 @@ public abstract class AvroInputMetaBase
       String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false"
         : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
       inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
-      dataLocation = XMLHandler.getTagValue( stepnode, "dataLocation" );
+
+      dataLocation =
+        XMLHandler.getTagValue( stepnode, "dataLocation" ) == null ? XMLHandler.getTagValue( stepnode, "fileName" )
+          : XMLHandler.getTagValue( stepnode, "dataLocation" );
       format =
         XMLHandler.getTagValue( stepnode, "format" ) == null ? LocationDescriptor.FILE_NAME.ordinal()
           : Integer.parseInt( XMLHandler.getTagValue( stepnode, "format" ) );
