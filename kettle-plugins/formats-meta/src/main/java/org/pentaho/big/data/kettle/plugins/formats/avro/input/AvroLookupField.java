@@ -24,14 +24,20 @@ package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.hadoop.shim.api.format.IAvroLookupField;
 
 public class AvroLookupField implements IAvroLookupField {
+  @Injection( name = "LOOKUP_FIELD_NAME", group = "LOOKUP_FIELDS" )
   public String fieldName = "";
+
+  @Injection( name = "LOOKUP_VARIABLE_NAME", group = "LOOKUP_FIELDS" )
   public String variableName = "";
+
+  @Injection( name = "LOOKUP_DEFAULT_VALUE", group = "LOOKUP_FIELDS" )
   public String defaultValue = "";
 
   protected String cleansedVariableName;
