@@ -139,21 +139,6 @@ public class AvroInputMetaBaseTest {
   }
 
   @Test
-  public void testGetXmlWorksIfWeUpdateOnlyPartOfInputFilesInformation() throws Exception {
-    meta.inputFiles = new FormatInputFile();
-    meta.inputFiles.fileName = new String[] { FILE_NAME_VALID_PATH };
-
-    meta.getXML();
-
-    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.fileMask.length );
-    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.excludeFileMask.length );
-    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.fileRequired.length );
-    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.includeSubFolders.length );
-    //specific for bigdata format
-    assertEquals( meta.inputFiles.fileName.length, meta.inputFiles.environment.length );
-  }
-
-  @Test
   public void testSaveRep() throws KettleException {
     meta.setInputFields( Arrays.asList( field ) );
 

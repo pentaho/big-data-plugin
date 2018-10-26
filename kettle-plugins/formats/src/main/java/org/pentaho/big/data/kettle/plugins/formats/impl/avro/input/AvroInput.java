@@ -38,10 +38,10 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.BaseStep;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.di.trans.steps.file.BaseFileInputStep;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.hadoop.shim.api.format.IAvroLookupField;
@@ -55,7 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
+public class AvroInput extends BaseStep {
 
   public class IndexedLookupField extends AvroLookupField {
     int index = -1;
@@ -69,8 +69,9 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     }
   }
 
-  public static long SPLIT_SIZE = 128 * 1024 * 1024;
   private Object[] inputToStepRow;
+  protected AvroInputMeta meta;
+  protected AvroInputData data;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
@@ -171,17 +172,6 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     data.input = null;
   }
 
-  @Override
-  protected boolean init() {
-    return true;
-  }
-
-  @Override
-  protected IBaseFileInputReader createReader( AvroInputMeta meta, AvroInputData data, FileObject file )
-    throws Exception {
-    return null;
-  }
-
   public static List<? extends IAvroInputField> getLeafFields( NamedClusterServiceLocator namedClusterServiceLocator,
                                                                NamedCluster namedCluster, String schemaPath,
                                                                String dataPath ) throws Exception {
@@ -233,7 +223,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     String inputFileName = null;
     data.input.setVariableSpace( this );
 
-    AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
+    AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[meta.getFormat()];
     if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
       || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
       isDatum = true;
@@ -274,7 +264,7 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
     }
     data.input.setLookupFields( lookupFields );
 
-    if ( inputFileName != null  ) {
+    if ( inputFileName != null ) {
       data.input.setInputFile( inputFileName );
       data.input.setInputStreamFieldName( null );
     } else if ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) {
@@ -337,4 +327,14 @@ public class AvroInput extends BaseFileInputStep<AvroInputMeta, AvroInputData> {
       // Swallow any exception - Inability to check for legacy hacked fields should not be fatal in itself
     }
   }
+
+  protected boolean init() {
+    return true;
+  }
+
+  protected IBaseFileInputReader createReader( AvroInputMeta meta, AvroInputData data, FileObject file )
+    throws Exception {
+    return null;
+  }
+
 }
