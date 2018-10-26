@@ -107,12 +107,17 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     //addIndexToFormatFieldName();
   }
 
-  public List<String> getIndexedVals() {
+  private void initIndexedVals() {
     int bracketPos = formatFieldName.indexOf( '[' );
-    if ( indexedVals.isEmpty() && bracketPos > 0 ) {
-      String values = formatFieldName.substring( bracketPos + 1, formatFieldName.length() - 1 );
+    if ( indexedVals.isEmpty() && bracketPos > -1 ) {
+      int closeBracketPos = formatFieldName.indexOf( ']' );
+      String values = formatFieldName.substring( bracketPos + 1, closeBracketPos );
       indexedVals = Arrays.asList( values.split( "\\s*,\\s*" ) );
     }
+  }
+
+  public List<String> getIndexedVals() {
+    initIndexedVals();
     return indexedVals;
   }
 
@@ -131,8 +136,14 @@ public class AvroInputField extends BaseFormatInputField implements IAvroInputFi
     return formatFieldName;
   }
 
+  @Override
+  public void setFormatFieldName( String formatFieldName ) {
+    setAvroFieldName( formatFieldName );
+  }
+
   @Override public void setAvroFieldName( String avroFieldName ) {
     this.formatFieldName = avroFieldName;
+    initIndexedVals();
   }
 
   @Override
