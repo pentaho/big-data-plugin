@@ -68,7 +68,6 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -84,12 +83,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
+public abstract class BaseAvroStepDialog extends BaseStepDialog
   implements StepDialogInterface {
   protected final Class<?> PKG = getClass();
   protected final Class<?> BPKG = BaseAvroStepDialog.class;
 
-  protected T meta;
   protected ModifyListener lsMod;
 
   public static final int MARGIN = 15;
@@ -130,12 +128,15 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected static final String HDFS_SCHEME = "hdfs";
 
-  public BaseAvroStepDialog( Shell parent, T in, TransMeta transMeta, String sname ) {
-    super( parent, (BaseStepMeta) in, transMeta, sname );
-    meta = in;
-    if ( meta instanceof AvroInputMeta ) {
+  public BaseAvroStepDialog( Shell parent, BaseStepMeta in, TransMeta transMeta, String sname ) {
+    super( parent, in, transMeta, sname );
+    if ( baseStepMeta instanceof AvroInputMeta ) {
       isInputStep = true;
     }
+  }
+
+  public BaseStepMeta getStepMeta( ) {
+    return (BaseStepMeta) baseStepMeta;
   }
 
   @Override
@@ -145,14 +146,14 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE );
     props.setLook( shell );
-    setShellImage( shell, meta );
+    setShellImage( shell, baseStepMeta );
 
     lsMod = new ModifyListener() {
       public void modifyText( ModifyEvent e ) {
-        meta.setChanged();
+        getStepMeta().setChanged();
       }
     };
-    changed = meta.hasChanged();
+    changed = getStepMeta().hasChanged();
 
     createUI();
 
@@ -166,7 +167,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
-    getData( meta );
+    getData(  );
     updateLocation();
     shell.open();
     wStepname.setFocus();
@@ -229,7 +230,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected void cancel() {
     stepname = null;
-    meta.setChanged( changed );
+    getStepMeta().setChanged( changed );
     dispose();
   }
 
@@ -239,7 +240,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     }
     stepname = wStepname.getText();
 
-    getInfo( meta, false );
+    getInfo( false );
     dispose();
   }
 
@@ -251,18 +252,16 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   /**
    * Read the data from the meta object and show it in this dialog.
    *
-   * @param meta The meta object to obtain the data from.
    */
-  protected abstract void getData( T meta );
+  protected abstract void getData(  );
 
   /**
    * Fill meta object from UI options.
    *
-   * @param meta    meta object
    * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview -
    *                EOL chars. It uses as "mixed" for be able to preview any file.
    */
-  protected abstract void getInfo( T meta, boolean preview );
+  protected abstract void getInfo( boolean preview );
 
   protected abstract int getWidth();
 
@@ -316,7 +315,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected void addIcon( Control bottom ) {
     Label wicon = new Label( shell, SWT.RIGHT );
-    String stepId = meta.getParentStepMeta().getStepID();
+    String stepId = getStepMeta().getParentStepMeta().getStepID();
     wicon.setImage( GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
       ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
     FormData fdlicon = new FormData();
