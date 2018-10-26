@@ -816,8 +816,9 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   private String clearIndexFromFieldName( String fieldName ) {
     String cleanFieldName = fieldName;
     int bracketPos = cleanFieldName.indexOf( "[" );
-    if ( bracketPos > 0 ) {
-      cleanFieldName = cleanFieldName.substring( 0, bracketPos ) + "[]";
+    if ( bracketPos > -1 ) {
+      int closeBracketPos = cleanFieldName.indexOf( "]" );
+      cleanFieldName = cleanFieldName.substring( 0, bracketPos + 1 ) + cleanFieldName.substring( closeBracketPos );
     }
 
     return cleanFieldName;
