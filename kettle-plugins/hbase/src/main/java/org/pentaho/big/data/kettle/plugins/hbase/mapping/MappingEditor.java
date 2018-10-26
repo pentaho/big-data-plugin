@@ -905,6 +905,11 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
         ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
         // don't bother adding if there are any errors
         if ( missingFamilies.size() == 0 && missingColumnNames.size() == 0 && missingTypes.size() == 0 ) {
+          // Set the alias name to the column name if no alias value is detected
+          if ( Utils.isEmpty( alias ) ) {
+            alias = colName;
+            item.setText( 1, colName );
+          }
           HBaseValueMetaInterface vm =
               valueMetaInterfaceFactory.createHBaseValueMetaInterface( family, colName, alias, 0, -1, -1 );
           try {
