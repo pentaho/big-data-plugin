@@ -1729,7 +1729,7 @@ public class HadoopFileOutputDialog extends BaseStepDialog implements StepDialog
         path = incomingURL.length() > root.length() ? incomingURL.substring( root.length() ) : "/";
       }
     } catch ( FileSystemException e ) {
-      path = null;
+      path = incomingURL;
     }
     return path;
   }
