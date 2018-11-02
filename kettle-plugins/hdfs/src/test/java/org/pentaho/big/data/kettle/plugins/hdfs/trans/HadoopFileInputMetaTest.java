@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -50,6 +51,7 @@ import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -208,5 +210,24 @@ public class HadoopFileInputMetaTest {
 
     Assert.assertEquals( hostName, meta.getUrlHostName( url ) );
     Assert.assertEquals( "/" + path, meta.getUrlPath( url ) );
+  }
+
+  @Test
+  public void testEncryption() throws Exception {
+    KettleEnvironment.init();
+    HadoopFileInputMeta meta = new HadoopFileInputMeta();
+    String url = "hdfs://user:password@myhost:8020/myfile";
+    String encrypted = meta.encryptDecryptPassword( url, HadoopFileInputMeta.EncryptDirection.ENCRYPT );
+    assertTrue( !encrypted.contains( "password" ) );
+    assertEquals( url, meta.encryptDecryptPassword( encrypted, HadoopFileInputMeta.EncryptDirection.DECRYPT ) );
+  }
+
+  @Test
+  public void testNoPassword() throws Exception {
+    KettleEnvironment.init();
+    HadoopFileInputMeta meta = new HadoopFileInputMeta();
+    String url = "hdfs://user@myhost:8020/myfile";
+    String encrypted = meta.encryptDecryptPassword( url, HadoopFileInputMeta.EncryptDirection.ENCRYPT );
+    assertEquals( url, meta.encryptDecryptPassword( encrypted, HadoopFileInputMeta.EncryptDirection.DECRYPT ) );
   }
 }
