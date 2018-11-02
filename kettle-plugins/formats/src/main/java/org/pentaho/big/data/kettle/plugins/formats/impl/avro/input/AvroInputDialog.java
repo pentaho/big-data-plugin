@@ -353,10 +353,10 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
     encodingCombo = new CCombo( wTabComposite, SWT.BORDER | SWT.READ_ONLY );
     String[] availFormats = {
-        BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.JsonDatum.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.BinaryDatum.Label" ),
-        BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.AlternateSchema.Label" )
+      BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.JsonDatum.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.BinaryDatum.Label" ),
+      BaseMessages.getString( PKG, "AvroInputDialog.AvroFile.AlternateSchema.Label" )
     };
 
     encodingCombo.setItems( availFormats );
@@ -424,7 +424,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wFieldNameCombo = new ComboVar( transMeta, wDataFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wFieldNameCombo );
     new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-        .apply();
+      .apply();
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
@@ -439,13 +439,13 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
     //Set widgets from Meta
     wbGetDataFromFile
-        .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     wbGetDataFromField
-        .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     fileSettingRadioSelectionAdapter.widgetSelected( null );
     wFieldNameCombo.setText(
-        avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
-            : avroBaseMeta.getDataLocation() );
+      avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
+        : avroBaseMeta.getDataLocation() );
 
     // Set up the Source Group
     wSourceGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
@@ -520,17 +520,17 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wSchemaPath );
     new FD( wSchemaPath ).left( 0, 0 ).top( wlSchemaPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH )
-        .rright().apply();
+      .rright().apply();
 
     wbSchemaBrowse = new Button( wSchemaFileComposite, SWT.PUSH );
     props.setLook( wbSchemaBrowse );
     wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
     wbSchemaBrowse.addListener( SWT.Selection, event -> browseForFileInputPathForSchema() );
     int bOffset =
-        ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.computeSize( SWT.DEFAULT,
-            SWT.DEFAULT, false ).y ) / 2;
+      ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.computeSize( SWT.DEFAULT,
+        SWT.DEFAULT, false ).y ) / 2;
     new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
-        .apply();
+      .apply();
 
     wSchemaFieldComposite = new Composite( wSchemaSettingsDynamicArea, SWT.NONE );
     FormLayout schemaFieldLayout = new FormLayout();
@@ -544,7 +544,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wSchemaFieldNameCombo = new ComboVar( transMeta, wSchemaFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wSchemaFieldNameCombo );
     new FD( wSchemaFieldNameCombo ).left( 0, 0 ).top( fieldNameSchemaLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-        .apply();
+      .apply();
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionSchemaAdapter = new SelectionAdapter() {
@@ -597,7 +597,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
    * Read the data from the meta object and show it in this dialog.
    */
   @Override
-  protected void getData(  ) {
+  protected void getData() {
     AvroInputMeta meta = (AvroInputMeta) getStepMeta();
 
     wPath.setText( "" );
@@ -717,7 +717,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     }
 
     if ( wbGetSchemaFromField.getSelection() ) {
-        meta.setSchemaLocation( wSchemaFieldNameCombo.getText(), AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
+      meta.setSchemaLocation( wSchemaFieldNameCombo.getText(), AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
     } else {
       meta.setSchemaLocation( wSchemaPath.getText(), AvroInputMetaBase.LocationDescriptor.FILE_NAME );
       meta.setCacheSchemas( false );
@@ -732,7 +732,11 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
-      field.setFormatFieldName( extractFieldName( item.getText( AVRO_ORIGINAL_PATH_COLUMN_INDEX ) ) );
+      String formatFieldName = extractFieldName( item.getText( AVRO_ORIGINAL_PATH_COLUMN_INDEX ) );
+      if ( formatFieldName.startsWith( "[*key*]" ) ) {
+        formatFieldName = formatFieldName.replace( "*key*", item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
+      }
+      field.setFormatFieldName( formatFieldName );
       field.setAvroType( item.getText( AVRO_TYPE_COLUMN_INDEX ) );
       field.setIndexedValues( item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
       field.setPentahoFieldName( item.getText( FIELD_NAME_COLUMN_INDEX ) );
@@ -852,7 +856,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
-    getData(  );
+    getData();
     updateLocation();
     updateSchemaLocation();
     shell.open();
