@@ -220,13 +220,16 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
       inputFiles.fileRequired, inputFiles.includeSubFolderBoolean() );
   }
 
-  private String encryptDecryptPassword( String source, EncryptDirection direction ) {
+  protected String encryptDecryptPassword( String source, EncryptDirection direction ) {
     Validate.notNull( direction, "'direction' must not be null" );
     try {
       URI uri = new URI( source );
       String userInfo = uri.getUserInfo();
       if ( userInfo != null ) {
         String[] userInfoArray = userInfo.split( ":", 2 );
+        if ( userInfoArray.length < 2 ) {
+          return source; //no password present
+        }
         String password = userInfoArray[ 1 ];
         String processedPassword = password;
         switch ( direction ) {
