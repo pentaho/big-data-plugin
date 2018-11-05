@@ -78,6 +78,8 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class AvroInputDialog extends BaseAvroStepDialog {
 
@@ -733,9 +735,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       TableItem item = wInputFields.getNonEmpty( i );
       AvroInputField field = new AvroInputField();
       String formatFieldName = extractFieldName( item.getText( AVRO_ORIGINAL_PATH_COLUMN_INDEX ) );
-      if ( formatFieldName.startsWith( "[*key*]" ) ) {
-        formatFieldName = formatFieldName.replace( "*key*", item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
-      }
+      formatFieldName = fixPath( formatFieldName, item );
       field.setFormatFieldName( formatFieldName );
       field.setAvroType( item.getText( AVRO_TYPE_COLUMN_INDEX ) );
       field.setIndexedValues( item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
@@ -770,6 +770,20 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       meta.setLookupFields( varFields );
     }
 
+  }
+
+  private String fixPath( String formatFieldName, TableItem item ) {
+    String value = formatFieldName;
+    Pattern p = Pattern.compile( "\\[(.*?)\\]" );
+    Matcher m = p.matcher( value );
+    while ( m.find() ) {
+      if ( m.end() - m.start() < 3 ) {
+        value = new StringBuilder( value ).insert( m.start() + 1, item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) ).toString();
+      } else {
+        value = value.replace( m.group( 1 ), item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
+      }
+    }
+    return value;
   }
 
   private String extractFieldName( String parquetNameTypeFromUI ) {
