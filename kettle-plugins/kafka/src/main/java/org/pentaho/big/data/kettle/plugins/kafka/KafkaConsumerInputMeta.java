@@ -589,31 +589,4 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
       injectedConfigValues = null;
     }
   }
-
-
-  @Override public KafkaConsumerInputMeta copyObject() {
-    KafkaConsumerInputMeta newClone = (KafkaConsumerInputMeta) this.clone();
-    newClone.connectionType = this.connectionType;
-    newClone.topics = new ArrayList<>( this.topics );
-    newClone.keyField = new KafkaConsumerField( this.keyField );
-    newClone.messageField = new KafkaConsumerField( this.messageField );
-    if ( null != this.injectedConfigNames ) {
-      newClone.injectedConfigNames = new ArrayList<>( this.injectedConfigNames );
-    }
-    if ( null != this.injectedConfigValues ) {
-      newClone.injectedConfigValues = new ArrayList<>( this.injectedConfigValues );
-    }
-    newClone.config = new LinkedHashMap<>( this.config );
-    newClone.topicField = new KafkaConsumerField( this.topicField );
-    newClone.offsetField = new KafkaConsumerField( this.offsetField );
-    newClone.partitionField = new KafkaConsumerField( this.partitionField );
-    newClone.timestampField = new KafkaConsumerField( this.timestampField );
-    // Copying these explicitly so it's clear how they're being handled
-    // even though it's the same thing this.clone() already did
-    newClone.kafkaFactory = this.kafkaFactory;
-    newClone.namedClusterService = this.namedClusterService;
-    newClone.metastoreLocator = this.metastoreLocator;
-    newClone.namedClusterServiceLocator = this.namedClusterServiceLocator;
-    return newClone;
-  }
 }
