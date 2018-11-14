@@ -194,7 +194,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
       dataLocation =
         XMLHandler.getTagValue( stepnode, "dataLocation" ) == null ? XMLHandler.getTagValue( stepnode, "fileName" )
           : XMLHandler.getTagValue( stepnode, "dataLocation" );
-      format = XMLHandler.getTagValue( stepnode, "format" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "format" ) );
+      format = XMLHandler.getTagValue( stepnode, "sourceFormat" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "sourceFormat" ) );
       dataLocationType = XMLHandler.getTagValue( stepnode, "dataLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "dataLocationType" ) );
       schemaLocation = XMLHandler.getTagValue( stepnode, "schemaLocation" );
       schemaLocationType = XMLHandler.getTagValue( stepnode, "schemaLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "schemaLocationType" ) );
@@ -248,7 +248,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocation", getDataLocation() ) );
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "format", getFormat() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "sourceFormat", getFormat() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocationType", dataLocationType ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocation", getSchemaLocation() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocationType", schemaLocationType ) );
@@ -306,7 +306,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
     try {
       passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
       dataLocation = rep.getStepAttributeString( id_step, "dataLocation" );
-      format = (int) rep.getStepAttributeInteger( id_step, "format" );
+      format = (int) rep.getStepAttributeInteger( id_step, "sourceFormat" );
       dataLocationType = (int) rep.getStepAttributeInteger( id_step, "dataLocationType" );
       schemaLocation = rep.getStepAttributeString( id_step, "schemaLocation" );
       schemaLocationType = (int) rep.getStepAttributeInteger( id_step, "schemaLocationType" );
@@ -355,10 +355,11 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
   @Override
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
     throws KettleException {
+
     try {
       rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", passingThruFields );
       rep.saveStepAttribute( id_transformation, id_step, "dataLocation", getDataLocation() );
-      rep.saveStepAttribute( id_transformation, id_step, "format", getFormat() );
+      rep.saveStepAttribute( id_transformation, id_step, "sourceFormat", getFormat() );
       rep.saveStepAttribute( id_transformation, id_step, "dataLocationType", dataLocationType );
       rep.saveStepAttribute( id_transformation, id_step, "schemaLocation", getSchemaLocation() );
       rep.saveStepAttribute( id_transformation, id_step, "schemaLocationType", schemaLocationType );
