@@ -85,7 +85,7 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
 
     source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
     window = new FixedTimeStreamWindow<>( subtransExecutor, kafkaConsumerInputData.outputRowMeta, getDuration(),
-      getBatchSize(), kafkaConsumerInputMeta.isAutoCommit() ? (p) -> { } : this::commitOffsets );
+      getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? ( p) -> { } : this::commitOffsets );
 
     return true;
   }
