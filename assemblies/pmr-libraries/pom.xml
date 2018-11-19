@@ -16,7 +16,7 @@
     <spring.security.version>4.1.3.RELEASE</spring.security.version>
     <apache-xmlgraphics.revision>1.9.1</apache-xmlgraphics.revision>
     <blueprints-core.version>2.6.0</blueprints-core.version>
-    <rxjava.version>2.0.4</rxjava.version>
+    <rxjava.version>2.2.3</rxjava.version>
   </properties>
   <dependencies>
     <dependency>
