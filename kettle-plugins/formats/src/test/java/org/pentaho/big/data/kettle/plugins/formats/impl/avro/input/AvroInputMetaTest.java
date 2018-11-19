@@ -149,7 +149,7 @@ public class AvroInputMetaTest {
 
   @Test
   public void testGetFields_infoMetaShouldBeMerged_ifWePassingFieldsThroughStep() throws KettleStepException {
-    meta.inputFiles.passingThruFields = true;
+    meta.passingThruFields = true;
 
     RowMetaInterface forMerge = mock( RowMetaInterface.class );
     RowMetaInterface[]  rmi = new RowMetaInterface[] { forMerge };
@@ -160,7 +160,7 @@ public class AvroInputMetaTest {
 
   @Test
   public void testGetFields_infoMetaShouldNotBeMerged_ifWeDoNotHaveadditionalFields() throws KettleStepException {
-    meta.inputFiles.passingThruFields = true;
+    meta.passingThruFields = true;
 
     meta.setInputFields( Arrays.asList( field ) );
     meta.getFields( rowMeta, origin, info, nextStep, space, repository, metaStore );

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -47,6 +47,12 @@ public class KafkaConsumerField {
   private Type outputType = Type.String;
 
   public KafkaConsumerField() {
+  }
+
+  public KafkaConsumerField( KafkaConsumerField orig ) {
+    this.kafkaName = orig.kafkaName;
+    this.outputName = orig.outputName;
+    this.outputType = orig.outputType;
   }
 
   public KafkaConsumerField( Name kafkaName, String outputName ) {

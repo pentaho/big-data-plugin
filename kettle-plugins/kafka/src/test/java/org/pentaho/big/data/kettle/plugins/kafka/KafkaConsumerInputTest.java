@@ -294,7 +294,7 @@ public class KafkaConsumerInputTest {
 
     KafkaStreamSource kafkaStreamSource = (KafkaStreamSource) spy( step.getSource() );
     step.setSource( kafkaStreamSource );
-    Iterable rows = kafkaStreamSource.observable().blockingIterable();
+    Iterable rows = kafkaStreamSource.flowable().blockingIterable();
 
     Runnable processRowRunnable = () -> {
       try {
@@ -311,7 +311,7 @@ public class KafkaConsumerInputTest {
     service.shutdown();
 
     verify( kafkaStreamSource ).open();
-    verify( kafkaStreamSource, times( 2 ) ).observable();
+    verify( kafkaStreamSource, times( 2 ) ).flowable();
     assertEquals( 5, Iterables.size( rows ) );
 
     // make sure all of the appropriate columns are in the output row meta

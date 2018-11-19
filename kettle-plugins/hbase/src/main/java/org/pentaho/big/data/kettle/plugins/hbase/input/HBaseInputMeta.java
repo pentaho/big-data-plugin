@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,11 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -38,6 +33,8 @@ import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
+import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseMappingImpl;
+import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseValueMetaImpl;
 import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
 import org.pentaho.bigdata.api.hbase.HBaseConnection;
 import org.pentaho.bigdata.api.hbase.HBaseService;
@@ -71,14 +68,19 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
+import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
-import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Class providing an input step for reading data from an HBase table according to meta data mapping info stored in a
@@ -89,7 +91,7 @@ import org.w3c.dom.Node;
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/HBase_Input",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseinput" )
-@InjectionSupported( localizationPrefix = "HBaseInput.Injection.", groups = { "OUTPUT_FIELDS", "MAPPING", "FILTER" } )
+@InjectionSupported( localizationPrefix = "HBaseInput.Injection.", groups = {"OUTPUT_FIELDS", "MAPPING", "FILTER"} )
 public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected static Class<?> PKG = HBaseInputMeta.class;
@@ -103,31 +105,45 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   protected NamedCluster namedCluster;
 
-  /** path/url to hbase-site.xml */
+  /**
+   * path/url to hbase-site.xml
+   */
   @Injection( name = "HBASE_SITE_XML_URL" )
   protected String m_coreConfigURL;
 
-  /** path/url to hbase-default.xml */
+  /**
+   * path/url to hbase-default.xml
+   */
   @Injection( name = "HBASE_DEFAULT_XML_URL" )
   protected String m_defaultConfigURL;
 
-  /** the name of the HBase table to read from */
+  /**
+   * the name of the HBase table to read from
+   */
   @Injection( name = "SOURCE_TABLE_NAME" )
   protected String m_sourceTableName;
 
-  /** the name of the mapping for columns/types for the source table */
+  /**
+   * the name of the mapping for columns/types for the source table
+   */
   @Injection( name = "SOURCE_MAPPING_NAME" )
   protected String m_sourceMappingName;
 
-  /** Start key value for range scans */
+  /**
+   * Start key value for range scans
+   */
   @Injection( name = "START_KEY_VALUE" )
   protected String m_keyStart;
 
-  /** Stop key value for range scans */
+  /**
+   * Stop key value for range scans
+   */
   @Injection( name = "STOP_KEY_VALUE" )
   protected String m_keyStop;
 
-  /** Scanner caching */
+  /**
+   * Scanner caching
+   */
   @Injection( name = "SCANNER_ROW_CACHE_SIZE" )
   protected String m_scannerCacheSize;
 
@@ -179,9 +195,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the mapping to use for decoding the row
-   * 
-   * @param m
-   *          the mapping to use
+   *
+   * @param m the mapping to use
    */
   public void setMapping( Mapping m ) {
     m_mapping = m;
@@ -189,7 +204,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the mapping to use for decoding the row
-   * 
+   *
    * @return the mapping to use
    */
   public Mapping getMapping() {
@@ -198,7 +213,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the URL to the hbase-site.xml. Either this OR the zookeeper host list can be used to establish a connection.
-   * 
+   *
    * @param coreConfig
    */
   public void setCoreConfigURL( String coreConfig ) {
@@ -208,7 +223,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the URL to the hbase-site.xml file.
-   * 
+   *
    * @return the URL to the hbase-site.xml file or null if not set.
    */
   public String getCoreConfigURL() {
@@ -218,9 +233,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the URL to the hbase-default.xml file. This can be optionally supplied in conjuction with hbase-site.xml. If
    * not supplied, then the default hbase-default.xml included in the main hbase jar file is used.
-   * 
-   * @param defaultConfig
-   *          URL to the hbase-default.xml file.
+   *
+   * @param defaultConfig URL to the hbase-default.xml file.
    */
   public void setDefaulConfigURL( String defaultConfig ) {
     m_defaultConfigURL = defaultConfig;
@@ -229,7 +243,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the URL to hbase-default.xml
-   * 
+   *
    * @return the URL to hbase-default.xml or null if not set.
    */
   public String getDefaultConfigURL() {
@@ -243,7 +257,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the name of the HBase table to read from.
-   * 
+   *
    * @return the name of the source HBase table.
    */
   public String getSourceTableName() {
@@ -252,9 +266,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the name of the mapping to use that defines column names and types for the source table.
-   * 
-   * @param sourceMapping
-   *          the name of the mapping to use.
+   *
+   * @param sourceMapping the name of the mapping to use.
    */
   public void setSourceMappingName( String sourceMapping ) {
     m_sourceMappingName = sourceMapping;
@@ -263,7 +276,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the name of the mapping to use for reading and decoding column values for the source table.
-   * 
+   *
    * @return the name of the mapping to use.
    */
   public String getSourceMappingName() {
@@ -272,9 +285,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set whether a given row needs to match at least one of the user specified column filters.
-   * 
-   * @param a
-   *          true if at least one filter needs to match before a given row is returned. If false then *all* filters
+   *
+   * @param a true if at least one filter needs to match before a given row is returned. If false then *all* filters
    *          must match.
    */
   public void setMatchAnyFilter( boolean a ) {
@@ -283,9 +295,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get whether a given row needs to match at least one of the user-specified column filters.
-   * 
+   *
    * @return true if a given row needs to match at least one of the user specified column filters. Returns false if
-   *         *all* column filters need to match
+   * *all* column filters need to match
    */
   public boolean getMatchAnyFilter() {
     return m_matchAnyFilter;
@@ -293,9 +305,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set the starting value (inclusive) of the key for range scans
-   * 
-   * @param start
-   *          the starting value of the key to use in range scans.
+   *
+   * @param start the starting value of the key to use in range scans.
    */
   public void setKeyStartValue( String start ) {
     m_keyStart = start;
@@ -303,7 +314,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the starting value of the key to use in range scans
-   * 
+   *
    * @return the starting value of the key
    */
   public String getKeyStartValue() {
@@ -313,9 +324,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the stop value (exclusive) of the key to use in range scans. May be null to indicate scan to the end of the
    * table
-   * 
-   * @param stop
-   *          the stop value of the key to use in range scans
+   *
+   * @param stop the stop value of the key to use in range scans
    */
   public void setKeyStopValue( String stop ) {
     m_keyStop = stop;
@@ -323,7 +333,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the stop value of the key to use in range scans
-   * 
+   *
    * @return the stop value of the key
    */
   public String getKeyStopValue() {
@@ -333,9 +343,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set the number of rows to cache for scans. Higher values result in improved performance since there will be fewer
    * requests to HBase but at the expense of increased memory consumption.
-   * 
-   * @param s
-   *          the number of rows to cache for scans.
+   *
+   * @param s the number of rows to cache for scans.
    */
   public void setScannerCacheSize( String s ) {
     m_scannerCacheSize = s;
@@ -343,7 +352,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * The number of rows to cache for scans.
-   * 
+   *
    * @return the number of rows to cache for scans.
    */
   public String getScannerCacheSize() {
@@ -353,9 +362,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Set a list of fields to emit from this steo. If not specified, then all fields defined in the mapping for the
    * source table will be emitted.
-   * 
-   * @param fields
-   *          a list of fields to emit from this step.
+   *
+   * @param fields a list of fields to emit from this step.
    */
   public void setOutputFields( List<HBaseValueMetaInterface> fields ) {
     m_outputFields = fields;
@@ -364,7 +372,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   /**
    * Get the list of fields to emit from this step. May return null, which indicates that *all* fields defined in the
    * mapping for the source table will be emitted.
-   * 
+   *
    * @return the fields that will be output or null (indicating all fields defined in the mapping will be output).
    */
   public List<HBaseValueMetaInterface> getOutputFields() {
@@ -373,9 +381,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Set a list of column filters to use to refine the query
-   * 
-   * @param list
-   *          a list of column filters to refine the query
+   *
+   * @param list a list of column filters to refine the query
    */
   public void setColumnFilters( List<ColumnFilter> list ) {
     m_filters = list;
@@ -383,7 +390,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   /**
    * Get the list of column filters to use for refining the results of a scan. May return null if no filters are in use.
-   * 
+   *
    * @return a list of columm filters by which to refine the results of a query scan.
    */
   public List<ColumnFilter> getColumnFilters() {
@@ -432,8 +439,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
         if ( mappingDefinition == null ) {
           if ( !Const.isEmpty( m_sourceMappingName ) ) {
             tempMapping =
-              getMappingFromHBase( hBaseService, space, m_sourceTableName, m_sourceMappingName, m_coreConfigURL,
-                m_defaultConfigURL );
+                getMappingFromHBase( hBaseService, space, m_sourceTableName, m_sourceMappingName, m_coreConfigURL,
+                    m_defaultConfigURL );
           } else {
             tempMapping = m_mapping;
           }
@@ -456,7 +463,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   static Mapping getMappingFromHBase( HBaseService hBaseService, VariableSpace space, String tableName,
-      String mappingName, String coreConfigURL, String defaultConfigURL ) throws KettleException {
+                                      String mappingName, String coreConfigURL, String defaultConfigURL ) throws KettleException {
     try {
       String siteConfig = "";
       if ( !Const.isEmpty( coreConfigURL ) ) {
@@ -488,7 +495,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     for ( OutputFieldDefinition fieldDefinition : outputFieldsDefinition ) {
       HBaseValueMetaInterface valueMeta =
           valueMetaInterfaceFactory.createHBaseValueMetaInterface( fieldDefinition.getFamily(), fieldDefinition
-              .getColumnName(), fieldDefinition.getAlias(), ValueMeta.getType( fieldDefinition.getHbaseType() ), -1,
+                  .getColumnName(), fieldDefinition.getAlias(), ValueMeta.getType( fieldDefinition.getHbaseType() ), -1,
               -1 );
       valueMeta.setKey( fieldDefinition.isKey() );
       valueMeta.setConversionMask( fieldDefinition.getFormat() );
@@ -512,7 +519,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   static List<ColumnFilter> createColumnFiltersFromDefinition( List<FilterDefinition> filtersDefinition,
-    ColumnFilterFactory columnFilterFactory ) {
+                                                               ColumnFilterFactory columnFilterFactory ) {
     List<ColumnFilter> filters = new ArrayList<>();
     for ( FilterDefinition filterDefinition : filtersDefinition ) {
       ColumnFilter columnFilter = columnFilterFactory.createFilter( filterDefinition.getAlias() );
@@ -526,7 +533,8 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     return filters;
   }
 
-  @Override public String getXML() {
+  @Override
+  public String getXML() {
     try {
       applyInjection( new Variables() );
     } catch ( KettleException e ) {
@@ -535,7 +543,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     StringBuilder retval = new StringBuilder();
 
     namedClusterLoadSaveUtil
-      .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
+        .getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository.getMetaStore(), getLog() );
 
     if ( !Const.isEmpty( m_coreConfigURL ) ) {
       retval.append( "\n    " ).append( XMLHandler.addTagValue( "core_config_url", m_coreConfigURL ) );
@@ -587,8 +595,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     return retval.toString();
   }
 
-  @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore )
-    throws KettleXMLException {
+  @Override
+  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore )
+      throws KettleXMLException {
     System.out.println( "loading data" );
 
     if ( metaStore == null ) {
@@ -596,7 +605,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
 
     this.namedCluster =
-      namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
+        namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, getLog() );
 
     HBaseService hBaseService = null;
     try {
@@ -641,10 +650,53 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
       } else {
         m_mapping = null;
       }
+    } else {
+      Mapping tempMapping = new AELHBaseMappingImpl();
+      if ( tempMapping.loadXML( stepnode ) ) {
+        m_mapping = tempMapping;
+      } else {
+        getLog().logError( "There is no meta data to inflate meta object" );
+      }
+
+      Node fields = XMLHandler.getSubNode( stepnode, "output_fields" );
+
+      if ( fields != null ) {
+        int nrfields = XMLHandler.countNodes( fields, "field" );
+        List<HBaseValueMetaInterface> m_outputFields = new ArrayList<>( nrfields );
+
+        for ( int i = 0; i < nrfields; i++ ) {
+          m_outputFields.add( createFromNode( XMLHandler.getSubNodeByNr( fields, "field", i ) ) );
+        }
+      }
     }
   }
 
-  @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+  private HBaseValueMetaInterface createFromNode( Node fieldNode ) {
+    String isKey = XMLHandler.getTagValue( fieldNode, "key" ).trim();
+    String alias = XMLHandler.getTagValue( fieldNode, "alias" ).trim();
+    String columnFamily = "";
+    String columnName = alias;
+    if ( !isKey.equalsIgnoreCase( "Y" ) ) {
+      if ( XMLHandler.getTagValue( fieldNode, "family" ) != null ) {
+        columnFamily = XMLHandler.getTagValue( fieldNode, "family" ).trim();
+      }
+
+      if ( XMLHandler.getTagValue( fieldNode, "column" ) != null ) {
+        columnName = XMLHandler.getTagValue( fieldNode, "column" ).trim();
+      }
+    }
+
+    String typeS = XMLHandler.getTagValue( fieldNode, "type" ).trim();
+    String tableName = XMLHandler.getTagValue( fieldNode, "table_name" );
+    String mappingName = XMLHandler.getTagValue( fieldNode, "mapping_name" );
+
+    AELHBaseValueMetaImpl vm = new AELHBaseValueMetaImpl( isKey.equalsIgnoreCase( "Y" ), alias, columnName, columnFamily, tableName, mappingName );
+    vm.setHBaseTypeFromString( typeS );
+    return vm;
+  }
+
+  @Override
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
 
     if ( metaStore == null ) {
       metaStore = metaStoreService.getMetastore();
@@ -695,8 +747,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
   }
 
-  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-    throws KettleException {
+  @Override
+  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
+      throws KettleException {
 
     if ( metaStore == null ) {
       metaStore = metaStoreService.getMetastore();
@@ -745,8 +798,9 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
     }
   }
 
-  @Override public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
-      String[] input, String[] output, RowMetaInterface info, VariableSpace variableSpace, Repository repository, IMetaStore metaStore ) {
+  @Override
+  public void check( List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev,
+                     String[] input, String[] output, RowMetaInterface info, VariableSpace variableSpace, Repository repository, IMetaStore metaStore ) {
 
     if ( metaStore == null ) {
       metaStore = metaStoreService.getMetastore();
@@ -766,7 +820,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
   }
 
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
-      TransMeta transMeta, Trans trans ) {
+                                TransMeta transMeta, Trans trans ) {
 
     return new HBaseInput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
   }
@@ -832,7 +886,7 @@ public class HBaseInputMeta extends BaseStepMeta implements StepMetaInterface {
 
   @Override
   public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-      VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
 
     rowMeta.clear(); // start afresh - eats the input
 

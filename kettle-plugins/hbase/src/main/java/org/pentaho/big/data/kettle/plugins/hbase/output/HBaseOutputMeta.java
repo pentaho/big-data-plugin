@@ -32,6 +32,7 @@ import org.pentaho.big.data.kettle.plugins.hbase.MappingDefinition;
 import org.pentaho.big.data.kettle.plugins.hbase.NamedClusterLoadSaveUtil;
 import org.pentaho.big.data.kettle.plugins.hbase.ServiceStatus;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingUtils;
+import org.pentaho.big.data.kettle.plugins.hbase.meta.AELHBaseMappingImpl;
 import org.pentaho.bigdata.api.hbase.HBaseService;
 import org.pentaho.bigdata.api.hbase.mapping.Mapping;
 import org.pentaho.di.core.CheckResult;
@@ -372,6 +373,16 @@ public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
     } catch ( Exception e ) {
       getLog().logError( e.getMessage() );
     }
+
+    /**
+     * Assume that null mappings indicate
+     * a missing HBaseService.  Try loading
+     * from KTR
+     */
+    if ( tempMapping == null ) {
+      tempMapping = new AELHBaseMappingImpl();
+    }
+
     if ( tempMapping != null && tempMapping.loadXML( stepnode ) ) {
       m_mapping = tempMapping;
     } else {

@@ -137,7 +137,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     wOffsetGroup.setLayout( flOffsetGroup );
 
     FormData fdOffsetGroup = new FormData();
-    fdOffsetGroup.top = new FormAttachment( wBatchSize, 15 );
+    fdOffsetGroup.top = new FormAttachment( wParallelism, 15 );
     fdOffsetGroup.left = new FormAttachment( 0, 0 );
     fdOffsetGroup.right = new FormAttachment( 100, 0 );
     wOffsetGroup.setLayoutData( fdOffsetGroup );
