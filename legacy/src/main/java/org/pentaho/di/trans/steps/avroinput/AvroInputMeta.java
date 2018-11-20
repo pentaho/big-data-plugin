@@ -79,8 +79,8 @@ import org.w3c.dom.Node;
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
-@Step( id = "AvroInput", image = "deprecated.svg", name = "AvroInput.Name", description = "AvroInput.Description",
-    // categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
+@Step( id = "AvroInput", image = "ui/images/deprecated.svg", name = "AvroInput.Name",
+    description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Deprecated",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Avro+Input",
     i18nPackageName = "org.pentaho.di.trans.steps.avroinput",

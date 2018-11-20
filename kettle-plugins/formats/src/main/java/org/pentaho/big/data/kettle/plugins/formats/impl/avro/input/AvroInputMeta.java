@@ -25,44 +25,25 @@ import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.annotations.Step;
-import org.pentaho.di.core.exception.KettlePluginException;
-import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
-import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.metastore.api.IMetaStore;
 
 //keep ID as new because we will have old step with ID AvroInput
 @Step( id = "AvroInputNew", image = "AI.svg", name = "AvroInput.Name", description = "AvroInput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Avro_Input",
     i18nPackageName = "org.pentaho.di.trans.steps.avro" )
-@InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "FIELDS" }, hide = {
-        "FILEMASK", "EXCLUDE_FILEMASK", "FILE_REQUIRED", "INCLUDE_SUBFOLDERS", "FIELD_POSITION", "FIELD_LENGTH",
-        "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",
-        "FIELD_DECIMAL", "FIELD_GROUP", "FIELD_REPEAT", "FIELD_TRIM_TYPE",
-        "ACCEPT_FILE_NAMES", "ACCEPT_FILE_STEP", "PASS_THROUGH_FIELDS", "ACCEPT_FILE_FIELD", "ADD_FILES_TO_RESULT",
-        "IGNORE_ERRORS",
-        "FILE_ERROR_FIELD", "FILE_ERROR_MESSAGE_FIELD", "SKIP_BAD_FILES", "WARNING_FILES_TARGET_DIR",
-        "WARNING_FILES_EXTENTION",
-        "ERROR_FILES_TARGET_DIR", "ERROR_FILES_EXTENTION", "LINE_NR_FILES_TARGET_DIR", "LINE_NR_FILES_EXTENTION",
-        "FILE_SHORT_FILE_FIELDNAME",
-        "FILE_EXTENSION_FIELDNAME", "FILE_PATH_FIELDNAME", "FILE_SIZE_FIELDNAME", "FILE_HIDDEN_FIELDNAME",
-        "FILE_LAST_MODIFICATION_FIELDNAME",
-        "FILE_URI_FIELDNAME", "FILE_ROOT_URI_FIELDNAME", "FILENAME"
+@InjectionSupported( localizationPrefix = "AvroInput.Injection.", groups = { "FIELDS", "LOOKUP_FIELDS" }, hide = {
+  "FIELD_POSITION", "FIELD_LENGTH", "FIELD_IGNORE", "FIELD_FORMAT", "FIELD_PRECISION", "FIELD_CURRENCY",
+  "FIELD_DECIMAL", "FIELD_GROUP", "FIELD_REPEAT", "FIELD_TRIM_TYPE"
 } )
 public class AvroInputMeta extends AvroInputMetaBase {
 
@@ -80,7 +61,7 @@ public class AvroInputMeta extends AvroInputMetaBase {
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans ) {
+                                Trans trans ) {
     return new AvroInput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
   }
 
@@ -92,7 +73,7 @@ public class AvroInputMeta extends AvroInputMetaBase {
   public NamedCluster getNamedCluster() {
     if ( !testing ) {
       NamedCluster namedCluster =
-              NamedClusterResolver.resolveNamedCluster(namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename());
+              NamedClusterResolver.resolveNamedCluster(namedClusterServiceLocator, namedClusterService, metaStoreService, this.getDataLocation());
       return namedCluster;
     } else {
       namedClusterService.getClusterTemplate();
@@ -102,43 +83,12 @@ public class AvroInputMeta extends AvroInputMetaBase {
 
   public NamedCluster getNamedCluster( String fileUri ) {
     NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, fileUri );
+            NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, fileUri );
     return namedCluster;
   }
 
   public NamedClusterServiceLocator getNamedClusterServiceLocator() {
     return namedClusterServiceLocator;
-  }
-
-  @Override
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                        VariableSpace space, Repository repository, IMetaStore metaStore ) throws
-          KettleStepException {
-    try {
-      if ( !inputFiles.passingThruFields ) {
-        // all incoming fields are not transmitted !
-        rowMeta.clear();
-      } else {
-        if ( info != null ) {
-          boolean found = false;
-          for ( int i = 0; i < info.length && !found; i++ ) {
-            if ( info[i] != null ) {
-              rowMeta.mergeRowMeta( info[i], origin );
-              found = true;
-            }
-          }
-        }
-      }
-      for ( int i = 0; i < inputFields.length; i++ ) {
-        AvroInputField field = inputFields[ i ];
-        String value = space.environmentSubstitute( field.getPentahoFieldName() );
-        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getPentahoType() );
-        v.setOrigin( origin );
-        rowMeta.addValueMeta( v );
-      }
-    } catch ( KettlePluginException e ) {
-      throw new KettleStepException( "Unable to create value type", e );
-    }
   }
 
   @VisibleForTesting

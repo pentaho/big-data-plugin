@@ -1,0 +1,151 @@
+<step>
+    <name>Test</name>
+    <type>HBaseInput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+        <method>none</method>
+        <schema_name/>
+    </partitioning>
+
+    <cluster_name>Local Sandbox</cluster_name>
+
+    <zookeeper_hosts>sandbox-hdp.hortonworks.com</zookeeper_hosts>
+
+    <zookeeper_port>2181</zookeeper_port>
+
+    <source_table_name>iemployee</source_table_name>
+
+    <output_fields>
+        <field>
+            <table_name>iemployee</table_name>
+
+            <mapping_name>simple input map</mapping_name>
+
+            <alias>Rowkey</alias>
+
+            <family/>
+
+            <column>Rowkey</column>
+
+            <key>Y</key>
+
+            <type>Integer</type>
+
+            <format/>
+
+        </field>
+        <field>
+            <table_name>iemployee</table_name>
+
+            <mapping_name>simple input map</mapping_name>
+
+            <alias>fname</alias>
+
+            <family>personal</family>
+
+            <column>fname</column>
+
+            <key>N</key>
+
+            <type>Float</type>
+
+            <format/>
+
+        </field>
+        <field>
+            <table_name>iemployee</table_name>
+
+            <mapping_name>simple input map</mapping_name>
+
+            <alias>lname</alias>
+
+            <family>personal</family>
+
+            <column>lname</column>
+
+            <key>N</key>
+
+            <type>Double</type>
+
+            <format/>
+
+        </field>
+        <field>
+            <table_name>iemployee</table_name>
+
+            <mapping_name>simple input map</mapping_name>
+
+            <alias>salary</alias>
+
+            <family>payroll</family>
+
+            <column>salary</column>
+
+            <key>N</key>
+
+            <type>Float</type>
+
+            <format/>
+
+        </field>
+    </output_fields>
+    <match_any_filter>N</match_any_filter>
+
+    <mapping>
+        <mapping_name>simple input map</mapping_name>
+
+        <table_name>iemployee</table_name>
+
+        <key>Rowkey</key>
+
+        <key_type>Integer</key_type>
+
+        <mapped_columns>
+            <mapped_column>
+                <alias>fname</alias>
+
+                <column_family>personal</column_family>
+
+                <column_name>fname</column_name>
+
+                <type>Integer</type>
+
+            </mapped_column>
+            <mapped_column>
+                <alias>lname</alias>
+
+                <column_family>personal</column_family>
+
+                <column_name>lname</column_name>
+
+                <type>Long</type>
+
+            </mapped_column>
+            <mapped_column>
+                <alias>salary</alias>
+
+                <column_family>payroll</column_family>
+
+                <column_name>salary</column_name>
+
+                <type>Float</type>
+
+            </mapped_column>
+        </mapped_columns>
+    </mapping><attributes></attributes>
+    <cluster_schema/>
+    <remotesteps>
+        <input>
+        </input>
+        <output>
+        </output>
+    </remotesteps>
+    <GUI>
+        <xloc>160</xloc>
+        <yloc>144</yloc>
+        <draw>Y</draw>
+    </GUI>
+</step>

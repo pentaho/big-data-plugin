@@ -22,100 +22,162 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.avro.input;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.kettle.plugins.formats.FormatInputFile;
 import org.pentaho.big.data.kettle.plugins.formats.avro.AvroTypeConverter;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionDeep;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
-import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
+import org.pentaho.di.trans.step.BaseStepMeta;
+import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.workarounds.ResolvableResource;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
-/**
- * Avro input meta step without Hadoop-dependent classes. Required for read meta in the spark native code.
- *
- * @author Alexander Buloichik
- */
-@SuppressWarnings( "deprecation" )
-public abstract class AvroInputMetaBase extends
-    BaseFileInputMeta<BaseFileInputAdditionalField, FormatInputFile, AvroInputField> implements ResolvableResource {
+public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMetaInterface, ResolvableResource {
 
-  private static final Class<?> PKG = AvroOutputMetaBase.class;
+  public static final Class<?> PKG = AvroOutputMetaBase.class;
 
-  @Injection( name = "AVRO_FILENAME" )
-  private String filename;
+  public static enum LocationDescriptor {
+    FILE_NAME, FIELD_NAME, FIELD_CONTAINING_FILE_NAME;
+  }
 
-  @Injection( name = "SCHEMA_FILENAME" )
-  protected String schemaFilename;
+  public static enum SourceFormat {
+    AVRO_USE_SCHEMA, DATUM_JSON, DATUM_BINARY, AVRO_ALT_SCHEMA;
 
-  @Injection( name = "STREAM_FIELDNAME" )
-  protected String inputStreamFieldName;
+    public static final SourceFormat[] values = values();
+  }
 
-  @Injection( name = "USE_INPUT_STREAM" )
-  protected boolean useFieldAsInputStream;
+  @Injection( name = "DATA_LOCATION" )
+  private String dataLocation;
 
-  public AvroInputMetaBase() {
-    additionalOutputFields = new BaseFileInputAdditionalField();
-    inputFiles = new FormatInputFile();
-    inputFields = new AvroInputField[0];
+  @Injection( name = "DATA_LOCATION_TYPE" )
+  private int dataLocationType = LocationDescriptor.FILE_NAME.ordinal();
+
+  @Injection( name = "SCHEMA_LOCATION" )
+  private String schemaLocation;
+
+  @Injection( name = "SCHEMA_LOCATION_TYPE" )
+  private int schemaLocationType = LocationDescriptor.FILE_NAME.ordinal();
+
+  private boolean isCacheSchemas;
+
+  @Injection( name = "ALLOW_NULL_FOR_MISSING_FIELDS" )
+  private boolean allowNullForMissingFields;
+
+  @Injection( name = "PASS_THROUGH_FIELDS" )
+  public boolean passingThruFields;
+
+  @Injection( name = "DATA_FORMAT" )
+  private int format;
+
+  @InjectionDeep
+  public AvroInputField[] inputFields = new AvroInputField[ 0 ];
+
+  @InjectionDeep
+  private List<AvroLookupField> lookupFields = new ArrayList<>();
+
+  public List<AvroLookupField> getLookupFields() {
+    return lookupFields;
+  }
+
+  public void setLookupFields( List<AvroLookupField> lookupFields ) {
+    this.lookupFields = lookupFields;
   }
 
 
-  public void allocateFiles( int nrFiles ) {
-    inputFiles.environment = new String[nrFiles];
-    inputFiles.fileName = new String[nrFiles];
-    inputFiles.fileMask = new String[nrFiles];
-    inputFiles.excludeFileMask = new String[nrFiles];
-    inputFiles.fileRequired = new String[nrFiles];
-    inputFiles.includeSubFolders = new String[nrFiles];
+  public String getDataLocation() {
+    return dataLocation;
   }
 
-  /**
-   * TODO: remove from base
-   */
-  @Override
-  public String getEncoding() {
-    return null;
+  public void setDataLocation( String dataLocation, LocationDescriptor locationDescriptor ) {
+    this.dataLocation = dataLocation;
+    this.dataLocationType = locationDescriptor.ordinal();
+  }
+
+  public LocationDescriptor getDataLocationType() {
+    return LocationDescriptor.values()[ dataLocationType ];
+  }
+
+  public void setFormat( int formatIndex ) {
+    this.format = formatIndex;
+  }
+
+  public int getFormat() {
+    return this.format;
+  }
+
+  public String getSchemaLocation() {
+    return schemaLocation;
+  }
+
+  public void setSchemaLocation( String schemaLocation, LocationDescriptor locationDescriptor ) {
+    this.schemaLocation = schemaLocation;
+    this.schemaLocationType = locationDescriptor.ordinal();
   }
 
   @Override
   public void setDefault() {
-    allocateFiles( 0 );
   }
 
-  public String getFilename() {
-    return filename;
+  public LocationDescriptor getSchemaLocationType() {
+    return LocationDescriptor.values()[ schemaLocationType ];
   }
 
-  public void setFilename( String filename ) {
-    this.filename = filename;
+  public boolean isCacheSchemas() {
+    return isCacheSchemas;
+  }
+
+  public void setCacheSchemas( boolean cacheSchemas ) {
+    isCacheSchemas = cacheSchemas;
+  }
+
+  public boolean isAllowNullForMissingFields() {
+    return allowNullForMissingFields;
+  }
+
+  public void setAllowNullForMissingFields( boolean allowNullForMissingFields ) {
+    this.allowNullForMissingFields = allowNullForMissingFields;
+  }
+
+
+  /**
+   * TODO: remove from base
+   */
+  public String getEncoding() {
+    return null;
   }
 
   public AvroInputField[] getInputFields() {
     return this.inputFields;
   }
 
-  public void setInputFields( AvroInputField[] inputFields )  {
+  public void setInputFields( AvroInputField[] inputFields ) {
     this.inputFields = inputFields;
   }
 
   public void setInputFields( List<AvroInputField> inputFields ) {
-    this.inputFields = new AvroInputField[inputFields.size()];
+    this.inputFields = new AvroInputField[ inputFields.size() ];
     this.inputFields = inputFields.toArray( this.inputFields );
   }
 
@@ -127,14 +189,21 @@ public abstract class AvroInputMetaBase extends
   private void readData( Node stepnode, IMetaStore metastore ) throws KettleXMLException {
     try {
       String passFileds = XMLHandler.getTagValue( stepnode, "passing_through_fields" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "passing_through_fields" );
-      inputFiles.passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
-      filename = XMLHandler.getTagValue( stepnode, "filename" );
-      useFieldAsInputStream = ValueMetaBase.convertStringToBoolean(
-        XMLHandler.getTagValue( stepnode, "useStreamField" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "useStreamField" ) );
-      inputStreamFieldName = XMLHandler.getTagValue( stepnode, "stream_fieldname" );
+      passingThruFields = ValueMetaBase.convertStringToBoolean( passFileds );
+
+      dataLocation =
+        XMLHandler.getTagValue( stepnode, "dataLocation" ) == null ? XMLHandler.getTagValue( stepnode, "fileName" )
+          : XMLHandler.getTagValue( stepnode, "dataLocation" );
+      format = XMLHandler.getTagValue( stepnode, "sourceFormat" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "sourceFormat" ) );
+      dataLocationType = XMLHandler.getTagValue( stepnode, "dataLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "dataLocationType" ) );
+      schemaLocation = XMLHandler.getTagValue( stepnode, "schemaLocation" );
+      schemaLocationType = XMLHandler.getTagValue( stepnode, "schemaLocationType" ) == null ? LocationDescriptor.FILE_NAME.ordinal() : Integer.parseInt( XMLHandler.getTagValue( stepnode, "schemaLocationType" ) );
+      isCacheSchemas = ValueMetaBase.convertStringToBoolean( XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "isCacheSchemas" ) );
+      allowNullForMissingFields = ValueMetaBase.convertStringToBoolean( XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) == null ? "false" : XMLHandler.getTagValue( stepnode, "allowNullForMissingFields" ) );
+
       Node fields = XMLHandler.getSubNode( stepnode, "fields" );
       int nrfields = XMLHandler.countNodes( fields, "field" );
-      this.inputFields = new AvroInputField[ nrfields];
+      this.inputFields = new AvroInputField[ nrfields ];
       for ( int i = 0; i < nrfields; i++ ) {
         Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
         AvroInputField inputField = new AvroInputField();
@@ -149,9 +218,24 @@ public abstract class AvroInputMetaBase extends
         }
         String stringFormat = XMLHandler.getTagValue( fnode, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
+        String indexedValues = XMLHandler.getTagValue( fnode, "indexed_vals" );
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          inputField.setIndexedValues( indexedValues );
+        }
         this.inputFields[ i ] = inputField;
       }
-      schemaFilename = XMLHandler.getTagValue( stepnode, "schemaFilename" );
+
+      fields = XMLHandler.getSubNode( stepnode, "lookupFields" );
+      nrfields = XMLHandler.countNodes( fields, "lookupField" );
+      this.lookupFields = new ArrayList<AvroLookupField>();
+      for ( int i = 0; i < nrfields; i++ ) {
+        Node fnode = XMLHandler.getSubNodeByNr( fields, "lookupField", i );
+        AvroLookupField lookupField = new AvroLookupField();
+        lookupField.setFieldName( XMLHandler.getTagValue( fnode, "fieldName" ) );
+        lookupField.setVariableName( XMLHandler.getTagValue( fnode, "variableName" ) );
+        lookupField.setDefaultValue( XMLHandler.getTagValue( fnode, "defaultValue" ) );
+        this.lookupFields.add( lookupField );
+      }
     } catch ( Exception e ) {
       throw new KettleXMLException( "Unable to load step info from XML", e );
     }
@@ -162,15 +246,14 @@ public abstract class AvroInputMetaBase extends
     StringBuffer retval = new StringBuffer( 800 );
     final String INDENT = "    ";
 
-    //we need the equals by size arrays for inputFiles.fileName[i], inputFiles.fileMask[i], inputFiles.fileRequired[i], inputFiles.includeSubFolders[i]
-    //to prevent the ArrayIndexOutOfBoundsException
-    //This line was introduced to prevent future bug if we will suppport the several input files for avro like we do for orc and parquet
-    inputFiles.normalizeAllocation( inputFiles.fileName.length );
-
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", inputFiles.passingThruFields ) );
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "filename", getFilename() ) );
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "useStreamField", isUseFieldAsInputStream() ) );
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "stream_fieldname", getInputStreamFieldName() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", passingThruFields ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocation", getDataLocation() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "sourceFormat", getFormat() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocationType", dataLocationType ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocation", getSchemaLocation() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocationType", schemaLocationType ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "isCacheSchemas", isCacheSchemas() ) );
+    retval.append( INDENT ).append( XMLHandler.addTagValue( "allowNullForMissingFields", isAllowNullForMissingFields() ) );
 
     retval.append( "    <fields>" ).append( Const.CR );
     for ( int i = 0; i < inputFields.length; i++ ) {
@@ -182,7 +265,7 @@ public abstract class AvroInputMetaBase extends
         retval.append( "        " ).append( XMLHandler.addTagValue( "name", field.getPentahoFieldName() ) );
         retval.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
         AvroSpec.DataType avroDataType = field.getAvroType();
-        if ( avroDataType != null &&  !avroDataType.equals( AvroSpec.DataType.NULL ) ) {
+        if ( avroDataType != null && !avroDataType.equals( AvroSpec.DataType.NULL ) ) {
           retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", avroDataType.getName() ) );
         } else {
           retval.append( "        " ).append( XMLHandler.addTagValue( "avro_type", AvroTypeConverter.convertToAvroType( field.getTypeDesc() ) ) );
@@ -190,29 +273,50 @@ public abstract class AvroInputMetaBase extends
         if ( field.getStringFormat() != null ) {
           retval.append( "        " ).append( XMLHandler.addTagValue( "format", field.getStringFormat() ) );
         }
+        String indexedValues = field.getIndexedValues();
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          retval.append( "        " ).append( XMLHandler.addTagValue( "indexed_vals", indexedValues ) );
+        }
         retval.append( "      </field>" ).append( Const.CR );
       }
     }
     retval.append( "    </fields>" ).append( Const.CR );
 
-    retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaFilename", getSchemaFilename() ) );
+    retval.append( "    <lookupFields>" ).append( Const.CR );
+    for ( int i = 0; i < lookupFields.size(); i++ ) {
+      AvroLookupField field = lookupFields.get( i );
+
+      if ( field.getFieldName() != null && field.getFieldName().length() != 0 ) {
+        retval.append( "      <lookupField>" ).append( Const.CR );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "fieldName", field.getFieldName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "variableName", field.getVariableName() ) );
+        retval.append( "        " ).append( XMLHandler.addTagValue( "defaultValue", field.getDefaultValue() ) );
+        retval.append( "      </lookupField>" ).append( Const.CR );
+      }
+    }
+    retval.append( "    </lookupFields>" ).append( Const.CR );
+
+
     return retval.toString();
   }
 
   @Override
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
-      throws KettleException {
+    throws KettleException {
     try {
+      passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
+      dataLocation = rep.getStepAttributeString( id_step, "dataLocation" );
+      format = (int) rep.getStepAttributeInteger( id_step, "sourceFormat" );
+      dataLocationType = (int) rep.getStepAttributeInteger( id_step, "dataLocationType" );
+      schemaLocation = rep.getStepAttributeString( id_step, "schemaLocation" );
+      schemaLocationType = (int) rep.getStepAttributeInteger( id_step, "schemaLocationType" );
+      isCacheSchemas = rep.getStepAttributeBoolean( id_step, "isCacheSchemas" );
+      allowNullForMissingFields = rep.getStepAttributeBoolean( id_step, "allowNullForMissingFields" );
 
-      inputFiles.passingThruFields = rep.getStepAttributeBoolean( id_step, "passing_through_fields" );
-      filename = rep.getStepAttributeString( id_step, "filename" );
-      useFieldAsInputStream = rep.getStepAttributeBoolean( id_step, "useStreamField" );
-      inputStreamFieldName = rep.getStepAttributeString( id_step, "stream_fieldname" );
 
       // using the "type" column to get the number of field rows because "type" is guaranteed not to be null.
       int nrfields = rep.countNrStepAttributes( id_step, "type" );
-
-      this.inputFields = new AvroInputField[ nrfields];
+      this.inputFields = new AvroInputField[ nrfields ];
       for ( int i = 0; i < nrfields; i++ ) {
         AvroInputField inputField = new AvroInputField();
         inputField.setFormatFieldName( rep.getStepAttributeString( id_step, i, "path" ) );
@@ -226,9 +330,23 @@ public abstract class AvroInputMetaBase extends
         }
         String stringFormat = rep.getStepAttributeString( id_step, i, "format" );
         inputField.setStringFormat( stringFormat == null ? "" : stringFormat );
+        String indexedValues = rep.getStepAttributeString( id_step, i, "indexed_vals" );
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          inputField.setIndexedValues( indexedValues );
+        }
         this.inputFields[ i ] = inputField;
       }
-      schemaFilename = rep.getStepAttributeString( id_step, "schemaFilename" );
+
+      nrfields = rep.countNrStepAttributes( id_step, "fieldName" );
+      this.lookupFields = new ArrayList<>();
+      for ( int i = 0; i < nrfields; i++ ) {
+        AvroLookupField lookupField = new AvroLookupField();
+        lookupField.setFieldName( rep.getStepAttributeString( id_step, i, "fieldName" ) );
+        lookupField.setVariableName( rep.getStepAttributeString( id_step, i, "variableName" ) );
+        lookupField.setDefaultValue( rep.getStepAttributeString( id_step, i, "defaultValue" ) );
+        this.lookupFields.add( lookupField );
+      }
+
     } catch ( Exception e ) {
       throw new KettleException( "Unexpected error reading step information from the repository", e );
     }
@@ -236,12 +354,17 @@ public abstract class AvroInputMetaBase extends
 
   @Override
   public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step )
-      throws KettleException {
+    throws KettleException {
+
     try {
-      rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", inputFiles.passingThruFields );
-      rep.saveStepAttribute( id_transformation, id_step, "filename", getFilename() );
-      rep.saveStepAttribute( id_transformation, id_step, "useStreamField", isUseFieldAsInputStream() );
-      rep.saveStepAttribute( id_transformation, id_step, "stream_fieldname", getInputStreamFieldName() );
+      rep.saveStepAttribute( id_transformation, id_step, "passing_through_fields", passingThruFields );
+      rep.saveStepAttribute( id_transformation, id_step, "dataLocation", getDataLocation() );
+      rep.saveStepAttribute( id_transformation, id_step, "sourceFormat", getFormat() );
+      rep.saveStepAttribute( id_transformation, id_step, "dataLocationType", dataLocationType );
+      rep.saveStepAttribute( id_transformation, id_step, "schemaLocation", getSchemaLocation() );
+      rep.saveStepAttribute( id_transformation, id_step, "schemaLocationType", schemaLocationType );
+      rep.saveStepAttribute( id_transformation, id_step, "isCacheSchemas", isCacheSchemas() );
+      rep.saveStepAttribute( id_transformation, id_step, "allowNullForMissingFields", isAllowNullForMissingFields() );
 
       for ( int i = 0; i < inputFields.length; i++ ) {
         AvroInputField field = inputFields[ i ];
@@ -250,7 +373,7 @@ public abstract class AvroInputMetaBase extends
         rep.saveStepAttribute( id_transformation, id_step, i, "name", field.getPentahoFieldName() );
         rep.saveStepAttribute( id_transformation, id_step, i, "type", field.getTypeDesc() );
         AvroSpec.DataType avroDataType = field.getAvroType();
-        if ( avroDataType != null &&  !avroDataType.equals( AvroSpec.DataType.NULL ) ) {
+        if ( avroDataType != null && !avroDataType.equals( AvroSpec.DataType.NULL ) ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", avroDataType.getName() );
         } else {
           rep.saveStepAttribute( id_transformation, id_step, i, "avro_type", AvroTypeConverter.convertToAvroType( field.getTypeDesc() ) );
@@ -258,34 +381,79 @@ public abstract class AvroInputMetaBase extends
         if ( field.getStringFormat() != null ) {
           rep.saveStepAttribute( id_transformation, id_step, i, "format", field.getStringFormat() );
         }
+        String indexedValues = field.getIndexedValues();
+        if ( indexedValues != null && indexedValues.length() > 0 ) {
+          rep.saveStepAttribute( id_transformation, id_step, i, "indexed_vals", indexedValues );
+        }
       }
+
+      for ( int i = 0; i < lookupFields.size(); i++ ) {
+        AvroLookupField field = lookupFields.get( i );
+
+        rep.saveStepAttribute( id_transformation, id_step, i, "fieldName", field.getFieldName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "variableName", field.getVariableName() );
+        rep.saveStepAttribute( id_transformation, id_step, i, "defaultValue", field.getDefaultValue() );
+
+      }
+
       super.saveRep( rep, metaStore, id_transformation, id_step );
-      rep.saveStepAttribute( id_transformation, id_step, "schemaFilename", getSchemaFilename() );
     } catch ( Exception e ) {
       throw new KettleException( "Unable to save step information to the repository for id_step=" + id_step, e );
     }
   }
 
   @Override
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws
+    KettleStepException {
+    try {
+      if ( !passingThruFields ) {
+        // all incoming fields are not transmitted !
+        rowMeta.clear();
+      } else {
+        if ( info != null ) {
+          boolean found = false;
+          for ( int i = 0; i < info.length && !found; i++ ) {
+            if ( info[i] != null ) {
+              rowMeta.mergeRowMeta( info[i], origin );
+              found = true;
+            }
+          }
+        }
+      }
+      for ( int i = 0; i < inputFields.length; i++ ) {
+        AvroInputField field = inputFields[ i ];
+        String value = space.environmentSubstitute( field.getPentahoFieldName() );
+        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getPentahoType() );
+        v.setOrigin( origin );
+        rowMeta.addValueMeta( v );
+      }
+    } catch ( KettlePluginException e ) {
+      throw new KettleStepException( "Unable to create value type", e );
+    }
+  }
+
+
+  @Override
   public void resolve() {
-    if ( filename != null && !filename.isEmpty() ) {
+    if ( dataLocation != null && !dataLocation.isEmpty() ) {
       try {
-        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( filename );
+        String realFileName = getParentStepMeta().getParentTransMeta().environmentSubstitute( dataLocation );
         FileObject fileObject = KettleVFS.getFileObject( realFileName );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          filename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          dataLocation = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
       }
     }
 
-    if ( schemaFilename != null && !schemaFilename.isEmpty() ) {
+    if ( schemaLocation != null && !schemaLocation.isEmpty() ) {
       try {
-        String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaFilename );
+        String realSchemaFilename = getParentStepMeta().getParentTransMeta().environmentSubstitute( schemaLocation );
         FileObject fileObject = KettleVFS.getFileObject( realSchemaFilename );
         if ( AliasedFileObject.isAliasedFile( fileObject ) ) {
-          schemaFilename = ( (AliasedFileObject) fileObject ).getOriginalURIString();
+          schemaLocation = ( (AliasedFileObject) fileObject ).getOriginalURIString();
         }
       } catch ( KettleFileException e ) {
         throw new RuntimeException( e );
@@ -293,27 +461,23 @@ public abstract class AvroInputMetaBase extends
     }
   }
 
-  public String getSchemaFilename() {
-    return schemaFilename;
+  @Injection( name = "AVRO_FILENAME"  )
+  @Deprecated
+  public void setDataFileName( String fileName ) {
+    setDataLocation( fileName, LocationDescriptor.FILE_NAME );
+    setFormat( SourceFormat.AVRO_USE_SCHEMA.ordinal() );
   }
 
-  public void setSchemaFilename( String schemaFilename ) {
-    this.schemaFilename = schemaFilename;
+  @Injection( name = "STREAM_FIELDNAME"  )
+  @Deprecated
+  public void setDataFieldName( String fieldName ) {
+    setDataLocation( fieldName, LocationDescriptor.FIELD_NAME );
+    setFormat( SourceFormat.AVRO_USE_SCHEMA.ordinal() );
   }
 
-  public String getInputStreamFieldName() {
-    return inputStreamFieldName;
-  }
-
-  public void setInputStreamFieldName( String inputStreamFieldName ) {
-    this.inputStreamFieldName = inputStreamFieldName;
-  }
-
-  public boolean isUseFieldAsInputStream() {
-    return useFieldAsInputStream;
-  }
-
-  public void setUseFieldAsInputStream( boolean useFieldAsInputStream ) {
-    this.useFieldAsInputStream = useFieldAsInputStream;
+  @Injection( name = "SCHEMA_FILENAME"  )
+  @Deprecated
+  public void setSchemaFileName( String fileName ) {
+    setSchemaLocation( fileName, LocationDescriptor.FILE_NAME );
   }
 }

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -138,7 +138,7 @@ public class HadoopClusterDelegateImplTest {
     verify( clonedNamedCluster ).setName(
       BaseMessages.getString( Spoon.class, HadoopClusterDelegateImpl.SPOON_VARIOUS_DUPE_NAME ) + namedClusterName );
     verify( namedClusterService ).create( clonedNamedCluster, spoonMetastore );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
   }
 
   @Test
@@ -146,7 +146,7 @@ public class HadoopClusterDelegateImplTest {
     when( namedClusterService.read( namedClusterName, metaStore ) ).thenReturn( namedCluster );
     hadoopClusterDelegate.delNamedCluster( metaStore, namedCluster );
     verify( namedClusterService ).delete( namedClusterName, metaStore );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
     verify( spoon ).setShellText();
   }
 
@@ -155,7 +155,7 @@ public class HadoopClusterDelegateImplTest {
     when( namedClusterService.read( namedClusterName, metaStore ) ).thenReturn( null );
     hadoopClusterDelegate.delNamedCluster( metaStore, namedCluster );
     verify( namedClusterService, never() ).delete( namedClusterName, metaStore );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
     verify( spoon ).setShellText();
   }
 
@@ -166,7 +166,7 @@ public class HadoopClusterDelegateImplTest {
     when( namedClusterService.read( namedClusterName, metaStore2 ) ).thenReturn( namedCluster );
     hadoopClusterDelegate.delNamedCluster( null, namedCluster );
     verify( namedClusterService ).delete( namedClusterName, metaStore2 );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
     verify( spoon ).setShellText();
   }
 
@@ -181,7 +181,7 @@ public class HadoopClusterDelegateImplTest {
         .getString( PKG,
           HadoopClusterDelegateImpl.SPOON_DIALOG_ERROR_DELETING_NAMED_CLUSTER_MESSAGE, namedClusterName ),
       metaStoreException );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
     verify( spoon ).setShellText();
   }
 
@@ -205,7 +205,7 @@ public class HadoopClusterDelegateImplTest {
     assertEquals( clonedName, hadoopClusterDelegate.editNamedCluster( null, namedCluster, shell ) );
 
     verify( namedClusterDialog ).setNewClusterCheck( false );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
     verify( namedClusterService ).delete( namedClusterName, spoonMetastore );
     verify( namedClusterService ).create( clonedNamedCluster, spoonMetastore );
   }
@@ -244,7 +244,7 @@ public class HadoopClusterDelegateImplTest {
     verify( namedClusterDialog ).setNewClusterCheck( true );
     verify( namedCluster ).shareVariablesWith( variables );
     verify( namedClusterService ).create( namedCluster, spoonMetastore );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
   }
 
   @Test
@@ -261,7 +261,7 @@ public class HadoopClusterDelegateImplTest {
     verify( namedClusterDialog ).setNewClusterCheck( true );
     verify( namedCluster ).initializeVariablesFrom( null );
     verify( namedClusterService ).create( namedCluster, metaStore );
-    verify( spoon ).refreshTree();
+    verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
   }
 
   @Test
@@ -277,7 +277,7 @@ public class HadoopClusterDelegateImplTest {
 
     verify( namedClusterDialog ).setNewClusterCheck( true );
     verify( namedClusterService, times( 0 ) ).create( any( NamedCluster.class ), any( IMetaStore.class ) );
-    verify( spoon, times( 0 ) ).refreshTree();
+    verify( spoon, times( 0 ) ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
   }
 
   @Test

@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon.s3;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -101,11 +102,15 @@ public class S3NVfsFileChooserDialog extends CustomVfsUiPanel {
 
   private FileSystemOptions getFileSystemOptions() throws FileSystemException {
     FileSystemOptions opts = new FileSystemOptions();
-    AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
-    if ( credentials != null ) {
-      StaticUserAuthenticator userAuthenticator =
-        new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
-      DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
+    try {
+      AWSCredentials credentials = S3CredentialsProvider.getAWSCredentials();
+      if ( credentials != null ) {
+        StaticUserAuthenticator userAuthenticator =
+          new StaticUserAuthenticator( null, credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey() );
+        DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( opts, userAuthenticator );
+      }
+    } catch ( SdkClientException e ) {
+      throw new FileSystemException( e );
     }
     return opts;
   }

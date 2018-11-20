@@ -22,12 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.UriParser;
@@ -35,14 +29,10 @@ import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.events.VerifyEvent;
@@ -58,14 +48,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta;
 import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.Const;
@@ -80,7 +68,6 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -90,12 +77,17 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
-public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterface> extends BaseStepDialog
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public abstract class BaseAvroStepDialog extends BaseStepDialog
   implements StepDialogInterface {
   protected final Class<?> PKG = getClass();
   protected final Class<?> BPKG = BaseAvroStepDialog.class;
 
-  protected T meta;
   protected ModifyListener lsMod;
 
   public static final int MARGIN = 15;
@@ -122,21 +114,29 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected TextVar wPath;
   protected Button wbBrowse;
-  protected Button wbGetFileFromField;
+  protected Button wbGetDataFromField;
+  protected Button wbGetDataFromFile;
   protected ComboVar wFieldNameCombo;
+  protected CCombo encodingCombo;
   protected VFSScheme selectedVFSScheme;
   protected CCombo wLocation;
+  protected Composite wDataFileComposite;
+  protected Composite wDataFieldComposite;
+
   protected boolean isInputStep;
   private Map<String, Integer> incomingFields = new HashMap<String, Integer>();
 
-  private static final String HDFS_SCHEME = "hdfs";
+  protected static final String HDFS_SCHEME = "hdfs";
 
-  public BaseAvroStepDialog( Shell parent, T in, TransMeta transMeta, String sname ) {
-    super( parent, (BaseStepMeta) in, transMeta, sname );
-    meta = in;
-    if ( meta instanceof AvroInputMeta ) {
+  public BaseAvroStepDialog( Shell parent, BaseStepMeta in, TransMeta transMeta, String sname ) {
+    super( parent, in, transMeta, sname );
+    if ( baseStepMeta instanceof AvroInputMeta ) {
       isInputStep = true;
     }
+  }
+
+  public BaseStepMeta getStepMeta( ) {
+    return (BaseStepMeta) baseStepMeta;
   }
 
   @Override
@@ -146,14 +146,14 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE );
     props.setLook( shell );
-    setShellImage( shell, meta );
+    setShellImage( shell, baseStepMeta );
 
     lsMod = new ModifyListener() {
       public void modifyText( ModifyEvent e ) {
-        meta.setChanged();
+        getStepMeta().setChanged();
       }
     };
-    changed = meta.hasChanged();
+    changed = getStepMeta().hasChanged();
 
     createUI();
 
@@ -167,7 +167,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     int height = Math.max( getMinHeight( shell, getWidth() ), getHeight() );
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
-    getData( meta );
+    getData(  );
     updateLocation();
     shell.open();
     wStepname.setFocus();
@@ -230,7 +230,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected void cancel() {
     stepname = null;
-    meta.setChanged( changed );
+    getStepMeta().setChanged( changed );
     dispose();
   }
 
@@ -240,7 +240,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     }
     stepname = wStepname.getText();
 
-    getInfo( meta, false );
+    getInfo( false );
     dispose();
   }
 
@@ -252,19 +252,16 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
   /**
    * Read the data from the meta object and show it in this dialog.
    *
-   * @param meta The meta object to obtain the data from.
    */
-  protected abstract void getData( T meta );
+  protected abstract void getData(  );
 
   /**
    * Fill meta object from UI options.
    *
-   * @param meta    meta object
-   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview
-   *               - EOL
-   *                chars. It uses as "mixed" for be able to preview any file.
+   * @param preview flag for preview or real options should be used. Currently, only one option is differ for preview -
+   *                EOL chars. It uses as "mixed" for be able to preview any file.
    */
-  protected abstract void getInfo( T meta, boolean preview );
+  protected abstract void getInfo( boolean preview );
 
   protected abstract int getWidth();
 
@@ -318,9 +315,9 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
 
   protected void addIcon( Control bottom ) {
     Label wicon = new Label( shell, SWT.RIGHT );
-    String stepId = meta.getParentStepMeta().getStepID();
+    String stepId = getStepMeta().getParentStepMeta().getStepID();
     wicon.setImage( GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
-        ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
+      ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
     FormData fdlicon = new FormData();
     fdlicon.top = new FormAttachment( 0, 0 );
     fdlicon.right = new FormAttachment( 100, 0 );
@@ -409,7 +406,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     }
   }
 
-  private void updateLocation() {
+  protected void updateLocation() {
     String pathText = wPath.getText();
     String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
     if ( scheme != null ) {
@@ -667,103 +664,7 @@ public abstract class BaseAvroStepDialog<T extends BaseStepMeta & StepMetaInterf
     } );
   }
 
-  /**
-   * Used only for AvroInput at the moment but here because we anticipate using for output as well at a later date.
-   * There is no MetaBase for avro so there is cast in this method to pull the step data into the ui.
-   *
-   * @param wTabFolder
-   */
-  protected void addFileTab( CTabFolder wTabFolder ) {
-    AvroInputMetaBase avroBaseMeta = (AvroInputMetaBase) meta;
-
-    // Create & Set up a new Tab Item
-    CTabItem wTab = new CTabItem( wTabFolder, SWT.NONE );
-    wTab.setText( getBaseMsg( "AvroDialog.File.TabTitle" ) );
-    Composite wTabComposite = new Composite( wTabFolder, SWT.NONE );
-    wTab.setControl( wTabComposite );
-    props.setLook( wTabComposite );
-    FormLayout formLayout = new FormLayout();
-    formLayout.marginHeight = MARGIN;
-    wTabComposite.setLayout( formLayout );
-
-    // Set up the File settings Group
-    Group wFileSettingsGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
-    props.setLook( wFileSettingsGroup );
-    wFileSettingsGroup.setText( getBaseMsg( "AvroDialog.File.FileSettingsTitle" ) );
-
-    FormLayout layout = new FormLayout();
-    layout.marginHeight = MARGIN;
-    layout.marginWidth = MARGIN;
-    wFileSettingsGroup.setLayout( layout );
-    new FD( wFileSettingsGroup ).top( 0, 0 ).right( 100, -MARGIN ).left( 0, MARGIN ).apply();
-
-    int RADIO_BUTTON_WIDTH = 150;
-    Label separator = new Label( wFileSettingsGroup, SWT.SEPARATOR | SWT.VERTICAL );
-    props.setLook( separator );
-    new FD( separator ).left( 0, RADIO_BUTTON_WIDTH ).top( 0, 0 ).bottom( 100, 0 ).apply();
-
-    Button wbSpecifyFileName = new Button( wFileSettingsGroup, SWT.RADIO );
-    wbSpecifyFileName.setText( getBaseMsg( "AvroDialog.File.SpecifyFileName" ) );
-    props.setLook( wbSpecifyFileName );
-    new FD( wbSpecifyFileName ).left( 0, 0 ).top( 0, 0 ).width( RADIO_BUTTON_WIDTH ).apply();
-
-    wbGetFileFromField = new Button( wFileSettingsGroup, SWT.RADIO );
-    wbGetFileFromField.setText( getBaseMsg( "AvroDialog.File.GetDataFromField" ) );
-    props.setLook( wbGetFileFromField );
-    new FD( wbGetFileFromField ).left( 0, 0 ).top( wbSpecifyFileName, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH ).apply();
-
-    //Make a composite to hold the dynamic right side of the group
-    Composite wFileSettingsDynamicArea = new Composite( wFileSettingsGroup, SWT.NONE );
-    props.setLook( wFileSettingsDynamicArea );
-    FormLayout fileSettingsDynamicAreaLayout = new FormLayout();
-    wFileSettingsDynamicArea.setLayout( fileSettingsDynamicAreaLayout );
-    new FD( wFileSettingsDynamicArea ).right( 100, 0 ).left( wbSpecifyFileName, MARGIN ).top( 0, -MARGIN ).apply();
-
-    //Put the File selection stuff in it
-    Composite wFileSetting = new Composite( wFileSettingsDynamicArea, SWT.NONE );
-    FormLayout fileSettingLayout = new FormLayout();
-    wFileSetting.setLayout( fileSettingLayout );
-    new FD( wFileSetting ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
-    addFileWidgets( wFileSetting, wFileSetting );
-
-    //Setup StreamingFieldName
-    Composite wCompStreamFieldName = new Composite( wFileSettingsDynamicArea, SWT.NONE );
-    props.setLook( wCompStreamFieldName );
-    FormLayout fieldNameLayout = new FormLayout();
-    fieldNameLayout.marginHeight = MARGIN;
-    wCompStreamFieldName.setLayout( fieldNameLayout );
-    new FD( wCompStreamFieldName ).left( 0, 0 ).top( 0, 0 ).apply();
-
-    Label fieldNameLabel = new Label( wCompStreamFieldName, SWT.NONE );
-    fieldNameLabel.setText( getBaseMsg( "AvroDialog.FieldName.Label" ) );
-    props.setLook( fieldNameLabel );
-    new FD( fieldNameLabel ).left( 0, 0 ).top( wCompStreamFieldName, 0 ).apply();
-    wFieldNameCombo = new ComboVar( transMeta, wCompStreamFieldName, SWT.LEFT | SWT.BORDER );
-    updateIncomingFieldList( wFieldNameCombo );
-    new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH )
-      .apply();
-
-    //Setup the radio button event handler
-    SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
-      @Override
-      public void widgetSelected( SelectionEvent e ) {
-        wFileSetting.setVisible( !wbGetFileFromField.getSelection() );
-        wCompStreamFieldName.setVisible( wbGetFileFromField.getSelection() );
-      }
-    };
-    wbSpecifyFileName.addSelectionListener( fileSettingRadioSelectionAdapter );
-    wbGetFileFromField.addSelectionListener( fileSettingRadioSelectionAdapter );
-
-    //Set widgets from Meta
-    wbSpecifyFileName.setSelection( !avroBaseMeta.isUseFieldAsInputStream() );
-    wbGetFileFromField.setSelection( avroBaseMeta.isUseFieldAsInputStream() );
-    fileSettingRadioSelectionAdapter.widgetSelected( null );
-    wFieldNameCombo
-      .setText( avroBaseMeta.getInputStreamFieldName() == null ? "" : avroBaseMeta.getInputStreamFieldName() );
-
-  }
-
-  private void updateIncomingFieldList( ComboVar comboVar ) {
+  protected void updateIncomingFieldList( ComboVar comboVar ) {
     // Search the fields in the background
     StepMeta stepMeta = transMeta.findStep( stepname );
     if ( stepMeta != null ) {
