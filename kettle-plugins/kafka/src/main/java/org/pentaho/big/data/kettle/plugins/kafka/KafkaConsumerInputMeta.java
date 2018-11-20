@@ -215,6 +215,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     setFileName( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
     setBatchSize( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) );
     setBatchDuration( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) );
+    String parallelism = XMLHandler.getTagValue( stepnode, PARALLELISM );
+    setParallelism( isNullOrEmpty( parallelism ) ? "1" : parallelism );
     setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( XMLHandler.getTagValue( stepnode, DIRECT_BOOTSTRAP_SERVERS ) );
     String autoCommitValue = XMLHandler.getTagValue( stepnode, AUTO_COMMIT );
@@ -255,6 +257,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
   public void setDefault() {
     batchSize = "1000";
     batchDuration = "1000";
+    parallelism = "1";
   }
 
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
@@ -272,6 +275,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     setFileName( rep.getStepAttributeString( id_step, TRANSFORMATION_PATH ) );
     setBatchSize( rep.getStepAttributeString( id_step, BATCH_SIZE ) );
     setBatchDuration( rep.getStepAttributeString( id_step, BATCH_DURATION ) );
+    String parallelism = rep.getStepAttributeString( id_step, PARALLELISM );
+    setParallelism( isNullOrEmpty( parallelism ) ? "1" : parallelism );
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( id_step, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( id_step, DIRECT_BOOTSTRAP_SERVERS ) );
     setAutoCommit( rep.getStepAttributeBoolean( id_step, 0, AUTO_COMMIT, true ) );
@@ -307,6 +312,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     rep.saveStepAttribute( transId, stepId, SUB_STEP, getSubStep() );
     rep.saveStepAttribute( transId, stepId, BATCH_SIZE, batchSize );
     rep.saveStepAttribute( transId, stepId, BATCH_DURATION, batchDuration );
+    rep.saveStepAttribute( transId, stepId, PARALLELISM, parallelism );
     rep.saveStepAttribute( transId, stepId, CONNECTION_TYPE, connectionType.name() );
     rep.saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
     rep.saveStepAttribute( transId, stepId, AUTO_COMMIT, autoCommit );
@@ -474,6 +480,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     retval.append( "    " ).append( XMLHandler.addTagValue( SUB_STEP, getSubStep() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_SIZE, batchSize ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( BATCH_DURATION, batchDuration ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( PARALLELISM, parallelism ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( AUTO_COMMIT, autoCommit ) );
