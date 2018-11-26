@@ -54,6 +54,7 @@
             </outputFileNameMapping>
             <includes>
               <include>pentaho:pentaho-s3-vfs</include>
+              <include>com.amazonaws:aws-java-sdk-core</include>
             </includes>
         </dependencySet>
     </dependencySets>
