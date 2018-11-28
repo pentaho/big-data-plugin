@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.mapreduce.entry.pmr;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.mapreduce.DialogClassUtil;

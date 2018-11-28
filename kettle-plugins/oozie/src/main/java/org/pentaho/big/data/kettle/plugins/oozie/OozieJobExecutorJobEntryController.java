@@ -25,7 +25,7 @@ package org.pentaho.big.data.kettle.plugins.oozie;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.kettle.plugins.job.AbstractJobEntryController;
 import org.pentaho.big.data.kettle.plugins.job.BlockableJobConfig;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;

@@ -23,7 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.hbase;
 
 import org.apache.commons.lang.StringUtils;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;

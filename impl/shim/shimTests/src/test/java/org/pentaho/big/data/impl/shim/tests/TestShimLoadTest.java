@@ -24,10 +24,9 @@ package org.pentaho.big.data.impl.shim.tests;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
 import org.pentaho.hadoop.shim.ConfigurationException;
-import org.pentaho.runtime.test.TestMessageGetterFactory;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 import org.pentaho.runtime.test.result.RuntimeTestEntrySeverity;
@@ -36,7 +35,6 @@ import org.pentaho.runtime.test.result.RuntimeTestResultSummary;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.runtime.test.RuntimeTestEntryUtil.verifyRuntimeTestResultEntry;
 
 /**
  * Created by bryan on 8/24/15.

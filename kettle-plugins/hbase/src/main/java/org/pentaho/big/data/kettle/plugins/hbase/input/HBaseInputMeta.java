@@ -23,7 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.hbase.input;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;

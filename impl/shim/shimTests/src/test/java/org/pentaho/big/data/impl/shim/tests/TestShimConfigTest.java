@@ -22,7 +22,7 @@ package org.pentaho.big.data.impl.shim.tests;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystem;
 import org.pentaho.di.core.hadoop.NoShimSpecifiedException;
 import org.pentaho.hadoop.shim.ConfigurationException;

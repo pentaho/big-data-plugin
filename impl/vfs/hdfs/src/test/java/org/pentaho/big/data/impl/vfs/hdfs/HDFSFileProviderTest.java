@@ -24,10 +24,10 @@ import org.apache.commons.vfs2.provider.GenericFileName;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 
 import java.net.URI;
 

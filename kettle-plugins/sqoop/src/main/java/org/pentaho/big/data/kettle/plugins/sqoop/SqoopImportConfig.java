@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.sqoop;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.ui.xul.util.AbstractModelList;
 
