@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,6 +42,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -127,6 +128,27 @@ public class KafkaProducerOutputTest {
     Mockito.verify( kafkaProducer, Mockito.times( 4 ) ).send( new ProducerRecord<>( "akastenka", "msg" ) );
     Mockito.verify( kafkaProducer, Mockito.times( 1 ) ).close();
     assertEquals( 4, trans.getSteps().get( 1 ).step.getLinesOutput() );
+  }
+
+  @Test
+  public void kafkaClientClosedOnStop() throws Exception {
+    TransMeta transMeta = new TransMeta( getClass().getResource( "/produceForever.ktr" ).getPath() );
+    Trans trans = new Trans( transMeta );
+    trans.prepareExecution( new String[]{} );
+
+    StepMetaDataCombi combi = trans.getSteps().get( 1 );
+    KafkaProducerOutput step = (KafkaProducerOutput) combi.step;
+
+    when( kafkaFactory.producer( any(), any(), any(), any() ) ).thenReturn( kafkaProducer );
+    when( kafkaProducer.send( any() ) ).then( ignore -> {
+      trans.stopAll();
+      return null; } );
+
+    step.setKafkaFactory( kafkaFactory );
+    trans.startThreads();
+    trans.waitUntilFinished();
+    verify( kafkaProducer ).flush();
+    verify( kafkaProducer ).close();
   }
 
 }
