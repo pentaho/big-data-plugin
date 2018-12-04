@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -88,9 +88,14 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
         KafkaConsumerField.Type.fromValueMetaInterface( keyValueMeta ),
         KafkaConsumerField.Type.fromValueMetaInterface( msgValueMeta ) );
 
+      data.isOpen = true;
+
       first = false;
     }
 
+    if ( !data.isOpen ) {
+      return false;
+    }
     ProducerRecord<Object, Object> producerRecord;
     // allow for null keys
     if ( data.keyFieldIndex < 0 || r[ data.keyFieldIndex ] == null || StringUtil.isEmpty( r[ data.keyFieldIndex ].toString() ) ) {
@@ -111,5 +116,14 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
     }
 
     return true;
+  }
+
+  @Override
+  public void stopRunning( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
+    if ( data.kafkaProducer != null && data.isOpen ) {
+      data.isOpen = false;
+      data.kafkaProducer.flush();
+      data.kafkaProducer.close();
+    }
   }
 }
