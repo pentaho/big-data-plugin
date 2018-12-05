@@ -26,8 +26,8 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.bigdata.api.format.FormatService;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.net.URI;
