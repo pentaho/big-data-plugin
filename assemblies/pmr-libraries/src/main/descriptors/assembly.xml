@@ -118,8 +118,6 @@
         <include>org.antlr:antlr-complete</include>
         <include>org.apache.ant:ant</include>
         <include>org.apache.ant:ant-launcher</include>
-        <include>org.apache.axis:axis</include>
-        <include>org.apache.axis:axis-saaj</include>
         <include>org.apache.commons:commons-compress</include>
         <include>org.apache.felix:org.apache.felix.main</include>
         <include>org.apache.felix:org.apache.felix.framework</include>
