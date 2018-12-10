@@ -28,7 +28,12 @@
       <artifactId>pentaho-big-data-impl-shim-format</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
+      <version>${pentaho-hadoop-shims-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>

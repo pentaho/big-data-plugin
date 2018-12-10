@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase;
 
-import org.pentaho.bigdata.api.hbase.mapping.ColumnFilter;
+import org.pentaho.hadoop.shim.api.hbase.mapping.ColumnFilter;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionTypeConverter;

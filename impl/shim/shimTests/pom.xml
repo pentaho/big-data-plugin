@@ -117,7 +117,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>org.pentaho.bigdata.api.hdfs.*,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,*</Import-Package>
+            <Import-Package>org.pentaho.hadoop.shim.api.cluster,org.pentaho.bigdata.api.hdfs.*,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
