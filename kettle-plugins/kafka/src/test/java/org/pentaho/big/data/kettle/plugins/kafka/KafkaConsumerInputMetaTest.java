@@ -86,6 +86,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.DIRECT_BOOTSTRAP_SERVERS;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TOPIC;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.TRANSFORMATION_PATH;
+import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.PARALLELISM;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.SUB_STEP;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -165,6 +166,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "/home/pentaho/myKafkaTransformation.ktr", meta.getFileName() );
     assertEquals( "12345", meta.getBatchSize() );
     assertEquals( "999", meta.getBatchDuration() );
+    assertEquals( "1", meta.getParallelism() );
     assertEquals( CLUSTER, meta.getConnectionType() );
     assertEquals( "some_host:123,some_other_host:456", meta.getDirectBootstrapServers() );
     assertTrue( meta.isAutoCommit() );
@@ -247,6 +249,7 @@ public class KafkaConsumerInputMetaTest {
         + "    <SUB_STEP/>" + Const.CR
         + "    <batchSize>54321</batchSize>" + Const.CR
         + "    <batchDuration>987</batchDuration>" + Const.CR
+        + "    <PARALLELISM>1</PARALLELISM>" + Const.CR
         + "    <connectionType>DIRECT</connectionType>" + Const.CR
         + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
         + "    <AUTO_COMMIT>Y</AUTO_COMMIT>" + Const.CR
@@ -277,6 +280,7 @@ public class KafkaConsumerInputMetaTest {
     when( rep.getStepAttributeString( stepId, SUB_STEP ) ).thenReturn( "Group By" );
     when( rep.getStepAttributeString( stepId, BATCH_SIZE ) ).thenReturn( "999" );
     when( rep.getStepAttributeString( stepId, BATCH_DURATION ) ).thenReturn( "111" );
+    when( rep.getStepAttributeString( stepId, PARALLELISM ) ).thenReturn( "222" );
     when( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ).thenReturn( "CLUSTER" );
     when( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) ).thenReturn( "unused" );
     when( rep.getStepAttributeString( stepId, AUTO_COMMIT ) ).thenReturn( "N" );
@@ -317,6 +321,7 @@ public class KafkaConsumerInputMetaTest {
     assertEquals( "/home/pentaho/atrans.ktr", meta.getFileName() );
     assertEquals( 999L, Long.parseLong( meta.getBatchSize() ) );
     assertEquals( 111L, Long.parseLong( meta.getBatchDuration() ) );
+    assertEquals( 222, Long.parseLong( meta.getParallelism() ) );
     assertEquals( CLUSTER, meta.getConnectionType() );
     assertEquals( "unused", meta.getDirectBootstrapServers() );
     assertFalse( meta.isAutoCommit() );
@@ -364,6 +369,7 @@ public class KafkaConsumerInputMetaTest {
     meta.setSubStep( "Group By" );
     meta.setBatchSize( "33" );
     meta.setBatchDuration( "10000" );
+    meta.setParallelism( "4" );
     meta.setConnectionType( DIRECT );
     meta.setDirectBootstrapServers( "kafkaServer:9092" );
 
@@ -383,6 +389,7 @@ public class KafkaConsumerInputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, SUB_STEP, "Group By" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_SIZE, "33" );
     verify( rep ).saveStepAttribute( transId, stepId, BATCH_DURATION, "10000" );
+    verify( rep ).saveStepAttribute( transId, stepId, PARALLELISM, "4" );
     verify( rep ).saveStepAttribute( transId, stepId, CONNECTION_TYPE, "DIRECT" );
     verify( rep ).saveStepAttribute( transId, stepId, DIRECT_BOOTSTRAP_SERVERS, "kafkaServer:9092" );
     verify( rep ).saveStepAttribute( transId, stepId, AUTO_COMMIT, true );

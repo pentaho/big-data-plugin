@@ -619,6 +619,9 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     if ( meta.getBatchDuration() != null ) {
       wBatchDuration.setText( meta.getBatchDuration() );
     }
+    if ( meta.getParallelism() != null ) {
+      wParallelism.setText( meta.getParallelism() );
+    }
     if ( isDirect() ) {
       wbCluster.setSelection( false );
       wbDirect.setSelection( true );
