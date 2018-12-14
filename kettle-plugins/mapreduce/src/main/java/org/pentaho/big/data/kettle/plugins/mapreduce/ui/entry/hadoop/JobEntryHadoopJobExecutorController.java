@@ -33,8 +33,8 @@ import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocat
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.hadoop.JobEntryHadoopJobExecutor;
 import org.pentaho.big.data.kettle.plugins.mapreduce.entry.UserDefinedItem;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
-import org.pentaho.bigdata.api.mapreduce.MapReduceJarInfo;
-import org.pentaho.bigdata.api.mapreduce.MapReduceService;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceJarInfo;
+import org.pentaho.hadoop.shim.api.mapreduce.MapReduceService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
