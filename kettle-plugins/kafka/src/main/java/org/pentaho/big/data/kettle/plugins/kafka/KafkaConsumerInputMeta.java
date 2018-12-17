@@ -24,7 +24,7 @@ package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.bigdata.api.jaas.JaasConfigService;

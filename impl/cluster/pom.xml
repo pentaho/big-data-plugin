@@ -20,8 +20,13 @@
   <dependencies>
     <dependency>
       <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pentaho-hadoop-shims-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
       <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <version>${pentaho-hadoop-shims-api.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>

@@ -22,7 +22,7 @@
 package org.pentaho.big.data.impl.shim.jaas;
 
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 
 import java.util.Properties;

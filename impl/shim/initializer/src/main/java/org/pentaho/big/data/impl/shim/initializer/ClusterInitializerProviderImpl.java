@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.impl.shim.initializer;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.initializer.ClusterInitializationException;
 import org.pentaho.big.data.api.initializer.ClusterInitializerProvider;
 import org.pentaho.hadoop.shim.ConfigurationException;

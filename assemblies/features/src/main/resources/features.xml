@@ -76,12 +76,9 @@
     <bundle>mvn:org.pentaho/pentaho-big-data-api-cluster-service-locator/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-initializer/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-hdfs/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-format/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-hbase/${pentaho-hadoop-shims.version}</bundle>
+    <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-mapreduce/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-pig/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-oozie/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-sqoop/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-jaas/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-runtimeTest/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-jdbc/${pentaho-hadoop-shims.version}</bundle>

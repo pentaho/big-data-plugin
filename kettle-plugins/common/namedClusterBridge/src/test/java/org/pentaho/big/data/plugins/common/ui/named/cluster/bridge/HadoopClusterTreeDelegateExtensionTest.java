@@ -120,8 +120,8 @@ public class HadoopClusterTreeDelegateExtensionTest {
   public void testCase4NamedCluster() throws KettleException, MetaStoreException {
     when( spoonTreeDelegateExtension.getCaseNumber() ).thenReturn( 4 );
     String testPath3 = "testPath3";
-    org.pentaho.big.data.api.cluster.NamedCluster namedCluster = mock(
-      org.pentaho.big.data.api.cluster.NamedCluster.class );
+    org.pentaho.hadoop.shim.api.cluster.NamedCluster namedCluster = mock(
+      org.pentaho.hadoop.shim.api.cluster.NamedCluster.class );
     when( namedClusterService.read( testPath3, delegatingMetaStore ) ).thenReturn( namedCluster );
     when( namedCluster.getName() ).thenReturn( testPath3 );
     String[] path = { "", "", HadoopClusterTreeDelegateExtension.STRING_NAMED_CLUSTERS, testPath3 };
@@ -149,8 +149,8 @@ public class HadoopClusterTreeDelegateExtensionTest {
   public void testCase4MetastoreException() throws KettleException, MetaStoreException {
     when( spoonTreeDelegateExtension.getCaseNumber() ).thenReturn( 4 );
     String testPath3 = "testPath3";
-    org.pentaho.big.data.api.cluster.NamedCluster namedCluster = mock(
-      org.pentaho.big.data.api.cluster.NamedCluster.class );
+    org.pentaho.hadoop.shim.api.cluster.NamedCluster namedCluster = mock(
+      org.pentaho.hadoop.shim.api.cluster.NamedCluster.class );
     when( namedClusterService.read( testPath3, delegatingMetaStore ) ).thenThrow( new MetaStoreException() );
     when( namedCluster.getName() ).thenReturn( testPath3 );
     String[] path = { "", "", HadoopClusterTreeDelegateExtension.STRING_NAMED_CLUSTERS, testPath3 };

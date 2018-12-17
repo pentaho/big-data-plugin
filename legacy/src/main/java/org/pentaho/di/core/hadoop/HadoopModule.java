@@ -21,7 +21,7 @@
  */
 package org.pentaho.di.core.hadoop;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 
 public class HadoopModule {

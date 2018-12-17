@@ -25,7 +25,7 @@ package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterDialogImpl;
 
 import static org.junit.Assert.assertEquals;

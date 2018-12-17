@@ -49,13 +49,13 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.widget.TextVar;
-import org.pentaho.hadoop.shim.spi.ShimIdentifierInterface;
+import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 
 public class NamedClusterComposite extends Composite {

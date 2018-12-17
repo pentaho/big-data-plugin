@@ -20,7 +20,7 @@
 
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
-import org.pentaho.big.data.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
 import org.pentaho.di.core.variables.Variables;

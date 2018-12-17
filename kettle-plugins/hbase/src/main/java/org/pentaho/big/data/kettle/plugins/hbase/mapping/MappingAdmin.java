@@ -22,19 +22,19 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
-import org.pentaho.bigdata.api.hbase.ByteConversionUtil;
-import org.pentaho.bigdata.api.hbase.HBaseConnection;
-import org.pentaho.bigdata.api.hbase.HBaseService;
-import org.pentaho.bigdata.api.hbase.mapping.Mapping;
-import org.pentaho.bigdata.api.hbase.mapping.MappingFactory;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterface;
-import org.pentaho.bigdata.api.hbase.meta.HBaseValueMetaInterfaceFactory;
-import org.pentaho.bigdata.api.hbase.table.HBasePut;
-import org.pentaho.bigdata.api.hbase.table.HBaseTable;
-import org.pentaho.bigdata.api.hbase.table.HBaseTableWriteOperationManager;
-import org.pentaho.bigdata.api.hbase.Result;
-import org.pentaho.bigdata.api.hbase.table.ResultScanner;
-import org.pentaho.bigdata.api.hbase.table.ResultScannerBuilder;
+import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
+import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
+import org.pentaho.hadoop.shim.api.hbase.HBaseService;
+import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
+import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
+import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
+import org.pentaho.hadoop.shim.api.hbase.table.HBasePut;
+import org.pentaho.hadoop.shim.api.hbase.table.HBaseTable;
+import org.pentaho.hadoop.shim.api.hbase.table.HBaseTableWriteOperationManager;
+import org.pentaho.hadoop.shim.api.hbase.Result;
+import org.pentaho.hadoop.shim.api.hbase.table.ResultScanner;
+import org.pentaho.hadoop.shim.api.hbase.table.ResultScannerBuilder;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.trans.TransMeta;
