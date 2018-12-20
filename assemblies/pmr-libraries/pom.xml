@@ -412,16 +412,6 @@
       <version>1.7.1</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.axis</groupId>
-      <artifactId>axis</artifactId>
-      <version>1.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.axis</groupId>
-      <artifactId>axis-saaj</artifactId>
-      <version>1.4</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
       <version>1.4.1</version>
