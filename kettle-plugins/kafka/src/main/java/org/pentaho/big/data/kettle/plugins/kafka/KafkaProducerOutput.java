@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
@@ -35,9 +36,15 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 public class KafkaProducerOutput extends BaseStep implements StepInterface {
 
-  private static Class<?> PKG = KafkaConsumerInputMeta.class;
+  private static final Class<?> PKG = KafkaConsumerInputMeta.class;
+  private static final long MAX_WAIT = 5000;
   private KafkaProducerOutputMeta meta;
   private KafkaProducerOutputData data;
   private KafkaFactory kafkaFactory;
@@ -60,7 +67,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
    * @param stepMetaInterface The metadata to work with
    * @param stepDataInterface The data to initialize
    */
-  public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
+  @Override public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
     super.init( stepMetaInterface, stepDataInterface );
     meta = ( (KafkaProducerOutputMeta) stepMetaInterface );
     data = ( (KafkaProducerOutputData) stepDataInterface );
@@ -68,7 +75,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
     return true;
   }
 
-  public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
+  @Override public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     Object[] r = getRow(); // get row, set busy!
     if ( r == null ) {
       // no more input to be expected...
@@ -98,21 +105,32 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
     }
     ProducerRecord<Object, Object> producerRecord;
     // allow for null keys
-    if ( data.keyFieldIndex < 0 || r[ data.keyFieldIndex ] == null || StringUtil.isEmpty( r[ data.keyFieldIndex ].toString() ) ) {
+    if ( data.keyFieldIndex < 0 || r[ data.keyFieldIndex ] == null || StringUtil
+      .isEmpty( r[ data.keyFieldIndex ].toString() ) ) {
       producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.messageFieldIndex ] );
     } else {
-      producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.keyFieldIndex ], r[ data.messageFieldIndex ] );
+      producerRecord = new ProducerRecord<>( environmentSubstitute( meta.getTopic() ), r[ data.keyFieldIndex ],
+        r[ data.messageFieldIndex ] );
     }
 
-    data.kafkaProducer.send( producerRecord );
+    try {
+      Future<RecordMetadata> futureRecordMetadata = data.kafkaProducer.send( producerRecord );
+      if ( futureRecordMetadata != null ) {
+        RecordMetadata recordMetadata = futureRecordMetadata.get( MAX_WAIT, TimeUnit.MILLISECONDS );
+        log.logDebug( recordMetadata.toString() );
+      }
+    } catch ( ExecutionException | TimeoutException e ) {
+      throw new IllegalStateException( e );
+    } catch ( InterruptedException e ) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException( e );
+    }
     incrementLinesOutput();
 
     putRow( getInputRowMeta(), r ); // copy row to possible alternate rowset(s).
 
-    if ( checkFeedback( getLinesRead() ) ) {
-      if ( log.isBasic() ) {
-        logBasic( BaseMessages.getString( PKG, "KafkaConsumerInput.Log.LineNumber" ) + getLinesRead() );
-      }
+    if ( checkFeedback( getLinesRead() ) && log.isBasic() ) {
+      logBasic( BaseMessages.getString( PKG, "KafkaConsumerInput.Log.LineNumber" ) + getLinesRead() );
     }
 
     return true;

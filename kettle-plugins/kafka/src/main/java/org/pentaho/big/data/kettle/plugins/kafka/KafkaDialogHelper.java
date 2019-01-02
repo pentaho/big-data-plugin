@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -31,9 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -72,11 +76,13 @@ public class KafkaDialogHelper {
   private NamedClusterServiceLocator namedClusterServiceLocator;
   private TableView optionsTable;
   private StepMeta parentMeta;
+  private static final int MAX_WAIT = 5000;
 
-  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
-                            KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
-                            NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
-                            TableView optionsTable, StepMeta parentMeta ) {
+
+  KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+                     KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
+                     NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
+                     TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
     this.wTopic = wTopic;
     this.wbCluster = wbCluster;
@@ -89,19 +95,28 @@ public class KafkaDialogHelper {
     this.parentMeta = parentMeta;
   }
 
-  public void clusterNameChanged( @SuppressWarnings( "unused" ) Event event ) {
+  @SuppressWarnings ( "unused" ) void clusterNameChanged( Event event ) {
     String current = wTopic.getText();
     if ( ( wbCluster.getSelection() && StringUtil.isEmpty( wClusterName.getText() ) )
-      || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
+      || ( !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) ) {
       return;
     }
     String clusterName = wClusterName.getText();
-    boolean isCluster = wbCluster == null || wbCluster.getSelection();
+    boolean isCluster = wbCluster.getSelection();
     String directBootstrapServers = wBootstrapServers == null ? "" : wBootstrapServers.getText();
     Map<String, String> config = getConfig( optionsTable );
-    CompletableFuture
-      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
-      .thenAccept( ( topicMap ) -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
+    try {
+      CompletableFuture
+        .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
+        .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) )
+        .get( MAX_WAIT, TimeUnit.MILLISECONDS );
+         // we do a get here to avoid losing exceptions that occur in another thread
+    } catch ( InterruptedException e ) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException( e );
+    } catch ( TimeoutException | ExecutionException e ) {
+      throw new IllegalStateException( e );
+    }
   }
 
   private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
@@ -109,7 +124,10 @@ public class KafkaDialogHelper {
       wTopic.getCComboWidget().removeAll();
     }
     topicMap.keySet().stream()
-      .filter( key -> !"__consumer_offsets".equals( key ) ).sorted().forEach( key -> {
+      .filter( key -> !"__consumer_offsets".equals( key ) )
+      .sorted()
+      .forEach( key ->
+      {
         if ( !wTopic.isDisposed() ) {
           wTopic.add( key );
         }
@@ -120,7 +138,8 @@ public class KafkaDialogHelper {
   }
 
   private Map<String, List<PartitionInfo>> listTopics(
-    final String clusterName, final boolean isCluster, final String directBootstrapServers, Map<String, String> config ) {
+    final String clusterName, final boolean isCluster, final String directBootstrapServers,
+    Map<String, String> config ) {
     Consumer kafkaConsumer = null;
     try {
       KafkaConsumerInputMeta localMeta = new KafkaConsumerInputMeta();
@@ -133,7 +152,7 @@ public class KafkaDialogHelper {
       localMeta.setConfig( config );
       localMeta.setParentStepMeta( parentMeta );
       kafkaConsumer = kafkaFactory.consumer( localMeta, Function.identity() );
-      @SuppressWarnings( "unchecked" ) Map<String, List<PartitionInfo>> topicMap = kafkaConsumer.listTopics();
+      @SuppressWarnings ( "unchecked" ) Map<String, List<PartitionInfo>> topicMap = kafkaConsumer.listTopics();
       return topicMap;
     } catch ( Exception e ) {
       return Collections.emptyMap();
@@ -151,8 +170,8 @@ public class KafkaDialogHelper {
     try {
       RowMetaInterface rmi = transMeta.getPrevStepFields( stepName );
       List ls = rmi.getValueMetaList();
-      for ( int i = 0; i < ls.size(); i++ ) {
-        ValueMetaBase vmb = (ValueMetaBase) ls.get( i );
+      for ( Object l : ls ) {
+        ValueMetaBase vmb = (ValueMetaBase) l;
         comboVar.add( vmb.getName() );
       }
     } catch ( KettleStepException ex ) {
@@ -163,53 +182,46 @@ public class KafkaDialogHelper {
   public static List<String> getConsumerConfigOptionNames() {
     List<String> optionNames = getConfigOptionNames( ConsumerConfig.class );
     Stream.of( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConsumerConfig.GROUP_ID_CONFIG,
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG ).forEach( optionNames::remove );
+      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+      ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG ).forEach( optionNames::remove );
     return optionNames;
   }
 
   public static List<String> getProducerConfigOptionNames() {
     List<String> optionNames = getConfigOptionNames( ProducerConfig.class );
     Stream.of( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, ProducerConfig.CLIENT_ID_CONFIG,
-        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG )
-        .forEach( optionNames::remove );
+      ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG )
+      .forEach( optionNames::remove );
     return optionNames;
   }
 
   public static List<String> getConsumerAdvancedConfigOptionNames() {
     return Arrays.asList( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-        SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
-        SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
-        SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
+      SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+      SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+      SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
   }
 
   public static List<String> getProducerAdvancedConfigOptionNames() {
     return Arrays.asList( ProducerConfig.COMPRESSION_TYPE_CONFIG,
-        SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
-        SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
-        SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
+      SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
+      SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
+      SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
   }
 
   private static List<String> getConfigOptionNames( Class cl ) {
     return getStaticField( cl, "CONFIG" ).map( config ->
-        ( (ConfigDef) config ).configKeys().keySet().stream().sorted().collect( Collectors.toList() )
+      ( (ConfigDef) config ).configKeys().keySet().stream().sorted().collect( Collectors.toList() )
     ).orElse( new ArrayList<>() );
   }
 
   private static Optional<Object> getStaticField( Class cl, String fieldName ) {
-    Field field = null;
-    boolean isAccessible = false;
     try {
-      field = cl.getDeclaredField( fieldName );
-      isAccessible = field.isAccessible();
+      Field field = cl.getDeclaredField( fieldName );
       field.setAccessible( true );
       return Optional.ofNullable( field.get( null ) );
     } catch ( NoSuchFieldException | IllegalAccessException e ) {
       return Optional.empty();
-    } finally {
-      if ( field != null ) {
-        field.setAccessible( isAccessible );
-      }
     }
   }
 

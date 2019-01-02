@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -41,7 +41,7 @@ public class KafkaConsumerFieldTest {
   @Mock ValueMetaInterface vmi;
 
   @Test
-  public void testEmptyConstructor() throws Exception {
+  public void testEmptyConstructor() {
     field = new KafkaConsumerField();
 
     assertNull( field.getKafkaName() );
@@ -50,7 +50,7 @@ public class KafkaConsumerFieldTest {
   }
 
   @Test
-  public void testSettersGetters() throws Exception {
+  public void testSettersGetters() {
     field = new KafkaConsumerField();
     field.setKafkaName( KafkaConsumerField.Name.MESSAGE );
     field.setOutputName( "MSG" );
@@ -62,7 +62,7 @@ public class KafkaConsumerFieldTest {
   }
 
   @Test
-  public void testConstructor_noType() throws Exception {
+  public void testConstructor_noType() {
     field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name" );
 
     assertEquals( KafkaConsumerField.Name.KEY, field.getKafkaName() );
@@ -71,7 +71,7 @@ public class KafkaConsumerFieldTest {
   }
 
   @Test
-  public void testConstructor_allProps() throws Exception {
+  public void testConstructor_allProps() {
     field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name", KafkaConsumerField.Type.Binary );
 
     assertEquals( KafkaConsumerField.Name.KEY, field.getKafkaName() );
@@ -80,7 +80,7 @@ public class KafkaConsumerFieldTest {
   }
 
   @Test
-  public void testSerializersSet() throws Exception {
+  public void testSerializersSet() {
     field = new KafkaConsumerField( KafkaConsumerField.Name.KEY, "Test Name" );
     assertEquals( "class org.apache.kafka.common.serialization.StringSerializer", field.getOutputType().getKafkaSerializerClass().toString() );
     assertEquals( "class org.apache.kafka.common.serialization.StringDeserializer", field.getOutputType().getKafkaDeserializerClass().toString() );
@@ -99,7 +99,7 @@ public class KafkaConsumerFieldTest {
   }
 
   @Test
-  public void testFromValueMetaInterface() throws Exception {
+  public void testFromValueMetaInterface() {
     when( vmi.getType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
     KafkaConsumerField.Type t = KafkaConsumerField.Type.fromValueMetaInterface( vmi );
     assertEquals( "String", t.toString() );

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,10 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +44,11 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
@@ -60,6 +61,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ADVANCED_CONFIG;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CLIENT_ID;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CLUSTER_NAME;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.CONNECTION_TYPE;
@@ -182,11 +184,11 @@ public class KafkaProducerOutputMetaTest {
     when( rep.getStepAttributeString( stepId, KEY_FIELD ) ).thenReturn( "machineId" );
     when( rep.getStepAttributeString( stepId, MESSAGE_FIELD ) ).thenReturn( "reading" );
 
-    when( rep.getStepAttributeInteger( stepId, meta.ADVANCED_CONFIG + "_COUNT" ) ).thenReturn( 2L );
-    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config1" );
-    when( rep.getStepAttributeString( stepId, 0, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue1" );
-    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config2" );
-    when( rep.getStepAttributeString( stepId, 1, meta.ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue2" );
+    when( rep.getStepAttributeInteger( stepId, ADVANCED_CONFIG + "_COUNT" ) ).thenReturn( 2L );
+    when( rep.getStepAttributeString( stepId, 0, ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config1" );
+    when( rep.getStepAttributeString( stepId, 0, ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue1" );
+    when( rep.getStepAttributeString( stepId, 1, ADVANCED_CONFIG + "_NAME" ) ).thenReturn( "advanced.config2" );
+    when( rep.getStepAttributeString( stepId, 1, ADVANCED_CONFIG + "_VALUE" ) ).thenReturn( "advancedPropertyValue2" );
 
     meta.readRep( rep, metastore, stepId, Collections.emptyList() );
     assertThat( meta.getConnectionType(), is( DIRECT ) );
@@ -230,11 +232,11 @@ public class KafkaProducerOutputMetaTest {
     verify( rep ).saveStepAttribute( transId, stepId, KEY_FIELD, "kafkaKey" );
     verify( rep ).saveStepAttribute( transId, stepId, MESSAGE_FIELD, "kafkaMessage" );
 
-    verify( rep, times( 1 ) ).saveStepAttribute( transId, stepId, meta.ADVANCED_CONFIG + "_COUNT", 2 );
-    verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_NAME", "advanced.property1" );
-    verify( rep ).saveStepAttribute( transId, stepId, 0, meta.ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue1" );
-    verify( rep ).saveStepAttribute( transId, stepId, 1, meta.ADVANCED_CONFIG + "_NAME", "advanced.property2" );
-    verify( rep ).saveStepAttribute( transId, stepId, 1, meta.ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue2" );
+    verify( rep, times( 1 ) ).saveStepAttribute( transId, stepId, ADVANCED_CONFIG + "_COUNT", 2 );
+    verify( rep ).saveStepAttribute( transId, stepId, 0, ADVANCED_CONFIG + "_NAME", "advanced.property1" );
+    verify( rep ).saveStepAttribute( transId, stepId, 0, ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue1" );
+    verify( rep ).saveStepAttribute( transId, stepId, 1, ADVANCED_CONFIG + "_NAME", "advanced.property2" );
+    verify( rep ).saveStepAttribute( transId, stepId, 1, ADVANCED_CONFIG + "_VALUE", "advancedPropertyValue2" );
   }
 
   @Test
@@ -324,15 +326,15 @@ public class KafkaProducerOutputMetaTest {
   }
 
   @Test
-  public void testDirectIsDefault() throws Exception {
+  public void testDirectIsDefault() {
     assertEquals( DIRECT, new KafkaProducerOutputMeta().getConnectionType() );
   }
 
   @Test
   public void testMDI() {
     KafkaProducerOutputMeta meta = new KafkaProducerOutputMeta();
-    meta.injectedConfigNames = Arrays.asList( "injectedName" );
-    meta.injectedConfigValues = Arrays.asList( "injectedValue" );
+    meta.injectedConfigNames = singletonList( "injectedName" );
+    meta.injectedConfigValues = singletonList( "injectedValue" );
     meta.applyInjectedProperties();
     assertThat( meta.getConfig().size(), Matchers.is( 1 ) );
     assertThat( meta.getConfig(), hasEntry( "injectedName", "injectedValue" ) );
