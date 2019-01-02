@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public class KafkaConsumerInput extends BaseStreamStep implements StepInterface {
 
-  private static Class<?> PKG = KafkaConsumerInputMeta.class;
+  private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   public KafkaConsumerInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
@@ -58,7 +58,7 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
    * @param stepMetaInterface The metadata to work with
    * @param stepDataInterface The data to initialize
    */
-  public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
+  @Override public boolean init( StepMetaInterface stepMetaInterface, StepDataInterface stepDataInterface ) {
     KafkaConsumerInputMeta kafkaConsumerInputMeta = (KafkaConsumerInputMeta) stepMetaInterface;
     KafkaConsumerInputData kafkaConsumerInputData = (KafkaConsumerInputData) stepDataInterface;
 
@@ -85,7 +85,8 @@ public class KafkaConsumerInput extends BaseStreamStep implements StepInterface 
 
     source = new KafkaStreamSource( consumer, kafkaConsumerInputMeta, kafkaConsumerInputData, variables, this );
     window = new FixedTimeStreamWindow<>( subtransExecutor, kafkaConsumerInputData.outputRowMeta, getDuration(),
-      getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? ( p) -> { } : this::commitOffsets );
+      getBatchSize(), getParallelism(), kafkaConsumerInputMeta.isAutoCommit() ? p -> {
+      } : this::commitOffsets );
 
     return true;
   }

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,6 +28,7 @@ import org.pentaho.metaverse.api.MetaverseAnalyzerException;
 import org.pentaho.metaverse.api.StepField;
 import org.pentaho.metaverse.api.analyzer.kettle.step.StepAnalyzer;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public class KafkaConsumerInputStepAnalyzer extends StepAnalyzer<KafkaConsumerIn
   @Override
   protected Set<StepField> getUsedFields( KafkaConsumerInputMeta meta ) {
     // no incoming fields are used by the Dummy step
-    return null;
+    return Collections.emptySet();
   }
 
   @Override

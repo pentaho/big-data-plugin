@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,12 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.base.Preconditions;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.pentaho.big.data.api.cluster.NamedCluster;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
@@ -37,7 +31,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
@@ -56,6 +49,13 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
 
@@ -84,8 +84,6 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   public static final String OPTION_PROPERTY = "property";
   public static final String OPTION_VALUE = "value";
 
-  private static Class<?> PKG = KafkaProducerOutput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
-
   @Injection( name = "CONNECTION_TYPE" )
   private ConnectionType connectionType = DIRECT;
 
@@ -99,7 +97,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   private String clientId;
 
   @Injection( name = "TOPIC" )
-  private String topic;
+  private String topicVal;
 
   @Injection( name = "KEY_FIELD" )
   private String keyField;
@@ -108,10 +106,10 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   private String messageField;
 
   @Injection( name = "NAMES", group = "CONFIGURATION_PROPERTIES" )
-  protected transient List<String> injectedConfigNames;
+  protected List<String> injectedConfigNames;
 
   @Injection( name = "VALUES", group = "CONFIGURATION_PROPERTIES" )
-  protected transient List<String> injectedConfigValues;
+  protected List<String> injectedConfigValues;
 
   private Map<String, String> config = new LinkedHashMap<>();
 
@@ -125,13 +123,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     super();
   }
 
-  public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+  @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
     readData( stepnode );
-  }
-
-  public Object clone() {
-    Object retval = super.clone();
-    return retval;
   }
 
   private void readData( Node stepnode ) {
@@ -145,7 +138,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
 
     config = new LinkedHashMap<>();
 
-    Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( node -> node.getChildNodes() )
+    Optional.ofNullable( XMLHandler.getSubNode( stepnode, ADVANCED_CONFIG ) ).map( Node::getChildNodes )
         .ifPresent( nodes -> IntStream.range( 0, nodes.getLength() ).mapToObj( nodes::item )
             .filter( node -> node.getNodeType() == Node.ELEMENT_NODE )
             .forEach( node -> {
@@ -159,9 +152,10 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   }
 
   @Override public void setDefault() {
+    // no defaults
   }
 
-  public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta> databases )
+  @Override public void readRep( Repository rep, IMetaStore metaStore, ObjectId stepId, List<DatabaseMeta> databases )
     throws KettleException {
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( stepId, CONNECTION_TYPE ) ) );
     setDirectBootstrapServers( rep.getStepAttributeString( stepId, DIRECT_BOOTSTRAP_SERVERS ) );
@@ -179,13 +173,13 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     }
   }
 
-  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transformationId, ObjectId stepId )
+  @Override public void saveRep( Repository rep, IMetaStore metaStore, ObjectId transformationId, ObjectId stepId )
     throws KettleException {
     rep.saveStepAttribute( transformationId, stepId, CONNECTION_TYPE, connectionType.name() );
     rep.saveStepAttribute( transformationId, stepId, DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers );
     rep.saveStepAttribute( transformationId, stepId, CLUSTER_NAME, clusterName );
     rep.saveStepAttribute( transformationId, stepId, CLIENT_ID, clientId );
-    rep.saveStepAttribute( transformationId, stepId, TOPIC, topic );
+    rep.saveStepAttribute( transformationId, stepId, TOPIC, topicVal );
     rep.saveStepAttribute( transformationId, stepId, KEY_FIELD, keyField );
     rep.saveStepAttribute( transformationId, stepId, MESSAGE_FIELD, messageField );
 
@@ -198,8 +192,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     }
   }
 
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws KettleStepException {
+  @Override public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+                         VariableSpace space, Repository repository, IMetaStore metaStore ) {
     // Default: nothing changes to rowMeta
   }
 
@@ -213,6 +207,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     return new KafkaProducerOutputData();
   }
 
+  @SuppressWarnings( "deprecation" )
   public String getDialogClassName() {
     return "org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputDialog";
   }
@@ -249,11 +244,11 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
   }
 
   public String getTopic() {
-    return topic;
+    return topicVal;
   }
 
   public void setTopic( String topic ) {
-    this.topic = topic;
+    this.topicVal = topic;
   }
 
   public String getKeyField() {
@@ -285,7 +280,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CLUSTER_NAME, clusterName ) );
-    retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topic ) );
+    retval.append( "    " ).append( XMLHandler.addTagValue( TOPIC, topicVal ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( CLIENT_ID, clientId ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( KEY_FIELD, keyField ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( MESSAGE_FIELD, messageField ) );

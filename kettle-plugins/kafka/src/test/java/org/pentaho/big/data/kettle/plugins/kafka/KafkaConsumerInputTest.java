@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -71,6 +71,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -90,25 +91,25 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerField.Type.
 import static org.pentaho.di.core.util.Assert.assertFalse;
 import static org.pentaho.di.core.util.Assert.assertNull;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith ( MockitoJUnitRunner.class )
 public class KafkaConsumerInputTest {
-  StepMeta stepMeta;
-  KafkaConsumerInputMeta meta;
-  KafkaConsumerInputData data;
-  KafkaConsumerInput step;
+  private StepMeta stepMeta;
+  private KafkaConsumerInputMeta meta;
+  private KafkaConsumerInputData data;
+  private KafkaConsumerInput step;
 
-  TransMeta transMeta;
-  Trans trans;
+  private TransMeta transMeta;
+  private Trans trans;
 
-  TopicPartition topic = new TopicPartition( "pentaho", 0 );
-  Map<TopicPartition, List<ConsumerRecord<String, String>>> messages = Maps.newHashMap();
-  ConsumerRecords records;
-  ArrayList<String> topicList;
+  private TopicPartition topic = new TopicPartition( "pentaho", 0 );
+  private Map<TopicPartition, List<ConsumerRecord<String, String>>> messages = Maps.newHashMap();
+  private ConsumerRecords records;
+  private ArrayList<String> topicList;
 
-  @Mock KafkaFactory factory;
-  @Mock Consumer consumer;
-  @Mock LogChannelInterfaceFactory logChannelFactory;
-  @Mock LogChannelInterface logChannel;
+  @Mock private KafkaFactory factory;
+  @Mock private Consumer consumer;
+  @Mock private LogChannelInterfaceFactory logChannelFactory;
+  @Mock private LogChannelInterface logChannel;
 
   @BeforeClass
   public static void init() throws Exception {
@@ -156,7 +157,7 @@ public class KafkaConsumerInputTest {
     trans = new Trans( transMeta );
   }
 
-  @Test( expected = KafkaException.class )
+  @Test ( expected = KafkaException.class )
   public void testInit_kafkaConfigIssue() {
     step = new KafkaConsumerInput( stepMeta, data, 1, transMeta, trans );
     meta.setBatchSize( "100" );
@@ -239,7 +240,8 @@ public class KafkaConsumerInputTest {
 
     assertFalse( step.init( meta, data ) );
     verify( logChannel ).logError( "The \"Duration\" field is using a non-numeric value. Please set a numeric value." );
-    verify( logChannel ).logError( "The \"Number of records\" field is using a non-numeric value. Please set a numeric value." );
+    verify( logChannel )
+      .logError( "The \"Number of records\" field is using a non-numeric value. Please set a numeric value." );
   }
 
   @Test
@@ -305,7 +307,7 @@ public class KafkaConsumerInputTest {
     };
 
     ExecutorService service = Executors.newSingleThreadExecutor();
-    service.submit( processRowRunnable );
+    service.submit( processRowRunnable ).get( 1, TimeUnit.SECONDS );
     latch.await();
     step.stopRunning( meta, data );
     service.shutdown();
@@ -364,7 +366,7 @@ public class KafkaConsumerInputTest {
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
-    trans.prepareExecution( new String[]{} );
+    trans.prepareExecution( new String[] {} );
     trans.startThreads();
     trans.waitUntilFinished();
     verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
@@ -398,7 +400,7 @@ public class KafkaConsumerInputTest {
       .thenReturn( new ConsumerRecords<>( Collections.emptyMap() ) );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
-    trans.prepareExecution( new String[]{} );
+    trans.prepareExecution( new String[] {} );
     trans.startThreads();
     waitForOneSubTrans( trans );
     verifyRow( "key_0", "value_0", "0", "1", times( 1 ) );
@@ -433,7 +435,7 @@ public class KafkaConsumerInputTest {
       .thenReturn( new ConsumerRecords<>( Collections.emptyMap() ) );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
-    trans.prepareExecution( new String[]{} );
+    trans.prepareExecution( new String[] {} );
     trans.startThreads();
     latch.await();
     verifyRow( "key_0", "value_0", "0", "1", never() );
@@ -469,7 +471,7 @@ public class KafkaConsumerInputTest {
     // provide some data when we try to poll for kafka messages
     when( consumer.poll( 1000 ) ).thenReturn( records );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) ).thenReturn( consumer );
-    trans.prepareExecution( new String[]{} );
+    trans.prepareExecution( new String[] {} );
     trans.startThreads();
     trans.waitUntilFinished();
     StepInterface kafkaStep = trans.getSteps().get( 0 ).step;
@@ -487,7 +489,7 @@ public class KafkaConsumerInputTest {
     Thread.sleep( 10 );
     long linesInput = kafkaStep.getLinesInput();
     Thread.sleep( 10 );
-    assertEquals( linesInput,  kafkaStep.getLinesInput() );
+    assertEquals( linesInput, kafkaStep.getLinesInput() );
   }
 
   @Test
@@ -510,13 +512,13 @@ public class KafkaConsumerInputTest {
       .then( invocationOnMock -> {
         for ( StepStatus stepStatus : trans.getSteps().get( 0 ).step.subStatuses() ) {
           assertEquals( BaseStepData.StepExecutionStatus.STATUS_RUNNING.getDescription(),
-                        stepStatus.getStatusDescription() );
+            stepStatus.getStatusDescription() );
         }
         return new ConsumerRecords<>( Collections.emptyMap() );
       } );
     when( factory.consumer( eq( kafkaMeta ), any(), eq( String ), eq( String ) ) )
       .thenReturn( consumer );
-    trans.prepareExecution( new String[]{} );
+    trans.prepareExecution( new String[] {} );
     KafkaConsumerInput kafkaStep = (KafkaConsumerInput) trans.getSteps().get( 0 ).step;
     Collection<StepStatus> stepStatuses = kafkaStep.subStatuses();
     assertEquals( 0, stepStatuses.size() );
@@ -525,21 +527,21 @@ public class KafkaConsumerInputTest {
     trans.stopAll();
     for ( StepStatus stepStatus : trans.getSteps().get( 0 ).step.subStatuses() ) {
       assertEquals( BaseStepData.StepExecutionStatus.STATUS_STOPPED.getDescription(),
-                    stepStatus.getStatusDescription() );
+        stepStatus.getStatusDescription() );
     }
   }
 
   public void verifyRow( String key, String message, String offset, String lineNr, final VerificationMode mode ) {
     verify( logChannel, mode ).logBasic(
       "\n"
-      + "------------> Linenr " + lineNr + "------------------------------\n"
-      + "Key = " + key + "\n"
-      + "Message = " + message + "\n"
-      + "Topic = pentaho\n"
-      + "Partition = 0\n"
-      + "Offset = " + offset + "\n"
-      + "Timestamp = -1\n"
-      + "\n"
-      + "====================" );
+        + "------------> Linenr " + lineNr + "------------------------------\n"
+        + "Key = " + key + "\n"
+        + "Message = " + message + "\n"
+        + "Topic = pentaho\n"
+        + "Partition = 0\n"
+        + "Offset = " + offset + "\n"
+        + "Timestamp = -1\n"
+        + "\n"
+        + "====================" );
   }
 }

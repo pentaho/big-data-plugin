@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -67,7 +67,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -89,7 +88,7 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.T
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.PARALLELISM;
 import static org.pentaho.di.trans.streaming.common.BaseStreamStepMeta.SUB_STEP;
 
-@RunWith( MockitoJUnitRunner.class )
+@RunWith ( MockitoJUnitRunner.class )
 public class KafkaConsumerInputMetaTest {
   @Mock IMetaStore metastore;
   @Mock Repository rep;
@@ -577,7 +576,7 @@ public class KafkaConsumerInputMetaTest {
     transMeta.checkSteps( remarks, false, monitor, variables, rep, metastore );
     assertEquals( 2, remarks.size() );
     assertEquals( "The \"Number of records\" and \"Duration\" fields can’t both be set to 0. Please set a value of 1 "
-        + "or higher for one of the fields.", remarks.get( 0 ).getText() );
+      + "or higher for one of the fields.", remarks.get( 0 ).getText() );
   }
 
   @Test
@@ -597,14 +596,10 @@ public class KafkaConsumerInputMetaTest {
   }
 
   @Test
-  public void testLoadReferencedObject() {
+  public void testLoadReferencedObject() throws KettleException {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     meta.setFileName( getClass().getResource( "/consumerSub.ktr" ).getPath() );
-    try {
-      TransMeta subTrans = (TransMeta) meta.loadReferencedObject( 0, null, null, new Variables() );
-      assertThat( subTrans.getName(), is( "consumerSub" ) );
-    } catch ( KettleException e ) {
-      fail();
-    }
+    TransMeta subTrans = (TransMeta) meta.loadReferencedObject( 0, null, null, new Variables() );
+    assertThat( subTrans.getName(), is( "consumerSub" ) );
   }
 }

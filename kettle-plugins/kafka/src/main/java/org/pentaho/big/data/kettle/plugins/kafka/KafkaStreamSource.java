@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +64,7 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
   private final VariableSpace variables;
   private KafkaConsumerInputMeta kafkaConsumerInputMeta;
   private KafkaConsumerInputData kafkaConsumerInputData;
-  private Map<KafkaConsumerField.Name, Integer> positions;
+  private EnumMap<KafkaConsumerField.Name, Integer> positions;
 
   private Consumer consumer;
   private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -75,7 +75,7 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
                             KafkaConsumerInputData kafkaConsumerInputData, VariableSpace variables,
                             KafkaConsumerInput kafkaStep ) {
     super( kafkaStep );
-    positions = new HashMap<>();
+    positions = new EnumMap<>( KafkaConsumerField.Name.class );
     this.consumer = consumer;
     this.variables = variables;
     this.kafkaConsumerInputData = kafkaConsumerInputData;
@@ -93,7 +93,7 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
     }
 
     List<ValueMetaInterface> valueMetas = kafkaConsumerInputData.outputRowMeta.getValueMetaList();
-    positions = new HashMap<>( valueMetas.size() );
+    positions = new EnumMap<>( KafkaConsumerField.Name.class );
 
     IntStream.range( 0, valueMetas.size() )
       .forEach( idx -> {
@@ -127,7 +127,7 @@ public class KafkaStreamSource extends BlockingQueueStreamSource<List<Object>> {
       toCommit.add( offsets );
     }
 
-    public Void call() {
+    @Override public Void call() {
       try {
         while ( !closed.get() ) {
           commitOffsets();

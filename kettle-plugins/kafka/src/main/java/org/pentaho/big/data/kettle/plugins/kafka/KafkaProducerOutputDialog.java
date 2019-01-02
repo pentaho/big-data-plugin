@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,10 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -44,7 +40,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -70,17 +65,22 @@ import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
 
-@SuppressWarnings( { "FieldCanBeLocal", "unused" } )
+@SuppressWarnings ( { "FieldCanBeLocal", "unused" } )
 public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDialogInterface {
 
-  private static Class<?> PKG = KafkaProducerOutputMeta.class;
+  private static final Class<?> PKG = KafkaProducerOutputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
-  private static final Map<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of(
-      ProducerConfig.COMPRESSION_TYPE_CONFIG, "none" );
+  private static final ImmutableMap<String, String> DEFAULT_OPTION_VALUES = ImmutableMap.of(
+    ProducerConfig.COMPRESSION_TYPE_CONFIG, "none" );
 
   private final KafkaFactory kafkaFactory = KafkaFactory.defaultFactory();
 
@@ -92,30 +92,22 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private ModifyListener lsMod;
   private Label wlClusterName;
   private ComboVar wClusterName;
-  private Label wlClientId;
+
   private TextVar wClientId;
-  private Label wlTopic;
   private ComboVar wTopic;
-  private Label wlKeyField;
   private ComboVar wKeyField;
-  private Label wlMessageField;
   private ComboVar wMessageField;
   private TableView optionsTable;
   private CTabFolder wTabFolder;
-  private CTabItem wSetupTab;
-  private CTabItem wOptionsTab;
 
-  private Composite wSetupComp;
   private Button wbDirect;
   private Button wbCluster;
   private Label wlBootstrapServers;
   private TextVar wBootstrapServers;
 
-  private Composite wOptionsComp;
-
   public KafkaProducerOutputDialog( Shell parent, Object in,
-                                    TransMeta transMeta, String stepname ) {
-    super( parent, (BaseStepMeta) in, transMeta, stepname );
+                                    TransMeta transMeta, String stepName ) {
+    super( parent, (BaseStepMeta) in, transMeta, stepName );
     meta = (KafkaProducerOutputMeta) in;
   }
 
@@ -128,7 +120,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     lsCancel = e -> cancel();
     lsOK = e -> ok();
     lsDef = new SelectionAdapter() {
-      public void widgetDefaultSelected( SelectionEvent e ) {
+      @Override public void widgetDefaultSelected( SelectionEvent e ) {
         ok();
       }
     };
@@ -144,7 +136,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     formLayout.marginHeight = 15;
     shell.setLayout( formLayout );
     shell.addShellListener( new ShellAdapter() {
-      public void shellClosed( ShellEvent e ) {
+      @Override public void shellClosed( ShellEvent e ) {
         cancel();
       }
     } );
@@ -243,10 +235,10 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   }
 
   private void buildSetupTab() {
-    wSetupTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wSetupTab = new CTabItem( wTabFolder, SWT.NONE );
     wSetupTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.SetupTab" ) );
 
-    wSetupComp = new Composite( wTabFolder, SWT.NONE );
+    Composite wSetupComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wSetupComp );
     FormLayout setupLayout = new FormLayout();
     setupLayout.marginHeight = 15;
@@ -279,6 +271,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
         lsMod.modifyText( null );
         toggleConnectionType( true );
       }
+
       @Override public void widgetDefaultSelected( final SelectionEvent selectionEvent ) {
         toggleConnectionType( true );
       }
@@ -296,6 +289,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
         lsMod.modifyText( null );
         toggleConnectionType( false );
       }
+
       @Override public void widgetDefaultSelected( final SelectionEvent selectionEvent ) {
         toggleConnectionType( false );
       }
@@ -311,7 +305,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
 
     wlClusterName = new Label( wConnectionGroup, SWT.LEFT );
     props.setLook( wlClusterName );
-    wlClusterName.setText(  BaseMessages.getString( PKG, "KafkaProducerOutputDialog.HadoopCluster" ) );
+    wlClusterName.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.HadoopCluster" ) );
     FormData fdlClusterName = new FormData();
     fdlClusterName.left = new FormAttachment( environmentSeparator, 15 );
     fdlClusterName.top = new FormAttachment( 0, 0 );
@@ -346,9 +340,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdBootstrapServers.right = new FormAttachment( 78, 0 );
     wBootstrapServers.setLayoutData( fdBootstrapServers );
 
-    wlClientId = new Label( wSetupComp, SWT.LEFT );
+    Label wlClientId = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlClientId );
-    wlClientId.setText(   BaseMessages.getString( PKG, "KafkaProducerOutputDialog.ClientId" ) );
+    wlClientId.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.ClientId" ) );
     FormData fdlClientId = new FormData();
     fdlClientId.left = new FormAttachment( 0, 0 );
     fdlClientId.top = new FormAttachment( wConnectionGroup, 10 );
@@ -364,9 +358,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdClientId.right = new FormAttachment( 0, INPUT_WIDTH );
     wClientId.setLayoutData( fdClientId );
 
-    wlTopic = new Label( wSetupComp, SWT.LEFT );
+    Label wlTopic = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlTopic );
-    wlTopic.setText(   BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Topic" ) );
+    wlTopic.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Topic" ) );
     FormData fdlTopic = new FormData();
     fdlTopic.left = new FormAttachment( 0, 0 );
     fdlTopic.top = new FormAttachment( wClientId, 10 );
@@ -390,7 +384,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
         kafkaDialogHelper.clusterNameChanged( event );
       } );
 
-    wlKeyField = new Label( wSetupComp, SWT.LEFT );
+    Label wlKeyField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlKeyField );
     wlKeyField.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.KeyField" ) );
     FormData fdlKeyField = new FormData();
@@ -407,15 +401,10 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdKeyField.top = new FormAttachment( wlKeyField, 5 );
     fdKeyField.right = new FormAttachment( 0, INPUT_WIDTH );
     wKeyField.setLayoutData( fdKeyField );
-    Listener lsKeyFocus = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        KafkaDialogHelper.populateFieldsList( transMeta, wKeyField, "Kafka Producer" );
-      }
-    };
+    Listener lsKeyFocus = e -> KafkaDialogHelper.populateFieldsList( transMeta, wKeyField, "Kafka Producer" );
     wKeyField.getCComboWidget().addListener( SWT.FocusIn, lsKeyFocus );
 
-    wlMessageField = new Label( wSetupComp, SWT.LEFT );
+    Label wlMessageField = new Label( wSetupComp, SWT.LEFT );
     props.setLook( wlMessageField );
     wlMessageField.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.MessageField" ) );
     FormData fdlMessageField = new FormData();
@@ -432,12 +421,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdMessageField.top = new FormAttachment( wlMessageField, 5 );
     fdMessageField.right = new FormAttachment( 0, INPUT_WIDTH );
     wMessageField.setLayoutData( fdMessageField );
-    Listener lsMessageFocus = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        KafkaDialogHelper.populateFieldsList( transMeta, wMessageField, "Kafka Producer" );
-      }
-    };
+    Listener lsMessageFocus = e -> KafkaDialogHelper.populateFieldsList( transMeta, wMessageField, "Kafka Producer" );
     wMessageField.getCComboWidget().addListener( SWT.FocusIn, lsMessageFocus );
 
     FormData fdSetupComp = new FormData();
@@ -450,7 +434,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     wSetupTab.setControl( wSetupComp );
   }
 
-  public void toggleConnectionType( final boolean isDirect ) {
+  private void toggleConnectionType( final boolean isDirect ) {
     wlBootstrapServers.setVisible( isDirect );
     wBootstrapServers.setVisible( isDirect );
     wlClusterName.setVisible( !isDirect );
@@ -458,9 +442,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   }
 
   private void buildOptionsTab() {
-    wOptionsTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wOptionsTab = new CTabItem( wTabFolder, SWT.NONE );
     wOptionsTab.setText( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Tab" ) );
-    wOptionsComp = new Composite( wTabFolder, SWT.NONE );
+    Composite wOptionsComp = new Composite( wTabFolder, SWT.NONE );
     props.setLook( wOptionsComp );
     FormLayout fieldsLayout = new FormLayout();
     fieldsLayout.marginHeight = 15;
@@ -484,7 +468,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     ColumnInfo[] columns = getOptionsColumns();
 
     if ( meta.getConfig().size() == 0 ) {
-      // inital call
+      // initial call
       List<String> list = KafkaDialogHelper.getProducerAdvancedConfigOptionNames();
       Map<String, String> advancedConfig = new LinkedHashMap<>();
       for ( String item : list ) {
@@ -534,14 +518,15 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
 
   private ColumnInfo[] getOptionsColumns() {
 
-    ColumnInfo optionName = new ColumnInfo( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Column.Name" ),
-      ColumnInfo.COLUMN_TYPE_TEXT, false, false );
+    ColumnInfo optionName =
+      new ColumnInfo( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Column.Name" ),
+        ColumnInfo.COLUMN_TYPE_TEXT, false, false );
 
     ColumnInfo value = new ColumnInfo( BaseMessages.getString( PKG, "KafkaProducerOutputDialog.Options.Column.Value" ),
       ColumnInfo.COLUMN_TYPE_TEXT, false, false );
     value.setUsingVariables( true );
 
-    return new ColumnInfo[]{ optionName, value };
+    return new ColumnInfo[] { optionName, value };
   }
 
   private void populateOptionsData() {
@@ -560,7 +545,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
   private void getData() {
     try {
       List<String> names = meta.getNamedClusterService().listNames( Spoon.getInstance().getMetaStore() );
-      wClusterName.setItems( names.toArray( new String[ names.size() ] ) );
+      wClusterName.setItems( names.toArray( new String[ 0 ] ) );
     } catch ( MetaStoreException e ) {
       log.logError( "Failed to get defined named clusters", e );
     }
@@ -585,14 +570,9 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     if ( meta.getMessageField() != null ) {
       wMessageField.setText( meta.getMessageField() );
     }
+    wbCluster.setSelection( !isDirect() );
+    wbDirect.setSelection( isDirect() );
 
-    if ( isDirect() ) {
-      wbCluster.setSelection( false );
-      wbDirect.setSelection( true );
-    } else {
-      wbCluster.setSelection( true );
-      wbDirect.setSelection( false );
-    }
     toggleConnectionType( isDirect() );
   }
 
