@@ -24,6 +24,10 @@
   <!-- Define a bean for our new step analyzer -->
   <bean id="KafkaConsumerInputStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputStepAnalyzer" />
 
+  <bean id="KafkaProducerStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerStepAnalyzer">
+    <property name="externalResourceConsumer" ref="kafkaProducerERC"/>
+  </bean>
+
   <!--
     Define our analyzer as a service. This will allow it to be automatically added to the reference-list ultimately used
     by the TransformationAnalyzer to determine if there is a custom analyzer for a particular BaseStepMeta impl
@@ -32,6 +36,17 @@
   <service id="KafkaConsumerInputStepAnalyzerService"
            interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepAnalyzer"
            ref="KafkaConsumerInputStepAnalyzer"/>
+
+  <service id="KafkaProducerOutputStepAnalyzerService"
+           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepAnalyzer"
+           ref="KafkaProducerStepAnalyzer"/>
+
+  <bean id="kafkaProducerERC" scope="singleton"
+      class="org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerERC"/>
+
+  <service id="kafkaProducerERCService"
+         interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepExternalResourceConsumer"
+         ref="kafkaProducerERC"/>
 
   <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
   <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>
