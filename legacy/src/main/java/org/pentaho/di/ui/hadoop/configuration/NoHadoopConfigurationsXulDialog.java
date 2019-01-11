@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -54,7 +54,7 @@ public class NoHadoopConfigurationsXulDialog extends AbstractXulEventHandler {
   private XulDialog selectDialog;
 
   public NoHadoopConfigurationsXulDialog( Shell aShell ) {
-    this.shell = new Shell( aShell, SWT.SHELL_TRIM | SWT.APPLICATION_MODAL );
+    this.shell = aShell;
     setName( CONTROLLER_NAME );
   }
 

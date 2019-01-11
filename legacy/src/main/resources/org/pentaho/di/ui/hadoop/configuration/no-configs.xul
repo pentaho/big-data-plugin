@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <window id="noHadoopConfigurationSelectionWindow" title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="425" height="100" proxyoutercontext="true" appicon="ui/images/spoon.ico">
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" appicon="ui/images/spoon.ico">
 
   <dialog width="425" height="100" id="noHadoopConfigurationSelectionDialog"
           title="${NoHadoopConfigurationSelectionDialog.Shell.Title}"
