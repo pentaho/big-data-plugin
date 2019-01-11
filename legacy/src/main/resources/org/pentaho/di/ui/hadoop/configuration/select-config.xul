@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <window id="hadoopConfigurationSelectionWindow" title="${HadoopConfigurationSelectionDialog.Shell.Title}"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        width="420" height="160" proxyoutercontext="true" appicon="ui/images/spoon.ico">
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" appicon="ui/images/spoon.ico">
 
   <dialog width="420" height="160" id="hadoopConfigurationSelectionDialog"
           appicon="ui/images/spoon.ico"
