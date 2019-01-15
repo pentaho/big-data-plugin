@@ -17,6 +17,11 @@
     <publish-sonar-phase>site</publish-sonar-phase>
     <!-- Dependency versions -->
     <pentaho-metaverse.version>8.3.0.0-SNAPSHOT</pentaho-metaverse.version>
+    <pentaho-mongodb-plugin.version>8.3.0.0-SNAPSHOT</pentaho-mongodb-plugin.version>
+    <dependency.org.powermock.version>1.6.0</dependency.org.powermock.version>
+    <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
+    <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
+    <dependency.mockito.version>1.9.5-rc1</dependency.mockito.version>
   </properties>
   <dependencies>
     <dependency>
@@ -88,7 +93,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.revision}</version>
+      <version>${dependency.mockito.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -101,6 +106,56 @@
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>pdi-core-plugins-impl</artifactId>
       <version>${pdi.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-metaverse-core</artifactId>
+      <classifier>tests</classifier>
+      <type>test-jar</type>
+      <version>${pdi.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-metaverse-core</artifactId>
+      <version>${pdi.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tinkerpop</groupId>
+      <artifactId>frames</artifactId>
+      <version>${dependency.com.tinkerpop.frames.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tinkerpop.blueprints</groupId>
+      <artifactId>blueprints-core</artifactId>
+      <version>${dependency.com.tinkerpop.blueprints.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-core</artifactId>
+      <version>${dependency.org.powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${dependency.org.powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>${dependency.org.powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-mongodb-plugin</artifactId>
+      <version>${pentaho-mongodb-plugin.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

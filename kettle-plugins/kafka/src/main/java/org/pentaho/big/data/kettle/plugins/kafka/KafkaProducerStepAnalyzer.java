@@ -48,9 +48,9 @@ import static org.pentaho.dictionary.DictionaryConst.NODE_TYPE_EXTERNAL_CONNECTI
 public class KafkaProducerStepAnalyzer  extends ConnectionExternalResourceStepAnalyzer<KafkaProducerOutputMeta> {
 
   static final String NODE_TYPE_KAFKA_TOPIC = "Kafka Topic";
-  private static final String NODE_TYPE_KAFKA_SERVER = "Kafka Server";
-  private static final String KEY = "Key";
-  private static final String MESSAGE = "Message";
+  static final String NODE_TYPE_KAFKA_SERVER = "Kafka Server";
+  static final String KEY = "Key";
+  static final String MESSAGE = "Message";
 
   static {
 
