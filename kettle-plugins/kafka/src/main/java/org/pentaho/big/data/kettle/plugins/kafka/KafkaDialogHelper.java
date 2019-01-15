@@ -22,22 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -46,7 +30,6 @@ import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.SslConfigs;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -62,6 +45,18 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
@@ -76,7 +71,6 @@ public class KafkaDialogHelper {
   private NamedClusterServiceLocator namedClusterServiceLocator;
   private TableView optionsTable;
   private StepMeta parentMeta;
-  private static final int MAX_WAIT = 5000;
 
 
   KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
@@ -96,27 +90,22 @@ public class KafkaDialogHelper {
   }
 
   @SuppressWarnings ( "unused" ) void clusterNameChanged( Event event ) {
-    String current = wTopic.getText();
     if ( ( wbCluster.getSelection() && StringUtil.isEmpty( wClusterName.getText() ) )
       || ( !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) ) {
       return;
     }
+    wClusterName.getDisplay()
+      .syncExec( this::handleClusterNameChanged );
+  }
+
+  private void handleClusterNameChanged() {
+    String current = wTopic.getText();
     String clusterName = wClusterName.getText();
     boolean isCluster = wbCluster.getSelection();
     String directBootstrapServers = wBootstrapServers == null ? "" : wBootstrapServers.getText();
     Map<String, String> config = getConfig( optionsTable );
-    try {
-      CompletableFuture
-        .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
-        .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) )
-        .get( MAX_WAIT, TimeUnit.MILLISECONDS );
-         // we do a get here to avoid losing exceptions that occur in another thread
-    } catch ( InterruptedException e ) {
-      Thread.currentThread().interrupt();
-      throw new IllegalStateException( e );
-    } catch ( TimeoutException | ExecutionException e ) {
-      throw new IllegalStateException( e );
-    }
+    populateTopics(
+      listTopics( clusterName, isCluster, directBootstrapServers, config ), current );
   }
 
   private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
