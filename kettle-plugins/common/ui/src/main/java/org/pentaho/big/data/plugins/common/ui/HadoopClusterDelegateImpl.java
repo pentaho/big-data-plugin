@@ -38,10 +38,8 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -105,16 +103,16 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
             File sourceClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + sourceClusterId );
             File newClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId );
             ncCopy.setConfigId( newClusterId );
+            saveNamedCluster( metaStore, ncCopy );
             FileUtils.copyDirectory( sourceClusterConfigDir, newClusterConfigDir );
           }
-        } catch (Exception e) {
+        } catch ( Exception e ) {
           commonDialogFactory.createErrorDialog( spoon.getShell(),
             BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
             BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
           spoon.refreshTree();
           return;
         }
-        saveNamedCluster( metaStore, ncCopy );
         spoon.refreshTree( STRING_NAMED_CLUSTERS );
       }
     }
@@ -148,16 +146,16 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     return null;
   }
 
-  private XmlMetaStore getXmlMetastore(IMetaStore metaStore) throws MetaStoreException {
+  private XmlMetaStore getXmlMetastore( IMetaStore metaStore ) throws MetaStoreException {
     XmlMetaStore xmlMetaStore = null;
 
     if ( metaStore instanceof DelegatingMetaStore ) {
       IMetaStore activeMetastore = ( (DelegatingMetaStore) metaStore ).getActiveMetaStore();
       if ( activeMetastore instanceof XmlMetaStore ) {
-        xmlMetaStore = (XmlMetaStore)activeMetastore;
+        xmlMetaStore = (XmlMetaStore) activeMetastore;
       }
     } else if ( metaStore instanceof XmlMetaStore ) {
-      xmlMetaStore = (XmlMetaStore)metaStore;
+      xmlMetaStore = (XmlMetaStore) metaStore;
     }
 
     return xmlMetaStore;
@@ -189,19 +187,20 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       try {
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         String newClusterId = null;
-        if (xmlMetaStore != null) {
+        if ( xmlMetaStore != null ) {
           newClusterId = generateNewClusterId( xmlMetaStore );
           Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId );
-          Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId + "/" + "config.properties");
+          Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId + "/" + "config.properties" );
           nc.setConfigId( newClusterId );
+          saveNamedCluster( metaStore, nc );
           Files.createDirectories( clusterConfigDirPath );
           String sampleConfigProperties = nc.getShimIdentifier() + "sampleconfig.properties";
           InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
-          if (inputStream != null) {
-            Files.copy(inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING);
+          if ( inputStream != null ) {
+            Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
           }
         }
-      } catch (Exception e) {
+      } catch ( Exception e ) {
         commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
@@ -209,7 +208,6 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
         return nc.getName();
       }
 
-      saveNamedCluster( metaStore, nc );
       spoon.refreshTree( STRING_NAMED_CLUSTERS );
       return nc.getName();
     }
@@ -225,7 +223,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
           int clusterId = 0;
           try {
             clusterId = Integer.parseInt( nc.getConfigId() );
-          } catch (Exception ex) {
+          } catch ( Exception ex ) {
             continue;
           }
           newClusterId = Math.max( newClusterId,  clusterId );
@@ -233,7 +231,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       }
       newClusterId++;
       Path path = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  Integer.toString( newClusterId ) );
-      while (Files.exists( path )) {
+      while ( Files.exists( path ) ) {
         newClusterId++;
         path = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  Integer.toString( newClusterId ) );
       }
@@ -249,7 +247,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       if ( namedClusterService.read( namedCluster.getName(), metaStore ) != null ) {
         namedClusterService.delete( namedCluster.getName(), metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
-        if (xmlMetaStore != null) {
+        if ( xmlMetaStore != null ) {
           Path path = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId() );
           try {
             Files.delete( path );
