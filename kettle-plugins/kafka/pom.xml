@@ -111,14 +111,6 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metaverse-core</artifactId>
-      <classifier>tests</classifier>
-      <type>test-jar</type>
-      <version>${pdi.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-metaverse-core</artifactId>
       <version>${pdi.version}</version>
       <scope>test</scope>
     </dependency>
@@ -176,4 +168,24 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>integration-test</id>
+      <activation>
+        <property>
+          <name>runITs</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>pentaho</groupId>
+          <artifactId>pentaho-metaverse-core</artifactId>
+          <classifier>tests</classifier>
+          <type>test-jar</type>
+          <version>${pdi.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>
