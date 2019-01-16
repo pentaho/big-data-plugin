@@ -22,6 +22,19 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -30,6 +43,7 @@ import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.SslConfigs;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.TableItem;
 import org.pentaho.big.data.api.cluster.NamedClusterService;
@@ -44,18 +58,6 @@ import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
@@ -72,11 +74,10 @@ public class KafkaDialogHelper {
   private TableView optionsTable;
   private StepMeta parentMeta;
 
-
-  KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
-                     KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
-                     NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
-                     TableView optionsTable, StepMeta parentMeta ) {
+  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+                            KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
+                            NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
+                            TableView optionsTable, StepMeta parentMeta ) {
     this.wClusterName = wClusterName;
     this.wTopic = wTopic;
     this.wbCluster = wbCluster;
@@ -89,34 +90,29 @@ public class KafkaDialogHelper {
     this.parentMeta = parentMeta;
   }
 
-  @SuppressWarnings ( "unused" ) void clusterNameChanged( Event event ) {
+  @SuppressWarnings ( "unused" ) public void clusterNameChanged( Event event ) {
     if ( ( wbCluster.getSelection() && StringUtil.isEmpty( wClusterName.getText() ) )
-      || ( !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) ) {
+      || !wbCluster.getSelection() && StringUtil.isEmpty( wBootstrapServers.getText() ) ) {
       return;
     }
-    wClusterName.getDisplay()
-      .syncExec( this::handleClusterNameChanged );
-  }
-
-  private void handleClusterNameChanged() {
     String current = wTopic.getText();
     String clusterName = wClusterName.getText();
     boolean isCluster = wbCluster.getSelection();
     String directBootstrapServers = wBootstrapServers == null ? "" : wBootstrapServers.getText();
     Map<String, String> config = getConfig( optionsTable );
-    populateTopics(
-      listTopics( clusterName, isCluster, directBootstrapServers, config ), current );
-  }
-
-  private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
     if ( !wTopic.getCComboWidget().isDisposed() ) {
       wTopic.getCComboWidget().removeAll();
     }
+    CompletableFuture
+      .supplyAsync( () -> listTopics( clusterName, isCluster, directBootstrapServers, config ) )
+      .thenAccept( topicMap -> Display.getDefault().syncExec( () -> populateTopics( topicMap, current ) ) );
+  }
+
+  private void populateTopics( Map<String, List<PartitionInfo>> topicMap, String current ) {
+
     topicMap.keySet().stream()
-      .filter( key -> !"__consumer_offsets".equals( key ) )
-      .sorted()
-      .forEach( key ->
-      {
+      .filter( key -> !"__consumer_offsets".equals( key ) ).sorted()
+      .forEach( key -> {
         if ( !wTopic.isDisposed() ) {
           wTopic.add( key );
         }
