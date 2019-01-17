@@ -156,7 +156,7 @@ public class HadoopConfigurationsXulDialog extends AbstractXulEventHandler {
       // Parent is modal so we have to be as well
       @Override
       protected Shell createShell( Shell parent ) {
-        return new Shell( parent, SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.APPLICATION_MODAL );
+        return new Shell( parent, SWT.CLOSE | SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.APPLICATION_MODAL );
       }
     };
 
