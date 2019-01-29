@@ -44,8 +44,10 @@ import java.util.Map;
 
 import static org.apache.commons.collections4.IteratorUtils.toList;
 import static org.junit.Assert.assertEquals;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerStepAnalyzer.NODE_TYPE_KAFKA_SERVER;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.KEY;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.MESSAGE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_SERVER;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
 import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS;
 import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS_CONCEPT;
 import static org.pentaho.dictionary.DictionaryConst.LINK_DEPENDENCYOF;
@@ -82,8 +84,8 @@ public class KafkaProducerStepAnalyzerIT extends StepAnalyzerValidationIT {
       new String[] { "Generate Rows", "Kafka Producer" },  false );
     TransformationStepNode kafkaProducer = (TransformationStepNode) stepNodeMap.get( "Kafka Producer" );
     FramedMetaverseNode kurt = verifyLinkedNode( kafkaProducer, DictionaryConst.LINK_WRITESTO, "kurt" );
-    verifyLinkedNode( kurt, LINK_CONTAINS, KafkaProducerStepAnalyzer.KEY );
-    verifyLinkedNode( kurt, LINK_CONTAINS, KafkaProducerStepAnalyzer.MESSAGE );
+    verifyLinkedNode( kurt, LINK_CONTAINS, KEY );
+    verifyLinkedNode( kurt, LINK_CONTAINS, MESSAGE );
 
     List<Concept> topicConcept = toList( kurt.getInNodes( LINK_TYPE_CONCEPT ).iterator() );
     assertEquals( 1, topicConcept.size() );
