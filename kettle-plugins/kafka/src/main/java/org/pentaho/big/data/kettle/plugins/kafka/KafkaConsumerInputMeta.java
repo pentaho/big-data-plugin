@@ -345,7 +345,7 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     return rowMeta;
   }
 
-  private void putFieldOnRowMeta( KafkaConsumerField field, RowMetaInterface rowMeta,
+  void putFieldOnRowMeta( KafkaConsumerField field, RowMetaInterface rowMeta,
                                   String origin, VariableSpace space ) throws KettleStepException {
     if ( field != null && !Utils.isEmpty( field.getOutputName() ) ) {
       try {

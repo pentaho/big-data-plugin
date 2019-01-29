@@ -21,55 +21,22 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.kafka;
 
+import org.pentaho.metaverse.api.IAnalysisContext;
+import org.pentaho.metaverse.api.analyzer.kettle.step.BaseStepExternalResourceConsumer;
 import org.pentaho.metaverse.api.model.IExternalResourceInfo;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
+import java.util.Collections;
 
-public class KafkaResourceInfo implements IExternalResourceInfo {
-  private final String bootstrapServer;
-
-  private final String topic;
-
-
-  KafkaResourceInfo( String bootstrapServer, String topic ) {
-    this.bootstrapServer = bootstrapServer;
-    this.topic = topic;
+public class KafkaConsumerERC extends BaseStepExternalResourceConsumer {
+  @Override public Collection<IExternalResourceInfo> getResourcesFromMeta( Object consumer, IAnalysisContext context ) {
+    KafkaConsumerInputMeta meta = (KafkaConsumerInputMeta) consumer;
+    //todo: handle multiple topics
+    KafkaResourceInfo kafkaResourceInfo = new KafkaResourceInfo( meta.getBootstrapServers(), meta.getTopics().get( 0 ) );
+    return Collections.singleton( kafkaResourceInfo );
   }
 
-  @Override public String getType() {
-    return KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
-  }
-
-  @Override public boolean isInput() {
-    return false;
-  }
-
-  @Override public boolean isOutput() {
-    return true;
-  }
-
-  @Override public Map<Object, Object> getAttributes() {
-    HashMap<Object, Object> attributes = new HashMap<>();
-    attributes.put( "Topic", topic );
-    return attributes;
-  }
-
-  @Override public String getName() {
-    return bootstrapServer;
-  }
-
-  @Override public void setName( String name ) {
-  }
-
-  @Override public String getDescription() {
-    return "Kafka Event Queue";
-  }
-
-  @Override public void setDescription( String description ) {
-  }
-
-  public String getTopic() {
-    return topic;
+  @Override public Class getMetaClass() {
+    return KafkaProducerOutputMeta.class;
   }
 }

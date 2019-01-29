@@ -25,7 +25,6 @@ import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaNone;
 import org.pentaho.di.trans.step.BaseStepMeta;
-import org.pentaho.dictionary.DictionaryHelper;
 import org.pentaho.metaverse.api.IMetaverseNode;
 import org.pentaho.metaverse.api.MetaverseComponentDescriptor;
 import org.pentaho.metaverse.api.StepField;
@@ -39,27 +38,12 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.pentaho.dictionary.DictionaryConst.CATEGORY_DATASOURCE;
-import static org.pentaho.dictionary.DictionaryConst.CATEGORY_MESSAGE_QUEUE;
-import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS_CONCEPT;
-import static org.pentaho.dictionary.DictionaryConst.LINK_PARENT_CONCEPT;
-import static org.pentaho.dictionary.DictionaryConst.NODE_TYPE_EXTERNAL_CONNECTION;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.KEY;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.MESSAGE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_SERVER;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
 
 public class KafkaProducerStepAnalyzer  extends ConnectionExternalResourceStepAnalyzer<KafkaProducerOutputMeta> {
-
-  static final String NODE_TYPE_KAFKA_TOPIC = "Kafka Topic";
-  static final String NODE_TYPE_KAFKA_SERVER = "Kafka Server";
-  static final String KEY = "Key";
-  static final String MESSAGE = "Message";
-
-  static {
-
-    DictionaryHelper.typeCategoryMap.put( NODE_TYPE_KAFKA_SERVER, CATEGORY_DATASOURCE );
-    DictionaryHelper.typeCategoryMap.put( NODE_TYPE_KAFKA_TOPIC, CATEGORY_MESSAGE_QUEUE );
-    DictionaryHelper.registerEntityType( LINK_PARENT_CONCEPT, NODE_TYPE_KAFKA_SERVER, NODE_TYPE_EXTERNAL_CONNECTION );
-    DictionaryHelper.registerEntityType( LINK_PARENT_CONCEPT, NODE_TYPE_KAFKA_TOPIC, null );
-    DictionaryHelper.registerEntityType( LINK_CONTAINS_CONCEPT, NODE_TYPE_KAFKA_TOPIC, NODE_TYPE_KAFKA_SERVER );
-  }
   @Override protected IMetaverseNode createTableNode( IExternalResourceInfo resource ) {
 
     MetaverseComponentDescriptor topicDescriptor = new MetaverseComponentDescriptor(
