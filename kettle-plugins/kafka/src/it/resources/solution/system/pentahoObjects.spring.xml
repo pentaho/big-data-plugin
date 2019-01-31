@@ -22,6 +22,12 @@
     <property name="externalResourceConsumer" ref="kafkaConsumerERC"/>
   </bean>
 
+  <bean id="GroupByStepAnalyzer" class="org.pentaho.metaverse.analyzer.kettle.step.groupby.GroupByStepAnalyzer"/>
+  <bean id="RowsToResultStepAnalyzer"
+        class="org.pentaho.metaverse.analyzer.kettle.step.rowstoresult.RowsToResultStepAnalyzer"/>
+  <bean id="RowsFromResultStepAnalyzer"
+        class="org.pentaho.metaverse.analyzer.kettle.step.rowsfromresult.RowsFromResultStepAnalyzer"/>
+
   <bean id="IDocumentListener" class="org.pentaho.metaverse.impl.DocumentController" scope="singleton">
     <property name="metaverseBuilder" ref="IMetaverseBuilder"/>
     <property name="documentAnalyzers">
@@ -47,7 +53,9 @@
       <list>
         <ref bean="KafkaProducerStepAnalyzer"/>
         <ref bean="KafkaConsumerStepAnalyzer"/>
-
+        <ref bean="RowsToResultStepAnalyzer"/>
+        <ref bean="RowsFromResultStepAnalyzer"/>
+        <ref bean="GroupByStepAnalyzer"/>
       </list>
     </property>
     <property name="clonableStepAnalyzers">

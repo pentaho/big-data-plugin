@@ -36,11 +36,11 @@
     (KafkaConsumerInputMeta in this case).
   -->
   <service id="KafkaConsumerStepAnalyzerService"
-           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepAnalyzer"
+           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IClonableStepAnalyzer"
            ref="KafkaConsumerStepAnalyzer"/>
 
   <service id="KafkaProducerOutputStepAnalyzerService"
-           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepAnalyzer"
+           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IClonableStepAnalyzer"
            ref="KafkaProducerStepAnalyzer"/>
 
   <bean id="kafkaConsumerERC" scope="singleton"
