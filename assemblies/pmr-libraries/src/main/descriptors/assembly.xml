@@ -169,6 +169,7 @@
         <include>org.hibernate:hibernate-ehcache</include>
         <include>org.ini4j:ini4j</include>
         <include>org.pentaho:json</include>
+        <include>org.pentaho:pentaho-hadoop-shims-common-mapred</include>
         <include>log4j:log4j</include>
         <include>org.mnode.mstor:mstor</include>
         <include>org.mvel:mvel2</include>
@@ -240,6 +241,8 @@
         <include>xpp3:xpp3_min</include>
         <include>org.apache.kafka:kafka-clients</include>
         <include>pentaho:pentaho-metaverse-api</include>
+        <include>org.pentaho:commons-xul-core</include>
+        <include>org.pentaho:commons-database-model</include>
       </includes>
     </dependencySet>
   </dependencySets>
