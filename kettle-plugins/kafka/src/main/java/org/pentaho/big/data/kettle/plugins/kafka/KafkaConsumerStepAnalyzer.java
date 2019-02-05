@@ -35,6 +35,7 @@ import org.pentaho.metaverse.api.StepField;
 import org.pentaho.metaverse.api.analyzer.kettle.ComponentDerivationRecord;
 import org.pentaho.metaverse.api.analyzer.kettle.KettleAnalyzerUtil;
 import org.pentaho.metaverse.api.analyzer.kettle.step.ConnectionExternalResourceStepAnalyzer;
+import org.pentaho.metaverse.api.analyzer.kettle.step.StepNodes;
 import org.pentaho.metaverse.api.analyzer.kettle.step.SubtransAnalyzer;
 import org.pentaho.metaverse.api.model.IExternalResourceInfo;
 import org.slf4j.Logger;
@@ -50,9 +51,55 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_T
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
 
 public class KafkaConsumerStepAnalyzer extends ConnectionExternalResourceStepAnalyzer<KafkaConsumerInputMeta> {
-  private final Logger log = LoggerFactory.getLogger( KafkaConsumerStepAnalyzer.class );
+  private final transient Logger log = LoggerFactory.getLogger( KafkaConsumerStepAnalyzer.class );
   public KafkaConsumerStepAnalyzer() {
     super();
+    KafkaStepAnalyzer.registerEntityTypes();
+  }
+
+  @Override
+  protected void customAnalyze( KafkaConsumerInputMeta meta, IMetaverseNode node ) {
+    try {
+      super.customAnalyze( meta, node );
+
+      TransMeta subTransMeta = TransExecutorMeta
+        .loadMappingMeta( baseStepMeta, parentTransMeta.getRepository(), parentTransMeta.getMetaStore(),
+          parentTransMeta );
+      SubtransAnalyzer<KafkaConsumerInputMeta> subtransAnalyzer = new SubtransAnalyzer<>( this, log );
+      HashSet<StepField> stepFields = new HashSet<>();
+      for ( KafkaConsumerField.Name kafkaField : KafkaConsumerField.Name.values() ) {
+        stepFields.add( new StepField( RESOURCE, kafkaField.toString() ) );
+      }
+
+      // Generate graph for subtrans
+      IMetaverseNode subTransNode = KettleAnalyzerUtil.analyze( this, parentTransMeta, baseStepMeta, rootNode );
+
+      // Link fields from topic(s) to fields in subtrans
+      for ( StepField stepField : stepFields ) {
+        IMetaverseNode inputNode = this.getInputs().findNode( stepField );
+        String outputName = baseStepMeta.getFieldDefinitions().stream()
+          .filter( kcf -> kcf.getKafkaName().toString().equals( stepField.getFieldName() ) )
+          .map( KafkaConsumerField::getOutputName )
+          .findFirst().orElse( "" );
+        subtransAnalyzer.linkUsedFieldToSubTrans( inputNode, subTransMeta, subTransNode, descriptor,
+          fieldName -> fieldName.equals( outputName ) );
+      }
+
+      // Link subtrans output back to consumer step output
+      String resultFieldsStep = baseStepMeta.getSubStep();
+      StepNodes outputNodes = this.getOutputs();
+      for ( String stepName : outputNodes.getStepNames() ) {
+        // for each step after the consumer
+        for ( String fieldName : outputNodes.getFieldNames( stepName ) ) {
+          // for each field going to that step, link it to the field returned from the subtrans
+          subtransAnalyzer.linkResultFieldToSubTrans( outputNodes.findNode( stepName, fieldName ), subTransMeta,
+            subTransNode, descriptor, resultFieldsStep );
+        }
+      }
+
+    } catch ( MetaverseAnalyzerException | KettleException e ) {
+      log.warn( e.getMessage(), e );
+    }
   }
 
   @Override protected IMetaverseNode createTableNode( IExternalResourceInfo resource ) {
@@ -64,31 +111,7 @@ public class KafkaConsumerStepAnalyzer extends ConnectionExternalResourceStepAna
       getConnectionNode(),
       getDescriptor().getContext() );
 
-    IMetaverseNode node = createNodeFromDescriptor( topicDescriptor );
-    try {
-      TransMeta subTransMeta = TransExecutorMeta
-        .loadMappingMeta( baseStepMeta, parentTransMeta.getRepository(), parentTransMeta.getMetaStore(),
-          parentTransMeta );
-      SubtransAnalyzer<KafkaConsumerInputMeta> subtransAnalyzer = new SubtransAnalyzer<>( this, log );
-      HashSet<StepField> stepFields = new HashSet<>();
-      for ( KafkaConsumerField.Name kafkaField : KafkaConsumerField.Name.values() ) {
-        stepFields.add( new StepField( RESOURCE, kafkaField.toString() ) );
-      }
-      IMetaverseNode subTransNode = KettleAnalyzerUtil.analyze( this, parentTransMeta, baseStepMeta, rootNode );
-      for ( StepField stepField : stepFields ) {
-        IMetaverseNode inputNode = this.getInputs().findNode( stepField );
-        String outputName = baseStepMeta.getFieldDefinitions().stream()
-          .filter( kcf -> kcf.getKafkaName().toString().equals( stepField.getFieldName() ) )
-          .map( KafkaConsumerField::getOutputName )
-          .findFirst().orElse( "" );
-        subtransAnalyzer.linkUsedFieldToSubTrans( inputNode, subTransMeta, subTransNode, descriptor,
-          ( fieldName ) -> fieldName.equals( outputName ) );
-      }
-
-    } catch ( MetaverseAnalyzerException | KettleException e ) {
-      log.warn( e.getMessage(), e );
-    }
-    return node;
+    return createNodeFromDescriptor( topicDescriptor );
   }
 
   @Override protected Map<String, RowMetaInterface> getInputRowMetaInterfaces( KafkaConsumerInputMeta meta ) {

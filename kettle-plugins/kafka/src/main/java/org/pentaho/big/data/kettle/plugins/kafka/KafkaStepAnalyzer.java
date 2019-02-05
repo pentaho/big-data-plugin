@@ -45,5 +45,9 @@ class KafkaStepAnalyzer {
     DictionaryHelper.registerEntityType( LINK_CONTAINS_CONCEPT, NODE_TYPE_KAFKA_TOPIC, NODE_TYPE_KAFKA_SERVER );
   }
 
+  public static void registerEntityTypes() {
+    // this method is just here to poke the class and make sure it gets loaded so the static block executes.
+  }
+
 }
 

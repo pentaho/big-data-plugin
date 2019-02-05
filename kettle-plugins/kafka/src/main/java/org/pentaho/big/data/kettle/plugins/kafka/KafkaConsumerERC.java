@@ -26,14 +26,19 @@ import org.pentaho.metaverse.api.analyzer.kettle.step.BaseStepExternalResourceCo
 import org.pentaho.metaverse.api.model.IExternalResourceInfo;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 
 public class KafkaConsumerERC extends BaseStepExternalResourceConsumer {
   @Override public Collection<IExternalResourceInfo> getResourcesFromMeta( Object consumer, IAnalysisContext context ) {
     KafkaConsumerInputMeta meta = (KafkaConsumerInputMeta) consumer;
-    //todo: handle multiple topics
-    KafkaResourceInfo kafkaResourceInfo = new KafkaResourceInfo( meta.getBootstrapServers(), meta.getTopics().get( 0 ) );
-    return Collections.singleton( kafkaResourceInfo );
+    Collection<IExternalResourceInfo> resources = new HashSet<>();
+
+    for ( String topic : meta.getTopics() ) {
+      KafkaResourceInfo kafkaResourceInfo = new KafkaResourceInfo( meta.getBootstrapServers(), topic );
+      resources.add( kafkaResourceInfo );
+    }
+
+    return resources;
   }
 
   @Override public Class getMetaClass() {

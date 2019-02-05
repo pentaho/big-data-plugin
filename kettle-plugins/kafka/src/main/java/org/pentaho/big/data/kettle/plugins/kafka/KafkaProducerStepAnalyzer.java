@@ -44,6 +44,12 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_T
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
 
 public class KafkaProducerStepAnalyzer  extends ConnectionExternalResourceStepAnalyzer<KafkaProducerOutputMeta> {
+
+  public KafkaProducerStepAnalyzer() {
+    super();
+    KafkaStepAnalyzer.registerEntityTypes();
+  }
+
   @Override protected IMetaverseNode createTableNode( IExternalResourceInfo resource ) {
 
     MetaverseComponentDescriptor topicDescriptor = new MetaverseComponentDescriptor(
