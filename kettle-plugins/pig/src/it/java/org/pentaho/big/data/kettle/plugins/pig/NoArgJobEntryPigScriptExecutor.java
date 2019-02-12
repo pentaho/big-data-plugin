@@ -24,7 +24,6 @@ package org.pentaho.big.data.kettle.plugins.pig;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl.SERVICE_RANKING;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -33,7 +32,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -44,16 +42,16 @@ import org.apache.pig.ExecType;
 import org.apache.pig.PigServer;
 import org.apache.pig.tools.grunt.GruntParser;
 import org.apache.pig.tools.parameters.ParameterSubstitutionPreprocessor;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.api.cluster.service.locator.impl.NamedClusterServiceLocatorImpl;
-import org.pentaho.big.data.api.initializer.ClusterInitializer;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializer;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.shim.pig.PigServiceFactoryImpl;
 import org.pentaho.di.core.annotations.JobEntry;
-import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.ShimVersion;
-import org.pentaho.hadoop.shim.api.Configuration;
+import org.pentaho.hadoop.shim.api.internal.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
@@ -136,11 +134,12 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
       ClassLoader classLoader = getClass().getClassLoader();
       Thread.currentThread().setContextClassLoader( classLoader );
       try {
-        PigServer pigServer = new PigServer( getExecType( executionMode ), properties );
-        GruntParser grunt = new GruntParser( new StringReader( pigScript ) );
-        grunt.setInteractive( false );
-        grunt.setParams( pigServer );
-        return grunt.parseStopOnError( false );
+//        PigServer pigServer = new PigServer( getExecType( executionMode ), properties );
+//        GruntParser grunt = new GruntParser( new StringReader( pigScript ) );
+//        grunt.setInteractive( false );
+//        grunt.setParams( pigServer );
+//        return grunt.parseStopOnError( false );
+        return null;
       } finally {
         Thread.currentThread().setContextClassLoader( cl );
       }

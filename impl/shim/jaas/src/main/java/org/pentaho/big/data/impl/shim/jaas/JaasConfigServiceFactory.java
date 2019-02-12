@@ -21,7 +21,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.impl.shim.jaas;
 
-import org.pentaho.bigdata.api.jaas.JaasConfigService;
+import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceFactory;

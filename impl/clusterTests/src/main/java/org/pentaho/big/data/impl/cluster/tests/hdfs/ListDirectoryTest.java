@@ -23,11 +23,11 @@
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
 import org.pentaho.big.data.impl.cluster.tests.Constants;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
-import org.pentaho.bigdata.api.hdfs.exceptions.AccessControlException;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.hdfs.exceptions.AccessControlException;
 import org.pentaho.di.core.Const;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileStatus;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;

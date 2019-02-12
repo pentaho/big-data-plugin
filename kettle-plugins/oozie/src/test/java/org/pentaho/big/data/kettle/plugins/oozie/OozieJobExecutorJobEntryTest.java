@@ -48,9 +48,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.shim.oozie.FallbackOozieClientImpl;
 import org.pentaho.big.data.impl.shim.oozie.OozieServiceImpl;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
@@ -667,6 +667,11 @@ public class OozieJobExecutorJobEntryTest {
     }
 
     @Override
+    public String getAcl() {
+      return null;
+    }
+
+    @Override
     public int getRun() {
       return 0;
     }
@@ -683,6 +688,11 @@ public class OozieJobExecutorJobEntryTest {
 
     @Override
     public List<WorkflowAction> getActions() {
+      return null;
+    }
+
+    @Override
+    public String getExternalId() {
       return null;
     }
   }

@@ -23,10 +23,21 @@
 package org.pentaho.amazon.emr.job;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -40,10 +51,8 @@ import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.entries.hadoopjobexecutor.JarUtility;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
-import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
@@ -68,22 +77,20 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
     this.jarUrl = jarUrl;
   }
 
-  private JarUtility util = new JarUtility();
-
   public AmazonElasticMapReduceJobExecutor() {
   }
 
   public String getMainClass( URL localJarUrl ) throws Exception {
     //todo: here we should select named cluster according to step or url
-    HadoopShim shim = null;
-        //HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
+//    HadoopShim shim = null;
+//    HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
 
-    final Class<?> mainClass = util.getMainClassFromManifest( localJarUrl, shim.getClass().getClassLoader() );
+    final Class<?> mainClass = getMainClassFromManifest( localJarUrl, null /*shim.getClass().getClassLoader()*/ );
     if ( mainClass != null ) {
       return mainClass.getName();
     } else {
       List<Class<?>> classesWithMains =
-          util.getClassesInJarWithMain( localJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
+          getClassesInJarWithMain( localJarUrl.toExternalForm(), null /*shim.getClass().getClassLoader()*/ );
       if ( !classesWithMains.isEmpty() ) {
         return classesWithMains.get( 0 ).getName();
       }
@@ -262,4 +269,88 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
     className += "Dialog";
     return className;
   }
+
+  private Class<?> getMainClassFromManifest( URL jarUrl, ClassLoader parentClassLoader )
+          throws IOException, ClassNotFoundException {
+    JarFile jarFile = getJarFile( jarUrl, parentClassLoader );
+    try {
+      Manifest manifest = jarFile.getManifest();
+      String className = manifest == null ? null : manifest.getMainAttributes().getValue( "Main-Class" );
+      return loadClassByName( className, jarUrl, parentClassLoader );
+    } finally {
+      jarFile.close();
+    }
+  }
+
+  private JarFile getJarFile( final URL jarUrl, final ClassLoader parentClassLoader ) throws IOException {
+    if ( jarUrl == null || parentClassLoader == null ) {
+      throw new NullPointerException();
+    }
+    JarFile jarFile;
+    try {
+      jarFile = new JarFile( new File( jarUrl.toURI() ) );
+    } catch ( URISyntaxException ex ) {
+      throw new IOException( "Error locating jar: " + jarUrl );
+    } catch ( IOException ex ) {
+      throw new IOException( "Error opening job jar: " + jarUrl, ex );
+    }
+    return jarFile;
+  }
+
+  private Class<?> loadClassByName( final String className, final URL jarUrl, final ClassLoader parentClassLoader )
+          throws ClassNotFoundException {
+    if ( className != null ) {
+      URLClassLoader cl = new URLClassLoader( new URL[] { jarUrl }, parentClassLoader );
+      Class<?> clazz = cl.loadClass( className.replaceAll( "/", "." ) );
+      try {
+        cl.close();
+      } catch ( IOException e ) {
+      }
+      return clazz;
+    } else {
+      return null;
+    }
+  }
+
+  public List<Class<?>> getClassesInJarWithMain( String jarUrl, ClassLoader parentClassloader )
+          throws MalformedURLException {
+    ArrayList<Class<?>> mainClasses = new ArrayList<Class<?>>();
+    List<Class<?>> allClasses = getClassesInJar( jarUrl, parentClassloader );
+    for ( Class<?> clazz : allClasses ) {
+      try {
+        Method mainMethod = clazz.getMethod( "main", new Class[] { String[].class } );
+        if ( Modifier.isStatic( mainMethod.getModifiers() ) ) {
+          mainClasses.add( clazz );
+        }
+      } catch ( Throwable ignored ) {
+        // Ignore classes without main() methods
+      }
+    }
+    return mainClasses;
+  }
+
+  public List<Class<?>> getClassesInJar( String jarUrl, ClassLoader parentClassloader )
+          throws MalformedURLException {
+    ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+    URL url = new URL( jarUrl );
+    URL[] urls = new URL[] { url };
+    try ( URLClassLoader loader = new URLClassLoader( urls, getClass().getClassLoader() );
+          JarInputStream jarFile = new JarInputStream( new FileInputStream( new File( url.toURI() ) ) ) ) {
+      while ( true ) {
+        JarEntry jarEntry = jarFile.getNextJarEntry();
+        if ( jarEntry == null ) {
+          break;
+        }
+        if ( jarEntry.getName().endsWith( ".class" ) ) {
+          String className = jarEntry.getName().substring( 0, jarEntry.getName().indexOf( ".class" ) ).replaceAll( "/", "\\." );
+          classes.add( loader.loadClass( className ) );
+        }
+      }
+    } catch ( IOException e ) {
+    } catch ( ClassNotFoundException e ) {
+    } catch ( URISyntaxException e ) {
+    }
+    return classes;
+  }
+
 }
