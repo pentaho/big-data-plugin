@@ -16,7 +16,7 @@
  ******************************************************************************/
 package org.pentaho.big.data.impl.cluster;
 
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
 

@@ -69,7 +69,6 @@
     <bundle>mvn:pentaho/pentaho-metastore-locator-api/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-local/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-repository/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-cluster/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
     <configfile finalname="/etc/pentaho.big.data.impl.cluster.cfg">
       mvn:pentaho/pentaho-osgi-config/${pentaho-karaf.version}/cfg/pentaho-big-data-impl-cluster
@@ -79,15 +78,8 @@
   <feature name="pentaho-big-data-plugin-api" version="1.0">
     <feature>pentaho-big-data-plugin-base</feature>
     <feature>pentaho-big-data-common</feature>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-cluster-service-locator/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-initializer/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-hdfs/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-mapreduce/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-pig/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-jaas/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-big-data-api-runtimeTest/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-jdbc/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
   </feature>
 

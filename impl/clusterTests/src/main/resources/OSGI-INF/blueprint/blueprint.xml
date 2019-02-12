@@ -43,10 +43,10 @@
     <argument ref="namedClusterServiceLocator"/>
   </bean>
 
-  <reference id="hadoopFileSystemLocator" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
+  <reference id="hadoopFileSystemLocator" interface="org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator"/>
   <reference id="connectivityTestFactory" interface="org.pentaho.runtime.test.network.ConnectivityTestFactory"/>
   <reference id="messageGetterFactory" interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
-  <reference id="namedClusterServiceLocator" interface="org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator"/>
+  <reference id="namedClusterServiceLocator" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator"/>
 
   <service ref="pingFileSystemEntryPointTest" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <service ref="pingJobTrackerTest" interface="org.pentaho.runtime.test.RuntimeTest"/>

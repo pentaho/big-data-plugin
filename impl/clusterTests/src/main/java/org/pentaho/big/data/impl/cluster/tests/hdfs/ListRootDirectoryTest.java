@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;
 
 /**

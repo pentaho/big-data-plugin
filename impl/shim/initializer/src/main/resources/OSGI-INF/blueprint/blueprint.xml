@@ -13,5 +13,5 @@
     </argument>
   </bean>
   <service ref="clusterInitializerProviderImpl"
-           interface="org.pentaho.big.data.api.initializer.ClusterInitializerProvider"/>
+           interface="org.pentaho.hadoop.shim.api.cluster.ClusterInitializerProvider"/>
 </blueprint>

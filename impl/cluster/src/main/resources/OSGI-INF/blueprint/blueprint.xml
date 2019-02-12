@@ -12,7 +12,7 @@
   <bean id="namedClusterManager" class="org.pentaho.big.data.impl.cluster.NamedClusterManager" scope="singleton">
  	 <property name="bundleContext" ref="blueprintBundleContext" />
   </bean>
-  <service ref="namedClusterManager" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
+  <service ref="namedClusterManager" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 
   <bean id="NamedClusterServiceMetaLoadExtensionPoint" scope="singleton" class="org.pentaho.big.data.impl.cluster.NamedClusterServiceExtensionPoint">
     <argument ref="namedClusterManager" />

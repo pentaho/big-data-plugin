@@ -28,8 +28,13 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-hdfs</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <artifactId>shim-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>metastore</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>

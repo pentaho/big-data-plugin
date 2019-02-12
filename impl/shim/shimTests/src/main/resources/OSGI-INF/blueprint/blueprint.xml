@@ -14,5 +14,5 @@
   <service ref="testShimLoad" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <service ref="testShimConfig" interface="org.pentaho.runtime.test.RuntimeTest"/>
   <reference id="messageGetterFactory" interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
-  <reference id="hadoopFileSystemService" interface="org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator"/>
+  <reference id="hadoopFileSystemService" interface="org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator"/>
 </blueprint>

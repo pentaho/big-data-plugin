@@ -24,7 +24,7 @@ package org.pentaho.big.data.impl.shim.tests;
 
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.big.data.impl.cluster.tests.ClusterRuntimeTestEntry;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystem;

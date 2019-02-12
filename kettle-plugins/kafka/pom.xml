@@ -52,19 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
       <version>${pentaho-hadoop-shims-api.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -74,12 +62,7 @@
       <version>${pentaho-osgi-bundles.version}</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-jaas</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <scope>provided</scope>
-    </dependency>
+
     <!--
       kafka-clients wants to bring in a slightly newer version of slf4j-api than we currently provide in our karaf instance.
       so, we force the correct version here (via dependency mgt) to avoid conflicts at startup
