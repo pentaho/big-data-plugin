@@ -30,7 +30,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>${maven-assembly-plugin.version}</version>
         <executions>
           <execution>
             <id>pkg</id>
