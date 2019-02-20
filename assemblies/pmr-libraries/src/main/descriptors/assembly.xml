@@ -119,7 +119,6 @@
         <include>org.apache.ant:ant</include>
         <include>org.apache.ant:ant-launcher</include>
         <include>org.apache.commons:commons-compress</include>
-        <include>org.apache.felix:org.apache.felix.main</include>
         <include>org.apache.karaf:org.apache.karaf.main</include>
         <include>org.apache.karaf.jaas:org.apache.karaf.jaas.boot</include>
         <include>org.apache.poi:poi</include>
