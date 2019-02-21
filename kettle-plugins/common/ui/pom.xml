@@ -18,7 +18,7 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.pentaho</groupId>
+      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
@@ -42,12 +42,6 @@
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

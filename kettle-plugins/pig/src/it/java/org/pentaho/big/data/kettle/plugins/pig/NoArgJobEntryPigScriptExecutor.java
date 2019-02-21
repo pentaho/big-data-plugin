@@ -48,10 +48,10 @@ import org.pentaho.hadoop.shim.api.cluster.ClusterInitializer;
 import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.shim.pig.PigServiceFactoryImpl;
 import org.pentaho.di.core.annotations.JobEntry;
-import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.ShimVersion;
-import org.pentaho.hadoop.shim.api.Configuration;
+import org.pentaho.hadoop.shim.api.internal.Configuration;
 import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
 import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
@@ -134,11 +134,12 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
       ClassLoader classLoader = getClass().getClassLoader();
       Thread.currentThread().setContextClassLoader( classLoader );
       try {
-        PigServer pigServer = new PigServer( getExecType( executionMode ), properties );
-        GruntParser grunt = new GruntParser( new StringReader( pigScript ) );
-        grunt.setInteractive( false );
-        grunt.setParams( pigServer );
-        return grunt.parseStopOnError( false );
+//        PigServer pigServer = new PigServer( getExecType( executionMode ), properties );
+//        GruntParser grunt = new GruntParser( new StringReader( pigScript ) );
+//        grunt.setInteractive( false );
+//        grunt.setParams( pigServer );
+//        return grunt.parseStopOnError( false );
+        return null;
       } finally {
         Thread.currentThread().setContextClassLoader( cl );
       }

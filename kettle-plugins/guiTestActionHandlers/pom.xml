@@ -12,7 +12,7 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>org.pentaho</groupId>
+      <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>

@@ -13,7 +13,6 @@
   <modules>
     <module>common</module>
     <module>initializer</module>
-    <module>jaas</module>
     <module>shimTests</module>
   </modules>
 </project>

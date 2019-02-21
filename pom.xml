@@ -181,9 +181,9 @@
       </activation>
       <modules>
         <module>legacy</module>
+        <module>api</module>
         <module>impl</module>
         <module>kettle-plugins</module>
-        <module>osgi-jaas</module>
         <module>assemblies</module>
       </modules>
     </profile>

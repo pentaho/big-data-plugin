@@ -82,11 +82,18 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+        <groupId>org.apache.oozie</groupId>
+        <artifactId>oozie-client</artifactId>
+        <version>4.3.0</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-impl-shim-oozie</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <artifactId>pentaho-hadoop-shims-common-fragment</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
   <build>
     <plugins>

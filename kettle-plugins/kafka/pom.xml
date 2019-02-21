@@ -44,17 +44,17 @@
       <artifactId>pentaho-metaverse-api</artifactId>
       <version>${pentaho-metaverse.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
 
     <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
       <version>${kafka-clients.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>shim-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
