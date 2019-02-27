@@ -811,6 +811,11 @@
       <version>${dependency.pdi-osgi-bridge-core.revision}</version>
     </dependency>
     <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>simple-jndi</artifactId>
       <version>${dependency.simple-jndi.revision}</version>
