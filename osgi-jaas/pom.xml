@@ -39,7 +39,6 @@
     <dependency>
       <groupId>org.apache.karaf.jaas</groupId>
       <artifactId>org.apache.karaf.jaas.config</artifactId>
-      <version>${dependency.karaf.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
