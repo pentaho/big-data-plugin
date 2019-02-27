@@ -104,7 +104,7 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Export-Package>org.pentaho.big.data.kettle.plugins.kafka.*;version=${project.version}</Export-Package>
-            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>
