@@ -31,13 +31,11 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.VFS;
 import org.apache.pig.ExecType;
 import org.apache.pig.PigServer;
 import org.apache.pig.tools.grunt.GruntParser;
@@ -49,11 +47,8 @@ import org.pentaho.big.data.impl.cluster.NamedClusterManager;
 import org.pentaho.big.data.impl.shim.pig.PigServiceFactoryImpl;
 import org.pentaho.di.core.annotations.JobEntry;
 import org.pentaho.hadoop.shim.api.ConfigurationException;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
 import org.pentaho.hadoop.shim.ShimVersion;
 import org.pentaho.hadoop.shim.api.internal.Configuration;
-import org.pentaho.hadoop.shim.spi.HadoopConfigurationProvider;
-import org.pentaho.hadoop.shim.spi.HadoopShim;
 import org.pentaho.hadoop.shim.spi.PigShim;
 import org.pentaho.metastore.stores.memory.MemoryMetaStore;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
@@ -67,7 +62,6 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
     categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData", i18nPackageName = "org.pentaho.di.job.entries.pig",
     documentationUrl = "http://wiki.pentaho.com/display/EAI/Pig+Script+Executor" )
 public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
-  private static final HadoopConfigurationProvider provider = initProvider();
 
   public NoArgJobEntryPigScriptExecutor() throws FileSystemException, ConfigurationException {
     super( new NamedClusterManager(), mock( RuntimeTestActionService.class ), mock( RuntimeTester.class ), initNamedClusterServiceLocator() );
@@ -80,52 +74,13 @@ public class NoArgJobEntryPigScriptExecutor extends JobEntryPigScriptExecutor {
     when( mockMetastoreLocator.getMetastore() ).thenReturn( memoryMetaStore );
     NamedClusterServiceLocatorImpl namedClusterServiceLocator = new NamedClusterServiceLocatorImpl( mock( ClusterInitializer.class ), "hdp26", mockMetastoreLocator );
     namedClusterServiceLocator.factoryAdded(
-      new PigServiceFactoryImpl( provider.getConfiguration( null ).getHadoopShim(),
-        provider.getConfiguration( null ).getPigShim() ), ImmutableMap
+      new PigServiceFactoryImpl( null,
+        null ), ImmutableMap
         .of( "shim", "hdp26" ) );
     return namedClusterServiceLocator;
   }
 
-  public static HadoopConfigurationProvider getProvider() {
-    return provider;
-  }
 
-  private static HadoopConfigurationProvider initProvider() {
-    try {
-      return new TestProvider();
-    } catch ( FileSystemException e ) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-
-  static class TestProvider implements HadoopConfigurationProvider {
-    HadoopConfiguration config;
-
-    TestProvider() throws FileSystemException {
-      config = new HadoopConfiguration( VFS.getManager().resolveFile( "ram:///" ), "test", "test", mock( HadoopShim.class ), mock( HadoopShim.class ), new TestPigShim() );
-    }
-
-    @Override
-    public boolean hasConfiguration( String id ) {
-      return true;
-    }
-
-    @Override
-    public List<? extends HadoopConfiguration> getConfigurations() {
-      return Arrays.asList( config );
-    }
-
-    @Override
-    public HadoopConfiguration getConfiguration( String id ) throws ConfigurationException {
-      return config;
-    }
-
-    @Override
-    public HadoopConfiguration getActiveConfiguration() throws ConfigurationException {
-      return config;
-    }
-  }
 
   static class TestPigShim implements PigShim {
     @Override
