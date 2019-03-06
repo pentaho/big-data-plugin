@@ -36,7 +36,6 @@
     <commons-codec.version>1.10</commons-codec.version>
     <commons-vfs2.version>2.2</commons-vfs2.version>
     <jets3t.version>0.9.4</jets3t.version>
-    <slf4j-api.version>1.7.7</slf4j-api.version>
     <httpclient.version>4.5</httpclient.version>
     <guava.version>19.0</guava.version>
 
@@ -112,8 +111,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>${slf4j-api.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <!-- Test dependencies -->
