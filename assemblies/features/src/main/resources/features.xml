@@ -73,6 +73,8 @@
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims-hdp26.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-shim-impl" version="1.0">

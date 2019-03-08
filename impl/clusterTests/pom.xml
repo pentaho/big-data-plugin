@@ -82,7 +82,6 @@
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Bundle-Version>${pentaho-osgi-bundles.version}</Bundle-Version>
             <Export-Package>org.pentaho.big.data.impl.cluster.tests;version=${pentaho-osgi-bundles.version}</Export-Package>
-            <Import-Package>org.pentaho.hadoop.shim.api.cluster</Import-Package>
           </instructions>
         </configuration>
       </plugin>
