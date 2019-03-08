@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.pentaho.s3n.vfs;
 
 import java.util.Collection;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.vfs2.FileName;
@@ -50,6 +51,7 @@ public class S3NFileSystem extends AbstractFileSystem implements FileSystem {
       try {
         client = AmazonS3ClientBuilder.standard()
           .enableForceGlobalBucketAccess()
+          .withRegion( Regions.DEFAULT_REGION )
           .build();
       } catch ( Throwable t ) {
         System.out.println( "Could not get an S3Client" );
