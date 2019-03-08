@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -102,6 +102,14 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   private CTabItem wFileTab, wContentTab, wFieldsTab;
 
   private FormData fdFileComp, fdContentComp, fdFieldsComp;
+
+  private Label wlAccessKey;
+  private TextVar wAccessKey;
+  private FormData fdlAccessKey, fdAccessKey;
+
+  private Label wlSecretKey;
+  private TextVar wSecretKey;
+  private FormData fdlSecretKey, fdSecretKey;
 
   private Label wlFilename;
   private Button wbFilename;
@@ -298,13 +306,49 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     fileLayout.marginHeight = 3;
     wFileComp.setLayout( fileLayout );
 
+    // S3 AccessKey
+    wlAccessKey = new Label( wFileComp, SWT.RIGHT );
+    wlAccessKey.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.AccessKey.Label" ) );
+    props.setLook( wlAccessKey );
+    fdlAccessKey = new FormData();
+    fdlAccessKey.left = new FormAttachment( 0, 0 );
+    fdlAccessKey.top = new FormAttachment( 0, margin );
+    fdlAccessKey.right = new FormAttachment( middle, -margin );
+    wlAccessKey.setLayoutData( fdlAccessKey );
+    wAccessKey = new TextVar( transMeta, wFileComp, SWT.PASSWORD | SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wAccessKey );
+    wAccessKey.addModifyListener( lsMod );
+    fdAccessKey = new FormData();
+    fdAccessKey.left = new FormAttachment( middle, 0 );
+    fdAccessKey.top = new FormAttachment( 0, margin );
+    fdAccessKey.right = new FormAttachment( 100, 0 );
+    wAccessKey.setLayoutData( fdAccessKey );
+
+    // S3 SecretKey
+    wlSecretKey = new Label( wFileComp, SWT.RIGHT );
+    wlSecretKey.setText( BaseMessages.getString( PKG, "S3VfsFileChooserDialog.SecretKey.Label" ) );
+    props.setLook( wlSecretKey );
+    fdlSecretKey = new FormData();
+    fdlSecretKey.left = new FormAttachment( 0, 0 );
+    fdlSecretKey.top = new FormAttachment( wAccessKey, margin );
+    fdlSecretKey.right = new FormAttachment( middle, -margin );
+    wlSecretKey.setLayoutData( fdlSecretKey );
+    wSecretKey = new TextVar( transMeta, wFileComp, SWT.PASSWORD | SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    props.setLook( wSecretKey );
+    wSecretKey.addModifyListener( lsMod );
+    fdSecretKey = new FormData();
+    fdSecretKey.left = new FormAttachment( middle, 0 );
+    fdSecretKey.top = new FormAttachment( wAccessKey, margin );
+    fdSecretKey.right = new FormAttachment( 100, 0 );
+    wSecretKey.setLayoutData( fdSecretKey );
+
     // Filename line
     wlFilename = new Label( wFileComp, SWT.RIGHT );
     wlFilename.setText( BaseMessages.getString( BASE_PKG, "TextFileOutputDialog.Filename.Label" ) );
     props.setLook( wlFilename );
     fdlFilename = new FormData();
     fdlFilename.left = new FormAttachment( 0, 0 );
-    fdlFilename.top = new FormAttachment( wFileComp, margin );
+    fdlFilename.top = new FormAttachment( wSecretKey, margin );
     fdlFilename.right = new FormAttachment( middle, -margin );
     wlFilename.setLayoutData( fdlFilename );
 
@@ -313,7 +357,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wbFilename.setText( BaseMessages.getString( BASE_PKG, "System.Button.Browse" ) );
     fdbFilename = new FormData();
     fdbFilename.right = new FormAttachment( 100, 0 );
-    fdbFilename.top = new FormAttachment( wFileComp, margin );
+    fdbFilename.top = new FormAttachment( wSecretKey, margin );
     wbFilename.setLayoutData( fdbFilename );
 
     wFilename = new TextVar( transMeta, wFileComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
@@ -322,7 +366,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     wFilename.addModifyListener( lsMod );
     fdFilename = new FormData();
     fdFilename.left = new FormAttachment( middle, 0 );
-    fdFilename.top = new FormAttachment( wFileComp, margin );
+    fdFilename.top = new FormAttachment( wSecretKey, margin );
     fdFilename.right = new FormAttachment( wbFilename, -margin );
     wFilename.setLayoutData( fdFilename );
 
@@ -1374,6 +1418,13 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
       wFileNameField.setText( input.getFileNameField() );
     }
 
+    if ( input.getAccessKey() != null ) {
+      wAccessKey.setText( input.getAccessKey() );
+    }
+    if ( input.getSecretKey() != null ) {
+      wSecretKey.setText( input.getSecretKey() );
+    }
+
     wSplitEvery.setText( "" + input.getSplitEvery() );
 
     wEnclForced.setSelection( input.isEnclosureForced() );
@@ -1444,6 +1495,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
   }
 
   private void getInfo( S3FileOutputMeta tfoi ) {
+    tfoi.setAccessKey( wAccessKey.getText() );
+    tfoi.setSecretKey( wSecretKey.getText() );
+
     if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
       wFilename.setText( "s3n://s3n/" );
     }
