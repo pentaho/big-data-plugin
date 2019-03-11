@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,11 @@
 
 package org.pentaho.amazon.s3;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.util.EnvUtil;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -42,17 +47,7 @@ public class S3FileOutput extends TextFileOutput {
   }
 
   @Override public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
-    S3FileOutputMeta s3Meta = (S3FileOutputMeta) smi;
-
-    String accessKeySystemProperty = System.getProperty( ACCESS_KEY_SYSTEM_PROPERTY );
-    String secretKeySystemProperty = System.getProperty( SECRET_KEY_SYSTEM_PROPERTY );
-
-    if ( !isEmpty( s3Meta.getAccessKey() ) && isEmpty( accessKeySystemProperty ) ) {
-      System.setProperty( ACCESS_KEY_SYSTEM_PROPERTY, s3Meta.getAccessKey() );
-    }
-    if ( !isEmpty( s3Meta.getSecretKey() ) && isEmpty( secretKeySystemProperty ) ) {
-      System.setProperty( SECRET_KEY_SYSTEM_PROPERTY, s3Meta.getSecretKey() );
-    }
+    init( smi );
     return super.init( smi, sdi );
   }
 
@@ -61,15 +56,30 @@ public class S3FileOutput extends TextFileOutput {
     String accessKeySystemProperty = System.getProperty( ACCESS_KEY_SYSTEM_PROPERTY );
     String secretKeySystemProperty = System.getProperty( SECRET_KEY_SYSTEM_PROPERTY );
 
-    if ( !isEmpty( accessKeySystemProperty ) ) {
+    if ( !StringUtil.isEmpty( accessKeySystemProperty ) ) {
       System.setProperty( ACCESS_KEY_SYSTEM_PROPERTY, "" );
     }
-    if ( !isEmpty( secretKeySystemProperty ) ) {
+    if ( !StringUtil.isEmpty( secretKeySystemProperty ) ) {
       System.setProperty( SECRET_KEY_SYSTEM_PROPERTY, "" );
     }
   }
 
-  private boolean isEmpty( String value ) {
-    return value == null || value.length() <= 0;
+  @VisibleForTesting
+  void init( StepMetaInterface smi ) {
+    /* For legacy transformations containing AWS S3 access credentials, {@link Const#KETTLE_USE_AWS_DEFAULT_CREDENTIALS} can force Spoon to use
+     * the Amazon Default Credentials Provider Chain instead of using the credentials embedded in the transformation metadata. */
+    if ( !ValueMetaBase.convertStringToBoolean( Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS ), "N" ) ) ) {
+      S3FileOutputMeta s3Meta = (S3FileOutputMeta) smi;
+
+      String accessKeySystemProperty = System.getProperty( ACCESS_KEY_SYSTEM_PROPERTY );
+      String secretKeySystemProperty = System.getProperty( SECRET_KEY_SYSTEM_PROPERTY );
+
+      if ( !StringUtil.isEmpty( s3Meta.getAccessKey() ) && StringUtil.isEmpty( accessKeySystemProperty ) ) {
+        System.setProperty( ACCESS_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getAccessKey() ) );
+      }
+      if ( !StringUtil.isEmpty( s3Meta.getSecretKey() ) && StringUtil.isEmpty( secretKeySystemProperty ) ) {
+        System.setProperty( SECRET_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getSecretKey() ) );
+      }
+    }
   }
 }
