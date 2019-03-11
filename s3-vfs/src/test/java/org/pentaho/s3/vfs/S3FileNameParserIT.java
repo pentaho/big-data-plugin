@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class S3FileNameParserIT {
   @BeforeClass
   public static void init() throws Exception {
     Properties settings = new Properties();
-    settings.load( S3FileUtilIT.class.getResourceAsStream( "/test-settings.properties" ) );
+    settings.load( S3FileNameParserIT.class.getResourceAsStream( "/test-settings.properties" ) );
     awsAccessKey = settings.getProperty( "awsAccessKey" );
     awsSecretKey = settings.getProperty( "awsSecretKey" );
   }
@@ -51,31 +51,13 @@ public class S3FileNameParserIT {
   @Test
   public void testParseUri_withKeys() throws Exception {
     FileNameParser parser = S3FileNameParser.getInstance();
-    String expected = buildS3URL( "/rcf-emr-staging", true );
+    String origUri = "s3:///fooBucket/rcf-emr-staging";
+    S3FileName filename =
+      (S3FileName) parser.parseUri( null, null, origUri );
 
-    FileName filename =
-      parser.parseUri( null, null, "s3://" + awsAccessKey + ":" + awsSecretKey + "@" + HOST + "/rcf-emr-staging" );
-    assertEquals( expected, filename.getURI() );
+    assertEquals( "fooBucket", filename.getBucketId() );
 
+    assertEquals( origUri, filename.getURI() );
   }
 
-  @Test
-  public void testParseUri_withoutKeys() throws Exception {
-    FileNameParser parser = S3FileNameParser.getInstance();
-    String expected = buildS3URL( "/", false );
-
-    FileName filename = parser.parseUri( null, null, "s3://" + HOST + "/" );
-    assertEquals( expected, filename.getURI() );
-
-  }
-
-
-  public static String buildS3URL( String path, boolean withUserInfo ) throws UnsupportedEncodingException {
-    if ( withUserInfo ) {
-      return SCHEME + "://" + URLEncoder.encode( awsAccessKey, "UTF-8" ) + ":" + URLEncoder
-        .encode( awsSecretKey, "UTF-8" ) + "@" + HOST + path;
-    } else {
-      return SCHEME + "://" + HOST + path;
-    }
-  }
 }

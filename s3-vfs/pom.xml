@@ -35,7 +35,7 @@
     <commons-io.version>1.4</commons-io.version>
     <commons-codec.version>1.10</commons-codec.version>
     <commons-vfs2.version>2.2</commons-vfs2.version>
-    <jets3t.version>0.9.4</jets3t.version>
+    <slf4j-api.version>1.7.7</slf4j-api.version>
     <httpclient.version>4.5</httpclient.version>
     <guava.version>19.0</guava.version>
 
@@ -91,12 +91,6 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>net.java.dev.jets3t</groupId>
-      <artifactId>jets3t</artifactId>
-      <version>${jets3t.version}</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>

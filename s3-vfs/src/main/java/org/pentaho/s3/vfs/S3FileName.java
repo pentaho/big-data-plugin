@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,92 +14,60 @@
 * limitations under the License.
 *
 */
-
 package org.pentaho.s3.vfs;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileType;
-import org.apache.commons.vfs2.provider.UriParser;
-import org.apache.commons.vfs2.provider.url.UrlFileName;
+import org.apache.commons.vfs2.provider.AbstractFileName;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+/**
+ * Custom filename that represents an S3 file with the bucket and its relative path
+ *
+ * @author asimoes
+ * @since 09-11-2017
+ */
+public class S3FileName extends AbstractFileName {
+  public static final String DELIMITER = "/";
 
-public class S3FileName extends UrlFileName {
+  private String bucketId;
+  private String bucketRelativePath;
 
-  private static final char[] USERNAME_RESERVED = { ':', '@', '/' };
-  private static final char[] PASSWORD_RESERVED = { '@', '/', '?', '+' };
+  public S3FileName( String scheme, String bucketId, String path, FileType type ) {
+    super( scheme, path, type );
 
-  public S3FileName( final String scheme, final String hostName, final int port, final int defaultPort,
-                     final String userName, final String password, final String path, final FileType type,
-                     final String queryString ) {
-    super( scheme, hostName, port, defaultPort, userName, password, path, type, queryString );
+    this.bucketId = bucketId;
+
+    if ( path.length() > 1 ) {
+      this.bucketRelativePath = path.substring( 1 );
+      if ( type.equals( FileType.FOLDER ) ) {
+        this.bucketRelativePath += DELIMITER;
+      }
+    } else {
+      this.bucketRelativePath = "";
+    }
   }
 
-  @Override
-  public String getFriendlyURI() {
-    return super.getFriendlyURI();
+  @Override public String getURI() {
+    final StringBuilder buffer = new StringBuilder();
+    appendRootUri( buffer, false );
+    buffer.append( getPath() );
+    return buffer.toString();
   }
 
-  public FileName createName( final String absPath, FileType type ) {
-    return new S3FileName( getScheme(),
-      getHostName(),
-      getPort(),
-      getDefaultPort(),
-      getUserName(),
-      getPassword(),
-      absPath,
-      type,
-      getQueryString() );
+  public String getBucketId() {
+    return bucketId;
   }
 
+  public String getBucketRelativePath() {
+    return bucketRelativePath;
+  }
 
-  /**
-   * Builds the root URI for this file name.
-   */
-  protected void appendRootUri( final StringBuilder buffer, boolean addPassword ) {
+  public FileName createName( String absPath, FileType type ) {
+    return new S3FileName( getScheme(), bucketId, absPath, type );
+  }
+
+  protected void appendRootUri( StringBuilder buffer, boolean addPassword ) {
     buffer.append( getScheme() );
     buffer.append( "://" );
-    if ( addPassword ) {
-      appendCredentials( buffer, addPassword );
-    }
-    buffer.append( getHostName() );
-    if ( getPort() != getDefaultPort() ) {
-      buffer.append( ':' );
-      buffer.append( getPort() );
-    }
   }
-
-  /**
-   * append the user credentials
-   */
-  @Override
-  protected void appendCredentials( StringBuilder buffer, boolean addPassword ) {
-    String userName = getUserName();
-    String password = getPassword();
-
-    if ( addPassword && userName != null && userName.length() != 0 ) {
-      try {
-        userName = URLEncoder.encode( getUserName(), "UTF-8" );
-        buffer.append( userName );
-      } catch ( UnsupportedEncodingException e ) {
-        // fall back to the default
-        UriParser.appendEncoded( buffer, userName, USERNAME_RESERVED );
-      }
-
-      if ( password != null && password.length() != 0 ) {
-        buffer.append( ':' );
-        try {
-          password = URLEncoder.encode( getPassword(), "UTF-8" );
-          buffer.append( password );
-        } catch ( UnsupportedEncodingException e ) {
-          // fall back to the default
-          UriParser.appendEncoded( buffer, password, PASSWORD_RESERVED );
-        }
-      }
-      buffer.append( '@' );
-    }
-  }
-
-
 }

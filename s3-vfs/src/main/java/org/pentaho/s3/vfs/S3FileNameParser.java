@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -20,74 +20,45 @@ package org.pentaho.s3.vfs;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
+import org.apache.commons.vfs2.provider.AbstractFileNameParser;
 import org.apache.commons.vfs2.provider.FileNameParser;
-import org.apache.commons.vfs2.provider.URLFileName;
-import org.apache.commons.vfs2.provider.URLFileNameParser;
+import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
 
+/**
+ * Custom parser for the s3 URL
+ *
+ * @author asimoes
+ * @since 09-11-2017
+ */
 
-public class S3FileNameParser extends URLFileNameParser {
-
+public class S3FileNameParser extends AbstractFileNameParser {
   private static final S3FileNameParser INSTANCE = new S3FileNameParser();
 
   public S3FileNameParser() {
-    // S3 wants port 843, but the web service will use this by default
-    super( 843 );
+    super();
   }
 
   public static FileNameParser getInstance() {
     return INSTANCE;
   }
 
-  @Override
-  public FileName parseUri( VfsComponentContext vfsComponentContext, FileName fileName, String s )
-    throws FileSystemException {
-    if ( fileName == null ) {
-      s = encodeAccessKeys( s );
-    }
-    URLFileName name = (URLFileName) super.parseUri( vfsComponentContext, fileName, s );
-    FileType type = name.getType();
+  public FileName parseUri( VfsComponentContext context, FileName base, String uri ) throws FileSystemException {
+    StringBuilder name = new StringBuilder();
 
-    /* There is a problem with parsing bucket uri which has not char "/" at the end.
-     * In this case UrlParser parse URI and return filename with type file.
-     * As S3 does not allow to store files without buckets - so bucket is always a folder
-      */
-    if ( FileType.FILE.equals( type ) && name.getPath().split( "/" ).length == 2 ) {
-      type = FileType.FOLDER;
-    }
-    String user = name.getUserName();
-    String password = name.getPassword();
-    return new S3FileName(
-      name.getScheme(),
-      name.getHostName(),
-      name.getPort(),
-      getDefaultPort(),
-      user,
-      password,
-      name.getPath(),
-      type,
-      name.getQueryString() );
-  }
+    String scheme = UriParser.extractScheme( uri, name );
+    UriParser.canonicalizePath( name, 0, name.length(), this );
 
-  public String encodeAccessKeys( String url ) {
-    int hostNameIndex = url.indexOf( "@s3" ) == -1 ? url.indexOf( "@S3" ) : url.indexOf( "@s3" );
-    if ( url.startsWith( "s3://" ) && hostNameIndex != -1 ) {
-      try {
-        String auth = url.substring( 5, hostNameIndex );
+    // Normalize separators in the path
+    UriParser.fixSeparators( name );
 
-        // access key is everything up to the first colon (:)
-        String accessKey = auth.substring( 0, auth.indexOf( ":" ) ).replaceAll( "\\+", "%2B" ).replaceAll( "/", "%2F" );
+    // Normalise the path
+    FileType fileType = UriParser.normalisePath( name );
 
-        // secret key is everything after it
-        String secretKey =
-          auth.substring( auth.indexOf( ":" ) + 1 ).replaceAll( "\\+", "%2B" ).replaceAll( "/", "%2F" );
+    String fullPath = name.toString();
+    // Extract bucket name
+    final String bucketName = UriParser.extractFirstElement( name );
 
-        return "s3://" + accessKey + ":" + secretKey + url.substring( hostNameIndex );
-      } catch ( StringIndexOutOfBoundsException e ) {
-        return url;
-      }
-    } else {
-      return url;
-    }
+    return new S3FileName( scheme, bucketName, fullPath, fileType );
   }
 }

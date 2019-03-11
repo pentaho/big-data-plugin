@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 */
 package org.pentaho.s3.vfs;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static java.nio.file.StandardOpenOption.APPEND;
 
 public class S3DataContent {
   private static final String TEMP_FILE_PREFIX = "s3vfs";
@@ -37,8 +37,14 @@ public class S3DataContent {
 
   private boolean isLoaded;
 
-  public S3DataContent() throws IOException {
+  public S3DataContent() {
     this.useTempFileOnUploadData = "Y".equals( ( System.getProperty( S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA, "N" ) ) );
+  }
+
+  static Path createTempFile() throws IOException {
+    Path tmpFile = Files.createTempFile( TEMP_FILE_PREFIX, null );
+    tmpFile.toFile().deleteOnExit();
+    return tmpFile;
   }
 
   public void load() throws IOException {
@@ -74,12 +80,6 @@ public class S3DataContent {
 
   public OutputStream getDataToUpload() throws IOException {
     return this.dataStream;
-  }
-
-  static Path createTempFile() throws IOException {
-    Path tmpFile = Files.createTempFile( TEMP_FILE_PREFIX, null );
-    tmpFile.toFile().deleteOnExit();
-    return tmpFile;
   }
 
 }

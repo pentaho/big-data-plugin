@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class S3FileNameParserTest {
   public void testParseUri() throws Exception {
     VfsComponentContext context = mock( VfsComponentContext.class );
     FileName fileName = mock( FileName.class );
-    String uri = "s3://hostname:8080/bucket";
+    String uri = "s3://bucket/file";
     FileName noBaseFile = parser.parseUri( context, null, uri );
     assertNotNull( noBaseFile );
     FileName withBaseFile = parser.parseUri( context, fileName, uri );
@@ -51,10 +51,4 @@ public class S3FileNameParserTest {
 
   }
 
-  @Test
-  public void testEncodeAccessKeys() throws Exception {
-    String fullUrl = "s3://ABC123456DEF7890:A+123456BCD99/99999999ZZZ+B@S3hostname:8080/bucket";
-    String encodedUrl = ( (S3FileNameParser) parser ).encodeAccessKeys( fullUrl );
-    assertEquals( "s3://ABC123456DEF7890:A%2B123456BCD99%2F99999999ZZZ%2BB@S3hostname:8080/bucket", encodedUrl );
-  }
 }

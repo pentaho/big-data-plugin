@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -48,14 +48,9 @@ public class S3FileSystemTest {
   public void setUp() throws Exception {
     fileName = new S3FileName(
       S3FileNameTest.SCHEME,
-      S3FileNameTest.HOST,
-      S3FileNameTest.PORT,
-      S3FileNameTest.PORT,
-      S3FileNameTest.awsAccessKey,
-      S3FileNameTest.awsSecretKey,
       "/",
-      FileType.FOLDER,
-      null );
+      "",
+      FileType.FOLDER );
     fileSystem = new S3FileSystem( fileName, new FileSystemOptions() );
   }
 
@@ -79,13 +74,12 @@ public class S3FileSystemTest {
 
   @Test
   public void testCreateFile() throws Exception {
-    AbstractFileName fileName = mock( AbstractFileName.class );
-    assertNotNull( fileSystem.createFile( fileName ) );
+    assertNotNull( fileSystem.createFile( new S3FileName( "s3", "bucketName", "/bucketName/key", FileType.FILE ) ) );
   }
 
   @Test
   public void testGetS3Service() throws Exception {
-    assertNotNull( fileSystem.getS3Service() );
+    assertNotNull( fileSystem.getS3Client() );
 
     FileSystemOptions options = new FileSystemOptions();
     UserAuthenticator authenticator = mock( UserAuthenticator.class );
@@ -96,6 +90,6 @@ public class S3FileSystemTest {
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( options, authenticator );
 
     fileSystem = new S3FileSystem( fileName, options );
-    assertNotNull( fileSystem.getS3Service() );
+    assertNotNull( fileSystem.getS3Client() );
   }
 }

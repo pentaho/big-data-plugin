@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -47,21 +47,15 @@ public class S3FileNameTest {
 
   @Before
   public void setup() {
-    fileName = new S3FileName( SCHEME, HOST, PORT, PORT, awsAccessKey, awsSecretKey, "/", FileType.FOLDER, null );
+    fileName = new S3FileName( SCHEME, "/", "", FileType.FOLDER );
   }
 
   @Test
   public void testGetURI() throws Exception {
-    String expected = buildS3URL( "/", true );
+    String expected = buildS3URL( "/" );
     assertEquals( expected, fileName.getURI() );
   }
 
-  @Test
-  public void testGetFriendlyURI() throws Exception {
-    // make sure the Access Key & Secret Key are not part of the friendly URI
-    String expected = buildS3URL( "/", false );
-    assertEquals( expected, fileName.getFriendlyURI() );
-  }
 
   @Test
   public void testCreateName() throws Exception {
@@ -70,19 +64,17 @@ public class S3FileNameTest {
 
   @Test
   public void testAppendRootUriWithNonDefaultPort() throws Exception {
-    fileName = new S3FileName( SCHEME, HOST, PORT + 1, PORT, awsAccessKey, awsSecretKey, "/", FileType.FOLDER, null );
-    String expectedUri = SCHEME + "://" + URLEncoder.encode( awsAccessKey, "UTF-8" ) + ":"
-      + URLEncoder.encode( awsSecretKey, "UTF-8" ) + "@" + HOST + ":" + ( PORT + 1 ) + "/";
+    fileName = new S3FileName( SCHEME, "/", "FooFolder", FileType.FOLDER );
+    String expectedUri = SCHEME + "://" + "FooFolder";
+    assertEquals( expectedUri, fileName.getURI() );
+
+    fileName = new S3FileName( SCHEME, "FooBucket", "FooBucket/FooFolder", FileType.FOLDER );
+    expectedUri = SCHEME + "://FooBucket/" + "FooFolder";
     assertEquals( expectedUri, fileName.getURI() );
   }
 
-  public static String buildS3URL( String path, boolean withUserInfo ) throws UnsupportedEncodingException {
-    if ( withUserInfo ) {
-      return SCHEME + "://" + URLEncoder.encode( awsAccessKey, "UTF-8" ) + ":" + URLEncoder
-        .encode( awsSecretKey, "UTF-8" ) + "@" + HOST + path;
-    } else {
-      return SCHEME + "://" + HOST + path;
-    }
+  public static String buildS3URL( String path ) throws UnsupportedEncodingException {
+    return SCHEME + "://" + path;
   }
 
 }
