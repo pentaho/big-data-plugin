@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -57,9 +58,9 @@ public class S3NFileObject extends AbstractFileObject {
     this.key = getBucketRelativeS3Path();
   }
 
-  @Override protected long doGetContentSize() throws Exception {
-    S3Object object = fileSystem.getS3Client().getObject( bucketName, key );
-    return object.getObjectMetadata().getContentLength();
+  @Override
+  protected long doGetContentSize() {
+    return getS3Object().getObjectMetadata().getContentLength();
   }
 
   @Override protected InputStream doGetInputStream() throws Exception {
@@ -82,26 +83,6 @@ public class S3NFileObject extends AbstractFileObject {
     String[] childrenArr = new String[ childrenList.size() ];
 
     return childrenList.toArray( childrenArr );
-  }
-
-  @Override
-  public FileObject[] getChildren() throws FileSystemException {
-    FileObject[] children = super.getChildren();
-    // Must close all the input streams for the children or they will fill up the open http request resource pool
-    // and degrade performance
-    for ( FileObject child : children ) {
-      S3NFileObject o = (S3NFileObject) child;
-      if ( o.key != null && !o.key.equals( "" ) && child.getType() == FileType.FILE ) {
-        try {
-          logger.debug( "Closing inputStream " + getQualifiedName( o ) );
-          o.getS3Object().getObjectContent().close();
-        } catch ( IOException e ) {
-          e.printStackTrace();
-        }
-      }
-    }
-
-    return children;
   }
 
   protected String getS3BucketName() {
@@ -173,7 +154,8 @@ public class S3NFileObject extends AbstractFileObject {
     }
   }
 
-  private S3Object getS3Object() {
+  @VisibleForTesting
+  S3Object getS3Object() {
     return getS3Object( this.key );
   }
 
@@ -187,8 +169,14 @@ public class S3NFileObject extends AbstractFileObject {
     }
   }
 
-  private S3Object activateContent() {
-    s3Object = null; //Force it to re-create the object
+  @VisibleForTesting
+  S3Object activateContent() throws IOException {
+    if ( s3Object != null ) {
+      // force it to re-create the object
+      s3Object.close();
+      s3Object = null;
+    }
+
     s3Object = getS3Object();
     return s3Object;
   }
