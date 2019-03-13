@@ -46,6 +46,7 @@ public class S3NFileObject extends AbstractFileObject {
 
   private static final Logger logger = LoggerFactory.getLogger( S3NFileObject.class );
   public static final String DELIMITER = "/";
+
   private S3NFileSystem fileSystem;
   private String bucketName;
   private String key;
@@ -63,18 +64,21 @@ public class S3NFileObject extends AbstractFileObject {
     return getS3Object().getObjectMetadata().getContentLength();
   }
 
-  @Override protected InputStream doGetInputStream() throws Exception {
+  @Override
+  protected InputStream doGetInputStream() throws Exception {
     logger.debug( "Accessing content " + getQualifiedName() );
     activateContent();
     return s3Object.getObjectContent();
   }
 
-  @Override protected FileType doGetType() throws Exception {
+  @Override
+  protected FileType doGetType() throws Exception {
     return getType();
   }
 
-  @Override protected String[] doListChildren() throws Exception {
-    List<String> childrenList = new ArrayList<String>();
+  @Override
+  protected String[] doListChildren() throws Exception {
+    List<String> childrenList = new ArrayList<>();
 
     // only listing folders or the root bucket
     if ( getType() == FileType.FOLDER || isRootBucket() ) {
@@ -98,7 +102,7 @@ public class S3NFileObject extends AbstractFileObject {
   }
 
   private List<String> getS3ObjectsFromVirtualFolder() {
-    List<String> childrenList = new ArrayList<String>();
+    List<String> childrenList = new ArrayList<>();
 
     // fix cases where the path doesn't include the final delimiter
     String realKey = key;
@@ -121,8 +125,8 @@ public class S3NFileObject extends AbstractFileObject {
 
       ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
 
-      ArrayList<S3ObjectSummary> allSummaries = new ArrayList<S3ObjectSummary>( ol.getObjectSummaries() );
-      ArrayList<String> allCommonPrefixes = new ArrayList<String>( ol.getCommonPrefixes() );
+      ArrayList<S3ObjectSummary> allSummaries = new ArrayList<>( ol.getObjectSummaries() );
+      ArrayList<String> allCommonPrefixes = new ArrayList<>( ol.getCommonPrefixes() );
 
       // get full list
       while ( ol.isTruncated() ) {
@@ -185,7 +189,8 @@ public class S3NFileObject extends AbstractFileObject {
     return key.equals( "" );
   }
 
-  @Override protected void doAttach() throws Exception {
+  @Override
+  protected void doAttach() throws Exception {
     logger.debug( "Attach called on " + getQualifiedName() );
     injectType( FileType.IMAGINARY );
 
@@ -195,14 +200,12 @@ public class S3NFileObject extends AbstractFileObject {
       return;
     }
 
-    // 1. Is it an existing file?
     try {
+      // 1. Is it an existing file?
       s3Object = getS3Object();
       injectType( getName().getType() ); // if this worked then the automatically detected type is right
 
-    } catch ( AmazonS3Exception e ) {
-      // S3 object doesn't exist
-
+    } catch ( AmazonS3Exception e ) { // S3 object doesn't exist
       // 2. Is it in reality a folder?
       String keyWithDelimiter = key + DELIMITER;
       try {
@@ -232,13 +235,12 @@ public class S3NFileObject extends AbstractFileObject {
 
   @Override
   public void doDelete() throws FileSystemException {
-
     // can only delete folder if empty
     if ( getType() == FileType.FOLDER ) {
 
       // list all children inside the folder
       ObjectListing ol = fileSystem.getS3Client().listObjects( bucketName, key );
-      ArrayList<S3ObjectSummary> allSummaries = new ArrayList<S3ObjectSummary>( ol.getObjectSummaries() );
+      ArrayList<S3ObjectSummary> allSummaries = new ArrayList<>( ol.getObjectSummaries() );
 
       // get full list
       while ( ol.isTruncated() ) {
@@ -259,11 +261,13 @@ public class S3NFileObject extends AbstractFileObject {
     return new S3NPipedOutputStream( this.fileSystem, bucketName, key );
   }
 
-  @Override protected long doGetLastModifiedTime() throws Exception {
+  @Override
+  protected long doGetLastModifiedTime() {
     return s3Object.getObjectMetadata().getLastModified().getTime();
   }
 
-  @Override protected void doCreateFolder() throws Exception {
+  @Override
+  protected void doCreateFolder() throws Exception {
     if ( !isRootBucket() ) {
       // create meta-data for your folder and set content-length to 0
       ObjectMetadata metadata = new ObjectMetadata();
@@ -287,8 +291,8 @@ public class S3NFileObject extends AbstractFileObject {
     }
   }
 
-  @Override protected void doRename( FileObject newFile ) throws Exception {
-
+  @Override
+  protected void doRename( FileObject newFile ) throws Exception {
     // no folder renames on S3
     if ( getType().equals( FileType.FOLDER ) ) {
       throw new FileSystemException( "vfs.provider/rename-not-supported.error" );
@@ -316,5 +320,4 @@ public class S3NFileObject extends AbstractFileObject {
   private String getQualifiedName( S3NFileObject s3nFileObject ) {
     return s3nFileObject.bucketName + "/" + s3nFileObject.key;
   }
-
 }

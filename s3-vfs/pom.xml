@@ -37,13 +37,13 @@
     <commons-vfs2.version>2.2</commons-vfs2.version>
     <jets3t.version>0.9.4</jets3t.version>
     <slf4j-api.version>1.7.7</slf4j-api.version>
-    <slf4j-log4j12.version>1.7.7</slf4j-log4j12.version>
+    <httpclient.version>4.5</httpclient.version>
+    <guava.version>19.0</guava.version>
 
     <!-- Test dependencies -->
     <junit.version>4.12</junit.version>
     <mockito.version>1.10.19</mockito.version>
     <powermock.version>1.7.4</powermock.version>
-    <guava.version>19.0</guava.version>
   </properties>
 
   <scm>
@@ -51,8 +51,24 @@
     <tag>HEAD</tag>
   </scm>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>${commons-codec.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <!-- Third-party dependencies -->
   <dependencies>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpclient.version}</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -85,8 +101,12 @@
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws-java-sdk.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -94,11 +114,6 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j-api.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>${commons-codec.version}</version>
     </dependency>
 
     <!-- Test dependencies -->
