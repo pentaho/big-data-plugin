@@ -36,11 +36,7 @@ import org.pentaho.di.trans.steps.textfileoutput.TextFileOutput;
 
 
 public class S3FileOutput extends TextFileOutput {
-  /** System property name for the AWS access key ID */
-  public static final String ACCESS_KEY_SYSTEM_PROPERTY = "aws.accessKeyId";
 
-  /** System property name for the AWS secret key */
-  public  static final String SECRET_KEY_SYSTEM_PROPERTY = "aws.secretKey";
   public S3FileOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
@@ -53,14 +49,14 @@ public class S3FileOutput extends TextFileOutput {
 
   @Override public void markStop() {
     super.markStop();
-    String accessKeySystemProperty = System.getProperty( ACCESS_KEY_SYSTEM_PROPERTY );
-    String secretKeySystemProperty = System.getProperty( SECRET_KEY_SYSTEM_PROPERTY );
+    String accessKeySystemProperty = System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY );
+    String secretKeySystemProperty = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
 
     if ( !StringUtil.isEmpty( accessKeySystemProperty ) ) {
-      System.setProperty( ACCESS_KEY_SYSTEM_PROPERTY, "" );
+      System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, "" );
     }
     if ( !StringUtil.isEmpty( secretKeySystemProperty ) ) {
-      System.setProperty( SECRET_KEY_SYSTEM_PROPERTY, "" );
+      System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, "" );
     }
   }
 
@@ -71,14 +67,14 @@ public class S3FileOutput extends TextFileOutput {
     if ( !ValueMetaBase.convertStringToBoolean( Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS ), "N" ) ) ) {
       S3FileOutputMeta s3Meta = (S3FileOutputMeta) smi;
 
-      String accessKeySystemProperty = System.getProperty( ACCESS_KEY_SYSTEM_PROPERTY );
-      String secretKeySystemProperty = System.getProperty( SECRET_KEY_SYSTEM_PROPERTY );
+      String accessKeySystemProperty = System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY );
+      String secretKeySystemProperty = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
 
       if ( !StringUtil.isEmpty( s3Meta.getAccessKey() ) && StringUtil.isEmpty( accessKeySystemProperty ) ) {
-        System.setProperty( ACCESS_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getAccessKey() ) );
+        System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getAccessKey() ) );
       }
       if ( !StringUtil.isEmpty( s3Meta.getSecretKey() ) && StringUtil.isEmpty( secretKeySystemProperty ) ) {
-        System.setProperty( SECRET_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getSecretKey() ) );
+        System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getSecretKey() ) );
       }
     }
   }
