@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,10 +128,11 @@ public class S3NPipedOutputStream extends PipedOutputStream {
       ObjectMetadata objectMetadata;
       initRequest = new InitiateMultipartUploadRequest( bucketId, key );
 
-      InitiateMultipartUploadResult initResponse = fileSystem.getS3Client().initiateMultipartUpload( initRequest );
+      InitiateMultipartUploadResult initResponse = null;
       ByteArrayOutputStream baos = new ByteArrayOutputStream( PART_SIZE );
 
       try {
+        initResponse = fileSystem.getS3Client().initiateMultipartUpload( initRequest );
         // Step 2: Upload parts.
         byte[] tmpBuffer = new byte[ PART_SIZE ];
         int read, offset = 0;
@@ -187,8 +188,12 @@ public class S3NPipedOutputStream extends PipedOutputStream {
         fileSystem.getS3Client().completeMultipartUpload( compRequest );
       } catch ( Exception e ) {
         e.printStackTrace();
-        fileSystem.getS3Client()
-          .abortMultipartUpload( new AbortMultipartUploadRequest( bucketId, key, initResponse.getUploadId() ) );
+        if ( initResponse == null ) {
+          close();
+        } else {
+          fileSystem.getS3Client()
+            .abortMultipartUpload( new AbortMultipartUploadRequest( bucketId, key, initResponse.getUploadId() ) );
+        }
         result = false;
       } finally {
         baos.close();

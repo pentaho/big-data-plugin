@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2017 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -33,15 +33,11 @@ import org.jets3t.service.S3Service;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.security.AWSCredentials;
 import org.jets3t.service.security.ProviderCredentials;
+import org.pentaho.amazon.s3.S3Util;
 
 public class S3FileSystem extends AbstractFileSystem implements FileSystem {
 
   private S3Service service;
-  /** System property name for the AWS access key ID */
-  public static final String ACCESS_KEY_SYSTEM_PROPERTY = "aws.accessKeyId";
-
-  /** System property name for the AWS secret key */
-  public  static final String SECRET_KEY_SYSTEM_PROPERTY = "aws.secretKey";
 
   private String awsAccessKeyCache;
 
@@ -62,13 +58,13 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
   }
 
   public S3Service getS3Service() {
-    String awsAccessKeySystemEnvValue = System.getProperty( ACCESS_KEY_SYSTEM_PROPERTY );
-    String awsSecretKeySystemEnvValue = System.getProperty( SECRET_KEY_SYSTEM_PROPERTY );
+    String awsAccessKeySystemEnvValue = System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY );
+    String awsSecretKeySystemEnvValue = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
 
     if ( service == null || service.getProviderCredentials() == null
       || service.getProviderCredentials().getAccessKey() == null || ( service != null
-        && hasChanged( awsAccessKeyCache, awsAccessKeySystemEnvValue )
-            && hasChanged( awsSecretKeyCache, awsSecretKeySystemEnvValue ) ) ) {
+        && S3Util.hasChanged( awsAccessKeyCache, awsAccessKeySystemEnvValue )
+            && S3Util.hasChanged( awsSecretKeyCache, awsSecretKeySystemEnvValue ) ) ) {
 
       UserAuthenticator userAuthenticator =
         DefaultFileSystemConfigBuilder.getInstance().getUserAuthenticator( getFileSystemOptions() );
@@ -98,22 +94,5 @@ public class S3FileSystem extends AbstractFileSystem implements FileSystem {
       }
     }
     return service;
-  }
-
-  private boolean isEmpty( String value ) {
-    return value == null || value.length() <= 0;
-  }
-
-  private boolean hasChanged( String previousValue, String currentValue ) {
-    if ( !isEmpty( previousValue ) && isEmpty( currentValue ) ) {
-      return true;
-    }
-    if ( isEmpty( previousValue ) && !isEmpty( currentValue ) ) {
-      return true;
-    }
-    if ( !isEmpty( previousValue ) && !isEmpty( currentValue ) && !currentValue.equals( previousValue ) ) {
-      return true;
-    }
-    return false;
   }
 }
