@@ -26,6 +26,25 @@
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- SLF4J logging for PDI non-OSGi plugins should rely on the jars being provided in data-integration/lib -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>pentaho</groupId>
@@ -168,16 +187,6 @@
       <groupId>libthrift</groupId>
       <artifactId>libthrift</artifactId>
       <version>${dependency.libthrift.revision}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${dependency.slf4j.revision}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${dependency.slf4j.revision}</version>
     </dependency>
     <dependency>
       <groupId>xmlpull</groupId>

@@ -62,13 +62,10 @@
                 <include>net.java.dev.jets3t:jets3t</include>
                 <include>jline:jline</include>
                 <include>com.googlecode.json-simple:json-simple</include>
-                <include>org.pentaho.di.plugins:kettle-log4j-core</include>
                 <include>libthrift:libthrift</include>
                 <include>org.apache.oozie:oozie-client</include>
                 <include>org.apache.oozie:oozie-core</include>
                 <include>pentaho:pentaho-s3-vfs</include>
-                <include>org.slf4j:slf4j-api</include>
-                <include>org.slf4j:slf4j-log4j12</include>
                 <include>xmlpull:xmlpull</include>
                 <include>xpp3:xpp3_min</include>
                 <include>com.thoughtworks.xstream:xstream</include>
