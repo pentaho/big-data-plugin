@@ -55,7 +55,6 @@
     <pentaho-reporting.version>8.3.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.simple-jndi.revision>1.0.2</dependency.simple-jndi.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
-    <dependency.slf4j.revision>1.7.7</dependency.slf4j.revision>
     <pentaho-hadoop-shims-cdh514.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh514.version>
     <dependency.jets3t.revision>0.9.4</dependency.jets3t.revision>
     <dependency.xstream.revision>1.4.10</dependency.xstream.revision>
