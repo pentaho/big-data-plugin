@@ -30,18 +30,11 @@
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
 
-  <feature name="pentaho-hadoop-shims-api" version="1.0">
-    <!--bundle>mvn:org.pentaho/pentaho-hadoop-shims-api/${pentaho-hadoop-shims-api.version}</bundle-->
-  </feature>
-
-  <!--
-  <feature name="pentaho-hadoop-shims-cdh513" version="1.0">
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-common/${pentaho-hadoop-shims-cdh513.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-hbase/${pentaho-hadoop-shims-cdh513.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-hive/${pentaho-hadoop-shims-cdh513.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-oozie/${pentaho-hadoop-shims-cdh513.version}</bundle>
-  </feature>
-  -->
+  <!--feature name="pentaho-hadoop-shims-cdh514" version="1.0">
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-blueprint/${pentaho-hadoop-shims-hdp26.version}</bundle>
+  </feature-->
 
   <feature name="pentaho-hadoop-shims-hdp26" version="1.0">
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies/${pentaho-hadoop-shims-hdp26.version}</bundle>
@@ -108,6 +101,7 @@
     <conditional>
       <condition>community-edition</condition>
       <feature>pentaho-hadoop-shims-hdp26</feature>
+      <feature>pentaho-hadoop-shims-cdh514</feature>
     </conditional>
   </feature>
 </features>
