@@ -38,7 +38,6 @@
     <jets3t.version>0.9.4</jets3t.version>
     <slf4j-api.version>1.7.7</slf4j-api.version>
     <slf4j-log4j12.version>1.7.7</slf4j-log4j12.version>
-    <pdi.version>8.3.0.0-SNAPSHOT</pdi.version>
 
     <!-- Test dependencies -->
     <junit.version>4.4</junit.version>
@@ -98,12 +97,6 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>${commons-codec.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>pentaho-kettle</groupId>
-      <artifactId>kettle-core</artifactId>
-      <version>${pdi.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <!-- Test dependencies -->

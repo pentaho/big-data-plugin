@@ -16,8 +16,6 @@
  */
 package org.pentaho.amazon.s3;
 
-import org.pentaho.di.core.util.StringUtil;
-
 public final class S3Util {
 
   /** System property name for the AWS access key ID */
@@ -27,16 +25,20 @@ public final class S3Util {
   public static final String SECRET_KEY_SYSTEM_PROPERTY = "aws.secretKey";
 
   public static boolean hasChanged( String previousValue, String currentValue ) {
-    if ( !StringUtil.isEmpty( previousValue ) && StringUtil.isEmpty( currentValue ) ) {
+    if ( !isEmpty( previousValue ) && isEmpty( currentValue ) ) {
       return true;
     }
-    if ( StringUtil.isEmpty( previousValue ) && !StringUtil.isEmpty( currentValue ) ) {
+    if ( isEmpty( previousValue ) && !isEmpty( currentValue ) ) {
       return true;
     }
-    if ( !StringUtil.isEmpty( previousValue ) && !StringUtil.isEmpty( currentValue ) && !currentValue.equals( previousValue ) ) {
+    if ( !isEmpty( previousValue ) && !isEmpty( currentValue ) && !currentValue.equals( previousValue ) ) {
       return true;
     }
     return false;
+  }
+
+  public static boolean isEmpty( String value ) {
+    return value == null || value.length() == 0;
   }
 
   private S3Util() { }
