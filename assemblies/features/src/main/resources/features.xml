@@ -29,7 +29,6 @@
     <feature>pentaho-big-data-kettle-plugins</feature>
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
-
   <!--feature name="pentaho-hadoop-shims-cdh514" version="1.0">
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies/${pentaho-hadoop-shims-hdp26.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment/${pentaho-hadoop-shims-hdp26.version}</bundle>
@@ -101,7 +100,7 @@
     <conditional>
       <condition>community-edition</condition>
       <feature>pentaho-hadoop-shims-hdp26</feature>
-      <feature>pentaho-hadoop-shims-cdh514</feature>
+      <!--feature>pentaho-hadoop-shims-cdh514</feature-->
     </conditional>
   </feature>
 </features>
