@@ -28,6 +28,12 @@
       <artifactId>oozie-core</artifactId>
       <version>${oozie.version}</version>
     </dependency>
+    <!-- Only needed for runtime testing -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-api</artifactId>
