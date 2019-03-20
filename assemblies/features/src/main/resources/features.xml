@@ -46,7 +46,7 @@
   <feature name="pentaho-hadoop-shims-hdp26" version="1.0">
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies/${pentaho-hadoop-shims-hdp26.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment/${pentaho-hadoop-shims-hdp26.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-blueprint/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/${pentaho-hadoop-shims-hdp26.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
