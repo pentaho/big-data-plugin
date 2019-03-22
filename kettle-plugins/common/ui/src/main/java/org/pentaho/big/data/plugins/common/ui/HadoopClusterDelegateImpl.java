@@ -24,7 +24,7 @@ package org.pentaho.big.data.plugins.common.ui;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;

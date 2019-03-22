@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.hadoop.HadoopConfigurationInfo;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 
 import java.util.List;

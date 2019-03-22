@@ -24,7 +24,7 @@ package org.pentaho.big.data.impl.cluster.tests.hdfs;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.bigdata.api.hdfs.HadoopFileSystemLocator;
+import org.pentaho.hadoop.shim.api.hdfs.HadoopFileSystemLocator;
 import org.pentaho.runtime.test.TestMessageGetterFactory;
 import org.pentaho.runtime.test.i18n.MessageGetter;
 import org.pentaho.runtime.test.i18n.MessageGetterFactory;

@@ -52,7 +52,7 @@ import org.pentaho.di.core.plugins.PluginTypeCategoriesOrder;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entry.JobEntryInterface;
-import org.pentaho.hadoop.shim.ConfigurationException;
+import org.pentaho.hadoop.shim.api.ConfigurationException;
 
 @PluginTypeCategoriesOrder( getNaturalCategoriesOrder = { "JobCategory.Category.General", "JobCategory.Category.Mail",
     "JobCategory.Category.FileManagement", "JobCategory.Category.Conditions", "JobCategory.Category.Scripting",

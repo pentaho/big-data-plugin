@@ -20,32 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-pig</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-mapreduce</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-initializer</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
@@ -114,12 +89,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
       <version>${project.version}</version>
@@ -142,7 +111,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.ui.xul*;resolution:=optional,org.pentaho.ui.xul*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

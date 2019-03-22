@@ -23,7 +23,7 @@
 package org.pentaho.big.data.plugins.common.ui;
 
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.runtime.test.RuntimeTester;

@@ -18,14 +18,14 @@
   </properties>
   <dependencies>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
+      <version>${pentaho-hadoop-shims.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>17.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -41,13 +41,7 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
+      <artifactId>shim-api</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>

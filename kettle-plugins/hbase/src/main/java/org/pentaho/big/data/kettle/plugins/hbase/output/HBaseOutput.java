@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.MappingAdmin;
 import org.pentaho.big.data.kettle.plugins.hbase.output.KettleRowToHBaseTuple.FieldException;
 import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
@@ -39,7 +39,6 @@ import org.pentaho.hadoop.shim.api.hbase.table.HBaseDelete;
 import org.pentaho.hadoop.shim.api.hbase.table.HBasePut;
 import org.pentaho.hadoop.shim.api.hbase.table.HBaseTable;
 import org.pentaho.hadoop.shim.api.hbase.table.HBaseTableWriteOperationManager;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;

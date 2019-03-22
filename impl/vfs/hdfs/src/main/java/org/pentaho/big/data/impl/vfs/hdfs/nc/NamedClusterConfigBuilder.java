@@ -20,7 +20,7 @@ package org.pentaho.big.data.impl.vfs.hdfs.nc;
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemConfigBuilder;
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.big.data.impl.vfs.hdfs.HDFSFileSystem;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.vfs.configuration.KettleGenericFileSystemConfigBuilder;

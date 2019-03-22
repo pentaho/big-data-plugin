@@ -13,16 +13,6 @@
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-initializer</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-jdbc</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.3</version>
@@ -36,7 +26,7 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
+      <artifactId>shim-api</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
     </dependency>
     <dependency>
@@ -85,7 +75,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <Import-Package>!com.pentaho.big.data.bundles.impl.shim.hbase,!org.pentaho.hbase.shim.api,!org.pentaho.hbase.shim.spi,!org.apache.hadoop.*,!org.pentaho.di.core.hadoop.*,!org.pentaho.hadoop.*,!org.pentaho.yarn.*,!org.apache.log4j,!org.pentaho.hadoop.hbase.factory,!org.pentaho.hbase.*,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.jdbc,*</Import-Package>
             <Bundle-Activator>org.pentaho.big.data.kettle.plugins.hive.Activator</Bundle-Activator>
           </instructions>
         </configuration>

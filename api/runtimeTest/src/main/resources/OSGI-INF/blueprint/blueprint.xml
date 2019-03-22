@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+           xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+           http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/schemas/blueprint-cm/blueprint-cm-1.1.0.xsd">
+  <cm:property-placeholder persistent-id="org.pentaho.runtime.test"
+                           update-strategy="reload">
+    <cm:default-properties>
+      <cm:property name="orderedModules" value="Hadoop Configuration,Hadoop File System,Map Reduce,Oozie,Zookeeper"/>
+    </cm:default-properties>
+  </cm:property-placeholder>
+
+  <bean id="loggingRuntimeTestActionHandlerImpl"
+        class="org.pentaho.runtime.test.action.impl.LoggingRuntimeTestActionHandlerImpl" scope="singleton">
+    <argument ref="baseMessagesMessageGetterFactoryImpl"/>
+  </bean>
+
+  <bean id="runtimeTestActionServiceImpl" class="org.pentaho.runtime.test.action.impl.RuntimeTestActionServiceImpl"
+        scope="singleton">
+    <argument ref="loggingRuntimeTestActionHandlerImpl"/>
+    <argument ref="runtimeTestActionHandlers"/>
+  </bean>
+
+  <bean id="runtimeTesterImpl" class="org.pentaho.runtime.test.impl.RuntimeTesterImpl" scope="singleton">
+    <argument ref="runtimeTests"/>
+    <argument ref="executorService"/>
+    <argument value="${orderedModules}"/>
+  </bean>
+
+  <bean id="connectivityTestFactoryImpl"
+        class="org.pentaho.runtime.test.network.impl.ConnectivityTestFactoryImpl" scope="singleton"/>
+
+  <bean id="baseMessagesMessageGetterFactoryImpl"
+        class="org.pentaho.runtime.test.i18n.impl.BaseMessagesMessageGetterFactoryImpl" scope="singleton"/>
+
+  <reference-list id="runtimeTests" interface="org.pentaho.runtime.test.RuntimeTest"
+                  availability="optional"/>
+  <reference-list id="runtimeTestActionHandlers" interface="org.pentaho.runtime.test.action.RuntimeTestActionHandler"
+                  availability="optional"/>
+  <reference id="executorService" interface="java.util.concurrent.ExecutorService"/>
+
+  <service ref="runtimeTesterImpl" interface="org.pentaho.runtime.test.RuntimeTester"/>
+  <service ref="runtimeTestActionServiceImpl" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
+  <service ref="connectivityTestFactoryImpl"
+           interface="org.pentaho.runtime.test.network.ConnectivityTestFactory"/>
+  <service ref="baseMessagesMessageGetterFactoryImpl"
+           interface="org.pentaho.runtime.test.i18n.MessageGetterFactory"/>
+</blueprint>

@@ -20,11 +20,6 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-common-mapred</artifactId>
-      <version>8.3.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
       <version>${rxjava.version}</version>
@@ -845,11 +840,6 @@
       <groupId>org.pentaho</groupId>
       <artifactId>commons-database-model</artifactId>
       <version>${commons-database.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-api</artifactId>
-      <version>${pentaho-hadoop-shims-api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>

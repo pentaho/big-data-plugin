@@ -25,18 +25,17 @@
     <feature>pentaho-big-data-plugin-tests</feature>
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
-    <feature>pentaho-hadoop-shims-api</feature>
+    <!--feature>pentaho-hadoop-shims-api</feature-->
     <feature>pentaho-big-data-kettle-plugins</feature>
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
 
   <feature name="pentaho-hadoop-shims-api" version="1.0">
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-api/${pentaho-hadoop-shims-api.version}</bundle>
+    <!--bundle>mvn:org.pentaho/pentaho-hadoop-shims-api/${pentaho-hadoop-shims-api.version}</bundle-->
   </feature>
 
   <!--
   <feature name="pentaho-hadoop-shims-cdh513" version="1.0">
-    <feature>pentaho-hadoop-shims-api</feature>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-common/${pentaho-hadoop-shims-cdh513.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-hbase/${pentaho-hadoop-shims-cdh513.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh513-hive/${pentaho-hadoop-shims-cdh513.version}</bundle>
@@ -45,20 +44,13 @@
   -->
 
   <feature name="pentaho-hadoop-shims-hdp26" version="1.0">
-    <feature>pentaho-hadoop-shims-api</feature>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies/${pentaho-hadoop-shims-hdp26.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment/${pentaho-hadoop-shims-hdp26.version}</bundle>
-    <!--<bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/${pentaho-hadoop-shims-hdp26.version}</bundle>-->
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-blueprint/${pentaho-hadoop-shims-hdp26.version}</bundle>
-    <!--<bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-common/${pentaho-hadoop-shims-hdp26.version}</bundle>-->
-    <!--<bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-hbase/${pentaho-hadoop-shims-hdp26.version}</bundle>-->
-    <!--<bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-hive/${pentaho-hadoop-shims-hdp26.version}</bundle>-->
-    <!--<bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-oozie/${pentaho-hadoop-shims-hdp26.version}</bundle>-->
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/${pentaho-hadoop-shims-hdp26.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
     <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-shimTests/${project.version}</bundle>
   </feature>
   <feature name="pentaho-big-data-plugin-base" version="1.0">
     <feature>pentaho-client-minimal</feature>
@@ -69,7 +61,6 @@
     <bundle>mvn:pentaho/pentaho-metastore-locator-api/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-local/${pentaho-osgi-bundles.version}</bundle>
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-repository/${pentaho-osgi-bundles.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-cluster/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
     <configfile finalname="/etc/pentaho.big.data.impl.cluster.cfg">
       mvn:pentaho/pentaho-osgi-config/${pentaho-karaf.version}/cfg/pentaho-big-data-impl-cluster
@@ -79,26 +70,18 @@
   <feature name="pentaho-big-data-plugin-api" version="1.0">
     <feature>pentaho-big-data-plugin-base</feature>
     <feature>pentaho-big-data-common</feature>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-cluster-service-locator/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-initializer/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-hdfs/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-mapreduce/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-pig/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-jaas/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-runtimeTest/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-big-data-api-jdbc/${pentaho-hadoop-shims.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims-hdp26.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-shim-impl" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
     <conditional>
       <condition>community-edition</condition>
-      <bundle>mvn:pentaho/pentaho-big-data-impl-shim-initializer/${project.version}</bundle>
-      <bundle>mvn:pentaho/pentaho-big-data-impl-shim-jaas/${project.version}</bundle>
       <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
-      <bundle>mvn:pentaho/pentaho-hadoop-shims-osgi-jaas/${project.version}</bundle>
     </conditional>
   </feature>
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
@@ -122,10 +105,8 @@
   </feature>
 
   <feature name="shims-list" description="Shims bundles list" version="1.0">
-    <feature>pentaho-hadoop-shims-api</feature>
     <conditional>
       <condition>community-edition</condition>
-      <!--<feature>pentaho-hadoop-shims-cdh513</feature>-->
       <feature>pentaho-hadoop-shims-hdp26</feature>
     </conditional>
   </feature>

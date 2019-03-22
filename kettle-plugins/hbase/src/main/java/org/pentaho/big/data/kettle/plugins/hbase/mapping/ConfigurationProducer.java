@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
 import org.pentaho.hadoop.shim.api.hbase.HBaseService;
 
