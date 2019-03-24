@@ -241,6 +241,7 @@
         <include>xpp3:xpp3_min</include>
         <include>org.apache.kafka:kafka-clients</include>
         <include>pentaho:pentaho-metaverse-api</include>
+	<include>org.apache.geronimo.specs:geronimo-servlet_3.0_spec</include>
       </includes>
     </dependencySet>
   </dependencySets>

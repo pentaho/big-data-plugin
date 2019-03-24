@@ -17,6 +17,7 @@
     <apache-xmlgraphics.revision>1.9.1</apache-xmlgraphics.revision>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.0.4</rxjava.version>
+    <geronimo-servlet_3.0_spec.version>1.0</geronimo-servlet_3.0_spec.version>
   </properties>
   <dependencies>
     <dependency>
@@ -1046,6 +1047,17 @@
         <exclusion>
           <artifactId>jackson-mapper-asl</artifactId>
           <groupId>org.codehaus.jackson</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-servlet_3.0_spec</artifactId>
+      <version>${geronimo-servlet_3.0_spec.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
