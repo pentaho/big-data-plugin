@@ -29,7 +29,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>${dependency.slf4j.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -39,7 +38,6 @@
     <dependency>
       <groupId>org.apache.karaf.jaas</groupId>
       <artifactId>org.apache.karaf.jaas.config</artifactId>
-      <version>${dependency.karaf.revision}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
