@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -71,7 +71,7 @@ public class S3VfsFileChooserDialog extends CustomVfsUiPanel {
   public void activate() {
     vfsFileChooserDialog.setRootFile( rootFile );
     vfsFileChooserDialog.setInitialFile( initialFile );
-    vfsFileChooserDialog.openFileCombo.setText( "s3://s3/" );
+    vfsFileChooserDialog.openFileCombo.setText( "s3://" );
     vfsFileChooserDialog.vfsBrowser.fileSystemTree.removeAll();
     super.activate();
 
