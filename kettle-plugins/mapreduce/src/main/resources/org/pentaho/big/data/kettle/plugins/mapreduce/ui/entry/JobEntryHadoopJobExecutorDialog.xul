@@ -4,20 +4,13 @@
 <window id="hadoop-window-wrapper">
 
 <dialog id="job-entry-dialog"
-    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    xmlns:pen="http://www.pentaho.org/2008/xul"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:pen="http://www.pentaho.org/2008/xul"
 	title="${JobEntryDialog.Title}"
 	resizable="true"
-    height="450" width="700"
+	height="600" width="650"
 	appicon="ui/images/spoon.ico"
-	buttons="extra1,accept,cancel"
-	buttonalign="end"
-    buttonlabelextra1="${Dialog.Help}"
-	buttonlabelaccept="${Dialog.Accept}"
-	buttonlabelcancel="${Dialog.Cancel}"
-    ondialogextra1="jobEntryController.help()"
-	ondialogaccept="jobEntryController.accept()"
-	ondialogcancel="jobEntryController.cancel()">
+	buttons="">
 
 	<vbox>
 		<grid>
@@ -61,7 +54,7 @@
 		</groupbox>
 	</vbox>
 
-	<vbox id="simple-configuration" hidden="true">
+	<vbox id="simple-configuration" flex="1" hidden="true">
 	 <grid>
 	   <columns>
 	     <column />
@@ -84,15 +77,15 @@
    </grid>
 	</vbox>
 
-	<vbox id="advanced-configuration" hidden="true" flex="1">
-		<tabbox>
+	<vbox id="advanced-configuration" flex="1" hidden="true">
+		<tabbox flex="1">
 			<tabs>
 				<tab label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Classes.Label}"/>
 				<tab label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.Label}"/>
 				<tab label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.UserDefined.Label}"/>
-  			</tabs>
+			</tabs>
 			<tabpanels>
-    			<tabpanel>
+    			<tabpanel style="overflow: auto">
     				<grid>
     					<columns>
     						<column />
@@ -193,9 +186,32 @@
 						<treechildren />
 					</tree>
     			</tabpanel>
-  			</tabpanels>
+			</tabpanels>
 		</tabbox>
 	</vbox>
+
+	<vbox height="7"></vbox>
+
+	<hbox>
+		<hbox width="9"></hbox>
+		<separator padding="0" flex="1" orient="HORIZONTAL"/>
+		<hbox width="9"></hbox>
+	</hbox>
+
+	<vbox height="6"></vbox>
+
+	<hbox padding="0">
+		<hbox width="11"></hbox>
+		<button label="${Dialog.Help}" image="help_web.png" onclick="jobEntryController.help()"/>
+		<spacer flex="1"/>
+		<button label="${Dialog.Accept}" width="75" onclick="jobEntryController.accept()"/>
+		<hbox width="1"></hbox>
+		<button label="${Dialog.Cancel}" width="75" onclick="jobEntryController.cancel()"/>
+		<hbox width="11"></hbox>
+	</hbox>
+
+	<vbox padding="0" height="11"></vbox>
+
 </dialog>
 
   <!--  ###############################################################################   -->
