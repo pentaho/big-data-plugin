@@ -101,6 +101,8 @@ public class S3FileObjectTest {
     when( s3ServiceMock.getObject( BUCKET_NAME, OBJECT_NAME ) ).thenReturn( s3Object );
     when( s3ServiceMock.listBuckets() ).thenReturn( createBuckets() );
 
+    when( s3ServiceMock.doesBucketExistV2( BUCKET_NAME ) ).thenReturn( true );
+
     childObjectListing = mock( ObjectListing.class );
     when( childObjectListing.getObjectSummaries() ).thenReturn( createObjectSummaries( 0 ) ).thenReturn( new ArrayList<>() );
     when( childObjectListing.getCommonPrefixes() ).thenReturn( new ArrayList<>() ).thenReturn( createCommonPrefixes( 3 ) );
@@ -227,6 +229,7 @@ public class S3FileObjectTest {
     S3FileName newFileName = new S3FileName( SCHEME, someNewBucketName, someNewBucketName + "/" + someNewKey, FileType.FILE );
     S3FileObject newFile = new S3FileObject( newFileName, fileSystemSpy );
     ArgumentCaptor<CopyObjectRequest> copyObjectRequestArgumentCaptor = ArgumentCaptor.forClass( CopyObjectRequest.class );
+    when( s3ServiceMock.doesBucketExistV2( someNewBucketName ) ).thenReturn( true );
     s3FileObjectFileSpy.doRename( newFile );
 
     verify( s3ServiceMock ).copyObject( copyObjectRequestArgumentCaptor.capture() );

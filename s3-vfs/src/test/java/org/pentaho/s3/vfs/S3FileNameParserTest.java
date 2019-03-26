@@ -46,9 +46,15 @@ public class S3FileNameParserTest {
     String uri = "s3://bucket/file";
     FileName noBaseFile = parser.parseUri( context, null, uri );
     assertNotNull( noBaseFile );
+    assertEquals( "bucket", ( (S3FileName) noBaseFile ).getBucketId() );
     FileName withBaseFile = parser.parseUri( context, fileName, uri );
     assertNotNull( withBaseFile );
+    assertEquals( "bucket", ( (S3FileName) withBaseFile ).getBucketId() );
 
+    // assumption is that the whole URL is valid until it comes time to resolve to S3 objects
+    uri = "s3://s3/bucket/file";
+    withBaseFile = parser.parseUri( context, fileName, uri );
+    assertEquals( "s3", ( (S3FileName)withBaseFile ).getBucketId() );
   }
 
 }

@@ -349,6 +349,8 @@ public class S3FileObject extends AbstractFileObject {
 
     // 1. copy the file
     Pair<String, String> newSourcePath = fixFilePath( key, bucketName );
+    // Assumption: top-level buckets cannot be created here, so the new bucket must already exist or this should
+    // throw an error.
     Pair<String, String> newDestPath = fixFilePath( dest.key, dest.bucketName );
 
     CopyObjectRequest copyObjRequest = new CopyObjectRequest( newSourcePath.getValue(), newSourcePath.getKey(),
@@ -375,11 +377,12 @@ public class S3FileObject extends AbstractFileObject {
     String newBucket = bucket;
     String newKey = key;
 
-    //might actually be a folder name, but unlikely
-    if ( bucket.contains( "s3:" ) && !bucketExists( bucket ) ) {
-      if ( key.split( "/" ).length > 1 ) {
-        newBucket = key.split( "/" )[0];
-        newKey = key.replaceFirst( newBucket + "/", "" );
+    //see if the folder exists; if not, it might be from an old path and the real bucket is in the key
+    if ( !bucketExists( bucket ) ) {
+      logger.debug( "Bucket {} from original path not found, might be an old path from the old driver", bucket );
+      if ( key.split( DELIMITER ).length > 1 ) {
+        newBucket = key.split( DELIMITER )[0];
+        newKey = key.replaceFirst( newBucket + DELIMITER, "" );
       } else {
         newBucket = key;
         newKey = "";
