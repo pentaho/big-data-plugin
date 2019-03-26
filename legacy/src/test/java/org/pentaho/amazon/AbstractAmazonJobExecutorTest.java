@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -67,7 +67,7 @@ public class AbstractAmazonJobExecutorTest {
   public void testGetS3FileObjectPath_validPath() throws Exception {
 
     String stagingDirWithScheme = "s3://s3/emr/hive";
-    String expectedStagingDirPath = "/emr/hive";
+    String expectedStagingDirPath = "/s3/emr/hive";
 
     AWSCredentials credentials = mock( AWSCredentials.class );
     when( credentials.getAWSAccessKeyId() ).thenReturn( null );
