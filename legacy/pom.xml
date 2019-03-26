@@ -75,7 +75,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-iam</artifactId>
-      <version>${aws-java-sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -86,7 +85,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-core</artifactId>
-      <version>${aws-java-sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -101,7 +99,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-emr</artifactId>
-      <version>${aws-java-sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -112,7 +109,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-pricing</artifactId>
-      <version>${aws-java-sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
@@ -123,7 +119,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
-      <version>${aws-java-sdk.version}</version>
       <exclusions>
         <exclusion>
           <groupId>com.amazonaws</groupId>
