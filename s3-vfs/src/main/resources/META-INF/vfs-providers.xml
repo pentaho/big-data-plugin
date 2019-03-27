@@ -1,7 +1,7 @@
 <providers>
   <provider class-name="org.pentaho.s3n.vfs.S3NFileProvider">
     <scheme name="s3n"/>
-    <if-available class-name="org.jets3t.service.S3Service"/>
+    <if-available class-name="com.amazonaws.services.s3.AmazonS3"/>
   </provider>
   <provider class-name="org.pentaho.s3.vfs.S3FileProvider">
     <scheme name="s3"/>
