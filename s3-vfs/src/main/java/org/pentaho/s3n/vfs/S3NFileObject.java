@@ -118,9 +118,10 @@ public class S3NFileObject extends AbstractFileObject {
       }
     } else {
       //Getting files/folders in a folder/bucket
+      String prefix = key.isEmpty() || key.endsWith( DELIMITER ) ? key : key + DELIMITER;
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
         .withBucketName( bucketName )
-        .withPrefix( key )
+        .withPrefix( prefix )
         .withDelimiter( DELIMITER );
 
       ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
@@ -137,13 +138,13 @@ public class S3NFileObject extends AbstractFileObject {
 
       for ( S3ObjectSummary s3os : allSummaries ) {
         if ( !s3os.getKey().equals( realKey ) ) {
-          childrenList.add( s3os.getKey().substring( key.length() ) );
+          childrenList.add( s3os.getKey().substring( prefix.length() ) );
         }
       }
 
       for ( String commonPrefix : allCommonPrefixes ) {
         if ( !commonPrefix.equals( realKey ) ) {
-          childrenList.add( commonPrefix.substring( key.length() ) );
+          childrenList.add( commonPrefix.substring( prefix.length() ) );
         }
       }
     }
@@ -213,14 +214,24 @@ public class S3NFileObject extends AbstractFileObject {
         injectType( FileType.FOLDER );
         this.key = keyWithDelimiter;
       } catch ( AmazonS3Exception e2 ) {
-        //Folders don't really exist - they will generate a "NoSuckKey" exception
-        String errorCode = e2.getErrorCode();
-        // confirms key doesn't exist but connection okay
-        if ( !errorCode.equals( "NoSuchKey" ) ) {
-          // bubbling up other connection errors
-          logger.error( "Could not get information on " + getQualifiedName(),
-            e2 ); // make sure this gets printed for the user
-          throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), e2 );
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+          .withBucketName( bucketName )
+          .withPrefix( keyWithDelimiter )
+          .withDelimiter( DELIMITER );
+        ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
+
+        if ( ol.getCommonPrefixes().size() > 0 || ol.getObjectSummaries().size() > 0 ) {
+          injectType( FileType.FOLDER );
+        } else {
+          //Folders don't really exist - they will generate a "NoSuckKey" exception
+          String errorCode = e2.getErrorCode();
+          // confirms key doesn't exist but connection okay
+          if ( !errorCode.equals( "NoSuchKey" ) ) {
+            // bubbling up other connection errors
+            logger.error( "Could not get information on " + getQualifiedName(),
+              e2 ); // make sure this gets printed for the user
+            throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), e2 );
+          }
         }
       }
     }

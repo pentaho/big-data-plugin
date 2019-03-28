@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.annotations.VisibleForTesting;
 import javafx.util.Pair;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -41,7 +42,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class S3FileObject extends AbstractFileObject {
 
@@ -144,9 +147,10 @@ public class S3FileObject extends AbstractFileObject {
   private List<String> listChildFiles( Pair<String, String> pathPair, String realKey ) {
     List<String> childrenList = new ArrayList<>();
     //Getting files/folders in a folder/bucket
+    String prefix = pathPair.getKey().isEmpty() || pathPair.getKey().endsWith( DELIMITER ) ? pathPair.getKey() : pathPair.getKey() + DELIMITER;
     ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
       .withBucketName( pathPair.getValue() )
-      .withPrefix( pathPair.getKey() )
+      .withPrefix( prefix )
       .withDelimiter( DELIMITER );
 
     ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
@@ -163,13 +167,13 @@ public class S3FileObject extends AbstractFileObject {
 
     for ( S3ObjectSummary s3os : allSummaries ) {
       if ( !s3os.getKey().equals( realKey ) ) {
-        childrenList.add( s3os.getKey().substring( pathPair.getKey().length() ) );
+        childrenList.add( s3os.getKey().substring( prefix.length() ) );
       }
     }
 
     for ( String commonPrefix : allCommonPrefixes ) {
       if ( !commonPrefix.equals( realKey ) ) {
-        childrenList.add( commonPrefix.substring( pathPair.getKey().length() ) );
+        childrenList.add( commonPrefix.substring( prefix.length() ) );
       }
     }
     return childrenList;
@@ -245,14 +249,25 @@ public class S3FileObject extends AbstractFileObject {
         injectType( FileType.FOLDER );
         this.key = keyWithDelimiter;
       } catch ( AmazonS3Exception e2 ) {
-        //Folders don't really exist - they will generate a "NoSuckKey" exception
-        String errorCode = e2.getErrorCode();
-        // confirms key doesn't exist but connection okay
-        if ( !errorCode.equals( "NoSuchKey" ) ) {
-          // bubbling up other connection errors
-          logger.error( "Could not get information on " + getQualifiedName(),
-            e2 ); // make sure this gets printed for the user
-          throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), e2 );
+        String[] splittedKeys = keyWithDelimiter.split( DELIMITER );
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+          .withBucketName( splittedKeys[0] )
+          .withPrefix( getPrefixFromKeys( splittedKeys ) )
+          .withDelimiter( DELIMITER );
+        ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
+
+        if ( ol.getCommonPrefixes() .size() > 0 || ol.getObjectSummaries().size() > 0 ) {
+          injectType( FileType.FOLDER );
+        } else {
+          //Folders don't really exist - they will generate a "NoSuckKey" exception
+          String errorCode = e2.getErrorCode();
+          // confirms key doesn't exist but connection okay
+          if ( !errorCode.equals( "NoSuchKey" ) ) {
+            // bubbling up other connection errors
+            logger.error( "Could not get information on " + getQualifiedName(),
+              e2 ); // make sure this gets printed for the user
+            throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), e2 );
+          }
         }
       }
     }
@@ -389,5 +404,16 @@ public class S3FileObject extends AbstractFileObject {
       }
     }
     return new Pair<>( newKey, newBucket );
+  }
+
+  @VisibleForTesting
+  String getPrefixFromKeys( String[] keys ) {
+    if ( keys == null || keys.length <= 1 ) {
+      return "";
+    }
+
+    return Arrays.stream( keys )
+      .skip( 1 ) // skip the first element which is the bucket name
+      .collect( Collectors.joining( DELIMITER ) ) + DELIMITER; // join all other elements and end with a trailing /
   }
 }
