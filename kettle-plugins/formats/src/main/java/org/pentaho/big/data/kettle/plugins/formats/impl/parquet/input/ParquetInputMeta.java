@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,7 +19,6 @@
  * limitations under the License.
  *
  ******************************************************************************/
-
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input;
 
 import org.pentaho.big.data.api.cluster.NamedCluster;
@@ -27,21 +26,12 @@ import org.pentaho.big.data.api.cluster.NamedClusterService;
 import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.input.ParquetInputMetaBase;
 import org.pentaho.di.core.annotations.Step;
-import org.pentaho.di.core.exception.KettlePluginException;
-import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaFactory;
-import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.hadoop.shim.api.format.IParquetInputField;
-import org.pentaho.metastore.api.IMetaStore;
 
 @Step( id = "ParquetInput", image = "PI.svg", name = "ParquetInput.Name", description = "ParquetInput.Description",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
@@ -88,22 +78,5 @@ public class ParquetInputMeta extends ParquetInputMetaBase {
 
   public NamedClusterServiceLocator getNamedClusterServiceLocator() {
     return namedClusterServiceLocator;
-  }
-
-  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
-                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws
-    KettleStepException {
-    try {
-      for ( int i = 0; i < inputFields.length; i++ ) {
-        IParquetInputField field = inputFields[ i ];
-        String value = space.environmentSubstitute( field.getPentahoFieldName() );
-        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value,
-          field.getPentahoType() );
-        v.setOrigin( origin );
-        rowMeta.addValueMeta( v );
-      }
-    } catch ( KettlePluginException e ) {
-      throw new KettleStepException( "Unable to create value type", e );
-    }
   }
 }
