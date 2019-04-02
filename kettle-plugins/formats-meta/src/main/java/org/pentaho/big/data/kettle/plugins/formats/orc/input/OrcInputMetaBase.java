@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,7 +19,6 @@
  * limitations under the License.
  *
  ******************************************************************************/
-
 package org.pentaho.big.data.kettle.plugins.formats.orc.input;
 
 import java.util.List;
@@ -31,17 +30,24 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.AliasedFileObject;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileInputAdditionalField;
 import org.pentaho.di.trans.steps.file.BaseFileInputMeta;
 import org.pentaho.di.workarounds.ResolvableResource;
+import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.hadoop.shim.api.format.OrcSpec;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
@@ -300,6 +306,36 @@ public abstract class OrcInputMetaBase extends
           throw new RuntimeException( e );
         }
       }
+    }
+  }
+
+  @Override
+  public void getFields( RowMetaInterface rowMeta, String origin, RowMetaInterface[] info, StepMeta nextStep,
+                         VariableSpace space, Repository repository, IMetaStore metaStore ) throws
+    KettleStepException {
+    try {
+      if ( !inputFiles.passingThruFields ) {
+        // all incoming fields are not transmitted !
+        rowMeta.clear();
+      } else {
+        if ( info != null ) {
+          boolean found = false;
+          for ( int i = 0; i < info.length && !found; i++ ) {
+            if ( info[i] != null ) {
+              rowMeta.mergeRowMeta( info[i], origin );
+              found = true;
+            }
+          }
+        }
+      }
+      for ( IOrcInputField field : getInputFields() ) {
+        String value = space.environmentSubstitute( field.getPentahoFieldName() );
+        ValueMetaInterface v = ValueMetaFactory.createValueMeta( value, field.getPentahoType() );
+        v.setOrigin( origin );
+        rowMeta.addValueMeta( v );
+      }
+    } catch ( KettlePluginException e ) {
+      throw new KettleStepException( "Unable to create value type", e );
     }
   }
 }
