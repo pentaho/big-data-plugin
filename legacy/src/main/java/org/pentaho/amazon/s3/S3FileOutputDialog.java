@@ -59,12 +59,15 @@ import org.pentaho.amazon.AmazonSpoonPlugin;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.compress.CompressionProviderFactory;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -1201,10 +1204,27 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
           if ( StringUtils.isEmpty( wFilename.getText().trim() ) ) {
             wFilename.setText( "s3n://s3n/" );
           }
+          /* For legacy transformations containing AWS S3 access credentials, {@link Const#KETTLE_USE_AWS_DEFAULT_CREDENTIALS} can force Spoon to use
+           * the Amazon Default Credentials Provider Chain instead of using the credentials embedded in the transformation metadata. */
+          if ( !ValueMetaBase.convertStringToBoolean( Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS ), "N" ) ) ) {
+            System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, transMeta.environmentSubstitute( wAccessKey.getText() ) );
+            System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, transMeta.environmentSubstitute( wSecretKey.getText() ) );
+          }
 
-          FileObject selectedFile =
-            getFileChooserHelper().browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),
-              VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.AccessKey",
+            Encr.encryptPasswordIfNotUsingVariables( wAccessKey.getText() ) );
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.SecretKey",
+            Encr.encryptPasswordIfNotUsingVariables( wSecretKey.getText() ) );
+          Props.getInstance().setCustomParameter( "S3VfsFileChooserDialog.Filename", wFilename.getText() );
+
+
+            FileObject selectedFile =
+              getFileChooserHelper().browse( fileFilters, fileFilterNames, wFilename.getText(), getFileSystemOptions(),
+                VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY );
+
+          System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, "" );
+          System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, "" );
+
           if ( selectedFile != null ) {
             String filename = selectedFile.getName().getURI();
             String extension = wExtension.getText();
@@ -1659,11 +1679,15 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   protected VfsFileChooserDialog getFileChooserDialog() throws KettleFileException {
     if ( this.fileChooserDialog == null ) {
-      FileObject initialFile = null;
-      FileObject defaultInitialFile = KettleVFS.getFileObject( "s3n://s3n" );
+      String filename = wFilename.getText();
+      String defaultFileObject = "s3n://s3n";
+      if ( !StringUtils.isEmpty( filename ) && filename.startsWith( "s3://s3" ) ) {
+        defaultFileObject = "s3://s3";
+      }
+      FileObject defaultInitialFile = KettleVFS.getFileObject( defaultFileObject );
 
       VfsFileChooserDialog fileChooserDialog =
-        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, initialFile );
+        Spoon.getInstance().getVfsFileChooserDialog( defaultInitialFile, null );
       this.fileChooserDialog = fileChooserDialog;
     }
     return this.fileChooserDialog;
