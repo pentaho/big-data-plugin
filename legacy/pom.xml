@@ -77,8 +77,8 @@
       <artifactId>aws-java-sdk-iam</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>jmespath-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -87,8 +87,12 @@
       <artifactId>aws-java-sdk-core</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-cbor</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>software.amazon.ion</groupId>
+          <artifactId>ion-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -97,8 +101,8 @@
       <artifactId>aws-java-sdk-emr</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>jmespath-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -107,8 +111,8 @@
       <artifactId>aws-java-sdk-pricing</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>jmespath-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -117,8 +121,12 @@
       <artifactId>aws-java-sdk-s3</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-kms</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>jmespath-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
