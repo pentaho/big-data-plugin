@@ -15,6 +15,7 @@
     <apache-xmlgraphics.revision>1.9.1</apache-xmlgraphics.revision>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
+    <jsch.version>0.1.54</jsch.version>
   </properties>
   <dependencies>
     <dependency>
@@ -120,7 +121,7 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.46</version>
+      <version>${jsch.version}</version>
     </dependency>
     <dependency>
       <groupId>com.lowagie</groupId>
