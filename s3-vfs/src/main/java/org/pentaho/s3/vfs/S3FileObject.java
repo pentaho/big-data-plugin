@@ -28,7 +28,6 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
-import javafx.util.Pair;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -45,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.AbstractMap.SimpleEntry;
 
 public class S3FileObject extends AbstractFileObject {
 
@@ -124,7 +125,7 @@ public class S3FileObject extends AbstractFileObject {
     List<String> childrenList = new ArrayList<>();
 
     //see if bucket name needs to be adjusted from old driver pattern
-    Pair<String, String> newPath = fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
 
     // fix cases where the path doesn't include the final delimiter
     String realKey = newPath.getKey();
@@ -144,7 +145,7 @@ public class S3FileObject extends AbstractFileObject {
     return childrenList;
   }
 
-  private List<String> listChildFiles( Pair<String, String> pathPair, String realKey ) {
+  private List<String> listChildFiles( SimpleEntry<String, String> pathPair, String realKey ) {
     List<String> childrenList = new ArrayList<>();
     //Getting files/folders in a folder/bucket
     String prefix = pathPair.getKey().isEmpty() || pathPair.getKey().endsWith( DELIMITER ) ? pathPair.getKey() : pathPair.getKey() + DELIMITER;
@@ -197,7 +198,7 @@ public class S3FileObject extends AbstractFileObject {
       return s3Object;
     } else {
       logger.debug( "Getting object {}", getQualifiedName() );
-      Pair<String, String> newPath = fixFilePath( key, bucketName );
+      SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
       return fileSystem.getS3Client().getObject( newPath.getValue(), newPath.getKey() );
     }
   }
@@ -219,7 +220,7 @@ public class S3FileObject extends AbstractFileObject {
   }
 
   private boolean isRootBucket() {
-    Pair<String, String> newPath = fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
     return newPath.getKey().equals( "" );
   }
 
@@ -285,7 +286,7 @@ public class S3FileObject extends AbstractFileObject {
   public void doDelete() throws FileSystemException {
 
     //see if bucket name needs to be adjusted from old driver pattern
-    Pair<String, String> newPath = fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
 
     // can only delete folder if empty
     if ( getType() == FileType.FOLDER ) {
@@ -310,7 +311,7 @@ public class S3FileObject extends AbstractFileObject {
 
   @Override
   protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
-    Pair<String, String> newPath = fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
     return new S3PipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey() );
   }
 
@@ -331,7 +332,7 @@ public class S3FileObject extends AbstractFileObject {
       InputStream emptyContent = new ByteArrayInputStream( new byte[ 0 ] );
 
       // create a PutObjectRequest passing the folder name suffixed by /
-      Pair<String, String> newPath = fixFilePath( key, bucketName );
+      SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
 
       PutObjectRequest putObjectRequest =
         new PutObjectRequest( newPath.getValue(), newPath.getKey() + DELIMITER, emptyContent, metadata );
@@ -363,10 +364,10 @@ public class S3FileObject extends AbstractFileObject {
     S3FileObject dest = (S3FileObject) newFile;
 
     // 1. copy the file
-    Pair<String, String> newSourcePath = fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newSourcePath = fixFilePath( key, bucketName );
     // Assumption: top-level buckets cannot be created here, so the new bucket must already exist or this should
     // throw an error.
-    Pair<String, String> newDestPath = fixFilePath( dest.key, dest.bucketName );
+    SimpleEntry<String, String> newDestPath = fixFilePath( dest.key, dest.bucketName );
 
     CopyObjectRequest copyObjRequest = new CopyObjectRequest( newSourcePath.getValue(), newSourcePath.getKey(),
       newDestPath.getValue(), newDestPath.getKey() );
@@ -388,7 +389,7 @@ public class S3FileObject extends AbstractFileObject {
   // Check if the given bucket name starts with s3:.  If so, the bucket name is probably an artifact of the old S3 file
   // system implementation and no part of the real path.  Return an adjusted bucket and key pair for use in talking to
   // the S3 service.
-  protected Pair<String, String> fixFilePath( String key, String bucket ) {
+  protected SimpleEntry<String, String> fixFilePath( String key, String bucket ) {
     String newBucket = bucket;
     String newKey = key;
 
@@ -403,7 +404,7 @@ public class S3FileObject extends AbstractFileObject {
         newKey = "";
       }
     }
-    return new Pair<>( newKey, newBucket );
+    return new SimpleEntry<>( newKey, newBucket );
   }
 
   @VisibleForTesting

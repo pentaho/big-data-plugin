@@ -29,7 +29,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.UploadPartResult;
-import javafx.util.Pair;
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -51,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.AbstractMap.SimpleEntry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -301,7 +301,7 @@ public class S3FileObjectTest {
   public void testFixFilePathToFile() {
     String bucketName = "s3:/";
     String key = "bucketName/some/key/path";
-    Pair<String, String> newPath = s3FileObjectBucketSpy.fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newPath = s3FileObjectBucketSpy.fixFilePath( key, bucketName );
     assertEquals( "bucketName", newPath.getValue() );
     assertEquals( "some/key/path", newPath.getKey() );
   }
@@ -310,7 +310,7 @@ public class S3FileObjectTest {
   public void testFixFilePathToFolder() {
     String bucketName = "s3:/";
     String key = "bucketName";
-    Pair<String, String> newPath = s3FileObjectBucketSpy.fixFilePath( key, bucketName );
+    SimpleEntry<String, String> newPath = s3FileObjectBucketSpy.fixFilePath( key, bucketName );
     assertEquals( "bucketName", newPath.getValue() );
     assertEquals( "", newPath.getKey() );
   }
