@@ -14,7 +14,7 @@
 * limitations under the License.
 *
 */
-package org.pentaho.s3.vfs;
+package org.pentaho.s3n.vfs;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -28,13 +28,13 @@ import static org.mockito.Mockito.mock;
 /**
  * Unit tests for S3FileProvider
  */
-public class S3FileProviderTest {
+public class S3NFileProviderTest {
 
-  S3FileProvider provider;
+  S3NFileProvider provider;
 
   @Before
-  public void setUp() throws Exception {
-    provider = new S3FileProvider();
+  public void setUp() {
+    provider = new S3NFileProvider();
   }
 
   @Test

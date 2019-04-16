@@ -14,7 +14,7 @@
 * limitations under the License.
 *
 */
-package org.pentaho.s3.vfs;
+package org.pentaho.s3n.vfs;
 
 import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileSystemOptions;
@@ -22,16 +22,17 @@ import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.UserAuthenticationData;
 import org.apache.commons.vfs2.UserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
-import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.s3.vfs.S3FileName;
+import org.pentaho.s3.vfs.S3FileNameTest;
+import org.pentaho.s3.vfs.S3FileProvider;
+import org.pentaho.s3.vfs.S3FileSystem;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,24 +40,25 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for S3FileSystem
  */
-public class S3FileSystemTest {
+public class S3NFileSystemTest {
 
-  S3FileSystem fileSystem;
-  S3FileName fileName;
+  S3NFileSystem fileSystem;
+  S3NFileName fileName;
 
   @Before
   public void setUp() throws Exception {
-    fileName = new S3FileName(
+    fileName = new S3NFileName(
       S3FileNameTest.SCHEME,
       "/",
       "",
       FileType.FOLDER );
-    fileSystem = new S3FileSystem( fileName, new FileSystemOptions() );
+    fileSystem = new S3NFileSystem( fileName, new FileSystemOptions() );
   }
+
 
   @Test
   public void testCreateFile() throws Exception {
-    assertNotNull( fileSystem.createFile( new S3FileName( "s3", "bucketName", "/bucketName/key", FileType.FILE ) ) );
+    assertNotNull( fileSystem.createFile( new S3FileName( "s3n", "bucketName", "/bucketName/key", FileType.FILE ) ) );
   }
 
   @Test
@@ -71,7 +73,7 @@ public class S3FileSystemTest {
     when( authData.getData( UserAuthenticationData.PASSWORD ) ).thenReturn( "password".toCharArray() );
     DefaultFileSystemConfigBuilder.getInstance().setUserAuthenticator( options, authenticator );
 
-    fileSystem = new S3FileSystem( fileName, options );
+    fileSystem = new S3NFileSystem( fileName, options );
     assertNotNull( fileSystem.getS3Client() );
   }
 }

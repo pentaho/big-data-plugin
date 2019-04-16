@@ -17,58 +17,20 @@
 
 package org.pentaho.s3n.vfs;
 
-import java.util.Collection;
-
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractFileName;
-import org.apache.commons.vfs2.provider.AbstractFileSystem;
-import org.pentaho.amazon.s3.S3Util;
+import org.pentaho.s3common.S3CommonFileSystem;
 
-public class S3NFileSystem extends AbstractFileSystem implements FileSystem {
-
-  private String awsAccessKeyCache;
-  private String awsSecretKeyCache;
-  private AmazonS3 client;
+public class S3NFileSystem extends S3CommonFileSystem {
 
   protected S3NFileSystem( final FileName rootName, final FileSystemOptions fileSystemOptions ) {
-    super( rootName, null, fileSystemOptions );
-  }
-
-  @SuppressWarnings( "unchecked" )
-  protected void addCapabilities( Collection caps ) {
-    caps.addAll( S3NFileProvider.capabilities );
+    super( rootName, fileSystemOptions );
   }
 
   protected FileObject createFile( AbstractFileName name ) throws Exception {
     return new S3NFileObject( name, this );
   }
 
-  public AmazonS3 getS3Client() {
-    if ( client == null || hasClientChangedCredentials() ) {
-      try {
-        client = AmazonS3ClientBuilder.standard()
-          .enableForceGlobalBucketAccess()
-          .withRegion( Regions.DEFAULT_REGION )
-          .build();
-        awsAccessKeyCache = System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY );
-        awsSecretKeyCache = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
-      } catch ( Throwable t ) {
-        System.out.println( "Could not get an S3Client" );
-        t.printStackTrace();
-      }
-    }
-    return client;
-  }
-
-  private boolean hasClientChangedCredentials() {
-    return client != null
-      && ( S3Util.hasChanged( awsAccessKeyCache, System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY ) )
-      || S3Util.hasChanged( awsSecretKeyCache, System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY ) ) );
-  }
 }

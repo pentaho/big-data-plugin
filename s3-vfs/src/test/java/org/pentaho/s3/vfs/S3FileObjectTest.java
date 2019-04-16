@@ -17,6 +17,7 @@
 package org.pentaho.s3.vfs;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
@@ -43,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.AbstractMap.SimpleEntry;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -59,10 +62,6 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.atMost;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * created by: dzmitry_bahdanovich date: 10/18/13
@@ -84,7 +83,6 @@ public class S3FileObjectTest {
   private S3FileObject s3FileObjectSpyRoot;
   private AmazonS3 s3ServiceMock;
   private static final String S3VFS_USE_TEMPORARY_FILE_ON_UPLOAD_DATA = "s3.vfs.useTempFileOnUploadData";
-  private S3DataContent s3DataContent;
   private ObjectListing childObjectListing;
   private S3Object s3ObjectMock;
   private S3ObjectInputStream s3ObjectInputStream;
@@ -103,7 +101,7 @@ public class S3FileObjectTest {
     s3Object.setKey( OBJECT_NAME );
     s3Object.setBucketName( BUCKET_NAME );
 
-    filename = new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME, FileType.FILE );
+    filename = new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME, FileType.FOLDER );
     S3FileName rootFileName = new S3FileName( SCHEME, "", "", FileType.FOLDER );
     S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions() );
     fileSystemSpy = spy( fileSystem );
@@ -153,11 +151,6 @@ public class S3FileObjectTest {
     when( fileSystemSpy.getS3Client() ).thenReturn( s3ServiceMock );
   }
 
-  @After
-  public void tearDown() throws Exception {
-    s3DataContent = null;
-  }
-
   @Test
   public void testGetS3Object() throws Exception {
     when( s3ServiceMock.getObject( anyString(), anyString() ) ).thenReturn( new S3Object() );
@@ -171,11 +164,6 @@ public class S3FileObjectTest {
     filename = new S3FileName( SCHEME, BUCKET_NAME, "", FileType.FOLDER );
     when( s3FileObjectBucketSpy.getName() ).thenReturn( filename );
     s3FileObjectBucketSpy.getS3BucketName();
-  }
-
-  @Test
-  public void testDoGetContentSize() throws Exception {
-    assertEquals( contentLength, s3FileObjectBucketSpy.doGetContentSize() );
   }
 
   @Test
@@ -200,12 +188,12 @@ public class S3FileObjectTest {
 
   @Test
   public void testDoGetInputStream() throws Exception {
-    assertNotNull( s3FileObjectBucketSpy.doGetInputStream() );
+    assertNotNull( s3FileObjectBucketSpy.getInputStream() );
   }
 
   @Test
   public void testDoGetTypeImaginary() throws Exception {
-    assertEquals( FileType.IMAGINARY, s3FileObjectFileSpy.doGetType() );
+    assertEquals( FileType.IMAGINARY, s3FileObjectFileSpy.getType() );
   }
 
   @Test
@@ -213,15 +201,15 @@ public class S3FileObjectTest {
     FileName mockFile = mock( FileName.class );
     when( s3FileObjectBucketSpy.getName() ).thenReturn( mockFile );
     when( mockFile.getPath() ).thenReturn( S3FileObject.DELIMITER );
-    assertEquals( FileType.FOLDER, s3FileObjectBucketSpy.doGetType() );
+    assertEquals( FileType.FOLDER, s3FileObjectBucketSpy.getType() );
   }
 
   @Test
   public void testDoCreateFolder() throws Exception {
     S3FileObject notRootBucket = spy(
-      new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.FOLDER ),
+      new S3FileObject( new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME + "/" + origKey, FileType.IMAGINARY ),
         fileSystemSpy ) );
-    notRootBucket.doCreateFolder();
+    notRootBucket.createFolder();
     ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor = ArgumentCaptor.forClass( PutObjectRequest.class );
     verify( s3ServiceMock ).putObject( putObjectRequestArgumentCaptor.capture() );
     assertEquals( BUCKET_NAME, putObjectRequestArgumentCaptor.getValue().getBucketName() );
@@ -244,6 +232,7 @@ public class S3FileObjectTest {
 
   @Test
   public void testDoDelete() throws Exception {
+    fileSystemSpy.init();
     s3FileObjectBucketSpy.doDelete();
     verify( s3ServiceMock ).deleteObject( "bucket3", "key0" );
     verify( s3ServiceMock ).deleteObject( "bucket3", "key1" );
@@ -259,7 +248,7 @@ public class S3FileObjectTest {
     S3FileObject newFile = new S3FileObject( newFileName, fileSystemSpy );
     ArgumentCaptor<CopyObjectRequest> copyObjectRequestArgumentCaptor = ArgumentCaptor.forClass( CopyObjectRequest.class );
     when( s3ServiceMock.doesBucketExistV2( someNewBucketName ) ).thenReturn( true );
-    s3FileObjectFileSpy.doRename( newFile );
+    s3FileObjectFileSpy.moveTo( newFile );
 
     verify( s3ServiceMock ).copyObject( copyObjectRequestArgumentCaptor.capture() );
     assertEquals( someNewBucketName, copyObjectRequestArgumentCaptor.getValue().getDestinationBucketName() );
@@ -323,31 +312,40 @@ public class S3FileObjectTest {
   }
 
   @Test
-  public void getPrefixFromKeysOneKeyTest() {
-    assertEquals( "key/",
-      s3FileObjectBucketSpy.getPrefixFromKeys( new String[] { "module", "key" } ) );
+  public void testHandleAttachException() throws FileSystemException {
+    String testKey = BUCKET_NAME + "/" + origKey;
+    String testBucket = "badBucketName";
+    AmazonS3Exception exception = new AmazonS3Exception("NoSuchKey");
+
+    //test the case where the folder exists and contains things; no exception should be thrown
+    when( s3ServiceMock.getObject( BUCKET_NAME, origKey + "/" ) ).thenThrow( exception );
+    try {
+      s3FileObjectFileSpy.handleAttachException( testKey, testBucket );
+    } catch ( FileSystemException e ) {
+      fail( "Caught exception " + e.getMessage() );
+    }
+    assertEquals( FileType.FOLDER, s3FileObjectFileSpy.getType() );
   }
 
   @Test
-  public void getPrefixFromKeysTest() {
-    assertEquals( "key/key2/key3/key4/",
-      s3FileObjectBucketSpy.getPrefixFromKeys( new String[] { "module", "key", "key2", "key3", "key4" } ) );
-  }
+  public void testHandleAttachExceptionEmptyFolder() throws FileSystemException {
+    String testKey = BUCKET_NAME + "/" + origKey;
+    String testBucket = "badBucketName";
+    AmazonS3Exception exception = new AmazonS3Exception("NoSuchKey");
+    exception.setErrorCode("NoSuchKey");
 
-  @Test
-  public void getPrefixFromKeysOnlyModuleTest() {
-    assertEquals( "", s3FileObjectBucketSpy.getPrefixFromKeys( new String[] { "module" } ) );
-  }
-
-  @Test
-  public void getPrefixFromKeysEmptyTest() {
-    assertEquals( "", s3FileObjectBucketSpy.getPrefixFromKeys( new String[] { "" } ) );
-  }
-
-  @Test
-  public void getPrefixFromKeysNullTest() {
-    String expectedPrefix = "";
-    assertEquals( expectedPrefix, s3FileObjectBucketSpy.getPrefixFromKeys( null ) );
+    //test the case where the folder exists and contains things; no exception should be thrown
+    when( s3ServiceMock.getObject( BUCKET_NAME, origKey + "/" ) ).thenThrow( exception );
+    childObjectListing = mock( ObjectListing.class );
+    when( childObjectListing.getObjectSummaries() ).thenReturn( new ArrayList<>() );
+    when( childObjectListing.getCommonPrefixes() ).thenReturn( new ArrayList<>() );
+    when( s3ServiceMock.listObjects( any( ListObjectsRequest.class ) ) ).thenReturn( childObjectListing );
+    try {
+      s3FileObjectFileSpy.handleAttachException( testKey, testBucket );
+    } catch ( FileSystemException e ) {
+      fail( "Caught exception " + e.getMessage() );
+    }
+    assertEquals( FileType.IMAGINARY, s3FileObjectFileSpy.getType() );
   }
 
   private List<Bucket> createBuckets() {

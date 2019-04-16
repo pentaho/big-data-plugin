@@ -15,7 +15,7 @@
  *
  */
 
-package org.pentaho.s3.vfs;
+package org.pentaho.s3common;
 
 import java.io.ByteArrayInputStream;
 
@@ -25,9 +25,9 @@ import java.io.ByteArrayInputStream;
  * @author asimoes
  * @since 09-11-2017
  */
-public class S3WindowedSubstream extends ByteArrayInputStream {
+public class S3CommonWindowedSubstream extends ByteArrayInputStream {
 
-  public S3WindowedSubstream( byte[] buf ) {
+  public S3CommonWindowedSubstream( byte[] buf ) {
     super( buf );
   }
 

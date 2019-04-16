@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2018 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,13 @@
 
 package org.pentaho.s3n.vfs;
 
-import org.apache.commons.vfs2.Capability;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystem;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemOptions;
-import org.apache.commons.vfs2.UserAuthenticationData;
-import org.apache.commons.vfs2.provider.AbstractOriginatingFileProvider;
+import org.pentaho.s3common.S3CommonFileProvider;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
-public class S3NFileProvider extends AbstractOriginatingFileProvider {
+public class S3NFileProvider extends S3CommonFileProvider {
 
   /**
    * The scheme this provider was designed to support
@@ -41,33 +35,6 @@ public class S3NFileProvider extends AbstractOriginatingFileProvider {
    */
   public static final String ATTR_USER_INFO = "UI";
 
-  /**
-   * Authentication types.
-   */
-  public static final UserAuthenticationData.Type[] AUTHENTICATOR_TYPES =
-    new UserAuthenticationData.Type[] {
-      UserAuthenticationData.USERNAME,
-      UserAuthenticationData.PASSWORD
-    };
-
-  /**
-   * The provider's capabilities.
-   */
-  protected static final Collection<Capability> capabilities =
-    Collections.unmodifiableCollection( Arrays.asList(
-      new Capability[] {
-        Capability.CREATE,
-        Capability.DELETE,
-        Capability.RENAME,
-        Capability.GET_TYPE,
-        Capability.LIST_CHILDREN,
-        Capability.READ_CONTENT,
-        Capability.URI,
-        Capability.WRITE_CONTENT,
-        Capability.GET_LAST_MODIFIED,
-        Capability.RANDOM_ACCESS_READ
-      } ) );
-
   public S3NFileProvider() {
     super();
     setFileNameParser( S3NFileNameParser.getInstance() );
@@ -78,7 +45,4 @@ public class S3NFileProvider extends AbstractOriginatingFileProvider {
     return new S3NFileSystem( name, fileSystemOptions );
   }
 
-  public Collection<Capability> getCapabilities() {
-    return capabilities;
-  }
 }

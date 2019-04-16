@@ -15,7 +15,7 @@
  *
  */
 
-package org.pentaho.s3.vfs;
+package org.pentaho.s3common;
 
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
@@ -41,19 +41,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Custom OutputStream that enables chunked uploads into S3
  */
-public class S3PipedOutputStream extends PipedOutputStream {
+public class S3CommonPipedOutputStream extends PipedOutputStream {
   private static int PART_SIZE = 1024 * 1024 * 5;
   private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool( 1 );
   private boolean initialized = false;
   private boolean blockedUntilDone = true;
   private PipedInputStream pipedInputStream;
   private S3AsyncTransferRunner s3AsyncTransferRunner;
-  private S3FileSystem fileSystem;
+  private S3CommonFileSystem fileSystem;
   private Future<Boolean> result = null;
   private String bucketId;
   private String key;
 
-  public S3PipedOutputStream( S3FileSystem fileSystem, String bucketId, String key ) throws IOException {
+  public S3CommonPipedOutputStream( S3CommonFileSystem fileSystem, String bucketId, String key ) throws IOException {
     this.pipedInputStream = new PipedInputStream();
 
     try {
@@ -100,25 +100,23 @@ public class S3PipedOutputStream extends PipedOutputStream {
   public void close() throws IOException {
     super.close();
 
-    if ( initialized ) {
-      if ( isBlockedUntilDone() ) {
-        while ( !result.isDone() ) {
-          try {
-            Thread.sleep( 100 );
-          } catch ( InterruptedException e ) {
-            e.printStackTrace();
-          }
+    if ( initialized && isBlockedUntilDone() ) {
+      while ( !result.isDone() ) {
+        try {
+          Thread.sleep( 100 );
+        } catch ( InterruptedException e ) {
+          e.printStackTrace();
+          Thread.currentThread().interrupt();
         }
       }
     }
-
     this.executor.shutdown();
   }
 
   class S3AsyncTransferRunner implements Callable<Boolean> {
 
     public Boolean call() throws Exception {
-      boolean result = true;
+      boolean returnVal = true;
       List<PartETag> partETags = new ArrayList<PartETag>();
 
       // Step 1: Initialize
@@ -128,17 +126,20 @@ public class S3PipedOutputStream extends PipedOutputStream {
       ObjectMetadata objectMetadata;
       initRequest = new InitiateMultipartUploadRequest( bucketId, key );
 
-      InitiateMultipartUploadResult initResponse = fileSystem.getS3Client().initiateMultipartUpload( initRequest );
-      ByteArrayOutputStream baos = new ByteArrayOutputStream( PART_SIZE );
+      InitiateMultipartUploadResult initResponse = null;
 
-      try {
+
+      try ( ByteArrayOutputStream baos = new ByteArrayOutputStream( PART_SIZE );
+            BufferedInputStream bis = new BufferedInputStream( pipedInputStream, PART_SIZE ) ) {
+        initResponse = fileSystem.getS3Client().initiateMultipartUpload( initRequest );
         // Step 2: Upload parts.
         byte[] tmpBuffer = new byte[ PART_SIZE ];
-        int read, offset = 0;
+        int read = 0;
+        int offset = 0;
         int totalRead = 0;
         int partNum = 1;
-        BufferedInputStream bis = new BufferedInputStream( pipedInputStream, PART_SIZE );
-        S3WindowedSubstream s3is;
+
+        S3CommonWindowedSubstream s3is;
 
         while ( ( read = bis.read( tmpBuffer ) ) >= 0 ) {
 
@@ -149,7 +150,7 @@ public class S3PipedOutputStream extends PipedOutputStream {
           }
 
           if ( totalRead > PART_SIZE ) { // do we have a minimally accepted chunk above 5Mb?
-            s3is = new S3WindowedSubstream( baos.toByteArray() );
+            s3is = new S3CommonWindowedSubstream( baos.toByteArray() );
 
             UploadPartRequest uploadRequest = new UploadPartRequest()
               .withBucketName( bucketId ).withKey( key )
@@ -168,7 +169,7 @@ public class S3PipedOutputStream extends PipedOutputStream {
         }
 
         // Step 2.1 upload last part
-        s3is = new S3WindowedSubstream( baos.toByteArray() );
+        s3is = new S3CommonWindowedSubstream( baos.toByteArray() );
 
         UploadPartRequest uploadRequest = new UploadPartRequest()
           .withBucketName( bucketId ).withKey( key )
@@ -187,14 +188,16 @@ public class S3PipedOutputStream extends PipedOutputStream {
         fileSystem.getS3Client().completeMultipartUpload( compRequest );
       } catch ( Exception e ) {
         e.printStackTrace();
-        fileSystem.getS3Client()
-          .abortMultipartUpload( new AbortMultipartUploadRequest( bucketId, key, initResponse.getUploadId() ) );
-        result = false;
-      } finally {
-        baos.close();
+        if ( initResponse == null ) {
+          close();
+        } else {
+          fileSystem.getS3Client()
+            .abortMultipartUpload( new AbortMultipartUploadRequest( bucketId, key, initResponse.getUploadId() ) );
+        }
+        returnVal = false;
       }
 
-      return result;
+      return returnVal;
     }
   }
 }

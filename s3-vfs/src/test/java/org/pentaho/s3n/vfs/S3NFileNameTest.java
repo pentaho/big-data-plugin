@@ -15,30 +15,27 @@
 *
 */
 
-package org.pentaho.s3.vfs;
+package org.pentaho.s3n.vfs;
 
 import org.apache.commons.vfs2.FileType;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.pentaho.s3.vfs.S3FileName;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import static junit.framework.Assert.assertEquals;
 
 /**
  * created by: rfellows date:       05/17/2012
  */
-public class S3FileNameTest {
+public class S3NFileNameTest {
 
-  private S3FileName fileName = null;
-
-  public static final String awsAccessKey = "ABC123456DEF7890";             // fake out a key
-  public static final String awsSecretKey = "A+123456BCD99/99999999ZZZ+B";   // fake out a secret key
+  private S3NFileName fileName = null;
 
   public static final String HOST = "S3";
-  public static final String SCHEME = "s3";
+  public static final String SCHEME = "s3n";
   public static final int PORT = 843;
 
   @BeforeClass
@@ -47,7 +44,7 @@ public class S3FileNameTest {
 
   @Before
   public void setup() {
-    fileName = new S3FileName( SCHEME, "/", "", FileType.FOLDER );
+    fileName = new S3NFileName( SCHEME, "", "", FileType.FOLDER );
   }
 
   @Test
@@ -56,25 +53,24 @@ public class S3FileNameTest {
     assertEquals( expected, fileName.getURI() );
   }
 
-
   @Test
-  public void testCreateName() throws Exception {
-    assertEquals( "s3:///path/to/my/file",
+  public void testCreateName() {
+    assertEquals( "s3n:///path/to/my/file",
             fileName.createName( "/path/to/my/file", FileType.FILE ).getURI() );
   }
 
   @Test
-  public void testAppendRootUriWithNonDefaultPort() throws Exception {
-    fileName = new S3FileName( SCHEME, "/", "FooFolder", FileType.FOLDER );
+  public void testAppendRootUriWithNonDefaultPort() {
+    fileName = new S3NFileName( SCHEME, "", "FooFolder", FileType.FOLDER );
     String expectedUri = SCHEME + "://" + "FooFolder";
     assertEquals( expectedUri, fileName.getURI() );
 
-    fileName = new S3FileName( SCHEME, "FooBucket", "FooBucket/FooFolder", FileType.FOLDER );
-    expectedUri = SCHEME + "://FooBucket/" + "FooFolder";
+    fileName = new S3NFileName( SCHEME, "FooBucket", "/FooBucket/FooFolder", FileType.FOLDER );
+    expectedUri = SCHEME + "://FooBucket/FooBucket/" + "FooFolder";
     assertEquals( expectedUri, fileName.getURI() );
   }
 
-  public static String buildS3URL( String path ) throws UnsupportedEncodingException {
+  public static String buildS3URL( String path ) {
     return SCHEME + "://" + path;
   }
 
