@@ -93,7 +93,7 @@
         <include>javadbf:javadbf</include>
         <include>org.javassist:javassist</include>
         <include>javax.activation:activation</include>
-        <include>javax.mail:mail</include>
+        <include>com.sun.mail:javax.mail</include>
         <include>javax.servlet:jsp-api</include>
         <include>javax.servlet:javax.servlet-api</include>
         <include>javax.validation:validation-api</include>
