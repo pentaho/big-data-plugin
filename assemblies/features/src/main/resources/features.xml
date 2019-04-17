@@ -52,6 +52,15 @@
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-driver/8.3.0.0-SNAPSHOT</bundle>
   </feature>
 
+  <feature name="shim-common-fragment-V3" version="1.0">
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V3/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V3/8.3.0.0-SNAPSHOT</bundle>
+  </feature>
+  <feature name="pentaho-hadoop-shims-hdp31" version="1.0">
+    <feature>shim-common-fragment-V3</feature>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp31-driver/8.3.0.0-SNAPSHOT</bundle>
+  </feature>
+
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
     <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
   </feature>
@@ -111,6 +120,7 @@
     <conditional>
       <condition>community-edition</condition>
       <feature>pentaho-hadoop-shims-hdp26</feature>
+      <feature>pentaho-hadoop-shims-hdp31</feature>
       <feature>pentaho-hadoop-shims-cdh514</feature>
       <feature>pentaho-hadoop-shims-cdh61</feature>
     </conditional>
