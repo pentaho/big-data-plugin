@@ -12,7 +12,6 @@
   <packaging>pom</packaging>
   <modules>
     <module>common</module>
-    <module>initializer</module>
     <module>shimTests</module>
   </modules>
 </project>
