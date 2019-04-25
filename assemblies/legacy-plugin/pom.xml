@@ -184,9 +184,8 @@
       <version>${pdi.version}</version>
     </dependency>
     <dependency>
-      <groupId>libthrift</groupId>
+      <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>${dependency.libthrift.revision}</version>
     </dependency>
     <dependency>
       <groupId>xmlpull</groupId>
