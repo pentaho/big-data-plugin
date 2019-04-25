@@ -24,7 +24,6 @@ package org.pentaho.big.data.kettle.plugins.hbase.mapping;
 
 import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
 import org.pentaho.hadoop.shim.api.hbase.HBaseConnection;
-import org.pentaho.hadoop.shim.api.hbase.HBaseService;
 import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.hadoop.shim.api.hbase.mapping.MappingFactory;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
@@ -69,7 +68,6 @@ public class MappingAdmin implements Closeable {
    */
 
   private final HBaseConnection hBaseConnection;
-  private final HBaseService hBaseService;
 
   /** Name of the mapping table (might make this configurable at some stage) */
   protected String m_mappingTableName = "pentaho_mappings";
@@ -98,17 +96,9 @@ public class MappingAdmin implements Closeable {
   //    }
   //  }
 
-  /**
-   * Constructor
-   *
-   * @param conf
-   *          a configuration object containing connection information
-   * @throws Exception
-   *           if a problem occurs
-   */
+
   public MappingAdmin( HBaseConnection hBaseConnection ) {
     this.hBaseConnection = hBaseConnection;
-    this.hBaseService = hBaseConnection.getService();
   }
 
   /**
@@ -141,8 +131,8 @@ public class MappingAdmin implements Closeable {
     String tableName = "MarksTestTable";
     String mappingName = "MarksTestMapping";
 
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
+    MappingFactory mappingFactory = hBaseConnection.getMappingFactory();
+    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseConnection.getHBaseValueMetaInterfaceFactory();
 
     Mapping.KeyType keyType = Mapping.KeyType.LONG;
     Mapping testMapping = mappingFactory.createMapping( tableName, mappingName, keyName, keyType );
@@ -255,8 +245,8 @@ public class MappingAdmin implements Closeable {
     String tableName = "MarksTestTupleTable";
     String mappingName = "MarksTestTupleMapping";
 
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
+    MappingFactory mappingFactory = hBaseConnection.getMappingFactory();
+    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseConnection.getHBaseValueMetaInterfaceFactory();
 
     Mapping.KeyType keyType = Mapping.KeyType.UNSIGNED_LONG;
     Mapping testMapping = mappingFactory.createMapping( tableName, mappingName, keyName, keyType );
@@ -285,7 +275,7 @@ public class MappingAdmin implements Closeable {
    */
   public void createTupleTestTable() throws Exception {
     // create a test table in the same format as the test tuple mapping
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     if ( hBaseConnection == null ) {
       throw new IOException( "No connection exists yet!" );
     }
@@ -332,7 +322,7 @@ public class MappingAdmin implements Closeable {
   public void createTestTable() throws Exception {
 
     // create a test table in the same format as the test mapping
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
 
     HBaseTable marksTestTable = hBaseConnection.getTable( "MarksTestTable" );
     if ( marksTestTable != null ) {
@@ -484,7 +474,7 @@ public class MappingAdmin implements Closeable {
   public boolean mappingExists( String tableName, String mappingName ) throws Exception {
     try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
       if ( hBaseTable.exists() ) {
-        return hBaseTable.keyExists( hBaseService.getByteConversionUtil().compoundKey( tableName, mappingName ) );
+        return hBaseTable.keyExists( hBaseConnection.getByteConversionUtil().compoundKey( tableName, mappingName ) );
       }
       return false;
     }
@@ -498,7 +488,7 @@ public class MappingAdmin implements Closeable {
    *           if something goes wrong
    */
   public Set<String> getMappedTables() throws Exception {
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     HashSet<String> tableNames = new HashSet<String>();
     try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
       if ( hBaseTable.exists() ) {
@@ -532,7 +522,7 @@ public class MappingAdmin implements Closeable {
    *           if something goes wrong.
    */
   public List<String> getMappingNames( String tableName ) throws Exception {
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     List<String> mappingsForTable = new ArrayList<String>();
     try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
       if ( hBaseTable.exists() ) {
@@ -570,7 +560,7 @@ public class MappingAdmin implements Closeable {
    *           if a problem occurs during deletion
    */
   public boolean deleteMapping( String tableName, String mappingName ) throws Exception {
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
       try ( HBaseTableWriteOperationManager hBaseTableWriteOperationManager = hBaseTable
         .createWriteOperationManager( null ) ) {
@@ -614,16 +604,7 @@ public class MappingAdmin implements Closeable {
     return deleteMapping( tableName, mappingName );
   }
 
-  /**
-   * Add a mapping into the mapping table. Can either throw an IOException if the mapping already exists in the table,
-   * or overwrite (delete and then add) it if the overwrite parameter is set to true.
-   *
-   * @param tableName
-   * @param mappingName
-   * @param mapping
-   * @param overwrite
-   * @throws IOException
-   */
+
   public void putMapping( Mapping theMapping, boolean overwrite ) throws Exception {
     String tableName = theMapping.getTableName();
     String mappingName = theMapping.getMappingName();
@@ -633,7 +614,7 @@ public class MappingAdmin implements Closeable {
     boolean isTupleMapping = theMapping.isTupleMapping();
     String tupleFamilies = theMapping.getTupleFamilies();
 
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
     try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
       if ( !hBaseTable.exists() ) {
         // create the mapping table
@@ -767,9 +748,9 @@ public class MappingAdmin implements Closeable {
    *           if a mapping by the given name does not exist for the given table
    */
   public Mapping getMapping( String tableName, String mappingName ) throws Exception {
-    ByteConversionUtil byteConversionUtil = hBaseService.getByteConversionUtil();
-    MappingFactory mappingFactory = hBaseService.getMappingFactory();
-    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseService.getHBaseValueMetaInterfaceFactory();
+    ByteConversionUtil byteConversionUtil = hBaseConnection.getByteConversionUtil();
+    MappingFactory mappingFactory = hBaseConnection.getMappingFactory();
+    HBaseValueMetaInterfaceFactory valueMetaInterfaceFactory = hBaseConnection.getHBaseValueMetaInterfaceFactory();
     try ( HBaseTable hBaseTable = hBaseConnection.getTable( m_mappingTableName ) ) {
       if ( !hBaseTable.exists() ) {
 

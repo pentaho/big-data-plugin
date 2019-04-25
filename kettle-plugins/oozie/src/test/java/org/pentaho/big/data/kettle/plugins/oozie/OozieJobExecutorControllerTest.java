@@ -182,27 +182,6 @@ public class OozieJobExecutorControllerTest {
   }
 
   @Test
-  public void testTestSettings_ErrorsFound() throws Exception {
-    TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
-    ctr.setConfig( new OozieJobExecutorConfig() );
-    ctr.testSettings();
-    assertTrue( ctr.getShownErrors().size() > 0 );
-  }
-
-  @Test
-  public void testTestSettings_NoErrors() throws Exception {
-    TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
-
-    // the dummy test job entry will return no errors when getValidationMessages is called
-    ctr.setJobEntry( new TestOozieJobExecutorJobEntry() );
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    ctr.setConfig( config );
-    ctr.testSettings();
-    assertTrue( ctr.wasInfoShown() );
-  }
-
-  @Test
   public void testSyncModel_quickSetupMode() throws Exception {
     assertEquals( 0, controller.getAdvancedArguments().size() );
 

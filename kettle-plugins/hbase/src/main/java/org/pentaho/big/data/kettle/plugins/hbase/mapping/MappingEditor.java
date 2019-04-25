@@ -1165,7 +1165,7 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
       }
 
       if ( vm.getStorageType() == ValueMetaInterface.STORAGE_TYPE_INDEXED ) {
-        item.setText( 6, m_admin.getConnection().getService().getByteConversionUtil().objectIndexValuesToString( vm
+        item.setText( 6, m_admin.getConnection().getByteConversionUtil().objectIndexValuesToString( vm
             .getIndex() ) );
       }
     }
