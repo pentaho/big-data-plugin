@@ -41,6 +41,7 @@
     <pentaho-json.version>8.3.0.0-SNAPSHOT</pentaho-json.version>
     <pentaho-hadoop-shims-hdp26.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp26.version>
     <pentaho-hadoop-shims-hdp30.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp30.version>
+    <pentaho-hadoop-shims-cdh61.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh61.version>
     <pentaho-registry.version>8.3.0.0-SNAPSHOT</pentaho-registry.version>
     <dependency.guava.revision>17.0</dependency.guava.revision>
     <dependency.maven-resources-plugin.revision>2.7</dependency.maven-resources-plugin.revision>
