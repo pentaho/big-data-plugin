@@ -30,8 +30,9 @@
   <properties>
     <pentaho-hadoop-shims-api.version>${project.version}</pentaho-hadoop-shims-api.version>
     <pentaho-hadoop-shims.version>${project.version}</pentaho-hadoop-shims.version>
-    <pentaho-hadoop-shims-cdh513.version>${project.version}</pentaho-hadoop-shims-cdh513.version>
+    <pentaho-hadoop-shims-cdh514.version>${project.version}</pentaho-hadoop-shims-cdh514.version>
     <pentaho-hadoop-shims-hdp26.version>${project.version}</pentaho-hadoop-shims-hdp26.version>
+    <pentaho-hadoop-shims-hdp30.version>${project.version}</pentaho-hadoop-shims-hdp30.version>
     <pentaho-hadoop-shims-mapr520.version>${project.version}</pentaho-hadoop-shims-mapr520.version>
     <pentaho-hadoop-shims-emr58.version>${project.version}</pentaho-hadoop-shims-emr58.version>
     <pentaho-hadoop-shims-mapr60.version>${project.version}</pentaho-hadoop-shims-mapr60.version>
@@ -67,7 +68,7 @@
     <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
     <pentaho-reporting.version>${project.version}</pentaho-reporting.version>
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
-    <dependency.commands.revisioan>3.3.0-I20070605-0010</dependency.commands.revision>
+    <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
     <publish-sonar-phase></publish-sonar-phase>
     <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.junit.revision>4.11</dependency.junit.revision>
