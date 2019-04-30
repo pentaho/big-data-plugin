@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,7 +19,6 @@
  * limitations under the License.
  *
  ******************************************************************************/
-
 package org.pentaho.big.data.kettle.plugins.hive;
 
 import org.pentaho.big.data.api.jdbc.DriverLocator;
@@ -27,7 +26,7 @@ import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
-@DatabaseMetaPlugin( type = "HIVE2", typeDescription = "Hadoop Hive 2" )
+@DatabaseMetaPlugin( type = "HIVE2", typeDescription = "Hadoop Hive 2/3" )
 public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   public static final String URL_PREFIX = "jdbc:hive2://";
   public static final String SELECT_COUNT_1_FROM = "select count(1) from ";
