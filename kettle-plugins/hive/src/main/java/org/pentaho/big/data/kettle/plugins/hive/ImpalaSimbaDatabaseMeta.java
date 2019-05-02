@@ -33,7 +33,7 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
 
   protected static final String JAR_FILE = "ImpalaJDBC41.jar";
   protected static final String JDBC_URL_PREFIX = "jdbc:impala://";
-  protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.ImpalaSimbaDriver";
+  protected static final String DRIVER_CLASS_NAME = "com.cloudera.impala.jdbc41.Driver";
   protected static final int DEFAULT_PORT = 21050;
   protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 
