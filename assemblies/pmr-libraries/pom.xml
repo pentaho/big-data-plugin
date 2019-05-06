@@ -17,6 +17,7 @@
     <apache-xmlgraphics.revision>1.9.1</apache-xmlgraphics.revision>
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.0.4</rxjava.version>
+    <jsch.version>0.1.54</jsch.version>
     <geronimo-servlet_3.0_spec.version>1.0</geronimo-servlet_3.0_spec.version>
   </properties>
   <dependencies>
@@ -123,7 +124,7 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.46</version>
+      <version>${jsch.version}</version>
     </dependency>
     <dependency>
       <groupId>com.lowagie</groupId>
