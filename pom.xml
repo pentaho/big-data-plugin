@@ -94,7 +94,6 @@
     <pentaho-karaf.version>8.2.0.0-SNAPSHOT</pentaho-karaf.version>
     <pentaho-metaverse.version>8.2.0.0-SNAPSHOT</pentaho-metaverse.version>
     <dependency.commons-httpclient.version>3.1</dependency.commons-httpclient.version>
-    <codehaus.jackson.version>1.9.13</codehaus.jackson.version>
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
 
   </properties>
