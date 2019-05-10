@@ -109,6 +109,59 @@ public class KafkaConsumerInputMetaTest {
   }
 
   @Test
+  public void nullDurationSizeLoadedAsEmptyString() throws Exception {
+    KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
+    String inputXml =
+      "  <step>\n"
+        + "    <name>Kafka Consumer</name>\n"
+        + "    <type>KafkaConsumerInput</type>\n"
+        + "    <description />\n"
+        + "    <distribute>Y</distribute>\n"
+        + "    <custom_distribution />\n"
+        + "    <copies>1</copies>\n"
+        + "    <partitioning>\n"
+        + "      <method>none</method>\n"
+        + "      <schema_name />\n"
+        + "    </partitioning>\n"
+        + "    <clusterName>some_cluster</clusterName>\n"
+        + "    <directBootstrapServers>some_host:123,some_other_host:456</directBootstrapServers>\n"
+        + "    <connectionType>CLUSTER</connectionType>\n"
+        + "    <topic>one</topic>\n"
+        + "    <consumerGroup>two</consumerGroup>\n"
+        + "    <transformationPath>/home/pentaho/myKafkaTransformation.ktr</transformationPath>\n"
+        + "    <SUB_STEP>Filter</SUB_STEP>\n"
+        + "    <batchSize/>\n"
+        + "    <batchDuration/>\n"
+        + "    <OutputField kafkaName=\"key\" type=\"String\">three</OutputField>\n"
+        + "    <OutputField kafkaName=\"message\" type=\"String\">four</OutputField>\n"
+        + "    <OutputField kafkaName=\"topic\" type=\"String\">five</OutputField>\n"
+        + "    <OutputField kafkaName=\"partition\" type=\"Integer\">six</OutputField>\n"
+        + "    <OutputField kafkaName=\"offset\" type=\"Integer\">seven</OutputField>\n"
+        + "    <OutputField kafkaName=\"timestamp\" type=\"Integer\">eight</OutputField>\n"
+        + "    <advancedConfig>\n"
+        + "        <option property=\"advanced.property1\" value=\"advancedPropertyValue1\"></option>\n"
+        + "        <option property=\"advanced.property2\" value=\"advancedPropertyValue2\"></option>\n"
+        + "    </advancedConfig>\n"
+        + "    <cluster_schema />\n"
+        + "    <remotesteps>\n"
+        + "      <input>\n"
+        + "      </input>\n"
+        + "      <output>\n"
+        + "      </output>\n"
+        + "    </remotesteps>\n"
+        + "    <GUI>\n"
+        + "      <xloc>208</xloc>\n"
+        + "      <yloc>80</yloc>\n"
+        + "      <draw>Y</draw>\n"
+        + "    </GUI>\n"
+        + "  </step>\n";
+    Node node = XMLHandler.loadXMLString( inputXml ).getFirstChild();
+    meta.loadXML( node, Collections.emptyList(), metastore );
+    assertEquals( "", meta.getBatchDuration() );
+    assertEquals( "", meta.getBatchSize() );
+  }
+
+  @Test
   public void testLoadsFieldsFromXml() throws Exception {
     KafkaConsumerInputMeta meta = new KafkaConsumerInputMeta();
     String inputXml =

@@ -213,8 +213,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
       setSubStep( subStepTag );
     }
     setFileName( XMLHandler.getTagValue( stepnode, TRANSFORMATION_PATH ) );
-    setBatchSize( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) );
-    setBatchDuration( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) );
+    setBatchSize( Optional.ofNullable( XMLHandler.getTagValue( stepnode, BATCH_SIZE ) ).orElse( "" ) );
+    setBatchDuration( Optional.ofNullable( XMLHandler.getTagValue( stepnode, BATCH_DURATION ) ).orElse( "" ) );
     String parallelism = XMLHandler.getTagValue( stepnode, PARALLELISM );
     setParallelism( isNullOrEmpty( parallelism ) ? "1" : parallelism );
     setConnectionType( ConnectionType.valueOf( XMLHandler.getTagValue( stepnode, CONNECTION_TYPE ) ) );
@@ -273,8 +273,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     setTransformationPath( rep.getStepAttributeString( objectId, TRANSFORMATION_PATH ) );
     setSubStep( rep.getStepAttributeString( objectId, SUB_STEP ) );
     setFileName( rep.getStepAttributeString( objectId, TRANSFORMATION_PATH ) );
-    setBatchSize( rep.getStepAttributeString( objectId, BATCH_SIZE ) );
-    setBatchDuration( rep.getStepAttributeString( objectId, BATCH_DURATION ) );
+    setBatchSize( Optional.ofNullable( rep.getStepAttributeString( objectId, BATCH_SIZE ) ).orElse( "" ) );
+    setBatchDuration( Optional.ofNullable( rep.getStepAttributeString( objectId, BATCH_DURATION ) ).orElse( "" ) );
     String parallelism = rep.getStepAttributeString( objectId, PARALLELISM );
     setParallelism( isNullOrEmpty( parallelism ) ? "1" : parallelism );
     setConnectionType( ConnectionType.valueOf( rep.getStepAttributeString( objectId, CONNECTION_TYPE ) ) );
