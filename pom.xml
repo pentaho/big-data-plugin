@@ -39,7 +39,6 @@
     <dependency.mockito.revision>1.10.19</dependency.mockito.revision>
     <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
     <pentaho-json.version>8.3.0.0-SNAPSHOT</pentaho-json.version>
-    <pentaho-hadoop-shims-hdp26.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp26.version>
     <pentaho-hadoop-shims-hdp30.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp30.version>
     <pentaho-hadoop-shims-cdh61.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh61.version>
     <pentaho-registry.version>8.3.0.0-SNAPSHOT</pentaho-registry.version>
@@ -56,7 +55,6 @@
     <pentaho-reporting.version>8.3.0.0-SNAPSHOT</pentaho-reporting.version>
     <dependency.simple-jndi.revision>1.0.2</dependency.simple-jndi.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
-    <pentaho-hadoop-shims-cdh514.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh514.version>
     <dependency.jets3t.revision>0.9.4</dependency.jets3t.revision>
     <dependency.xstream.revision>1.4.10</dependency.xstream.revision>
     <pentaho-hadoop-shims-mapr60.version>8.3.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr60.version>
