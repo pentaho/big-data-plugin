@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -562,15 +562,17 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     java.nio.file.Path localMetaStoreSnapshotDirPath;
     Path hdfsMetaStoreDirForCurrentJobPath;
     FileObject localMetaStoreSnapshotDirObject;
-
-    localMetaStoreSnapshotDirPath = Files.createTempDirectory( XmlUtil.META_FOLDER_NAME );
-    localMetaStoreSnapshotDirObject = KettleVFS.getFileObject( localMetaStoreSnapshotDirPath.toString() );
-    hdfsMetaStoreDirForCurrentJobPath = fs.asPath( installPath, XmlUtil.META_FOLDER_NAME );
+    //will create a temp folder on the local fs while hdfs folder name does not exist
+    do {
+      localMetaStoreSnapshotDirPath = Files.createTempDirectory( XmlUtil.META_FOLDER_NAME );
+      localMetaStoreSnapshotDirObject = KettleVFS.getFileObject( localMetaStoreSnapshotDirPath.toString() );
+      hdfsMetaStoreDirForCurrentJobPath = fs.asPath( installPath, localMetaStoreSnapshotDirObject.getName().getBaseName() );
+    } while ( fs.exists( hdfsMetaStoreDirForCurrentJobPath ) );
 
     //fill local metastore snapshot by the existing named cluster
     snapshotMetaStore( localMetaStoreSnapshotDirPath.toString() );
 
-    hadoopShim.getDistributedCacheUtil().stageForCache( localMetaStoreSnapshotDirObject, fs, hdfsMetaStoreDirForCurrentJobPath, true, true );
+    hadoopShim.getDistributedCacheUtil().stageForCache( localMetaStoreSnapshotDirObject, fs, hdfsMetaStoreDirForCurrentJobPath, false, true );
     hadoopShim.getDistributedCacheUtil().addCachedFiles( conf, fs, hdfsMetaStoreDirForCurrentJobPath, null );
   }
 
