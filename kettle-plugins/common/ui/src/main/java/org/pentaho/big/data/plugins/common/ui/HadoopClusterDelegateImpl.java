@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class HadoopClusterDelegateImpl extends SpoonDelegate {
   public static final String SPOON_DIALOG_ERROR_DELETING_NAMED_CLUSTER_TITLE =
@@ -162,7 +163,9 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   }
 
   private String getNamedClusterConfigsRootDir( XmlMetaStore metaStore ) {
-    return metaStore.getRootFolder() + "/pentaho/NamedCluster/Configs";
+    return System.getProperty( "user.home" ) + File.separator + ".pentaho"  + File.separator + "metastore"  + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+//
+//    return metaStore.getRootFolder() + "/pentaho/NamedCluster/Configs";
   }
 
   public String newNamedCluster( VariableSpace variableSpace, IMetaStore metaStore, Shell shell ) {
@@ -185,20 +188,16 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       }
 
       try {
-        XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
-        String newClusterId = null;
-        if ( xmlMetaStore != null ) {
-          newClusterId = generateNewClusterId( xmlMetaStore );
-          Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId );
-          Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId + "/" + "config.properties" );
-          nc.setConfigId( newClusterId );
-          saveNamedCluster( metaStore, nc );
-          Files.createDirectories( clusterConfigDirPath );
-          String sampleConfigProperties = nc.getShimIdentifier() + "sampleconfig.properties";
-          InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
-          if ( inputStream != null ) {
-            Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
-          }
+        String newClusterId = generateNewClusterId(null);
+        Path clusterConfigDirPath = Paths.get(getNamedClusterConfigsRootDir(null) + "/" + newClusterId);
+        Path configPropertiesPath = Paths.get(getNamedClusterConfigsRootDir(null) + "/" + newClusterId + "/" + "config.properties");
+        nc.setConfigId(newClusterId);
+        saveNamedCluster(metaStore, nc);
+        Files.createDirectories(clusterConfigDirPath);
+        String sampleConfigProperties = nc.getShimIdentifier() + "sampleconfig.properties";
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(sampleConfigProperties);
+        if (inputStream != null) {
+          Files.copy(inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING);
         }
       } catch ( Exception e ) {
         commonDialogFactory.createErrorDialog( spoon.getShell(),
@@ -217,28 +216,21 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   private String generateNewClusterId( XmlMetaStore xmlMetaStore ) {
     int newClusterId = 0;
     try {
-      List<NamedCluster> namedClusters = namedClusterService.list( xmlMetaStore );
-      for ( NamedCluster nc : namedClusters ) {
-        if ( nc.getConfigId() != null ) {
-          int clusterId = 0;
-          try {
-            clusterId = Integer.parseInt( nc.getConfigId() );
-          } catch ( Exception ex ) {
-            continue;
+      Object[] paths = Files.list( Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) ) ).toArray();
+      for (int i = 0; i < paths.length; i++) {
+        Path filePath = (Path)paths[i];
+        try {
+          int index = Integer.parseInt(filePath.getFileName().toString());
+          if (index > newClusterId) {
+            newClusterId = Math.max(newClusterId, index);
           }
-          newClusterId = Math.max( newClusterId,  clusterId );
+        } catch (NumberFormatException ex) {
         }
       }
-      newClusterId++;
-      Path path = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  Integer.toString( newClusterId ) );
-      while ( Files.exists( path ) ) {
-        newClusterId++;
-        path = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  Integer.toString( newClusterId ) );
-      }
-    } catch ( MetaStoreException e ) {
-      newClusterId = -1;
+    } catch ( Exception e ) {
+      return null;
     }
-    return newClusterId >= 0 ? Integer.toString(  newClusterId ) : null;
+    return Integer.toString(newClusterId + 1 );
   }
 
 
