@@ -11,7 +11,7 @@
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
     <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
     <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
-    <bundle>wrap:mvn:org.pentaho.di.plugins/kettle-log4j-core/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>wrap:mvn:org.pentaho.di.plugins/kettle-log4j-core/9.0.0.0-SNAPSHOT</bundle>
     <bundle>wrap:mvn:libthrift/libthrift/0.6</bundle>
     <bundle>wrap:mvn:org.slf4j/slf4j-api/1.7.7</bundle>
     <bundle>wrap:mvn:org.slf4j/slf4j-log4j12/1.7.7</bundle>
@@ -31,28 +31,28 @@
   </feature>
 
   <feature name="shim-common-fragment-V1" version="1.0">
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/8.3.0.0-SNAPSHOT</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/9.0.0.0-SNAPSHOT</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-hdp26" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/9.0.0.0-SNAPSHOT</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-cdh61" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh61-driver/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh61-driver/9.0.0.0-SNAPSHOT</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-emr521" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-emr521-driver/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-emr521-driver/9.0.0.0-SNAPSHOT</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-cdh514" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-driver/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-driver/9.0.0.0-SNAPSHOT</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-hdp31" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp31-driver/8.3.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp31-driver/9.0.0.0-SNAPSHOT</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
