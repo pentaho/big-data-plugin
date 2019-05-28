@@ -91,6 +91,7 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
   public static final String DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH =
     "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*";
   public static final String PENTAHO_MAPREDUCE_PROPERTY_USE_DISTRIBUTED_CACHE = "pmr.use.distributed.cache";
+  public static final String PENTAHO_MAPREDUCE_PROPERTY_CREATE_UNIQUE_METASTORE_DIR = "pmr.create.unique.metastore.dir";
   public static final String PENTAHO_MAPREDUCE_PROPERTY_PMR_LIBRARIES_ARCHIVE_FILE = "pmr.libraries.archive.file";
   public static final String PENTAHO_MAPREDUCE_PROPERTY_KETTLE_HDFS_INSTALL_DIR = "pmr.kettle.dfs.install.dir";
   public static final String PENTAHO_MAPREDUCE_PROPERTY_KETTLE_INSTALLATION_ID = "pmr.kettle.installation.id";
@@ -562,17 +563,28 @@ public class PentahoMapReduceJobBuilderImpl extends MapReduceJobBuilderImpl impl
     java.nio.file.Path localMetaStoreSnapshotDirPath;
     Path hdfsMetaStoreDirForCurrentJobPath;
     FileObject localMetaStoreSnapshotDirObject;
-    //will create a temp folder on the local fs while hdfs folder name does not exist
-    do {
-      localMetaStoreSnapshotDirPath = Files.createTempDirectory( XmlUtil.META_FOLDER_NAME );
-      localMetaStoreSnapshotDirObject = KettleVFS.getFileObject( localMetaStoreSnapshotDirPath.toString() );
-      hdfsMetaStoreDirForCurrentJobPath = fs.asPath( installPath, localMetaStoreSnapshotDirObject.getName().getBaseName() );
-    } while ( fs.exists( hdfsMetaStoreDirForCurrentJobPath ) );
+    boolean overwrite;
 
-    //fill local metastore snapshot by the existing named cluster
+    // Create a temp folder on the local file system if it isn't already present in hdfs.
+    localMetaStoreSnapshotDirPath = Files.createTempDirectory(XmlUtil.META_FOLDER_NAME);
+
+    // Get the newly created metastore directory from the local file system
+    localMetaStoreSnapshotDirObject = KettleVFS.getFileObject(localMetaStoreSnapshotDirPath.toString());
+
+    // Determine the folder name to use for hdfs based on the create.unique.metastore.dir property
+    if ( Boolean.parseBoolean( getProperty( conf, pmrProperties, PENTAHO_MAPREDUCE_PROPERTY_CREATE_UNIQUE_METASTORE_DIR, Boolean.toString( true ) ) ) ) {
+      hdfsMetaStoreDirForCurrentJobPath = fs.asPath(installPath, localMetaStoreSnapshotDirObject.getName().getBaseName());
+      overwrite = false;
+    } else {
+      hdfsMetaStoreDirForCurrentJobPath = fs.asPath( installPath, XmlUtil.META_FOLDER_NAME );
+      overwrite = true;
+    }
+
+    // Copy the local metastore into the temp folder on the local file system
     snapshotMetaStore( localMetaStoreSnapshotDirPath.toString() );
 
-    hadoopShim.getDistributedCacheUtil().stageForCache( localMetaStoreSnapshotDirObject, fs, hdfsMetaStoreDirForCurrentJobPath, false, true );
+    // Stage the local metastore to hdfs
+    hadoopShim.getDistributedCacheUtil().stageForCache( localMetaStoreSnapshotDirObject, fs, hdfsMetaStoreDirForCurrentJobPath, overwrite, true );
     hadoopShim.getDistributedCacheUtil().addCachedFiles( conf, fs, hdfsMetaStoreDirForCurrentJobPath, null );
   }
 
