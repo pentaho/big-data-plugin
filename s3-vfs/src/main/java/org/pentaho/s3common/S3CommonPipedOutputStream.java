@@ -135,7 +135,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
         // Step 2: Upload parts.
         byte[] tmpBuffer = new byte[ PART_SIZE ];
         int read = 0;
-        int offset = 0;
+        long offset = 0;
         int totalRead = 0;
         int partNum = 1;
 
