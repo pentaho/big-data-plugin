@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -74,7 +74,7 @@ import com.google.common.annotations.VisibleForTesting;
  */
 @Step( id = "HBaseOutput", image = "HBO.svg", name = "HBaseOutput.Name", description = "HBaseOutput.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/HBase_Output",
+    documentationUrl = "Products/HBase_Output",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaseoutput" )
 @InjectionSupported( localizationPrefix = "HBaseOutput.Injection.", groups = { "MAPPING" } )
 public class HBaseOutputMeta extends BaseStepMeta implements StepMetaInterface {
