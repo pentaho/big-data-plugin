@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2017-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -36,7 +36,7 @@ import org.pentaho.di.trans.step.StepMeta;
 
 @Step( id = "OrcOutput", image = "OO.svg", name = "OrcOutput.Name", description = "OrcOutput.Description",
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-  documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/Orc_Output",
+  documentationUrl = "Products/ORC_Output",
   i18nPackageName = "org.pentaho.di.trans.steps.orc" )
 @InjectionSupported( localizationPrefix = "OrcOutput.Injection.", groups = {"FIELDS"} )
 public class OrcOutputMeta extends OrcOutputMetaBase {

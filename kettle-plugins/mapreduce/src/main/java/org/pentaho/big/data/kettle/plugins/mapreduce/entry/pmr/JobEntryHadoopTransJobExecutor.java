@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -86,7 +86,7 @@ import java.util.regex.Pattern;
   description = "HadoopTransJobExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.hadooptransjobexecutor",
-  documentationUrl = "Products/Data_Integration/Job_Entry_Reference/Pentaho_MapReduce" )
+  documentationUrl = "Products/Pentaho_MapReduce" )
 public class JobEntryHadoopTransJobExecutor extends JobEntryBase implements Cloneable, JobEntryInterface,
   HasRepositoryDirectories {
   public static final String MAPREDUCE_APPLICATION_CLASSPATH = "mapreduce.application.classpath";
