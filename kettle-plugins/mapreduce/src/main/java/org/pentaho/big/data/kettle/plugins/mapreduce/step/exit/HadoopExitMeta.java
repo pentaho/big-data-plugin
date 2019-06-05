@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -54,7 +54,7 @@ import java.util.List;
 
 @Step( id = "HadoopExitPlugin", image = "MRO.svg", name = "HadoopExitPlugin.Name",
     description = "HadoopExitPlugin.Description",
-    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/MapReduce_Output",
+    documentationUrl = "Products/MapReduce_Output",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopexit" )
 @InjectionSupported( localizationPrefix = "HadoopExitPlugin.Injection." )
