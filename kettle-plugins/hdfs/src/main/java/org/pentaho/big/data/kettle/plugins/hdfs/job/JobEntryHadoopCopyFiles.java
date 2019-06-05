@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -39,7 +39,7 @@ import java.util.Map;
   description = "HadoopCopyFilesPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
   i18nPackageName = "org.pentaho.di.job.entries.hadoopcopyfiles",
-  documentationUrl = "Products/Data_Integration/Job_Entry_Reference/Hadoop_Copy_Files" )
+  documentationUrl = "Products/Hadoop_Copy_Files" )
 public class JobEntryHadoopCopyFiles extends JobEntryCopyFiles {
 
   public static final String S3_SOURCE_FILE = "S3-SOURCE-FILE-";

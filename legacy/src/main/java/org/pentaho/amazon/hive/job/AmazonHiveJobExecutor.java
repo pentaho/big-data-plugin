@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -52,7 +52,7 @@ import org.w3c.dom.Node;
 @JobEntry( id = "HiveJobExecutorPlugin", image = "AWS-HIVE.svg", name = "HiveJobExecutorPlugin.Name",
   description = "HiveJobExecutorPlugin.Description",
   categoryDescription = "i18n:org.pentaho.di.job:JobCategory.Category.BigData",
-  documentationUrl = "Products/Data_Integration/Job_Entry_Reference/Amazon_Hive_Job_Executor",
+  documentationUrl = "Products/Amazon_Hive_Job_Executor",
   i18nPackageName = "org.pentaho.amazon.hive.job" )
 public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
 

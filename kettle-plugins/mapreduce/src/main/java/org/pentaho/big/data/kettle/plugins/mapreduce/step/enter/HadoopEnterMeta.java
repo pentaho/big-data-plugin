@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -30,7 +30,7 @@ import org.pentaho.di.trans.steps.injector.InjectorMeta;
 
 @Step( id = "HadoopEnterPlugin", image = "MRI.svg", name = "HadoopEnterPlugin.Name",
     description = "HadoopEnterPlugin.Description",
-    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/MapReduce_Input",
+    documentationUrl = "Products/MapReduce_Input",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
     i18nPackageName = "org.pentaho.di.trans.steps.hadoopenter" )
 @InjectionSupported( localizationPrefix = "HadoopEnterPlugin.Injection." )
