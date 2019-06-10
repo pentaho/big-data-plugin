@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -47,7 +47,7 @@ import org.w3c.dom.Node;
 
 @Step( id = "S3FileOutputPlugin", image = "S3O.svg", name = "S3FileOutput.Name",
     description = "S3FileOutput.Description",
-    documentationUrl = "Products/Data_Integration/Transformation_Step_Reference/S3_File_Output",
+    documentationUrl = "Products/157_S3_File_Output",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
     i18nPackageName = "org.pentaho.amazon.s3" )
 @InjectionSupported( localizationPrefix = "S3FileOutput.Injection.", groups = { "OUTPUT_FIELDS" } )
@@ -153,7 +153,7 @@ public class S3FileOutputMeta extends TextFileOutputMeta {
   /**
    * New filenames obey the rule s3://<any_string>/<s3_bucket_name>/<path>. However, we maintain old filenames
    * s3://<access_key>:<secret_key>@s3/<s3_bucket_name>/<path>
-   * 
+   *
    * @param filename
    * @return
    */
