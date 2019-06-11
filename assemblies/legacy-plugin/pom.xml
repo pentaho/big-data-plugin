@@ -187,6 +187,7 @@
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
+      <version>${dependency.libthrift.revision}</version>
     </dependency>
     <dependency>
       <groupId>xmlpull</groupId>
@@ -205,7 +206,7 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-cdh61-package</artifactId>
+      <artifactId>pentaho-hadoop-shims-cdh61-pmr-libs</artifactId>
       <version>${pentaho-hadoop-shims-cdh61.version}</version>
       <type>zip</type>
       <scope>provided</scope>
@@ -218,7 +219,33 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-hdp30-package</artifactId>
+      <artifactId>pentaho-hadoop-shims-cdh514-pmr-libs</artifactId>
+      <version>${pentaho-hadoop-shims-cdh514.version}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-hdp26-pmr-libs</artifactId>
+      <version>${pentaho-hadoop-shims-hdp26.version}</version>
+      <type>zip</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-hadoop-shims-hdp30-pmr-libs</artifactId>
       <version>${pentaho-hadoop-shims-hdp30.version}</version>
       <type>zip</type>
       <scope>provided</scope>
@@ -231,21 +258,8 @@
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-mapr60-package</artifactId>
-      <version>${pentaho-hadoop-shims-mapr60.version}</version>
-      <type>zip</type>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pentaho</groupId>
-      <artifactId>pentaho-hadoop-shims-emr511-package</artifactId>
-      <version>${pentaho-hadoop-shims-emr511.version}</version>
+      <artifactId>pentaho-hadoop-shims-emr521-pmr-libs</artifactId>
+      <version>${pentaho-hadoop-shims-emr521.version}</version>
       <type>zip</type>
       <scope>provided</scope>
       <exclusions>
@@ -301,25 +315,31 @@
               <artifactItems>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-cdh61-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh61-pmr-libs</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-hdp30-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-cdh514-pmr-libs</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-mapr60-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-hdp26-pmr-libs</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.pentaho</groupId>
-                  <artifactId>pentaho-hadoop-shims-emr511-package</artifactId>
+                  <artifactId>pentaho-hadoop-shims-hdp30-pmr-libs</artifactId>
+                  <type>zip</type>
+                  <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.pentaho</groupId>
+                  <artifactId>pentaho-hadoop-shims-emr521-pmr-libs</artifactId>
                   <type>zip</type>
                   <outputDirectory>${basedir}/target/plugins/pentaho-big-data-plugin/hadoop-configurations</outputDirectory>
                 </artifactItem>
