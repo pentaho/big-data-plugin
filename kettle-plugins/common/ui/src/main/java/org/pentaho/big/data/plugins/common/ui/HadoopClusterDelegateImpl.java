@@ -216,15 +216,18 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   private String generateNewClusterId( XmlMetaStore xmlMetaStore ) {
     int newClusterId = 0;
     try {
-      Object[] paths = Files.list( Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) ) ).toArray();
-      for (int i = 0; i < paths.length; i++) {
-        Path filePath = (Path)paths[i];
-        try {
-          int index = Integer.parseInt(filePath.getFileName().toString());
-          if (index > newClusterId) {
-            newClusterId = Math.max(newClusterId, index);
+      Path metaStorePath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) );
+      if ( Files.exists( metaStorePath ) ) {
+        Object[] paths = Files.list( metaStorePath ).toArray();
+        for ( int i = 0; i < paths.length; i++ ) {
+          Path filePath = (Path) paths[i];
+          try {
+            int index = Integer.parseInt( filePath.getFileName().toString() );
+            if ( index > newClusterId ) {
+              newClusterId = Math.max( newClusterId, index );
+            }
+          } catch ( NumberFormatException ex ) {
           }
-        } catch (NumberFormatException ex) {
         }
       }
     } catch ( Exception e ) {
