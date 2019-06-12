@@ -105,7 +105,12 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
     String source_filefolder = XMLHandler.getNodeValue( filenamenode );
     Node sourceNode = XMLHandler.getSubNodeByNr( filenode, SOURCE_CONFIGURATION_NAME, i );
     String source = XMLHandler.getNodeValue( sourceNode );
-    return source_filefolder == null ? null : loadUrl( encryptDecryptPassword( source_filefolder, EncryptDirection.DECRYPT ), source, metaStore, namedClusterURLMapping );
+    try {
+      return source_filefolder == null ? null : loadUrl( encryptDecryptPassword( source_filefolder, EncryptDirection.DECRYPT ), source, metaStore, namedClusterURLMapping );
+    } catch (Exception ex) {
+      // Do nothing
+    }
+    return null;
   }
 
   @Override
