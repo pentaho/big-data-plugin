@@ -29,6 +29,7 @@ import com.google.common.collect.Maps;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -54,9 +55,9 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.Properties;
 
 /**
@@ -65,6 +66,7 @@ import java.util.Properties;
 public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends AbstractJobEntry<S> implements Cloneable,
     JobEntryInterface {
 
+  private final String NamedClusterNameProperty = "pentahoNamedCluster";
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -150,6 +152,15 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       // attempt to load from named cluster
       String clusterName = getJobConfig().getClusterName();
 
+      return loadNamedCluster( clusterName );
+    } catch ( Throwable t ) {
+      logDebug( t.getMessage(), t );
+    }
+    return false;
+  }
+
+  private boolean loadNamedCluster( String clusterName ) {
+    try {
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster namedCluster = null;
       if ( !Strings.isNullOrEmpty( clusterName ) && namedClusterService.contains( clusterName, metaStore ) ) {
@@ -292,7 +303,15 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
       args.add( 0, getToolName() ); // push the tool command-line argument on the top of the args list
 
-      loadNamedCluster( getMetaStore() );
+      if ( !loadNamedCluster( getMetaStore() ) ) {
+        PropertyEntry entry = config.getCustomArguments().stream()
+                .filter( p-> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
+                .findFirst()
+                .orElse( null );
+        if ( entry != null ) {
+          loadNamedCluster( entry.getValue() );
+        }
+      }
 
       // Clone named cluster and copy in variable space
       NamedCluster namedCluster = config.getNamedCluster().clone();
