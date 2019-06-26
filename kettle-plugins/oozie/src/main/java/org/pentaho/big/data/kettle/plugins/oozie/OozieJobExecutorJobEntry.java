@@ -68,6 +68,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   JobEntryInterface {
 
   public static final String HTTP_ERROR_CODE_404 = "HTTP error code: 404";
+  public static final String HTTP_ERROR_CODE_401 = "HTTP error code: 401";
+  public static final String HTTP_ERROR_CODE_403 = "HTTP error code: 403";
   public static final String USER_NAME = "user.name";
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
@@ -139,6 +141,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
           messages
             .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
+        } else if ( e.getErrorCode().equals( HTTP_ERROR_CODE_401 ) || e.getErrorCode().equals( HTTP_ERROR_CODE_403 ) ) {
+          messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Unauthorized.Oozie.Access" ) );
         } else {
           messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Incompatible.Oozie.Versions" ) );
         }
@@ -277,6 +281,8 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
             && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
             logError( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ),
               e );
+          }  else if ( e.getErrorCode().equals( HTTP_ERROR_CODE_401 ) || e.getErrorCode().equals( HTTP_ERROR_CODE_403 ) ) {
+            logError( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Unauthorized.Oozie.Access" ) );
           } else {
             logError( BaseMessages.getString( OozieJobExecutorJobEntry.class,
               "ValidationMessages.Incompatible.Oozie.Versions" ), e );
