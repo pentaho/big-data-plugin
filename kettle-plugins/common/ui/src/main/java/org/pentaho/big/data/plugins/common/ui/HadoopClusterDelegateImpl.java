@@ -44,8 +44,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.stream.Stream;
 
 public class HadoopClusterDelegateImpl extends SpoonDelegate {
   public static final String SPOON_DIALOG_ERROR_DELETING_NAMED_CLUSTER_TITLE =
@@ -139,6 +137,14 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     if ( result != null ) {
       deleteNamedCluster( metaStore, namedCluster );
       saveNamedCluster( metaStore, namedClusterDialogImpl.getNamedCluster() );
+      String shimIdentifier = namedClusterDialogImpl.getNamedCluster().getShimIdentifier();
+      if ( !namedCluster.getShimIdentifier().equals( shimIdentifier ) ) {
+        try {
+          addConfigProperties( namedClusterDialogImpl.getNamedCluster() );
+        } catch ( Exception e ) {
+          // Do nothing.
+        }
+      }
       spoon.refreshTree( STRING_NAMED_CLUSTERS );
       if ( namedClusterDialogImpl.getNamedCluster() != null ) {
         return namedClusterDialogImpl.getNamedCluster().getName();
@@ -188,17 +194,10 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       }
 
       try {
-        String newClusterId = generateNewClusterId(null);
-        Path clusterConfigDirPath = Paths.get(getNamedClusterConfigsRootDir(null) + "/" + newClusterId);
-        Path configPropertiesPath = Paths.get(getNamedClusterConfigsRootDir(null) + "/" + newClusterId + "/" + "config.properties");
-        nc.setConfigId(newClusterId);
-        saveNamedCluster(metaStore, nc);
-        Files.createDirectories(clusterConfigDirPath);
-        String sampleConfigProperties = nc.getShimIdentifier() + "sampleconfig.properties";
-        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(sampleConfigProperties);
-        if (inputStream != null) {
-          Files.copy(inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING);
-        }
+        String newClusterId = generateNewClusterId( null );
+        nc.setConfigId( newClusterId );
+        addConfigProperties( nc );
+        saveNamedCluster( metaStore, nc );
       } catch ( Exception e ) {
         commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
@@ -236,6 +235,17 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     return Integer.toString(newClusterId + 1 );
   }
 
+  private void addConfigProperties( NamedCluster namedCluster ) throws Exception {
+    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() );
+    Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() + "/" + "config.properties" );
+    Files.createDirectories( clusterConfigDirPath );
+    String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
+    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
+    if ( inputStream != null ) {
+      Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
+    }
+  }
+
 
   private void deleteNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     try {
@@ -243,9 +253,9 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
         namedClusterService.delete( namedCluster.getName(), metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          Path path = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId() );
+          String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId();
           try {
-            Files.delete( path );
+            FileUtils.deleteDirectory( new File( path ) );
           } catch ( IOException e ) {
             // Do nothing. The config directory will be orphaned but functionality will not be impacted.
           }
