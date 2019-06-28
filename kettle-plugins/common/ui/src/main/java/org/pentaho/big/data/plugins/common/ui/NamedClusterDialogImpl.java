@@ -245,6 +245,12 @@ public class NamedClusterDialogImpl extends Dialog {
       mb.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.ClusterNameMissing" ) );
       mb.open();
       return;
+    } else if ( StringUtils.isBlank( namedCluster.getShimIdentifier() ) ) {
+      MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
+      mb.setText( BaseMessages.getString( PKG, "NamedClusterDialog.Error" ) );
+      mb.setMessage( BaseMessages.getString( PKG, "NamedClusterDialog.ShimIdentifierMissing" ) );
+      mb.open();
+      return;
     } else if ( newClusterCheck || !originalNamedCluster.getName().equals( result ) ) {
       // check that the getName does not already exist
       try {
