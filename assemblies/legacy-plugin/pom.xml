@@ -162,12 +162,10 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
-      <version>${dependency.httpcomponents-client.revision}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <version>${dependency.httpcomponents-core.revision}</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jets3t</groupId>
