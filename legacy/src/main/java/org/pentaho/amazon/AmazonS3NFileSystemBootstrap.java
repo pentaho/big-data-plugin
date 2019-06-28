@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,8 @@ package org.pentaho.amazon;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.pentaho.amazon.s3.provider.S3Provider;
+import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
@@ -35,6 +37,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.s3n.vfs.S3NFileProvider;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 /**
  * Registers the Amazon S3 VFS File Provider dynamically since it is bundled with our plugin and will not automatically
@@ -44,6 +47,7 @@ import java.util.Arrays;
 public class AmazonS3NFileSystemBootstrap implements KettleLifecycleListener {
   private static Class<?> PKG = AmazonS3NFileSystemBootstrap.class;
   private LogChannelInterface log = new LogChannel( AmazonS3NFileSystemBootstrap.class.getName() );
+  private Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
 
   /**
    * @return the i18n display text for the S3 file system
@@ -61,6 +65,9 @@ public class AmazonS3NFileSystemBootstrap implements KettleLifecycleListener {
         if ( !Arrays.asList( fsm.getSchemes() ).contains( S3NFileProvider.SCHEME ) ) {
           ( (DefaultFileSystemManager) fsm ).addProvider( S3NFileProvider.SCHEME, new S3NFileProvider() );
         }
+      }
+      if ( connectionManager.get() != null ) {
+        connectionManager.get().addConnectionProvider( S3NFileProvider.SCHEME, new S3Provider() );
       }
     } catch ( FileSystemException e ) {
       log.logError( BaseMessages.getString( PKG, "AmazonSpoonPlugin.StartupError.FailedToLoadS3Driver" ) );

@@ -1,0 +1,27 @@
+{
+  "name": "@pentaho/di-plugin-pentaho-s3",
+  "version": "${project.version}",
+  "description": "${project.description}",
+  "paths": {
+    "pentaho/di/plugin/pentaho-s3": "/"
+  },
+  "packages": [
+    {
+      "name": "pentaho/di/plugin/pentaho-s3",
+      "main": "app.module.js"
+    }
+  ],
+  "dependencies": {
+    "angular": "${angular.version}",
+    "angular-animate": "${angular.version}",
+    "angular-i18n": "${angular-i18n.version}",
+    "angular-ui-router": "${angular-ui-router.version}",
+    "require-css": "${require-css.version}",
+    "requirejs-text": "${requirejs-text.version}"
+  },
+  "config": {
+    "pentaho/modules": {
+      "pentaho/di/plugin/pentaho-s3/plugins/s3/s3.module": {"type": "IPenConnectionProvider"}
+    }
+  }
+}

@@ -15,5 +15,6 @@
     <module>clusterTests</module>
     <module>shim</module>
     <module>vfs</module>
+    <module>connections</module>
   </modules>
 </project>
