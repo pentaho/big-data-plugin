@@ -17,6 +17,8 @@
 
 package org.pentaho.s3common;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -51,6 +53,20 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
   protected abstract FileObject createFile( AbstractFileName name ) throws Exception;
 
   public AmazonS3 getS3Client() {
+    if ( client == null && getFileSystemOptions() != null ) {
+      S3CommonFileSystemConfigBuilder s3CommonFileSystemConfigBuilder =
+        new S3CommonFileSystemConfigBuilder( getFileSystemOptions() );
+      String accessKey = s3CommonFileSystemConfigBuilder.getAccessKey();
+      String secretKey = s3CommonFileSystemConfigBuilder.getSecretKey();
+      if ( !S3Util.isEmpty( accessKey ) && !S3Util.isEmpty( secretKey ) ) {
+        BasicAWSCredentials awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
+        client = AmazonS3ClientBuilder.standard()
+          .enableForceGlobalBucketAccess()
+          .withRegion( Regions.DEFAULT_REGION )
+          .withCredentials( new AWSStaticCredentialsProvider( awsCredentials ) )
+          .build();
+      }
+    }
     if ( client == null || hasClientChangedCredentials() ) {
       try {
         client = AmazonS3ClientBuilder.standard()
