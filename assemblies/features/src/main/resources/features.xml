@@ -23,6 +23,7 @@
     <bundle>mvn:pentaho/pentaho-metastore-locator-impl-repository/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-cluster/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-cluster/${project.version}</bundle>
+    <bundle>mvn:pentaho/pentaho-big-data-impl-connections-s3/${project.version}</bundle>
 	<configfile finalname="/etc/pentaho.big.data.impl.cluster.cfg">
       mvn:pentaho/pentaho-osgi-config/${project.version}/cfg/pentaho-big-data-impl-cluster
     </configfile>
