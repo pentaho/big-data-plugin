@@ -24,6 +24,18 @@ public final class S3Util {
   /** System property name for the AWS secret key */
   public static final String SECRET_KEY_SYSTEM_PROPERTY = "aws.secretKey";
 
+  /** Environment variable for the AWS region */
+  public static final String AWS_REGION = "AWS_REGION";
+
+  /** Environment variable for the specific location of the AWS config file */
+  public static final String AWS_CONFIG_FILE = "AWS_CONFIG_FILE";
+
+  /** AWS configuration folder */
+  public static final String AWS_FOLDER = ".aws";
+
+  /** Configuration file name */
+  public static final String CONFIG_FILE = "config";
+
   public static boolean hasChanged( String previousValue, String currentValue ) {
     if ( !isEmpty( previousValue ) && isEmpty( currentValue ) ) {
       return true;

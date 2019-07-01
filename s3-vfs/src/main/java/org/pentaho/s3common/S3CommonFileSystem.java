@@ -31,6 +31,7 @@ import org.pentaho.amazon.s3.S3Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Collection;
 
 public abstract class S3CommonFileSystem extends AbstractFileSystem {
@@ -69,10 +70,16 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     }
     if ( client == null || hasClientChangedCredentials() ) {
       try {
-        client = AmazonS3ClientBuilder.standard()
-          .enableForceGlobalBucketAccess()
-          .withRegion( Regions.DEFAULT_REGION )
-          .build();
+        if ( isRegionSet() ) {
+          client = AmazonS3ClientBuilder.standard()
+            .enableForceGlobalBucketAccess()
+            .build();
+        } else {
+          client = AmazonS3ClientBuilder.standard()
+            .enableForceGlobalBucketAccess()
+            .withRegion( Regions.DEFAULT_REGION )
+            .build();
+        }
         awsAccessKeyCache = System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY );
         awsSecretKeyCache = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
       } catch ( Throwable t ) {
@@ -86,5 +93,18 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     return client != null
       && ( S3Util.hasChanged( awsAccessKeyCache, System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY ) )
       || S3Util.hasChanged( awsSecretKeyCache, System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY ) ) );
+  }
+
+  private boolean isRegionSet() {
+    //region is set if explicitly set in env variable or configuration file is explicitly set
+    if ( System.getenv( S3Util.AWS_REGION ) != null || System.getenv( S3Util.AWS_CONFIG_FILE ) != null ) {
+      return true;
+    }
+    //check if configuration file exists in default location
+    File awsConfigFolder = new File( System.getProperty( "user.home" ) + File.separator + S3Util.AWS_FOLDER + File.separator + S3Util.CONFIG_FILE );
+    if ( awsConfigFolder.exists() ) {
+      return true;
+    }
+    return false;
   }
 }
