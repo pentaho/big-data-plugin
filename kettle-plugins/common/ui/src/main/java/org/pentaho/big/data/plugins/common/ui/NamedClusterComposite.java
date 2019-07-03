@@ -336,7 +336,8 @@ public class NamedClusterComposite extends Composite {
     }
 
     shimVendorCombo.setItems( vendorList );
-    shimVendorCombo.select( Arrays.asList(vendorList).indexOf( cluster.getShimIdentifier() ) );
+    shimVendorCombo.setEditable( false );
+    shimVendorCombo.select( Arrays.asList( vendorList ).indexOf( cluster.getShimIdentifier() ) );
     props.setLook( shimVendorCombo );
 
     shimVendorCombo.addSelectionListener( new SelectionAdapter() {
