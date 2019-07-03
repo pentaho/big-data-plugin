@@ -271,6 +271,7 @@ public class NamedClusterDialogImpl extends Dialog {
             // do not exist dialog
             return;
           }
+          namedCluster.setConfigId( fetched.getConfigId() );
         }
       } catch ( MetaStoreException ignored ) {
         // the lookup failed, the cluster does not exist, move on to dispose
