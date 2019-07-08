@@ -36,7 +36,6 @@
     <commons-codec.version>1.10</commons-codec.version>
     <commons-vfs2.version>2.2</commons-vfs2.version>
     <slf4j-api.version>1.7.7</slf4j-api.version>
-    <httpclient.version>4.5</httpclient.version>
     <guava.version>19.0</guava.version>
 
     <!-- Test dependencies -->
@@ -62,12 +61,6 @@
 
   <!-- Third-party dependencies -->
   <dependencies>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${httpclient.version}</version>
-      <scope>compile</scope>
-    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
