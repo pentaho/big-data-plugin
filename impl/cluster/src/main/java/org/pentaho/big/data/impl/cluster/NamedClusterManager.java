@@ -177,7 +177,17 @@ public class NamedClusterManager implements NamedClusterService {
   @Override
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
-    List<NamedCluster> namedClusters = new ArrayList<NamedCluster>(factory.getElements());
+    List<NamedCluster> namedClusters;
+
+    try {
+      namedClusters = new ArrayList<>( factory.getElements( true ) );
+    } catch ( MetaStoreException ex ) {
+      // While executing Pentaho MapReduce on a secure cluster, the .lock file
+      // might not be able to be created due to permissions.
+      // In this case, try and read the MetaStore without locking.
+      namedClusters = new ArrayList<>(factory.getElements(false));
+    }
+
     for ( NamedCluster nc : namedClusters ) {
       validateClusterId( nc );
     }
