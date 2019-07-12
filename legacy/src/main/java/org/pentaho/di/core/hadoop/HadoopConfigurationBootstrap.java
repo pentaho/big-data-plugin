@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -232,7 +232,7 @@ public class HadoopConfigurationBootstrap implements KettleLifecycleListener, Ac
       for ( FileObject childFolder : hadoopConfigurationsDir.getChildren() ) {
         if ( childFolder.getType() == FileType.FOLDER ) {
           String id = childFolder.getName().getBaseName();
-          FileObject configPropertiesFile = childFolder.getChild( CONFIG_PROPERTIES );
+          FileObject configPropertiesFile = childFolder.resolveFile( CONFIG_PROPERTIES );
           if ( configPropertiesFile.exists() ) {
             Properties properties = new Properties();
             properties.load( configPropertiesFile.getContent().getInputStream() );
