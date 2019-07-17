@@ -29,6 +29,10 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   private static final String ACCESS_KEY = "accessKey";
   private static final String SECRET_KEY = "secretKey";
+  private static final String SESSION_TOKEN = "sessionToken";
+  private static final String REGION = "region";
+  private static final String CREDENTIALS_FILE = "credentialsFile";
+  private static final String PROFILE_NAME = "profileName";
 
   private FileSystemOptions fileSystemOptions;
 
@@ -58,6 +62,38 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public String getSecretKey() {
     return (String) this.getParam( getFileSystemOptions(), SECRET_KEY );
+  }
+
+  public void setSessionToken( String sessionToken ) {
+    this.setParam( getFileSystemOptions(), SESSION_TOKEN, sessionToken );
+  }
+
+  public String getSessionToken() {
+    return (String) this.getParam( getFileSystemOptions(), SESSION_TOKEN );
+  }
+
+  public void setRegion( String region ) {
+    this.setParam( getFileSystemOptions(), REGION, region );
+  }
+
+  public String getRegion() {
+    return (String) this.getParam( getFileSystemOptions(), REGION );
+  }
+
+  public void setCredentialsFile( String credentialsFile ) {
+    this.setParam( getFileSystemOptions(), CREDENTIALS_FILE, credentialsFile );
+  }
+
+  public String getCredentialsFile() {
+    return (String) this.getParam( getFileSystemOptions(), CREDENTIALS_FILE );
+  }
+
+  public String getProfileName() {
+    return (String) this.getParam( getFileSystemOptions(), PROFILE_NAME );
+  }
+
+  public void setProfileName( String profileName ) {
+    this.setParam( getFileSystemOptions(), PROFILE_NAME, profileName );
   }
 
   @Override protected Class<? extends FileSystem> getConfigClass() {

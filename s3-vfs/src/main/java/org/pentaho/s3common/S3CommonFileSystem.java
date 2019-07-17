@@ -17,8 +17,13 @@
 
 package org.pentaho.s3common;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -59,14 +64,31 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
         new S3CommonFileSystemConfigBuilder( getFileSystemOptions() );
       String accessKey = s3CommonFileSystemConfigBuilder.getAccessKey();
       String secretKey = s3CommonFileSystemConfigBuilder.getSecretKey();
+      String sessionToken = s3CommonFileSystemConfigBuilder.getSessionToken();
+      String region = s3CommonFileSystemConfigBuilder.getRegion();
+      String credentialsFilePath = s3CommonFileSystemConfigBuilder.getCredentialsFile();
+      String profileName = s3CommonFileSystemConfigBuilder.getProfileName();
+
+      AWSCredentialsProvider awsCredentialsProvider = null;
+      Regions regions = Regions.DEFAULT_REGION;
       if ( !S3Util.isEmpty( accessKey ) && !S3Util.isEmpty( secretKey ) ) {
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
-        client = AmazonS3ClientBuilder.standard()
-          .enableForceGlobalBucketAccess()
-          .withRegion( Regions.DEFAULT_REGION )
-          .withCredentials( new AWSStaticCredentialsProvider( awsCredentials ) )
-          .build();
+        AWSCredentials awsCredentials;
+        if ( S3Util.isEmpty( sessionToken ) ) {
+          awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
+        } else {
+          awsCredentials = new BasicSessionCredentials( accessKey, secretKey, sessionToken );
+        }
+        awsCredentialsProvider = new AWSStaticCredentialsProvider( awsCredentials );
+        regions = S3Util.isEmpty( region ) ? Regions.DEFAULT_REGION : Regions.fromName( region );
+      } else if ( !S3Util.isEmpty( credentialsFilePath ) ) {
+        ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
+        awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
       }
+      client = AmazonS3ClientBuilder.standard()
+        .enableForceGlobalBucketAccess()
+        .withRegion( regions )
+        .withCredentials( awsCredentialsProvider )
+        .build();
     }
     if ( client == null || hasClientChangedCredentials() ) {
       try {
