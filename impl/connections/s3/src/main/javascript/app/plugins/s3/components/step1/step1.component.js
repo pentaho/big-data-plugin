@@ -36,24 +36,93 @@ define([
     vm.$onInit = onInit;
     vm.canNext = canNext;
     vm.doTest = doTest;
+    vm.onSelect = onSelect;
+    vm.onSelectRegion = onSelectRegion;
+    vm.onBrowse = onBrowse;
+    vm.type = 0;
+    vm.authTypes = [{
+      value: 0,
+      label: i18n.get('S3.Label.Type.AccessKeySecretKey')
+    }, {
+      value: 1,
+      label: i18n.get('S3.Label.Type.CredentialsFile')
+    }];
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
       vm.connectionDetails = i18n.get('Connection.Label.ConnectionDetails');
+      vm.authenticationType = i18n.get('S3.Label.AuthenticationType');
+      vm.profileName = i18n.get('S3.Label.ProfileName');
+      vm.regionLabel = i18n.get('S3.Label.Region');
       vm.accessKey = i18n.get('S3.Label.AccessKey');
       vm.secretKey = i18n.get('S3.Label.SecretKey');
+      vm.sessionToken = i18n.get('S3.Label.SessionToken.Label');
+      vm.fileLocation = i18n.get('S3.Label.FileLocation');
+      vm.browse = i18n.get('S3.Label.Browse');
       vm.buttons = getButtons();
+
+      if (!vm.data.model.authType) {
+        vm.type = 0;
+      } else {
+        vm.type = parseInt(vm.data.model.authType);
+      }
+
+      if (vm.data.model.region) {
+        vm.region = vm.data.model.region;
+      }
+
+      vm.regions = [];
+      for (var i = 0; i < vm.data.model.regions.length; i++) {
+        vm.regions.push({
+          label: vm.data.model.regions[i],
+          value: vm.data.model.regions[i],
+        })
+      }
+    }
+
+    function onSelect(type) {
+      if (vm.type !== parseInt(vm.data.model.authType)) {
+        vm.data.model.accessKey = null;
+        vm.data.model.secretKey = null;
+        vm.data.model.sessionToken = null;
+        vm.data.model.profileName = null;
+        vm.data.model.credentialsFilePath = null;
+        vm.region = null;
+      }
+      vm.type = type.value;
+    }
+
+    function onSelectRegion(region) {
+      vm.region = region.value;
+    }
+
+    function onBrowse() {
+      try {
+        var key = browse();
+        if (key) {
+          vm.data.model.credentialsFilePath = key;
+        }
+      } catch (e) {
+        vm.data.model.credentialsFilePath = "/";
+      }
     }
 
     function canNext() {
       if (vm.data && vm.data.model) {
-        return vm.data.model.accessKey && vm.data.model.secretKey;
+        if (vm.type === 0) {
+          return vm.data.model.accessKey && vm.data.model.secretKey;
+        }
+        if (vm.type === 1) {
+          return vm.data.model.profileName && vm.data.model.credentialsFilePath;
+        }
       }
       return false;
     }
 
     function doTest() {
       return $q(function(resolve, reject) {
+        vm.data.model.authType = vm.type;
+        vm.data.model.region = vm.region;
         dataService.testConnection(vm.data.model).then(function() {
           vm.message = {
             "type": "success",
@@ -70,17 +139,19 @@ define([
       });
     }
 
-    function getButtons() {      
+    function getButtons() {
       var buttons = [];
       buttons.push({
         label: vm.data.state === "modify" ? i18n.get('Connection.Button.Label.Apply') : i18n.get('Connection.Button.Label.Next'),
         class: "primary",
         isDisabled: function() {
-          return !vm.data.model.accessKey || !vm.data.model.secretKey;
+          return !canNext();
         },
         position: "right",
         onClick: function() {
-         $state.go("summary", {data: vm.data, transition: "slideLeft"});
+          vm.data.model.authType = vm.type;
+          vm.data.model.region = vm.region;
+          $state.go("summary", {data: vm.data, transition: "slideLeft"});
         }
       });
       if (vm.data.state !== "modify") {
