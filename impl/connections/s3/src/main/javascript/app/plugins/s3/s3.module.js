@@ -23,6 +23,9 @@ define([
   "use strict";
 
   function mask(value) {
+    if (!value) {
+      return i18n.get('S3.Label.NA');
+    }
     var password = "";
     for (var i = 0; i < value.length; i++) {
       password += "*";
@@ -39,11 +42,28 @@ define([
       editLink: "s3nstep1",
       mapping: {
         "accessKey": i18n.get('S3.Label.AccessKey'),
-        "secretKey": i18n.get('S3.Label.SecretKey')
+        "secretKey": i18n.get('S3.Label.SecretKey'),
+        "sessionToken": i18n.get('S3.Label.SessionToken'),
+        "region": i18n.get('S3.Label.Region'),
+        "credentialsFilePath": i18n.get('S3.Label.Type.CredentialsFile'),
+        "profileName": i18n.get('S3.Label.ProfileName')
       },
       filters: {
         "accessKey": mask,
-        "secretKey": mask
+        "secretKey": mask,
+        "sessionToken": mask,
+        "region": function(value) {
+          if (!value) {
+            return i18n.get('S3.Label.Default');
+          }
+          return value;
+        },
+        credentialsFilePath: function(value) {
+          if (!value) {
+            return i18n.get('S3.Label.No')
+          }
+          return value;
+        }
       }
     }]
   };

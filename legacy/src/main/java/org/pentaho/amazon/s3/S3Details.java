@@ -22,10 +22,14 @@
 
 package org.pentaho.amazon.s3;
 
+import com.amazonaws.regions.Regions;
 import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 import org.pentaho.s3n.vfs.S3NFileProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @MetaStoreElementType(
   name = "Amazon S3 Connection",
@@ -43,6 +47,24 @@ public class S3Details implements VFSConnectionDetails {
 
   @MetaStoreAttribute
   private String secretKey;
+
+  @MetaStoreAttribute
+  private String sessionToken;
+
+  @MetaStoreAttribute
+  private String credentialsFilePath;
+
+  @MetaStoreAttribute
+  private String credentialsFile;
+
+  @MetaStoreAttribute
+  private String authType;
+
+  @MetaStoreAttribute
+  private String region;
+
+  @MetaStoreAttribute
+  private String profileName;
 
   @Override public String getName() {
     return name;
@@ -78,5 +100,61 @@ public class S3Details implements VFSConnectionDetails {
 
   public void setSecretKey( String secretKey ) {
     this.secretKey = secretKey;
+  }
+
+  public String getSessionToken() {
+    return sessionToken;
+  }
+
+  public void setSessionToken( String sessionToken ) {
+    this.sessionToken = sessionToken;
+  }
+
+  public String getCredentialsFilePath() {
+    return credentialsFilePath;
+  }
+
+  public void setCredentialsFilePath( String credentialsFilePath ) {
+    this.credentialsFilePath = credentialsFilePath;
+  }
+
+  public String getCredentialsFile() {
+    return credentialsFile;
+  }
+
+  public void setCredentialsFile( String credentialsFile ) {
+    this.credentialsFile = credentialsFile;
+  }
+
+  public String getAuthType() {
+    return authType;
+  }
+
+  public void setAuthType( String authType ) {
+    this.authType = authType;
+  }
+
+  public List<String> getRegions() {
+    List<String> names = new ArrayList<>();
+    for ( Regions region : Regions.values() ) {
+      names.add( region.getName() );
+    }
+    return names;
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  public void setRegion( String region ) {
+    this.region = region;
+  }
+
+  public String getProfileName() {
+    return profileName;
+  }
+
+  public void setProfileName( String profileName ) {
+    this.profileName = profileName;
   }
 }

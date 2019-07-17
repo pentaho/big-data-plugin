@@ -1,3 +1,19 @@
 .middle_div {
   width: 390px;
 }
+
+selectbox .selected_value {
+  z-index: 0;
+}
+
+selectbox .options {
+  z-index: 100;
+}
+
+selectbox#region .options {
+  overflow: auto;
+}
+
+selectbox#region .options {
+  height: 100px;
+}

@@ -2,13 +2,44 @@
 <div class="main_div">
   <div class="title_text margin_bottom_30 text_center">{{::vm.connectionDetails}}</div>
   <div class="middle_div margin_bottom_10">
-    <div class="margin_bottom_15">
-      <label for="accessKey" class="margin_bottom_5 block text_left">{{::vm.accessKey}}</label>
-      <input id="accessKey" class="block" type="password" size="50" ng-model="vm.data.model.accessKey">
+    <div class="margin_bottom_30">
+      <label for="authenticationType" class="margin_bottom_5 text_left">{{::vm.authenticationType}}</label>
+      <selectbox id="authenticationType" type="vm.type" options="vm.authTypes" on-select="vm.onSelect(value)"></selectbox>
     </div>
-    <div class="margin_bottom_15">
-      <label for="secretKey" class="margin_bottom_5 block text_left">{{::vm.secretKey}}</label>
-      <input id="secretKey" class="block" type="password" size="50" ng-model="vm.data.model.secretKey">
+    <div ng-if="vm.type==0">
+      <div class="margin_bottom_15">
+        <label for="region" class="margin_bottom_5 text_left">{{::vm.regionLabel}}</label>
+        <selectbox id="region" type="vm.region" options="vm.regions" on-select="vm.onSelectRegion(value)"></selectbox>
+      </div>
+      <div class="margin_bottom_15">
+        <label for="accessKey" class="margin_bottom_5 block text_left">{{::vm.accessKey}}</label>
+        <input id="accessKey" class="block" type="password" size="50" ng-model="vm.data.model.accessKey">
+      </div>
+      <div class="margin_bottom_15">
+        <label for="secretKey" class="margin_bottom_5 block text_left">{{::vm.secretKey}}</label>
+        <input id="secretKey" class="block" type="password" size="50" ng-model="vm.data.model.secretKey">
+      </div>
+      <div class="margin_bottom_15">
+        <label for="sessionToken" class="margin_bottom_5 block text_left">{{::vm.sessionToken}}</label>
+        <input id="sessionToken" class="block" type="password" size="50" ng-model="vm.data.model.sessionToken">
+      </div>
+    </div>
+    <div ng-if="vm.type==1">
+      <div class="margin_bottom_15">
+        <label for="region" class="margin_bottom_5 text_left">{{::vm.regionLabel}}</label>
+        <selectbox id="region" type="vm.region" options="vm.regions" on-select="vm.onSelectRegion(value)"></selectbox>
+      </div>
+      <div class="margin_bottom_15">
+        <label for="profileName" class="margin_bottom_5 block text_left">{{::vm.profileName}}</label>
+        <input id="profileName" class="block" type="text" size="50" ng-model="vm.data.model.profileName">
+      </div>
+      <div class="margin_bottom_15">
+        <label for="credentialsFilePath" class="margin_bottom_5 block text_left">{{::vm.fileLocation}}</label>
+        <div class="file-input">
+          <input id="credentialsFilePath" class="block" type="text" size="50" ng-model="vm.data.model.credentialsFilePath">
+          <button class="primary browse" ng-click="vm.onBrowse()">{{::vm.browse}}</button>
+        </div>
+      </div>
     </div>
   </div>
   <controls buttons="vm.buttons"></controls>
