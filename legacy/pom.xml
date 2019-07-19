@@ -180,7 +180,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
+      <groupId>libthrift</groupId>
       <artifactId>libthrift</artifactId>
       <version>${libthrift.version}</version>
     </dependency>

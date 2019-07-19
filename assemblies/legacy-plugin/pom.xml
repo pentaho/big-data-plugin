@@ -185,7 +185,7 @@
       <version>${pdi.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.thrift</groupId>
+      <groupId>libthrift</groupId>
       <artifactId>libthrift</artifactId>
       <version>${dependency.libthrift.revision}</version>
     </dependency>
