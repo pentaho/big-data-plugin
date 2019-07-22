@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>7.1-SNAPSHOT</version>
+    <version>7.1.0.26-212</version>
   </parent>
   <artifactId>pentaho-big-data-plugin</artifactId>
-  <version>7.1-SNAPSHOT</version>
+  <version>7.1.0.26-212</version>
   <packaging>pom</packaging>
   <licenses>
     <license>
@@ -69,8 +69,8 @@
       <version>${dependency.joda-time.revision}</version>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
           <artifactId>*</artifactId>
+          <groupId>*</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -166,7 +166,7 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pentaho-hadoop-shims-hdp25-package</artifactId>
       <version>${dependency.hadoop-shims-hdp25.revision}</version>
