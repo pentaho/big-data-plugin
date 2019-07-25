@@ -204,8 +204,8 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
         }
         String newClusterId = generateNewClusterId( null );
         nc.setConfigId( newClusterId );
-        addConfigProperties( nc );
         saveNamedCluster( metaStore, nc );
+        addConfigProperties( nc );
       } catch ( Exception e ) {
         commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
