@@ -150,7 +150,15 @@ public class NamedClusterManager implements NamedClusterService {
   @Override
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
-    NamedCluster namedCluster = factory.loadElement( clusterName );
+    NamedCluster namedCluster = null;
+    try {
+      namedCluster = factory.loadElement( clusterName );
+    } catch ( MetaStoreException e ) {
+      // While executing Pentaho MapReduce on a secure cluster, the .lock file
+      // might not be able to be created due to permissions.
+      // In this case, try and read the MetaStore without locking.
+      namedCluster = factory.loadElement( clusterName, false );
+    }
     if ( namedCluster != null ) {
       validateClusterId( namedCluster );
     }
