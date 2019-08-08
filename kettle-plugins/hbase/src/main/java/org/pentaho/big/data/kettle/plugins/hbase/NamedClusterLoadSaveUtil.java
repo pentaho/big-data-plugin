@@ -57,11 +57,10 @@ public class NamedClusterLoadSaveUtil {
         clusterName = rep.getJobEntryAttributeString( id_jobentry, CLUSTER_NAME ); //$NON-NLS-1$ //$NON-NLS-2$
       }
 
-      if ( metaStore != null && !StringUtils.isEmpty( clusterName ) && namedClusterService
-        .contains( clusterName, metaStore ) ) {
-        // pull config from NamedCluster
-        nc = namedClusterService.read( clusterName, metaStore );
+      if ( !StringUtils.isEmpty( clusterName ) ) {
+        nc = namedClusterService.getNamedClusterByName( clusterName, metaStore );
       }
+
       if ( nc != null ) {
         return nc;
       }
