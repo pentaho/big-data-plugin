@@ -1023,11 +1023,10 @@
       <artifactId>org.apache.karaf.jaas.boot</artifactId>
     </dependency>
     <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-karaf-assembly</artifactId>
+      <groupId>org.hitachivantara.karaf.assemblies</groupId>
+      <artifactId>pmr</artifactId>
       <version>${pentaho-karaf.version}</version>
       <type>zip</type>
-      <classifier>pmr</classifier>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
@@ -1068,11 +1067,10 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>pentaho</groupId>
-                  <artifactId>pentaho-karaf-assembly</artifactId>
+                  <groupId>org.hitachivantara.karaf.assemblies</groupId>
+                  <artifactId>pmr</artifactId>
                   <type>zip</type>
-                  <classifier>pmr</classifier>
-                  <outputDirectory>target/dependencies</outputDirectory>
+                  <outputDirectory>target/dependencies/karaf</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
