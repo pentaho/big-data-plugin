@@ -43,7 +43,7 @@ define([
     var loaded = false;
 
     function onInit() {
-      vm.connectionName = i18n.get('connections.intro.connectionName');
+      vm.clusterName = i18n.get('cluster.intro.clusterName');
       vm.connectionType = i18n.get('connections.intro.connectionType')
       vm.connectionDescription = i18n.get('connections.intro.connectionDescription');
       vm.next = "/";

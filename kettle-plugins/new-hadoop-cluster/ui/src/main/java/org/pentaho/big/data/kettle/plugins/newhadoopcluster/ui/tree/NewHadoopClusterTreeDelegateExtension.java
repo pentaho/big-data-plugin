@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree;
 
 import org.pentaho.di.base.AbstractMeta;
+import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
@@ -54,17 +55,10 @@ public class NewHadoopClusterTreeDelegateExtension implements ExtensionPointInte
     if ( path[ 2 ].equals( NewHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
       switch ( caseNumber ) {
         case 3:
-          object = new TreeSelection( path[ 2 ], VFSConnectionDetails.class, meta );
+          //TODO: when this is modified you can also modify NewHadoopClusterPopupMenuExtension with some other type, probably related to NewHadoopClusterJsonProvider
+          object = new TreeSelection( path[ 2 ], ConnectionDetails.class, meta );
           break;
-        case 4:
-          try {
-            final String name = path[ 3 ];
-            object = new TreeSelection( name, new NewHadoopClusterTreeItem( name ), meta );
-          } catch ( Exception e ) {
-            // Do Nothing
-          }
-          break;
-      }
+       }
     }
 
     if ( object != null ) {

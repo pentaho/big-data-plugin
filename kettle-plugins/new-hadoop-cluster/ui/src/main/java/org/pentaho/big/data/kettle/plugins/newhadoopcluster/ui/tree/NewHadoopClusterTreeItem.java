@@ -22,21 +22,5 @@
 
 package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree;
 
-/**
- * Created by bmorrise on 2/4/19.
- */
 public class NewHadoopClusterTreeItem {
-  private String label;
-
-  public NewHadoopClusterTreeItem( String label ) {
-    this.label = label;
-  }
-
-  public String getLabel() {
-    return label;
-  }
-
-  public void setLabel( String label ) {
-    this.label = label;
-  }
 }

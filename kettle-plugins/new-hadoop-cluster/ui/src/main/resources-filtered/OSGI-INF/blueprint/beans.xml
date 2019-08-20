@@ -47,15 +47,8 @@
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 
-  <bean id="NewHadoopClusterViewTreeExtension" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree.NewHadoopClusterViewTreeExtension">
-    <argument ref="NewHadoopClusterDelegate" />
-    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
-  </bean>
-
   <bean id="NewHadoopClusterLifecycleListener"
         class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.lifecycle.NewHadoopClusterLifecycleListener">
-    <argument ref="metastoreLocator"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType" />
   </bean>
 

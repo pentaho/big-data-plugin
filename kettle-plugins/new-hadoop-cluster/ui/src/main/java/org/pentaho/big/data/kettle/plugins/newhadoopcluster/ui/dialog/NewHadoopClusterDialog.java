@@ -36,9 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * Created by bmorrise on 5/23/17.
- */
 public class NewHadoopClusterDialog extends ThinDialog {
 
   private static final Image LOGO = GUIResource.getInstance().getImageLogoSmall();

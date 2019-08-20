@@ -53,14 +53,4 @@ public class NewHadoopClusterDelegate {
     newHadoopClusterDialog.open( BaseMessages.getString( PKG, "ConnectionDialog.dialog.edit.title" ), label );
   }
 
-  public void delete( String label ) {
-    NewHadoopClusterDeleteDialog connectionDeleteDialog = new NewHadoopClusterDeleteDialog( spoonSupplier.get().getShell() );
-    if ( connectionDeleteDialog.open( label ) == SWT.YES ) {
-      ConnectionManager connectionManager = ConnectionManager.getInstance();
-      connectionManager.delete( label );
-      spoonSupplier.get().getShell().getDisplay().asyncExec( () -> spoonSupplier.get().refreshTree(
-        NewHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) );
-    }
-  }
-
 }

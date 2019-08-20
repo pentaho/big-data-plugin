@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
 import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog.NewHadoopClusterDelegate;
+import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
@@ -39,7 +40,6 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
-import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 
 import java.util.function.Supplier;
 
@@ -51,12 +51,10 @@ public class NewHadoopClusterPopupMenuExtension implements ExtensionPointInterfa
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
-  private Menu itemMenu;
-  private NewHadoopClusterDelegate vfsNewHadoopClusterDelegate;
-  private NewHadoopClusterTreeItem vfsNewHadoopClusterTreeItem;
+  private NewHadoopClusterDelegate newHadoopClusterDelegate;
 
   public NewHadoopClusterPopupMenuExtension( NewHadoopClusterDelegate newHadoopClusterDelegate ) {
-    this.vfsNewHadoopClusterDelegate = newHadoopClusterDelegate;
+    this.newHadoopClusterDelegate = newHadoopClusterDelegate;
   }
 
   @Override public void callExtensionPoint( LogChannelInterface logChannelInterface, Object extension )
@@ -68,11 +66,8 @@ public class NewHadoopClusterPopupMenuExtension implements ExtensionPointInterfa
     TreeSelection object = objects[ 0 ];
     Object selection = object.getSelection();
 
-    if ( selection == VFSConnectionDetails.class ) {
+    if ( selection == ConnectionDetails.class ) {
       popupMenu = createRootPopupMenu( selectionTree );
-    } else if ( selection instanceof NewHadoopClusterTreeItem ) {
-      vfsNewHadoopClusterTreeItem = (NewHadoopClusterTreeItem) selection;
-      popupMenu = createItemPopupMenu( selectionTree );
     }
 
     if ( popupMenu != null ) {
@@ -90,33 +85,11 @@ public class NewHadoopClusterPopupMenuExtension implements ExtensionPointInterfa
       menuItem.addSelectionListener( new SelectionAdapter() {
         @Override
         public void widgetSelected( SelectionEvent selectionEvent ) {
-          vfsNewHadoopClusterDelegate.openDialog();
+          newHadoopClusterDelegate.openDialog();
         }
       } );
     }
     return rootMenu;
-  }
-
-  private Menu createItemPopupMenu( Tree tree ) {
-    if ( itemMenu == null ) {
-      itemMenu = new Menu( tree );
-      MenuItem editMenuItem = new MenuItem( itemMenu, SWT.NONE );
-      editMenuItem.setText( BaseMessages.getString( PKG, "VFSConnectionPopupMenuExtension.MenuItem.Edit" ) );
-      editMenuItem.addSelectionListener( new SelectionAdapter() {
-        @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-          vfsNewHadoopClusterDelegate.openDialog( vfsNewHadoopClusterTreeItem.getLabel() );
-        }
-      } );
-
-      MenuItem deleteMenuItem = new MenuItem( itemMenu, SWT.NONE );
-      deleteMenuItem.setText( BaseMessages.getString( PKG, "VFSConnectionPopupMenuExtension.MenuItem.Delete" ) );
-      deleteMenuItem.addSelectionListener( new SelectionAdapter() {
-        @Override public void widgetSelected( SelectionEvent selectionEvent ) {
-          vfsNewHadoopClusterDelegate.delete( vfsNewHadoopClusterTreeItem.getLabel() );
-        }
-      } );
-    }
-    return itemMenu;
   }
 }
 
