@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:pen="http://www.pentaho.com/xml/schemas/pentaho-blueprint"
+           xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs" default-timeout="20000">
+  <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
+  <jaxrs:server address="/multishim" id="multishim-endpoint">
+    <jaxrs:serviceBeans>
+      <bean class="org.pentaho.big.data.plugins.common.endpoint.MultishimNamedClusterEndpoint">
+        <argument ref="namedClusterService"/>
+      </bean>
+    </jaxrs:serviceBeans>
+    <jaxrs:extensionMappings>
+      <entry key="json" value="application/json"/>
+    </jaxrs:extensionMappings>
+    <jaxrs:providers>
+      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+    </jaxrs:providers>
+  </jaxrs:server>
+</blueprint>
