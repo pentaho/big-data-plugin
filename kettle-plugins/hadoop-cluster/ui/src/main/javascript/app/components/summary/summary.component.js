@@ -30,9 +30,9 @@ define([
     controller: summaryController
   };
 
-  summaryController.$inject = ["$state", "$stateParams", "$location", "dataService", "vfsTypes", "vfsSummaries"];
+  summaryController.$inject = ["$state", "$stateParams", "$location", "dataService", "vfsSummaries"];
 
-  function summaryController($state, $stateParams, $location, dataService, vfsTypes, vfsSummaries) {
+  function summaryController($state, $stateParams, $location, dataService, vfsSummaries) {
     var vm = this;
     vm.$onInit = onInit;
     vm.getLabel = getLabel;
@@ -41,7 +41,7 @@ define([
 
     function onInit() {
       vm.clusterName = i18n.get('cluster.intro.clusterName');
-      vm.connectionType = i18n.get('connections.intro.connectionType');
+      vm.connectionType = i18n.get('cluster.intro.specify.configuration.label');
       vm.connectionSummary = i18n.get('connections.summary.connectionSummary');
       vm.generalSettings = i18n.get('connections.summary.generalSettings');
       vm.description = i18n.get('connections.summary.description');

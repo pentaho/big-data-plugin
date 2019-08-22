@@ -7,8 +7,8 @@
       <input focus="300" id="clusterName" type="text" ng-keyup="vm.checkConnectionName()" ng-model="vm.name"/>
     </div>
     <div class="margin_bottom_15">
-      <label for="connectionType" class="margin_bottom_5 text_left">{{::vm.connectionType}}</label>
-      <selectbox id="connectionType" type="vm.type" options="vm.connectionTypes" on-select="vm.onSelect(value)"></selectbox>
+      <label for="specifyConfiguration" class="margin_bottom_5 text_left">{{::vm.specifyConfiguration}}</label>
+      <selectbox id="specifyConfiguration" type="vm.type" options="vm.configurationTypes" on-select="vm.onSelect(value)"></selectbox>
     </div>
   </div>
   <controls buttons="vm.buttons" data="vm.data"></controls>

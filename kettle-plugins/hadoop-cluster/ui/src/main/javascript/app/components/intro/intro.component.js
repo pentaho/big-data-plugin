@@ -29,9 +29,9 @@ define([
     controller: introController
   };
 
-  introController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService", "vfsTypes", "$timeout"];
+  introController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService", "$timeout"];
 
-  function introController($location, $state, $q, $stateParams, dataService, vfsTypes, $timeout) {
+  function introController($location, $state, $q, $stateParams, dataService, $timeout) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelect = onSelect;
@@ -44,7 +44,7 @@ define([
 
     function onInit() {
       vm.clusterName = i18n.get('cluster.intro.clusterName');
-      vm.connectionType = i18n.get('connections.intro.connectionType')
+      vm.specifyConfiguration = i18n.get('cluster.intro.specify.configuration.label')
       vm.next = "/";
 
       if ($stateParams.data) {
@@ -66,7 +66,7 @@ define([
         vm.data.state = "new";
       }
       var connection = $location.search().connection;
-      vm.connectionTypes = vfsTypes;
+      vm.configurationTypes = [i18n.get('cluster.intro.import.ccfg'), i18n.get('cluster.intro.provide.site.xml') ];
       if (vm.data.type) {
         vm.type = vm.data.type.value;
       }
@@ -104,6 +104,10 @@ define([
     }
 
     function onSelect(option) {
+
+
+
+      //TODO: needs replaced to do some UI work
       if (!vm.data.model || vm.data.model.type !== option.value) {
         dataService.getFields(option.value).then(function (res) {
           var name = vm.data.model.name;
