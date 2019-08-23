@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -63,6 +63,7 @@ public class NamedClusterTest {
   private NamedCluster createNamedCluster( String name ) {
     NamedCluster nc = new NamedCluster();
     nc.setName( name );
+    nc.setConfigId( name );
     return nc;
   }
 

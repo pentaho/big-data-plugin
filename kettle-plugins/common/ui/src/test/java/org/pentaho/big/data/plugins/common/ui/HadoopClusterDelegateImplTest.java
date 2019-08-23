@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
+import org.pentaho.metastore.stores.xml.XmlMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -125,8 +126,12 @@ public class HadoopClusterDelegateImplTest {
     NamedClusterDialogImpl namedClusterDialog = mock( NamedClusterDialogImpl.class );
     NamedCluster clonedNamedCluster = mock( NamedCluster.class );
     DelegatingMetaStore spoonMetastore = mock( DelegatingMetaStore.class );
+    XmlMetaStore xmlMetaStore = mock( XmlMetaStore.class );
     when( spoon.getMetaStore() ).thenReturn( spoonMetastore );
+    when( spoonMetastore.getActiveMetaStore() ).thenReturn( xmlMetaStore );
     when( namedCluster.clone() ).thenReturn( clonedNamedCluster );
+    when( namedCluster.getShimIdentifier() ).thenReturn( "oldShimId" );
+    when( clonedNamedCluster.getShimIdentifier() ).thenReturn( "shimId" );
     when( commonDialogFactory
       .createNamedClusterDialog( shell, namedClusterService, runtimeTestActionService, runtimeTester,
         clonedNamedCluster ) ).thenReturn( namedClusterDialog );
@@ -194,11 +199,14 @@ public class HadoopClusterDelegateImplTest {
     NamedCluster clonedNamedCluster = mock( NamedCluster.class );
     when( namedClusterService.read( namedClusterName, spoonMetastore ) ).thenReturn( namedCluster );
     when( namedCluster.clone() ).thenReturn( clonedNamedCluster );
+    String shimId = "shimId";
+    when( namedCluster.getShimIdentifier() ).thenReturn( shimId );
     when( commonDialogFactory
       .createNamedClusterDialog( shell, namedClusterService, runtimeTestActionService, runtimeTester,
         clonedNamedCluster ) ).thenReturn( namedClusterDialog );
     String clonedName = "clonedName";
     when( clonedNamedCluster.getName() ).thenReturn( clonedName );
+    when( clonedNamedCluster.getShimIdentifier() ).thenReturn( shimId );
     when( namedClusterDialog.open() ).thenReturn( clonedName );
     when( namedClusterDialog.getNamedCluster() ).thenReturn( clonedNamedCluster );
 
@@ -206,7 +214,6 @@ public class HadoopClusterDelegateImplTest {
 
     verify( namedClusterDialog ).setNewClusterCheck( false );
     verify( spoon ).refreshTree( HadoopClusterDelegateImpl.STRING_NAMED_CLUSTERS );
-    verify( namedClusterService ).delete( namedClusterName, spoonMetastore );
     verify( namedClusterService ).create( clonedNamedCluster, spoonMetastore );
   }
 
