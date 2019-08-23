@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.pig;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
@@ -174,20 +175,6 @@ public class JobEntryPigScriptExecutorTest {
         JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_ERROR_NO_PIG_SCRIPT_SPECIFIED ), e.getSuperMessage() );
       throw e;
     }
-  }
-
-  @Test
-  public void testExecuteLocalNotSupported() throws KettleException {
-    jobEntryPigScriptExecutor.setLocalExecution( true );
-    assertEquals( result, jobEntryPigScriptExecutor.execute( result, 0 ) );
-    ArgumentCaptor<KettleException> kettleExceptionArgumentCaptor = ArgumentCaptor.forClass( KettleException.class );
-    verify( logChannelInterface ).logError( anyString(), kettleExceptionArgumentCaptor.capture() );
-    assertEquals( BaseMessages.getString( JobEntryPigScriptExecutor.PKG,
-      JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ),
-      kettleExceptionArgumentCaptor.getValue().getSuperMessage() );
-    verify( result ).setStopped( true );
-    verify( result ).setNrErrors( 1 );
-    verify( result ).setResult( false );
   }
 
   @Test

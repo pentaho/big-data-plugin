@@ -88,6 +88,12 @@
       <version>${pentaho-metaverse.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>${dependency.commons-httpclient.revision}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

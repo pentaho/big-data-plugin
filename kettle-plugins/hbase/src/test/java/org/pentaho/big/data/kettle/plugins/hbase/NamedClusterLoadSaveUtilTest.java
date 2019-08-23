@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -102,7 +102,7 @@ public class NamedClusterLoadSaveUtilTest {
   @Test
   public void testLoadClusterConfigXML_WithClusterName() throws Exception {
     util.loadClusterConfig( ncs, jobId, repository, metaStore, XMLHandler.loadXMLString( dBuilder, xml2 ).getDocumentElement(), log );
-    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    verify( ncs ).getNamedClusterByName( SOME_CLUSTER_NAME, metaStore );
     verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
     verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
   }
@@ -122,7 +122,7 @@ public class NamedClusterLoadSaveUtilTest {
     doReturn( SOME_CLUSTER_NAME ).when( repository ).getJobEntryAttributeString( jobId, CLUSTER_NAME_KEY );
 
     util.loadClusterConfig( ncs, jobId, repository, metaStore, null, mock( LogChannelInterface.class ) );
-    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    verify( ncs ).getNamedClusterByName( SOME_CLUSTER_NAME, metaStore );
     verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
     verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
   }
