@@ -93,7 +93,8 @@
     <pentaho-karaf.version>${project.version}</pentaho-karaf.version>
     <pentaho-metaverse.version>${project.version}</pentaho-metaverse.version>
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
-    <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>  
+    <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
+    <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
 </properties>
 
   <build>

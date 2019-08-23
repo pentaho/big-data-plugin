@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -156,9 +156,16 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     String testName = "testName";
     namedCluster.setName( testName );
-    namedClusterManager.update( namedCluster, metaStore );
+    namedCluster.setConfigId( testName );
+    List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
+    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
+      new MetaStoreException() );
+    NamedClusterImpl updatedNamedCluster = new NamedClusterImpl();
+    updatedNamedCluster.setConfigId( testName );
+    updatedNamedCluster.setName( testName + "updated" );
+    namedClusterManager.update( updatedNamedCluster, metaStore );
     verify( metaStoreFactory ).deleteElement( testName );
-    verify( metaStoreFactory ).saveElement( eq( namedCluster ) );
+    verify( metaStoreFactory ).saveElement( eq( updatedNamedCluster ) );
   }
 
   @Test
@@ -173,7 +180,7 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     namedCluster.setName( "testName" );
     List<NamedClusterImpl> value = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements() ).thenReturn( value );
+    when( metaStoreFactory.getElements( true ) ).thenReturn( value );
     assertEquals( value, namedClusterManager.list( metaStore ) );
   }
 
@@ -209,7 +216,7 @@ public class NamedClusterManagerTest {
     NamedCluster namedCluster = mock( NamedCluster.class );
     when( namedCluster.getName() ).thenReturn( testName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
-    when( metaStoreFactory.getElements() ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
+    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
       new MetaStoreException() );
     assertNull( namedClusterManager.getNamedClusterByName( testName, null ) );
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByName( testName, metaStore ) );
