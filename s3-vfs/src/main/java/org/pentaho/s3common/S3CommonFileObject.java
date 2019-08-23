@@ -25,8 +25,10 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -51,6 +53,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   protected String bucketName;
   protected String key;
   protected S3Object s3Object;
+  protected InputStream s3ObjectInputStream;
 
   protected S3CommonFileObject( final AbstractFileName name, final S3CommonFileSystem fileSystem ) {
     super( name, fileSystem );
@@ -68,7 +71,11 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   protected InputStream doGetInputStream() throws Exception {
     logger.debug( "Accessing content {}", getQualifiedName() );
     activateContent();
-    return s3Object.getObjectContent();
+    S3ObjectInputStream inputstream = s3Object.getObjectContent();
+    byte[] content = IOUtils.toByteArray( inputstream );
+    inputstream.close();
+    s3ObjectInputStream = new ByteArrayInputStream( content );
+    return s3ObjectInputStream;
   }
 
   @Override
@@ -250,6 +257,9 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
     if ( s3Object != null ) {
       logger.debug( "detaching {}", getQualifiedName() );
       this.getS3Object().close();
+    }
+    if ( s3ObjectInputStream != null ) {
+      s3ObjectInputStream.close();
     }
   }
 
