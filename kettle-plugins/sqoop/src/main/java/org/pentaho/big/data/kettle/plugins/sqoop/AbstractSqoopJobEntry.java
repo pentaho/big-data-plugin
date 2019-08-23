@@ -198,7 +198,7 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       // Redirect all stderr logging to the first log to monitor so it shows up in the Kettle LogChannel
       Logger sqoopLogger = JobEntryUtils.findLogger( LOGS_TO_MONITOR[0] );
       if ( sqoopLogger != null ) {
-        stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.ERROR );
+        stdErrProxy = new LoggingProxy( System.err, sqoopLogger, Level.INFO );
         System.setErr( stdErrProxy );
       }
       JobEntryUtils.attachAppenderTo( sqoopToKettleAppender, getLogLevel(), logLevelCache, LOGS_TO_MONITOR );
