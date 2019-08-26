@@ -23,7 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
@@ -36,15 +35,10 @@ import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class KafkaProducerOutput extends BaseStep implements StepInterface {
 
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
-  private static final long MAX_WAIT = 5000;
   private KafkaProducerOutputMeta meta;
   private KafkaProducerOutputData data;
   private KafkaFactory kafkaFactory;
@@ -113,18 +107,7 @@ public class KafkaProducerOutput extends BaseStep implements StepInterface {
         r[ data.messageFieldIndex ] );
     }
 
-    try {
-      Future<RecordMetadata> futureRecordMetadata = data.kafkaProducer.send( producerRecord );
-      if ( futureRecordMetadata != null ) {
-        RecordMetadata recordMetadata = futureRecordMetadata.get( MAX_WAIT, TimeUnit.MILLISECONDS );
-        log.logDebug( recordMetadata.toString() );
-      }
-    } catch ( ExecutionException | TimeoutException e ) {
-      throw new IllegalStateException( e );
-    } catch ( InterruptedException e ) {
-      Thread.currentThread().interrupt();
-      throw new IllegalStateException( e );
-    }
+    data.kafkaProducer.send( producerRecord );
     incrementLinesOutput();
 
     putRow( getInputRowMeta(), r ); // copy row to possible alternate rowset(s).
