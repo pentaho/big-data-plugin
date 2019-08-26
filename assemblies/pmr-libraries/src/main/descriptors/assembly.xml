@@ -6,12 +6,8 @@
   </formats>
   <fileSets>
     <fileSet>
-      <directory>target/dependencies/pentaho-karaf-assembly</directory>
-      <outputDirectory>/system/karaf</outputDirectory>
-      <!--<excludes>
-        <exclude>plugins/</exclude>
-        <exclude>system/karaf/etc/org.apache.karaf.features.cfg</exclude>
-      </excludes>-->
+      <directory>target/dependencies/karaf</directory>
+      <outputDirectory>system/karaf</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>target/classes</directory>
