@@ -42,16 +42,16 @@ define([
     vm.toggleOptions = toggleOptions;
     vm.onBodyClick = onBodyClick;
     vm.isShowOptions = false;
-    vm.selectedValue = null;
+
 
     function onInit() {
-
+      //vm.selectedValue = $scope.$parent.vm.specifyConfiguration;
     }
 
     function onChanges(changes) {
       if (changes.type && changes.type.currentValue !== null && vm.options) {
         for (var i = 0; i < vm.options.length; i++) {
-          if (vm.options[i].value === changes.type.currentValue) {
+          if (vm.options[i] === changes.type.currentValue) {
             selectOption(vm.options[i]);
           }
         }

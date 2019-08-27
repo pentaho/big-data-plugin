@@ -40,7 +40,7 @@ define([
     var loaded = false;
 
     function onInit() {
-      vm.clusterName = i18n.get('cluster.intro.clusterName');
+      vm.clusterName = i18n.get('cluster.intro.clusterName.label');
       vm.connectionType = i18n.get('cluster.intro.specify.configuration.label');
       vm.connectionSummary = i18n.get('connections.summary.connectionSummary');
       vm.generalSettings = i18n.get('connections.summary.generalSettings');
@@ -64,7 +64,7 @@ define([
           if (res.data !== "") {
             setDialogTitle(vm.title);
             var model = res.data;
-            vm.type = model.type;
+            vm.connectionType = model.type;
             vm.data.model = model;
             vm.next = vm.data.model.type + "step1";
             vm.data.state = "edit";
@@ -72,7 +72,7 @@ define([
             vm.name = vm.data.model.name;
             vm.summary = vfsSummaries[model.type];
           } else {
-            vm.title = i18n.get('cluster.intro.new.label');
+            vm.title = i18n.get('cluster.intro.new.header');
             setDialogTitle(vm.title);
           }
         });

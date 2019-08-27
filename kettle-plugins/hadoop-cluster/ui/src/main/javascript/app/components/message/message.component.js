@@ -49,7 +49,7 @@ define([
         }
       } else if (changes.message && changes.message.currentValue) {
         vm.text = changes.message.currentValue.text;
-        vm.type = changes.message.currentValue.type;
+        vm.connectionType = changes.message.currentValue.type;
         if (vm.showMessage) {
           reset(show);
         } else {

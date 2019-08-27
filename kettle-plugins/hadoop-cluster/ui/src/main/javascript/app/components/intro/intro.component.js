@@ -29,67 +29,54 @@ define([
     controller: introController
   };
 
-  introController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService", "$timeout"];
+  introController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
 
-  function introController($location, $state, $q, $stateParams, dataService, $timeout) {
+  function introController($location, $state, $q, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelect = onSelect;
     vm.validateName = validateName;
     vm.resetErrorMsg = resetErrorMsg;
     vm.checkConnectionName = checkConnectionName;
-    vm.type = null;
+    vm.openFileBrowser = openFileBrowser;
+    vm.checkConfigurationPath = checkConfigurationPath;
+    vm.configurationType = null;
     vm.name = "";
+    vm.configurationPath = "";
     var loaded = false;
+    vm.selectConfigPathButtonLabel = "";
+    vm.selectConfigPathHref = "location.href='http://localhost:9051/@pentaho/di-plugin-file-open-save-new@9.0.0.0-SNAPSHOT/index.html#/open?provider=vfs'";
 
     function onInit() {
-      vm.clusterName = i18n.get('cluster.intro.clusterName');
-      vm.specifyConfiguration = i18n.get('cluster.intro.specify.configuration.label')
+      vm.clusterNameLabel = i18n.get('cluster.intro.clusterName.label');
+      vm.specifyConfigurationLabel = i18n.get('cluster.intro.specify.configuration.label');
+      vm.title = i18n.get('cluster.intro.new.header');
+      vm.configurationTypes = [i18n.get('cluster.intro.import.ccfg'), i18n.get('cluster.intro.provide.site.xml')];
+      //vm.specifyConfiguration = vm.configurationTypes[0];
+      vm.configurationType = vm.configurationTypes[0];
+      vm.configurationPath = "";
+      vm.configurationPathPlaceholder = i18n.get('cluster.intro.no.ccfg.selected.placeholder');
+      vm.selectConfigPathButtonLabel = i18n.get('cluster.intro.selectCcfgFileButtonLabel');
+
       vm.next = "/";
 
       if ($stateParams.data) {
-        vm.data = $stateParams.data;
-        vm.title = vm.data.isSaved === true
-            ? i18n.get('connections.intro.edit.label')
-            : i18n.get('cluster.intro.new.label');
-        vm.name = vm.data.model.name;
-        vm.type = vm.data.model.type;
-        vm.next = vm.data.model.type + "step1";
+        //TODO: future implementation use ui-router for saving data between screens
+        //vm.data = $stateParams.data;
       } else {
-        vm.title = i18n.get('cluster.intro.new.label');
+
+        setDialogTitle(i18n.get('cluster.intro.title'));
+
         vm.data = {
           model: {
-            name: "",
-            description: ""
+            clusterName: "",
+            configurationType: "",
+            ccfgFilePath: "",
+            hadoopConfigFolderPath: ""
           }
         };
-        vm.data.state = "new";
       }
-      var connection = $location.search().connection;
-      vm.configurationTypes = [i18n.get('cluster.intro.import.ccfg'), i18n.get('cluster.intro.provide.site.xml') ];
-      if (vm.data.type) {
-        vm.type = vm.data.type.value;
-      }
-      if (connection) {
-        vm.title = i18n.get('connections.intro.edit.label');
-        dataService.getConnection(connection).then(function (res) {
-          loaded = true;
-          if (res.data !== "") {
-            var model = res.data;
-            vm.type = model.type;
-            vm.data.model = model;
-            vm.next = vm.data.model.type + "step1";
-            vm.data.state = "edit";
-            vm.data.isSaved = true;
-            vm.name = vm.data.model.name;
-          } else {
-            vm.title = i18n.get('cluster.intro.new.label');
-          }
-        });
-      } else {
-        loaded = true;
-      }
-      setDialogTitle(i18n.get('cluster.intro.title'));
+
 
       vm.buttons = getButtons();
     }
@@ -97,7 +84,7 @@ define([
     function resetErrorMsg() {
       if (!vm.data.isSaved) {
         vm.data.state = "new";
-        vm.title = i18n.get('cluster.intro.new.label');
+        vm.title = i18n.get('cluster.intro.new.header');
         setDialogTitle(i18n.get('cluster.intro.title'));
       }
       vm.errorMessage = null;
@@ -107,28 +94,44 @@ define([
 
 
 
-      //TODO: needs replaced to do some UI work
-      if (!vm.data.model || vm.data.model.type !== option.value) {
-        dataService.getFields(option.value).then(function (res) {
-          var name = vm.data.model.name;
-          var description = vm.data.model.description;
-          vm.data.model = res.data;
-          vm.data.model.name = name;
-          vm.data.model.description = description;
-          vm.next = vm.data.model.type + "step1";
-          vm.data.state = "new";
-          vm.data.isSaved = false;
-        });
-      }
+      //TODO: first needs to be replaced to show the ccfg file selection path and button
+      //TODO: second if using hadoopConfigFolderPath show the folder selection path and button
+
+      // if (!vm.data.model || vm.data.model.type !== option.value) {
+      //   dataService.getFields(option.value).then(function (res) {
+      //     var name = vm.data.model.name;
+      //     var description = vm.data.model.description;
+      //     vm.data.model = res.data;
+      //     vm.data.model.name = name;
+      //     vm.data.model.description = description;
+      //     vm.next = vm.data.model.type + "step1";
+      //     vm.data.state = "new";
+      //     vm.data.isSaved = false;
+      //   });
+      // }
+
+
+    }
+
+    function openFileBrowser() {
+      window.open("http://localhost:9051/@pentaho/di-plugin-file-open-save-new@9.0.0.0-SNAPSHOT/index.html#/open?provider=vfs");
+    }
+
+    function selectFile() {
+
     }
 
     function checkConnectionName() {
       vm.resetErrorMsg();
-      vm.name = vm.name.replace(/[^\w\s]/g,'');
+      vm.name = vm.name.replace(/[^\w\s]/g, '');
+    }
+
+    function checkConfigurationPath() {
+      //TODO: implement
     }
 
     function validateName() {
-      return $q(function(resolve, reject) {
+      return $q(function (resolve, reject) {
         if (vm.data.state === "edit" || vm.data.isSaved) {
           if (vm.name !== vm.data.model.name) {
             vm.data.name = vm.data.model.name;
@@ -166,20 +169,20 @@ define([
 
     function getButtons() {
       return [{
-            label: vm.data.state === "modify" ? i18n.get('connections.controls.applyLabel') : i18n.get('connections.controls.nextLabel'),
-            class: "primary",
-            isDisabled: function() {
-              return !vm.data.model || !vm.data.model.type || !vm.name;
-            },
-            position: "right",
-            onClick: function() {
-              validateName().then(function(isValid) {
-                if (isValid) {
-                  $state.go(vm.data.state === "modify" ? 'summary' : vm.next, {data: vm.data, transition: "slideLeft"});
-                }
-              });
+        label: vm.data.state === "modify" ? i18n.get('connections.controls.applyLabel') : i18n.get('connections.controls.nextLabel'),
+        class: "primary",
+        isDisabled: function () {
+          return !vm.data.model || !vm.data.model.type || !vm.name;
+        },
+        position: "right",
+        onClick: function () {
+          validateName().then(function (isValid) {
+            if (isValid) {
+              $state.go(vm.data.state === "modify" ? 'summary' : vm.next, {data: vm.data, transition: "slideLeft"});
             }
-          }];
+          });
+        }
+      }];
     }
   }
 
