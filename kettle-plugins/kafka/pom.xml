@@ -22,6 +22,7 @@
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
     <dependency.mockito.version>1.9.5-rc1</dependency.mockito.version>
+    <osgi.version>5.0.0</osgi.version>
   </properties>
   <dependencies>
     <dependency>
@@ -183,12 +184,18 @@
           <version>${pdi.version}</version>
           <scope>test</scope>
         </dependency>
-          <dependency>
-              <groupId>pentaho</groupId>
-              <artifactId>pentaho-metaverse-core</artifactId>
-              <version>${pdi.version}</version>
-              <scope>test</scope>
-          </dependency>
+        <dependency>
+          <groupId>pentaho</groupId>
+          <artifactId>pentaho-metaverse-core</artifactId>
+          <version>${pdi.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.osgi</groupId>
+          <artifactId>org.osgi.core</artifactId>
+          <version>${osgi.version}</version>
+          <scope>test</scope>
+        </dependency>
       </dependencies>
     </profile>
   </profiles>
