@@ -59,8 +59,7 @@ public class NewHadoopClusterDialog extends ThinDialog {
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
     if ( connectionName != null ) {
-      clientPath.append( "#/summary" );
-      clientPath.append( "?connection=" ).append( connectionName );
+      //TODO: implement path for editting a cluster - if we support that...
     } else {
       clientPath.append( "#/intro" );
     }

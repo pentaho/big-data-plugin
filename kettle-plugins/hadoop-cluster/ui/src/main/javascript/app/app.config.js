@@ -37,14 +37,6 @@ define([], function() {
           transition: null
         }
       })
-      .state('summary', {
-        url: "/summary",
-        template: "<connection-summary></connection-summary>",
-        params: {
-          data: null,
-          transition: null
-        }
-      })
       .state('creating', {
         url: "/creating",
         template: "<creating></creating>",

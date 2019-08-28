@@ -21,25 +21,21 @@
  **/
 define([
   "angular",
-  "pentaho/module/instancesOf!IPenConnectionProvider",
   "./app.config",
   "./app.animation",
   "./components/intro/intro.component",
-  "./components/summary/summary.component",
   "./components/creating/creating.component",
   "./components/success/success.component",
   "./components/selectbox/selectbox.component",
   "./components/controls/controls.component",
   "./components/message/message.component",
   "./components/help/help.component",
-  "./directives/focus.directive",
   "./directives/ngbodyclick.directive",
-  "./directives/filebrowser.directive",
   "./service/helper.service",
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, plugins, appConfig, appAnimation, introComponent, summaryComponent, creatingComponent, successComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, focusDirective, bodyClickDirective, fileBrowserDirective, helperService, dataService) {
+], function (angular, appConfig, appAnimation, introComponent, creatingComponent, successComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -57,56 +53,19 @@ define([
    * @private
    */
   function activate() {
-
     var deps = ['ui.router', 'ngAnimate'];
-    var types = [];
-    var summaries = [];
-    plugins.map(function (item) {
-      deps.push(item.name);
-      types.push({
-        value: item.scheme,
-        label: item.label
-      });
-      summaries[item.scheme] = item.summary;
-    });
-
-    function vfsTypeProvider() {
-      function getTypes() {
-        return types;
-      }
-
-      return {
-        $get: getTypes
-      }
-    }
-
-    function vfsSummaryProvider() {
-      function getSummaries() {
-        return summaries;
-      }
-
-      return {
-        $get: getSummaries
-      }
-    }
-
     angular.module(module.name, deps)
         .component(introComponent.name, introComponent.options)
-        .component(summaryComponent.name, summaryComponent.options)
         .component(creatingComponent.name, creatingComponent.options)
         .component(successComponent.name, successComponent.options)
         .component(selectboxComponent.name, selectboxComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
         .component(messageComponent.name, messageComponent.options)
         .component(helpComponent.name, helpComponent.options)
-        .directive(focusDirective.name, focusDirective.options)
         .directive(bodyClickDirective.name, bodyClickDirective.options)
-        .directive(fileBrowserDirective.name, fileBrowserDirective.options)
         .service(helperService.name, helperService.factory)
         .service(dataService.name, dataService.factory)
         .animation(appAnimation.class, appAnimation.factory)
-        .provider('vfsTypes', vfsTypeProvider)
-        .provider('vfsSummaries', vfsSummaryProvider)
         .config(appConfig);
   }
 

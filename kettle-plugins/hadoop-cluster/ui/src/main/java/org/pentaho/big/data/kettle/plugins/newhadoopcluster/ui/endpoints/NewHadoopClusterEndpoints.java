@@ -22,98 +22,28 @@
 
 package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.endpoints;
 
-import org.pentaho.di.connections.ConnectionDetails;
-import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog.NewHadoopClusterDialog;
-import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree.NewHadoopClusterFolderProvider;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import java.util.function.Supplier;
 
 import org.pentaho.di.ui.util.HelpUtils;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 public class NewHadoopClusterEndpoints {
 
   private static Class<?> PKG = NewHadoopClusterDialog.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
-  private ConnectionManager connectionManager;
-
   public static final String HELP_URL =
     Const.getDocUrl( BaseMessages.getString( PKG, "ConnectionDialog.help.dialog.Help" ) );
 
   public NewHadoopClusterEndpoints( MetastoreLocator metastoreLocator ) {
-    this.connectionManager = ConnectionManager.getInstance();
-    this.connectionManager.setMetastoreSupplier( metastoreLocator::getMetastore );
-  }
-
-  @GET
-  @Path( "/types" )
-  @Produces( { APPLICATION_JSON } )
-  public Response getTypes() {
-    return Response.ok( connectionManager.getItems() ).build();
-  }
-
-  @GET
-  @Path( "/hadoop-cluster/{scheme}" )
-  @Produces( { APPLICATION_JSON } )
-  public Response getFields( @PathParam( "scheme" ) String scheme ) {
-    return Response.ok( connectionManager.createConnectionDetails( scheme ) ).build();
-  }
-
-  @GET
-  @Path( "/hadoop-cluster" )
-  @Consumes( { APPLICATION_JSON } )
-  public Response getConnection( @QueryParam( "name" ) String name ) {
-    return Response.ok( connectionManager.getConnectionDetails( name ) ).build();
-  }
-
-  @GET
-  @Path( "/hadoop-cluster/exists" )
-  @Consumes( { APPLICATION_JSON } )
-  public Response getConnectionExists( @QueryParam( "name" ) String name ) {
-    return Response.ok( String.valueOf( connectionManager.exists( name ) ) ).build();
-  }
-
-  @PUT
-  @Path( "/hadoop-cluster" )
-  @Consumes( { APPLICATION_JSON } )
-  public Response createConnection( ConnectionDetails connectionDetails, @QueryParam( "name" ) String name ) {
-    boolean saved = connectionManager.save( connectionDetails );
-    if ( saved ) {
-      connectionManager.delete( name );
-      spoonSupplier.get().getShell().getDisplay().asyncExec( () -> spoonSupplier.get().refreshTree(
-        NewHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) );
-      return Response.ok().build();
-    } else {
-      return Response.serverError().build();
-    }
-  }
-
-  @POST
-  @Path( "/test" )
-  @Consumes( { APPLICATION_JSON } )
-  public Response testConnection( ConnectionDetails connectionDetails ) {
-    boolean valid = connectionManager.test( connectionDetails );
-    if ( valid ) {
-      return Response.ok().build();
-    } else {
-      return Response.status( Response.Status.BAD_REQUEST ).build();
-    }
   }
 
   @GET

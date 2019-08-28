@@ -41,7 +41,7 @@ define([
     function onInit() {
       vm.data = $stateParams.data;
       vm.congratulationsLabel = i18n.get('cluster.final.congratulationsLabel');
-      vm.ready = !vm.data.isSaved ? i18n.get('cluster.final.readyCreate') : i18n.get('connections.final.readyUpdated');
+      vm.ready = i18n.get('cluster.final.readyCreate');
       vm.question = i18n.get('cluster.final.question');
       vm.createNewCluster = i18n.get('cluster.final.createNewConnection');
       vm.editCluster = i18n.get('cluster.final.editCluster');
@@ -57,7 +57,6 @@ define([
 
     function onEditConnection() {
       vm.data.state = "edit";
-      setDialogTitle(i18n.get('connections.intro.edit.label'));
       $state.go("intro", {data: vm.data, transition: "slideRight"});
     }
 

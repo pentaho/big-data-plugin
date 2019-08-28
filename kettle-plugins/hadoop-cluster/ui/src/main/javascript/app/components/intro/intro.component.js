@@ -132,7 +132,7 @@ define([
     function getButtons() {
       return [
         {
-          label: i18n.get('connections.controls.nextLabel'),
+          label: i18n.get('cluster.controls.nextLabel'),
           class: "primary",
           isDisabled: function () {
             return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configurationType || !vm.data.model.ccfgFilePath;

@@ -45,38 +45,8 @@ define(
     function factory(helperService) {
       var baseUrl = "/cxf/connection";
       return {
-        getTypes: getTypes,
-        getFields: getFields,
-        createConnection: createConnection,
-        getConnection: getConnection,
         help: help,
-        testConnection: testConnection,
-        exists: exists
       };
-
-      function getTypes() {
-        return helperService.httpGet([baseUrl, "types"].join("/"));
-      }
-
-      function getFields(type) {
-        return helperService.httpGet([baseUrl, "connection", type].join("/"));
-      }
-
-      function createConnection(connection, name) {
-        return helperService.httpPut([baseUrl, "connection"].join("/") + "?name=" + name, connection);
-      }
-
-      function testConnection(connection) {
-        return helperService.httpPost([baseUrl, "test"].join("/"), connection);
-      }
-
-      function getConnection(name) {
-        return helperService.httpGet([baseUrl, "connection"].join("/") + "?name=" + name);
-      }
-
-      function exists( name ) {
-        return helperService.httpGet([baseUrl, "connection", "exists"].join("/") + "?name=" + name);
-      }
 
       function help() {
         return helperService.httpGet([baseUrl, "help"].join("/"));

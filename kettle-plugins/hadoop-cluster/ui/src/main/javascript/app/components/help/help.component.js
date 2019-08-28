@@ -16,7 +16,7 @@
 
 define([
   'text!./help.html',
-  'pentaho/i18n-osgi!connections.messages'
+  'pentaho/i18n-osgi!hadoop-cluster.messages'
 ], function (template, i18n) {
 
   'use strict';
@@ -41,7 +41,7 @@ define([
      * bindings initialized. We use this hook to put initialization code for our controller.
      */
     function onInit() {
-      vm.helpLabel = i18n.get('connections.help.helpLabel');
+      vm.helpLabel = i18n.get('cluster.help.helpLabel');
     }
 
     function click() {
