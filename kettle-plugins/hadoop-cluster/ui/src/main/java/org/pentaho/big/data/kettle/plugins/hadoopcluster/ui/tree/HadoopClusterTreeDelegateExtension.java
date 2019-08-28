@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.connections.ConnectionDetails;
@@ -30,15 +30,14 @@ import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.ui.spoon.TreeSelection;
 import org.pentaho.di.ui.spoon.delegates.SpoonTreeDelegateExtension;
-import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 
 import java.util.List;
 
-@ExtensionPoint( id = "NewHadoopClusterTreeDelegateExtension", description = "",
+@ExtensionPoint( id = "HadoopClusterTreeDelegateExtension", description = "",
   extensionPointId = "SpoonTreeDelegateExtension" )
-public class NewHadoopClusterTreeDelegateExtension implements ExtensionPointInterface {
+public class HadoopClusterTreeDelegateExtension implements ExtensionPointInterface {
 
-  public NewHadoopClusterTreeDelegateExtension() {
+  public HadoopClusterTreeDelegateExtension() {
 
   }
 
@@ -52,10 +51,10 @@ public class NewHadoopClusterTreeDelegateExtension implements ExtensionPointInte
 
     TreeSelection object = null;
 
-    if ( path[ 2 ].equals( NewHadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
+    if ( path[ 2 ].equals( HadoopClusterFolderProvider.STRING_NEW_HADOOP_CLUSTER ) ) {
       switch ( caseNumber ) {
         case 3:
-          //TODO: when this is modified you can also modify NewHadoopClusterPopupMenuExtension with some other type, probably related to NewHadoopClusterJsonProvider
+          //TODO: when this is modified you can also modify HadoopClusterPopupMenuExtension with some other type, probably related to HadoopClusterJsonProvider
           object = new TreeSelection( path[ 2 ], ConnectionDetails.class, meta );
           break;
        }

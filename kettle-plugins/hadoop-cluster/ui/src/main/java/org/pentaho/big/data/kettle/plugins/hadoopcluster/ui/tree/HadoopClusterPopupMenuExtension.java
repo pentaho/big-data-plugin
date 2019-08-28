@@ -22,7 +22,7 @@
  *
  */
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -30,7 +30,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
-import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog.NewHadoopClusterDelegate;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
 import org.pentaho.di.connections.ConnectionDetails;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
@@ -43,18 +43,18 @@ import org.pentaho.di.ui.spoon.TreeSelection;
 
 import java.util.function.Supplier;
 
-@ExtensionPoint( id = "NewHadoopClusterPopupMenuExtension", description = "Creates popup menus for VFS Connections",
+@ExtensionPoint( id = "HadoopClusterPopupMenuExtension", description = "Creates popup menus for VFS Connections",
   extensionPointId = "SpoonPopupMenuExtension" )
-public class NewHadoopClusterPopupMenuExtension implements ExtensionPointInterface {
+public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface {
 
-  private static final Class<?> PKG = NewHadoopClusterPopupMenuExtension.class;
+  private static final Class<?> PKG = HadoopClusterPopupMenuExtension.class;
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
-  private NewHadoopClusterDelegate newHadoopClusterDelegate;
+  private HadoopClusterDelegate hadoopClusterDelegate;
 
-  public NewHadoopClusterPopupMenuExtension( NewHadoopClusterDelegate newHadoopClusterDelegate ) {
-    this.newHadoopClusterDelegate = newHadoopClusterDelegate;
+  public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate ) {
+    this.hadoopClusterDelegate = hadoopClusterDelegate;
   }
 
   @Override public void callExtensionPoint( LogChannelInterface logChannelInterface, Object extension )
@@ -81,11 +81,11 @@ public class NewHadoopClusterPopupMenuExtension implements ExtensionPointInterfa
     if ( rootMenu == null ) {
       rootMenu = new Menu( tree );
       MenuItem menuItem = new MenuItem( rootMenu, SWT.NONE );
-      menuItem.setText( BaseMessages.getString( PKG, "VFSConnectionPopupMenuExtension.MenuItem.New" ) );
+      menuItem.setText( BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ) );
       menuItem.addSelectionListener( new SelectionAdapter() {
         @Override
         public void widgetSelected( SelectionEvent selectionEvent ) {
-          newHadoopClusterDelegate.openDialog();
+          hadoopClusterDelegate.openDialog();
         }
       } );
     }

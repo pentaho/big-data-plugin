@@ -20,9 +20,9 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.lifecycle;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.lifecycle;
 
-import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree.NewHadoopClusterFolderProvider;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterFolderProvider;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;
@@ -31,16 +31,16 @@ import org.pentaho.di.ui.spoon.Spoon;
 
 import java.util.function.Supplier;
 
-@LifecyclePlugin( id = "NewHadoopClusterLifecycleListener" )
-public class NewHadoopClusterLifecycleListener implements LifecycleListener {
+@LifecyclePlugin( id = "HadoopClusterLifecycleListener" )
+public class HadoopClusterLifecycleListener implements LifecycleListener {
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
   @Override
   public void onStart( LifeEventHandler handler ) throws LifecycleException {
     Spoon spoon = spoonSupplier.get();
     if ( spoon != null ) {
-      spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new NewHadoopClusterFolderProvider( ) );
-      spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new NewHadoopClusterFolderProvider( ) );
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new HadoopClusterFolderProvider( ) );
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new HadoopClusterFolderProvider( ) );
     }
   }
 

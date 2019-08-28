@@ -20,9 +20,9 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.endpoints;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
-import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog.NewHadoopClusterDialog;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -35,15 +35,15 @@ import java.util.function.Supplier;
 
 import org.pentaho.di.ui.util.HelpUtils;
 
-public class NewHadoopClusterEndpoints {
+public class HadoopClusterEndpoints {
 
-  private static Class<?> PKG = NewHadoopClusterDialog.class;
+  private static Class<?> PKG = HadoopClusterDialog.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
   public static final String HELP_URL =
-    Const.getDocUrl( BaseMessages.getString( PKG, "ConnectionDialog.help.dialog.Help" ) );
+    Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
-  public NewHadoopClusterEndpoints( MetastoreLocator metastoreLocator ) {
+  public HadoopClusterEndpoints( MetastoreLocator metastoreLocator ) {
   }
 
   @GET
@@ -51,8 +51,8 @@ public class NewHadoopClusterEndpoints {
   public Response help() {
     spoonSupplier.get().getShell().getDisplay().asyncExec( () ->
       HelpUtils.openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
-        BaseMessages.getString( PKG, "ConnectionDialog.help.dialog.Title" ),
-        HELP_URL, BaseMessages.getString( PKG, "ConnectionDialog.help.dialog.Header" ) ) );
+        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ),
+        HELP_URL, BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
     return Response.ok().build();
   }
 }

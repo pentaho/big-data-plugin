@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.endpoints;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -40,11 +40,11 @@ import java.io.IOException;
 
 @Provider
 @Produces( MediaType.APPLICATION_JSON )
-public class NewHadoopClusterJsonProvider extends JacksonJaxbJsonProvider {
+public class HadoopClusterJsonProvider extends JacksonJaxbJsonProvider {
 
   public static final String TYPE = "type";
 
-  public NewHadoopClusterJsonProvider() {
+  public HadoopClusterJsonProvider() {
     super();
 
     SimpleModule simpleModule = new SimpleModule();

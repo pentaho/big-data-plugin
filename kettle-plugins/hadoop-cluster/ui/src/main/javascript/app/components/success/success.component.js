@@ -43,7 +43,7 @@ define([
       vm.congratulationsLabel = i18n.get('cluster.final.congratulationsLabel');
       vm.ready = i18n.get('cluster.final.readyCreate');
       vm.question = i18n.get('cluster.final.question');
-      vm.createNewCluster = i18n.get('cluster.final.createNewConnection');
+      vm.createNewCluster = i18n.get('cluster.final.createNewCluster');
       vm.editCluster = i18n.get('cluster.final.editCluster');
       vm.testCluster = i18n.get('cluster.final.testCluster');
       vm.closeLabel = i18n.get('cluster.controls.closeLabel');

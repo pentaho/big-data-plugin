@@ -29,9 +29,9 @@ define([
     controller: creatingController
   };
 
-  creatingController.$inject = ["$state", "$timeout", "$stateParams", "dataService"];
+  creatingController.$inject = ["$state", "$timeout", "$stateParams"];
 
-  function creatingController($state, $timeout, $stateParams, dataService) {
+  function creatingController($state, $timeout, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
 

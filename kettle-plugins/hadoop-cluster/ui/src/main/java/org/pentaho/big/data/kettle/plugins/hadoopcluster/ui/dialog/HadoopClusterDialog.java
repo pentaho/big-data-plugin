@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class NewHadoopClusterDialog extends ThinDialog {
+public class HadoopClusterDialog extends ThinDialog {
 
   private static final Image LOGO = GUIResource.getInstance().getImageLogoSmall();
   private static final String OSGI_SERVICE_PORT = "OSGI_SERVICE_PORT";
@@ -45,7 +45,7 @@ public class NewHadoopClusterDialog extends ThinDialog {
   private static final String THIN_CLIENT_PORT = "THIN_CLIENT_PORT";
   private static final String LOCALHOST = "localhost";
 
-  public NewHadoopClusterDialog( Shell shell, int width, int height ) {
+  public HadoopClusterDialog( Shell shell, int width, int height ) {
     super( shell, width, height );
   }
 
@@ -100,7 +100,7 @@ public class NewHadoopClusterDialog extends ThinDialog {
   private static String getClientPath() {
     Properties properties = new Properties();
     try {
-      InputStream inputStream = NewHadoopClusterDialog.class.getClassLoader().getResourceAsStream( "project.properties" );
+      InputStream inputStream = HadoopClusterDialog.class.getClassLoader().getResourceAsStream( "project.properties" );
       properties.load( inputStream );
     } catch ( IOException e ) {
       e.printStackTrace();

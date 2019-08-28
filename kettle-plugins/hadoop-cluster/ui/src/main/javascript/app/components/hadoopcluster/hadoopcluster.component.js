@@ -29,9 +29,9 @@ define([
     controller: hadoopClusterController
   };
 
-  hadoopClusterController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
+  hadoopClusterController.$inject = ["$location", "$state", "$q", "$stateParams"];
 
-  function hadoopClusterController($location, $state, $q, $stateParams, dataService) {
+  function hadoopClusterController($location, $state, $q, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelect = onSelect;
@@ -44,7 +44,6 @@ define([
     vm.configurationPath = "";
     var loaded = false;
     vm.selectConfigPathButtonLabel = "";
-    vm.selectConfigPathHref = "location.href='http://localhost:9051/@pentaho/di-plugin-file-open-save-new@9.0.0.0-SNAPSHOT/index.html#/open?provider=vfs'";
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};

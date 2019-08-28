@@ -34,27 +34,27 @@
              interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
              availability="optional"/>
 
-  <bean id="NewHadoopClusterDelegate" scope="singleton" class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog.NewHadoopClusterDelegate" />
+  <bean id="HadoopClusterDelegate" scope="singleton" class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate" />
 
-  <bean id="NewHadoopClusterTreeDelegateExtension" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree.NewHadoopClusterTreeDelegateExtension">
+  <bean id="HadoopClusterTreeDelegateExtension" scope="singleton"
+        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterTreeDelegateExtension">
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 
-  <bean id="NewHadoopClusterPopupMenuExtension" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree.NewHadoopClusterPopupMenuExtension">
-    <argument ref="NewHadoopClusterDelegate" />
+  <bean id="HadoopClusterPopupMenuExtension" scope="singleton"
+        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterPopupMenuExtension">
+    <argument ref="HadoopClusterDelegate" />
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
   </bean>
 
-  <bean id="NewHadoopClusterLifecycleListener"
-        class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.lifecycle.NewHadoopClusterLifecycleListener">
+  <bean id="HadoopClusterLifecycleListener"
+        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.lifecycle.HadoopClusterLifecycleListener">
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType" />
   </bean>
 
   <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
     <jaxrs:serviceBeans>
-      <bean class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.endpoints.NewHadoopClusterEndpoints">
+      <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
         <argument ref="metastoreLocator"/>
       </bean>
     </jaxrs:serviceBeans>
@@ -64,7 +64,7 @@
     </jaxrs:extensionMappings>
 
     <jaxrs:providers>
-      <bean class="org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.endpoints.NewHadoopClusterJsonProvider"/>
+      <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterJsonProvider"/>
     </jaxrs:providers>
 
   </jaxrs:server>

@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
-public class NewHadoopClusterTreeItem {
+public class HadoopClusterTreeItem {
 }

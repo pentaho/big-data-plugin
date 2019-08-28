@@ -20,11 +20,8 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.dialog;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog;
 
-import org.eclipse.swt.SWT;
-import org.pentaho.di.connections.ConnectionManager;
-import org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree.NewHadoopClusterFolderProvider;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 
@@ -33,24 +30,24 @@ import java.util.function.Supplier;
 /**
  * Created by bmorrise on 2/4/19.
  */
-public class NewHadoopClusterDelegate {
+public class HadoopClusterDelegate {
 
-  private static final Class<?> PKG = NewHadoopClusterDelegate.class;
+  private static final Class<?> PKG = HadoopClusterDelegate.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
   private static final int WIDTH = 630;
   private static final int HEIGHT = 650;
 
   public void openDialog() {
-    NewHadoopClusterDialog
-      newHadoopClusterDialog = new NewHadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-    newHadoopClusterDialog.open( BaseMessages.getString( PKG, "ConnectionDialog.dialog.new.title" ) );
+    HadoopClusterDialog
+      hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
+    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.new.title" ) );
   }
 
   public void openDialog( String label ) {
-    NewHadoopClusterDialog
-      newHadoopClusterDialog = new NewHadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-    newHadoopClusterDialog.open( BaseMessages.getString( PKG, "ConnectionDialog.dialog.edit.title" ), label );
+    HadoopClusterDialog
+      hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
+    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.edit.title" ), label );
   }
 
 }

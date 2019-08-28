@@ -20,17 +20,17 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.kettle.plugins.newhadoopcluster.ui.tree;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.widget.tree.TreeNode;
 import org.pentaho.di.ui.spoon.tree.TreeFolderProvider;
 
-public class NewHadoopClusterFolderProvider extends TreeFolderProvider {
+public class HadoopClusterFolderProvider extends TreeFolderProvider {
 
-  private static final Class<?> PKG = NewHadoopClusterFolderProvider.class;
-  public static final String STRING_NEW_HADOOP_CLUSTER = BaseMessages.getString( PKG, "NewHadoopClusterTree.Title" );
+  private static final Class<?> PKG = HadoopClusterFolderProvider.class;
+  public static final String STRING_NEW_HADOOP_CLUSTER = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
 
   @Override
   public void refresh( AbstractMeta meta, TreeNode treeNode, String filter ) {
