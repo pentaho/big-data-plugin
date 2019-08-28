@@ -104,7 +104,7 @@ define([
 
     function getButtons() {
       return [{
-        label: i18n.get('connections.controls.finishLabel'),
+        label: i18n.get('cluster.controls.closeLabel'),
         class: "primary",
         position: "right",
         onClick: function() {

@@ -61,14 +61,6 @@ define([], function() {
           transition: null
         }
       })
-      .state('failure', {
-        url: "/failure",
-        template: "<failure></failure>",
-        params: {
-          data: null,
-          transition: null
-        }
-      });
     $urlRouterProvider.otherwise("/intro");
   }
   return config;

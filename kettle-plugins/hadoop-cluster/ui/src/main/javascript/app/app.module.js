@@ -28,7 +28,6 @@ define([
   "./components/summary/summary.component",
   "./components/creating/creating.component",
   "./components/success/success.component",
-  "./components/failure/failure.component",
   "./components/selectbox/selectbox.component",
   "./components/controls/controls.component",
   "./components/message/message.component",
@@ -40,7 +39,7 @@ define([
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, plugins, appConfig, appAnimation, introComponent, summaryComponent, creatingComponent, successComponent, failureComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, focusDirective, bodyClickDirective, fileBrowserDirective, helperService, dataService) {
+], function (angular, plugins, appConfig, appAnimation, introComponent, summaryComponent, creatingComponent, successComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, focusDirective, bodyClickDirective, fileBrowserDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -96,7 +95,6 @@ define([
         .component(summaryComponent.name, summaryComponent.options)
         .component(creatingComponent.name, creatingComponent.options)
         .component(successComponent.name, successComponent.options)
-        .component(failureComponent.name, failureComponent.options)
         .component(selectboxComponent.name, selectboxComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
         .component(messageComponent.name, messageComponent.options)

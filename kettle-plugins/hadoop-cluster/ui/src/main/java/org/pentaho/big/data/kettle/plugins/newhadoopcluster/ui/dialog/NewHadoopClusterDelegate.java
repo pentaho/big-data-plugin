@@ -39,7 +39,7 @@ public class NewHadoopClusterDelegate {
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
   private static final int WIDTH = 630;
-  private static final int HEIGHT = 630;
+  private static final int HEIGHT = 650;
 
   public void openDialog() {
     NewHadoopClusterDialog

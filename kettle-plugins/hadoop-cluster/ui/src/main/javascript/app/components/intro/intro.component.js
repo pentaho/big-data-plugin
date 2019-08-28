@@ -61,7 +61,7 @@ define([
 
       if ($stateParams.data) {
         //TODO: future implementation use ui-router for saving data between screens
-        //vm.data = $stateParams.data;
+
       } else {
 
         setDialogTitle(i18n.get('cluster.intro.title'));
@@ -130,21 +130,30 @@ define([
     }
 
     function getButtons() {
-      return [{
-        label: i18n.get('connections.controls.nextLabel'),
-        class: "primary",
-        isDisabled: function () {
-          return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configurationType || !vm.data.model.ccfgFilePath ;
+      return [
+        {
+          label: i18n.get('connections.controls.nextLabel'),
+          class: "primary",
+          isDisabled: function () {
+            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configurationType || !vm.data.model.ccfgFilePath;
+          },
+          position: "right",
+          onClick: function () {
+            validateName().then(function (isValid) {
+              if (isValid) {
+                $state.go('creating', {data: vm.data, transition: "slideLeft"});
+              }
+            });
+          }
         },
-        position: "right",
-        onClick: function () {
-          validateName().then(function (isValid) {
-            if (isValid) {
-              $state.go('creating', {data: vm.data, transition: "slideLeft"});
-            }
-          });
-        }
-      }];
+        {
+          label: i18n.get('cluster.controls.cancelLabel'),
+          class: "primary",
+          position: "right",
+          onClick: function () {
+            close();
+          }
+        }];
     }
   }
 

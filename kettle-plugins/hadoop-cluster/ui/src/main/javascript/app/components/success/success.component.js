@@ -46,7 +46,7 @@ define([
       vm.createNewCluster = i18n.get('cluster.final.createNewConnection');
       vm.editCluster = i18n.get('cluster.final.editCluster');
       vm.testCluster = i18n.get('cluster.final.testCluster');
-      vm.closeLabel = i18n.get('cluster.final.closeLabel');
+      vm.closeLabel = i18n.get('cluster.controls.closeLabel');
       vm.data.isSaved = true;
       vm.buttons = getButtons();
     }
@@ -58,7 +58,7 @@ define([
     function onEditConnection() {
       vm.data.state = "edit";
       setDialogTitle(i18n.get('connections.intro.edit.label'));
-      $state.go("summary", {data: vm.data, transition: "slideRight"});
+      $state.go("intro", {data: vm.data, transition: "slideRight"});
     }
 
     function onTestCluster() {
@@ -67,7 +67,7 @@ define([
 
     function getButtons() {
       return [{
-        label: i18n.get('connections.controls.finishLabel'),
+        label: i18n.get('cluster.controls.closeLabel'),
         class: "primary",
         position: "right",
         onClick: function() {
