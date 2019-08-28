@@ -43,10 +43,10 @@ define([
       vm.couldNotConnect = i18n.get('connections.failure.couldNotConnect');
       vm.messageOne = i18n.get('connections.failure.messageOne');
       vm.messageTwo = i18n.get('connections.failure.messageTwo');
-      vm.question = i18n.get('connections.final.question');
+      vm.question = i18n.get('cluster.final.question');
       vm.createNewConnection = i18n.get('connections.final.createNewConnection');
-      vm.editConnection = i18n.get('connections.final.editConnection');
-      vm.closeLabel = i18n.get('connections.final.closeLabel');
+      vm.editConnection = i18n.get('cluster.final.editCluster');
+      vm.closeLabel = i18n.get('cluster.final.closeLabel');
       vm.data.isSaved = false;
       vm.buttons = getButtons();
     }

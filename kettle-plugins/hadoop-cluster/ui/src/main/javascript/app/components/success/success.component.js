@@ -36,15 +36,17 @@ define([
     vm.$onInit = onInit;
     vm.onCreateNew = onCreateNew;
     vm.onEditConnection = onEditConnection;
+    vm.onTestCluster = onTestCluster;
 
     function onInit() {
       vm.data = $stateParams.data;
-      vm.congratulationsLabel = i18n.get('connections.final.congratulationsLabel');
-      vm.ready = !vm.data.isSaved ? i18n.get('connections.final.readyCreate') : i18n.get('connections.final.readyUpdated');
-      vm.question = i18n.get('connections.final.question');
-      vm.createNewConnection = i18n.get('connections.final.createNewConnection');
-      vm.editConnection = i18n.get('connections.final.editConnection');
-      vm.closeLabel = i18n.get('connections.final.closeLabel');
+      vm.congratulationsLabel = i18n.get('cluster.final.congratulationsLabel');
+      vm.ready = !vm.data.isSaved ? i18n.get('cluster.final.readyCreate') : i18n.get('connections.final.readyUpdated');
+      vm.question = i18n.get('cluster.final.question');
+      vm.createNewCluster = i18n.get('cluster.final.createNewConnection');
+      vm.editCluster = i18n.get('cluster.final.editCluster');
+      vm.testCluster = i18n.get('cluster.final.testCluster');
+      vm.closeLabel = i18n.get('cluster.final.closeLabel');
       vm.data.isSaved = true;
       vm.buttons = getButtons();
     }
@@ -57,6 +59,10 @@ define([
       vm.data.state = "edit";
       setDialogTitle(i18n.get('connections.intro.edit.label'));
       $state.go("summary", {data: vm.data, transition: "slideRight"});
+    }
+
+    function onTestCluster() {
+      //TODO: test cluster and display test results
     }
 
     function getButtons() {

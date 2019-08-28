@@ -6,22 +6,33 @@
     {{::vm.congratulationsLabel}}
   </div>
   <div class="primary_text text_center">
-    <div class="margin_bottom_80">{{::vm.ready}}</div>
+    <div class="margin_bottom_30">{{::vm.ready}}</div>
     <div class="margin_bottom_30">{{::vm.question}}</div>
+
     <div class="margin_bottom_30">
-      <button class="same_width secondary" type="button" ng-click="vm.onCreateNew()">
+      <button class="same_width secondary" type="button" ng-click="vm.onTestCluster()">
         <span>
-          {{::vm.createNewConnection}}
+          {{::vm.testCluster}}
         </span>
       </button>
     </div>
-    <div>
+
+    <div class="margin_bottom_30">
       <button class="same_width secondary" type="button" ng-click="vm.onEditConnection()">
         <span>
-          {{::vm.editConnection}}
+          {{::vm.editCluster}}
         </span>
       </button>
     </div>
+
+    <div>
+      <button class="same_width secondary" type="button" ng-click="vm.onCreateNew()">
+        <span>
+          {{::vm.createNewCluster}}
+        </span>
+      </button>
+    </div>
+
   </div>
   <controls buttons="vm.buttons"></controls>
 </div>

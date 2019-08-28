@@ -140,7 +140,7 @@ define([
         onClick: function () {
           validateName().then(function (isValid) {
             if (isValid) {
-              $state.go('summary', {data: vm.data, transition: "slideLeft"});
+              $state.go('creating', {data: vm.data, transition: "slideLeft"});
             }
           });
         }
