@@ -16,7 +16,7 @@
 
 define([
   'text!./summary.html',
-  'pentaho/i18n-osgi!connections.messages',
+  'pentaho/i18n-osgi!hadoop-cluster.messages',
   "pentaho/module/instancesOf!IPenConnectionProvider",
   'css!./summary.css'
 ], function (template, i18n) {
@@ -39,10 +39,16 @@ define([
     vm.onEditClick = onEditClick;
     var loaded = false;
 
+    vm.clusterNameLabel = i18n.get('cluster.intro.clusterName.label');
+    vm.specifyConfigurationLabel = i18n.get('cluster.intro.specify.configuration.label');
+    vm.selectConfigPathButtonLabel = i18n.get('cluster.intro.selectCcfgFileButtonLabel');
+
     function onInit() {
+
+
       vm.clusterName = i18n.get('cluster.intro.clusterName.label');
       vm.connectionType = i18n.get('cluster.intro.specify.configuration.label');
-      vm.connectionSummary = i18n.get('connections.summary.connectionSummary');
+      vm.clusterSummary = i18n.get('cluster.summary.congrats');
       vm.generalSettings = i18n.get('connections.summary.generalSettings');
       vm.description = i18n.get('connections.summary.description');
       vm.finishLabel = i18n.get('connections.summary.finishLabel');

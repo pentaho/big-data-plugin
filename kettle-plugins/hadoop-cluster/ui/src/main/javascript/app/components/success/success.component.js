@@ -16,7 +16,7 @@
 
 define([
   'text!./success.html',
-  'pentaho/i18n-osgi!connections.messages',
+  'pentaho/i18n-osgi!hadoop-cluster.messages',
   'css!./success.css'
 ], function (template, i18n) {
 
