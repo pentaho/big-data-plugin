@@ -23,7 +23,7 @@ define([
   "angular",
   "./app.config",
   "./app.animation",
-  "./components/intro/intro.component",
+  "./components/hadoopcluster/hadoopcluster.component",
   "./components/creating/creating.component",
   "./components/success/success.component",
   "./components/selectbox/selectbox.component",
@@ -35,7 +35,7 @@ define([
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, appConfig, appAnimation, introComponent, creatingComponent, successComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+], function (angular, appConfig, appAnimation, hadoopClusterComponent, creatingComponent, successComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -55,7 +55,7 @@ define([
   function activate() {
     var deps = ['ui.router', 'ngAnimate'];
     angular.module(module.name, deps)
-        .component(introComponent.name, introComponent.options)
+        .component(hadoopClusterComponent.name, hadoopClusterComponent.options)
         .component(creatingComponent.name, creatingComponent.options)
         .component(successComponent.name, successComponent.options)
         .component(selectboxComponent.name, selectboxComponent.options)

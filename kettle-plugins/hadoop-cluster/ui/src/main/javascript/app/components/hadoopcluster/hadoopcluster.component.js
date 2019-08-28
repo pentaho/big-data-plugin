@@ -15,9 +15,9 @@
  */
 
 define([
-  'text!./intro.html',
+  'text!./hadoopcluster.html',
   'pentaho/i18n-osgi!hadoop-cluster.messages',
-  'css!./intro.css'
+  'css!./hadoopcluster.css'
 ], function (template, i18n) {
 
   'use strict';
@@ -26,12 +26,12 @@ define([
     bindings: {},
     controllerAs: "vm",
     template: template,
-    controller: introController
+    controller: hadoopClusterController
   };
 
-  introController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
+  hadoopClusterController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
 
-  function introController($location, $state, $q, $stateParams, dataService) {
+  function hadoopClusterController($location, $state, $q, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelect = onSelect;
@@ -48,14 +48,14 @@ define([
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
-      vm.clusterNameLabel = i18n.get('cluster.intro.clusterName.label');
-      vm.specifyConfigurationLabel = i18n.get('cluster.intro.specify.configuration.label');
-      vm.title = i18n.get('cluster.intro.new.header');
-      vm.configurationTypes = [i18n.get('cluster.intro.import.ccfg'), i18n.get('cluster.intro.provide.site.xml')];
+      vm.clusterNameLabel = i18n.get('cluster.hadoop.clusterName.label');
+      vm.specifyConfigurationLabel = i18n.get('cluster.hadoop.specify.configuration.label');
+      vm.title = i18n.get('cluster.hadoop.new.header');
+      vm.configurationTypes = [i18n.get('cluster.hadoop.import.ccfg'), i18n.get('cluster.hadoop.provide.site.xml')];
       vm.configurationType = vm.configurationTypes[0];
       vm.configurationPath = "";
-      vm.configurationPathPlaceholder = i18n.get('cluster.intro.no.ccfg.selected.placeholder');
-      vm.selectConfigPathButtonLabel = i18n.get('cluster.intro.selectCcfgFileButtonLabel');
+      vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.ccfg.selected.placeholder');
+      vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.selectCcfgFileButtonLabel');
 
       vm.next = "/";
 
@@ -64,7 +64,7 @@ define([
 
       } else {
 
-        setDialogTitle(i18n.get('cluster.intro.title'));
+        setDialogTitle(i18n.get('cluster.hadoop.title'));
 
         vm.data = {
           model: {
@@ -83,8 +83,8 @@ define([
     function resetErrorMsg() {
       if (!vm.data.isSaved) {
         vm.data.state = "new";
-        vm.title = i18n.get('cluster.intro.new.header');
-        setDialogTitle(i18n.get('cluster.intro.title'));
+        vm.title = i18n.get('cluster.hadoop.new.header');
+        setDialogTitle(i18n.get('cluster.hadoop.title'));
       }
       vm.errorMessage = null;
     }
@@ -158,7 +158,7 @@ define([
   }
 
   return {
-    name: "intro",
+    name: "hadoopcluster",
     options: options
   };
 

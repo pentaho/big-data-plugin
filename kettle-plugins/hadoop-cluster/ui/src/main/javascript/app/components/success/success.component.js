@@ -52,12 +52,12 @@ define([
     }
 
     function onCreateNew() {
-      $state.go("intro");
+      $state.go("hadoopcluster");
     }
 
     function onEditConnection() {
       vm.data.state = "edit";
-      $state.go("intro", {data: vm.data, transition: "slideRight"});
+      $state.go("hadoopcluster", {data: vm.data, transition: "slideRight"});
     }
 
     function onTestCluster() {

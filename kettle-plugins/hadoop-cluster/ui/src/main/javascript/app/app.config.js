@@ -29,9 +29,9 @@ define([], function() {
    */
   function config($stateProvider, $urlRouterProvider) {
     $stateProvider
-      .state('intro', {
-        url: "/intro",
-        template: "<intro></intro>",
+      .state('hadoopcluster', {
+        url: "/hadoopcluster",
+        template: "<hadoopcluster></hadoopcluster>",
         params: {
           data: null,
           transition: null
@@ -53,7 +53,7 @@ define([], function() {
           transition: null
         }
       })
-    $urlRouterProvider.otherwise("/intro");
+    $urlRouterProvider.otherwise("/hadoopcluster");
   }
   return config;
 });
