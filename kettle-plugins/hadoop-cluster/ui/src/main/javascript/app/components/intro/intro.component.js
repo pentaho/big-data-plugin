@@ -37,22 +37,21 @@ define([
     vm.onSelect = onSelect;
     vm.validateName = validateName;
     vm.resetErrorMsg = resetErrorMsg;
-    vm.checkConnectionName = checkConnectionName;
-    vm.openFileBrowser = openFileBrowser;
+    vm.checkClusterName = checkClusterName;
+    vm.onBrowse = onBrowse;
     vm.checkConfigurationPath = checkConfigurationPath;
     vm.configurationType = null;
-    vm.name = "";
     vm.configurationPath = "";
     var loaded = false;
     vm.selectConfigPathButtonLabel = "";
     vm.selectConfigPathHref = "location.href='http://localhost:9051/@pentaho/di-plugin-file-open-save-new@9.0.0.0-SNAPSHOT/index.html#/open?provider=vfs'";
 
     function onInit() {
+      vm.data = $stateParams.data ? $stateParams.data : {};
       vm.clusterNameLabel = i18n.get('cluster.intro.clusterName.label');
       vm.specifyConfigurationLabel = i18n.get('cluster.intro.specify.configuration.label');
       vm.title = i18n.get('cluster.intro.new.header');
       vm.configurationTypes = [i18n.get('cluster.intro.import.ccfg'), i18n.get('cluster.intro.provide.site.xml')];
-      //vm.specifyConfiguration = vm.configurationTypes[0];
       vm.configurationType = vm.configurationTypes[0];
       vm.configurationPath = "";
       vm.configurationPathPlaceholder = i18n.get('cluster.intro.no.ccfg.selected.placeholder');
@@ -91,39 +90,22 @@ define([
     }
 
     function onSelect(option) {
-
-
-
-      //TODO: first needs to be replaced to show the ccfg file selection path and button
-      //TODO: second if using hadoopConfigFolderPath show the folder selection path and button
-
-      // if (!vm.data.model || vm.data.model.type !== option.value) {
-      //   dataService.getFields(option.value).then(function (res) {
-      //     var name = vm.data.model.name;
-      //     var description = vm.data.model.description;
-      //     vm.data.model = res.data;
-      //     vm.data.model.name = name;
-      //     vm.data.model.description = description;
-      //     vm.next = vm.data.model.type + "step1";
-      //     vm.data.state = "new";
-      //     vm.data.isSaved = false;
-      //   });
-      // }
-
-
+      vm.data.model.configurationType = option;
     }
 
-    function openFileBrowser() {
-      window.open("http://localhost:9051/@pentaho/di-plugin-file-open-save-new@9.0.0.0-SNAPSHOT/index.html#/open?provider=vfs");
+    function onBrowse() {
+      try {
+        var path = browse();
+        if (path) {
+          vm.data.model.ccfgFilePath = path;
+        }
+      } catch (e) {
+        vm.data.model.ccfgFilePath = "/";
+      }
     }
 
-    function selectFile() {
-
-    }
-
-    function checkConnectionName() {
-      vm.resetErrorMsg();
-      vm.name = vm.name.replace(/[^\w\s]/g, '');
+    function checkClusterName() {
+      //TODO: implement
     }
 
     function checkConfigurationPath() {
@@ -131,29 +113,9 @@ define([
     }
 
     function validateName() {
-      return $q(function (resolve, reject) {
-        if (vm.data.state === "edit" || vm.data.isSaved) {
-          if (vm.name !== vm.data.model.name) {
-            vm.data.name = vm.data.model.name;
-            vm.data.model.name = vm.name;
-          }
-          resolve(true);
-        } else {
-          dataService.exists(vm.name).then(function (res) {
-            var isValid = !res.data;
-            if (!isValid) {
-              vm.errorMessage = {
-                type: "error",
-                text: i18n.get('connections.intro.name.error', {
-                  name: vm.name
-                })
-              }
-            } else {
-              vm.data.model.name = vm.name;
-            }
-            resolve(isValid);
-          });
-        }
+      //TODO: implement
+      return $q(function (resolve) {
+        return resolve(true)
       });
     }
 
@@ -169,16 +131,16 @@ define([
 
     function getButtons() {
       return [{
-        label: vm.data.state === "modify" ? i18n.get('connections.controls.applyLabel') : i18n.get('connections.controls.nextLabel'),
+        label: i18n.get('connections.controls.nextLabel'),
         class: "primary",
         isDisabled: function () {
-          return !vm.data.model || !vm.data.model.type || !vm.name;
+          return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configurationType || !vm.data.model.ccfgFilePath ;
         },
         position: "right",
         onClick: function () {
           validateName().then(function (isValid) {
             if (isValid) {
-              $state.go(vm.data.state === "modify" ? 'summary' : vm.next, {data: vm.data, transition: "slideLeft"});
+              $state.go('summary', {data: vm.data, transition: "slideLeft"});
             }
           });
         }

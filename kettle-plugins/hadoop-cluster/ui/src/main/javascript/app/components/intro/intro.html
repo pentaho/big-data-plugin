@@ -4,20 +4,16 @@
   <div class="middle_hadoop_div margin_bottom_10">
     <div class="margin_bottom_15">
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
-      <input id="clusterName" type="text" ng-keyup="vm.checkConnectionName()" ng-model="vm.name" autofocus/>
+      <input id="clusterName" type="text" ng-keyup="vm.checkClusterName()" ng-model="vm.data.model.clusterName" autofocus/>
     </div>
     <div class="margin_bottom_15">
       <label for="specifyConfiguration" class="margin_bottom_5 text_left">{{::vm.specifyConfigurationLabel}}</label>
       <selectbox id="specifyConfiguration" type="vm.configurationType" options="vm.configurationTypes" on-select="vm.onSelect(value)"></selectbox>
     </div>
-
-    <div id="pathSelection" class="margin_bottom_15 auto_overflow">
-
-      <button ng-class="button.class"  type="button" class="right" ng-click="vm.openFileBrowser()" ng-disabled="button.isDisabled()">
-          {{::vm.selectConfigPathButtonLabel}}
-      </button>
-      <div id="pathInput" class="auto_overflow">
-          <input id="configurationPath" type="text" ng-keyup="vm.checkConfigurationPath()" ng-model="vm.configurationPath" ng-attr-placeholder="{{vm.configurationPathPlaceholder}}"/>
+    <div class="margin_bottom_15">
+      <div class="file-input auto_overflow">
+        <input id="configPath" type="text" size="50" ng-model="vm.data.model.ccfgFilePath" ng-attr-placeholder="{{vm.configurationPathPlaceholder}}">
+        <button class="primary browse" ng-click="vm.onBrowse()">{{::vm.selectConfigPathButtonLabel}}</button>
       </div>
     </div>
   </div>

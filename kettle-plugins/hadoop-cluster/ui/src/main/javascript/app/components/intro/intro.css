@@ -2,6 +2,17 @@ textarea {
   height: 75px;
 }
 
-input[type="file"] {
-  display: none;
+.file-input input {
+  border-radius: 5px 0px 0px 5px;
+  float: left;
+  width: 70%;
+}
+
+.file-input button.browse {
+  border-radius: 0px 5px 5px 0px;
+  float: right;
+  width: 30%;
+}
+.auto_overflow {
+  overflow:auto;
 }
