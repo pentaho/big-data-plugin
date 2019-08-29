@@ -159,9 +159,6 @@ public class NamedClusterManager implements NamedClusterService {
       // In this case, try and read the MetaStore without locking.
       namedCluster = factory.loadElement( clusterName, false );
     }
-    if ( namedCluster != null ) {
-      validateClusterId( namedCluster );
-    }
     return namedCluster;
   }
 
@@ -170,7 +167,7 @@ public class NamedClusterManager implements NamedClusterService {
      MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
     List<NamedCluster> namedClusters = list( metastore );
     for ( NamedCluster nc : namedClusters ) {
-      if ( namedCluster.getConfigId().equals( nc.getConfigId() ) ) {
+      if ( namedCluster.getName().equals( nc.getName() ) ) {
         factory.deleteElement( nc.getName() );
         factory.saveElement( new NamedClusterImpl( namedCluster ) );
       }
@@ -196,9 +193,6 @@ public class NamedClusterManager implements NamedClusterService {
       namedClusters = new ArrayList<>(factory.getElements(false));
     }
 
-    for ( NamedCluster nc : namedClusters ) {
-      validateClusterId( nc );
-    }
     return namedClusters;
   }
 
@@ -224,7 +218,6 @@ public class NamedClusterManager implements NamedClusterService {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( nc.getName().equals( namedCluster ) ) {
-          validateClusterId( nc );
           return nc;
         }
       }
@@ -247,7 +240,6 @@ public class NamedClusterManager implements NamedClusterService {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( nc.getHdfsHost().equals( hostName ) ) {
-          validateClusterId( nc );
           return nc;
         }
       }
@@ -267,11 +259,4 @@ public class NamedClusterManager implements NamedClusterService {
     }
     clusterTemplate.setMapr( isMapr );
   }
-
-  private void validateClusterId(NamedCluster nc) {
-    if ( nc.getConfigId() == null ) {
-      nc.setConfigId( nc.getShimIdentifier() );
-    }
-  }
-
 }
