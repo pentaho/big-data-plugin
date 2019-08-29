@@ -82,45 +82,51 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     if ( metaStore == null ) {
       metaStore = spoon.getMetaStore();
     }
-    if ( nc != null ) {
-      NamedCluster ncCopy = nc.clone();
-      // The "duplicate name" string comes from Spoon, so use its class to get the resource
-      String dupename = BaseMessages.getString( Spoon.class, SPOON_VARIOUS_DUPE_NAME ) + nc.getName();
-      ncCopy.setName( dupename );
 
-      NamedClusterDialogImpl namedClusterDialogImpl = commonDialogFactory
-        .createNamedClusterDialog( shell, namedClusterService, runtimeTestActionService, runtimeTester, ncCopy );
-      namedClusterDialogImpl.setNewClusterCheck( true );
-      String newname = namedClusterDialogImpl.open();
-
-      if ( newname != null ) { // null: CANCEL
-        try {
-          XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
-          if ( xmlMetaStore != null ) {
-            if ( ncCopy.getConfigId() != null ) {
-              delNamedCluster( metaStore, ncCopy );
-            }
-            String newClusterId = generateNewClusterId( xmlMetaStore );
-            String sourceClusterId = nc.getConfigId();
-            File sourceClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + sourceClusterId );
-            File newClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterId );
-            ncCopy.setConfigId( newClusterId );
-            saveNamedCluster( metaStore, ncCopy );
-            FileUtils.copyDirectory( sourceClusterConfigDir, newClusterConfigDir );
-            if ( !nc.getShimIdentifier().equals( ncCopy.getShimIdentifier() ) ) {
-              addConfigProperties( ncCopy );
-            }
-          }
-        } catch ( Exception e ) {
-          commonDialogFactory.createErrorDialog( spoon.getShell(),
-            BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
-            BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
-          spoon.refreshTree();
-          return;
-        }
-        spoon.refreshTree( STRING_NAMED_CLUSTERS );
-      }
+    if ( nc == null ) {
+      return;
     }
+
+    NamedCluster newNamedCluster = nc.clone();
+
+    // The "duplicate name" string comes from Spoon, so use its class to get the resource
+    String duplicateName = BaseMessages.getString( Spoon.class, SPOON_VARIOUS_DUPE_NAME ) + nc.getName();
+    newNamedCluster.setName( duplicateName );
+
+    NamedClusterDialogImpl namedClusterDialogImpl = commonDialogFactory
+      .createNamedClusterDialog( shell, namedClusterService, runtimeTestActionService, runtimeTester, newNamedCluster );
+    namedClusterDialogImpl.setNewClusterCheck( true );
+
+    String newClusterName = namedClusterDialogImpl.open();
+    // Check if the process was cancelled
+    if ( newClusterName == null ) {
+      return;
+    }
+
+    try {
+      XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
+
+      if ( xmlMetaStore != null ) {
+        if ( newNamedCluster.getName() != null ) {
+          delNamedCluster( metaStore, newNamedCluster );
+        }
+
+        File sourceClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + nc.getName() );
+        File newClusterConfigDir = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + newClusterName );
+        saveNamedCluster( metaStore, newNamedCluster );
+        FileUtils.copyDirectory( sourceClusterConfigDir, newClusterConfigDir );
+        if ( !nc.getShimIdentifier().equals( newNamedCluster.getShimIdentifier() ) ) {
+          addConfigProperties( newNamedCluster );
+        }
+      }
+    } catch ( Exception e ) {
+      commonDialogFactory.createErrorDialog( spoon.getShell(),
+        BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
+        BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
+      spoon.refreshTree();
+      return;
+    }
+    spoon.refreshTree( STRING_NAMED_CLUSTERS );
   }
 
   public void delNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
@@ -136,25 +142,59 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     if ( metaStore == null ) {
       metaStore = spoon.getMetaStore();
     }
+
     NamedClusterDialogImpl namedClusterDialogImpl = commonDialogFactory.createNamedClusterDialog( shell,
       namedClusterService, runtimeTestActionService, runtimeTester, namedCluster.clone() );
     namedClusterDialogImpl.setNewClusterCheck( false );
+
     String result = namedClusterDialogImpl.open();
-    if ( result != null ) {
-      saveNamedCluster( metaStore, namedClusterDialogImpl.getNamedCluster() );
-      String shimIdentifier = namedClusterDialogImpl.getNamedCluster().getShimIdentifier();
-      if ( !namedCluster.getShimIdentifier().equals( shimIdentifier ) ) {
-        try {
-          addConfigProperties( namedClusterDialogImpl.getNamedCluster() );
-        } catch ( Exception e ) {
-          // Do nothing.
-        }
-      }
-      spoon.refreshTree( STRING_NAMED_CLUSTERS );
-      if ( namedClusterDialogImpl.getNamedCluster() != null ) {
-        return namedClusterDialogImpl.getNamedCluster().getName();
+
+    if ( result == null ) {
+      return null;
+    }
+
+    // Create the new cluster
+    saveNamedCluster( metaStore, namedClusterDialogImpl.getNamedCluster() );
+
+    if ( namedCluster.getName() == namedClusterDialogImpl.getNamedCluster().getName() ) {
+      return namedClusterDialogImpl.getNamedCluster().getName();
+    }
+
+    XmlMetaStore xmlMetaStore;
+    try {
+      xmlMetaStore = getXmlMetastore(metaStore);
+    } catch ( MetaStoreException ex ) {
+      xmlMetaStore = null;
+    }
+
+    // Rename the configuration folder to the new name.
+    File source = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + namedCluster.getName() );
+    File destination = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + namedClusterDialogImpl.getNamedCluster().getName() );
+
+    try {
+      FileUtils.copyDirectory( source, destination );
+    } catch ( IOException ex ) {
+
+    }
+
+    // Delete the old named cluster.
+    deleteNamedCluster( metaStore, namedCluster );
+
+    // If the user changed the shim, create a new config.properties file that corresponds to that shim.
+    String shimIdentifier = namedClusterDialogImpl.getNamedCluster().getShimIdentifier();
+    if ( !namedCluster.getShimIdentifier().equals( shimIdentifier ) ) {
+      try {
+        addConfigProperties( namedClusterDialogImpl.getNamedCluster() );
+      } catch ( Exception e ) {
+        // Do nothing.
       }
     }
+
+    spoon.refreshTree( STRING_NAMED_CLUSTERS );
+    if ( namedClusterDialogImpl.getNamedCluster() != null ) {
+      return namedClusterDialogImpl.getNamedCluster().getName();
+    }
+
     return null;
   }
 
@@ -175,8 +215,6 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
 
   private String getNamedClusterConfigsRootDir( XmlMetaStore metaStore ) {
     return System.getProperty( "user.home" ) + File.separator + ".pentaho"  + File.separator + "metastore"  + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
-//
-//    return metaStore.getRootFolder() + "/pentaho/NamedCluster/Configs";
   }
 
   public String newNamedCluster( VariableSpace variableSpace, IMetaStore metaStore, Shell shell ) {
@@ -199,13 +237,8 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       }
 
       try {
-        if ( nc.getConfigId() != null ) {
-          delNamedCluster( metaStore, nc );
-        }
-        String newClusterId = generateNewClusterId( null );
-        nc.setConfigId( newClusterId );
-        addConfigProperties( nc );
         saveNamedCluster( metaStore, nc );
+        addConfigProperties( nc );
       } catch ( Exception e ) {
         commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
@@ -220,32 +253,9 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     return null;
   }
 
-  private String generateNewClusterId( XmlMetaStore xmlMetaStore ) {
-    int newClusterId = 0;
-    try {
-      Path metaStorePath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) );
-      if ( Files.exists( metaStorePath ) ) {
-        Object[] paths = Files.list( metaStorePath ).toArray();
-        for ( int i = 0; i < paths.length; i++ ) {
-          Path filePath = (Path) paths[i];
-          try {
-            int index = Integer.parseInt( filePath.getFileName().toString() );
-            if ( index > newClusterId ) {
-              newClusterId = Math.max( newClusterId, index );
-            }
-          } catch ( NumberFormatException ex ) {
-          }
-        }
-      }
-    } catch ( Exception e ) {
-      return null;
-    }
-    return Integer.toString(newClusterId + 1 );
-  }
-
   private void addConfigProperties( NamedCluster namedCluster ) throws Exception {
-    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() );
-    Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() + "/" + "config.properties" );
+    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() );
+    Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() + "/" + "config.properties" );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
@@ -254,14 +264,13 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     }
   }
 
-
   private void deleteNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     try {
       if ( namedClusterService.read( namedCluster.getName(), metaStore ) != null ) {
         namedClusterService.delete( namedCluster.getName(), metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId();
+          String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getName();
           try {
             FileUtils.deleteDirectory( new File( path ) );
           } catch ( IOException e ) {
@@ -285,5 +294,4 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
         BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, namedCluster.getName() ), e );
     }
   }
-
 }

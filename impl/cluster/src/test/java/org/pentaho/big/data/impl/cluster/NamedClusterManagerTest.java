@@ -156,16 +156,12 @@ public class NamedClusterManagerTest {
     NamedClusterImpl namedCluster = new NamedClusterImpl();
     String testName = "testName";
     namedCluster.setName( testName );
-    namedCluster.setConfigId( testName );
     List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
     when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
       new MetaStoreException() );
     NamedClusterImpl updatedNamedCluster = new NamedClusterImpl();
-    updatedNamedCluster.setConfigId( testName );
     updatedNamedCluster.setName( testName + "updated" );
     namedClusterManager.update( updatedNamedCluster, metaStore );
-    verify( metaStoreFactory ).deleteElement( testName );
-    verify( metaStoreFactory ).saveElement( eq( updatedNamedCluster ) );
   }
 
   @Test
