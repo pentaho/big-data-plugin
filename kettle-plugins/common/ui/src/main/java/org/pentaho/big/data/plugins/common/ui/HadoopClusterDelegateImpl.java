@@ -210,6 +210,7 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
         commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
+        e.printStackTrace();
         spoon.refreshTree();
         return nc.getName();
       }
