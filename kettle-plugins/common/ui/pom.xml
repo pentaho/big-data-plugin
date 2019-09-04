@@ -15,6 +15,8 @@
   <url>http://www.pentaho.com</url>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <dependency.javax.servlet-api.version>3.0.1</dependency.javax.servlet-api.version>
+    <dependency.javax.ws.rs-api.version>2.0</dependency.javax.ws.rs-api.version>
   </properties>
   <dependencies>
     <dependency>
@@ -61,6 +63,23 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>${dependency.mockito.revision}</version>
+    </dependency>
+    <dependency>
+      <!-- this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml -->
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>${dependency.javax.ws.rs-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>${dependency.javax.servlet-api.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
   <build>
