@@ -43,6 +43,18 @@
       <artifactId>pentaho-platform-extensions</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-kettle-plugins-common-ui</artifactId>
+      <version>${pdi.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-i18n-bundle</artifactId>
     </dependency>
@@ -54,12 +66,12 @@
       <groupId>org.eclipse.swt</groupId>
       <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
     </dependency>
-    <!--<dependency>-->
-      <!--&lt;!&ndash; this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml &ndash;&gt;-->
-      <!--<groupId>com.fasterxml.jackson.jaxrs</groupId>-->
-      <!--<artifactId>jackson-jaxrs-json-provider</artifactId>-->
-      <!--<scope>provided</scope>-->
-    <!--</dependency>-->
+    <dependency>
+      <!--this is required by OSGi bean declared in src/main/resources-filtered/OSGI-INF/blueprint/blueprint.xml-->
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
