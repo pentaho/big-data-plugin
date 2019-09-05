@@ -13,15 +13,15 @@
       </div>
       <div class="margin_bottom_15">
         <label for="accessKey" class="margin_bottom_5 block text_left">{{::vm.accessKey}}</label>
-        <input id="accessKey" class="block" type="password" size="50" ng-model="vm.data.model.accessKey">
+        <input id="accessKey" class="block" type="password" size="50" ng-model="vm.data.model.accessKey" showpassword>
       </div>
       <div class="margin_bottom_15">
         <label for="secretKey" class="margin_bottom_5 block text_left">{{::vm.secretKey}}</label>
-        <input id="secretKey" class="block" type="password" size="50" ng-model="vm.data.model.secretKey">
+        <input id="secretKey" class="block" type="password" size="50" ng-model="vm.data.model.secretKey" showpassword>
       </div>
       <div class="margin_bottom_15">
         <label for="sessionToken" class="margin_bottom_5 block text_left">{{::vm.sessionToken}}</label>
-        <input id="sessionToken" class="block" type="password" size="50" ng-model="vm.data.model.sessionToken">
+        <input id="sessionToken" class="block" type="password" size="50" ng-model="vm.data.model.sessionToken" showpassword>
       </div>
     </div>
     <div ng-if="vm.type==1">
