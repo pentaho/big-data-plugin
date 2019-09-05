@@ -23,6 +23,7 @@
 package org.pentaho.amazon.s3;
 
 import com.amazonaws.regions.Regions;
+import org.pentaho.di.connections.annotations.Encrypted;
 import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
@@ -43,12 +44,15 @@ public class S3Details implements VFSConnectionDetails {
   private String description;
 
   @MetaStoreAttribute
+  @Encrypted
   private String accessKey;
 
   @MetaStoreAttribute
+  @Encrypted
   private String secretKey;
 
   @MetaStoreAttribute
+  @Encrypted
   private String sessionToken;
 
   @MetaStoreAttribute
