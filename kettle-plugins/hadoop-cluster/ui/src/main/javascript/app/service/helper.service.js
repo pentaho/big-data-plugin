@@ -110,7 +110,8 @@ define(
           method: method,
           url: _cacheBust(url),
           headers: {
-            Accept: "application/json"
+            //TODO: when we get JSON from the server we can change back to "application/json"
+            Accept: "*/*"
           }
         };
         if (data !== null) {
