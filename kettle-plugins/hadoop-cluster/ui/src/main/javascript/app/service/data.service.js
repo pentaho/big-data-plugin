@@ -43,13 +43,18 @@ define(
      * @return {Object} The dataService api
      */
     function factory(helperService) {
-      var baseUrl = "/cxf/connection";
+      var baseUrl = "/cxf/hadoop-cluster";
       return {
         help: help,
+        newNamedCluster: newNamedCluster
       };
 
       function help() {
         return helperService.httpGet([baseUrl, "help"].join("/"));
+      }
+
+      function newNamedCluster( name ) {
+        return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name);
       }
     }
   });
