@@ -97,6 +97,7 @@
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
     <feature>cxf-jaxrs</feature>
+    <feature>pentaho-jackson</feature>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-job/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>

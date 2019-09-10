@@ -20,43 +20,52 @@
  *
  ******************************************************************************/
 
-package org.pentaho.big.data.plugins.common.ui;
+package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import org.apache.commons.io.FileUtils;
+import org.json.simple.JSONObject;
+import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.metastore.stores.xml.XmlMetaStore;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
-public class MultishimNamedCluster {
+//HadoopClusterDelegateImpl
+public class HadoopClusterManager {
 
-  public static Class<?> PKG = MultishimNamedCluster.class;
+  public static Class<?> PKG = HadoopClusterManager.class;
   public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "NamedClusterDialog.HadoopClusters" );
 
-  private Spoon spoon = Spoon.getInstance();
+  private Spoon spoon;
   private NamedClusterService namedClusterService;
   private IMetaStore metaStore;
   private VariableSpace variableSpace;
 
-  public MultishimNamedCluster( VariableSpace variableSpace, IMetaStore metaStore, NamedClusterService namedClusterService ) {
+  public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService ) {
+    this.spoon = spoon;
     this.namedClusterService = namedClusterService;
-    this.metaStore = metaStore;
+    this.metaStore = spoon.getMetaStore();
+    this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
-  public String newNamedCluster( String name ) {
+  public JSONObject newNamedCluster( String name, String type, String path ) {
 
     NamedCluster nc = namedClusterService.getClusterTemplate();
     nc.setName( name );
@@ -67,23 +76,40 @@ public class MultishimNamedCluster {
     }
 
     try {
-    //  if ( nc.getConfigId() != null ) {
-   //     delNamedCluster( metaStore, nc );
-   //   }
-      String newClusterId = generateNewClusterId( null );
-     // nc.setConfigId( newClusterId );
-      addConfigProperties( nc );
       saveNamedCluster( metaStore, nc );
+      addConfigProperties( nc );
+      installSiteFiles( type, path, nc );
+
+      spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+
     } catch ( Exception e ) {
       /*commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );*/
-      spoon.refreshTree();
-      return nc.getName();
+          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
+          spoon.refreshTree()*/
+      ;
+      return null;
     }
 
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put( "namedCluster", nc.getName() );
+    return jsonObject;
+  }
 
-    return nc.getName();
+  private void installSiteFiles( String type, String path, NamedCluster nc ) throws Exception {
+    path = URLDecoder.decode( path, "UTF-8" );
+    if ( type.equals( "site" ) ) {
+      File source = new File( path );
+      if ( source.isDirectory() ) {
+        File[] files = source.listFiles();
+        for ( File file : files ) {
+          File destination = new File( getNamedClusterConfigsRootDir( null ) + "/" + nc.getName() );
+          FileUtils.copyFileToDirectory( file, destination );
+        }
+      }
+    } else if ( type.equals( "ccfg" ) ) {
+      //TODO
+    }
   }
 
   private void saveNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
@@ -96,18 +122,18 @@ public class MultishimNamedCluster {
     }
   }
 
-
   private void addConfigProperties( NamedCluster namedCluster ) throws Exception {
-    //Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() );
-    //Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() + "/" + "config.properties" );
-//    Files.createDirectories( clusterConfigDirPath );
-//    String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
-//    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
-//    if ( inputStream != null ) {
-//      Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
-//    }
+    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() );
+    Path
+        configPropertiesPath =
+        Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() + "/" + "config.properties" );
+    Files.createDirectories( clusterConfigDirPath );
+    String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
+    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
+    if ( inputStream != null ) {
+      Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
+    }
   }
-
 
   public void delNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     if ( metaStore == null ) {
@@ -133,19 +159,18 @@ public class MultishimNamedCluster {
     return xmlMetaStore;
   }
 
-
   private void deleteNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     try {
       if ( namedClusterService.read( namedCluster.getName(), metaStore ) != null ) {
         namedClusterService.delete( namedCluster.getName(), metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          //String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId();
-//          try {
-//            //FileUtils.deleteDirectory( new File( path ) );
-//          } catch ( IOException e ) {
-//            // Do nothing. The config directory will be orphaned but functionality will not be impacted.
-//          }
+          String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + namedCluster.getName();
+          try {
+            FileUtils.deleteDirectory( new File( path ) );
+          } catch ( IOException e ) {
+            // Do nothing. The config directory will be orphaned but functionality will not be impacted.
+          }
         }
       }
     } catch ( MetaStoreException e ) {
@@ -155,34 +180,12 @@ public class MultishimNamedCluster {
     }
   }
 
-
-
-  private String generateNewClusterId( XmlMetaStore xmlMetaStore ) {
-    int newClusterId = 0;
-    try {
-      Path metaStorePath = Paths.get( getNamedClusterConfigsRootDir( xmlMetaStore ) );
-      if ( Files.exists( metaStorePath ) ) {
-        Object[] paths = Files.list( metaStorePath ).toArray();
-        for ( int i = 0; i < paths.length; i++ ) {
-          Path filePath = (Path) paths[i];
-          try {
-            int index = Integer.parseInt( filePath.getFileName().toString() );
-            if ( index > newClusterId ) {
-              newClusterId = Math.max( newClusterId, index );
-            }
-          } catch ( NumberFormatException ex ) {
-          }
-        }
-      }
-    } catch ( Exception e ) {
-      return null;
-    }
-    return Integer.toString(newClusterId + 1 );
+  public List<ShimIdentifierInterface> getShimIdentifiers() {
+    return PentahoSystem.getAll( ShimIdentifierInterface.class );
   }
 
   private String getNamedClusterConfigsRootDir( XmlMetaStore metaStore ) {
-    return System.getProperty( "user.home" ) + File.separator + ".pentaho"  + File.separator + "metastore"  + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+    return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
+        + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
   }
-
-
 }
