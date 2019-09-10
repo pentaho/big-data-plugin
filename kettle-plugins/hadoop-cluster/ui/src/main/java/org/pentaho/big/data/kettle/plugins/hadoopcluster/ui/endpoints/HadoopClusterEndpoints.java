@@ -70,9 +70,6 @@ public class HadoopClusterEndpoints {
     AbstractMeta meta = (AbstractMeta) spoon.getActiveMeta();
     MultishimNamedCluster cl = new MultishimNamedCluster( meta, spoon.getMetaStore(), this.namedClusterService );
     String result = cl.newNamedCluster( name );
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () ->
-            spoonSupplier.get().refreshTree( "Hadoop clusters" )
-    );
     return Response.ok( result ).build();
   }
 }

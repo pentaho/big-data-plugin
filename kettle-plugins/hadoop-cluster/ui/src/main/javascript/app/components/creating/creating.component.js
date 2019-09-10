@@ -29,9 +29,9 @@ define([
     controller: creatingController
   };
 
-  creatingController.$inject = ["$state", "$timeout", "$stateParams", "dataService"];
+  creatingController.$inject = ["$state", "$timeout", "$stateParams"];
 
-  function creatingController($state, $timeout, $stateParams, dataService) {
+  function creatingController($state, $timeout, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
 
@@ -41,9 +41,8 @@ define([
       vm.almostDone = i18n.get('cluster.creating.almostdone.label');
       vm.message = i18n.get('cluster.creating.message');
       $timeout(function() {
-        dataService.newNamedCluster(vm.data.model.clusterName).then(function (response) {
-            $state.go("success", {data: vm.data});
-        });
+        //TODO: create cluster
+        $state.go("success", {data: vm.data});
         //TODO: handle cluster creation failure
       }, 1000);
     }
