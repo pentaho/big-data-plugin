@@ -59,6 +59,7 @@ public class S3Details implements VFSConnectionDetails {
   private String credentialsFilePath;
 
   @MetaStoreAttribute
+  @Encrypted
   private String credentialsFile;
 
   @MetaStoreAttribute
