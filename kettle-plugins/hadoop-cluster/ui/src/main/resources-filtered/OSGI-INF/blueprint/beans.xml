@@ -34,9 +34,6 @@
              interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
              availability="optional"/>
 
-  <reference id="namedClusterService"
-             interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
-
   <bean id="HadoopClusterDelegate" scope="singleton" class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate" />
 
   <bean id="HadoopClusterTreeDelegateExtension" scope="singleton"
@@ -59,7 +56,6 @@
     <jaxrs:serviceBeans>
       <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
         <argument ref="metastoreLocator"/>
-        <argument ref="namedClusterService"/>
       </bean>
     </jaxrs:serviceBeans>
 
