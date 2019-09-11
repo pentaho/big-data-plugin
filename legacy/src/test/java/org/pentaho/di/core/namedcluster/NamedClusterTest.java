@@ -63,7 +63,6 @@ public class NamedClusterTest {
   private NamedCluster createNamedCluster( String name ) {
     NamedCluster nc = new NamedCluster();
     nc.setName( name );
-    nc.setConfigId( name );
     return nc;
   }
 

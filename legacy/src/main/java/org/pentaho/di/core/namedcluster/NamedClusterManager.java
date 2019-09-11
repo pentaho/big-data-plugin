@@ -121,9 +121,6 @@ public class NamedClusterManager {
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     NamedCluster namedCluster = factory.loadElement( clusterName );
-    if ( namedCluster != null ) {
-      validateClusterId( namedCluster );
-    }
     return namedCluster;
   }
 
@@ -139,7 +136,7 @@ public class NamedClusterManager {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     List<NamedCluster> namedClusters = list( metastore );
     for ( NamedCluster nc : namedClusters ) {
-      if ( namedCluster.getConfigId().equals( nc.getConfigId() ) ) {
+      if ( namedCluster.getName().equals( nc.getName() ) ) {
         factory.deleteElement( nc.getName() );
         factory.saveElement( namedCluster );
       }
@@ -169,9 +166,6 @@ public class NamedClusterManager {
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
     List<NamedCluster> namedClusters = factory.getElements();
-    for ( NamedCluster nc : namedClusters ) {
-      validateClusterId( nc );
-    }
     return namedClusters;
   }
 
@@ -339,7 +333,6 @@ public class NamedClusterManager {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( nc.getName().equals( namedCluster ) ) {
-          validateClusterId( nc );
           return nc;
         }
       }
@@ -352,12 +345,6 @@ public class NamedClusterManager {
   static class MetaStoreFactoryFactory {
     MetaStoreFactory<NamedCluster> createFactory( IMetaStore metaStore ) {
       return new MetaStoreFactory<>( NamedCluster.class, metaStore, PentahoDefaults.NAMESPACE );
-    }
-  }
-
-  private void validateClusterId(NamedCluster nc) {
-    if ( nc.getConfigId() == null ) {
-      nc.setConfigId( nc.getShimIdentifier() );
     }
   }
 }
