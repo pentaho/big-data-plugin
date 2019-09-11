@@ -96,6 +96,7 @@
   </feature>
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
+    <feature>cxf-jaxrs</feature>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-job/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
@@ -112,6 +113,7 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-kafka/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
+    <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
   </feature>
 
   <feature name="shims-list" description="Shims bundles list" version="1.0">

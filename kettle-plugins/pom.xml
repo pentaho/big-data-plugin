@@ -24,5 +24,6 @@
     <module>kafka</module>
     <module>formats-meta</module>
     <module>formats</module>
+    <module>hadoop-cluster</module>
   </modules>
 </project>
