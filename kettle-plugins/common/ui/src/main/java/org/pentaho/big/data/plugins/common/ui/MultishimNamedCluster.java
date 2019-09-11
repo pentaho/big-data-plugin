@@ -67,11 +67,11 @@ public class MultishimNamedCluster {
     }
 
     try {
-      if ( nc.getConfigId() != null ) {
-        delNamedCluster( metaStore, nc );
-      }
+    //  if ( nc.getConfigId() != null ) {
+   //     delNamedCluster( metaStore, nc );
+   //   }
       String newClusterId = generateNewClusterId( null );
-      nc.setConfigId( newClusterId );
+     // nc.setConfigId( newClusterId );
       addConfigProperties( nc );
       saveNamedCluster( metaStore, nc );
     } catch ( Exception e ) {
@@ -98,14 +98,14 @@ public class MultishimNamedCluster {
 
 
   private void addConfigProperties( NamedCluster namedCluster ) throws Exception {
-    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() );
-    Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() + "/" + "config.properties" );
-    Files.createDirectories( clusterConfigDirPath );
-    String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
-    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
-    if ( inputStream != null ) {
-      Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
-    }
+    //Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() );
+    //Path configPropertiesPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getConfigId() + "/" + "config.properties" );
+//    Files.createDirectories( clusterConfigDirPath );
+//    String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
+//    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
+//    if ( inputStream != null ) {
+//      Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
+//    }
   }
 
 
@@ -140,12 +140,12 @@ public class MultishimNamedCluster {
         namedClusterService.delete( namedCluster.getName(), metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId();
-          try {
-            FileUtils.deleteDirectory( new File( path ) );
-          } catch ( IOException e ) {
-            // Do nothing. The config directory will be orphaned but functionality will not be impacted.
-          }
+          //String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" +  namedCluster.getConfigId();
+//          try {
+//            //FileUtils.deleteDirectory( new File( path ) );
+//          } catch ( IOException e ) {
+//            // Do nothing. The config directory will be orphaned but functionality will not be impacted.
+//          }
         }
       }
     } catch ( MetaStoreException e ) {
