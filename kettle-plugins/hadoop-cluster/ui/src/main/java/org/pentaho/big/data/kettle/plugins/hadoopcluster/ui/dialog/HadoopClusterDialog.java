@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
@@ -85,8 +86,18 @@ public class HadoopClusterDialog extends ThinDialog {
 
     new BrowserFunction( browser, "browse" ) {
       @Override public Object function( Object[] arguments ) {
-        FileDialog dialog = new FileDialog( getParent().getShell(), SWT.OPEN );
-        return dialog.open();
+        String browseType = (String) arguments[ 0 ];
+        String startPath = (String) arguments[ 1 ];
+
+        if ("folder".equals(browseType)) {
+          DirectoryDialog folderDialog = new DirectoryDialog( getParent().getShell(), SWT.OPEN );
+          folderDialog.setFilterPath(startPath);
+          return folderDialog.open();
+        } else {
+          FileDialog fileDialog = new FileDialog( getParent().getShell(), SWT.OPEN );
+          fileDialog.setFileName(startPath);
+          return fileDialog.open();
+        }
       }
     };
 

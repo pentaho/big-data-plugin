@@ -41,7 +41,6 @@ define([
     vm.onBrowse = onBrowse;
     vm.checkConfigurationPath = checkConfigurationPath;
     vm.configurationType = null;
-    vm.configurationPath = "";
     var loaded = false;
     vm.selectConfigPathButtonLabel = "";
 
@@ -52,7 +51,6 @@ define([
       vm.title = i18n.get('cluster.hadoop.new.header');
       vm.configurationTypes = [i18n.get('cluster.hadoop.import.ccfg'), i18n.get('cluster.hadoop.provide.site.xml')];
       vm.configurationType = vm.configurationTypes[0];
-      vm.configurationPath = "";
       vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.ccfg.selected.placeholder');
       vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.selectCcfgFileButtonLabel');
 
@@ -90,16 +88,38 @@ define([
 
     function onSelect(option) {
       vm.data.model.configurationType = option;
+
+      if (i18n.get('cluster.hadoop.import.ccfg') === option ) {
+        vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.ccfg.selected.placeholder');
+        vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.selectCcfgFileButtonLabel');
+        vm.data.model.currentPath = vm.data.model.ccfgFilePath;
+      } else if (i18n.get('cluster.hadoop.provide.site.xml') === option ) {
+        vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.config.placeholder');
+        vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.config.folder.button.label');
+        vm.data.model.currentPath = vm.data.model.hadoopConfigFolderPath;
+      }
     }
 
     function onBrowse() {
       try {
-        var path = browse();
-        if (path) {
-          vm.data.model.ccfgFilePath = path;
+        var path;
+        if (i18n.get('cluster.hadoop.provide.site.xml') === vm.data.model.configurationType ) {
+          path = browse( "folder", vm.data.model.hadoopConfigFolderPath);
+          if (path) {
+            vm.data.model.hadoopConfigFolderPath = path;
+            vm.data.model.currentPath = path;
+          }
+        } else {
+          path = browse( "file", vm.data.model.ccfgFilePath);
+          if (path) {
+            vm.data.model.ccfgFilePath = path;
+            vm.data.model.currentPath = path;
+          }
         }
       } catch (e) {
         vm.data.model.ccfgFilePath = "/";
+        vm.data.model.hadoopConfigFolderPath = "/";
+        vm.data.model.currentPath = "/";
       }
     }
 
@@ -108,7 +128,13 @@ define([
     }
 
     function checkConfigurationPath() {
-      //TODO: implement
+      //Sync the paths for the different types with the current path
+      if (i18n.get('cluster.hadoop.provide.site.xml') === vm.data.model.configurationType ) {
+        vm.data.model.hadoopConfigFolderPath = vm.data.model.currentPath;
+      } else {
+        vm.data.model.ccfgFilePath = vm.data.model.currentPath;
+      }
+      //TODO: validation
     }
 
     function validateName() {
