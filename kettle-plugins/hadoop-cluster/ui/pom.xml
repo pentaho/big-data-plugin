@@ -43,6 +43,12 @@
       <artifactId>pentaho-platform-extensions</artifactId>
     </dependency>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>shim-api</artifactId>
       <version>${pdi.version}</version>

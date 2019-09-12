@@ -62,11 +62,12 @@
         <argument ref="namedClusterService"/>
       </bean>
     </jaxrs:serviceBeans>
-
     <jaxrs:extensionMappings>
       <entry key="json" value="application/json"/>
     </jaxrs:extensionMappings>
-
+    <jaxrs:providers>
+      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider" />
+    </jaxrs:providers>
   </jaxrs:server>
 
 </blueprint>

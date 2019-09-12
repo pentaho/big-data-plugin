@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
+import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
@@ -32,12 +33,14 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.function.Supplier;
 
 import org.pentaho.di.ui.util.HelpUtils;
-import org.pentaho.big.data.plugins.common.ui.MultishimNamedCluster;
+
 
 public class HadoopClusterEndpoints {
 
@@ -62,17 +65,22 @@ public class HadoopClusterEndpoints {
     return Response.ok().build();
   }
 
-  //http://localhost:9051/cxf/hadoop-cluster/newNamedCluster?name=testName
+  //http://localhost:9051/cxf/hadoop-cluster/newNamedCluster?name=testName&type=site&path=
   @GET
   @Path( "/newNamedCluster" )
-  public Response newNamedCluster( @QueryParam( "name" ) String name ) {
-    Spoon spoon = Spoon.getInstance();
-    AbstractMeta meta = (AbstractMeta) spoon.getActiveMeta();
-    MultishimNamedCluster cl = new MultishimNamedCluster( meta, spoon.getMetaStore(), this.namedClusterService );
-    String result = cl.newNamedCluster( name );
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () ->
-            spoonSupplier.get().refreshTree( "Hadoop clusters" )
-    );
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response newNamedCluster( @QueryParam( "name" ) String name, @QueryParam( "type" ) String type, @QueryParam( "path" ) String path ) {
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    JSONObject result = hadoopClusterManager.newNamedCluster( name, type, path );
     return Response.ok( result ).build();
+  }
+
+  //http://localhost:9051/cxf/hadoop-cluster/getShimIdentifiers
+  @GET
+  @Path( "/getShimIdentifiers" )
+  @Produces( { MediaType.APPLICATION_JSON } )
+  public Response getShimIdentifiers() {
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    return Response.ok( hadoopClusterManager.getShimIdentifiers() ).build();
   }
 }
