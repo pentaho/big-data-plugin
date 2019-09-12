@@ -25,21 +25,50 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.metastore.api.IMetaStore;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 
 /**
  * Created by rmansoor on 4/8/2018.
  */
 @RunWith( MockitoJUnitRunner.class )
-public class AvroOutputMetabaseTest {
+public class AvroOutputMetaBaseTest {
+  private static final String VALID_SINGLE_FILE_URI_REGEX =
+      "^hdfs://username:password@cluster.host.internal:8020/user/out/avro_test/output_[0-9]+_[0-9]+.avro";
+  private static final String VALID_PART_FILE_URI_REGEX =
+      "^hdfs://username:password@cluster.host.internal:8020/user/out/avro_test_[0-9]+_[0-9]+/";
+
   private AvroOutputMetaBase metaBase;
+
+  @Mock
+  private IMetaStore metaStore;
+
+  @Mock
+  private List<DatabaseMeta> databases;
 
   @Before
   public void setUp() throws Exception {
@@ -77,5 +106,42 @@ public class AvroOutputMetabaseTest {
     Assert.assertTrue( metaBase.getCompressionType().equals( AvroOutputMetaBase.CompressionType.NONE.toString() ) );
     metaBase.setCompressionType( "NONE" );
     Assert.assertTrue( metaBase.getCompressionType().equals( AvroOutputMetaBase.CompressionType.NONE.toString() ) );
+  }
+
+  @Test
+  public void kettleConstructFilename() throws Exception {
+    loadStepMeta( "/AvroOutput.xml" );
+    String fileName = metaBase.getFilename();
+    String constructedFileName = metaBase.constructOutputFilename( fileName );
+
+    assertTrue( constructedFileName.matches( VALID_SINGLE_FILE_URI_REGEX ) );
+  }
+
+  @Test
+  public void aelConstructFilename() throws Exception {
+    loadStepMeta( "/AELAvroOutput.xml" );
+    String fileName = metaBase.getFilename();
+    String constructedFileName = metaBase.constructOutputFilename( fileName );
+
+    assertTrue( constructedFileName.matches( VALID_PART_FILE_URI_REGEX ) );
+  }
+
+  @Test
+  public void aelNoSlashConstructFilename() throws Exception {
+    loadStepMeta( "/AELNoSlashAvroOutput.xml" );
+    String fileName = metaBase.getFilename();
+    String constructedFileName = metaBase.constructOutputFilename( fileName );
+
+    assertTrue( constructedFileName.matches( VALID_PART_FILE_URI_REGEX ) );
+  }
+
+  private void loadStepMeta( String resourceFile )
+      throws URISyntaxException, ParserConfigurationException, IOException, KettleXMLException, SAXException {
+    URL resource = getClass().getClassLoader()
+        .getResource( getClass().getPackage().getName().replace( ".", "/" ) + resourceFile );
+    Path path = Paths.get( resource.toURI() );
+    Node node = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse( Files.newInputStream( path ) )
+        .getDocumentElement();
+    metaBase.loadXML( node, databases, metaStore );
   }
 }
