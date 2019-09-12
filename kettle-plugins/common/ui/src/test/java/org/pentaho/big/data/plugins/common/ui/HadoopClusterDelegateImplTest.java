@@ -23,6 +23,7 @@
 package org.pentaho.big.data.plugins.common.ui;
 
 import org.eclipse.swt.widgets.Shell;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -37,6 +38,11 @@ import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.metastore.stores.xml.XmlMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -72,7 +78,7 @@ public class HadoopClusterDelegateImplTest {
   private VariableSpace variables;
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     spoon = mock( Spoon.class );
     shell = mock( Shell.class );
     when( spoon.getShell() ).thenReturn( shell );
@@ -88,6 +94,17 @@ public class HadoopClusterDelegateImplTest {
     hadoopClusterDelegate =
       new HadoopClusterDelegateImpl( spoon, namedClusterService, runtimeTestActionService, runtimeTester,
         commonDialogFactory );
+    String configurationDirectory =  System.getProperty( "user.home" ) + File.separator + ".pentaho"  + File.separator + "metastore"  + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+    Files.createDirectory( Paths.get( configurationDirectory + "/" + namedClusterName) );
+  }
+
+  @After
+  public void tearDown() throws IOException {
+    String configurationDirectory =  System.getProperty( "user.home" ) + File.separator + ".pentaho"  + File.separator + "metastore"  + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + namedClusterName) );
+    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + "newName" ) );
+    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + "null" ) );
+    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + "clonedName" ) );
   }
 
   @Test
@@ -121,7 +138,7 @@ public class HadoopClusterDelegateImplTest {
   }
 
   @Test
-  public void testDupeNamedClusterNullMetastore() throws MetaStoreException {
+  public void testDupeNamedClusterNullMetastore() throws MetaStoreException, IOException {
     String newName = "newName";
     NamedClusterDialogImpl namedClusterDialog = mock( NamedClusterDialogImpl.class );
     NamedCluster clonedNamedCluster = mock( NamedCluster.class );
