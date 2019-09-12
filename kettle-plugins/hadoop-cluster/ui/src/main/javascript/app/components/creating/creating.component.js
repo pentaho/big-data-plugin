@@ -41,8 +41,12 @@ define([
       vm.almostDone = i18n.get('cluster.creating.almostdone.label');
       vm.message = i18n.get('cluster.creating.message');
       $timeout(function() {
-        dataService.newNamedCluster(vm.data.model.clusterName).then(function (response) {
-            $state.go("success", {data: vm.data});
+        var type = "ccfg";
+        if (i18n.get('cluster.hadoop.provide.site.xml') === vm.data.model.configurationType ) {
+          type = "site";
+        }
+        dataService.newNamedCluster(vm.data.model.clusterName, type, vm.data.model.currentPath).then(function (response) {
+          $state.go("success", {data: vm.data});
         });
         //TODO: handle cluster creation failure
       }, 1000);

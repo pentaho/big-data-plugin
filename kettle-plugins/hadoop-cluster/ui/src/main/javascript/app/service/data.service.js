@@ -53,8 +53,8 @@ define(
         return helperService.httpGet([baseUrl, "help"].join("/"));
       }
 
-      function newNamedCluster( name ) {
-        return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name);
+      function newNamedCluster( name, type, path ) {
+        return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name + "&type=" + type + "&path=" + encodeURIComponent(path));
       }
     }
   });

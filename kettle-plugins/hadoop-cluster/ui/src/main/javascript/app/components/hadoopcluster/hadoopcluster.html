@@ -12,8 +12,8 @@
     </div>
     <div class="margin_bottom_15">
       <div class="file-input auto_overflow">
-        <input id="configPath" type="text" size="50" ng-model="vm.data.model.ccfgFilePath" ng-attr-placeholder="{{vm.configurationPathPlaceholder}}">
-        <button class="primary browse" ng-click="vm.onBrowse()">{{::vm.selectConfigPathButtonLabel}}</button>
+        <input id="configPath" type="text" size="50" ng-keyup="vm.checkConfigurationPath()" ng-model="vm.data.model.currentPath" ng-attr-placeholder="{{vm.configurationPathPlaceholder}}">
+        <button class="primary browse" ng-click="vm.onBrowse()">{{vm.selectConfigPathButtonLabel}}</button>
       </div>
     </div>
   </div>
