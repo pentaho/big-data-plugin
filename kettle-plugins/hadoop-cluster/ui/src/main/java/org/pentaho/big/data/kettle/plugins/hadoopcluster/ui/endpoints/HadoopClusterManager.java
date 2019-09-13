@@ -26,6 +26,7 @@ import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
@@ -36,16 +37,25 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.metastore.stores.xml.XmlMetaStore;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager {
@@ -76,12 +86,11 @@ public class HadoopClusterManager {
     }
 
     try {
+      configureNamedCluster( path, nc );
       saveNamedCluster( metaStore, nc );
       addConfigProperties( nc );
       installSiteFiles( type, path, nc );
-
       spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
-
     } catch ( Exception e ) {
       /*commonDialogFactory.createErrorDialog( spoon.getShell(),
           BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
@@ -93,6 +102,64 @@ public class HadoopClusterManager {
     JSONObject jsonObject = new JSONObject();
     jsonObject.put( "namedCluster", nc.getName() );
     return jsonObject;
+  }
+
+  private void configureNamedCluster( String path, NamedCluster nc ) throws Exception {
+    Map<String, String> properties = extractProperties(path);
+
+    //core-site.xml
+    //fs.defaultFS
+    String hdfsAddress = properties.get( "fs.defaultFS" );
+    URI hdfsURL = URI.create( hdfsAddress );
+    nc.setHdfsHost( hdfsURL.getHost() );
+    nc.setHdfsPort( hdfsURL.getPort() + "" );
+
+    //yarn-site.xml
+    //yarn.resourcemanager.address
+    String jobTrackerAddress = "http://" + properties.get( "yarn.resourcemanager.address" );
+    URI jobTrackerURL = URI.create( jobTrackerAddress  );
+    nc.setJobTrackerHost( jobTrackerURL.getHost() );
+    nc.setJobTrackerPort( jobTrackerURL.getPort() + "" );
+
+    //hive-site.xml
+    //hive.zookeeper.quorum
+    //hive.zookeeper.client.port
+    String zooKeeperAddress = properties.get( "hive.zookeeper.quorum" );
+    String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
+    nc.setZooKeeperHost( zooKeeperAddress );
+    nc.setZooKeeperPort( zooKeeperPort );
+
+    //TODO
+    //nc.setOozieUrl( "" );
+  }
+
+  private Map<String, String> extractProperties( String path ) throws Exception {
+
+    Map<String, String> properties = new HashMap<String, String>();
+    path = URLDecoder.decode( path, "UTF-8" );
+
+    Document document = XMLHandler.loadXMLFile( new File (path + "/core-site.xml" ) );
+    XPathFactory xpathFactory = XPathFactory.newInstance();
+    XPath xpath = xpathFactory.newXPath();
+    XPathExpression expr = xpath.compile( "/configuration/property[name='fs.defaultFS']/value/text()" );
+    NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+    properties.put( "fs.defaultFS", nodes.item( 0 ).getNodeValue() );
+
+    document = XMLHandler.loadXMLFile( new File (path + "/yarn-site.xml" ) );
+    expr = xpath.compile( "/configuration/property[name='yarn.resourcemanager.address']/value/text()" );
+    nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+    properties.put( "yarn.resourcemanager.address", nodes.item( 0 ).getNodeValue() );
+
+    document = XMLHandler.loadXMLFile( new File (path + "/hive-site.xml" ) );
+    expr = xpath.compile( "/configuration/property[name='hive.zookeeper.quorum']/value/text()" );
+    nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+    properties.put( "hive.zookeeper.quorum", nodes.item( 0 ).getNodeValue() );
+
+    expr = xpath.compile( "/configuration/property[name='hive.zookeeper.client.port']/value/text()" );
+    nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+    properties.put( "hive.zookeeper.client.port", nodes.item( 0 ).getNodeValue() );
+
+    return properties;
   }
 
   private void installSiteFiles( String type, String path, NamedCluster nc ) throws Exception {
