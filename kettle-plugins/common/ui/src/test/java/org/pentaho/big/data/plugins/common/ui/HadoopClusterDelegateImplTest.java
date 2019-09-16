@@ -42,6 +42,7 @@ import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
@@ -76,6 +77,7 @@ public class HadoopClusterDelegateImplTest {
   private CommonDialogFactory commonDialogFactory;
   private Shell shell;
   private VariableSpace variables;
+  private Path tempDirectoryName;
 
   @Before
   public void setup() throws IOException {
@@ -94,21 +96,28 @@ public class HadoopClusterDelegateImplTest {
     hadoopClusterDelegate =
       new HadoopClusterDelegateImpl( spoon, namedClusterService, runtimeTestActionService, runtimeTester,
         commonDialogFactory );
+    // avoid putting test data in the local user's metastore
+    tempDirectoryName = Files.createTempDirectory( this.getClass().getName() );
+    System.setProperty( "user.home", tempDirectoryName.toString() );
     String configurationDirectory =
       System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore" + File.separator
         + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
-    Files.createDirectory( Paths.get( configurationDirectory + "/" + namedClusterName ) );
+    Files.createDirectories( Paths.get( configurationDirectory + "/" + namedClusterName ) );
   }
 
   @After
-  public void tearDown() throws IOException {
-    String configurationDirectory =
-      System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore" + File.separator
-        + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
-    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + namedClusterName ) );
-    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + "newName" ) );
-    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + "null" ) );
-    Files.deleteIfExists( Paths.get( configurationDirectory + "/" + "clonedName" ) );
+  public void tearDown() {
+    deleteDirectory( tempDirectoryName.toFile() );
+  }
+
+  private boolean deleteDirectory( File directoryToBeDeleted) {
+    File[] allContents = directoryToBeDeleted.listFiles();
+    if (allContents != null) {
+      for (File file : allContents) {
+        deleteDirectory(file);
+      }
+    }
+    return directoryToBeDeleted.delete();
   }
 
   @Test
