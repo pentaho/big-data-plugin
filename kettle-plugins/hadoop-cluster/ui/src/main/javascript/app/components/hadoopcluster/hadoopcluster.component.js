@@ -29,12 +29,14 @@ define([
     controller: hadoopClusterController
   };
 
-  hadoopClusterController.$inject = ["$location", "$state", "$q", "$stateParams"];
+  hadoopClusterController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
 
-  function hadoopClusterController($location, $state, $q, $stateParams) {
+  function hadoopClusterController($location, $state, $q, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelect = onSelect;
+    vm.onSelectShim = onSelectShim;
+    vm.onSelectShimVersion = onSelectShimVersion;
     vm.validateName = validateName;
     vm.resetErrorMsg = resetErrorMsg;
     vm.checkClusterName = checkClusterName;
@@ -43,6 +45,7 @@ define([
     vm.configurationType = null;
     var loaded = false;
     vm.selectConfigPathButtonLabel = "";
+
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
@@ -53,8 +56,15 @@ define([
       vm.configurationType = vm.configurationTypes[0];
       vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.ccfg.selected.placeholder');
       vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.selectCcfgFileButtonLabel');
-
       vm.next = "/";
+
+      vm.importLabel = i18n.get('cluster.hadoop.import.label');
+      vm.versionLabel = i18n.get('cluster.hadoop.version.label');
+      dataService.getShimIdentifiers().then(function(res) {
+        vm.shimVersionJson = res.data;
+        vm.shimNames = Array.from(new Set(res.data.map(item => item.vendor))).sort();
+        vm.shimName = vm.shimNames[0];
+      });
 
       if ($stateParams.data) {
         //TODO: future implementation use ui-router for saving data between screens
@@ -68,7 +78,9 @@ define([
             clusterName: "",
             configurationType: "",
             ccfgFilePath: "",
-            hadoopConfigFolderPath: ""
+            hadoopConfigFolderPath: "",
+            shimName: "",
+            shimVersion: ""
           }
         };
       }
@@ -98,6 +110,18 @@ define([
         vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.config.folder.button.label');
         vm.data.model.currentPath = vm.data.model.hadoopConfigFolderPath;
       }
+    }
+
+    function onSelectShim(option) {
+      vm.data.model.shimName = option;
+      vm.shimVersions = vm.shimVersionJson
+          .filter(item => item.vendor === option)
+          .map(item => item.version);
+      vm.shimVersion = vm.shimVersions[0]
+    }
+
+    function onSelectShimVersion(option) {
+      vm.data.model.shimVersion= option;
     }
 
     function onBrowse() {
