@@ -401,7 +401,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdKeyField.top = new FormAttachment( wlKeyField, 5 );
     fdKeyField.right = new FormAttachment( 0, INPUT_WIDTH );
     wKeyField.setLayoutData( fdKeyField );
-    Listener lsKeyFocus = e -> KafkaDialogHelper.populateFieldsList( transMeta, wKeyField, "Kafka Producer" );
+    Listener lsKeyFocus = e -> KafkaDialogHelper.populateFieldsList( transMeta, wKeyField, stepname );
     wKeyField.getCComboWidget().addListener( SWT.FocusIn, lsKeyFocus );
 
     Label wlMessageField = new Label( wSetupComp, SWT.LEFT );
@@ -421,7 +421,7 @@ public class KafkaProducerOutputDialog extends BaseStepDialog implements StepDia
     fdMessageField.top = new FormAttachment( wlMessageField, 5 );
     fdMessageField.right = new FormAttachment( 0, INPUT_WIDTH );
     wMessageField.setLayoutData( fdMessageField );
-    Listener lsMessageFocus = e -> KafkaDialogHelper.populateFieldsList( transMeta, wMessageField, "Kafka Producer" );
+    Listener lsMessageFocus = e -> KafkaDialogHelper.populateFieldsList( transMeta, wMessageField, stepname );
     wMessageField.getCComboWidget().addListener( SWT.FocusIn, lsMessageFocus );
 
     FormData fdSetupComp = new FormData();
