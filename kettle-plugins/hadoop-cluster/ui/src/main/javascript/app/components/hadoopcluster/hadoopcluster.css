@@ -16,3 +16,13 @@ textarea {
 .auto_overflow {
   overflow:auto;
 }
+
+.leftHalf {
+  width: 45%;
+  float: left;
+}
+
+.rightHalf{
+  width:  45%;
+  float:  right;
+}

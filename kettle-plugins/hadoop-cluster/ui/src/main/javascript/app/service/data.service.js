@@ -23,38 +23,45 @@
  * @property {String} name The name of the module.
  */
 define(
-  [],
-  function() {
-    "use strict";
+    [],
+    function () {
+      "use strict";
 
-    var factoryArray = ["helperService", factory];
-    var module = {
-      name: "dataService",
-      factory: factoryArray
-    };
-
-    return module;
-
-    /**
-     * The dataService factory
-     *
-     * @param {Object} $http - The $http angular helper service
-     *
-     * @return {Object} The dataService api
-     */
-    function factory(helperService) {
-      var baseUrl = "/cxf/hadoop-cluster";
-      return {
-        help: help,
-        newNamedCluster: newNamedCluster
+      var factoryArray = ["helperService", factory];
+      var module = {
+        name: "dataService",
+        factory: factoryArray
       };
 
-      function help() {
-        return helperService.httpGet([baseUrl, "help"].join("/"));
-      }
+      return module;
 
-      function newNamedCluster( name, type, path ) {
-        return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name + "&type=" + type + "&path=" + encodeURIComponent(path));
+      /**
+       * The dataService factory
+       *
+       * @param {Object} $http - The $http angular helper service
+       *
+       * @return {Object} The dataService api
+       */
+      function factory(helperService) {
+        var baseUrl = "/cxf/hadoop-cluster";
+        return {
+          help: help,
+          newNamedCluster: newNamedCluster,
+          getShimIdentifiers: getShimIdentifiers
+        };
+
+        function help() {
+          return helperService.httpGet([baseUrl, "help"].join("/"));
+        }
+
+        function newNamedCluster(name, type, path, shim, shimVersion) {
+          return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name
+              + "&shim=" + shim + "&shimVersion=" + shimVersion + "&type=" + type + "&path="
+              + encodeURIComponent(path));
+        }
+
+        function getShimIdentifiers() {
+          return helperService.httpGet([baseUrl, "getShimIdentifiers"].join("/"));
+        }
       }
-    }
-  });
+    });

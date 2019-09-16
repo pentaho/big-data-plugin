@@ -16,6 +16,18 @@
         <button class="primary browse" ng-click="vm.onBrowse()">{{vm.selectConfigPathButtonLabel}}</button>
       </div>
     </div>
+    <div class="margin_bottom_15">
+      <div class="leftHalf">
+            <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
+            <selectbox id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></selectbox>
+      </div>
+      <div class="rightHalf">
+            <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
+            <selectbox id="shimVersion"  type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></selectbox>
+      </div>
+    </div>
   </div>
+
   <controls buttons="vm.buttons" data="vm.data"></controls>
+
 </div>

@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.di.base.AbstractMeta;
+import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
@@ -39,14 +40,15 @@ import org.pentaho.metastore.stores.xml.XmlMetaStore;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
@@ -60,8 +62,9 @@ import java.util.Map;
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager {
 
-  public static Class<?> PKG = HadoopClusterManager.class;
+  private static final Class<?> PKG = HadoopClusterManager.class;
   public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "NamedClusterDialog.HadoopClusters" );
+  private final String fileSeparator = System.getProperty("file.separator");
 
   private Spoon spoon;
   private NamedClusterService namedClusterService;
@@ -75,27 +78,21 @@ public class HadoopClusterManager {
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
-  public JSONObject newNamedCluster( String name, String type, String path ) {
-
+  public JSONObject newNamedCluster( String name, String type, String path, String shimVendor, String shimVersion ) {
     NamedCluster nc = namedClusterService.getClusterTemplate();
-    nc.setName( name );
-    if ( variableSpace != null ) {
-      nc.shareVariablesWith( (VariableSpace) variableSpace );
-    } else {
-      nc.initializeVariablesFrom( null );
-    }
-
     try {
-      configureNamedCluster( path, nc );
+      nc.setName( name );
+      if ( variableSpace != null ) {
+        nc.shareVariablesWith( (VariableSpace) variableSpace );
+      } else {
+        nc.initializeVariablesFrom( null );
+      }
+      configureNamedCluster( path, nc, shimVendor, shimVersion );
       saveNamedCluster( metaStore, nc );
       addConfigProperties( nc );
       installSiteFiles( type, path, nc );
       spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
     } catch ( Exception e ) {
-      /*commonDialogFactory.createErrorDialog( spoon.getShell(),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, nc.getName() ), e );
-          spoon.refreshTree();*/
       return null;
     }
 
@@ -104,38 +101,65 @@ public class HadoopClusterManager {
     return jsonObject;
   }
 
-  private void configureNamedCluster( String path, NamedCluster nc ) throws Exception {
-    Map<String, String> properties = extractProperties(path);
+  private void configureNamedCluster( String path, NamedCluster nc, String shimVendor, String shimVersion ) throws KettleXMLException, XPathExpressionException,
+      UnsupportedEncodingException {
 
-    //core-site.xml
-    //fs.defaultFS
+    resolveNamedClusterId( nc, shimVendor, shimVersion );
+    Map<String, String> properties = extractSiteFileProperties(path);
+    /*
+     * Address taken from
+     * fs.defaultFS
+     * in
+     * core-site.xml
+     * */
     String hdfsAddress = properties.get( "fs.defaultFS" );
     URI hdfsURL = URI.create( hdfsAddress );
     nc.setHdfsHost( hdfsURL.getHost() );
     nc.setHdfsPort( hdfsURL.getPort() + "" );
 
-    //yarn-site.xml
-    //yarn.resourcemanager.address
-    String jobTrackerAddress = "http://" + properties.get( "yarn.resourcemanager.address" );
+    /*
+     * Address taken from
+     * yarn.resourcemanager.address
+     * in
+     * yarn-site.xml
+     * */
+    String jobTrackerAddress = properties.get( "yarn.resourcemanager.address" );
+    if ( !jobTrackerAddress.startsWith( "http://" ) ) {
+      jobTrackerAddress = "http://" + jobTrackerAddress;
+    }
     URI jobTrackerURL = URI.create( jobTrackerAddress  );
     nc.setJobTrackerHost( jobTrackerURL.getHost() );
     nc.setJobTrackerPort( jobTrackerURL.getPort() + "" );
 
-    //hive-site.xml
-    //hive.zookeeper.quorum
-    //hive.zookeeper.client.port
+    /*
+    * Address and port taken from
+    * hive.zookeeper.quorum
+    * hive.zookeeper.client.port
+    * in
+    * hive-site.xml
+    * */
     String zooKeeperAddress = properties.get( "hive.zookeeper.quorum" );
     String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
     nc.setZooKeeperHost( zooKeeperAddress );
     nc.setZooKeeperPort( zooKeeperPort );
 
-    //TODO
-    //nc.setOozieUrl( "" );
+    //Site files do not provide the Oozie URL. Where do we get it?
+    //What about Kafka?
   }
 
-  private Map<String, String> extractProperties( String path ) throws Exception {
+  private void resolveNamedClusterId( NamedCluster nc, String shimVendor, String shimVersion ) {
+    List<ShimIdentifierInterface> shims = getShimIdentifiers();
+    for( ShimIdentifierInterface shim : shims ) {
+      if ( shim.getVendor().equals( shimVendor ) && shim.getVersion().equals( shimVersion ) ) {
+        nc.setShimIdentifier( shim.getId() );
+      }
+    }
+  }
 
-    Map<String, String> properties = new HashMap<String, String>();
+  private Map<String, String> extractSiteFileProperties( String path ) throws KettleXMLException, XPathExpressionException,
+      UnsupportedEncodingException {
+
+    Map<String, String> properties = new HashMap();
     path = URLDecoder.decode( path, "UTF-8" );
 
     Document document = XMLHandler.loadXMLFile( new File (path + "/core-site.xml" ) );
@@ -162,14 +186,14 @@ public class HadoopClusterManager {
     return properties;
   }
 
-  private void installSiteFiles( String type, String path, NamedCluster nc ) throws Exception {
+  private void installSiteFiles( String type, String path, NamedCluster nc ) throws IOException {
     path = URLDecoder.decode( path, "UTF-8" );
     if ( type.equals( "site" ) ) {
       File source = new File( path );
       if ( source.isDirectory() ) {
         File[] files = source.listFiles();
         for ( File file : files ) {
-          File destination = new File( getNamedClusterConfigsRootDir( null ) + "/" + nc.getName() );
+          File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
           FileUtils.copyFileToDirectory( file, destination );
         }
       }
@@ -182,17 +206,15 @@ public class HadoopClusterManager {
     try {
       namedClusterService.create( namedCluster, metaStore );
     } catch ( MetaStoreException e ) {
-      /*commonDialogFactory.createErrorDialog( spoon.getShell(),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_TITLE ),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_SAVING_NAMED_CLUSTER_MESSAGE, namedCluster.getName() ), e );*/
+      //TODO
     }
   }
 
-  private void addConfigProperties( NamedCluster namedCluster ) throws Exception {
-    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() );
+  private void addConfigProperties( NamedCluster namedCluster ) throws IOException {
+    Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() );
     Path
       configPropertiesPath =
-      Paths.get( getNamedClusterConfigsRootDir( null ) + "/" + namedCluster.getName() + "/" + "config.properties" );
+      Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator + "config.properties" );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
@@ -212,7 +234,6 @@ public class HadoopClusterManager {
 
   private XmlMetaStore getXmlMetastore( IMetaStore metaStore ) throws MetaStoreException {
     XmlMetaStore xmlMetaStore = null;
-
     if ( metaStore instanceof DelegatingMetaStore ) {
       IMetaStore activeMetastore = ( (DelegatingMetaStore) metaStore ).getActiveMetaStore();
       if ( activeMetastore instanceof XmlMetaStore ) {
@@ -231,19 +252,12 @@ public class HadoopClusterManager {
         namedClusterService.delete( namedCluster.getName(), metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          String path = getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + namedCluster.getName();
-          try {
-            FileUtils.deleteDirectory( new File( path ) );
-          } catch ( IOException e ) {
-            // Do nothing. The config directory will be orphaned but functionality will not be impacted.
-          }
+          String path = getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName();
+          FileUtils.deleteDirectory( new File( path ) );
         }
       }
-    } catch ( MetaStoreException e ) {
-      /*commonDialogFactory.createErrorDialog( spoon.getShell(),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_DELETING_NAMED_CLUSTER_TITLE ),
-          BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_DELETING_NAMED_CLUSTER_MESSAGE, namedCluster.getName() ), e
-           );*/
+    } catch ( Exception e ) {
+      //TODO
     }
   }
 
@@ -251,7 +265,7 @@ public class HadoopClusterManager {
     return PentahoSystem.getAll( ShimIdentifierInterface.class );
   }
 
-  private String getNamedClusterConfigsRootDir( XmlMetaStore metaStore ) {
+  private String getNamedClusterConfigsRootDir() {
     return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
   }

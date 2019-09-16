@@ -43,15 +43,17 @@ import org.pentaho.di.ui.util.HelpUtils;
 
 public class HadoopClusterEndpoints {
 
-  private static Class<?> PKG = HadoopClusterDialog.class;
+  private static final Class<?> PKG = HadoopClusterDialog.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private NamedClusterService namedClusterService;
+  private MetastoreLocator metastoreLocator;
 
   public static final String HELP_URL =
     Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
   public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService ) {
     this.namedClusterService = namedClusterService;
+    this.metastoreLocator = metastoreLocator;
   }
 
   @GET
@@ -68,9 +70,9 @@ public class HadoopClusterEndpoints {
   @GET
   @Path( "/newNamedCluster" )
   @Produces( { MediaType.APPLICATION_JSON } )
-  public Response newNamedCluster( @QueryParam( "name" ) String name, @QueryParam( "type" ) String type, @QueryParam( "path" ) String path ) {
+  public Response newNamedCluster( @QueryParam( "name" ) String name, @QueryParam( "type" ) String type, @QueryParam( "path" ) String path, @QueryParam( "shim" ) String shim, @QueryParam( "shimVersion" ) String shimVersion ) {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
-    JSONObject result = hadoopClusterManager.newNamedCluster( name, type, path );
+    JSONObject result = hadoopClusterManager.newNamedCluster( name, type, path, shim, shimVersion );
     return Response.ok( result ).build();
   }
 
