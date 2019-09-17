@@ -94,7 +94,7 @@ public class FutureMapReduceJobSimpleRunnable implements Runnable {
       Method mainMethod = clazz.getMethod( "main", new Class[] { String[].class } );
       Object[] args =
         ( commandLineArgs != null ) ? new Object[] { commandLineArgs.split( " " ) } : new Object[] { new String[ 0 ] };
-      mainMethod.invoke( null, args );
+      mainMethod.invoke( clazz.newInstance(), args );
     } finally {
       Thread.currentThread().setContextClassLoader( cl );
     }

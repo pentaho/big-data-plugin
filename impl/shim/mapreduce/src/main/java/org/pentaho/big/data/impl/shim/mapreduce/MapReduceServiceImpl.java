@@ -153,10 +153,10 @@ public class MapReduceServiceImpl implements MapReduceService {
     throws MapReduceExecutionException {
     try {
       if ( Utils.isEmpty( driverClass ) ) {
+        List<Class<?>> mainClasses =
+            jarUtility.getClassesInJarWithMain( resolvedJarUrl.toExternalForm(), shim.getClass().getClassLoader() );   
         Class<?> mainClass = jarUtility.getMainClassFromManifest( resolvedJarUrl, shim.getClass().getClassLoader() );
         if ( mainClass == null ) {
-          List<Class<?>> mainClasses =
-            jarUtility.getClassesInJarWithMain( resolvedJarUrl.toExternalForm(), shim.getClass().getClassLoader() );
           if ( mainClasses.size() == 1 ) {
             return mainClasses.get( 0 );
           } else if ( mainClasses.isEmpty() ) {
