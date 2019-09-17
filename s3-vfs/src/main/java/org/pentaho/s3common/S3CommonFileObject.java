@@ -25,15 +25,14 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileObject;
+import org.apache.commons.vfs2.util.MonitorInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,10 +70,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   protected InputStream doGetInputStream() throws Exception {
     logger.debug( "Accessing content {}", getQualifiedName() );
     activateContent();
-    S3ObjectInputStream inputstream = s3Object.getObjectContent();
-    byte[] content = IOUtils.toByteArray( inputstream );
-    inputstream.close();
-    s3ObjectInputStream = new ByteArrayInputStream( content );
+    s3ObjectInputStream = new MonitorInputStream( s3Object.getObjectContent() );
     return s3ObjectInputStream;
   }
 
@@ -211,7 +207,6 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
       injectType( FileType.FOLDER );
       return;
     }
-
     try {
       // 1. Is it an existing file?
       s3Object = getS3Object();

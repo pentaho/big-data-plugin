@@ -30,7 +30,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.UploadPartResult;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -42,14 +41,7 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,8 +67,6 @@ import static org.mockito.Mockito.atMost;
 /**
  * created by: dzmitry_bahdanovich date: 10/18/13
  */
-@RunWith( PowerMockRunner.class )
-@PowerMockIgnore( { "javax.management.*", "com.amazonaws.http.conn.ssl.*", "javax.net.ssl.*" } )
 public class S3FileObjectTest {
 
   public static final String HOST = "S3";
@@ -197,10 +187,7 @@ public class S3FileObjectTest {
   }
 
   @Test
-  @PrepareForTest( { IOUtils.class } )
   public void testDoGetInputStream() throws Exception {
-    PowerMockito.mockStatic( IOUtils.class );
-    Mockito.when( IOUtils.toByteArray( s3ObjectInputStream ) ).thenReturn( new byte[] {} );
     assertNotNull( s3FileObjectBucketSpy.getInputStream() );
   }
 
