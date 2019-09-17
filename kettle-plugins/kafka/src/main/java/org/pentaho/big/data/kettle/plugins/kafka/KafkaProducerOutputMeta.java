@@ -31,7 +31,6 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -123,7 +122,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     super();
   }
 
-  @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
+  @Override public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) {
     readData( stepnode );
   }
 
@@ -275,7 +274,7 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     this.connectionType = connectionType;
   }
 
-  @Override public String getXML() throws KettleException {
+  @Override public String getXML() {
     StringBuilder retval = new StringBuilder();
     retval.append( "    " ).append( XMLHandler.addTagValue( CONNECTION_TYPE, connectionType.name() ) );
     retval.append( "    " ).append( XMLHandler.addTagValue( DIRECT_BOOTSTRAP_SERVERS, directBootstrapServers ) );

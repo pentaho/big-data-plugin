@@ -22,25 +22,11 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.SslConfigs;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
@@ -59,6 +45,14 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.CLUSTER;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
 
@@ -74,7 +68,11 @@ public class KafkaDialogHelper {
   private TableView optionsTable;
   private StepMeta parentMeta;
 
-  public KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
+  // squid:S00107 cannot consolidate params because they can come from either KafkaConsumerInputMeta or
+  // KafkaProducerOutputMeta which do not share a common interface.  Would increase complexity for the trivial gain of
+  // less parameters in the constructor
+  @SuppressWarnings( "squid:S00107" )
+  KafkaDialogHelper( ComboVar wClusterName, ComboVar wTopic, Button wbCluster, TextVar wBootstrapServers,
                             KafkaFactory kafkaFactory, NamedClusterService namedClusterService,
                             NamedClusterServiceLocator namedClusterServiceLocator, MetastoreLocator metastoreLocator,
                             TableView optionsTable, StepMeta parentMeta ) {
@@ -164,22 +162,6 @@ public class KafkaDialogHelper {
     }
   }
 
-  public static List<String> getConsumerConfigOptionNames() {
-    List<String> optionNames = getConfigOptionNames( ConsumerConfig.class );
-    Stream.of( ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, ConsumerConfig.GROUP_ID_CONFIG,
-      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-      ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG ).forEach( optionNames::remove );
-    return optionNames;
-  }
-
-  public static List<String> getProducerConfigOptionNames() {
-    List<String> optionNames = getConfigOptionNames( ProducerConfig.class );
-    Stream.of( ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, ProducerConfig.CLIENT_ID_CONFIG,
-      ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG )
-      .forEach( optionNames::remove );
-    return optionNames;
-  }
-
   public static List<String> getConsumerAdvancedConfigOptionNames() {
     return Arrays.asList( ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
       SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
@@ -192,22 +174,6 @@ public class KafkaDialogHelper {
       SslConfigs.SSL_KEY_PASSWORD_CONFIG, SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG,
       SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG,
       SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG );
-  }
-
-  private static List<String> getConfigOptionNames( Class cl ) {
-    return getStaticField( cl, "CONFIG" ).map( config ->
-      ( (ConfigDef) config ).configKeys().keySet().stream().sorted().collect( Collectors.toList() )
-    ).orElse( new ArrayList<>() );
-  }
-
-  private static Optional<Object> getStaticField( Class cl, String fieldName ) {
-    try {
-      Field field = cl.getDeclaredField( fieldName );
-      field.setAccessible( true );
-      return Optional.ofNullable( field.get( null ) );
-    } catch ( NoSuchFieldException | IllegalAccessException e ) {
-      return Optional.empty();
-    }
   }
 
   public static Map<String, String> getConfig( TableView optionsTable ) {

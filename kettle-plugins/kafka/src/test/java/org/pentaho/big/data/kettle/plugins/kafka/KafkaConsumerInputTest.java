@@ -450,7 +450,7 @@ public class KafkaConsumerInputTest {
 
   private void waitForOneSubTrans( Trans trans ) throws InterruptedException {
     while ( trans.getSteps().get( 0 ).step.subStatuses().isEmpty() ) {
-      Thread.sleep( 10 );
+      Thread.sleep( 10 ); //NOSONAR
       //noinspection UnnecessaryContinue
       continue; //checkstyle complains without this
     }
@@ -486,9 +486,9 @@ public class KafkaConsumerInputTest {
     assertEquals( 2, abort.getLinesRead() );
 
     //I know this seems weird.  It proves the Abort stops kafka from reading new rows
-    Thread.sleep( 10 );
+    Thread.sleep( 10 ); //NOSONAR
     long linesInput = kafkaStep.getLinesInput();
-    Thread.sleep( 10 );
+    Thread.sleep( 10 ); //NOSONAR
     assertEquals( linesInput, kafkaStep.getLinesInput() );
   }
 
