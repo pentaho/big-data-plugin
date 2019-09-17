@@ -38,6 +38,7 @@ import org.pentaho.bigdata.api.jaas.JaasConfigService;
 /**
  * Created by rfellows on 6/2/17.
  */
+@SuppressWarnings( "squid:S4276" ) //Cannot refactor to UnaryOperator because usage of .andThen
 public class KafkaFactory {
   private Function<Map<String, Object>, Consumer> consumerFunction;
   private Function<Map<String, Object>, Producer<Object, Object>> producerFunction;

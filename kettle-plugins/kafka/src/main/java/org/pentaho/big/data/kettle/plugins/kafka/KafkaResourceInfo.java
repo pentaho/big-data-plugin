@@ -60,6 +60,7 @@ public class KafkaResourceInfo implements IExternalResourceInfo {
   }
 
   @Override public void setName( String name ) {
+    throw new UnsupportedOperationException( "name should have be passed in constructor" );
   }
 
   @Override public String getDescription() {
@@ -67,6 +68,7 @@ public class KafkaResourceInfo implements IExternalResourceInfo {
   }
 
   @Override public void setDescription( String description ) {
+    throw new UnsupportedOperationException( "description is constant and should not change" );
   }
 
   public String getTopic() {
