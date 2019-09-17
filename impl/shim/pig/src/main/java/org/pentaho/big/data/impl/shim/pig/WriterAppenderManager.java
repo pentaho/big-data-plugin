@@ -80,7 +80,7 @@ public class WriterAppenderManager implements Closeable {
   }
 
   private Level getLog4jLevel( LogLevel level ) {
-    // KettleLogChannelAppender does not exists in Kette core, so we'll use it from kettle5-log4j-plugin.
+    // KettleLogChannelAppender does not exists in Kette core, so we'll use it from kettle5-log4j-core.
     Level log4jLevel = KettleLogChannelAppender.LOG_LEVEL_MAP.get( level );
     return log4jLevel != null ? log4jLevel : Level.INFO;
   }
