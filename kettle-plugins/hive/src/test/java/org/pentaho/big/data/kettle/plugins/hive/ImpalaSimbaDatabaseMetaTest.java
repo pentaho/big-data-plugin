@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hive;
 import java.sql.Driver;
 import java.util.Arrays;
 import java.util.Map;
+
 import org.hamcrest.collection.IsMapContaining;
 import org.hamcrest.collection.IsMapWithSize;
 import org.junit.Before;
@@ -33,7 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.api.jdbc.DriverLocator;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -102,7 +103,7 @@ public class ImpalaSimbaDatabaseMetaTest {
   public void testGetDefaultOptions() {
     Map<String, String> options = impalaSimbaDatabaseMeta.getDefaultOptions();
     assertThat( options, IsMapWithSize.aMapWithSize( 1 ) );
-    assertThat( options, IsMapContaining.hasEntry( impalaSimbaDatabaseMeta.getPluginId() + "." +
-        SparkSimbaDatabaseMeta.SOCKET_TIMEOUT_OPTION, "10" ) );
+    assertThat( options, IsMapContaining.hasEntry( impalaSimbaDatabaseMeta.getPluginId() + "."
+      + SparkSimbaDatabaseMeta.SOCKET_TIMEOUT_OPTION, "10" ) );
   }
 }

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,9 +28,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
@@ -54,9 +54,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * User: RFellows Date: 6/4/12
@@ -84,7 +91,7 @@ public class OozieJobExecutorControllerTest {
       + "/examples/apps/map-reduce" );
 
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    when( namedClusterService.list(any()) ).thenReturn( Arrays.asList( cluster ) );
+    when( namedClusterService.list( any() ) ).thenReturn( Arrays.asList( cluster ) );
     OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
       namedClusterService,
       mock( RuntimeTestActionService.class ),
@@ -112,7 +119,7 @@ public class OozieJobExecutorControllerTest {
   @Test
   public void testGetNamedClusterOnChangedDataInClusterNamedService() throws Exception {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    when( namedClusterService.list(any()) ).thenReturn( Arrays.asList( cluster ) );
+    when( namedClusterService.list( any() ) ).thenReturn( Arrays.asList( cluster ) );
     OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
       namedClusterService,
       mock( RuntimeTestActionService.class ),
@@ -144,7 +151,7 @@ public class OozieJobExecutorControllerTest {
       new OozieJobExecutorJobEntryController( new JobMeta(), new XulFragmentContainer( null ),
         jobEntry, new DefaultBindingFactory(),
         delegate );
-    when(jobEntry.getNamedClusterService().list( anyObject() )).thenThrow( new MetaStoreException(  ) );
+    when( jobEntry.getNamedClusterService().list( anyObject() ) ).thenThrow( new MetaStoreException() );
     List<NamedCluster> namedClusters = controller.getNamedClusters();
     assertEquals( namedClusters.size(), 0 );
   }
@@ -152,7 +159,7 @@ public class OozieJobExecutorControllerTest {
   @Test
   public void testConfigNamedClustersChangedOnPopulateNamedClusters() throws Exception {
     NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    when( namedClusterService.list(any()) ).thenReturn( Arrays.asList( cluster ) );
+    when( namedClusterService.list( any() ) ).thenReturn( Arrays.asList( cluster ) );
     OozieJobExecutorJobEntry jobEntry = new OozieJobExecutorJobEntry(
       namedClusterService,
       mock( RuntimeTestActionService.class ),
@@ -179,27 +186,6 @@ public class OozieJobExecutorControllerTest {
   public void testSetModeToggleLabel_UnsupportedJobEntryMode() {
     controller.setModeToggleLabel( JobEntryMode.ADVANCED_COMMAND_LINE );
     fail( "JobEntryMode.ADVANCED_COMMAND_LINE is not supported, should have gotten a RuntimeException" );
-  }
-
-  @Test
-  public void testTestSettings_ErrorsFound() throws Exception {
-    TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
-    ctr.setConfig( new OozieJobExecutorConfig() );
-    ctr.testSettings();
-    assertTrue( ctr.getShownErrors().size() > 0 );
-  }
-
-  @Test
-  public void testTestSettings_NoErrors() throws Exception {
-    TestOozieJobExecutorController ctr = new TestOozieJobExecutorController();
-
-    // the dummy test job entry will return no errors when getValidationMessages is called
-    ctr.setJobEntry( new TestOozieJobExecutorJobEntry() );
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    ctr.setConfig( config );
-    ctr.testSettings();
-    assertTrue( ctr.wasInfoShown() );
   }
 
   @Test
@@ -335,7 +321,7 @@ public class OozieJobExecutorControllerTest {
   private OozieJobExecutorConfig getGoodConfig() {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
-                                                          // connection to it anyway
+    // connection to it anyway
     config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
     config.setJobEntryName( "name" );
     return config;
@@ -359,7 +345,7 @@ public class OozieJobExecutorControllerTest {
           mock( RuntimeTestActionService.class ),
           mock( RuntimeTester.class ),
           mock( NamedClusterServiceLocator.class ) ),
-          new DefaultBindingFactory(), delegate );
+        new DefaultBindingFactory(), delegate );
 
       this.modeDeck = modeDeck;
       syncModel();
@@ -400,7 +386,7 @@ public class OozieJobExecutorControllerTest {
     @Override
     public void toggleMode() {
       JobEntryMode mode =
-          ( jobEntryMode == JobEntryMode.ADVANCED_LIST ? JobEntryMode.QUICK_SETUP : JobEntryMode.ADVANCED_LIST );
+        ( jobEntryMode == JobEntryMode.ADVANCED_LIST ? JobEntryMode.QUICK_SETUP : JobEntryMode.ADVANCED_LIST );
       this.setJobEntryMode( mode );
       this.syncModel();
     }

@@ -8,10 +8,6 @@
     <fileSet>
       <directory>target/dependencies/karaf</directory>
       <outputDirectory>system/karaf</outputDirectory>
-      <!--<excludes>
-        <exclude>plugins/</exclude>
-        <exclude>system/karaf/etc/org.apache.karaf.features.cfg</exclude>
-      </excludes>-->
     </fileSet>
     <fileSet>
       <directory>target/classes</directory>
@@ -214,8 +210,7 @@
         <include>pentaho:mondrian</include>
         <include>pentaho:pentaho-capability-manager</include>
         <include>org.pentaho:commons-database-model</include>
-        <include>org.pentaho:pentaho-hadoop-shims-api</include>
-        <include>pentaho:pentaho-metadata</include>
+        <include>org.pentaho:pentaho-metadata</include>
         <include>pentaho:pentaho-osgi-utils-api</include>
         <include>org.pentaho:pentaho-registry</include>
         <include>pentaho:simple-jndi</include>
@@ -234,8 +229,6 @@
         <include>wsdl4j:wsdl4j-qname</include>
         <include>xml-apis:xml-apis</include>
         <include>xml-apis:xml-apis-ext</include>
-        <include>xmlpull:xmlpull</include>
-        <include>xpp3:xpp3_min</include>
         <include>org.apache.kafka:kafka-clients</include>
         <include>org.mortbay.jetty:servlet-api</include>
         <include>pentaho:pentaho-metaverse-api</include>

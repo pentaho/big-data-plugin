@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,7 +25,7 @@ package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
@@ -120,8 +120,8 @@ public class HadoopClusterTreeDelegateExtensionTest {
   public void testCase4NamedCluster() throws KettleException, MetaStoreException {
     when( spoonTreeDelegateExtension.getCaseNumber() ).thenReturn( 4 );
     String testPath3 = "testPath3";
-    org.pentaho.big.data.api.cluster.NamedCluster namedCluster = mock(
-      org.pentaho.big.data.api.cluster.NamedCluster.class );
+    org.pentaho.hadoop.shim.api.cluster.NamedCluster namedCluster = mock(
+      org.pentaho.hadoop.shim.api.cluster.NamedCluster.class );
     when( namedClusterService.read( testPath3, delegatingMetaStore ) ).thenReturn( namedCluster );
     when( namedCluster.getName() ).thenReturn( testPath3 );
     String[] path = { "", "", HadoopClusterTreeDelegateExtension.STRING_NAMED_CLUSTERS, testPath3 };
@@ -149,8 +149,8 @@ public class HadoopClusterTreeDelegateExtensionTest {
   public void testCase4MetastoreException() throws KettleException, MetaStoreException {
     when( spoonTreeDelegateExtension.getCaseNumber() ).thenReturn( 4 );
     String testPath3 = "testPath3";
-    org.pentaho.big.data.api.cluster.NamedCluster namedCluster = mock(
-      org.pentaho.big.data.api.cluster.NamedCluster.class );
+    org.pentaho.hadoop.shim.api.cluster.NamedCluster namedCluster = mock(
+      org.pentaho.hadoop.shim.api.cluster.NamedCluster.class );
     when( namedClusterService.read( testPath3, delegatingMetaStore ) ).thenThrow( new MetaStoreException() );
     when( namedCluster.getName() ).thenReturn( testPath3 );
     String[] path = { "", "", HadoopClusterTreeDelegateExtension.STRING_NAMED_CLUSTERS, testPath3 };

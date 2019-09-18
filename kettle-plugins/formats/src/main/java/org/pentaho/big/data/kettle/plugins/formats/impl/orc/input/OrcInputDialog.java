@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -159,6 +159,8 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   }
 
   protected void populateFieldsTable() {
+    String orcFileName = wPath.getText();
+    orcFileName = transMeta.environmentSubstitute( orcFileName );
     try {
       List<? extends IOrcInputField> inputFields = getInputFieldsFromOrcFile( false );
       wInputFields.clearAll();
@@ -190,7 +192,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     String orcFileName = getProcessedFileName();
     List<? extends IOrcInputField> inputFields = null;
     try {
-      inputFields = OrcInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), orcFileName );
+      inputFields = OrcInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster( orcFileName ), orcFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {
         logError( BaseMessages.getString( PKG, "OrcInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );

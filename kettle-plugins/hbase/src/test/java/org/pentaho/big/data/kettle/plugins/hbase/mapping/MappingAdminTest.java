@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -22,6 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepMeta;
@@ -40,7 +42,8 @@ public class MappingAdminTest {
   private StepMeta parentStepMeta;
 
   @Before
-  public void setUp() {
+  public void setUp() throws KettleException {
+    KettleEnvironment.init();
     transMeta = Mockito.spy( new TransMeta() );
     stepMeta = Mockito.spy( new BaseStepMeta() );
     parentStepMeta = Mockito.spy( new StepMeta() );
