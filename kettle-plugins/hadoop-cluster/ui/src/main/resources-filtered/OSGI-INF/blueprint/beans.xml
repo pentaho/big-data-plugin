@@ -55,11 +55,14 @@
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType" />
   </bean>
 
+  <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
+
   <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
     <jaxrs:serviceBeans>
       <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
         <argument ref="metastoreLocator"/>
         <argument ref="namedClusterService"/>
+        <argument ref="runtimeTester"/>
       </bean>
     </jaxrs:serviceBeans>
     <jaxrs:extensionMappings>

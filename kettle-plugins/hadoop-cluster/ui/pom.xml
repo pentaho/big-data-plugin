@@ -69,6 +69,10 @@
       <artifactId>pentaho-i18n-webservice-bundle</artifactId>
     </dependency>
     <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-impl-clusterTests</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.swt</groupId>
       <artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
     </dependency>
@@ -112,6 +116,13 @@
       <artifactId>jquery</artifactId>
       <scope>runtime</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
   <build>
     <resources>
