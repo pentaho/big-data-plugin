@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,16 +23,23 @@ package org.pentaho.big.data.kettle.plugins.hbase;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.never;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -102,7 +109,7 @@ public class NamedClusterLoadSaveUtilTest {
   @Test
   public void testLoadClusterConfigXML_WithClusterName() throws Exception {
     util.loadClusterConfig( ncs, jobId, repository, metaStore, XMLHandler.loadXMLString( dBuilder, xml2 ).getDocumentElement(), log );
-    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    verify( ncs ).getNamedClusterByName( SOME_CLUSTER_NAME, metaStore );
     verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
     verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
   }
@@ -122,7 +129,7 @@ public class NamedClusterLoadSaveUtilTest {
     doReturn( SOME_CLUSTER_NAME ).when( repository ).getJobEntryAttributeString( jobId, CLUSTER_NAME_KEY );
 
     util.loadClusterConfig( ncs, jobId, repository, metaStore, null, mock( LogChannelInterface.class ) );
-    verify( ncs ).read( SOME_CLUSTER_NAME, metaStore );
+    verify( ncs ).getNamedClusterByName( SOME_CLUSTER_NAME, metaStore );
     verify( namedCluster ).setZooKeeperHost( ZOOKEPER_HOST );
     verify( namedCluster ).setZooKeeperPort( ZOOKEEPER_PORT );
   }
@@ -225,3 +232,4 @@ public class NamedClusterLoadSaveUtilTest {
     verify( repository ).saveStepAttribute( eq( transId ), eq( stepId ), eq( CLUSTER_NAME_KEY ), eq( SOME_CLUSTER_NAME ) );
   }
 }
+

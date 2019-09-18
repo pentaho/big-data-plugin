@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,11 +25,10 @@ package org.pentaho.big.data.kettle.plugins.pig;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.bigdata.api.pig.PigResult;
-import org.pentaho.bigdata.api.pig.PigService;
+import org.pentaho.hadoop.shim.api.HadoopClientServices;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
@@ -48,6 +47,7 @@ import org.pentaho.di.job.entry.JobEntryBase;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.hadoop.shim.api.pig.PigResult;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
@@ -435,11 +435,8 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
       String scriptFileS = m_scriptFile;
       scriptFileS = environmentSubstitute( scriptFileS );
 
-      final PigService pigService = namedClusterServiceLocator.getService( namedCluster, PigService.class );
-      // Make sure we can execute locally if desired
-      if ( m_localExecution && !pigService.isLocalExecutionSupported() ) {
-        throw new KettleException( BaseMessages.getString( PKG, JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ) );
-      }
+      HadoopClientServices hadoopClientServices = namedClusterServiceLocator.getService( namedCluster, HadoopClientServices.class );
+
       // transform the map type to list type which can been accepted by ParameterSubstitutionPreprocessor
       final List<String> paramList = new ArrayList<String>();
       if ( m_params != null ) {
@@ -452,18 +449,17 @@ public class JobEntryPigScriptExecutor extends JobEntryBase implements Cloneable
         }
       }
 
-      final PigService.ExecutionMode execMode = ( m_localExecution ? PigService.ExecutionMode.LOCAL : PigService.ExecutionMode.MAPREDUCE );
+      final HadoopClientServices.PigExecutionMode execMode = ( m_localExecution ? HadoopClientServices.PigExecutionMode.LOCAL : HadoopClientServices.PigExecutionMode.MAPREDUCE );
 
       if ( m_enableBlocking ) {
-        PigResult pigResult = pigService
-          .executeScript( scriptFileS, execMode, paramList, getName(), getLogChannel(), this, parentJob.getLogLevel() );
+        PigResult pigResult = hadoopClientServices.runPig( scriptFileS, execMode, paramList, getName(), getLogChannel(), this, parentJob.getLogLevel() );
         processScriptExecutionResult( pigResult, result );
       } else {
         final String finalScriptFileS = scriptFileS;
         final Thread runThread = new Thread() {
           public void run() {
             PigResult pigResult =
-              pigService.executeScript( finalScriptFileS, execMode, paramList, getName(), getLogChannel(),
+                    hadoopClientServices.runPig( finalScriptFileS, execMode, paramList, getName(), getLogChannel(),
                 JobEntryPigScriptExecutor.this, parentJob.getLogLevel() );
             processScriptExecutionResult( pigResult, result );
           }

@@ -8,37 +8,44 @@
   <bean id="parquetOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output.ParquetOutputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="parquetInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.ParquetInputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="avroOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.avro.output.AvroOutputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="avroInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="orcInputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.orc.input.OrcInputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="orcOutputMeta" class="org.pentaho.big.data.kettle.plugins.formats.impl.orc.output.OrcOutputMeta" scope="prototype">
     <argument ref="namedClusterServiceLocator"/>
     <argument ref="namedClusterService"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
 
-  <reference id="namedClusterService" interface="org.pentaho.big.data.api.cluster.NamedClusterService"/>
-  <reference id="namedClusterServiceLocator" interface="org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator"/>
+  <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
+  <reference id="namedClusterServiceLocator" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
+  <reference id="metastoreLocatorOsgi" interface="org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi"/>
 
 </blueprint>

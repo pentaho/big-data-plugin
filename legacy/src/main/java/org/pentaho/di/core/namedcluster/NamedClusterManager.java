@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -120,7 +120,8 @@ public class NamedClusterManager {
    */
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
-    return factory.loadElement( clusterName );
+    NamedCluster namedCluster = factory.loadElement( clusterName );
+    return namedCluster;
   }
 
 
@@ -133,8 +134,14 @@ public class NamedClusterManager {
    */
   public void update( NamedCluster namedCluster, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
-    factory.deleteElement( namedCluster.getName() );
-    factory.saveElement( namedCluster );
+    List<NamedCluster> namedClusters = list( metastore );
+    for ( NamedCluster nc : namedClusters ) {
+      if ( namedCluster.getName().equals( nc.getName() ) ) {
+        factory.deleteElement( nc.getName() );
+        factory.saveElement( namedCluster );
+      }
+    }
+
   }
 
   /**
@@ -158,7 +165,8 @@ public class NamedClusterManager {
    */
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
-    return factory.getElements();
+    List<NamedCluster> namedClusters = factory.getElements();
+    return namedClusters;
   }
 
   /**

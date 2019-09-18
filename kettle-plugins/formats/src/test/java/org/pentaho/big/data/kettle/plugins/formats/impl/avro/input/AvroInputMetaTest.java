@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,13 +42,14 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.plugins.Plugin;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginMainClassType;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -71,6 +72,9 @@ public class AvroInputMetaTest {
 
   @Mock
   private NamedClusterService namedClusterService;
+
+  @Mock
+  private MetastoreLocatorOsgi metaStoreLocator;
 
   @Mock
   private StepMeta nextStep;
@@ -104,7 +108,7 @@ public class AvroInputMetaTest {
 
   @Before
   public void setUp() throws KettlePluginException {
-    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService );
+    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService, metaStoreLocator );
     when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     when( field.getPentahoType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
 
@@ -173,6 +177,7 @@ public class AvroInputMetaTest {
 
   @Test
   public void testGetNamedCluster() throws KettleStepException {
+    meta.setTesting( true );
     NamedCluster nc = meta.getNamedCluster();
     verify( namedClusterService ).getClusterTemplate();
     //since namedClusterService is mock it should return null

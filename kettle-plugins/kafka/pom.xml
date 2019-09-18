@@ -51,34 +51,24 @@
       <version>${pentaho-metaverse.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>shim-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>kafka-clients</artifactId>
       <version>${kafka-clients.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-cluster-service-locator</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${metastore.version}</version>
+      <version>${pentaho-osgi-bundles.version}</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>pentaho</groupId>
-      <artifactId>pentaho-big-data-api-jaas</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
+
     <!--
       kafka-clients wants to bring in a slightly newer version of slf4j-api than we currently provide in our karaf instance.
       so, we force the correct version here (via dependency mgt) to avoid conflicts at startup
@@ -161,7 +151,7 @@
           <instructions>
             <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
             <Export-Package>org.pentaho.big.data.kettle.plugins.kafka.*;version=${project.version}</Export-Package>
-            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,*</Import-Package>
+            <Import-Package>org.eclipse.swt*;resolution:=optional,org.pentaho.di.osgi,org.pentaho.di.core.plugins,org.pentaho.hadoop.shim.api.cluster,*</Import-Package>
           </instructions>
         </configuration>
       </plugin>

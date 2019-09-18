@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,14 +24,13 @@ package org.pentaho.big.data.kettle.plugins.pig;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.HadoopClientServices;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.impl.cluster.NamedClusterImpl;
-import org.pentaho.bigdata.api.pig.PigResult;
-import org.pentaho.bigdata.api.pig.PigService;
+
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -42,6 +41,7 @@ import org.pentaho.di.job.entry.loadSave.LoadSaveTester;
 import org.pentaho.di.trans.steps.loadsave.validator.FieldLoadSaveValidator;
 import org.pentaho.di.trans.steps.loadsave.validator.MapLoadSaveValidator;
 import org.pentaho.di.trans.steps.loadsave.validator.StringLoadSaveValidator;
+import org.pentaho.hadoop.shim.api.pig.PigResult;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 
@@ -53,7 +53,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,7 +66,7 @@ public class JobEntryPigScriptExecutorTest {
   private RuntimeTestActionService runtimeTestActionService;
   private NamedClusterServiceLocator namedClusterServiceLocator;
 
-  private PigService pigService;
+  private HadoopClientServices hadoopClientServices;
   private JobEntryPigScriptExecutor jobEntryPigScriptExecutor;
   private NamedCluster namedCluster;
   private String jobEntryName;
@@ -108,9 +107,9 @@ public class JobEntryPigScriptExecutorTest {
     namedClusterJobTrackerHost = "namedClusterJobTrackerHost";
     namedClusterJobTrackerPort = "namedClusterJobTrackerPort";
 
-    pigService = mock( PigService.class );
+    hadoopClientServices = mock( HadoopClientServices.class );
     namedCluster = mock( NamedCluster.class );
-    when( namedClusterServiceLocator.getService( namedCluster, PigService.class ) ).thenReturn( pigService );
+    when( namedClusterServiceLocator.getService( namedCluster, HadoopClientServices.class ) ).thenReturn( hadoopClientServices );
     when( namedCluster.getName() ).thenReturn( namedClusterName );
     when( namedCluster.getHdfsHost() ).thenReturn( namedClusterHdfsHost );
     when( namedCluster.getHdfsPort() ).thenReturn( namedClusterHdfsPort );
@@ -176,26 +175,11 @@ public class JobEntryPigScriptExecutorTest {
   }
 
   @Test
-  public void testExecuteLocalNotSupported() throws KettleException {
-    when( pigService.isLocalExecutionSupported() ).thenReturn( false );
-    jobEntryPigScriptExecutor.setLocalExecution( true );
-    assertEquals( result, jobEntryPigScriptExecutor.execute( result, 0 ) );
-    ArgumentCaptor<KettleException> kettleExceptionArgumentCaptor = ArgumentCaptor.forClass( KettleException.class );
-    verify( logChannelInterface ).logError( anyString(), kettleExceptionArgumentCaptor.capture() );
-    assertEquals( BaseMessages.getString( JobEntryPigScriptExecutor.PKG,
-      JobEntryPigScriptExecutor.JOB_ENTRY_PIG_SCRIPT_EXECUTOR_WARNING_LOCAL_EXECUTION ),
-      kettleExceptionArgumentCaptor.getValue().getSuperMessage() );
-    verify( result ).setStopped( true );
-    verify( result ).setNrErrors( 1 );
-    verify( result ).setResult( false );
-  }
-
-  @Test
   public void testNonzeroBlocking() throws KettleException {
     jobEntryPigScriptExecutor.setEnableBlocking( true );
     when( pigResult.getResult() ).thenReturn( new int[] { 0, 10 } );
-    when( pigService
-      .executeScript( eq( jobEntryPigScriptExecutor.getScriptFilename() ), eq( PigService.ExecutionMode.MAPREDUCE ),
+    when( hadoopClientServices
+      .runPig( eq( jobEntryPigScriptExecutor.getScriptFilename() ), eq( HadoopClientServices.PigExecutionMode.MAPREDUCE ),
         eq( new ArrayList<String>() ), eq( (String) null ), eq( logChannelInterface ), eq( jobEntryPigScriptExecutor ),
         eq( (LogLevel) null ) ) )
       .thenReturn( pigResult );

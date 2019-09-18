@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,7 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hive;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.pentaho.big.data.api.jdbc.DriverLocator;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 
@@ -33,7 +33,7 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
 
   protected static final String JAR_FILE = "ImpalaJDBC41.jar";
   protected static final String JDBC_URL_PREFIX = "jdbc:impala://";
-  protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.ImpalaSimbaDriver";
+  protected static final String DRIVER_CLASS_NAME = "com.cloudera.impala.jdbc41.Driver";
   protected static final int DEFAULT_PORT = 21050;
   protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 

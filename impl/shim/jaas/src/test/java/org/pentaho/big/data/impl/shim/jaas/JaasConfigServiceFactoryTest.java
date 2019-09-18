@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,27 +22,23 @@
 package org.pentaho.big.data.impl.shim.jaas;
 
 import org.junit.Test;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.HadoopConfiguration;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class JaasConfigServiceFactoryTest {
 
   @Test
-  public void testCreatesAJaasConfig() throws Exception {
-    HadoopConfiguration hadoopConfiguration = mock( HadoopConfiguration.class );
+  public void testCreatesAJaasConfig() {
     NamedCluster namedCluster = mock( NamedCluster.class );
-    JaasConfigServiceFactory factory = new JaasConfigServiceFactory( true, hadoopConfiguration );
+    JaasConfigServiceFactory factory = new JaasConfigServiceFactory( true, null );
     Properties configProperties = new Properties();
     configProperties.setProperty( JaasConfigServiceImpl.KERBEROS_PRINCIPAL, "three@domain.com" );
     configProperties.setProperty( JaasConfigServiceImpl.KERBEROS_KEYTAB, "/user/two/file.keytab" );
-    when( hadoopConfiguration.getConfigProperties() ).thenReturn( configProperties );
     assertTrue( factory.canHandle( namedCluster ) );
     assertEquals( "com.sun.security.auth.module.Krb5LoginModule required\n"
       + "useKeyTab=true\n"

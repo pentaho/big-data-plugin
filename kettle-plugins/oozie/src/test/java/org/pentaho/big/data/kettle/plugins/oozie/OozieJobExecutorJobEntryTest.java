@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,13 +23,13 @@
 package org.pentaho.big.data.kettle.plugins.oozie;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,34 +40,25 @@ import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
 import org.apache.oozie.client.WorkflowAction;
 import org.apache.oozie.client.WorkflowJob;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.api.cluster.NamedCluster;
-import org.pentaho.big.data.api.cluster.NamedClusterService;
-import org.pentaho.big.data.api.cluster.service.locator.NamedClusterServiceLocator;
-import org.pentaho.big.data.api.initializer.ClusterInitializationException;
-import org.pentaho.big.data.impl.shim.oozie.FallbackOozieClientImpl;
-import org.pentaho.big.data.impl.shim.oozie.OozieServiceImpl;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.job.JobEntryMode;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
-import org.pentaho.bigdata.api.oozie.OozieService;
-import org.pentaho.bigdata.api.oozie.OozieServiceException;
+
 import org.pentaho.di.core.KettleEnvironment;
-import org.pentaho.di.core.Result;
-import org.pentaho.di.core.exception.KettleException;
+
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
-import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.job.Job;
 import org.pentaho.di.job.entry.JobEntryCopy;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Document;
@@ -167,198 +158,6 @@ public class OozieJobExecutorJobEntryTest {
   }
 
   @Test
-  public void testGetValidationWarnings_invalidOozieUrl() throws Exception {
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-
-    NamedClusterServiceLocator locator = mock( NamedClusterServiceLocator.class );
-    OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry(
-      mock( NamedClusterService.class ),
-      mock( RuntimeTestActionService.class ),
-      mock( RuntimeTester.class ),
-      locator );
-
-    OozieService service = mock( OozieService.class );
-    OozieServiceException ex = mock( OozieServiceException.class );
-    when( locator.getService( any( NamedCluster.class ), any( Class.class ) ) )
-      .thenReturn( service );
-    when( ex.getErrorCode() ).thenReturn( OozieJobExecutorJobEntry.HTTP_ERROR_CODE_404 );
-    when( service.getProtocolUrl() )
-      .thenThrow( ex );
-
-    config.setOozieUrl( "bad url" );
-    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    config.setJobEntryName( "name" );
-
-    NamedCluster cluster = mock( NamedCluster.class );
-    when( cluster.getOozieUrl() ).thenReturn( "bad url" );
-    when( cluster.clone() ).thenReturn( cluster );
-    config.setNamedCluster( cluster );
-    //when( cluster.)
-
-
-    List<String> warnings = je.getValidationWarnings( config );
-
-    assertEquals( 2, warnings.size() );
-    assertEquals( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ),
-        warnings.get( 0 ) );
-    assertEquals( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.App.Path.Property.Missing" ),
-      warnings.get( 1 ) );
-  }
-
-  @Test
-  public void testGetValidationWarnings_incompatibleVersions() throws Exception {
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-
-    OozieClient client = getBadConfigTestOozieClient();
-    OozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( client ); // just use this to force an error
-                                                                              // condition
-
-    config.setOozieUrl( "http://localhost/oozie" );
-    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    config.setJobEntryName( "name" );
-
-    List<String> warnings = je.getValidationWarnings( config );
-
-    assertEquals( 1, warnings.size() );
-    assertEquals( BaseMessages.getString( OozieJobExecutorJobEntry.class,
-        "ValidationMessages.Incompatible.Oozie.Versions", client.getClientBuildVersion() ), warnings.get( 0 ) );
-  }
-
-  @Test
-  public void testGetValidationWarnings_CantFindPropertiesFile() throws Exception {
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    OozieClient client = getSucceedingTestOozieClient();
-    OozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( client );
-
-    config.setOozieUrl( "http://localhost:11000/oozie" );
-    config.setOozieWorkflowConfig( "test/job.properties" );
-    config.setJobEntryName( "name" );
-
-    List<String> warnings = je.getValidationWarnings( config );
-
-    // file is a props file & can be parsed into Properties object
-    assertEquals( 1, warnings.size() );
-    assertTrue( warnings.get( 0 ).startsWith( "Can not resolve Workflow Properties file" ) );
-    // assertEquals("Invalid workflow job configuration file.", warnings.get(0));
-  }
-
-  @Test
-  public void testGetValidationWarnings_MissingAppPathSetting() throws Exception {
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    OozieClient client = getSucceedingTestOozieClient();
-    OozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( client );
-
-    config.setOozieUrl( "http://localhost:11000/oozie" );
-    config.setOozieWorkflowConfig( "src/test/resources/badJob.properties" );
-    config.setJobEntryName( "name" );
-
-    List<String> warnings = je.getValidationWarnings( config );
-
-    // file is a props file & can be parsed into Properties object
-    assertEquals( 1, warnings.size() );
-    assertTrue( warnings.get( 0 ).startsWith( "App Path setting not found in Workflow Properties" ) );
-  }
-
-  @Test
-  public void testGetValidationWarnings_invalidPort() throws Exception {
-    OozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( getSucceedingTestOozieClient() );
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
-                                                          // connection to it anyway
-    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    config.setJobEntryName( "name" );
-
-    config.setBlockingPollingInterval( "-100" );
-    List<String> warnings = je.getValidationWarnings( config );
-    assertEquals( 1, warnings.size() );
-    assertEquals(
-        BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.PollingInterval" ),
-        warnings.get( 0 ) );
-
-    config.setBlockingPollingInterval( "0" );
-    warnings = je.getValidationWarnings( config );
-    assertEquals( 1, warnings.size() );
-    assertEquals(
-        BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.PollingInterval" ),
-        warnings.get( 0 ) );
-
-    config.setBlockingPollingInterval( "asdf" );
-    warnings = je.getValidationWarnings( config );
-    assertEquals( 1, warnings.size() );
-    assertEquals(
-        BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.PollingInterval" ),
-        warnings.get( 0 ) );
-  }
-
-  @Test
-  public void testGetValidationWarnings_everythingIsGood() throws Exception {
-    OozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( getSucceedingTestOozieClient() );
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
-                                                          // connection to it anyway
-    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    config.setJobEntryName( "name" );
-
-    List<String> warnings = je.getValidationWarnings( config );
-
-    assertEquals( 0, warnings.size() );
-  }
-
-  @Test
-  public void execute_blocking() throws KettleException {
-    final long waitTime = 200;
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
-                                                          // connection to it anyway
-    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    config.setJobEntryName( "name" );
-    config.setBlockingPollingInterval( "" + waitTime );
-
-    TestOozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( getSucceedingTestOozieClient() );
-
-    je.setParentJob( new Job( "test", null, null ) );
-    je.setJobConfig( config );
-
-    Result result = new Result();
-    long start = System.currentTimeMillis();
-    je.execute( result, 0 );
-    long end = System.currentTimeMillis();
-    assertTrue( "Total runtime should be >= the wait time if we are blocking", ( end - start ) >= waitTime );
-
-    Assert.assertEquals( 0, result.getNrErrors() );
-    assertTrue( result.getResult() );
-  }
-
-  @Test
-  public void execute_blocking_FAIL() throws KettleException {
-    final long waitTime = 1000;
-
-    OozieJobExecutorConfig config = new OozieJobExecutorConfig();
-    config.setOozieUrl( "http://localhost:11000/oozie" ); // don't worry if it isn't running, we fake out our test
-                                                          // connection to it anyway
-    config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
-    config.setJobEntryName( "name" );
-    config.setBlockingPollingInterval( "" + waitTime );
-
-    TestOozieJobExecutorJobEntry je = new TestOozieJobExecutorJobEntry( getFailingTestOozieClient() );
-
-    je.setParentJob( new Job( "test", null, null ) );
-    je.setJobConfig( config );
-
-    Result result = new Result();
-    long start = System.currentTimeMillis();
-    je.execute( result, 0 );
-    long end = System.currentTimeMillis();
-    assertTrue( "Total runtime should be >= the wait time if we are blocking", ( end - start ) >= waitTime );
-
-    Assert.assertEquals( 1, result.getNrErrors() );
-    assertFalse( result.getResult() );
-  }
-
-  @Test
   public void testGetProperties() throws Exception {
     OozieJobExecutorConfig config = new OozieJobExecutorConfig();
     config.setOozieWorkflowConfig( "src/test/resources/job.properties" );
@@ -398,73 +197,6 @@ public class OozieJobExecutorJobEntryTest {
     assertEquals( 3, props.size() );
   }
 
-  @Test
-  public void getOozieServiceNoMetaStoreNoConfigCluster() throws ClusterInitializationException {
-    when( namedClusterService.getClusterTemplate() )
-      .thenReturn( namedCluster );
-    when( namedCluster.clone() ).thenReturn( namedCluster );
-    when( config.getOozieUrl() ).thenReturn( OOZIE_URL );
-    oozieJobEntry.getOozieService( config );
-
-    verify( namedCluster, atLeastOnce() ).setOozieUrl( OOZIE_URL );
-    verify( namedClusterServiceLocator )
-      .getService( namedCluster, OozieService.class );
-  }
-
-  @Test
-  public void getOozieServiceNamedClusterInMetaStore() throws ClusterInitializationException, MetaStoreException {
-    oozieJobEntry.setMetaStore( metaStore );
-    when( config.getClusterName() ).thenReturn( CLUSTER_NAME );
-    when( namedClusterService.contains( CLUSTER_NAME, metaStore ) )
-      .thenReturn( true );
-    when( namedCluster.clone() ).thenReturn( namedCluster );
-    when( namedClusterService.read( CLUSTER_NAME, metaStore ) )
-      .thenReturn( namedCluster );
-
-    oozieJobEntry.setJobConfig( config );
-    oozieJobEntry.getOozieService();
-
-    verify( namedClusterService, atLeastOnce() ).read( CLUSTER_NAME, metaStore );
-    verify( namedClusterServiceLocator )
-      .getService( namedCluster, OozieService.class );
-  }
-
-  @Test
-  public void getOozieServiceClusterInConfig() throws ClusterInitializationException {
-    when( config.getNamedCluster() ).thenReturn( namedCluster );
-    when( namedCluster.clone() ).thenReturn( namedCluster );
-    oozieJobEntry.getOozieService( config );
-
-    verify( namedClusterServiceLocator )
-      .getService( namedCluster, OozieService.class );
-  }
-
-  @Test
-  public void getOozieServiceHandlesMetaStoreException() throws MetaStoreException {
-    OozieJobExecutorJobEntry jobEntry = getStubbedOozieJobExecutorJobEntry();
-    when( namedClusterService.contains( CLUSTER_NAME, metaStore ) )
-      .thenThrow( mock( MetaStoreException.class ) );
-    jobEntry.getOozieService();
-
-    verify( jobEntry ).logError( anyString(), any( MetaStoreException.class ) );
-  }
-
-  @Test
-  public void getOozieServiceClusterInitializationException() throws MetaStoreException,
-    ClusterInitializationException {
-    OozieJobExecutorJobEntry jobEntry = getStubbedOozieJobExecutorJobEntry();
-    when( namedClusterServiceLocator.getService( namedCluster, OozieService.class ) )
-      .thenThrow( mock( ClusterInitializationException.class ) );
-    when( namedClusterService.contains( CLUSTER_NAME, metaStore ) )
-      .thenReturn( true );
-    when( namedCluster.clone() ).thenReturn( namedCluster );
-    when( namedClusterService.read( CLUSTER_NAME, metaStore ) )
-      .thenReturn( namedCluster );
-
-    jobEntry.getOozieService();
-
-    verify( jobEntry ).logError( anyString(), any( ClusterInitializationException.class ) );
-  }
 
   @Test
   public void getEffectiveOozieUrlFromCluster() {
@@ -581,23 +313,6 @@ public class OozieJobExecutorJobEntryTest {
     }
   }
 
-  public class TestOozieJobExecutorJobEntry extends OozieJobExecutorJobEntry {
-    private OozieClient client = null;
-
-    TestOozieJobExecutorJobEntry( OozieClient client ) {
-      this.client = client;
-    }
-
-    @Override
-    public OozieService getOozieService() {
-      return new OozieServiceImpl( new FallbackOozieClientImpl( client ) );
-    }
-
-    @Override
-    public OozieService getOozieService( OozieJobExecutorConfig config ) {
-      return getOozieService();
-    }
-  }
 
   class TestWorkflowJob implements WorkflowJob {
     private Status status;
@@ -666,6 +381,11 @@ public class OozieJobExecutorJobEntryTest {
     }
 
     @Override
+    public String getAcl() {
+      return null;
+    }
+
+    @Override
     public int getRun() {
       return 0;
     }
@@ -682,6 +402,11 @@ public class OozieJobExecutorJobEntryTest {
 
     @Override
     public List<WorkflowAction> getActions() {
+      return null;
+    }
+
+    @Override
+    public String getExternalId() {
       return null;
     }
   }
