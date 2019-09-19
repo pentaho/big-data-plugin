@@ -118,6 +118,7 @@
         </property>
       </activation>
       <modules>
+        <module>legacy</module>
         <module>api</module>
         <module>impl</module>
       </modules>
@@ -130,7 +131,6 @@
         </property>
       </activation>
       <modules>
-        <module>legacy</module>
         <module>kettle-plugins</module>
         <module>assemblies</module>
       </modules>
