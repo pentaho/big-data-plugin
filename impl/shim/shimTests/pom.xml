@@ -62,7 +62,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <version>${project.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>

@@ -14,7 +14,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-runtimeTest</artifactId>
-      <version>${pentaho-hadoop-shims.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
