@@ -229,8 +229,6 @@
         <include>wsdl4j:wsdl4j-qname</include>
         <include>xml-apis:xml-apis</include>
         <include>xml-apis:xml-apis-ext</include>
-        <include>xmlpull:xmlpull</include>
-        <include>xpp3:xpp3_min</include>
         <include>org.apache.kafka:kafka-clients</include>
         <include>org.mortbay.jetty:servlet-api</include>
         <include>pentaho:pentaho-metaverse-api</include>
