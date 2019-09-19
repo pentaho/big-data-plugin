@@ -132,6 +132,16 @@
       </activation>
       <modules>
         <module>kettle-plugins</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>assembly</id>
+      <activation>
+        <property>
+          <name>!skipDefault</name>
+        </property>
+      </activation>
+      <modules>
         <module>assemblies</module>
       </modules>
     </profile>
