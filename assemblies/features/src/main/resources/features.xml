@@ -31,28 +31,28 @@
   </feature>
 
   <feature name="shim-common-fragment-V1" version="1.0">
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/9.0.0.0-SNAPSHOT</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/${pentaho-hadoop-shims.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-hdp26" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-cdh61" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh61-driver/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh61-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-emr521" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-emr521-driver/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-emr521-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-cdh514" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-driver/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
   <feature name="pentaho-hadoop-shims-hdp30" version="1.0">
     <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp30-driver/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp30-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
@@ -79,8 +79,8 @@
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims-hdp26.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims-hdp26.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
+    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
   <feature name="pentaho-big-data-impl-connections" version="1.0">
