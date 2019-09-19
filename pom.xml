@@ -28,16 +28,16 @@
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
   <properties>
-    <pentaho-hadoop-shims-api.version>${project.version}</pentaho-hadoop-shims-api.version>
-    <pentaho-hadoop-shims.version>${project.version}</pentaho-hadoop-shims.version>
-    <pentaho-hadoop-shims-cdh514.version>${project.version}</pentaho-hadoop-shims-cdh514.version>
-    <pentaho-hadoop-shims-cdh61.version>${project.version}</pentaho-hadoop-shims-cdh61.version>
-    <pentaho-hadoop-shims-hdp26.version>${project.version}</pentaho-hadoop-shims-hdp26.version>
-    <pentaho-hadoop-shims-hdp30.version>${project.version}</pentaho-hadoop-shims-hdp30.version>
-    <pentaho-hadoop-shims-mapr520.version>${project.version}</pentaho-hadoop-shims-mapr520.version>
-    <pentaho-hadoop-shims-emr58.version>${project.version}</pentaho-hadoop-shims-emr58.version>
-    <pentaho-hadoop-shims-mapr60.version>${project.version}</pentaho-hadoop-shims-mapr60.version>
-    <pentaho-hadoop-shims-emr521.version>${project.version}</pentaho-hadoop-shims-emr521.version>
+    <pentaho-hadoop-shims-api.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-api.version>
+    <pentaho-hadoop-shims.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims.version>
+    <pentaho-hadoop-shims-cdh514.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh514.version>
+    <pentaho-hadoop-shims-cdh61.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh61.version>
+    <pentaho-hadoop-shims-hdp26.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp26.version>
+    <pentaho-hadoop-shims-hdp30.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp30.version>
+    <pentaho-hadoop-shims-mapr520.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr520.version>
+    <pentaho-hadoop-shims-emr58.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-emr58.version>
+    <pentaho-hadoop-shims-mapr60.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr60.version>
+    <pentaho-hadoop-shims-emr521.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-emr521.version>
     
     <dependency.mockito.revision>1.10.19</dependency.mockito.revision>
     <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
