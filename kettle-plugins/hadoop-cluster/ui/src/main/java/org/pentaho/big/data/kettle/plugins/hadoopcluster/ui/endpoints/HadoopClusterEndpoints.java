@@ -29,6 +29,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.runtime.test.RuntimeTester;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -40,48 +41,58 @@ import java.util.function.Supplier;
 
 import org.pentaho.di.ui.util.HelpUtils;
 
-
 public class HadoopClusterEndpoints {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private NamedClusterService namedClusterService;
   private MetastoreLocator metastoreLocator;
+  private RuntimeTester runtimeTester;
 
-  public static final String HELP_URL =
-    Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
+  public static final String
+      HELP_URL =
+      Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
-  public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService ) {
+  public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
+      RuntimeTester runtimeTester ) {
     this.namedClusterService = namedClusterService;
     this.metastoreLocator = metastoreLocator;
+    this.runtimeTester = runtimeTester;
   }
 
-  @GET
-  @Path( "/help" )
-  public Response help() {
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () ->
-      HelpUtils.openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
-        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ),
-        HELP_URL, BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
+  @GET @Path( "/help" ) public Response help() {
+    spoonSupplier.get().getShell().getDisplay().asyncExec( () -> HelpUtils
+        .openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
+            BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ), HELP_URL,
+            BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
     return Response.ok().build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/newNamedCluster?name=testName&type=site&path=
-  @GET
-  @Path( "/newNamedCluster" )
-  @Produces( { MediaType.APPLICATION_JSON } )
-  public Response newNamedCluster( @QueryParam( "name" ) String name, @QueryParam( "type" ) String type, @QueryParam( "path" ) String path, @QueryParam( "shim" ) String shim, @QueryParam( "shimVersion" ) String shimVersion ) {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
-    JSONObject result = hadoopClusterManager.newNamedCluster( name, type, path, shim, shimVersion );
+  @GET @Path( "/newNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response newNamedCluster(
+      @QueryParam( "name" ) String name, @QueryParam( "type" ) String type, @QueryParam( "path" ) String path,
+      @QueryParam( "shim" ) String shim, @QueryParam( "shimVersion" ) String shimVersion ) {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    JSONObject result = hadoopClusterManager.createNamedCluster( name, type, path, shim, shimVersion );
     return Response.ok( result ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/getShimIdentifiers
-  @GET
-  @Path( "/getShimIdentifiers" )
-  @Produces( { MediaType.APPLICATION_JSON } )
-  public Response getShimIdentifiers() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+  @GET @Path( "/getShimIdentifiers" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getShimIdentifiers() {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
     return Response.ok( hadoopClusterManager.getShimIdentifiers() ).build();
+  }
+
+  //http://localhost:9051/cxf/hadoop-cluster/runTests?namedCluster=
+  @GET @Path( "/runTests" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response runTests(
+      @QueryParam( "namedCluster" ) String namedCluster ) {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    return Response.ok( hadoopClusterManager.runTests( runtimeTester, namedCluster ) ).build();
   }
 }
