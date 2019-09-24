@@ -28,14 +28,23 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.plugins.LifecyclePluginType;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
@@ -44,21 +53,22 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.anyString;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 7/14/15.
@@ -67,10 +77,13 @@ public class NamedClusterManagerTest {
   private IMetaStore metaStore;
   private MetaStoreFactory<NamedClusterImpl> metaStoreFactory;
   private NamedClusterManager namedClusterManager;
+  private PluginInterface mockBigDataPlugin;
+  private Path tempDirectoryName;
 
   @Before
   @SuppressWarnings( "unchecked" )
-  public void setup() {
+  public void setup() throws KettleException, IOException {
+    KettleLogStore.init();
     metaStore = mock( IMetaStore.class );
     metaStoreFactory = mock( MetaStoreFactory.class );
     namedClusterManager = new NamedClusterManager();
@@ -82,6 +95,21 @@ public class NamedClusterManagerTest {
     doReturn( metaStoreFactory ).when( namedClusterManager ).getMetaStoreFactory( metaStore );
 
     namedClusterManager.putMetaStoreFactory( metaStore, metaStoreFactory );
+
+    mockBigDataPlugin = mock( PluginInterface.class );
+    when( mockBigDataPlugin.getIds() ).thenReturn( new String[] { "HadoopSpoonPlugin" } );
+    when( mockBigDataPlugin.matches( "HadoopSpoonPlugin" ) ).thenReturn( true );
+    PluginRegistry.getInstance().registerPlugin( LifecyclePluginType.class, mockBigDataPlugin );
+  }
+
+  private boolean deleteDirectory( File directoryToBeDeleted ) {
+    File[] allContents = directoryToBeDeleted.listFiles();
+    if ( allContents != null ) {
+      for ( File file : allContents ) {
+        deleteDirectory( file );
+      }
+    }
+    return directoryToBeDeleted.delete();
   }
 
   @SuppressWarnings( { "unchecked", "rawtypes" } )
@@ -216,6 +244,16 @@ public class NamedClusterManagerTest {
   }
 
   @Test
+  public void testContainsSlaveServer() throws MalformedURLException, MetaStoreException {
+    String pluginFilePath = getClass().getResource( "/plugin.properties" ).getFile();
+    String resourceDir = pluginFilePath.substring( 0, pluginFilePath.lastIndexOf( File.separator ) );
+    when( mockBigDataPlugin.getPluginDirectory() ).thenReturn( new URL( "file://" + resourceDir ) );
+    String testName = "testName";
+    assertFalse( namedClusterManager.contains( testName, null ) );
+    verify( namedClusterManager, times( 1 ) ).getSlaveServerMetastore();
+  }
+
+  @Test
   @SuppressWarnings( "unchecked" )
   public void testGetNamedClusterByName() throws MetaStoreException {
     String testName = "testName";
@@ -228,6 +266,23 @@ public class NamedClusterManagerTest {
     assertEquals( namedCluster, namedClusterManager.getNamedClusterByName( testName, metaStore ) );
     assertNull( namedClusterManager.getNamedClusterByName( "fakeName", metaStore ) );
     assertNull( namedClusterManager.getNamedClusterByName( testName, metaStore ) );
+  }
+
+  @Test
+  @SuppressWarnings( "unchecked" )
+  public void testGetNamedClusterByHost() throws MetaStoreException {
+    String testName = "testName";
+    String testHostName = "testHostName";
+    NamedCluster namedCluster = mock( NamedCluster.class );
+    when( namedCluster.getName() ).thenReturn( testName );
+    when( namedCluster.getHdfsHost() ).thenReturn( testHostName );
+    List namedClusters = new ArrayList<>( Arrays.asList( namedCluster ) );
+    when( metaStoreFactory.getElements( true ) ).thenReturn( namedClusters ).thenReturn( namedClusters ).thenThrow(
+      new MetaStoreException() );
+    assertNull( namedClusterManager.getNamedClusterByHost( testHostName, null ) );
+    assertEquals( namedCluster, namedClusterManager.getNamedClusterByHost( testHostName, metaStore ) );
+    assertNull( namedClusterManager.getNamedClusterByHost( "fakeName", metaStore ) );
+    assertNull( namedClusterManager.getNamedClusterByHost( testHostName, metaStore ) );
   }
 
   @Test
@@ -247,7 +302,8 @@ public class NamedClusterManagerTest {
     assertNotNull( "metaStoreFactoryFirst is expected to NOT be null", metaStoreFactoryFirst );
     assertNotNull( "metaStoreFactorySecond is expected to NOT be null", metaStoreFactoryFirst );
     assertEquals( "Called NamedClusterManager.getMetaStoreFactory twice, passing in the same EmbeddedMetaStore.  "
-      + "Both calls should return the same instance of MetaStoreFactory", metaStoreFactoryFirst, metaStoreFactorySecond );
+        + "Both calls should return the same instance of MetaStoreFactory", metaStoreFactoryFirst,
+      metaStoreFactorySecond );
   }
 
   @Test
@@ -270,5 +326,14 @@ public class NamedClusterManagerTest {
       "Called NamedClusterManager.getMetaStoreFactory twice, passing in the same non EmbeddedMetaStore.  "
         + "Both calls should return the different instances of MetaStoreFactory", metaStoreFactoryFirst,
       metaStoreFactorySecond );
+  }
+
+  @Test
+  public void testUpdateNamedClusterTemplate() {
+    namedClusterManager.getClusterTemplate();
+    namedClusterManager.updateNamedClusterTemplate( "testHostName", 9999, true );
+    assertEquals( "testHostName", namedClusterManager.getClusterTemplate().getHdfsHost() );
+    assertEquals( "9999", namedClusterManager.getClusterTemplate().getHdfsPort() );
+    assertTrue( namedClusterManager.getClusterTemplate().isMapr() );
   }
 }
