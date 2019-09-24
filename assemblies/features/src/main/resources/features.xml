@@ -11,7 +11,7 @@
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
     <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
     <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
-    <bundle>wrap:mvn:org.pentaho.di.plugins/kettle-log4j-core/9.0.0.0-SNAPSHOT</bundle>
+    <bundle>wrap:mvn:org.pentaho.di.plugins/kettle-log4j-core/${pdi.version}</bundle>
     <bundle>wrap:mvn:libthrift/libthrift/0.6</bundle>
     <bundle>wrap:mvn:org.slf4j/slf4j-api/1.7.7</bundle>
     <bundle>wrap:mvn:org.slf4j/slf4j-log4j12/1.7.7</bundle>
@@ -114,6 +114,9 @@
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-kafka/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats-meta/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-formats/${project.version}</bundle>
+  </feature>
+
+  <feature name="pentaho-hadoop-cluster-ui" version="1.0">
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
   </feature>
 
