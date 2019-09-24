@@ -15,58 +15,42 @@
  */
 
 define([
-  'text!./controls.html',
+  'text!./testing.html',
   'pentaho/i18n-osgi!hadoopCluster.messages',
-  'css!./controls.css'
+  'css!./testing.css'
 ], function (template, i18n) {
 
   'use strict';
 
   var options = {
-    bindings: {
-      buttons: "<",
-      data: "<"
-    },
+    bindings: {},
     controllerAs: "vm",
     template: template,
-    controller: controlsController
+    controller: testingController
   };
 
-  controlsController.$inject = ["$state"];
+  testingController.$inject = ["$state", "$timeout", "$stateParams", "dataService"];
 
-  function controlsController($state) {
+  function testingController($state, $timeout, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
-    vm.getRightButtons = getRightButtons;
-    vm.getMiddleButtons = getMiddleButtons;
 
     function onInit() {
+      vm.data = $stateParams.data;
 
-    }
-
-    function getButtonsByPosition(position) {
-      var buttons = [];
-      if (vm.buttons) {
-        for (var i = 0; i < vm.buttons.length; i++) {
-          if (vm.buttons[i].position === position) {
-            buttons.push(vm.buttons[i]);
-          }
-        }
-      }
-      return buttons;
-    }
-
-    function getRightButtons() {
-      return getButtonsByPosition("right");
-    }
-
-    function getMiddleButtons() {
-      return getButtonsByPosition("middle");
+      vm.almostDone = i18n.get('cluster.almostdone.label');
+      vm.message = i18n.get('cluster.testing.message');
+      $timeout(function () {
+        dataService.runTests(vm.data.model.clusterName).then(function (res) {
+          vm.data.model.testCategories = res.data;
+          $state.go("test-results", {data: vm.data});
+        });
+      }, 500);
     }
   }
 
   return {
-    name: "controls",
+    name: "testing",
     options: options
   };
 

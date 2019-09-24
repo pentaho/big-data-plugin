@@ -15,9 +15,9 @@
  */
 
 define([
-  'text!./success.html',
-  'pentaho/i18n-osgi!hadoop-cluster.messages',
-  'css!./success.css'
+  'text!./status.html',
+  'pentaho/i18n-osgi!hadoopCluster.messages',
+  'css!./status.css'
 ], function (template, i18n) {
 
   'use strict';
@@ -26,42 +26,61 @@ define([
     bindings: {},
     controllerAs: "vm",
     template: template,
-    controller: successController
+    controller: statusController
   };
 
-  successController.$inject = ["$state", "$stateParams"];
+  statusController.$inject = ["$state", "$stateParams"];
 
-  function successController($state, $stateParams) {
+  function statusController($state, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onCreateNew = onCreateNew;
     vm.onEditConnection = onEditConnection;
     vm.onTestCluster = onTestCluster;
+    vm.getStatusImage = getStatusImage;
+    vm.getOverallStatus = getOverallStatus;
 
     function onInit() {
       vm.data = $stateParams.data;
-      vm.congratulationsLabel = i18n.get('cluster.final.congratulationsLabel');
-      vm.ready = i18n.get('cluster.final.readyCreate');
       vm.question = i18n.get('cluster.final.question');
       vm.createNewCluster = i18n.get('cluster.final.createNewCluster');
       vm.editCluster = i18n.get('cluster.final.editCluster');
       vm.testCluster = i18n.get('cluster.final.testCluster');
       vm.closeLabel = i18n.get('cluster.controls.closeLabel');
       vm.data.isSaved = true;
+      vm.overallStatus = getOverallStatus();
+      vm.overallStatusImage = vm.getStatusImage(vm.overallStatus);
+      vm.overallStatusHeader = i18n.get('cluster.status.' + vm.overallStatus + '.header');
+      vm.overallStatusDescription = i18n.get('cluster.status.' + vm.overallStatus + '.description');
+
       vm.buttons = getButtons();
     }
 
     function onCreateNew() {
-      $state.go("hadoopcluster");
+      $state.go("hadoop-cluster");
     }
 
     function onEditConnection() {
       vm.data.state = "edit";
-      $state.go("hadoopcluster", {data: vm.data, transition: "slideRight"});
+      $state.go("hadoop-cluster", {data: vm.data, transition: "slideRight"});
     }
 
     function onTestCluster() {
-      //TODO: test cluster and display test results
+      $state.go("testing", {data: vm.data, transition: "slideLeft"});
+    }
+
+    function getOverallStatus() {
+      var lowestCategory = "Pass";
+      for (var i = 0; i < vm.data.model.testCategories.length; i++) {
+        var testCategoryStatus = vm.data.model.testCategories[i].categoryStatus;
+        if(testCategoryStatus === "Warning") {
+          lowestCategory = "Warning";
+        } else if (testCategoryStatus === "Fail") {
+          lowestCategory = testCategoryStatus;
+          break;
+        }
+      }
+      return lowestCategory.toLowerCase();
     }
 
     function getButtons() {
@@ -75,17 +94,20 @@ define([
       }];
     }
 
-    function setDialogTitle(title) {
-      try {
-        setTitle(title);
-      } catch (e) {
-        console.log(title);
+    function getStatusImage(status) {
+      switch (status) {
+        case "pass":
+          return "img/success.svg";
+        case "fail":
+          return "img/fail.svg";
+        default:
+          return "img/warning.svg";
       }
     }
   }
 
   return {
-    name: "success",
+    name: "status",
     options: options
   };
 

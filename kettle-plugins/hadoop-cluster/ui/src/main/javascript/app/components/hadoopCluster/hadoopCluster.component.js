@@ -15,9 +15,9 @@
  */
 
 define([
-  'text!./hadoopcluster.html',
-  'pentaho/i18n-osgi!hadoop-cluster.messages',
-  'css!./hadoopcluster.css'
+  'text!./hadoopCluster.html',
+  'pentaho/i18n-osgi!hadoopCluster.messages',
+  'css!./hadoopCluster.css'
 ], function (template, i18n) {
 
   'use strict';
@@ -60,6 +60,7 @@ define([
 
       vm.importLabel = i18n.get('cluster.hadoop.import.label');
       vm.versionLabel = i18n.get('cluster.hadoop.version.label');
+      vm.showClusterAndVersion = false;
       dataService.getShimIdentifiers().then(function (res) {
         vm.shimVersionJson = res.data;
         var shimNames = [];
@@ -73,8 +74,12 @@ define([
       });
 
       if ($stateParams.data) {
-        //TODO: future implementation use ui-router for saving data between screens
-
+        vm.configurationType = vm.data.model.configurationType;
+        //TODO: set shim values on edit
+        //vm.shimName = vm.data.model.shimName;
+        //vm.shimVersion = vm.data.model.shimVersion;
+        //onSelectShim(vm.data.model.shimName);
+        //onSelectShimVersion(vm.data.model.shimVersion);
       } else {
 
         setDialogTitle(i18n.get('cluster.hadoop.title'));
@@ -120,10 +125,12 @@ define([
         vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.ccfg.selected.placeholder');
         vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.selectCcfgFileButtonLabel');
         vm.data.model.currentPath = vm.data.model.ccfgFilePath;
+        vm.showClusterAndVersion = false;
       } else if (i18n.get('cluster.hadoop.provide.site.xml') === option) {
         vm.configurationPathPlaceholder = i18n.get('cluster.hadoop.no.config.placeholder');
         vm.selectConfigPathButtonLabel = i18n.get('cluster.hadoop.config.folder.button.label');
         vm.data.model.currentPath = vm.data.model.hadoopConfigFolderPath;
+        vm.showClusterAndVersion = true;
       }
     }
 
@@ -226,7 +233,7 @@ define([
   }
 
   return {
-    name: "hadoopcluster",
+    name: "hadoopCluster",
     options: options
   };
 

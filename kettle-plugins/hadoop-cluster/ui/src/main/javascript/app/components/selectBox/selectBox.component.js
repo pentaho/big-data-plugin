@@ -15,8 +15,8 @@
  */
 
 define([
-  'text!./selectbox.html',
-  'css!./selectbox.css'
+  'text!./selectBox.html',
+  'css!./selectBox.css'
 ], function (template) {
 
   'use strict';
@@ -29,12 +29,12 @@ define([
     },
     controllerAs: "vm",
     template: template,
-    controller: selectboxController
+    controller: selectBoxController
   };
 
-  selectboxController.$inject = ["$document", "$scope"];
+  selectBoxController.$inject = ["$document", "$scope"];
 
-  function selectboxController($document, $scope) {
+  function selectBoxController($document, $scope) {
     var vm = this;
     vm.$onInit = onInit;
     vm.$onChanges = onChanges;
@@ -78,7 +78,7 @@ define([
   }
 
   return {
-    name: "selectbox",
+    name: "selectBox",
     options: options
   };
 

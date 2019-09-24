@@ -47,7 +47,8 @@ define(
         return {
           help: help,
           newNamedCluster: newNamedCluster,
-          getShimIdentifiers: getShimIdentifiers
+          getShimIdentifiers: getShimIdentifiers,
+          runTests: runTests
         };
 
         function help() {
@@ -62,6 +63,10 @@ define(
 
         function getShimIdentifiers() {
           return helperService.httpGet([baseUrl, "getShimIdentifiers"].join("/"));
+        }
+
+        function runTests(name) {
+          return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + name);
         }
       }
     });
