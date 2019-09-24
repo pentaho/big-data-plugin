@@ -86,6 +86,14 @@ public class HadoopClusterManagerTest {
     assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
   }
 
+  @Test public void testFailNamedCluster() {
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    JSONObject
+        result =
+        hadoopClusterManager.createNamedCluster( ncTestName, "site", "src/test/resources/bad", "Claudera", "5.14" );
+    assertEquals( "", result.get( "namedCluster" ) );
+  }
+
   @Test public void testGetShimIdentifiers() {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     List<ShimIdentifierInterface> shimIdentifiers = hadoopClusterManager.getShimIdentifiers();
@@ -99,7 +107,7 @@ public class HadoopClusterManagerTest {
 
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     hadoopClusterManager.onProgress( runtimeTestStatus );
-    Object[] categories = hadoopClusterManager.runTests( null, ncTestName );
+    Object[] categories = (Object[]) hadoopClusterManager.runTests( null, ncTestName );
 
     for ( Object category : categories ) {
       TestCategory testCategory = (TestCategory) category;
