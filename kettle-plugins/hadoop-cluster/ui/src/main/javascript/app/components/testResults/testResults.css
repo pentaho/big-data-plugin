@@ -1,0 +1,6 @@
+.accordian {
+    border: 1px solid #d7d7d7;
+    padding:0px 15px;
+    overflow-y:auto;
+    height:390px;
+}

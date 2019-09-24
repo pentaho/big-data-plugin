@@ -66,7 +66,7 @@ public class HadoopClusterDialog extends ThinDialog {
     }
     super.createDialog( title, getRepoURL( clientPath.toString() ),
       OPTIONS, LOGO );
-    super.dialog.setMinimumSize( 630, 630 );
+    super.dialog.setMinimumSize( 640, 630 );
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {

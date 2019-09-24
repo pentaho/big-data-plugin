@@ -16,7 +16,7 @@
 
 define([
   'text!./creating.html',
-  'pentaho/i18n-osgi!hadoop-cluster.messages',
+  'pentaho/i18n-osgi!hadoopCluster.messages',
   'css!./creating.css'
 ], function (template, i18n) {
 
@@ -38,20 +38,24 @@ define([
     function onInit() {
       vm.data = $stateParams.data;
 
-      vm.almostDone = i18n.get('cluster.creating.almostdone.label');
+      vm.almostDone = i18n.get('cluster.almostdone.label');
       vm.message = i18n.get('cluster.creating.message');
       $timeout(function () {
         var type = "ccfg";
         if (i18n.get('cluster.hadoop.provide.site.xml') === vm.data.model.configurationType) {
           type = "site";
         }
-        dataService.newNamedCluster(vm.data.model.clusterName, type,
-            vm.data.model.currentPath, vm.data.model.shimName, vm.data.model.shimVersion)
-            .then(function (response) {
-              $state.go("success", {data: vm.data});
-            });
-        //TODO: handle cluster creation failure
-      }, 1000);
+        dataService.newNamedCluster(vm.data.model.clusterName, type, vm.data.model.currentPath, vm.data.model.shimName,
+          vm.data.model.shimVersion)
+          .then(function (res) {
+            //TODO: handle cluster creation failure
+            dataService.runTests(vm.data.model.clusterName)
+              .then(function (res) {
+                vm.data.model.testCategories = res.data;
+                $state.go("status", {data: vm.data});
+              });
+          });
+      }, 500);
     }
   }
 

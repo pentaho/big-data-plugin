@@ -1,21 +1,21 @@
-selectbox {
+select-box {
   text-align: left;
   position: relative;
   cursor: pointer;
 }
 
-selectbox .select {
+select-box .select {
   width: 100%;
 }
 
-selectbox .select > div {
+select-box .select > div {
   float: left;
   width: 100%;
   margin-right: 6px;
   position:relative;
 }
 
-selectbox .selected_value {
+select-box .selected_value {
   padding: 0 0 0 10px;
   border:1px solid #cbcbcb;
   border-radius: 5px;
@@ -24,9 +24,11 @@ selectbox .selected_value {
   background-image: url('../../img/chevron_down.svg');
   background-repeat: no-repeat;
   background-position: right center;
+  font-family:OpenSansRegular;
+  font-size:14px;
 }
 
-selectbox .options {
+select-box .options {
   top: 35px;
   position: absolute;
   width: 100%;
@@ -35,24 +37,26 @@ selectbox .options {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  font-family:OpenSansRegular;
+  font-size:14px;
 }
 
-selectbox .options > li {
+select-box .options > li {
   padding: 5px;
 }
 
-selectbox .options > li:hover {
+select-box .options > li:hover {
   background-color: #355EA3;
   color: #ffffff;
 }
 
-selectbox ul {
+select-box ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-selectbox:after {
+select-box:after {
   content: "";
   display: table;
   clear: both;

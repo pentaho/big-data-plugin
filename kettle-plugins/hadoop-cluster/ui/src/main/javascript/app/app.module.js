@@ -23,10 +23,13 @@ define([
   "angular",
   "./app.config",
   "./app.animation",
-  "./components/hadoopcluster/hadoopcluster.component",
+  "./components/hadoopCluster/hadoopCluster.component",
   "./components/creating/creating.component",
-  "./components/success/success.component",
-  "./components/selectbox/selectbox.component",
+  "./components/testing/testing.component",
+  "./components/status/status.component",
+  "./components/testResults/testResults.component",
+  "./components/selectBox/selectBox.component",
+  "./components/accordianItem/accordianItem.component",
   "./components/controls/controls.component",
   "./components/message/message.component",
   "./components/help/help.component",
@@ -35,7 +38,7 @@ define([
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, appConfig, appAnimation, hadoopClusterComponent, creatingComponent, successComponent, selectboxComponent, controlsComponent, messageComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+], function (angular, appConfig, appAnimation, hadoopClusterComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, accordianItemComponent, controlsComponent, messageComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -57,8 +60,11 @@ define([
     angular.module(module.name, deps)
         .component(hadoopClusterComponent.name, hadoopClusterComponent.options)
         .component(creatingComponent.name, creatingComponent.options)
-        .component(successComponent.name, successComponent.options)
-        .component(selectboxComponent.name, selectboxComponent.options)
+        .component(testingComponent.name, testingComponent.options)
+        .component(statusComponent.name, statusComponent.options)
+        .component(testResultsComponent.name, testResultsComponent.options)
+        .component(selectBoxComponent.name, selectBoxComponent.options)
+        .component(accordianItemComponent.name, accordianItemComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
         .component(messageComponent.name, messageComponent.options)
         .component(helpComponent.name, helpComponent.options)

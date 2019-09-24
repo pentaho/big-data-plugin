@@ -45,7 +45,7 @@ message .message-close {
 }
 
 message .message.success .message-icon > div {
-  background-image: url("../../img/success.png");
+  background-image: url("../../img/success.svg");
   background-size: 34px 31px;
   width: 34px;
   height: 31px;

@@ -1,0 +1,9 @@
+<div class="main_div">
+  <div class="title_text margin_bottom_30 text_center">{{vm.title}}</div>
+  <div class="test-results-middle">
+    <div class="accordian">
+      <accordian-item ng-repeat="myTestCategory in vm.data.model.testCategories" test-category="myTestCategory"></accordian-item>
+    </div>
+  </div>
+  <controls buttons="vm.buttons" data="vm.data"></controls>
+</div>
