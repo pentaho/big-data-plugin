@@ -31,14 +31,13 @@ define([
   "./components/selectBox/selectBox.component",
   "./components/accordianItem/accordianItem.component",
   "./components/controls/controls.component",
-  "./components/message/message.component",
   "./components/help/help.component",
   "./directives/ngbodyclick.directive",
   "./service/helper.service",
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, appConfig, appAnimation, hadoopClusterComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, accordianItemComponent, controlsComponent, messageComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+], function (angular, appConfig, appAnimation, hadoopClusterComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -66,7 +65,6 @@ define([
         .component(selectBoxComponent.name, selectBoxComponent.options)
         .component(accordianItemComponent.name, accordianItemComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
-        .component(messageComponent.name, messageComponent.options)
         .component(helpComponent.name, helpComponent.options)
         .directive(bodyClickDirective.name, bodyClickDirective.options)
         .service(helperService.name, helperService.factory)

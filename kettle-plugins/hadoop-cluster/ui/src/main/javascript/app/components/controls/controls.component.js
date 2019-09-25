@@ -16,33 +16,24 @@
 
 define([
   'text!./controls.html',
-  'pentaho/i18n-osgi!hadoopCluster.messages',
   'css!./controls.css'
-], function (template, i18n) {
+], function (template) {
 
   'use strict';
 
   var options = {
     bindings: {
       buttons: "<",
-      data: "<"
     },
     controllerAs: "vm",
     template: template,
     controller: controlsController
   };
 
-  controlsController.$inject = ["$state"];
-
-  function controlsController($state) {
+  function controlsController() {
     var vm = this;
-    vm.$onInit = onInit;
     vm.getRightButtons = getRightButtons;
     vm.getMiddleButtons = getMiddleButtons;
-
-    function onInit() {
-
-    }
 
     function getButtonsByPosition(position) {
       var buttons = [];

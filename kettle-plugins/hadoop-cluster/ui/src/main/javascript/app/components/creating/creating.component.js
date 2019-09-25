@@ -16,8 +16,7 @@
 
 define([
   'text!./creating.html',
-  'pentaho/i18n-osgi!hadoopCluster.messages',
-  'css!./creating.css'
+  'pentaho/i18n-osgi!hadoopCluster.messages'
 ], function (template, i18n) {
 
   'use strict';
@@ -38,11 +37,11 @@ define([
     function onInit() {
       vm.data = $stateParams.data;
 
-      vm.almostDone = i18n.get('cluster.almostdone.label');
-      vm.message = i18n.get('cluster.creating.message');
+      vm.almostDone = i18n.get('progress.almostdone');
+      vm.message = i18n.get('creating.message');
       $timeout(function () {
         var type = "ccfg";
-        if (i18n.get('cluster.hadoop.provide.site.xml') === vm.data.model.configurationType) {
+        if (i18n.get('hadoop.cluster.site.xml.type') === vm.data.model.configurationType) {
           type = "site";
         }
         dataService.newNamedCluster(vm.data.model.clusterName, type, vm.data.model.currentPath, vm.data.model.shimName,

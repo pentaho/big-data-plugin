@@ -16,8 +16,7 @@
 
 define([
   'text!./testing.html',
-  'pentaho/i18n-osgi!hadoopCluster.messages',
-  'css!./testing.css'
+  'pentaho/i18n-osgi!hadoopCluster.messages'
 ], function (template, i18n) {
 
   'use strict';
@@ -38,8 +37,8 @@ define([
     function onInit() {
       vm.data = $stateParams.data;
 
-      vm.almostDone = i18n.get('cluster.almostdone.label');
-      vm.message = i18n.get('cluster.testing.message');
+      vm.almostDone = i18n.get('progress.almostdone');
+      vm.message = i18n.get('testing.message');
       $timeout(function () {
         dataService.runTests(vm.data.model.clusterName).then(function (res) {
           vm.data.model.testCategories = res.data;

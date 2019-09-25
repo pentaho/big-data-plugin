@@ -42,16 +42,17 @@ define([
 
     function onInit() {
       vm.data = $stateParams.data;
-      vm.question = i18n.get('cluster.final.question');
-      vm.createNewCluster = i18n.get('cluster.final.createNewCluster');
-      vm.editCluster = i18n.get('cluster.final.editCluster');
-      vm.testCluster = i18n.get('cluster.final.testCluster');
-      vm.closeLabel = i18n.get('cluster.controls.closeLabel');
-      vm.data.isSaved = true;
+
+      vm.question = i18n.get('status.question');
+      vm.createNewCluster = i18n.get('status.new');
+      vm.editCluster = i18n.get('status.edit');
+      vm.testCluster = i18n.get('status.test');
+      vm.closeLabel = i18n.get('controls.close.label');
+
       vm.overallStatus = getOverallStatus();
       vm.overallStatusImage = vm.getStatusImage(vm.overallStatus);
-      vm.overallStatusHeader = i18n.get('cluster.status.' + vm.overallStatus + '.header');
-      vm.overallStatusDescription = i18n.get('cluster.status.' + vm.overallStatus + '.description');
+      vm.overallStatusHeader = i18n.get('status.header.' + vm.overallStatus);
+      vm.overallStatusDescription = i18n.get('status.description.' + vm.overallStatus);
 
       vm.buttons = getButtons();
     }
@@ -73,7 +74,7 @@ define([
       var lowestCategory = "Pass";
       for (var i = 0; i < vm.data.model.testCategories.length; i++) {
         var testCategoryStatus = vm.data.model.testCategories[i].categoryStatus;
-        if(testCategoryStatus === "Warning") {
+        if (testCategoryStatus === "Warning") {
           lowestCategory = "Warning";
         } else if (testCategoryStatus === "Fail") {
           lowestCategory = testCategoryStatus;
@@ -85,10 +86,10 @@ define([
 
     function getButtons() {
       return [{
-        label: i18n.get('cluster.controls.closeLabel'),
+        label: i18n.get('controls.close.label'),
         class: "primary",
         position: "right",
-        onClick: function() {
+        onClick: function () {
           close();
         }
       }];

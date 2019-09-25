@@ -14,14 +14,13 @@ body {
 }
 
 .middle_hadoop_div {
-  width: 380px;
+  width: 392px;
   margin: auto;
 }
 
 /*
 * TEXTS
 */
-
 .title_text {
   font-family: OpenSansLight;
   font-size: 24px;
@@ -90,22 +89,6 @@ a:visited {
   margin-bottom: 30px;
 }
 
-.margin_bottom_60 {
-  margin-bottom: 60px;
-}
-
-.margin_bottom_80 {
-  margin-bottom: 80px;
-}
-
-.margin_left_10 {
-  margin-left: 10px;
-}
-
-.margin_left_3 {
-  margin-left: 3px;
-}
-
 /*
 * FLOATING
 */
@@ -132,80 +115,12 @@ button.same_width {
   /*width: 200px;*/
 }
 
-button#connect {
-  width: 278px;
-}
-
-/* default */
-button.defaultBtn {
-  cursor: pointer;
-  outline: none;
-  border-radius: 4px;
-  height: 22px;
-  width: 22px;
-  float: right;
-  margin-right: 36px;
-  background-color: #FFFFFF;
-  visibility: hidden;
-  position: relative;
-  padding: 0;
-}
-
-button.detailsBtn {
-  cursor: pointer;
-  outline: none;
-  border-radius: 4px;
-  height: 22px;
-  width: 22px;
-  border: 1px solid #999999;
-  background-color: #FFFFFF;
-  position: relative;
-  padding: 0;
-}
-
-/* hover */
-tr:hover td.default button.defaultBtn:not(.activate) {
-  visibility: visible !important;
-  border: 1px solid #666666;
-}
-
 /* selected */
 tr td.default button.activate,
 button.activate {
   border: 1px solid #00CC66;
   background-color: #00CC66 !important;
   visibility: visible !important;
-}
-
-/* checkmark */
-#defaultBtnCheckmark,
-.detailsBtnCheckmark {
-  position: absolute;
-  width: 9px;
-  height: 4px;
-  background: rgba(0, 0, 0, 0);
-  top: 5px;
-  right: 4px;
-  border: 3px solid white;
-  border-top: none;
-  border-right: none;
-  -webkit-transform: rotate(-45deg);
-  -moz-transform: rotate(-45deg);
-  -o-transform: rotate(-45deg);
-  -ms-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-}
-
-button#delete, button#edit {
-  visibility: hidden;
-}
-
-button.visible {
-  visibility: visible !important;
-}
-
-button.invisible {
-  visibility: hidden;
 }
 
 #btnHelp {
@@ -219,29 +134,10 @@ button.invisible {
   line-height: 25px;
 }
 
-#browse {
-  height: 40px !important;
-  border-radius: 0px 4px 4px 0px !important;
-}
-
-#connectionDD {
-  line-height: 35px;
-  text-align: left;
-  background-image: url('../../img/add_single.png');
-  background-repeat: no-repeat;
-  background-position: 353px center;
-}
-
-#connectionDD:hover {
-  border: 1px solid #005EAA;
-}
-
 /*
 * INPUTS
 */
-input[type="text"],
-input[type="password"],
-textarea {
+input[type="text"]{
   height: 36px;
   padding-left: 5px;
   color: #333333;
@@ -251,186 +147,15 @@ textarea {
   width: 100%;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-textarea#description:focus,
+input[type="text"]:focus
 select:focus {
   outline: none;
   border: 1px solid #005EAA;
 }
 
-#dontModDiv,
-#makeDefaultDiv {
-  top:-21px;
-}
-
-#showHiddenDiv {
-  top:-30px;
-}
-
-input#location {
-  width: 280px !important;
-  border-radius: 4px 0px 0px 4px !important;
-}
-
-textarea#description {
-  overflow: hidden;
-  height: 65px;
-  resize: none;
-  height: 60px;
-  padding: 5px;
-}
-
-textarea#no_conn {
-  overflow: hidden;
-  resize: none;
-  background-color: #E4E4E4;
-  color: #888888;
-  padding: 85px 5px;
-  outline: none;
-}
-
-.italic {
-  font-style: italic;
-}
-
-#dbDiv {
-  border: 1px solid #CCCCCC;
-  border-collapse: collapse;
-  border-radius: 4px;
-  height: 200px;
-  width: 386px;
-  overflow-y: auto;
-}
-
-.db_list_items {
-  font-size: 14px;
-  color: #666666;
-  padding: 5px;
-  cursor: pointer;
-}
-
-div#dbDiv>div.active {
-  color: #FFFFFF;
-  background-color: #005EAA;
-}
-
-/*
-* TABLE
-*/
-table {
-  width: 100%;
-}
-
-table,
-td {
-  border: 1px solid #CCCCCC;
-  border-collapse: collapse;
-  cursor: pointer;
-}
-
-table#repoMngTable,
-table#repoMngTable td {
-  border-left: none;
-  border-top: none;
-  border-right: none;
-  border-bottom: 1px solid #CCCCCC !important;
-}
-
-.table_border {
-  border: 1px solid #CCCCCC;
-}
-
-#table-wrapper {
-  position:relative;
-}
-
-#table-scroll {
-  height: 304px;
-  overflow:auto;
-}
-
-td.bullet {
-  border-right: none;
-  width: 7px;
-  height: 75px;
-  padding: 0px;
-}
-
-td.repo_type {
-  padding-left: 10px;
-  border-left: none;
-  border-right: none;
-}
-
-td.default {
-  border-left: none;
-}
-
-#repoMngTable tr td.repo_type {
-  width: 430px;
-}
-
-tr.active td {
-  background: #005EAA;
-  color: #FFFFFF;
-}
-
-tr:not(.active)>td.repo_type>div:nth-child(1){
-  color: #2873B0;
-}
-
-tr:hover td.bullet {
-  background: #005EAA;
-}
-
-#repoDesc {
-  white-space: nowrap;
-  width: 450px;
-  overflow: hidden;
-  text-overflow: ellipsis !important;
-  font-size: 14px;
-  color: #333333;
-}
-
-tr.active #repoDesc {
-  color: #ffffff;
-}
-
-.repoType {
-  width: 450px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis !important;
-}
-
-.table-scroll-mng {
-  height: 347px;
-  overflow: auto;
-}
-
 /*
 * MISC
 */
-.inline {
-  display: inline;
-  vertical-align: middle;
-}
-
-.repo_conn_txt {
-  width: 272px !important;
-}
-
-img.middle {
-  vertical-align: middle;
-}
-
-#pentaho-img {
-  height: auto;
-  width: auto;
-  max-width: 272px;
-  max-height: 70px;
-}
 
 hr {
   height: 1px;
@@ -444,34 +169,6 @@ hr {
   left: 30px;
   right: 30px;
   background-color: #ffffff;
-}
-
-.hidden {
-  visibility: hidden;
-}
-
-.popover {
-  height: 20px !important;
-  font-size: 10px;
-  width: auto;
-  text-align: center;
-  background-color: #FFFFFF ;
-  border: 1px solid #F2F2F2 ;
-  box-shadow: 0 0 4px 0 rgba(0,0,0,0.4);
-  color: #666666 ;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.loading {
-  position: absolute;
-  top: 0px;
-  left: 600px;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  background-color: white;
 }
 
 .loading-main {
