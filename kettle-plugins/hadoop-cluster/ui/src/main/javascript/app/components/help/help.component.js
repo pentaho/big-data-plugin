@@ -41,7 +41,7 @@ define([
      * bindings initialized. We use this hook to put initialization code for our controller.
      */
     function onInit() {
-      vm.helpLabel = i18n.get('cluster.help.helpLabel');
+      vm.helpLabel = i18n.get('help.helpLabel');
     }
 
     function click() {

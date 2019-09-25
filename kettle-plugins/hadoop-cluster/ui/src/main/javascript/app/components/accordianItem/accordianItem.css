@@ -1,71 +1,77 @@
 .accordian-header {
-    overflow:auto;
-    height:77px;
+  overflow: auto;
+  height: 77px;
 }
+
 .accordian-header-image {
-    height:24px;
-    float:left;
-    padding:26px 18px 26px 0px;
+  height: 24px;
+  float: left;
+  padding: 26px 18px 26px 0px;
 }
+
 .accordian-header-text {
-    font-family:OpenSansLight;
-    font-size:18px;
-    color: #005DA6;
-    float:left;
-    padding:26px 0px;
+  font-family: OpenSansLight;
+  font-size: 18px;
+  color: #005DA6;
+  float: left;
+  padding: 26px 0px;
 }
-.accordian-body {
-    overflow:auto;
-    border-top: 1px solid #f0f0f0;
-    height:40px;
-    background-color: #f9f9f9;
+
+.accordian-body-pass, .accordian-body-fail, .accordian-body-warning {
+  overflow: auto;
+  border-top: 1px solid #f0f0f0;
+  height: 40px;
+  background-color: #f9f9f9;
 }
+
 .accordian-body-pass {
-    border-left: 2px solid #0cb20f;
+  border-left: 2px solid #0cb20f;
 }
-
 .accordian-body-fail {
-    border-left: 2px solid #ff0000;
+  border-left: 2px solid #ff0000;
 }
-
 .accordian-body-warning {
-    border-left: 2px solid #f1c40f;
+  border-left: 2px solid #f1c40f;
 }
 
 .accordian-body-image {
-    float:left;
-    height:18px;
-    padding:11px 0px 11px 10px;
-    background-color: #f9f9f9;
+  float: left;
+  height: 18px;
+  padding: 11px 0px 11px 10px;
+  background-color: #f9f9f9;
 }
 
 .accordian-body-text {
-    padding:10.5px 0px 10.5px 10px;
-    font-family:OpenSansLight;
-    font-size:14px;
-    color:#414141;
-    float:left;
-    background-color: #f9f9f9;
+  padding: 10.5px 0px 10.5px 10px;
+  font-family: OpenSansLight;
+  font-size: 14px;
+  color: #414141;
+  float: left;
+  background-color: #f9f9f9;
 }
+
 .accordian-item {
-    border-bottom: 1px solid #d7d7d7;
+  border-bottom: 1px solid #d7d7d7;
 }
+
 .accordian-chevron-expanded, .accordian-chevron-collapsed {
-    float:right;
-    padding: 35.5px 9px 35.5px 0px;
+  float: right;
+  padding: 35.5px 9px 35.5px 0px;
 }
+
 .accordian-chevron-collapsed {
-    transform: rotate(180deg) scaleX(-1);
+  transform: rotate(180deg) scaleX(-1);
 }
 
 .accordian-learn-more, .accordian-learn-more-category {
-    float:right;
-    font-family:OpenSansRegular;
-    font-size:11px;
-    color:#005DA6;
-    text-decoration: underline;
-    padding:12.5px 10px 12.5px 0px;
+  float: right;
+  font-family: OpenSansRegular;
+  font-size: 11px;
+  color: #005DA6;
+  text-decoration: underline;
+  padding: 12.5px 10px 12.5px 0px;
 }
+
 .accordian-learn-more-category {
-    padding:31px 10px 31px 0px;
+  padding: 31px 10px 31px 0px;
 }

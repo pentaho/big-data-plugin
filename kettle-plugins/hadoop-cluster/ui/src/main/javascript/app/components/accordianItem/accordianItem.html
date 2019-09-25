@@ -1,13 +1,13 @@
 <div class="accordian-item" ng-if="vm.testCategory.categoryActive">
     <div class="accordian-header" ng-click="vm.toggleExpand($event)">
         <img class="accordian-header-image" ng-src="{{::vm.getStatusImage(vm.testCategory.categoryStatus)}}"/>
-        <div class="accordian-header-text">{{vm.testCategory.categoryName}}</div>
+        <div class="accordian-header-text">{{::vm.testCategory.categoryName}}</div>
         <img ng-src="{{vm.expandCollapseToggleImage}}" ng-class="vm.chevronToggleClass" ng-if="vm.testCategory.tests.length > 0"/>
         <div class="accordian-learn-more-category" ng-if="vm.showCategoryLearnMore(vm.testCategory)">{{::vm.learnMoreLabel}}</div>
     </div>
-    <div ng-repeat="test in vm.testCategory.tests" class="accordian-body" ng-class="vm.getBodyStatusClass(test.testStatus)" ng-if="vm.isExpanded && test.testActive">
+    <div ng-repeat="test in vm.testCategory.tests" ng-class="vm.getBodyStatusClass(test.testStatus)" ng-if="vm.isExpanded && test.testActive">
         <img class="accordian-body-image" ng-src="{{::vm.getStatusImage(test.testStatus)}}"/>
-        <div class="accordian-body-text">{{test.testName}}</div>
+        <div class="accordian-body-text">{{::test.testName}}</div>
         <div class="accordian-learn-more" ng-if="test.testStatus === 'Fail'">{{::vm.learnMoreLabel}}</div>
     </div>
 </div>

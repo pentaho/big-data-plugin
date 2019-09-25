@@ -13,8 +13,9 @@ textarea {
   float: right;
   width: 30%;
 }
+
 .auto_overflow {
-  overflow:auto;
+  overflow: auto;
 }
 
 .leftHalf {
@@ -25,4 +26,24 @@ textarea {
 .rightHalf{
   width:  45%;
   float:  right;
+}
+
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-style: italic;
+}
+
+::-moz-placeholder { /* Firefox 19+ */
+  font-style: italic;
+}
+
+:-ms-input-placeholder { /* IE 10+ */
+  font-style: italic;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+  font-style: italic;
+}
+
+::placeholder {
+  font-style: italic;
 }

@@ -36,17 +36,11 @@ define([
 
   function selectBoxController($document, $scope) {
     var vm = this;
-    vm.$onInit = onInit;
     vm.$onChanges = onChanges;
     vm.selectOption = selectOption;
     vm.toggleOptions = toggleOptions;
     vm.onBodyClick = onBodyClick;
     vm.isShowOptions = false;
-
-
-    function onInit() {
-      //vm.selectedValue = $scope.$parent.vm.specifyConfiguration;
-    }
 
     function onChanges(changes) {
       if (changes.type && changes.type.currentValue !== null && vm.options) {
@@ -59,10 +53,9 @@ define([
     }
 
     function onBodyClick() {
-      $scope.$apply(function() {
+      $scope.$apply(function () {
         vm.isShowOptions = false;
       });
-
     }
 
     function toggleOptions($event) {

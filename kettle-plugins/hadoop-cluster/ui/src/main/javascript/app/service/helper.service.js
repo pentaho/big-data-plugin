@@ -24,7 +24,7 @@
  */
 define(
   [],
-  function() {
+  function () {
     "use strict";
 
     var factoryArray = ["$http", factory];

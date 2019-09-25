@@ -17,7 +17,7 @@
 /**
  * Defines the config for the connections UI
  */
-define([], function() {
+define([], function () {
   'use strict';
 
   config.$inject = ['$stateProvider', '$urlRouterProvider'];
@@ -68,7 +68,7 @@ define([], function() {
           data: null,
           transition: null
         }
-      })
+      });
     $urlRouterProvider.otherwise("/hadoop-cluster");
   }
   return config;

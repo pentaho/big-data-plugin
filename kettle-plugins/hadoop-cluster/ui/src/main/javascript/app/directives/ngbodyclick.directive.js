@@ -18,6 +18,8 @@ define([
   'angular'
 ], function (angular) {
 
+  'use strict';
+
   function bodyclick($document) {
     return {
       restrict: 'A',
@@ -25,15 +27,15 @@ define([
         'ngBodyClick': '&'
       },
       link: function (scope, element, attr) {
-        angular.element($document).bind('click', function() {
+        angular.element($document).bind('click', function () {
           scope.ngBodyClick();
         });
       }
-    }
+    };
   }
 
   return {
     name: "ngBodyClick",
     options: ["$document", bodyclick]
-  }
+  };
 });

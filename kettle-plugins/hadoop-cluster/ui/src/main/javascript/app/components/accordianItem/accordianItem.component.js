@@ -45,7 +45,7 @@ define([
     vm.chevronToggleClass = "accordian-chevron-expanded";
 
     function onInit() {
-      vm.learnMoreLabel = i18n.get('cluster.hadoop.learn.more');
+      vm.learnMoreLabel = i18n.get('accordian.item.learn.more');
     }
 
     function toggleExpand($event) {
@@ -79,8 +79,9 @@ define([
           return "img/warning.svg";
       }
     }
+
     function showCategoryLearnMore(testCategory) {
-      return vm.testCategory.tests.length === 0 && vm.testCategory.categoryStatus === "Fail";
+      return testCategory.tests.length === 0 && testCategory.categoryStatus === "Fail";
     }
   }
 

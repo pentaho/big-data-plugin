@@ -29,23 +29,22 @@ define([
     controller: testResultsController
   };
 
-  testResultsController.$inject = ["$state", "$stateParams", "dataService"];
+  testResultsController.$inject = ["$state", "$stateParams"];
 
-  function testResultsController($state, $stateParams, dataService) {
+  function testResultsController($state, $stateParams) {
     var vm = this;
     vm.$onInit = onInit;
-    vm.title = i18n.get('cluster.hadoop.testResults.label');
+    vm.title = i18n.get('test.results.title');
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
-      vm.clusterNameLabel = i18n.get('cluster.hadoop.clusterName.label');
       vm.buttons = getButtons();
     }
 
     function getButtons() {
       return [
         {
-          label: i18n.get('cluster.controls.closeLabel'),
+          label: i18n.get('controls.close.label'),
           class: "primary",
           position: "right",
           onClick: function () {
@@ -53,7 +52,7 @@ define([
           }
         },
         {
-          label: i18n.get('cluster.controls.backLabel'),
+          label: i18n.get('controls.back.label'),
           class: "primary",
           position: "right",
           onClick: function () {
