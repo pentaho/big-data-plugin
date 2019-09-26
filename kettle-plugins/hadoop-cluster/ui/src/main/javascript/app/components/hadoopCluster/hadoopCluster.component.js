@@ -34,26 +34,23 @@ define([
   function hadoopClusterController($location, $state, $q, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
-    vm.onSelect = onSelect;
     vm.onSelectShim = onSelectShim;
     vm.onSelectShimVersion = onSelectShimVersion;
     vm.validateName = validateName;
     vm.onBrowse = onBrowse;
     vm.checkConfigurationPath = checkConfigurationPath;
+    vm.getShimVersions = getShimVersions;
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
 
       vm.header = i18n.get('hadoop.cluster.header');
-      vm.clusterNameLabel = i18n.get('hadoop.cluster.clusterName.label');
-      vm.specifyConfigurationLabel = i18n.get('hadoop.cluster.select.type.label');
-      vm.configTypePlaceholder = i18n.get('hadoop.cluster.file.placeholder');
-      vm.selectPathButtonLabel = i18n.get('hadoop.cluster.select.file.label');
+      vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
+      vm.importFolderLabel = i18n.get('hadoop.cluster.folder.label');
+      vm.importFolderPlaceholder = i18n.get('hadoop.cluster.folder.placeholder');
+      vm.importFolderButtonLabel = i18n.get('hadoop.cluster.folder.button');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
-
-      vm.configTypes = [i18n.get('hadoop.cluster.ccfg.type'), i18n.get('hadoop.cluster.site.xml.type')];
-      vm.showClusterAndVersion = false;
 
       dataService.getShimIdentifiers().then(function (res) {
         vm.shimVersionJson = res.data;
@@ -66,22 +63,20 @@ define([
         vm.shimNames = shimNames;
 
         if ($stateParams.data) {
-          vm.configType = vm.data.model.configType;
           vm.shimName = vm.data.model.shimName;
+          vm.shimVersions = getShimVersions(vm.shimName);
           vm.shimVersion = vm.data.model.shimVersion;
         } else {
           setDialogTitle(i18n.get('hadoop.cluster.title'));
           vm.data = {
             model: {
               clusterName: "",
-              configType: "",
-              ccfgFilePath: "",
-              hadoopConfigFolderPath: "",
+              configPath: "",
               shimName: "",
-              shimVersion: ""
+              shimVersion: "",
+              created: false
             }
           };
-          vm.configType = vm.configTypes[0];
           vm.shimName = vm.shimNames[0];
         }
       });
@@ -98,31 +93,22 @@ define([
       return false;
     }
 
-    function onSelect(option) {
-      vm.data.model.configType = option;
-      if (i18n.get('hadoop.cluster.ccfg.type') === option) {
-        vm.configTypePlaceholder = i18n.get('hadoop.cluster.file.placeholder');
-        vm.selectPathButtonLabel = i18n.get('hadoop.cluster.select.file.label');
-        vm.data.model.currentPath = vm.data.model.ccfgFilePath;
-        vm.showClusterAndVersion = false;
-      } else if (i18n.get('hadoop.cluster.site.xml.type') === option) {
-        vm.configTypePlaceholder = i18n.get('hadoop.cluster.folder.placeholder');
-        vm.selectPathButtonLabel = i18n.get('hadoop.cluster.select.folder.label');
-        vm.data.model.currentPath = vm.data.model.hadoopConfigFolderPath;
-        vm.showClusterAndVersion = true;
+    function onSelectShim(option) {
+      vm.data.model.shimName = option;
+      vm.shimVersions = getShimVersions(option);
+      if (!vm.shimVersion || contains(vm.shimVersions, vm.shimVersion) === false) {
+        vm.shimVersion = vm.shimVersions[0];
       }
     }
 
-    function onSelectShim(option) {
-      vm.data.model.shimName = option;
+    function getShimVersions(shimName) {
       var versions = [];
       for (var i = 0; i < vm.shimVersionJson.length; i++) {
-        if (vm.shimVersionJson[i].vendor === option) {
+        if (vm.shimVersionJson[i].vendor === shimName) {
           versions.push(vm.shimVersionJson[i].version);
         }
       }
-      vm.shimVersions = versions;
-      vm.shimVersion = vm.shimVersions[0];
+      return versions;
     }
 
     function onSelectShimVersion(option) {
@@ -131,34 +117,16 @@ define([
 
     function onBrowse() {
       try {
-        var path;
-        if (i18n.get('hadoop.cluster.site.xml.type') === vm.data.model.configType) {
-          path = browse("folder", vm.data.model.hadoopConfigFolderPath);
-          if (path) {
-            vm.data.model.hadoopConfigFolderPath = path;
-            vm.data.model.currentPath = path;
-          }
-        } else {
-          path = browse("file", vm.data.model.ccfgFilePath);
-          if (path) {
-            vm.data.model.ccfgFilePath = path;
-            vm.data.model.currentPath = path;
-          }
+        var path = browse("folder", vm.data.model.configPath);
+        if (path) {
+          vm.data.model.configPath = path;
         }
       } catch (e) {
-        vm.data.model.ccfgFilePath = "/";
-        vm.data.model.hadoopConfigFolderPath = "/";
-        vm.data.model.currentPath = "/";
+        vm.data.model.configPath = "/";
       }
     }
 
     function checkConfigurationPath() {
-      //Sync the paths for the different types with the current path
-      if (i18n.get('hadoop.cluster.site.xml.type') === vm.data.model.configType) {
-        vm.data.model.hadoopConfigFolderPath = vm.data.model.currentPath;
-      } else {
-        vm.data.model.ccfgFilePath = vm.data.model.currentPath;
-      }
       //TODO: validation
     }
 
@@ -183,7 +151,7 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configType || !vm.data.model.currentPath;
+            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configPath;
           },
           position: "right",
           onClick: function () {

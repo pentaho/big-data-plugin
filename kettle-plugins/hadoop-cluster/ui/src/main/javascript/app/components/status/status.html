@@ -9,7 +9,7 @@
     <div class="margin_bottom_30">{{::vm.overallStatusDescription}}</div>
     <div class="margin_bottom_30">{{::vm.question}}</div>
 
-    <div class="margin_bottom_30">
+    <div ng-if="vm.data.model.created === true" class="margin_bottom_30">
       <button class="same_width secondary" type="button" ng-click="vm.onTestCluster()">
         <span>
           {{::vm.testCluster}}

@@ -40,10 +40,12 @@ define([
       vm.almostDone = i18n.get('progress.almostdone');
       vm.message = i18n.get('testing.message');
       $timeout(function () {
-        dataService.runTests(vm.data.model.clusterName).then(function (res) {
-          vm.data.model.testCategories = res.data;
-          $state.go("test-results", {data: vm.data});
-        });
+        if (vm.data.model.created === true) {
+          dataService.runTests(vm.data.model.clusterName).then(function (res) {
+            vm.data.model.testCategories = res.data;
+          });
+        }
+        $state.go("test-results", {data: vm.data});
       }, 500);
     }
   }

@@ -71,6 +71,10 @@ define([
     }
 
     function getOverallStatus() {
+      if(vm.data.model.created === false) {
+        return "import.fail";
+      }
+
       var lowestCategory = "Pass";
       for (var i = 0; i < vm.data.model.testCategories.length; i++) {
         var testCategoryStatus = vm.data.model.testCategories[i].categoryStatus;
@@ -97,6 +101,8 @@ define([
 
     function getStatusImage(status) {
       switch (status) {
+        case "import.fail":
+          return "img/fail.svg";
         case "pass":
           return "img/success.svg";
         case "fail":

@@ -14,3 +14,10 @@
 .test-results-middle {
   height: calc(100% - 63px)
 }
+
+.no-results {
+  padding-top: 6px;
+  font-family: OpenSansLight;
+  font-size: 14px;
+  color: #414141;
+}
