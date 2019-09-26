@@ -2,6 +2,7 @@
   <div class="title_text margin_bottom_30 text_center">{{vm.title}}</div>
   <div class="test-results-middle">
     <div class="accordian">
+      <div class="no-results" ng-if="!vm.data.model.testCategories">No tests were run.</div>
       <accordian-item ng-repeat="testCategory in vm.data.model.testCategories" test-category="testCategory"></accordian-item>
     </div>
   </div>

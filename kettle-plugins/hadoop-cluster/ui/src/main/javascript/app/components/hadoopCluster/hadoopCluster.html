@@ -5,17 +5,14 @@
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
       <input id="clusterName" type="text" ng-model="vm.data.model.clusterName" autofocus/>
     </div>
-    <div class="margin_bottom_15">
-      <label for="specifyConfiguration" class="margin_bottom_10 text_left">{{::vm.specifyConfigurationLabel}}</label>
-      <select-box id="specifyConfiguration" type="vm.configType" options="vm.configTypes" on-select="vm.onSelect(value)"></select-box>
-    </div>
     <div class="margin_bottom_20">
+      <label for="configPath" class="margin_bottom_10 text_left">{{::vm.importFolderLabel}}</label>
       <div class="file-input auto_overflow">
-        <input id="configPath" type="text" size="50" ng-keyup="vm.checkConfigurationPath()" ng-model="vm.data.model.currentPath" ng-attr-placeholder="{{vm.configTypePlaceholder}}">
-        <button class="primary browse" ng-click="vm.onBrowse()">{{vm.selectPathButtonLabel}}</button>
+        <input id="configPath" type="text" size="50" ng-keyup="vm.checkConfigurationPath()" ng-model="vm.data.model.configPath" ng-attr-placeholder="{{vm.importFolderPlaceholder}}">
+        <button class="primary browse" ng-click="vm.onBrowse()">{{vm.importFolderButtonLabel}}</button>
       </div>
     </div>
-    <div class="margin_bottom_15" ng-if="vm.showClusterAndVersion">
+    <div class="margin_bottom_15">
       <div class="leftHalf">
             <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
             <select-box id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></select-box>

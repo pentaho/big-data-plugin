@@ -44,15 +44,21 @@ define([
         if (i18n.get('hadoop.cluster.site.xml.type') === vm.data.model.configurationType) {
           type = "site";
         }
-        dataService.newNamedCluster(vm.data.model.clusterName, type, vm.data.model.currentPath, vm.data.model.shimName,
+        dataService.newNamedCluster(vm.data.model.clusterName, type, vm.data.model.configPath, vm.data.model.shimName,
           vm.data.model.shimVersion)
           .then(function (res) {
-            //TODO: handle cluster creation failure
-            dataService.runTests(vm.data.model.clusterName)
+            //namedCluster is returned on success, otherwise there was an error
+            if (res && res.data && res.data.namedCluster && 0 !== res.data.namedCluster.length) {
+              vm.data.model.created = true;
+              dataService.runTests(vm.data.model.clusterName)
               .then(function (res) {
                 vm.data.model.testCategories = res.data;
                 $state.go("status", {data: vm.data});
               });
+            } else {
+              vm.data.model.created = false;
+              $state.go("status", {data: vm.data});
+            }
           });
       }, 500);
     }
