@@ -26,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.exception.KettleXMLException;
-import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -47,6 +46,8 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -58,7 +59,6 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
@@ -91,8 +91,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private IMetaStore metaStore;
   private VariableSpace variableSpace;
   private RuntimeTestStatus runtimeTestStatus = null;
-
-  LogChannel logChannel = new LogChannel( this );
+  private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterManager.class );
 
   public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService ) {
     this.spoon = spoon;
@@ -103,6 +102,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   public JSONObject createNamedCluster( String name, String type, String path, String shimVendor, String shimVersion ) {
     NamedCluster nc = namedClusterService.getClusterTemplate();
+    JSONObject jsonObject = new JSONObject();
     try {
       nc.setName( name );
       if ( variableSpace != null ) {
@@ -110,27 +110,35 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       } else {
         nc.initializeVariablesFrom( null );
       }
-      configureNamedCluster( path, nc, shimVendor, shimVersion );
-      saveNamedCluster( metaStore, nc );
-      addConfigProperties( nc );
-      installSiteFiles( type, path, nc );
-      if ( spoon.getShell() != null ) {
-        spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+      path = URLDecoder.decode( path, "UTF-8" );
+      boolean isConfigurationSet = configureNamedCluster( path, nc, shimVendor, shimVersion );
+      if ( isConfigurationSet ) {
+        saveNamedCluster( metaStore, nc );
+        addConfigProperties( nc );
+        installSiteFiles( type, path, nc );
+        if ( spoon.getShell() != null ) {
+          spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+        }
+        jsonObject.put( "namedCluster", nc.getName() );
+      } else {
+        jsonObject.put( "namedCluster", "" );
       }
     } catch ( Exception e ) {
-      logChannel.logError( e.getMessage() );
+      logChannel.error( e.getMessage() );
     }
-
-    JSONObject jsonObject = new JSONObject();
-    jsonObject.put( "namedCluster", nc.getName() );
     return jsonObject;
   }
 
-  private void configureNamedCluster( String path, NamedCluster nc, String shimVendor, String shimVersion )
-      throws KettleXMLException, XPathExpressionException, UnsupportedEncodingException {
-
+  private boolean configureNamedCluster( String path, NamedCluster nc, String shimVendor, String shimVersion ) {
     resolveNamedClusterId( nc, shimVendor, shimVersion );
-    Map<String, String> properties = extractSiteFileProperties( path );
+
+    Map<String, String> properties = new HashMap();
+    extractProperties( path, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
+    extractProperties( path, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
+    extractProperties( path, "hive-site.xml", properties,
+        new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
+
+    boolean isConfigurationSet = true;
     /*
      * Address taken from
      * fs.defaultFS
@@ -138,9 +146,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * core-site.xml
      * */
     String hdfsAddress = properties.get( "fs.defaultFS" );
-    URI hdfsURL = URI.create( hdfsAddress );
-    nc.setHdfsHost( hdfsURL.getHost() );
-    nc.setHdfsPort( hdfsURL.getPort() + "" );
+    if ( hdfsAddress != null ) {
+      URI hdfsURL = URI.create( hdfsAddress );
+      nc.setHdfsHost( hdfsURL.getHost() );
+      nc.setHdfsPort( hdfsURL.getPort() + "" );
+    } else {
+      isConfigurationSet = false;
+    }
 
     /*
      * Address taken from
@@ -149,12 +161,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * yarn-site.xml
      * */
     String jobTrackerAddress = properties.get( "yarn.resourcemanager.address" );
-    if ( !jobTrackerAddress.startsWith( "http://" ) ) {
-      jobTrackerAddress = "http://" + jobTrackerAddress;
+    if ( jobTrackerAddress != null ) {
+      if ( !jobTrackerAddress.startsWith( "http://" ) ) {
+        jobTrackerAddress = "http://" + jobTrackerAddress;
+      }
+      URI jobTrackerURL = URI.create( jobTrackerAddress );
+      nc.setJobTrackerHost( jobTrackerURL.getHost() );
+      nc.setJobTrackerPort( jobTrackerURL.getPort() + "" );
+    } else {
+      isConfigurationSet = false;
     }
-    URI jobTrackerURL = URI.create( jobTrackerAddress );
-    nc.setJobTrackerHost( jobTrackerURL.getHost() );
-    nc.setJobTrackerPort( jobTrackerURL.getPort() + "" );
 
     /*
      * Address and port taken from
@@ -164,12 +180,17 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * hive-site.xml
      * */
     String zooKeeperAddress = properties.get( "hive.zookeeper.quorum" );
-    String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
-    nc.setZooKeeperHost( zooKeeperAddress );
-    nc.setZooKeeperPort( zooKeeperPort );
+    if ( zooKeeperAddress != null ) {
+      String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
+      nc.setZooKeeperHost( zooKeeperAddress );
+      nc.setZooKeeperPort( zooKeeperPort );
+    } else {
+      isConfigurationSet = false;
+    }
 
     //Site files do not provide the Oozie URL. Where do we get it?
     //What about Kafka?
+    return isConfigurationSet;
   }
 
   private void resolveNamedClusterId( NamedCluster nc, String shimVendor, String shimVersion ) {
@@ -181,45 +202,35 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private Map<String, String> extractSiteFileProperties( String path )
-      throws KettleXMLException, XPathExpressionException, UnsupportedEncodingException {
-
-    Map<String, String> properties = new HashMap();
-    path = URLDecoder.decode( path, "UTF-8" );
-
-    Document document = XMLHandler.loadXMLFile( new File( path + "/core-site.xml" ) );
-    XPathFactory xpathFactory = XPathFactory.newInstance();
-    XPath xpath = xpathFactory.newXPath();
-    XPathExpression expr = xpath.compile( "/configuration/property[name='fs.defaultFS']/value/text()" );
-    NodeList nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
-    properties.put( "fs.defaultFS", nodes.item( 0 ).getNodeValue() );
-
-    document = XMLHandler.loadXMLFile( new File( path + "/yarn-site.xml" ) );
-    expr = xpath.compile( "/configuration/property[name='yarn.resourcemanager.address']/value/text()" );
-    nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
-    properties.put( "yarn.resourcemanager.address", nodes.item( 0 ).getNodeValue() );
-
-    document = XMLHandler.loadXMLFile( new File( path + "/hive-site.xml" ) );
-    expr = xpath.compile( "/configuration/property[name='hive.zookeeper.quorum']/value/text()" );
-    nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
-    properties.put( "hive.zookeeper.quorum", nodes.item( 0 ).getNodeValue() );
-
-    expr = xpath.compile( "/configuration/property[name='hive.zookeeper.client.port']/value/text()" );
-    nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
-    properties.put( "hive.zookeeper.client.port", nodes.item( 0 ).getNodeValue() );
-
-    return properties;
+  private void extractProperties( String path, String fileName, Map<String, String> properties, String[] keys ) {
+    Document document = parseSiteFileDocument( new File( path + fileSeparator + fileName ) );
+    if ( document != null ) {
+      XPathFactory xpathFactory = XPathFactory.newInstance();
+      XPath xpath = xpathFactory.newXPath();
+      for ( String key : keys ) {
+        try {
+          XPathExpression expr = xpath.compile( "/configuration/property[name='" + key + "']/value/text()" );
+          NodeList nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
+          if ( nodes.getLength() > 0 ) {
+            properties.put( key, nodes.item( 0 ).getNodeValue() );
+          }
+        } catch ( XPathExpressionException e ) {
+          logChannel.warn( e.getMessage() );
+        }
+      }
+    }
   }
 
   private void installSiteFiles( String type, String path, NamedCluster nc ) throws IOException {
-    path = URLDecoder.decode( path, "UTF-8" );
     if ( type.equals( "site" ) ) {
       File source = new File( path );
       if ( source.isDirectory() ) {
         File[] files = source.listFiles();
         for ( File file : files ) {
           File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
-          FileUtils.copyFileToDirectory( file, destination );
+          if ( file.getName().endsWith( "-site.xml" ) && parseSiteFileDocument( file ) != null ) {
+            FileUtils.copyFileToDirectory( file, destination );
+          }
         }
       }
     } else if ( type.equals( "ccfg" ) ) {
@@ -227,11 +238,22 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
+  private Document parseSiteFileDocument( File file ) {
+    Document document = null;
+    try {
+      document = XMLHandler.loadXMLFile( file );
+    } catch ( KettleXMLException e ) {
+      logChannel.warn( String.format( "Site file %s is not a well formed XML document", file.getName() ) );
+
+    }
+    return document;
+  }
+
   private void saveNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
     try {
       namedClusterService.create( namedCluster, metaStore );
     } catch ( MetaStoreException e ) {
-      logChannel.logError( e.getMessage() );
+      logChannel.warn( e.getMessage() );
     }
   }
 
@@ -262,7 +284,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       spoon.refreshTree( STRING_NAMED_CLUSTERS );
       spoon.setShellText();
     } catch ( Exception e ) {
-      logChannel.logError( e.getMessage() );
+      logChannel.warn( e.getMessage() );
     }
   }
 
@@ -283,22 +305,26 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return PentahoSystem.getAll( ShimIdentifierInterface.class );
   }
 
-  public Object[] runTests( RuntimeTester runtimeTester, String namedClusterName ) {
+  public Object runTests( RuntimeTester runtimeTester, String namedClusterName ) {
     NamedCluster nc = namedClusterService.getNamedClusterByName( namedClusterName, this.metaStore );
-    try {
-      if ( runtimeTester != null ) {
-        runtimeTestStatus = null;
-        runtimeTester.runtimeTest( nc, this );
-        synchronized ( this ) {
-          while ( runtimeTestStatus == null ) {
-            wait();
+    if ( nc != null ) {
+      try {
+        if ( runtimeTester != null ) {
+          runtimeTestStatus = null;
+          runtimeTester.runtimeTest( nc, this );
+          synchronized ( this ) {
+            while ( runtimeTestStatus == null ) {
+              wait();
+            }
           }
         }
+      } catch ( Exception e ) {
+        logChannel.warn( e.getLocalizedMessage() );
       }
-    } catch ( Exception e ) {
-      logChannel.logError( e.getLocalizedMessage() );
+      return produceTestCategories( runtimeTestStatus, nc );
+    } else {
+      return "[]";
     }
-    return produceTestCategories( runtimeTestStatus, nc );
   }
 
   private Object[] produceTestCategories( RuntimeTestStatus runtimeTestStatus, NamedCluster nc ) {
