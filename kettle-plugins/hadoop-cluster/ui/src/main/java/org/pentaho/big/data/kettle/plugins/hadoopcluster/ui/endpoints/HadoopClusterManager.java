@@ -100,7 +100,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
-  public JSONObject createNamedCluster( String name, String type, String path, String shimVendor, String shimVersion ) {
+  public JSONObject createNamedCluster( String name, String path, String shimVendor, String shimVersion ) {
     NamedCluster nc = namedClusterService.getClusterTemplate();
     JSONObject jsonObject = new JSONObject();
     try {
@@ -115,7 +115,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( isConfigurationSet ) {
         saveNamedCluster( metaStore, nc );
         addConfigProperties( nc );
-        installSiteFiles( type, path, nc );
+        installSiteFiles( path, nc );
         if ( spoon.getShell() != null ) {
           spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
         }
@@ -221,20 +221,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void installSiteFiles( String type, String path, NamedCluster nc ) throws IOException {
-    if ( type.equals( "site" ) ) {
-      File source = new File( path );
-      if ( source.isDirectory() ) {
-        File[] files = source.listFiles();
-        for ( File file : files ) {
-          File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
-          if ( file.getName().endsWith( "-site.xml" ) && parseSiteFileDocument( file ) != null ) {
-            FileUtils.copyFileToDirectory( file, destination );
-          }
+  private void installSiteFiles( String path, NamedCluster nc ) throws IOException {
+    File source = new File( path );
+    File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
+    if ( source.isDirectory() ) {
+      File[] files = source.listFiles();
+      for ( File file : files ) {
+        if ( file.getName().endsWith( "-site.xml" ) && parseSiteFileDocument( file ) != null ) {
+          FileUtils.copyFileToDirectory( file, destination );
         }
       }
-    } else if ( type.equals( "ccfg" ) ) {
-      //TODO
     }
   }
 

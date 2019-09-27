@@ -68,14 +68,14 @@ public class HadoopClusterEndpoints {
     return Response.ok().build();
   }
 
-  //http://localhost:9051/cxf/hadoop-cluster/newNamedCluster?name=testName&type=site&path=
+  //http://localhost:9051/cxf/hadoop-cluster/newNamedCluster?name=testName&path=
   @GET @Path( "/newNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response newNamedCluster(
-      @QueryParam( "name" ) String name, @QueryParam( "type" ) String type, @QueryParam( "path" ) String path,
+      @QueryParam( "name" ) String name, @QueryParam( "path" ) String path,
       @QueryParam( "shim" ) String shim, @QueryParam( "shimVersion" ) String shimVersion ) {
     HadoopClusterManager
         hadoopClusterManager =
         new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
-    JSONObject result = hadoopClusterManager.createNamedCluster( name, type, path, shim, shimVersion );
+    JSONObject result = hadoopClusterManager.createNamedCluster( name, path, shim, shimVersion );
     return Response.ok( result ).build();
   }
 

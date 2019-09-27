@@ -79,7 +79,7 @@ public class HadoopClusterManagerTest {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     JSONObject
         result =
-        hadoopClusterManager.createNamedCluster( ncTestName, "site", "src/test/resources", "Claudera", "5.14" );
+        hadoopClusterManager.createNamedCluster( ncTestName, "src/test/resources", "Claudera", "5.14" );
     assertEquals( result.get( "namedCluster" ), ncTestName );
     assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
@@ -90,7 +90,7 @@ public class HadoopClusterManagerTest {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     JSONObject
         result =
-        hadoopClusterManager.createNamedCluster( ncTestName, "site", "src/test/resources/bad", "Claudera", "5.14" );
+        hadoopClusterManager.createNamedCluster( ncTestName, "src/test/resources/bad", "Claudera", "5.14" );
     assertEquals( "", result.get( "namedCluster" ) );
   }
 
