@@ -57,6 +57,7 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.streaming.common.BaseStreamStepMeta;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
@@ -70,6 +71,20 @@ import java.util.stream.IntStream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.ConnectionType.DIRECT;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_SERVER_METAVERSE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_TOPIC_METAVERSE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KEY_FIELD_NAME;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.MSG_FIELD_NAME;
+import static org.pentaho.dictionary.DictionaryConst.CATEGORY_DATASOURCE;
+import static org.pentaho.dictionary.DictionaryConst.CATEGORY_MESSAGE_QUEUE;
+import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS_CONCEPT;
+import static org.pentaho.dictionary.DictionaryConst.LINK_INPUTS;
+import static org.pentaho.dictionary.DictionaryConst.LINK_PARENT_CONCEPT;
+import static org.pentaho.dictionary.DictionaryConst.LINK_READBY;
+import static org.pentaho.dictionary.DictionaryConst.NODE_TYPE_EXTERNAL_CONNECTION;
+import static org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse.FALSE;
+import static org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse.SUBTRANS_INPUT;
+import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceStepAnalyzer.RESOURCE;
 
 @Step( id = "KafkaConsumerInput", image = "KafkaConsumerInput.svg",
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
@@ -78,6 +93,12 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
   documentationUrl = "Products/Kafka_Consumer" )
 @InjectionSupported( localizationPrefix = "KafkaConsumerInputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
+@Metaverse.CategoryMap ( entity = KAFKA_TOPIC_METAVERSE, category = CATEGORY_MESSAGE_QUEUE )
+@Metaverse.CategoryMap ( entity = KAFKA_SERVER_METAVERSE, category = CATEGORY_DATASOURCE )
+@Metaverse.EntityLink ( entity = KAFKA_SERVER_METAVERSE, link = LINK_PARENT_CONCEPT, parentEntity =
+  NODE_TYPE_EXTERNAL_CONNECTION )
+@Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
+@Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
 public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMetaInterface {
   public enum ConnectionType {
     DIRECT,
@@ -386,6 +407,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
     this.consumerGroup = consumerGroup;
   }
 
+  @Metaverse.Node ( name = KAFKA_SERVER_METAVERSE, type = KAFKA_SERVER_METAVERSE )
+  @Metaverse.Property ( name = KAFKA_SERVER_METAVERSE, parentNodeName = KAFKA_SERVER_METAVERSE )
   public String getBootstrapServers() {
     if ( DIRECT.equals( getConnectionType() ) ) {
       return getDirectBootstrapServers();
@@ -395,6 +418,8 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
         .map( NamedCluster::getKafkaBootstrapServers ).orElse( "" );
   }
 
+  @Metaverse.Node ( name = KAFKA_TOPIC_METAVERSE, type = KAFKA_TOPIC_METAVERSE, link = LINK_READBY )
+  @Metaverse.Property ( name = TOPIC, parentNodeName = KAFKA_TOPIC_METAVERSE )
   public List<String> getTopics() {
     return topics;
   }
@@ -596,4 +621,42 @@ public class KafkaConsumerInputMeta extends BaseStreamStepMeta implements StepMe
       injectedConfigValues = null;
     }
   }
+
+  @Metaverse.Node ( name = KEY_FIELD_NAME, type = RESOURCE, link = LINK_INPUTS, nameFromValue = FALSE, subTransLink = SUBTRANS_INPUT )
+  @Metaverse.Property ( name = KEY_FIELD_NAME, parentNodeName = KEY_FIELD_NAME )
+  @Metaverse.NodeLink ( nodeName = KEY_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+  public String getKeyOutputName() {
+    return keyField.getOutputName();
+  }
+
+  @Metaverse.Node ( name = MSG_FIELD_NAME, type = RESOURCE, link = LINK_INPUTS, nameFromValue = FALSE, subTransLink = SUBTRANS_INPUT )
+  @Metaverse.NodeLink ( nodeName = MSG_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+  public String getMessageOutputName() {
+    return messageField.getOutputName();
+  }
+
+  @Metaverse.Node ( name = TOPIC_FIELD_NAME, type = RESOURCE, link = LINK_INPUTS, nameFromValue = FALSE, subTransLink = SUBTRANS_INPUT )
+  @Metaverse.NodeLink ( nodeName = TOPIC_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+  public String getTopicOutputName() {
+    return topicField.getOutputName();
+  }
+
+  @Metaverse.Node ( name = PARTITION_FIELD_NAME, type = RESOURCE, link = LINK_INPUTS, nameFromValue = FALSE, subTransLink = SUBTRANS_INPUT )
+  @Metaverse.NodeLink ( nodeName = PARTITION_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+  public String getPartitionOutputName() {
+    return partitionField.getOutputName();
+  }
+
+  @Metaverse.Node ( name = OFFSET_FIELD_NAME, type = RESOURCE, link = LINK_INPUTS, nameFromValue = FALSE, subTransLink = SUBTRANS_INPUT )
+  @Metaverse.NodeLink ( nodeName = OFFSET_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+  public String getOffsetOutputName() {
+    return offsetField.getOutputName();
+  }
+
+  @Metaverse.Node ( name = TIMESTAMP_FIELD_NAME, type = RESOURCE, link = LINK_INPUTS, nameFromValue = FALSE, subTransLink = SUBTRANS_INPUT )
+  @Metaverse.NodeLink ( nodeName = TIMESTAMP_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+  public String getTimestampOutputName() {
+    return timestampField.getOutputName();
+  }
+
 }

@@ -21,21 +21,15 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import org.pentaho.metaverse.api.IAnalysisContext;
-import org.pentaho.metaverse.api.analyzer.kettle.step.BaseStepExternalResourceConsumer;
-import org.pentaho.metaverse.api.model.IExternalResourceInfo;
+class KafkaLineageConstants {
+  private KafkaLineageConstants() { }
 
-import java.util.Collection;
-import java.util.Collections;
+  static final String KEY = "Key";
+  static final String MESSAGE = "Message";
+  static final String KEY_FIELD_NAME = "key";
+  static final String MSG_FIELD_NAME = "message";
+  static final String KAFKA_TOPIC_METAVERSE = "Kafka Topic";
+  static final String KAFKA_SERVER_METAVERSE = "Kafka Server";
 
-public class KafkaProducerERC extends BaseStepExternalResourceConsumer {
-  @Override public Collection<IExternalResourceInfo> getResourcesFromMeta( Object consumer, IAnalysisContext context ) {
-    KafkaProducerOutputMeta meta = (KafkaProducerOutputMeta) consumer;
-    KafkaResourceInfo kafkaResourceInfo = new KafkaResourceInfo( meta.getBootstrapServers(), meta.getTopic() );
-    return Collections.singleton( kafkaResourceInfo );
-  }
-
-  @Override public Class getMetaClass() {
-    return KafkaProducerOutputMeta.class;
-  }
 }
+

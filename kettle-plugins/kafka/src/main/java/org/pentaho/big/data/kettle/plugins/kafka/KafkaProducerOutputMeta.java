@@ -23,10 +23,6 @@
 package org.pentaho.big.data.kettle.plugins.kafka;
 
 import com.google.common.base.Preconditions;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
@@ -45,7 +41,12 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
+import org.pentaho.hadoop.shim.api.jaas.JaasConfigService;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.w3c.dom.Node;
 
@@ -57,6 +58,19 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.ConnectionType.DIRECT;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_SERVER_METAVERSE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_TOPIC_METAVERSE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KEY;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.MESSAGE;
+import static org.pentaho.dictionary.DictionaryConst.CATEGORY_DATASOURCE;
+import static org.pentaho.dictionary.DictionaryConst.CATEGORY_MESSAGE_QUEUE;
+import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS_CONCEPT;
+import static org.pentaho.dictionary.DictionaryConst.LINK_OUTPUTS;
+import static org.pentaho.dictionary.DictionaryConst.LINK_PARENT_CONCEPT;
+import static org.pentaho.dictionary.DictionaryConst.LINK_WRITESTO;
+import static org.pentaho.dictionary.DictionaryConst.NODE_TYPE_EXTERNAL_CONNECTION;
+import static org.pentaho.metaverse.api.analyzer.kettle.annotations.Metaverse.FALSE;
+import static org.pentaho.metaverse.api.analyzer.kettle.step.ExternalResourceStepAnalyzer.RESOURCE;
 
 @Step( id = "KafkaProducerOutput", image = "KafkaProducerOutput.svg",
   i18nPackageName = "org.pentaho.big.data.kettle.plugins.kafka",
@@ -65,6 +79,12 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputMeta.
   categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Streaming",
   documentationUrl = "Products/Kafka_Producer" )
 @InjectionSupported( localizationPrefix = "KafkaProducerOutputMeta.Injection.", groups = { "CONFIGURATION_PROPERTIES" } )
+@Metaverse.CategoryMap ( entity = KAFKA_TOPIC_METAVERSE, category = CATEGORY_MESSAGE_QUEUE )
+@Metaverse.CategoryMap ( entity = KAFKA_SERVER_METAVERSE, category = CATEGORY_DATASOURCE )
+@Metaverse.EntityLink ( entity = KAFKA_SERVER_METAVERSE, link = LINK_PARENT_CONCEPT, parentEntity =
+  NODE_TYPE_EXTERNAL_CONNECTION )
+@Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_CONTAINS_CONCEPT, parentEntity = KAFKA_SERVER_METAVERSE )
+@Metaverse.EntityLink ( entity = KAFKA_TOPIC_METAVERSE, link = LINK_PARENT_CONCEPT )
 public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInterface {
   public enum ConnectionType {
     DIRECT,
@@ -211,6 +231,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     return "org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerOutputDialog";
   }
 
+  @Metaverse.Node ( name = KAFKA_SERVER_METAVERSE, type = KAFKA_SERVER_METAVERSE )
+  @Metaverse.Property ( name = KAFKA_SERVER_METAVERSE, parentNodeName = KAFKA_SERVER_METAVERSE )
   public String getBootstrapServers() {
     if ( DIRECT.equals( getConnectionType() ) ) {
       return getDirectBootstrapServers();
@@ -242,6 +264,8 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     this.clientId = clientId;
   }
 
+  @Metaverse.Node ( name = KAFKA_TOPIC_METAVERSE, type = KAFKA_TOPIC_METAVERSE, link = LINK_WRITESTO, linkDirection = "IN" )
+  @Metaverse.Property ( name = TOPIC, parentNodeName = KAFKA_TOPIC_METAVERSE )
   public String getTopic() {
     return topicVal;
   }
@@ -250,6 +274,9 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     this.topicVal = topic;
   }
 
+  @Metaverse.Node ( name = KEY, type = RESOURCE, link = LINK_OUTPUTS, nameFromValue = FALSE, linkDirection = "IN" )
+  @Metaverse.NodeLink ( nodeName = KEY, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+//  @Metaverse.Property( name = KEY_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE)
   public String getKeyField() {
     return keyField;
   }
@@ -258,6 +285,9 @@ public class KafkaProducerOutputMeta extends BaseStepMeta implements StepMetaInt
     this.keyField = keyField;
   }
 
+  @Metaverse.Node ( name = MESSAGE, type = RESOURCE, link = LINK_OUTPUTS, nameFromValue = FALSE, linkDirection = "IN" )
+  @Metaverse.NodeLink ( nodeName = MESSAGE, parentNodeName = KAFKA_TOPIC_METAVERSE, linkDirection = "OUT" )
+//  @Metaverse.Property( name = MSG_FIELD_NAME, parentNodeName = KAFKA_TOPIC_METAVERSE )
   public String getMessageField() {
     return messageField;
   }

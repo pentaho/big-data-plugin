@@ -15,13 +15,6 @@
 
   <bean id="TransformationAnalyzer" class="org.pentaho.metaverse.analyzer.kettle.TransformationAnalyzer"/>
 
-  <bean id="KafkaProducerStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerStepAnalyzer">
-    <property name="externalResourceConsumer" ref="kafkaProducerERC"/>
-  </bean>
-  <bean id="KafkaConsumerStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerStepAnalyzer">
-    <property name="externalResourceConsumer" ref="kafkaConsumerERC"/>
-  </bean>
-
   <bean id="GroupByStepAnalyzer" class="org.pentaho.metaverse.analyzer.kettle.step.groupby.GroupByStepAnalyzer"/>
   <bean id="RowsToResultStepAnalyzer"
         class="org.pentaho.metaverse.analyzer.kettle.step.rowstoresult.RowsToResultStepAnalyzer"/>
@@ -51,37 +44,16 @@
         scope="singleton">
     <property name="stepAnalyzers">
       <list>
-        <ref bean="KafkaProducerStepAnalyzer"/>
-        <ref bean="KafkaConsumerStepAnalyzer"/>
         <ref bean="RowsToResultStepAnalyzer"/>
         <ref bean="RowsFromResultStepAnalyzer"/>
         <ref bean="GroupByStepAnalyzer"/>
       </list>
     </property>
-    <property name="clonableStepAnalyzers">
-      <list>
-        <ref bean="KafkaProducerStepAnalyzer"/>
-        <ref bean="KafkaConsumerStepAnalyzer"/>
-     </list>
-    </property>
-
   </bean>
-
-  <bean id="kafkaProducerERC" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerERC"/>
-  <bean id="kafkaConsumerERC" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerERC"/>
 
   <bean id="IStepExternalResourceConsumerProvider"
         class="org.pentaho.metaverse.analyzer.kettle.step.StepExternalResourceConsumerProvider"
         scope="singleton">
-    <property name="externalResourceConsumers">
-      <list>
-        <ref bean="kafkaProducerERC"/>
-        <ref bean="kafkaConsumerERC"/>
-      </list>
-    </property>
-
   </bean>
 
   <bean id="lineageRepo" class="org.pentaho.metaverse.impl.model.kettle.LineageRepository" scope="singleton"/>
