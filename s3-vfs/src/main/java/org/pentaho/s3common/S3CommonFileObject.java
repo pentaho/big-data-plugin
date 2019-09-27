@@ -53,6 +53,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   protected String key;
   protected S3Object s3Object;
   protected InputStream s3ObjectInputStream;
+  protected FileType fileType;
 
   protected S3CommonFileObject( final AbstractFileName name, final S3CommonFileSystem fileSystem ) {
     super( name, fileSystem );
@@ -77,6 +78,20 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   @Override
   protected FileType doGetType() throws Exception {
     return getType();
+  }
+
+  @Override
+  protected void injectType( FileType fileType ) {
+    this.fileType = fileType;
+    super.injectType( fileType );
+  }
+
+  @Override
+  public FileType getType() throws FileSystemException {
+    if ( fileType == null ) {
+      fileType = super.getType();
+    }
+    return fileType;
   }
 
   @Override
@@ -117,7 +132,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
       //Getting buckets in root folder
       List<Bucket> bucketList = fileSystem.getS3Client().listBuckets();
       for ( Bucket bucket : bucketList ) {
-        childrenList.add( bucket.getName() + "/" );
+        childrenList.add( bucket.getName() + DELIMITER );
       }
     } else {
       getObjectsFromNonRootFolder( key, bucketName, childrenList, realKey );
@@ -209,16 +224,21 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
     }
     try {
       // 1. Is it an existing file?
-      s3Object = getS3Object();
+      if ( s3Object == null ) {
+        s3Object = getS3Object();
+      }
       injectType( getName().getType() ); // if this worked then the automatically detected type is right
-
     } catch ( AmazonS3Exception e ) { // S3 object doesn't exist
       // 2. Is it in reality a folder?
       handleAttachException( key, bucketName );
+    } finally {
+      if ( s3Object != null ) {
+        s3Object.close();
+      }
     }
   }
 
-  protected void handleAttachException( String key, String bucket ) throws FileSystemException {
+  protected void handleAttachException( String key, String bucket ) throws Exception {
     String keyWithDelimiter = key + DELIMITER;
     try {
       s3Object = getS3Object( keyWithDelimiter, bucket );
@@ -243,6 +263,10 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
             e2 ); // make sure this gets printed for the user
           throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), e2 );
         }
+      }
+    } finally {
+      if ( s3Object != null ) {
+        s3Object.close();
       }
     }
   }

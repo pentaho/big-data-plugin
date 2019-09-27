@@ -308,7 +308,7 @@ public class S3FileObjectTest {
   public void testDoDetach() throws Exception {
     s3FileObjectFileSpy.doAttach();
     s3FileObjectFileSpy.doDetach();
-    verify( s3ObjectMock ).close();
+    verify( s3ObjectMock, times( 2 ) ).close();
   }
 
   @Test
