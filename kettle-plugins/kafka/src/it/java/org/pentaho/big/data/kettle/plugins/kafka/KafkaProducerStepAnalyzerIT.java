@@ -44,10 +44,8 @@ import java.util.Map;
 
 import static org.apache.commons.collections4.IteratorUtils.toList;
 import static org.junit.Assert.assertEquals;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.KEY;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.MESSAGE;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_SERVER;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_SERVER_METAVERSE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_TOPIC_METAVERSE;
 import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS;
 import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS_CONCEPT;
 import static org.pentaho.dictionary.DictionaryConst.LINK_DEPENDENCYOF;
@@ -78,22 +76,22 @@ public class KafkaProducerStepAnalyzerIT extends StepAnalyzerValidationIT {
 
     final TransformationNode transformationNode = verifyTransformationNode( transNodeName, false );
     assertEquals( "Unexpected number of nodes", 19, getIterableSize( framedGraph.getVertices() ) );
-    assertEquals( "Unexpected number of edges", 38, getIterableSize( framedGraph.getEdges() ) );
+    assertEquals( "Unexpected number of edges", 34, getIterableSize( framedGraph.getEdges() ) );
 
     final Map<String, FramedMetaverseNode> stepNodeMap = verifyTransformationSteps( transformationNode,
       new String[] { "Generate Rows", "Kafka Producer" },  false );
     TransformationStepNode kafkaProducer = (TransformationStepNode) stepNodeMap.get( "Kafka Producer" );
     FramedMetaverseNode kurt = verifyLinkedNode( kafkaProducer, DictionaryConst.LINK_WRITESTO, "kurt" );
-    verifyLinkedNode( kurt, LINK_CONTAINS, KEY );
-    verifyLinkedNode( kurt, LINK_CONTAINS, MESSAGE );
+    verifyLinkedNode( kurt, LINK_CONTAINS, KafkaLineageConstants.KEY );
+    verifyLinkedNode( kurt, LINK_CONTAINS, KafkaLineageConstants.MESSAGE );
 
     List<Concept> topicConcept = toList( kurt.getInNodes( LINK_TYPE_CONCEPT ).iterator() );
     assertEquals( 1, topicConcept.size() );
-    assertEquals( NODE_TYPE_KAFKA_TOPIC, topicConcept.get( 0 ).getName() );
+    assertEquals( KAFKA_TOPIC_METAVERSE, topicConcept.get( 0 ).getName() );
 
     List<Concept> serverConcept = toList( topicConcept.get( 0 ).getInNodes( LINK_CONTAINS_CONCEPT ).iterator() );
     assertEquals( 1, serverConcept.size() );
-    assertEquals( NODE_TYPE_KAFKA_SERVER, serverConcept.get( 0 ).getName() );
+    assertEquals( KAFKA_SERVER_METAVERSE, serverConcept.get( 0 ).getName() );
 
     List<Concept> producerDependency = toList( kafkaProducer.getInNodes( LINK_DEPENDENCYOF ).iterator() );
     assertEquals( 1, producerDependency.size() );
@@ -101,6 +99,6 @@ public class KafkaProducerStepAnalyzerIT extends StepAnalyzerValidationIT {
 
     List<Concept> serverType = toList( producerDependency.get( 0 ).getInNodes( LINK_TYPE_CONCEPT ).iterator() );
     assertEquals( 1, serverType.size() );
-    assertEquals( NODE_TYPE_KAFKA_SERVER, serverType.get( 0 ).getName() );
+    assertEquals( KAFKA_SERVER_METAVERSE, serverType.get( 0 ).getName() );
   }
 }

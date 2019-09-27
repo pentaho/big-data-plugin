@@ -29,18 +29,12 @@ import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
-import org.pentaho.di.trans.steps.groupby.GroupBy;
-import org.pentaho.di.trans.steps.groupby.GroupByMeta;
-import org.pentaho.di.trans.steps.rowsfromresult.RowsFromResultMeta;
-import org.pentaho.metaverse.analyzer.kettle.step.StepAnalyzerProvider;
 import org.pentaho.metaverse.frames.Concept;
 import org.pentaho.metaverse.frames.FramedMetaverseNode;
 import org.pentaho.metaverse.frames.TransformationNode;
 import org.pentaho.metaverse.frames.TransformationStepNode;
 import org.pentaho.metaverse.impl.MetaverseConfig;
 import org.pentaho.metaverse.step.StepAnalyzerValidationIT;
-import org.pentaho.metaverse.util.MetaverseBeanUtil;
-import org.pentaho.metaverse.util.MetaverseBundleActivator;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -49,9 +43,15 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_SERVER;
-import static org.pentaho.big.data.kettle.plugins.kafka.KafkaStepAnalyzer.NODE_TYPE_KAFKA_TOPIC;
-import static org.pentaho.dictionary.DictionaryConst.*;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_SERVER_METAVERSE;
+import static org.pentaho.big.data.kettle.plugins.kafka.KafkaLineageConstants.KAFKA_TOPIC_METAVERSE;
+import static org.pentaho.dictionary.DictionaryConst.LINK_CONTAINS;
+import static org.pentaho.dictionary.DictionaryConst.LINK_DEPENDENCYOF;
+import static org.pentaho.dictionary.DictionaryConst.LINK_DERIVES;
+import static org.pentaho.dictionary.DictionaryConst.LINK_EXECUTES;
+import static org.pentaho.dictionary.DictionaryConst.LINK_INPUTS;
+import static org.pentaho.dictionary.DictionaryConst.LINK_OUTPUTS;
+import static org.pentaho.dictionary.DictionaryConst.LINK_READBY;
 
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( MetaverseConfig.class )
@@ -89,8 +89,8 @@ public class KafkaConsumerStepAnalyzerIT extends StepAnalyzerValidationIT {
     List<Concept> consumerReadby = IteratorUtils.toList( kafkaConsumer.getInNodes( LINK_READBY ).iterator() );
     assertEquals( 1, consumerReadby.size() );
     Concept itTopic = consumerReadby.get( 0 );
-    assertEquals( NODE_TYPE_KAFKA_TOPIC, itTopic.getType() );
-    assertEquals( "it-topic", itTopic.getName() );
+    assertEquals( KAFKA_TOPIC_METAVERSE, itTopic.getType() );
+    assertEquals( "[it-topic]", itTopic.getName() );
     for ( KafkaConsumerField.Name kafkaField : KafkaConsumerField.Name.values() ) {
       FramedMetaverseNode fieldNode = verifyLinkedNode( itTopic, LINK_CONTAINS, kafkaField.toString() );
       // verify kafka fields are consumer inputs
@@ -106,7 +106,7 @@ public class KafkaConsumerStepAnalyzerIT extends StepAnalyzerValidationIT {
     List<Concept> consumerDependsOn = IteratorUtils.toList( kafkaConsumer.getInNodes( LINK_DEPENDENCYOF ).iterator() );
     assertEquals( 1, consumerDependsOn.size() );
     Concept kafkaServer = consumerDependsOn.get( 0 );
-    assertEquals( NODE_TYPE_KAFKA_SERVER, kafkaServer.getType() );
+    assertEquals( KAFKA_SERVER_METAVERSE, kafkaServer.getType() );
     assertEquals( "10.177.178.135:9092", kafkaServer.getName() );
 
     verifyLinkedNode( kafkaConsumer, LINK_EXECUTES, "maxOffset" );
@@ -142,6 +142,6 @@ public class KafkaConsumerStepAnalyzerIT extends StepAnalyzerValidationIT {
   }
 
   private String kafkaFieldToInputName( String s ) {
-    return ( s.startsWith("o") ? "an" : "a" ) + s.substring( 0, 1 ).toUpperCase() + s.substring( 1 );
+    return ( s.startsWith( "o" ) ? "an" : "a" ) + s.substring( 0, 1 ).toUpperCase() + s.substring( 1 );
   }
 }

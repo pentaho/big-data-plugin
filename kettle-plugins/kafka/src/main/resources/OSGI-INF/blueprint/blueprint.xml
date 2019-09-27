@@ -20,43 +20,6 @@
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
 
-
-  <bean id="KafkaConsumerStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerStepAnalyzer">
-    <property name="externalResourceConsumer" ref="kafkaConsumerERC"/>
-  </bean>
-
-
-  <bean id="KafkaProducerStepAnalyzer" class="org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerStepAnalyzer">
-    <property name="externalResourceConsumer" ref="kafkaProducerERC"/>
-  </bean>
-
-  <!--
-    Define our analyzer as a service. This will allow it to be automatically added to the reference-list ultimately used
-    by the TransformationAnalyzer to determine if there is a custom analyzer for a particular BaseStepMeta impl
-    (KafkaConsumerInputMeta in this case).
-  -->
-  <service id="KafkaConsumerStepAnalyzerService"
-           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IClonableStepAnalyzer"
-           ref="KafkaConsumerStepAnalyzer"/>
-
-  <service id="KafkaProducerOutputStepAnalyzerService"
-           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IClonableStepAnalyzer"
-           ref="KafkaProducerStepAnalyzer"/>
-
-  <bean id="kafkaConsumerERC" scope="singleton"
-        class="org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerERC"/>
-
-  <bean id="kafkaProducerERC" scope="singleton"
-      class="org.pentaho.big.data.kettle.plugins.kafka.KafkaProducerERC"/>
-
-  <service id="kafkaConsumerERCService"
-         interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepExternalResourceConsumer"
-         ref="kafkaConsumerERC"/>
-
-  <service id="kafkaProducerERCService"
-           interface="org.pentaho.metaverse.api.analyzer.kettle.step.IStepExternalResourceConsumer"
-           ref="kafkaProducerERC"/>
-
   <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
   <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>
   <reference id="namedClusterServiceLocator" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator"/>
