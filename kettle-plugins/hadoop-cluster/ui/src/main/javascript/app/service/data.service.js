@@ -55,9 +55,9 @@ define(
           return helperService.httpGet([baseUrl, "help"].join("/"));
         }
 
-        function newNamedCluster(name, type, path, shim, shimVersion) {
+        function newNamedCluster(name, path, shim, shimVersion) {
           return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name +
-            "&shim=" + shim + "&shimVersion=" + shimVersion + "&type=" + type + "&path=" + encodeURIComponent(path));
+            "&shim=" + shim + "&shimVersion=" + shimVersion + "&path=" + encodeURIComponent(path));
         }
 
         function getShimIdentifiers() {

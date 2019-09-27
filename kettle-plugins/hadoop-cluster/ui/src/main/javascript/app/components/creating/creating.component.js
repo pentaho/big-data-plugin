@@ -40,11 +40,7 @@ define([
       vm.almostDone = i18n.get('progress.almostdone');
       vm.message = i18n.get('creating.message');
       $timeout(function () {
-        var type = "ccfg";
-        if (i18n.get('hadoop.cluster.site.xml.type') === vm.data.model.configurationType) {
-          type = "site";
-        }
-        dataService.newNamedCluster(vm.data.model.clusterName, type, vm.data.model.configPath, vm.data.model.shimName,
+        dataService.newNamedCluster(vm.data.model.clusterName, vm.data.model.configPath, vm.data.model.shimName,
           vm.data.model.shimVersion)
           .then(function (res) {
             //namedCluster is returned on success, otherwise there was an error
