@@ -16,6 +16,5 @@
     <module>shim</module>
     <module>vfs</module>
     <module>connections</module>
-    <module>browse</module>
   </modules>
 </project>
