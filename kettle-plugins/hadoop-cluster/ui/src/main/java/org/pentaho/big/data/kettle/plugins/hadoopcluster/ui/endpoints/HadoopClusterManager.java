@@ -138,7 +138,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     extractProperties( path, "hive-site.xml", properties,
         new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
 
-    boolean isConfigurationSet = true;
+    boolean isConfigurationSet = false;
     /*
      * Address taken from
      * fs.defaultFS
@@ -150,8 +150,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       URI hdfsURL = URI.create( hdfsAddress );
       nc.setHdfsHost( hdfsURL.getHost() );
       nc.setHdfsPort( hdfsURL.getPort() + "" );
-    } else {
-      isConfigurationSet = false;
+      isConfigurationSet = true;
     }
 
     /*
@@ -168,8 +167,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       URI jobTrackerURL = URI.create( jobTrackerAddress );
       nc.setJobTrackerHost( jobTrackerURL.getHost() );
       nc.setJobTrackerPort( jobTrackerURL.getPort() + "" );
-    } else {
-      isConfigurationSet = false;
+      isConfigurationSet = true;
     }
 
     /*
@@ -184,8 +182,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
       nc.setZooKeeperHost( zooKeeperAddress );
       nc.setZooKeeperPort( zooKeeperPort );
-    } else {
-      isConfigurationSet = false;
+      isConfigurationSet = true;
     }
 
     //Site files do not provide the Oozie URL. Where do we get it?
