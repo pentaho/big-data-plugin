@@ -1,0 +1,17 @@
+addressbar .breadcrumb .clusters {
+  background-image: url("../img/cluster.svg");
+  background-repeat: no-repeat;
+  background-position: left center;
+  width: 20px;
+  background-size: 24px 24px;
+}
+
+folder .folder.clusters .folderImage {
+  background: url("../img/cluster.svg") no-repeat left center;
+  width: 16px;
+  height: 18px;
+}
+
+folder .folder.clusters.selected .folderImage {
+  background-position: right center;
+}
