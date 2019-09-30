@@ -25,5 +25,6 @@
     <module>formats-meta</module>
     <module>formats</module>
     <module>hadoop-cluster</module>
+    <module>browse</module>
   </modules>
 </project>
