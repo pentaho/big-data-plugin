@@ -2,22 +2,20 @@
   <feature name="pentaho-big-data-common" version="1.0">
     <bundle>wrap:mvn:org.apache.avro/avro/1.6.2</bundle>
     <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
-    <bundle>wrap:mvn:commons-cli/commons-cli/1.2</bundle>
+    <bundle>mvn:commons-cli/commons-cli/1.2</bundle>
     <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
     <bundle>wrap:mvn:org.apache.httpcomponents/httpclient/4.5.3</bundle>
     <bundle>wrap:mvn:org.apache.httpcomponents/httpcore/4.4</bundle>
-    <bundle>wrap:mvn:org.codehaus.jackson/jackson-core-asl/1.5.2</bundle>
-    <bundle>wrap:mvn:org.codehaus.jackson/jackson-mapper-asl/1.5.2</bundle>
+    <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.5.2</bundle>
+    <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.5.2</bundle>
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
     <bundle>wrap:mvn:jline/jline/0.9.94</bundle>
     <bundle>wrap:mvn:com.googlecode.json-simple/json-simple/1.1</bundle>
     <bundle>wrap:mvn:org.pentaho.di.plugins/kettle-log4j-core/${pdi.version}</bundle>
     <bundle>wrap:mvn:libthrift/libthrift/0.6</bundle>
-    <bundle>wrap:mvn:org.slf4j/slf4j-api/1.7.7</bundle>
-    <bundle>wrap:mvn:org.slf4j/slf4j-log4j12/1.7.7</bundle>
     <bundle>wrap:mvn:xmlpull/xmlpull/1.1.3.1</bundle>
     <bundle>wrap:mvn:xpp3/xpp3_min/1.1.4c</bundle>
-    <bundle>wrap:mvn:com.thoughtworks.xstream/xstream/1.4.10</bundle>
+    <bundle>mvn:com.thoughtworks.xstream/xstream/1.4.10</bundle>
   </feature>
 
   <feature name="pentaho-big-data-plugin-osgi" version="1.0">
@@ -25,11 +23,12 @@
     <feature>pentaho-big-data-plugin-tests</feature>
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
-    <!--feature>pentaho-hadoop-shims-api</feature-->
     <feature>pentaho-big-data-kettle-plugins</feature>
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
 
+  <!-- Code left in for future debug -->
+  <!--
   <feature name="shim-common-fragment-V1" version="1.0">
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
@@ -54,6 +53,7 @@
     <feature>shim-common-fragment-V1</feature>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp30-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
+  -->
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
     <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
@@ -79,7 +79,6 @@
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
@@ -121,6 +120,8 @@
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
   </feature>
 
+  <!-- Code left in for future debug -->
+  <!--
   <feature name="shims-list" description="Shims bundles list" version="1.0">
     <conditional>
       <condition>community-edition</condition>
@@ -131,4 +132,5 @@
       <feature>pentaho-hadoop-shims-emr521</feature>
     </conditional>
   </feature>
+  -->
 </features>
