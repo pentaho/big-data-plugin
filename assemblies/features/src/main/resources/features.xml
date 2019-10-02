@@ -25,11 +25,12 @@
     <feature>pentaho-big-data-plugin-tests</feature>
   </feature>
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
-    <!--feature>pentaho-hadoop-shims-api</feature-->
     <feature>pentaho-big-data-kettle-plugins</feature>
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
 
+  <!-- Code left in for future debug -->
+  <!--
   <feature name="shim-common-fragment-V1" version="1.0">
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
@@ -54,6 +55,7 @@
     <feature>shim-common-fragment-V1</feature>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp30-driver/${pentaho-hadoop-shims.version}</bundle>
   </feature>
+  -->
 
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
     <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
@@ -79,7 +81,6 @@
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
@@ -121,6 +122,8 @@
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
   </feature>
 
+  <!-- Code left in for future debug -->
+  <!--
   <feature name="shims-list" description="Shims bundles list" version="1.0">
     <conditional>
       <condition>community-edition</condition>
@@ -131,4 +134,5 @@
       <feature>pentaho-hadoop-shims-emr521</feature>
     </conditional>
   </feature>
+  -->
 </features>
