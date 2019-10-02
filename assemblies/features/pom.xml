@@ -7,72 +7,14 @@
     <artifactId>pentaho-big-data-assemblies</artifactId>
     <version>9.0.0.0-SNAPSHOT</version>
   </parent>
+
   <groupId>pentaho-karaf-features</groupId>
   <artifactId>pentaho-big-data-plugin-osgi</artifactId>
-  <version>9.0.0.0-SNAPSHOT</version>
+
+  <packaging>feature</packaging>
+
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
   </properties>
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>${dependency.maven-resources-plugin.revision}</version>
-        <executions>
-          <execution>
-            <id>copy-resources</id>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <overwrite>true</overwrite>
-              <outputDirectory>${basedir}/target/processed</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>src/main/resources</directory>
-                  <filtering>true</filtering>
-                </resource>
-              </resources>
-              <supportMultiLineFiltering>false</supportMultiLineFiltering>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>${dependency.maven-clean-plugin.revision}</version>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${basedir}/target/processed</directory>
-              <followSymlinks>false</followSymlinks>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-artifacts</id>
-            <phase>package</phase>
-            <goals>
-              <goal>attach-artifact</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <artifact>
-                  <file>${basedir}/target/processed/features.xml</file>
-                  <type>xml</type>
-                  <classifier>features</classifier>
-                </artifact>
-              </artifacts>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+
 </project>
