@@ -117,6 +117,7 @@
   </feature>
 
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
+    <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
   </feature>
 

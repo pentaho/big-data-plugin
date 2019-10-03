@@ -123,6 +123,11 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>core-ui</artifactId>
+    </dependency>
+
   </dependencies>
   <build>
     <resources>
