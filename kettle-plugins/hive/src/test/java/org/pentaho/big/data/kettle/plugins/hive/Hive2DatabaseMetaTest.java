@@ -25,8 +25,11 @@ package org.pentaho.big.data.kettle.plugins.hive;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -38,16 +41,24 @@ import org.pentaho.di.core.row.value.ValueMetaInternetAddress;
 import org.pentaho.di.core.row.value.ValueMetaNumber;
 import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.row.value.ValueMetaTimestamp;
+import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Driver;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,14 +71,23 @@ public class Hive2DatabaseMetaTest {
   public static final String DEFAULT = "default";
   @Mock DriverLocator driverLocator;
   @Mock Driver driver;
+  @Mock NamedClusterService namedClusterService;
+  @Mock MetastoreLocator metastoreLocator;
+  @Mock IMetaStore iMetaStore;
   Hive2DatabaseMeta hive2DatabaseMeta;
   private String hive2DatabaseMetaURL;
+  private List<String> namedClusterList = Arrays.asList( new String[]{ "cluster1", "cluster2" } );
+  ArgumentCaptor<IMetaStore> iMetaStoreCaptor = ArgumentCaptor.forClass( IMetaStore.class );
+  private static String CLUSTER = "cluster1";
+  private static String PLUGIN_ID = "hive2";
 
   @Before
   public void setup() throws Throwable {
-    hive2DatabaseMeta = new Hive2DatabaseMeta( driverLocator );
+    hive2DatabaseMeta = new Hive2DatabaseMeta( driverLocator, namedClusterService, metastoreLocator );
     hive2DatabaseMetaURL = hive2DatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
     when( driverLocator.getDriver( hive2DatabaseMetaURL ) ).thenReturn( driver );
+    when( metastoreLocator.getMetastore() ).thenReturn( iMetaStore );
+    when( namedClusterService.listNames( any() ) ).thenReturn( namedClusterList );
   }
 
   @Test
@@ -341,6 +361,22 @@ public class Hive2DatabaseMetaTest {
   @Test
   public void testSupportsTimeStampToDateConversion() {
     assertFalse( hive2DatabaseMeta.supportsTimeStampToDateConversion() );
+  }
+
+  @Test
+  public void testGetNamedClusterList() throws Exception {
+    assertEquals( namedClusterList, hive2DatabaseMeta.getNamedClusterList() );
+    verify( namedClusterService ).listNames( iMetaStoreCaptor.capture() );
+  }
+
+  @Test
+  public void testPutOptionalOptions() {
+    hive2DatabaseMeta.setNamedCluster( CLUSTER );
+    hive2DatabaseMeta.setPluginId( PLUGIN_ID );
+    Map<String, String> extraOptions = new HashMap<String, String>();
+    hive2DatabaseMeta.putOptionalOptions( extraOptions );
+    String value = extraOptions.get( PLUGIN_ID + ".pentahoNamedCluster" );
+    assertEquals( CLUSTER, value );
   }
 
   private void assertGetFieldDefinition( ValueMetaInterface valueMetaInterface, String name, String expectedType ) {

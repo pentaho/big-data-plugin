@@ -66,7 +66,7 @@ public class BaseSimbaDatabaseMetaTest {
 
   @Before
   public void setup() throws Throwable {
-    baseSimbaDatabaseMeta = new BaseSimbaDatabaseMeta( driverLocator ) {
+    baseSimbaDatabaseMeta = new BaseSimbaDatabaseMeta( driverLocator, null, null ) {
       @Override protected String getJdbcPrefix() {
         return jdbcPrefix;
       }
@@ -144,7 +144,7 @@ public class BaseSimbaDatabaseMetaTest {
     assertEquals( "/" + testDb + ";AuthMech=1", url.getPath() );
 
     // Extra properties
-    baseSimbaDatabaseMeta = new ImpalaSimbaDatabaseMeta( driverLocator );
+    baseSimbaDatabaseMeta = new ImpalaSimbaDatabaseMeta( driverLocator, null, null );
     baseSimbaDatabaseMeta.getAttributes().put(
       Hive2SimbaDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + baseSimbaDatabaseMeta.getPluginId() + "."
         + KRB_HOST_FQDN, "fqdn" );

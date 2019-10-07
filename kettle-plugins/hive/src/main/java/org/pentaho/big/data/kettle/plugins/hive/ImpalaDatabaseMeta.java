@@ -17,12 +17,14 @@
 
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.database.DatabaseInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 @DatabaseMetaPlugin( type = "IMPALA", typeDescription = "Impala" )
 public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInterface {
@@ -32,8 +34,9 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
   protected static final int DEFAULT_PORT = 21050;
 
-  public ImpalaDatabaseMeta( DriverLocator driverLocator ) {
-    super( driverLocator );
+  public ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
+                             MetastoreLocator metastoreLocator ) {
+    super( driverLocator, namedClusterService,  metastoreLocator );
   }
 
   @Override

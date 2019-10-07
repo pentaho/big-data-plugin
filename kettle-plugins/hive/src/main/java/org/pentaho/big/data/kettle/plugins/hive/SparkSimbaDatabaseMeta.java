@@ -20,10 +20,13 @@ package org.pentaho.big.data.kettle.plugins.hive;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 @DatabaseMetaPlugin( type = "SPARKSIMBA", typeDescription = "SparkSQL" )
 public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
@@ -35,8 +38,9 @@ public class SparkSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   @VisibleForTesting static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
   private final String LIMIT_1 = " LIMIT 1";
 
-  public SparkSimbaDatabaseMeta( DriverLocator driverLocator ) {
-    super( driverLocator );
+  public SparkSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
+                                 MetastoreLocator metastoreLocator ) {
+    super( driverLocator, namedClusterService, metastoreLocator );
   }
 
   @Override public int[] getAccessTypeList() {

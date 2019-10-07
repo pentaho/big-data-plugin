@@ -21,10 +21,16 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.hive;
 
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+
+import java.util.List;
+import java.util.Map;
 
 @DatabaseMetaPlugin( type = "HIVE2", typeDescription = "Hadoop Hive 2/3" )
 public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
@@ -37,9 +43,14 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   public static final int[] ACCESS_TYPE_LIST = new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE };
   protected static final String JAR_FILE = "hive-jdbc-0.10.0-pentaho.jar";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
+  private NamedClusterService namedClusterService;
+  private MetastoreLocator metastoreLocator;
 
-  public Hive2DatabaseMeta( DriverLocator driverLocator ) {
+  public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
+                            MetastoreLocator metastoreLocator ) {
     super( driverLocator );
+    this.namedClusterService = namedClusterService;
+    this.metastoreLocator = metastoreLocator;
   }
 
   @Override
@@ -224,5 +235,21 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   @Override
   public boolean supportsTimeStampToDateConversion() {
     return false;
+  }
+
+  @Override public List<String> getNamedClusterList() {
+    try {
+      return namedClusterService.listNames( metastoreLocator.getMetastore() );
+    } catch ( MetaStoreException e ) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
+  public void putOptionalOptions( Map<String, String> extraOptions ) {
+    if ( getNamedCluster() != null && getNamedCluster().trim().length() > 0 ) {
+      extraOptions.put( getPluginId() + ".pentahoNamedCluster", getNamedCluster() );
+    }
   }
 }
