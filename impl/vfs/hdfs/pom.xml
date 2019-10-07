@@ -8,7 +8,7 @@
     <version>8.2.0.7-719</version>
   </parent>
   <artifactId>pentaho-big-data-impl-vfs-hdfs</artifactId>
-  <version>8.2.0.7-719</version>
+  <version>8.2.0.7-C237</version>
   <packaging>bundle</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <properties>
@@ -24,17 +24,17 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metastore-locator-api</artifactId>
-      <version>${project.version}</version>
+      <version>8.2.0.7-719</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-api-hdfs</artifactId>
-      <version>${project.version}</version>
+      <version>8.2.0.7-719</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-big-data-impl-cluster</artifactId>
-      <version>${project.version}</version>
+      <version>8.2.0.7-719</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
