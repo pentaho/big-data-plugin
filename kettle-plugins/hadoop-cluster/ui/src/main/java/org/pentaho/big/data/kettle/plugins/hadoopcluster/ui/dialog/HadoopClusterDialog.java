@@ -50,19 +50,12 @@ public class HadoopClusterDialog extends ThinDialog {
     super( shell, width, height );
   }
 
-
-  public void open( String title ) {
-    open( title, null );
-  }
-
-  public void open( String title, String connectionName ) {
-
+  public void open( String title, String thinAppState ) {
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
-    if ( connectionName != null ) {
-      //TODO: implement path for editting a cluster - if we support that...
-    } else {
-      clientPath.append( "#/hadoopcluster" );
+    clientPath.append( "#/" );
+    if ( thinAppState != null ) {
+      clientPath.append( thinAppState );
     }
     super.createDialog( title, getRepoURL( clientPath.toString() ),
       OPTIONS, LOGO );

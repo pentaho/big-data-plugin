@@ -23,7 +23,8 @@ define([
   "angular",
   "./app.config",
   "./app.animation",
-  "./components/hadoopCluster/hadoopCluster.component",
+  "./components/import/import.component",
+  "./components/newEdit/newEdit.component",
   "./components/creating/creating.component",
   "./components/testing/testing.component",
   "./components/status/status.component",
@@ -37,7 +38,7 @@ define([
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, appConfig, appAnimation, hadoopClusterComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -57,7 +58,8 @@ define([
   function activate() {
     var deps = ['ui.router', 'ngAnimate'];
     angular.module(module.name, deps)
-        .component(hadoopClusterComponent.name, hadoopClusterComponent.options)
+        .component(importComponent.name, importComponent.options)
+        .component(newEditComponent.name, newEditComponent.options)
         .component(creatingComponent.name, creatingComponent.options)
         .component(testingComponent.name, testingComponent.options)
         .component(statusComponent.name, statusComponent.options)

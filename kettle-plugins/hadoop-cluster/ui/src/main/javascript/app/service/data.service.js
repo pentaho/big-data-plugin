@@ -46,7 +46,8 @@ define(
         var baseUrl = "/cxf/hadoop-cluster";
         return {
           help: help,
-          newNamedCluster: newNamedCluster,
+          importNamedCluster: importNamedCluster,
+          createNamedCluster: createNamedCluster,
           getShimIdentifiers: getShimIdentifiers,
           runTests: runTests
         };
@@ -55,8 +56,12 @@ define(
           return helperService.httpGet([baseUrl, "help"].join("/"));
         }
 
-        function newNamedCluster(name, path, shim, shimVersion) {
-          return helperService.httpGet([baseUrl, "newNamedCluster"].join("/") + "?name=" + name +
+        function createNamedCluster(data) {
+          return helperService.httpPost([baseUrl, "createNamedCluster"].join("/"), data );
+        }
+
+        function importNamedCluster(name, path, shim, shimVersion) {
+          return helperService.httpGet([baseUrl, "importNamedCluster"].join("/") + "?name=" + name +
             "&shim=" + shim + "&shimVersion=" + shimVersion + "&path=" + encodeURIComponent(path));
         }
 

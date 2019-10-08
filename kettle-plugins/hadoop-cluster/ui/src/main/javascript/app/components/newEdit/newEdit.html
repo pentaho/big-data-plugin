@@ -1,0 +1,95 @@
+<div class="new-edit-main">
+  <div class="title_text margin_bottom_30 text_center">{{vm.header}}</div>
+  <div class="new-edit-middle margin_bottom_10">
+    <div class="cluster-name margin_bottom_15">
+      <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
+      <input id="clusterName" type="text" ng-model="vm.data.model.clusterName" autofocus/>
+    </div>
+    <div class="scroll-form">
+      <div class="import-shim margin_bottom_15">
+        <div class="leftHalf">
+          <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
+          <select-box id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></select-box>
+        </div>
+        <div class="rightHalf">
+          <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
+          <select-box id="shimVersion" type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></select-box>
+        </div>
+      </div>
+      <fieldset class="margin_bottom_15">
+        <legend>{{::vm.hdfsLabel}}</legend>
+        <div class="margin_bottom_15">
+          <img class="variable" ng-src="{{::vm.variableImage}}"/>
+          <div class="port-input">
+            <label for="hdfsPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+            <input id="hdfsPort" type="text" ng-model="vm.data.model.hdfsPort"/>
+          </div>
+          <img class="variable" ng-src="{{::vm.variableImage}}"/>
+          <div class="hostname-input">
+            <label for="hdfsHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+            <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHostname"/>
+          </div>
+        </div>
+        <div>
+          <div class="left-half">
+            <img class="variable" ng-src="{{::vm.variableImage}}"/>
+            <div class="username">
+              <label for="hdfsUsername" class="margin_bottom_5 text_left">{{::vm.usernameLabel}}</label>
+              <input id="hdfsUsername" type="text" ng-model="vm.data.model.hdfsUsername"/>
+            </div>
+          </div>
+          <div class="right-half">
+            <img class="variable" ng-src="{{::vm.variableImage}}"/>
+            <div class="password">
+              <label for="hdfsPassword" class="margin_bottom_5 text_left">{{::vm.passwordLabel}}</label>
+              <input id="hdfsPassword" type="password" ng-model="vm.data.model.hdfsPassword"/>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+      <fieldset class="margin_bottom_15">
+        <legend>{{::vm.jobTrackerLabel}}</legend>
+        <img class="variable" ng-src="{{::vm.variableImage}}"/>
+          <div class="port-input">
+            <label for="jobTrackerPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+            <input id="jobTrackerPort" type="text" ng-model="vm.data.model.jobTrackerPort"/>
+          </div>
+          <img class="variable" ng-src="{{::vm.variableImage}}"/>
+          <div class="hostname-input">
+            <label for="jobTrackerHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+            <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHostname"/>
+          </div>
+      </fieldset>
+      <fieldset class="margin_bottom_15">
+        <legend>{{::vm.zooKeeperLabel}}</legend>
+        <img class="variable" ng-src="{{::vm.variableImage}}"/>
+        <div class="port-input">
+          <label for="zooKeeperPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+          <input id="zooKeeperPort" type="text" ng-model="vm.data.model.zooKeeperPort"/>
+        </div>
+        <img class="variable" ng-src="{{::vm.variableImage}}"/>
+        <div class="hostname-input">
+          <label for="zooKeeperHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+          <input id="zooKeeperHostname" type="text" ng-model="vm.data.model.zooKeeperHostname"/>
+        </div>
+      </fieldset>
+      <fieldset class="margin_bottom_15">
+        <legend>{{::vm.oozieLabel}}</legend>
+        <img class="variable" ng-src="{{::vm.variableImage}}"/>
+        <div class="hostname-input">
+          <label for="oozieHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+          <input id="oozieHostname" type="text" ng-model="vm.data.model.oozieHostname"/>
+        </div>
+      </fieldset>
+      <fieldset class="margin_bottom_15">
+        <legend>{{::vm.kafkaLabel}}</legend>
+        <img class="variable" ng-src="{{::vm.variableImage}}"/>
+        <div class="hostname-input">
+          <label for="kafkaBootstrapServers" class="margin_bottom_5 text_left">{{::vm.bootstrapServerLabel}}</label>
+          <input id="kafkaBootstrapServers" type="text" ng-model="vm.data.model.kafkaBootstrapServers"/>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <controls buttons="vm.buttons" data="vm.data"></controls>
+</div>
