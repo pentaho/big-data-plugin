@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.util.StringUtil;
@@ -85,6 +86,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String PASS = "Pass";
   private static final String WARNING = "Warning";
   private static final String FAIL = "Fail";
+  private static final String NAMED_CLUSTER = "namedCluster";
 
   private Spoon spoon;
   private NamedClusterService namedClusterService;
@@ -100,13 +102,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
-  public JSONObject createNamedCluster( String name, String path, String shimVendor, String shimVersion ) {
-    NamedCluster nc = namedClusterService.getClusterTemplate();
-    JSONObject jsonObject = new JSONObject();
+  public JSONObject importNamedCluster( String name, String path, String shimVendor, String shimVersion ) {
+    JSONObject response = new JSONObject();
     try {
+      NamedCluster nc = namedClusterService.getClusterTemplate();
       nc.setName( name );
       if ( variableSpace != null ) {
-        nc.shareVariablesWith( (VariableSpace) variableSpace );
+        nc.shareVariablesWith( variableSpace );
       } else {
         nc.initializeVariablesFrom( null );
       }
@@ -119,14 +121,47 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         if ( spoon.getShell() != null ) {
           spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
         }
-        jsonObject.put( "namedCluster", nc.getName() );
+        response.put( NAMED_CLUSTER, nc.getName() );
       } else {
-        jsonObject.put( "namedCluster", "" );
+        response.put( NAMED_CLUSTER, "" );
       }
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );
     }
-    return jsonObject;
+    return response;
+  }
+
+  public JSONObject createNamedCluster( ThinNameClusterModel model ) {
+    JSONObject response = new JSONObject();
+    try {
+      NamedCluster nc = namedClusterService.getClusterTemplate();
+
+      nc.setName( model.getName() );
+      nc.setShimIdentifier( model.getShimIdentifier() );
+      nc.setHdfsHost( model.getHdfsHost() );
+      nc.setHdfsPort( model.getHdfsPort() );
+      nc.setHdfsUsername( model.getHdfsUsername() );
+      nc.setHdfsPassword( model.getHdfsPassword() );
+      nc.setJobTrackerHost( model.getJobTrackerHost() );
+      nc.setJobTrackerPort( model.getJobTrackerPort() );
+      nc.setZooKeeperHost( model.getZooKeeperHost() );
+      nc.setZooKeeperPort( model.getZooKeeperPort() );
+      nc.setOozieUrl( model.getOozieUrl() );
+      nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
+
+      if ( variableSpace != null ) {
+        nc.shareVariablesWith( variableSpace );
+      } else {
+        nc.initializeVariablesFrom( null );
+      }
+      saveNamedCluster( metaStore, nc );
+      addConfigProperties( nc );
+      response.put( NAMED_CLUSTER, nc.getName() );
+    } catch ( Exception e ) {
+      logChannel.error( e.getMessage() );
+      response.put( NAMED_CLUSTER, "" );
+    }
+    return response;
   }
 
   private boolean configureNamedCluster( String path, NamedCluster nc, String shimVendor, String shimVersion ) {
@@ -137,6 +172,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     extractProperties( path, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
     extractProperties( path, "hive-site.xml", properties,
         new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
+    extractProperties( path, "oozie-default.xml", properties, new String[] { "oozie.base.url" } );
 
     boolean isConfigurationSet = false;
     /*
@@ -178,15 +214,25 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * hive-site.xml
      * */
     String zooKeeperAddress = properties.get( "hive.zookeeper.quorum" );
-    if ( zooKeeperAddress != null ) {
-      String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
+    String zooKeeperPort = properties.get( "hive.zookeeper.client.port" );
+    if ( zooKeeperAddress != null && zooKeeperPort != null ) {
       nc.setZooKeeperHost( zooKeeperAddress );
       nc.setZooKeeperPort( zooKeeperPort );
       isConfigurationSet = true;
     }
 
-    //Site files do not provide the Oozie URL. Where do we get it?
-    //What about Kafka?
+    /*
+     * Address and port taken from
+     * oozie.base.url
+     * in
+     * oozie-default.xml
+     * */
+    String oozieAddress = properties.get( "oozie.base.url" );
+    if ( oozieAddress != null ) {
+      nc.setOozieUrl( oozieAddress );
+      isConfigurationSet = true;
+    }
+
     return isConfigurationSet;
   }
 
@@ -224,7 +270,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     if ( source.isDirectory() ) {
       File[] files = source.listFiles();
       for ( File file : files ) {
-        if ( file.getName().endsWith( "-site.xml" ) && parseSiteFileDocument( file ) != null ) {
+        if ( ( file.getName().endsWith( "-site.xml" ) || file.getName().endsWith( "-default.xml" ) )
+            && parseSiteFileDocument( file ) != null ) {
           FileUtils.copyFileToDirectory( file, destination );
         }
       }

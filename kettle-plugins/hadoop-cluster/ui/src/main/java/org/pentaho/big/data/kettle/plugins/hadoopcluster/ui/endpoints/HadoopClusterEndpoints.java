@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -31,7 +32,9 @@ import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -68,15 +71,25 @@ public class HadoopClusterEndpoints {
     return Response.ok().build();
   }
 
-  //http://localhost:9051/cxf/hadoop-cluster/newNamedCluster?name=testName&path=
-  @GET @Path( "/newNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response newNamedCluster(
-      @QueryParam( "name" ) String name, @QueryParam( "path" ) String path,
-      @QueryParam( "shim" ) String shim, @QueryParam( "shimVersion" ) String shimVersion ) {
+  //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster?name=testName&shim=cdh514&path=
+  @GET @Path( "/importNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response importNamedCluster(
+      @QueryParam( "name" ) String name, @QueryParam( "path" ) String path, @QueryParam( "shim" ) String shim,
+      @QueryParam( "shimVersion" ) String shimVersion ) {
     HadoopClusterManager
         hadoopClusterManager =
         new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
-    JSONObject result = hadoopClusterManager.createNamedCluster( name, path, shim, shimVersion );
-    return Response.ok( result ).build();
+    JSONObject response = hadoopClusterManager.importNamedCluster( name, path, shim, shimVersion );
+    return Response.ok( response ).build();
+  }
+
+  //http://localhost:9051/cxf/hadoop-cluster/createNamedCluster
+  @POST @Path( "/createNamedCluster" ) @Consumes( { MediaType.APPLICATION_JSON } )
+  @Produces( { MediaType.APPLICATION_JSON } ) public Response createNamedCluster( ThinNameClusterModel model ) {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    JSONObject response = hadoopClusterManager.createNamedCluster( model );
+    return Response.ok( response ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/getShimIdentifiers

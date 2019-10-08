@@ -31,19 +31,17 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.runtime.test.RuntimeTestStatus;
-import org.pentaho.runtime.test.RuntimeTester;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
@@ -75,22 +73,33 @@ public class HadoopClusterManagerTest {
     when( namedCluster.getName() ).thenReturn( ncTestName );
   }
 
-  @Test public void testCreateNamedCluster() {
+  @Test public void testImportNamedCluster() {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     JSONObject
         result =
-        hadoopClusterManager.createNamedCluster( ncTestName, "src/test/resources", "Claudera", "5.14" );
-    assertEquals( result.get( "namedCluster" ), ncTestName );
+        hadoopClusterManager.importNamedCluster( ncTestName, "src/test/resources", "Claudera", "5.14" );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
     assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
+    assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
+  }
+
+  @Test public void testCreateNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    JSONObject
+        result =
+        hadoopClusterManager.createNamedCluster( model );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
 
   @Test public void testFailNamedCluster() {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     JSONObject
         result =
-        hadoopClusterManager.createNamedCluster( ncTestName, "src/test/resources/bad", "Claudera", "5.14" );
+        hadoopClusterManager.importNamedCluster( ncTestName, "src/test/resources/bad", "Claudera", "5.14" );
     assertEquals( "", result.get( "namedCluster" ) );
   }
 
