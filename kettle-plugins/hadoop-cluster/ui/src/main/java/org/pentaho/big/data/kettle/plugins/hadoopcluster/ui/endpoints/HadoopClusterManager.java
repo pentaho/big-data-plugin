@@ -137,7 +137,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       NamedCluster nc = namedClusterService.getClusterTemplate();
 
       nc.setName( model.getName() );
-      nc.setShimIdentifier( model.getShimIdentifier() );
       nc.setHdfsHost( model.getHdfsHost() );
       nc.setHdfsPort( model.getHdfsPort() );
       nc.setHdfsUsername( model.getHdfsUsername() );
@@ -148,6 +147,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setZooKeeperPort( model.getZooKeeperPort() );
       nc.setOozieUrl( model.getOozieUrl() );
       nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
+      resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
 
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
@@ -165,7 +165,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private boolean configureNamedCluster( String path, NamedCluster nc, String shimVendor, String shimVersion ) {
-    resolveNamedClusterId( nc, shimVendor, shimVersion );
+    resolveShimIdentifier( nc, shimVendor, shimVersion );
 
     Map<String, String> properties = new HashMap();
     extractProperties( path, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
@@ -236,7 +236,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return isConfigurationSet;
   }
 
-  private void resolveNamedClusterId( NamedCluster nc, String shimVendor, String shimVersion ) {
+  private void resolveShimIdentifier( NamedCluster nc, String shimVendor, String shimVersion ) {
     List<ShimIdentifierInterface> shims = getShimIdentifiers();
     for ( ShimIdentifierInterface shim : shims ) {
       if ( shim.getVendor().equals( shimVendor ) && shim.getVersion().equals( shimVersion ) ) {
