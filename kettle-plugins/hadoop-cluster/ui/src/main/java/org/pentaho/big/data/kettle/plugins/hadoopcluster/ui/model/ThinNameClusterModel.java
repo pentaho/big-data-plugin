@@ -24,7 +24,8 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model;
 
 public class ThinNameClusterModel {
   private String name;
-  private String shimIdentifier;
+  private String shimVendor;
+  private String shimVersion;
   private String hdfsHost;
   private String hdfsPort;
   private String hdfsUsername;
@@ -35,6 +36,22 @@ public class ThinNameClusterModel {
   private String zooKeeperPort;
   private String oozieUrl;
   private String kafkaBootstrapServers;
+
+  public String getShimVendor() {
+    return shimVendor;
+  }
+
+  public void setShimVendor( String shimVendor ) {
+    this.shimVendor = shimVendor;
+  }
+
+  public String getShimVersion() {
+    return shimVersion;
+  }
+
+  public void setShimVersion( String shimVersion ) {
+    this.shimVersion = shimVersion;
+  }
 
   public String getHdfsHost() {
     return hdfsHost;
@@ -106,14 +123,6 @@ public class ThinNameClusterModel {
 
   public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
     this.kafkaBootstrapServers = kafkaBootstrapServers;
-  }
-
-  public String getShimIdentifier() {
-    return shimIdentifier;
-  }
-
-  public void setShimIdentifier( String shimIdentifier ) {
-    this.shimIdentifier = shimIdentifier;
   }
 
   public String getName() {
