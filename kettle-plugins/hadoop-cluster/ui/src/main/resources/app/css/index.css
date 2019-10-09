@@ -137,7 +137,8 @@ button.activate {
 /*
 * INPUTS
 */
-input[type="text"]{
+input[type="text"],
+input[type="password"]{
   height: 36px;
   padding-left: 5px;
   color: #333333;

@@ -1,0 +1,106 @@
+.new-edit-main {
+  padding: 30px;
+  min-width: 545px;
+  height: calc(100% - 60px);
+}
+
+.new-edit-middle {
+  min-width: 392px;
+  padding: 0px 99px;
+  height: calc(100% - 129px)
+}
+
+.scroll-form {
+  overflow-y: auto;
+  height: calc(100% - 94px)
+}
+
+textarea {
+  height: 75px;
+}
+
+.auto_overflow {
+  overflow: auto;
+}
+
+.cluster-name {
+  padding-right: 15px;
+}
+
+.leftHalf {
+  width: 45%;
+  float: left;
+}
+
+.rightHalf{
+  width: 45%;
+  float: right;
+}
+
+.left-half {
+  width: 50%;
+  float: left;
+}
+
+.right-half{
+  width: 50%;
+  float: right;
+}
+
+.hostname {
+  overflow: hidden;
+  padding-right: 10px;
+  margin-bottom:5px;
+}
+
+.port {
+  float: right;
+  margin-bottom: 5px;
+}
+
+.port-input {
+  width: 55px;
+  float: right;
+}
+
+.hostname-input {
+  overflow:hidden;
+}
+
+fieldset {
+  margin-bottom: 15px;
+  border: 1px solid #d7d7d7;
+  border-radius: 4px;
+  padding: 10px 0px 10px 10px;
+  clear: both;
+  overflow: hidden;
+  margin-inline-start: 0px;
+}
+
+legend {
+  padding: 2px;
+  font-family: OpenSansRegular;
+  font-size: 14px;
+  color: #666666;
+}
+
+.import-shim {
+  height: 60px;
+  padding-right:2px;
+}
+
+.variable {
+  height: 16px;
+  padding-top: 35px;
+  float: right;
+  padding-right: 10px;
+}
+
+input {
+  overflow: hidden;
+}
+
+.username, .password {
+  overflow: hidden;
+  margin-right: 26px;
+}

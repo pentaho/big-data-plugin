@@ -35,16 +35,8 @@ public class HadoopClusterDelegate {
   private static final int WIDTH = 630;
   private static final int HEIGHT = 650;
 
-  public void openDialog() {
-    HadoopClusterDialog
-      hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.new.title" ) );
+  public void openDialog( String thinAppState ) {
+    HadoopClusterDialog hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
+    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.title" ), thinAppState );
   }
-
-  public void openDialog( String label ) {
-    HadoopClusterDialog
-      hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.edit.title" ), label );
-  }
-
 }

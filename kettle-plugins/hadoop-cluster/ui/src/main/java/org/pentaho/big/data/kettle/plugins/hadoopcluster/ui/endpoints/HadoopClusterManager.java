@@ -156,6 +156,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       saveNamedCluster( metaStore, nc );
       addConfigProperties( nc );
+      if ( spoon.getShell() != null ) {
+        spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+      }
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );

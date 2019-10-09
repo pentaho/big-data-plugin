@@ -49,6 +49,9 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
 
   private static final Class<?> PKG = HadoopClusterPopupMenuExtension.class;
 
+  public static final String IMPORT_STATE = "import";
+  public static final String NEW_EDIT_STATE = "new-edit";
+
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
   private HadoopClusterDelegate hadoopClusterDelegate;
@@ -80,12 +83,21 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private Menu createRootPopupMenu( Tree tree ) {
     if ( rootMenu == null ) {
       rootMenu = new Menu( tree );
-      MenuItem menuItem = new MenuItem( rootMenu, SWT.NONE );
-      menuItem.setText( BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ) );
-      menuItem.addSelectionListener( new SelectionAdapter() {
+      MenuItem newCluster = new MenuItem( rootMenu, SWT.NONE );
+      newCluster.setText( BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ) );
+      newCluster.addSelectionListener( new SelectionAdapter() {
         @Override
         public void widgetSelected( SelectionEvent selectionEvent ) {
-          hadoopClusterDelegate.openDialog();
+          hadoopClusterDelegate.openDialog( NEW_EDIT_STATE );
+        }
+      } );
+
+      MenuItem importCluster = new MenuItem( rootMenu, SWT.NONE );
+      importCluster.setText( BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ) );
+      importCluster.addSelectionListener( new SelectionAdapter() {
+        @Override
+        public void widgetSelected( SelectionEvent selectionEvent ) {
+          hadoopClusterDelegate.openDialog( IMPORT_STATE );
         }
       } );
     }

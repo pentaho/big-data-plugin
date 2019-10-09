@@ -15,9 +15,9 @@
  */
 
 define([
-  'text!./hadoopCluster.html',
+  'text!./newEdit.html',
   'pentaho/i18n-osgi!hadoopCluster.messages',
-  'css!./hadoopCluster.css'
+  'css!./newEdit.css'
 ], function (template, i18n) {
 
   'use strict';
@@ -26,31 +26,41 @@ define([
     bindings: {},
     controllerAs: "vm",
     template: template,
-    controller: hadoopClusterController
+    controller: newEditController
   };
 
-  hadoopClusterController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
+  newEditController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
 
-  function hadoopClusterController($location, $state, $q, $stateParams, dataService) {
+  function newEditController($location, $state, $q, $stateParams, dataService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelectShim = onSelectShim;
     vm.onSelectShimVersion = onSelectShimVersion;
     vm.validateName = validateName;
-    vm.onBrowse = onBrowse;
-    vm.checkConfigurationPath = checkConfigurationPath;
     vm.getShimVersions = getShimVersions;
+
+    vm.variableImage = "img/variable.svg";
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
 
-      vm.header = i18n.get('hadoop.cluster.header');
+      vm.header = i18n.get('new.header');
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
-      vm.importFolderLabel = i18n.get('hadoop.cluster.folder.label');
-      vm.importFolderPlaceholder = i18n.get('hadoop.cluster.folder.placeholder');
-      vm.importFolderButtonLabel = i18n.get('hadoop.cluster.folder.button');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
+
+      vm.hdfsLabel = i18n.get('new.edit.hdfs.label');
+      vm.hostnameLabel = i18n.get('new.edit.hostname.label');
+      vm.portLabel = i18n.get('new.edit.port.label');
+      vm.usernameLabel = i18n.get('new.edit.username.label');
+      vm.passwordLabel = i18n.get('new.edit.password.label');
+      vm.jobTrackerLabel = i18n.get('new.edit.job.tracker.label');
+      vm.zooKeeperLabel = i18n.get('new.edit.zoo.keeper.label');
+      vm.oozieLabel = i18n.get('new.edit.oozie.label');
+      vm.kafkaLabel = i18n.get('new.edit.kafka.label');
+      vm.bootstrapServerLabel = i18n.get('new.edit.bootstrap.server.label');
+
+      setDialogTitle(i18n.get('hadoop.cluster.title'));
 
       dataService.getShimIdentifiers().then(function (res) {
         vm.shimVersionJson = res.data;
@@ -63,17 +73,27 @@ define([
         vm.shimNames = shimNames;
 
         if ($stateParams.data) {
+          //TODO: implement edit
           vm.shimName = vm.data.model.shimName;
           vm.shimVersions = getShimVersions(vm.shimName);
           vm.shimVersion = vm.data.model.shimVersion;
         } else {
-          setDialogTitle(i18n.get('hadoop.cluster.title'));
           vm.data = {
             model: {
               clusterName: "",
-              configPath: "",
               shimName: "",
               shimVersion: "",
+              hdfsHostname: "localhost",
+              hdfsPort: "8020",
+              hdfsUsername: "",
+              hdfsPassword: "",
+              jobTrackerHostname: "localhost",
+              jobTrackerPort: "8032",
+              zooKeeperHostname: "localhost",
+              zooKeeperPort: "2181",
+              oozieHostname: "http://localhost:8080/oozie",
+              kafkaBootstrapServers: "",
+              type: "new",
               created: false
             }
           };
@@ -115,21 +135,6 @@ define([
       vm.data.model.shimVersion = option;
     }
 
-    function onBrowse() {
-      try {
-        var path = browse("folder", vm.data.model.configPath);
-        if (path) {
-          vm.data.model.configPath = path;
-        }
-      } catch (e) {
-        vm.data.model.configPath = "/";
-      }
-    }
-
-    function checkConfigurationPath() {
-      //TODO: validation
-    }
-
     function validateName() {
       //TODO: implement
       return $q(function (resolve) {
@@ -151,7 +156,7 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configPath;
+            return !vm.data.model || !vm.data.model.clusterName;
           },
           position: "right",
           onClick: function () {
@@ -174,7 +179,7 @@ define([
   }
 
   return {
-    name: "hadoopCluster",
+    name: "newEdit",
     options: options
   };
 
