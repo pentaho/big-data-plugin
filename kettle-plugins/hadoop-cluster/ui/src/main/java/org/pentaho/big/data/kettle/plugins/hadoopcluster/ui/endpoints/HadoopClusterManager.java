@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
+import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.util.StringUtil;
@@ -308,7 +309,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             + "config.properties" );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
-    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( sampleConfigProperties );
+    InputStream inputStream = HadoopClusterDelegateImpl.class.getClassLoader().getResourceAsStream( sampleConfigProperties );
     if ( inputStream != null ) {
       Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
     }
