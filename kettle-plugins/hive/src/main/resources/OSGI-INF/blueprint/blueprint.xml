@@ -8,6 +8,8 @@
   <bean id="hive2DatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.Hive2DatabaseMeta" scope="prototype">
     <pen:di-plugin type="org.pentaho.di.core.plugins.DatabasePluginType"/>
     <argument ref="driverLocator"/>
+    <argument ref="namedClusterManager"/>
+    <argument ref="metastoreLocator"/>
   </bean>
 
   <!--<bean id="hive2SimbaDatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.Hive2SimbaDatabaseMeta" scope="prototype">
@@ -22,19 +24,27 @@
   <bean id="impalaDatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.ImpalaDatabaseMeta" scope="prototype">
     <pen:di-plugin type="org.pentaho.di.core.plugins.DatabasePluginType"/>
     <argument ref="driverLocator"/>
+    <argument ref="namedClusterManager"/>
+    <argument ref="metastoreLocator"/>
   </bean>
 
   <bean id="impalaSimbaDatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.ImpalaSimbaDatabaseMeta" scope="prototype">
     <pen:di-plugin type="org.pentaho.di.core.plugins.DatabasePluginType"/>
     <argument ref="driverLocator"/>
+    <argument ref="namedClusterManager"/>
+    <argument ref="metastoreLocator"/>
   </bean>
 
   <bean id="sparkSimbaDatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.SparkSimbaDatabaseMeta" scope="prototype">
     <pen:di-plugin type="org.pentaho.di.core.plugins.DatabasePluginType"/>
     <argument ref="driverLocator"/>
+    <argument ref="namedClusterManager"/>
+    <argument ref="metastoreLocator"/>
   </bean>
 
   <reference id="driverLocator" interface="org.pentaho.hadoop.shim.api.jdbc.DriverLocator"/>
+  <reference id="namedClusterManager" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
+  <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>
 
   <!--<bean id="hive2DatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2DatabaseDialect"/>
   <bean id="hive2SimbaDatabaseDialect" class="org.pentaho.big.data.kettle.plugins.hive.Hive2SimbaDatabaseDialect"/>

@@ -65,7 +65,7 @@ public class ImpalaDatabaseMetaTest {
 
   @Before
   public void setup() throws Throwable {
-    impalaDatabaseMeta = new ImpalaDatabaseMeta( driverLocator );
+    impalaDatabaseMeta = new ImpalaDatabaseMeta( driverLocator, null, null );
     impalaDatabaseMetaURL = impalaDatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
     when( driverLocator.getDriver( impalaDatabaseMetaURL ) ).thenReturn( driver );
   }

@@ -24,9 +24,12 @@ package org.pentaho.big.data.kettle.plugins.hive;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 @DatabaseMetaPlugin( type = "IMPALASIMBA", typeDescription = "Cloudera Impala" )
 public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
@@ -37,8 +40,9 @@ public class ImpalaSimbaDatabaseMeta extends BaseSimbaDatabaseMeta {
   protected static final int DEFAULT_PORT = 21050;
   protected static final String SOCKET_TIMEOUT_OPTION = "SocketTimeout";
 
-  public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator ) {
-    super( driverLocator );
+  public ImpalaSimbaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
+                                  MetastoreLocator metastoreLocator ) {
+    super( driverLocator, namedClusterService,  metastoreLocator );
   }
 
   @Override protected String getJdbcPrefix() {
