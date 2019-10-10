@@ -115,6 +115,7 @@
         <include>org.apache.commons:commons-compress</include>
         <include>org.apache.karaf:org.apache.karaf.main</include>
         <include>org.apache.karaf.jaas:org.apache.karaf.jaas.boot</include>
+        <include>org.apache.karaf.diagnostic:org.apache.karaf.diagnostic.boot</include>
         <include>org.apache.poi:poi</include>
         <include>org.apache.poi:poi-ooxml</include>
         <include>org.apache.poi:poi-ooxml-schemas</include>
