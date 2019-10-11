@@ -48,7 +48,8 @@ define([
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
-
+      vm.browseType = "folder";
+      vm.importFolderLabel = i18n.get('new.edit.folder.label.optional');
       vm.hdfsLabel = i18n.get('new.edit.hdfs.label');
       vm.hostnameLabel = i18n.get('new.edit.hostname.label');
       vm.portLabel = i18n.get('new.edit.port.label');
@@ -83,6 +84,7 @@ define([
               clusterName: "",
               shimName: "",
               shimVersion: "",
+              importPath: "",
               hdfsHostname: "localhost",
               hdfsPort: "8020",
               hdfsUsername: "",

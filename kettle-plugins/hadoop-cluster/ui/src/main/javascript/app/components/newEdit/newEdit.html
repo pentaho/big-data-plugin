@@ -16,6 +16,9 @@
           <select-box id="shimVersion" type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></select-box>
         </div>
       </div>
+      <div class="margin_bottom_20">
+        <browse-local type="vm.browseType" label="vm.importFolderLabel" model="vm.data.model.importPath" validation="vm.checkConfigurationPath()"></browse-local>
+      </div>
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.hdfsLabel}}</legend>
         <div class="margin_bottom_15">
@@ -25,7 +28,7 @@
             <input id="hdfsPort" type="text" ng-model="vm.data.model.hdfsPort"/>
           </div>
           <img class="variable" ng-src="{{::vm.variableImage}}"/>
-          <div class="hostname-input">
+          <div class="fill-remaining">
             <label for="hdfsHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
             <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHostname"/>
           </div>
@@ -50,15 +53,15 @@
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.jobTrackerLabel}}</legend>
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
-          <div class="port-input">
-            <label for="jobTrackerPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
-            <input id="jobTrackerPort" type="text" ng-model="vm.data.model.jobTrackerPort"/>
-          </div>
-          <img class="variable" ng-src="{{::vm.variableImage}}"/>
-          <div class="hostname-input">
-            <label for="jobTrackerHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-            <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHostname"/>
-          </div>
+        <div class="port-input">
+          <label for="jobTrackerPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+          <input id="jobTrackerPort" type="text" ng-model="vm.data.model.jobTrackerPort"/>
+        </div>
+        <img class="variable" ng-src="{{::vm.variableImage}}"/>
+        <div class="fill-remaining">
+          <label for="jobTrackerHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+          <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHostname"/>
+        </div>
       </fieldset>
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.zooKeeperLabel}}</legend>
@@ -68,7 +71,7 @@
           <input id="zooKeeperPort" type="text" ng-model="vm.data.model.zooKeeperPort"/>
         </div>
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="hostname-input">
+        <div class="fill-remaining">
           <label for="zooKeeperHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
           <input id="zooKeeperHostname" type="text" ng-model="vm.data.model.zooKeeperHostname"/>
         </div>
@@ -76,7 +79,7 @@
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.oozieLabel}}</legend>
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="hostname-input">
+        <div class="fill-remaining">
           <label for="oozieHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
           <input id="oozieHostname" type="text" ng-model="vm.data.model.oozieHostname"/>
         </div>
@@ -84,7 +87,7 @@
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.kafkaLabel}}</legend>
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="hostname-input">
+        <div class="fill-remaining">
           <label for="kafkaBootstrapServers" class="margin_bottom_5 text_left">{{::vm.bootstrapServerLabel}}</label>
           <input id="kafkaBootstrapServers" type="text" ng-model="vm.data.model.kafkaBootstrapServers"/>
         </div>

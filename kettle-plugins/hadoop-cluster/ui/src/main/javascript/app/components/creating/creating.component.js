@@ -48,6 +48,7 @@ define([
                 name: vm.data.model.clusterName,
                 shimVendor: vm.data.model.shimName,
                 shimVersion: vm.data.model.shimVersion,
+                importPath: encodeURIComponent(vm.data.model.importPath),
                 hdfsHost: vm.data.model.hdfsHostname,
                 hdfsPort: vm.data.model.hdfsPort,
                 hdfsUsername: vm.data.model.hdfsUsername,
@@ -60,12 +61,17 @@ define([
                 kafkaBootstrapServers: vm.data.model.kafkaBootstrapServers
             };
             dataService.createNamedCluster(thinNameClusterModel)
-            .then(function (res) {
-              return processResultAndTest(res);
-            });
+            .then(
+              function (res) {
+                return processResultAndTest(res);
+              },
+              function (error) {
+                vm.data.model.created = false;
+                $state.go("status", {data: vm.data});
+              });
             break;
           case "import":
-            dataService.importNamedCluster(vm.data.model.clusterName, vm.data.model.configPath, vm.data.model.shimName,
+            dataService.importNamedCluster(vm.data.model.clusterName, encodeURIComponent(vm.data.model.importPath), vm.data.model.shimName,
               vm.data.model.shimVersion)
             .then(function (res) {
               return processResultAndTest(res);

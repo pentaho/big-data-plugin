@@ -62,7 +62,7 @@ define(
 
         function importNamedCluster(name, path, shim, shimVersion) {
           return helperService.httpGet([baseUrl, "importNamedCluster"].join("/") + "?name=" + name +
-            "&shim=" + shim + "&shimVersion=" + shimVersion + "&path=" + encodeURIComponent(path));
+            "&shim=" + shim + "&shimVersion=" + shimVersion + "&path=" + path);
         }
 
         function getShimIdentifiers() {

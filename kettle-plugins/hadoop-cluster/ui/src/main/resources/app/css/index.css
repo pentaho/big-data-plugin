@@ -13,9 +13,9 @@ body {
   min-width: 545px;
 }
 
-.middle_hadoop_div {
-  width: 392px;
-  margin: auto;
+.middle_hadoop_div, .new-edit-middle {
+  min-width: 392px;
+  padding:0px 80px;
 }
 
 /*
@@ -199,4 +199,8 @@ hr {
   top: 0;
   width: 100%;
   height: 100%;
+}
+
+.fill-remaining {
+  overflow:hidden;
 }
