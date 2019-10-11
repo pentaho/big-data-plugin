@@ -37,18 +37,14 @@ define([
     vm.onSelectShim = onSelectShim;
     vm.onSelectShimVersion = onSelectShimVersion;
     vm.validateName = validateName;
-    vm.onBrowse = onBrowse;
-    vm.checkConfigurationPath = checkConfigurationPath;
     vm.getShimVersions = getShimVersions;
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
-
+      vm.browseType = "folder";
       vm.header = i18n.get('import.header');
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
       vm.importFolderLabel = i18n.get('import.folder.label');
-      vm.importFolderPlaceholder = i18n.get('import.folder.placeholder');
-      vm.importFolderButtonLabel = i18n.get('import.folder.button');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
 
@@ -72,7 +68,7 @@ define([
           vm.data = {
             model: {
               clusterName: "",
-              configPath: "",
+              importPath: "",
               shimName: "",
               shimVersion: "",
               type: "import",
@@ -117,20 +113,7 @@ define([
       vm.data.model.shimVersion = option;
     }
 
-    function onBrowse() {
-      try {
-        var path = browse("folder", vm.data.model.configPath);
-        if (path) {
-          vm.data.model.configPath = path;
-        }
-      } catch (e) {
-        vm.data.model.configPath = "/";
-      }
-    }
 
-    function checkConfigurationPath() {
-      //TODO: validation
-    }
 
     function validateName() {
       //TODO: implement
@@ -153,7 +136,7 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.configPath;
+            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.importPath;
           },
           position: "right",
           onClick: function () {

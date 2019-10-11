@@ -6,11 +6,7 @@
       <input id="clusterName" type="text" ng-model="vm.data.model.clusterName" autofocus/>
     </div>
     <div class="margin_bottom_20">
-      <label for="configPath" class="margin_bottom_10 text_left">{{::vm.importFolderLabel}}</label>
-      <div class="file-input auto_overflow">
-        <input id="configPath" type="text" size="50" ng-keyup="vm.checkConfigurationPath()" ng-model="vm.data.model.configPath" ng-attr-placeholder="{{vm.importFolderPlaceholder}}">
-        <button class="primary browse" ng-click="vm.onBrowse()">{{vm.importFolderButtonLabel}}</button>
-      </div>
+      <browse-local type="vm.browseType" label="vm.importFolderLabel" model="vm.data.model.importPath"></browse-local>
     </div>
     <div class="margin_bottom_15">
       <div class="leftHalf">
@@ -23,7 +19,5 @@
       </div>
     </div>
   </div>
-
   <controls buttons="vm.buttons" data="vm.data"></controls>
-
 </div>

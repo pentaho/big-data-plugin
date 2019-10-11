@@ -5,26 +5,21 @@
 }
 
 .new-edit-middle {
-  min-width: 392px;
-  padding: 0px 99px;
-  height: calc(100% - 129px)
+  height: calc(100% - 129px);
 }
 
 .scroll-form {
   overflow-y: auto;
-  height: calc(100% - 94px)
+  height: calc(100% - 94px);
+  padding-right: 4px;
 }
 
 textarea {
   height: 75px;
 }
 
-.auto_overflow {
-  overflow: auto;
-}
-
 .cluster-name {
-  padding-right: 15px;
+  padding-right: 17px;
 }
 
 .leftHalf {
@@ -63,10 +58,6 @@ textarea {
   float: right;
 }
 
-.hostname-input {
-  overflow:hidden;
-}
-
 fieldset {
   margin-bottom: 15px;
   border: 1px solid #d7d7d7;
@@ -75,6 +66,7 @@ fieldset {
   clear: both;
   overflow: hidden;
   margin-inline-start: 0px;
+  margin-inline-end: 0px;
 }
 
 legend {
@@ -86,7 +78,6 @@ legend {
 
 .import-shim {
   height: 60px;
-  padding-right:2px;
 }
 
 .variable {

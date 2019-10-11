@@ -1,0 +1,7 @@
+<label for="path" class="margin_bottom_10 text_left">{{::vm.label}}</label>
+<div class="file-input">
+  <button class="primary browse" ng-click="vm.onBrowse()">{{vm.browseLabel}}</button>
+  <div class="fill-remaining">
+    <input id="path" type="text" size="50" ng-keyup="vm.validation()" ng-model="vm.model" ng-attr-placeholder="{{vm.placeholder}}">
+  </div>
+</div>

@@ -30,6 +30,7 @@ define([
   "./components/status/status.component",
   "./components/testResults/testResults.component",
   "./components/selectBox/selectBox.component",
+  "./components/browseLocal/browseLocal.component",
   "./components/accordianItem/accordianItem.component",
   "./components/controls/controls.component",
   "./components/help/help.component",
@@ -38,7 +39,7 @@ define([
   "./service/data.service",
   "angular-ui-router",
   "angular-animate"
-], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent, statusComponent, testResultsComponent, selectBoxComponent, browseLocalComponent, accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -65,6 +66,7 @@ define([
         .component(statusComponent.name, statusComponent.options)
         .component(testResultsComponent.name, testResultsComponent.options)
         .component(selectBoxComponent.name, selectBoxComponent.options)
+        .component(browseLocalComponent.name, browseLocalComponent.options)
         .component(accordianItemComponent.name, accordianItemComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
         .component(helpComponent.name, helpComponent.options)
