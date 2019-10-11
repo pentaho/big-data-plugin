@@ -82,7 +82,7 @@
         <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.pentaho</groupId>
+      <groupId>org.pentaho.hadoop.shims</groupId>
       <artifactId>pentaho-hadoop-shims-common-fragment-V1</artifactId>
       <version>${pentaho-hadoop-shims.version}</version>
       <scope>test</scope>
