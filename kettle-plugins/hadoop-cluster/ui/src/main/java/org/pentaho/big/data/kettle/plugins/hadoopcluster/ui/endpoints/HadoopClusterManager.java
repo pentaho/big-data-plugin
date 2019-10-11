@@ -61,6 +61,7 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
@@ -103,8 +104,17 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
-  public JSONObject importNamedCluster( String name, String path, String shimVendor, String shimVersion ) {
+  private File processImportPath( String importPath ) throws UnsupportedEncodingException {
+    if ( !StringUtil.isEmpty( importPath ) ) {
+      importPath = URLDecoder.decode( importPath, "UTF-8" );
+      return new File( importPath );
+    }
+    return new File( "" );
+  }
+
+  public JSONObject importNamedCluster( String name, String importPath, String shimVendor, String shimVersion ) {
     JSONObject response = new JSONObject();
+    response.put( NAMED_CLUSTER, "" );
     try {
       NamedCluster nc = namedClusterService.getClusterTemplate();
       nc.setName( name );
@@ -113,18 +123,19 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       } else {
         nc.initializeVariablesFrom( null );
       }
-      path = URLDecoder.decode( path, "UTF-8" );
-      boolean isConfigurationSet = configureNamedCluster( path, nc, shimVendor, shimVersion );
-      if ( isConfigurationSet ) {
-        saveNamedCluster( metaStore, nc );
-        addConfigProperties( nc );
-        installSiteFiles( path, nc );
-        if ( spoon.getShell() != null ) {
-          spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+
+      File importPathFile = processImportPath( importPath );
+      if ( importPathFile.exists() ) {
+        boolean isConfigurationSet = configureNamedCluster( importPathFile, nc, shimVendor, shimVersion );
+        if ( isConfigurationSet ) {
+          saveNamedCluster( metaStore, nc );
+          addConfigProperties( nc );
+          installSiteFiles( importPathFile, nc );
+          if ( spoon.getShell() != null ) {
+            spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+          }
+          response.put( NAMED_CLUSTER, nc.getName() );
         }
-        response.put( NAMED_CLUSTER, nc.getName() );
-      } else {
-        response.put( NAMED_CLUSTER, "" );
       }
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );
@@ -157,6 +168,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       saveNamedCluster( metaStore, nc );
       addConfigProperties( nc );
+      File importPath = processImportPath( model.getImportPath() );
+      if ( importPath.exists() ) {
+        installSiteFiles( importPath, nc );
+      }
       if ( spoon.getShell() != null ) {
         spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
       }
@@ -168,15 +183,15 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return response;
   }
 
-  private boolean configureNamedCluster( String path, NamedCluster nc, String shimVendor, String shimVersion ) {
+  private boolean configureNamedCluster( File importPath, NamedCluster nc, String shimVendor, String shimVersion ) {
     resolveShimIdentifier( nc, shimVendor, shimVersion );
 
     Map<String, String> properties = new HashMap();
-    extractProperties( path, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
-    extractProperties( path, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
-    extractProperties( path, "hive-site.xml", properties,
+    extractProperties( importPath, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
+    extractProperties( importPath, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
+    extractProperties( importPath, "hive-site.xml", properties,
         new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
-    extractProperties( path, "oozie-default.xml", properties, new String[] { "oozie.base.url" } );
+    extractProperties( importPath, "oozie-default.xml", properties, new String[] { "oozie.base.url" } );
 
     boolean isConfigurationSet = false;
     /*
@@ -249,8 +264,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void extractProperties( String path, String fileName, Map<String, String> properties, String[] keys ) {
-    Document document = parseSiteFileDocument( new File( path + fileSeparator + fileName ) );
+  private void extractProperties( File importPath, String fileName, Map<String, String> properties, String[] keys ) {
+    Document document = parseSiteFileDocument( new File( importPath, fileName ) );
     if ( document != null ) {
       XPathFactory xpathFactory = XPathFactory.newInstance();
       XPath xpath = xpathFactory.newXPath();
@@ -268,8 +283,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void installSiteFiles( String path, NamedCluster nc ) throws IOException {
-    File source = new File( path );
+  private void installSiteFiles( File source, NamedCluster nc ) throws IOException {
     File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
     if ( source.isDirectory() ) {
       File[] files = source.listFiles();
@@ -309,7 +323,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             + "config.properties" );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
-    InputStream inputStream = HadoopClusterDelegateImpl.class.getClassLoader().getResourceAsStream( sampleConfigProperties );
+    InputStream
+        inputStream =
+        HadoopClusterDelegateImpl.class.getClassLoader().getResourceAsStream( sampleConfigProperties );
     if ( inputStream != null ) {
       Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
     }
