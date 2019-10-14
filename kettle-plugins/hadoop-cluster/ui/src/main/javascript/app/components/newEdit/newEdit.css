@@ -32,16 +32,6 @@ textarea {
   float: right;
 }
 
-.left-half {
-  width: 50%;
-  float: left;
-}
-
-.right-half{
-  width: 50%;
-  float: right;
-}
-
 .hostname {
   overflow: hidden;
   padding-right: 10px;
@@ -89,9 +79,4 @@ legend {
 
 input {
   overflow: hidden;
-}
-
-.username, .password {
-  overflow: hidden;
-  margin-right: 26px;
 }

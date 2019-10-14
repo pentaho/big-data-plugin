@@ -23,7 +23,7 @@ controls .bottom .rightPane {
   width: 33%;
 }
 
-controls .bottom .rightPane>button {
+controls .bottom .rightPane > button {
   margin-left: 10px;
 }
 

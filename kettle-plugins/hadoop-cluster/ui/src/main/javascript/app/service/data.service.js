@@ -23,54 +23,53 @@
  * @property {String} name The name of the module.
  */
 define(
-    [],
-    function () {
-      "use strict";
+  [],
+  function () {
+    "use strict";
 
-      var factoryArray = ["helperService", factory];
-      var module = {
-        name: "dataService",
-        factory: factoryArray
+    var factoryArray = ["helperService", factory];
+    var module = {
+      name: "dataService",
+      factory: factoryArray
+    };
+
+    return module;
+
+    /**
+     * The dataService factory
+     *
+     * @param {Object} $http - The $http angular helper service
+     *
+     * @return {Object} The dataService api
+     */
+    function factory(helperService) {
+      var baseUrl = "/cxf/hadoop-cluster";
+      return {
+        help: help,
+        importNamedCluster: importNamedCluster,
+        createNamedCluster: createNamedCluster,
+        getShimIdentifiers: getShimIdentifiers,
+        runTests: runTests
       };
 
-      return module;
-
-      /**
-       * The dataService factory
-       *
-       * @param {Object} $http - The $http angular helper service
-       *
-       * @return {Object} The dataService api
-       */
-      function factory(helperService) {
-        var baseUrl = "/cxf/hadoop-cluster";
-        return {
-          help: help,
-          importNamedCluster: importNamedCluster,
-          createNamedCluster: createNamedCluster,
-          getShimIdentifiers: getShimIdentifiers,
-          runTests: runTests
-        };
-
-        function help() {
-          return helperService.httpGet([baseUrl, "help"].join("/"));
-        }
-
-        function createNamedCluster(data) {
-          return helperService.httpPost([baseUrl, "createNamedCluster"].join("/"), data );
-        }
-
-        function importNamedCluster(name, path, shim, shimVersion) {
-          return helperService.httpGet([baseUrl, "importNamedCluster"].join("/") + "?name=" + name +
-            "&shim=" + shim + "&shimVersion=" + shimVersion + "&path=" + path);
-        }
-
-        function getShimIdentifiers() {
-          return helperService.httpGet([baseUrl, "getShimIdentifiers"].join("/"));
-        }
-
-        function runTests(name) {
-          return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + name);
-        }
+      function help() {
+        return helperService.httpGet([baseUrl, "help"].join("/"));
       }
-    });
+
+      function createNamedCluster(data) {
+        return helperService.httpPost([baseUrl, "createNamedCluster"].join("/"), data);
+      }
+
+      function importNamedCluster(data) {
+        return helperService.httpPost([baseUrl, "importNamedCluster"].join("/"), data);
+      }
+
+      function getShimIdentifiers() {
+        return helperService.httpGet([baseUrl, "getShimIdentifiers"].join("/"));
+      }
+
+      function runTests(name) {
+        return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + name);
+      }
+    }
+  });

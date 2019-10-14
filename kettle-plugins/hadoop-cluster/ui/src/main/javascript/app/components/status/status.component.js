@@ -71,7 +71,7 @@ define([
     }
 
     function getOverallStatus() {
-      if(vm.data.model.created === false) {
+      if (vm.data.model.created === false) {
         return "import.fail";
       }
 

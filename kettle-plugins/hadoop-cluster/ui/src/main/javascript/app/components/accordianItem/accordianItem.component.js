@@ -24,7 +24,7 @@ define([
 
   var options = {
     bindings: {
-      testCategory:"<"
+      testCategory: "<"
     },
     controllerAs: "vm",
     template: template,

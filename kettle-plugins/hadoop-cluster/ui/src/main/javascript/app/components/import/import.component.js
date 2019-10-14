@@ -71,6 +71,8 @@ define([
               importPath: "",
               shimName: "",
               shimVersion: "",
+              hdfsUsername: "",
+              hdfsPassword: "",
               type: "import",
               created: false
             }
@@ -112,8 +114,6 @@ define([
     function onSelectShimVersion(option) {
       vm.data.model.shimVersion = option;
     }
-
-
 
     function validateName() {
       //TODO: implement

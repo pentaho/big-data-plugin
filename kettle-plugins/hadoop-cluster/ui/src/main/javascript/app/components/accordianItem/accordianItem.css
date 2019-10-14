@@ -27,9 +27,11 @@
 .accordian-body-pass {
   border-left: 2px solid #0cb20f;
 }
+
 .accordian-body-fail {
   border-left: 2px solid #ff0000;
 }
+
 .accordian-body-warning {
   border-left: 2px solid #f1c40f;
 }
