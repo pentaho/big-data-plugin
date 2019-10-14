@@ -112,21 +112,23 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return new File( "" );
   }
 
-  public JSONObject importNamedCluster( String name, String importPath, String shimVendor, String shimVersion ) {
+  public JSONObject importNamedCluster( ThinNameClusterModel model ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
       NamedCluster nc = namedClusterService.getClusterTemplate();
-      nc.setName( name );
+      nc.setName( model.getName() );
+      nc.setHdfsUsername( model.getHdfsUsername() );
+      nc.setHdfsPassword( model.getHdfsPassword() );
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
       } else {
         nc.initializeVariablesFrom( null );
       }
 
-      File importPathFile = processImportPath( importPath );
+      File importPathFile = processImportPath( model.getImportPath() );
       if ( importPathFile.exists() ) {
-        boolean isConfigurationSet = configureNamedCluster( importPathFile, nc, shimVendor, shimVersion );
+        boolean isConfigurationSet = configureNamedCluster( importPathFile, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
           saveNamedCluster( metaStore, nc );
           addConfigProperties( nc );
