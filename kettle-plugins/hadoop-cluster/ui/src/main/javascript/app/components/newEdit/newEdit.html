@@ -33,22 +33,7 @@
             <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHostname"/>
           </div>
         </div>
-        <div>
-          <div class="left-half">
-            <img class="variable" ng-src="{{::vm.variableImage}}"/>
-            <div class="username">
-              <label for="hdfsUsername" class="margin_bottom_5 text_left">{{::vm.usernameLabel}}</label>
-              <input id="hdfsUsername" type="text" ng-model="vm.data.model.hdfsUsername"/>
-            </div>
-          </div>
-          <div class="right-half">
-            <img class="variable" ng-src="{{::vm.variableImage}}"/>
-            <div class="password">
-              <label for="hdfsPassword" class="margin_bottom_5 text_left">{{::vm.passwordLabel}}</label>
-              <input id="hdfsPassword" type="password" ng-model="vm.data.model.hdfsPassword"/>
-            </div>
-          </div>
-        </div>
+        <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
       </fieldset>
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.jobTrackerLabel}}</legend>

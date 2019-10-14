@@ -5,19 +5,20 @@
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
       <input id="clusterName" type="text" ng-model="vm.data.model.clusterName" autofocus/>
     </div>
+    <div class="import-shim margin_bottom_15">
+      <div class="leftHalf">
+        <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
+        <select-box id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></select-box>
+      </div>
+      <div class="rightHalf">
+        <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
+        <select-box id="shimVersion" type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></select-box>
+      </div>
+    </div>
     <div class="margin_bottom_20">
       <browse-local type="vm.browseType" label="vm.importFolderLabel" model="vm.data.model.importPath"></browse-local>
     </div>
-    <div class="margin_bottom_15">
-      <div class="leftHalf">
-            <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
-            <select-box id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></select-box>
-      </div>
-      <div class="rightHalf">
-            <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
-            <select-box id="shimVersion"  type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></select-box>
-      </div>
-    </div>
+    <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
   </div>
   <controls buttons="vm.buttons" data="vm.data"></controls>
 </div>

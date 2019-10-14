@@ -41,46 +41,46 @@ define([
       vm.message = i18n.get('creating.message');
       $timeout(function () {
 
-        switch(vm.data.model.type) {
+        var cluster = {
+          name: vm.data.model.clusterName,
+          shimVendor: vm.data.model.shimName,
+          shimVersion: vm.data.model.shimVersion,
+          importPath: encodeURIComponent(vm.data.model.importPath),
+          hdfsUsername: vm.data.model.hdfsUsername,
+          hdfsPassword: vm.data.model.hdfsPassword
+        };
+
+        var process;
+
+        switch (vm.data.model.type) {
           case "new":
-            //create a new new json to pass only the data required by the POST call
-            var thinNameClusterModel = {
-                name: vm.data.model.clusterName,
-                shimVendor: vm.data.model.shimName,
-                shimVersion: vm.data.model.shimVersion,
-                importPath: encodeURIComponent(vm.data.model.importPath),
-                hdfsHost: vm.data.model.hdfsHostname,
-                hdfsPort: vm.data.model.hdfsPort,
-                hdfsUsername: vm.data.model.hdfsUsername,
-                hdfsPassword: vm.data.model.hdfsPassword,
-                jobTrackerHost: vm.data.model.jobTrackerHostname,
-                jobTrackerPort: vm.data.model.jobTrackerPort,
-                zooKeeperHost: vm.data.model.zooKeeperHostname,
-                zooKeeperPort: vm.data.model.zooKeeperPort,
-                oozieUrl: vm.data.model.oozieHostname,
-                kafkaBootstrapServers: vm.data.model.kafkaBootstrapServers
-            };
-            dataService.createNamedCluster(thinNameClusterModel)
-            .then(
-              function (res) {
-                return processResultAndTest(res);
-              },
-              function (error) {
-                vm.data.model.created = false;
-                $state.go("status", {data: vm.data});
-              });
+            process = dataService.createNamedCluster;
+            cluster.hdfsHost = vm.data.model.hdfsHostname;
+            cluster.hdfsPort = vm.data.model.hdfsPort;
+            cluster.jobTrackerHost = vm.data.model.jobTrackerHostname;
+            cluster.jobTrackerPort = vm.data.model.jobTrackerPort;
+            cluster.zooKeeperHost = vm.data.model.zooKeeperHostname;
+            cluster.zooKeeperPort = vm.data.model.zooKeeperPort;
+            cluster.oozieUrl = vm.data.model.oozieHostname;
+            cluster.kafkaBootstrapServers = vm.data.model.kafkaBootstrapServers;
             break;
           case "import":
-            dataService.importNamedCluster(vm.data.model.clusterName, encodeURIComponent(vm.data.model.importPath), vm.data.model.shimName,
-              vm.data.model.shimVersion)
-            .then(function (res) {
-              return processResultAndTest(res);
-            });
+            process = dataService.importNamedCluster;
             break;
           default:
             vm.data.model.created = false;
             $state.go("status", {data: vm.data});
         }
+
+        process(cluster).then(
+          function (res) {
+            return processResultAndTest(res);
+          },
+          function (error) {
+            vm.data.model.created = false;
+            $state.go("status", {data: vm.data});
+          });
+
       }, 500);
     }
 
