@@ -75,9 +75,14 @@ public class HadoopClusterManagerTest {
 
   @Test public void testImportNamedCluster() {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setImportPath( "src/test/resources" );
+    model.setShimVendor( "Claudera" );
+    model.setShimVersion( "5.14" );
     JSONObject
         result =
-        hadoopClusterManager.importNamedCluster( ncTestName, "src/test/resources", "Claudera", "5.14" );
+        hadoopClusterManager.importNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
     assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
@@ -97,9 +102,14 @@ public class HadoopClusterManagerTest {
 
   @Test public void testFailNamedCluster() {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setImportPath( "src/test/resources/bad" );
+    model.setShimVendor( "Claudera" );
+    model.setShimVersion( "5.14" );
     JSONObject
         result =
-        hadoopClusterManager.importNamedCluster( ncTestName, "src/test/resources/bad", "Claudera", "5.14" );
+        hadoopClusterManager.importNamedCluster( model );
     assertEquals( "", result.get( "namedCluster" ) );
   }
 

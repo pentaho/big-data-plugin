@@ -71,14 +71,13 @@ public class HadoopClusterEndpoints {
     return Response.ok().build();
   }
 
-  //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster?name=testName&shim=cdh514&path=
-  @GET @Path( "/importNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response importNamedCluster(
-      @QueryParam( "name" ) String name, @QueryParam( "path" ) String path, @QueryParam( "shim" ) String shim,
-      @QueryParam( "shimVersion" ) String shimVersion ) {
+  //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster
+  @POST @Path( "/importNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response importNamedCluster(
+      ThinNameClusterModel model ) {
     HadoopClusterManager
         hadoopClusterManager =
         new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
-    JSONObject response = hadoopClusterManager.importNamedCluster( name, path, shim, shimVersion );
+    JSONObject response = hadoopClusterManager.importNamedCluster( model );
     return Response.ok( response ).build();
   }
 
