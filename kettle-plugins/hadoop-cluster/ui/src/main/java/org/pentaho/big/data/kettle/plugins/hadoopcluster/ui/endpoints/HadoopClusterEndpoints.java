@@ -28,7 +28,6 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameCluste
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
 
@@ -49,17 +48,14 @@ public class HadoopClusterEndpoints {
   private static final Class<?> PKG = HadoopClusterDialog.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private NamedClusterService namedClusterService;
-  private MetastoreLocator metastoreLocator;
   private RuntimeTester runtimeTester;
 
   public static final String
       HELP_URL =
       Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
-  public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
-      RuntimeTester runtimeTester ) {
+  public HadoopClusterEndpoints( NamedClusterService namedClusterService, RuntimeTester runtimeTester ) {
     this.namedClusterService = namedClusterService;
-    this.metastoreLocator = metastoreLocator;
     this.runtimeTester = runtimeTester;
   }
 
@@ -89,6 +85,15 @@ public class HadoopClusterEndpoints {
         new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
     JSONObject response = hadoopClusterManager.createNamedCluster( model );
     return Response.ok( response ).build();
+  }
+
+  //http://localhost:9051/cxf/hadoop-cluster/getNamedCluster?namedCluster=
+  @GET @Path( "/getNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getNamedCluster(
+      @QueryParam( "namedCluster" ) String namedCluster ) {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    return Response.ok( hadoopClusterManager.getNamedCluster( namedCluster ) ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/getShimIdentifiers

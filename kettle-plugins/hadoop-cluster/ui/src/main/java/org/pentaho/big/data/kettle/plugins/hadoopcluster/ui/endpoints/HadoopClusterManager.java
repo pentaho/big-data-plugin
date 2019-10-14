@@ -128,13 +128,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       File importPathFile = processImportPath( model.getImportPath() );
       if ( importPathFile.exists() ) {
-        boolean isConfigurationSet = configureNamedCluster( importPathFile, nc, model.getShimVendor(), model.getShimVersion() );
+        boolean
+            isConfigurationSet =
+            configureNamedCluster( importPathFile, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
           saveNamedCluster( metaStore, nc );
           addConfigProperties( nc );
           installSiteFiles( importPathFile, nc );
           if ( spoon.getShell() != null ) {
             spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+            spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters (thin)" ) );
           }
           response.put( NAMED_CLUSTER, nc.getName() );
         }
@@ -176,6 +179,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       if ( spoon.getShell() != null ) {
         spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
+        spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters (thin)" ) );
       }
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
@@ -185,15 +189,40 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return response;
   }
 
+  public ThinNameClusterModel getNamedCluster( String namedCluster ) {
+    NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster, metaStore );
+    ThinNameClusterModel model = null;
+    if ( nc != null ) {
+      model = new ThinNameClusterModel();
+      model.setName( nc.getName() );
+      model.setHdfsHost( nc.getHdfsHost() );
+      model.setHdfsUsername( nc.getHdfsUsername() );
+      model.setHdfsPassword( nc.getHdfsPassword() );
+      model.setHdfsPort( nc.getHdfsPort() );
+      model.setJobTrackerHost( nc.getJobTrackerHost() );
+      model.setJobTrackerPort( nc.getJobTrackerPort() );
+      model.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
+      model.setOozieUrl( nc.getOozieUrl() );
+      model.setZooKeeperPort( nc.getZooKeeperPort() );
+      model.setZooKeeperHost( nc.getZooKeeperHost() );
+      resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
+    }
+    return model;
+  }
+
   private boolean configureNamedCluster( File importPath, NamedCluster nc, String shimVendor, String shimVersion ) {
     resolveShimIdentifier( nc, shimVendor, shimVersion );
 
+    String oozieBaseUrl = "oozie.base.url";
     Map<String, String> properties = new HashMap();
     extractProperties( importPath, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
     extractProperties( importPath, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
     extractProperties( importPath, "hive-site.xml", properties,
         new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
-    extractProperties( importPath, "oozie-default.xml", properties, new String[] { "oozie.base.url" } );
+    extractProperties( importPath, "oozie-site.xml", properties, new String[] { oozieBaseUrl } );
+    if ( properties.get( oozieBaseUrl ) == null ) {
+      extractProperties( importPath, "oozie-default.xml", properties, new String[] { oozieBaseUrl } );
+    }
 
     boolean isConfigurationSet = false;
     /*
@@ -246,9 +275,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
      * Address and port taken from
      * oozie.base.url
      * in
+     * oozie-site.xml
+     * if it does not exist then it is taken from
      * oozie-default.xml
      * */
-    String oozieAddress = properties.get( "oozie.base.url" );
+    String oozieAddress = properties.get( oozieBaseUrl );
     if ( oozieAddress != null ) {
       nc.setOozieUrl( oozieAddress );
       isConfigurationSet = true;
@@ -266,20 +297,33 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
+  private void resolveShimVendorAndVersion( ThinNameClusterModel model, String shimIdentifier ) {
+    List<ShimIdentifierInterface> shims = getShimIdentifiers();
+    for ( ShimIdentifierInterface shim : shims ) {
+      if ( shim.getId().equals( shimIdentifier ) ) {
+        model.setShimVersion( shim.getVersion() );
+        model.setShimVendor( shim.getVendor() );
+      }
+    }
+  }
+
   private void extractProperties( File importPath, String fileName, Map<String, String> properties, String[] keys ) {
-    Document document = parseSiteFileDocument( new File( importPath, fileName ) );
-    if ( document != null ) {
-      XPathFactory xpathFactory = XPathFactory.newInstance();
-      XPath xpath = xpathFactory.newXPath();
-      for ( String key : keys ) {
-        try {
-          XPathExpression expr = xpath.compile( "/configuration/property[name='" + key + "']/value/text()" );
-          NodeList nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
-          if ( nodes.getLength() > 0 ) {
-            properties.put( key, nodes.item( 0 ).getNodeValue() );
+    File siteFile = new File( importPath, fileName );
+    if ( siteFile.exists() ) {
+      Document document = parseSiteFileDocument( new File( importPath, fileName ) );
+      if ( document != null ) {
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        XPath xpath = xpathFactory.newXPath();
+        for ( String key : keys ) {
+          try {
+            XPathExpression expr = xpath.compile( "/configuration/property[name='" + key + "']/value/text()" );
+            NodeList nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
+            if ( nodes.getLength() > 0 ) {
+              properties.put( key, nodes.item( 0 ).getNodeValue() );
+            }
+          } catch ( XPathExpressionException e ) {
+            logChannel.warn( e.getMessage() );
           }
-        } catch ( XPathExpressionException e ) {
-          logChannel.warn( e.getMessage() );
         }
       }
     }
@@ -367,8 +411,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return PentahoSystem.getAll( ShimIdentifierInterface.class );
   }
 
-  public Object runTests( RuntimeTester runtimeTester, String namedClusterName ) {
-    NamedCluster nc = namedClusterService.getNamedClusterByName( namedClusterName, this.metaStore );
+  public Object runTests( RuntimeTester runtimeTester, String namedCluster ) {
+    NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster, this.metaStore );
     if ( nc != null ) {
       try {
         if ( runtimeTester != null ) {
@@ -416,9 +460,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             category.addTest( test );
             configureHadoopFileSystemCategory( category, status );
           } else if ( module.equals( OOZIE ) ) {
-            configureOozieAndKafkaCategories( category, StringUtil.isEmpty( nc.getOozieUrl() ), status );
+            configureOozieAndKafkaCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
           } else if ( module.equals( KAFKA ) ) {
-            configureOozieAndKafkaCategories( category, StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
+            configureOozieAndKafkaCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
           } else {
             category.setCategoryStatus( status );
           }
@@ -453,6 +497,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         status = WARNING;
         break;
       case FATAL:
+        status = FAIL;
+        break;
+      case ERROR:
         status = FAIL;
         break;
       default:
