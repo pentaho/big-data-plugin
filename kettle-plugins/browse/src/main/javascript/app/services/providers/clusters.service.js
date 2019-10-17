@@ -47,7 +47,7 @@ define(
         var baseUrl = "/cxf/browser-new";
         return {
           provider: "clusters",
-          order: 0,
+          order: 3,
           root: "Hadoop Clusters",
           matchPath: matchPath,
           selectFolder: selectFolder,
