@@ -1,17 +1,13 @@
 addressbar .breadcrumb .clusters {
-  background-image: url("../img/cluster.svg");
-  background-repeat: no-repeat;
-  background-position: left center;
-  width: 20px;
-  background-size: 24px 24px;
+  background: url("../img/Share.S_D.svg") no-repeat center center;
+  background-size: 32px;
 }
 
 folder .folder.clusters .folderImage {
-  background: url("../img/cluster.svg") no-repeat left center;
-  width: 16px;
-  height: 18px;
+  background: url("../img/Share.S_D.svg") no-repeat center center;
+  background-size: 32px;
 }
 
 folder .folder.clusters.selected .folderImage {
-  background-position: right center;
+  background-image: url("../img/Share.S_D_white.svg");
 }
