@@ -63,7 +63,7 @@ define([
 
     function onEditConnection() {
       vm.data.state = "edit";
-      $state.go("import", {data: vm.data, transition: "slideRight"});
+      $state.go("new-edit", {data: vm.data, transition: "slideRight"});
     }
 
     function onTestCluster() {

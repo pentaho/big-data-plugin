@@ -22,7 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.lifecycle;
 
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterFolderProvider;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.ThinHadoopClusterFolderProvider;
 import org.pentaho.di.core.annotations.LifecyclePlugin;
 import org.pentaho.di.core.lifecycle.LifeEventHandler;
 import org.pentaho.di.core.lifecycle.LifecycleException;
@@ -39,8 +39,8 @@ public class HadoopClusterLifecycleListener implements LifecycleListener {
   public void onStart( LifeEventHandler handler ) throws LifecycleException {
     Spoon spoon = spoonSupplier.get();
     if ( spoon != null ) {
-      spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new HadoopClusterFolderProvider( ) );
-      spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new HadoopClusterFolderProvider( ) );
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_TRANSFORMATIONS, new ThinHadoopClusterFolderProvider( ) );
+      spoon.getTreeManager().addTreeProvider( Spoon.STRING_JOBS, new ThinHadoopClusterFolderProvider( ) );
     }
   }
 

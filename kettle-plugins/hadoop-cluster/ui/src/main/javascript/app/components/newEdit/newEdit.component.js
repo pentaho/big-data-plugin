@@ -73,11 +73,44 @@ define([
         }
         vm.shimNames = shimNames;
 
-        if ($stateParams.data) {
-          //TODO: implement edit
-          vm.shimName = vm.data.model.shimName;
-          vm.shimVersions = getShimVersions(vm.shimName);
-          vm.shimVersion = vm.data.model.shimVersion;
+        var urlNameParameter = $location.search().name;
+
+        var name;
+        if (urlNameParameter) {
+          name = urlNameParameter;
+        } else if ($stateParams.data) {
+          name = vm.data.model.clusterName;
+        }
+
+        //Edit if we were provided a name on the url or in the data
+        if (name) {
+
+          dataService.getNamedCluster(name)
+          .then(function (res) {
+
+            vm.data.model = {};
+
+            //TODO: make the server and client JSON the same so we don't have to do the conversions.
+            vm.data.model.clusterName = res.data.name;
+            vm.data.model.shimName = res.data.shimVendor;
+            vm.data.model.shimVersion = res.data.shimVersion;
+            vm.data.model.hdfsUsername = res.data.hdfsUsername;
+            vm.data.model.hdfsPassword = res.data.hdfsPassword;
+            vm.data.model.hdfsHostname = res.data.hdfsHost;
+            vm.data.model.hdfsPort = res.data.hdfsPort;
+            vm.data.model.jobTrackerHostname = res.data.jobTrackerHost;
+            vm.data.model.jobTrackerPort = res.data.jobTrackerPort;
+            vm.data.model.jobTrackerPort = res.data.jobTrackerPort;
+            vm.data.model.zooKeeperHostname = res.data.zooKeeperHost;
+            vm.data.model.zooKeeperPort = res.data.zooKeeperPort;
+            vm.data.model.oozieHostname = res.data.oozieUrl;
+            vm.data.model.kafkaBootstrapServers = res.data.kafkaBootstrapServers;
+
+            vm.shimName = vm.data.model.shimName;
+            vm.shimVersions = getShimVersions(vm.shimName);
+            vm.shimVersion = vm.data.model.shimVersion;
+          });
+
         } else {
           vm.data = {
             model: {
