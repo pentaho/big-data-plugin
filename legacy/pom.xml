@@ -436,7 +436,8 @@
               org.apache.avro.*;resolution:=optional,org.slf4j.*,org.apache.log4j.*
             </Import-Package>
             <Export-Package>
-
+              org.pentaho.di.core.namedcluster,
+              org.pentaho.di.core.namedcluster.model
             </Export-Package>
             <Embed-Dependency>*aws*
             </Embed-Dependency>

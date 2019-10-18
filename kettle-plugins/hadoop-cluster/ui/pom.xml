@@ -122,6 +122,12 @@
       <artifactId>org.osgi.core</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-big-data-legacy</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
 
   </dependencies>
   <build>
