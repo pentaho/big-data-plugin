@@ -44,7 +44,6 @@ define([
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
 
-      vm.header = i18n.get('new.header');
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
@@ -84,11 +83,15 @@ define([
 
         //Edit if we were provided a name on the url or in the data
         if (name) {
+          vm.header = i18n.get('edit.header');
 
           dataService.getNamedCluster(name)
           .then(function (res) {
+            vm.data.type = "edit";
 
             vm.data.model = {};
+
+            vm.data.model.oldName = name;
 
             //TODO: make the server and client JSON the same so we don't have to do the conversions.
             vm.data.model.clusterName = res.data.name;
@@ -112,6 +115,8 @@ define([
           });
 
         } else {
+          vm.header = i18n.get('new.header');
+
           vm.data = {
             model: {
               clusterName: "",
@@ -128,10 +133,10 @@ define([
               zooKeeperPort: "2181",
               oozieHostname: "http://localhost:8080/oozie",
               kafkaBootstrapServers: "",
-              type: "new",
               created: false
             }
           };
+          vm.data.type = "new";
           vm.shimName = vm.shimNames[0];
         }
       });
