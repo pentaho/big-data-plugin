@@ -1,4 +1,5 @@
 <features name="pentaho-big-data-features" xmlns="http://karaf.apache.org/xmlns/features/v1.2.1">
+
   <feature name="pentaho-big-data-common" version="1.0">
     <bundle>wrap:mvn:org.apache.avro/avro/1.6.2</bundle>
     <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
@@ -22,42 +23,16 @@
     <feature>pentaho-big-data-plugin-testless-osgi</feature>
     <feature>pentaho-big-data-plugin-tests</feature>
   </feature>
+
   <feature name="pentaho-big-data-plugin-testless-osgi" version="1.0">
     <feature>pentaho-big-data-kettle-plugins</feature>
     <feature>pentaho-big-data-plugin-shim-impl</feature>
   </feature>
 
-  <!-- Code left in for future debug -->
-  <!--
-  <feature name="shim-common-fragment-V1" version="1.0">
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-dependencies-V1/${pentaho-hadoop-shims.version}</bundle>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-fragment-V1/${pentaho-hadoop-shims.version}</bundle>
-  </feature>
-  <feature name="pentaho-hadoop-shims-hdp26" version="1.0">
-    <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp26-driver/${pentaho-hadoop-shims.version}</bundle>
-  </feature>
-  <feature name="pentaho-hadoop-shims-cdh61" version="1.0">
-    <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh61-driver/${pentaho-hadoop-shims.version}</bundle>
-  </feature>
-  <feature name="pentaho-hadoop-shims-emr521" version="1.0">
-    <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-emr521-driver/${pentaho-hadoop-shims.version}</bundle>
-  </feature>
-  <feature name="pentaho-hadoop-shims-cdh514" version="1.0">
-    <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-cdh514-driver/${pentaho-hadoop-shims.version}</bundle>
-  </feature>
-  <feature name="pentaho-hadoop-shims-hdp30" version="1.0">
-    <feature>shim-common-fragment-V1</feature>
-    <bundle>mvn:org.pentaho/pentaho-hadoop-shims-hdp30-driver/${pentaho-hadoop-shims.version}</bundle>
-  </feature>
-  -->
-
   <feature name="pentaho-big-data-plugin-tests" version="1.0">
     <bundle>mvn:pentaho/pentaho-big-data-impl-clusterTests/${project.version}</bundle>
   </feature>
+
   <feature name="pentaho-big-data-plugin-base" version="1.0">
     <feature>pentaho-client-minimal</feature>
     <bundle>mvn:pentaho/pentaho-osgi-utils-impl/${pentaho-osgi-bundles.version}</bundle>
@@ -73,6 +48,7 @@
     </configfile>
     <bundle>mvn:commons-beanutils/commons-beanutils/1.9.3</bundle>
   </feature>
+
   <feature name="pentaho-big-data-plugin-api" version="1.0">
     <feature>pentaho-big-data-plugin-base</feature>
     <feature>pentaho-big-data-common</feature>
@@ -94,6 +70,7 @@
       <bundle>mvn:pentaho/pentaho-big-data-impl-vfs-hdfs/${project.version}</bundle>
     </conditional>
   </feature>
+
   <feature name="pentaho-big-data-kettle-plugins" version="1.0">
     <feature>pentaho-big-data-plugin-api</feature>
     <feature>cxf-jaxrs</feature>
@@ -121,17 +98,4 @@
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
   </feature>
 
-  <!-- Code left in for future debug -->
-  <!--
-  <feature name="shims-list" description="Shims bundles list" version="1.0">
-    <conditional>
-      <condition>community-edition</condition>
-      <feature>pentaho-hadoop-shims-hdp26</feature>
-      <feature>pentaho-hadoop-shims-hdp30</feature>
-      <feature>pentaho-hadoop-shims-cdh514</feature>
-      <feature>pentaho-hadoop-shims-cdh61</feature>
-      <feature>pentaho-hadoop-shims-emr521</feature>
-    </conditional>
-  </feature>
-  -->
 </features>
