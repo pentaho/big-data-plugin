@@ -87,6 +87,16 @@ public class HadoopClusterEndpoints {
     return Response.ok( response ).build();
   }
 
+  //http://localhost:9051/cxf/hadoop-cluster/editNamedCluster
+  @POST @Path( "/editNamedCluster" ) @Consumes( { MediaType.APPLICATION_JSON } )
+  @Produces( { MediaType.APPLICATION_JSON } ) public Response editNamedCluster( ThinNameClusterModel model ) {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    JSONObject response = hadoopClusterManager.editNamedCluster( model );
+    return Response.ok( response ).build();
+  }
+
   //http://localhost:9051/cxf/hadoop-cluster/getNamedCluster?namedCluster=
   @GET @Path( "/getNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getNamedCluster(
       @QueryParam( "namedCluster" ) String namedCluster ) {

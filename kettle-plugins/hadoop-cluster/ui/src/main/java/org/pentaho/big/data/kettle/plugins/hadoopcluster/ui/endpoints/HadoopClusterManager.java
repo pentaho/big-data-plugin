@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
@@ -81,8 +82,9 @@ import static org.pentaho.big.data.impl.cluster.tests.Constants.MAP_REDUCE;
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
-  private static final Class<?> PKG = HadoopClusterManager.class;
-  public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "NamedClusterDialog.HadoopClusters" );
+  private static final Class<?> PKG = HadoopClusterDialog.class;
+  public static final String STRING_NAMED_CLUSTERS_THIN = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
+  public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "HadoopCluster.dialog.title" );
   private final String fileSeparator = System.getProperty( "file.separator" );
   private static final String BIG_DATA_SHIM = "Pentaho big data shim";
   private static final String PASS = "Pass";
@@ -104,10 +106,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
-  private File processImportPath( String importPath ) throws UnsupportedEncodingException {
-    if ( !StringUtil.isEmpty( importPath ) ) {
-      importPath = URLDecoder.decode( importPath, "UTF-8" );
-      return new File( importPath );
+  private File decodeSiteFilesSource( String source ) throws UnsupportedEncodingException {
+    if ( !StringUtil.isEmpty( source ) ) {
+      source = URLDecoder.decode( source, "UTF-8" );
+      return new File( source );
     }
     return new File( "" );
   }
@@ -126,19 +128,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         nc.initializeVariablesFrom( null );
       }
 
-      File importPathFile = processImportPath( model.getImportPath() );
-      if ( importPathFile.exists() ) {
+      File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
+      if ( siteFilesSource.exists() ) {
         boolean
             isConfigurationSet =
-            configureNamedCluster( importPathFile, nc, model.getShimVendor(), model.getShimVersion() );
+            configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
-          saveNamedCluster( metaStore, nc );
-          addConfigProperties( nc );
-          installSiteFiles( importPathFile, nc );
-          if ( spoon.getShell() != null ) {
-            spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
-            spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters (thin)" ) );
-          }
+          namedClusterService.create( nc, metaStore );
+          createConfigProperties( nc );
+          installSiteFiles( siteFilesSource, nc );
+          refreshTree();
           response.put( NAMED_CLUSTER, nc.getName() );
         }
       }
@@ -148,39 +147,82 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return response;
   }
 
+  private NamedCluster createXMLSchema( ThinNameClusterModel model ) throws MetaStoreException {
+    NamedCluster nc = namedClusterService.getClusterTemplate();
+    nc.setName( model.getName() );
+    nc.setHdfsHost( model.getHdfsHost() );
+    nc.setHdfsPort( model.getHdfsPort() );
+    nc.setHdfsUsername( model.getHdfsUsername() );
+    nc.setHdfsPassword( model.getHdfsPassword() );
+    nc.setJobTrackerHost( model.getJobTrackerHost() );
+    nc.setJobTrackerPort( model.getJobTrackerPort() );
+    nc.setZooKeeperHost( model.getZooKeeperHost() );
+    nc.setZooKeeperPort( model.getZooKeeperPort() );
+    nc.setOozieUrl( model.getOozieUrl() );
+    nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
+    resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
+    if ( variableSpace != null ) {
+      nc.shareVariablesWith( variableSpace );
+    } else {
+      nc.initializeVariablesFrom( null );
+    }
+    namedClusterService.create( nc, metaStore );
+    return nc;
+  }
+
   public JSONObject createNamedCluster( ThinNameClusterModel model ) {
     JSONObject response = new JSONObject();
     try {
-      NamedCluster nc = namedClusterService.getClusterTemplate();
+      NamedCluster nc = createXMLSchema( model );
+      File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
+      if ( siteFilesSource.exists() ) {
+        installSiteFiles( siteFilesSource, nc );
+      }
+      createConfigProperties( nc );
+      refreshTree();
+      response.put( NAMED_CLUSTER, nc.getName() );
+    } catch ( Exception e ) {
+      logChannel.error( e.getMessage() );
+      response.put( NAMED_CLUSTER, "" );
+    }
+    return response;
+  }
 
-      nc.setName( model.getName() );
-      nc.setHdfsHost( model.getHdfsHost() );
-      nc.setHdfsPort( model.getHdfsPort() );
-      nc.setHdfsUsername( model.getHdfsUsername() );
-      nc.setHdfsPassword( model.getHdfsPassword() );
-      nc.setJobTrackerHost( model.getJobTrackerHost() );
-      nc.setJobTrackerPort( model.getJobTrackerPort() );
-      nc.setZooKeeperHost( model.getZooKeeperHost() );
-      nc.setZooKeeperPort( model.getZooKeeperPort() );
-      nc.setOozieUrl( model.getOozieUrl() );
-      nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
-      resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
+  public JSONObject editNamedCluster( ThinNameClusterModel model ) {
+    JSONObject response = new JSONObject();
+    try {
+      // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
+      String shimId = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore ).getShimIdentifier();
 
-      if ( variableSpace != null ) {
-        nc.shareVariablesWith( variableSpace );
-      } else {
-        nc.initializeVariablesFrom( null );
+      // Create new or update existing Named Cluster XML schema.
+      NamedCluster nc = createXMLSchema( model );
+
+      File oldConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + model.getOldName() );
+      File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
+
+      // Copy all files from the old config folder to the new config folder.
+      if ( !oldConfigFolder.equals( newConfigFolder ) ) {
+        FileUtils.copyDirectory( oldConfigFolder, newConfigFolder );
       }
-      saveNamedCluster( metaStore, nc );
-      addConfigProperties( nc );
-      File importPath = processImportPath( model.getImportPath() );
-      if ( importPath.exists() ) {
-        installSiteFiles( importPath, nc );
+
+      // If source provided, install site files in the new config folder deleting all existing.
+      File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
+      if ( siteFilesSource.exists() ) {
+        installSiteFiles( siteFilesSource, nc );
       }
-      if ( spoon.getShell() != null ) {
-        spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters" ) );
-        spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( "Hadoop clusters (thin)" ) );
+
+      // If the user changed the shim, create a new config.properties file that corresponds to that shim
+      // in the new config folder.
+      if ( !shimId.equals( nc.getShimIdentifier() ) ) {
+        createConfigProperties( nc );
       }
+
+      // Delete old config folder.
+      if ( !oldConfigFolder.equals( newConfigFolder ) ) {
+        deleteNamedCluster( metaStore, model.getOldName(), false );
+      }
+
+      refreshTree();
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );
@@ -330,8 +372,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void installSiteFiles( File source, NamedCluster nc ) throws IOException {
-    File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
     if ( source.isDirectory() ) {
+      File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
+      if ( destination.exists() ) {
+        FileUtils.cleanDirectory( destination );
+      }
       File[] files = source.listFiles();
       for ( File file : files ) {
         if ( ( file.getName().endsWith( "-site.xml" ) || file.getName().endsWith( "-default.xml" ) )
@@ -353,15 +398,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return document;
   }
 
-  private void saveNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
-    try {
-      namedClusterService.create( namedCluster, metaStore );
-    } catch ( MetaStoreException e ) {
-      logChannel.warn( e.getMessage() );
-    }
-  }
-
-  private void addConfigProperties( NamedCluster namedCluster ) throws IOException {
+  private void createConfigProperties( NamedCluster namedCluster ) throws IOException {
     Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() );
     Path
         configPropertiesPath =
@@ -377,18 +414,19 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public void deleteNamedCluster( IMetaStore metaStore, NamedCluster namedCluster ) {
+  public void deleteNamedCluster( IMetaStore metaStore, String namedCluster, boolean refreshTree ) {
     try {
-      if ( namedClusterService.read( namedCluster.getName(), metaStore ) != null ) {
-        namedClusterService.delete( namedCluster.getName(), metaStore );
+      if ( namedClusterService.read( namedCluster, metaStore ) != null ) {
+        namedClusterService.delete( namedCluster, metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          String path = getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName();
+          String path = getNamedClusterConfigsRootDir() + fileSeparator + namedCluster;
           FileUtils.deleteDirectory( new File( path ) );
         }
       }
-      spoon.refreshTree( STRING_NAMED_CLUSTERS );
-      spoon.setShellText();
+      if ( refreshTree ) {
+        refreshTree();
+      }
     } catch ( Exception e ) {
       logChannel.warn( e.getMessage() );
     }
@@ -514,6 +552,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         runtimeTestStatus = clusterTestStatus;
         notifyAll();
       }
+    }
+  }
+
+  private void refreshTree() {
+    if ( spoon.getShell() != null ) {
+      //TODO Refreshing the "Hadoop clusters" tree item will go away when the SWT code is removed.
+      spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS ) );
+      spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS_THIN ) );
     }
   }
 

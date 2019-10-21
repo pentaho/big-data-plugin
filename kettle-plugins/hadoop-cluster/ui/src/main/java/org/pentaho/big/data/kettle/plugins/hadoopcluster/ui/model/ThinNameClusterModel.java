@@ -37,6 +37,7 @@ public class ThinNameClusterModel {
   private String oozieUrl;
   private String kafkaBootstrapServers;
   private String importPath;
+  private String oldName;
 
   public String getShimVendor() {
     return shimVendor;
@@ -148,5 +149,13 @@ public class ThinNameClusterModel {
 
   public void setImportPath( String importPath ) {
     this.importPath = importPath;
+  }
+
+  public String getOldName() {
+    return oldName;
+  }
+
+  public void setOldName( String oldName ) {
+    this.oldName = oldName;
   }
 }
