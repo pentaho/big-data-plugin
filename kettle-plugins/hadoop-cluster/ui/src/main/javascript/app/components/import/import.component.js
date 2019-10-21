@@ -73,10 +73,10 @@ define([
               shimVersion: "",
               hdfsUsername: "",
               hdfsPassword: "",
-              type: "import",
               created: false
             }
           };
+          vm.data.type = "import";
           vm.shimName = vm.shimNames[0];
         }
       });

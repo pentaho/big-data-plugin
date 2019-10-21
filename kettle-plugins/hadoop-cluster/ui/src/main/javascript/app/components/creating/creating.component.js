@@ -52,9 +52,11 @@ define([
 
         var process;
 
-        switch (vm.data.model.type) {
+        switch (vm.data.type) {
           case "new":
             process = dataService.createNamedCluster;
+
+            //TODO: make vm.data.model json the same as cluster so we don't have to do the conversions.
             cluster.hdfsHost = vm.data.model.hdfsHostname;
             cluster.hdfsPort = vm.data.model.hdfsPort;
             cluster.jobTrackerHost = vm.data.model.jobTrackerHostname;
@@ -63,6 +65,20 @@ define([
             cluster.zooKeeperPort = vm.data.model.zooKeeperPort;
             cluster.oozieUrl = vm.data.model.oozieHostname;
             cluster.kafkaBootstrapServers = vm.data.model.kafkaBootstrapServers;
+            break;
+          case "edit":
+            process = dataService.editNamedCluster;
+
+            //TODO: make vm.data.model json the same as cluster so we don't have to do the conversions.
+            cluster.hdfsHost = vm.data.model.hdfsHostname;
+            cluster.hdfsPort = vm.data.model.hdfsPort;
+            cluster.jobTrackerHost = vm.data.model.jobTrackerHostname;
+            cluster.jobTrackerPort = vm.data.model.jobTrackerPort;
+            cluster.zooKeeperHost = vm.data.model.zooKeeperHostname;
+            cluster.zooKeeperPort = vm.data.model.zooKeeperPort;
+            cluster.oozieUrl = vm.data.model.oozieHostname;
+            cluster.kafkaBootstrapServers = vm.data.model.kafkaBootstrapServers;
+            cluster.oldName = vm.data.model.oldName;
             break;
           case "import":
             process = dataService.importNamedCluster;

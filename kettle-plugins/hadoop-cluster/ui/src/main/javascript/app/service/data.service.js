@@ -48,6 +48,7 @@ define(
         help: help,
         importNamedCluster: importNamedCluster,
         createNamedCluster: createNamedCluster,
+        editNamedCluster: editNamedCluster,
         getNamedCluster: getNamedCluster,
         getShimIdentifiers: getShimIdentifiers,
         runTests: runTests
@@ -59,6 +60,10 @@ define(
 
       function createNamedCluster(data) {
         return helperService.httpPost([baseUrl, "createNamedCluster"].join("/"), data);
+      }
+
+      function editNamedCluster(data) {
+        return helperService.httpPost([baseUrl, "editNamedCluster"].join("/"), data);
       }
 
       function importNamedCluster(data) {
