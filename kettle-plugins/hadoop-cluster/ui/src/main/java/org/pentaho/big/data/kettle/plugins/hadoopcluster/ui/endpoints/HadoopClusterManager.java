@@ -188,7 +188,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return response;
   }
 
-  public JSONObject editNamedCluster( ThinNameClusterModel model ) {
+  public JSONObject editNamedCluster( ThinNameClusterModel model, boolean deleteSource ) {
     JSONObject response = new JSONObject();
     try {
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
@@ -218,7 +218,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
 
       // Delete old config folder.
-      if ( !oldConfigFolder.equals( newConfigFolder ) ) {
+      if ( deleteSource && !oldConfigFolder.equals( newConfigFolder ) ) {
         deleteNamedCluster( metaStore, model.getOldName(), false );
       }
 

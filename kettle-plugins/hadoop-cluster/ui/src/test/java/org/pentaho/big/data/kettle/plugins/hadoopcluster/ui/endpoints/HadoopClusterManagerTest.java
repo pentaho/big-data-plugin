@@ -103,7 +103,7 @@ public class HadoopClusterManagerTest {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     model.setName( ncTestName );
     model.setOldName( ncTestName );
-    JSONObject result = hadoopClusterManager.editNamedCluster( model );
+    JSONObject result = hadoopClusterManager.editNamedCluster( model, true );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
 
