@@ -71,6 +71,8 @@ public class HadoopClusterManagerTest {
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
     when( spoon.getMetaStore() ).thenReturn( metaStore );
     when( namedCluster.getName() ).thenReturn( ncTestName );
+    when( namedClusterService.getNamedClusterByName( ncTestName, metaStore ) ).thenReturn( namedCluster );
+    when( namedCluster.getShimIdentifier() ).thenReturn( "cdh514" );
   }
 
   @Test public void testImportNamedCluster() {
@@ -80,9 +82,7 @@ public class HadoopClusterManagerTest {
     model.setImportPath( "src/test/resources" );
     model.setShimVendor( "Claudera" );
     model.setShimVersion( "5.14" );
-    JSONObject
-        result =
-        hadoopClusterManager.importNamedCluster( model );
+    JSONObject result = hadoopClusterManager.importNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
     assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
@@ -94,9 +94,16 @@ public class HadoopClusterManagerTest {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
-    JSONObject
-        result =
-        hadoopClusterManager.createNamedCluster( model );
+    JSONObject result = hadoopClusterManager.createNamedCluster( model );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+  }
+
+  @Test public void testEditNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    model.setName( ncTestName );
+    model.setOldName( ncTestName );
+    JSONObject result = hadoopClusterManager.editNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
 
@@ -107,9 +114,7 @@ public class HadoopClusterManagerTest {
     model.setImportPath( "src/test/resources/bad" );
     model.setShimVendor( "Claudera" );
     model.setShimVersion( "5.14" );
-    JSONObject
-        result =
-        hadoopClusterManager.importNamedCluster( model );
+    JSONObject result = hadoopClusterManager.importNamedCluster( model );
     assertEquals( "", result.get( "namedCluster" ) );
   }
 
