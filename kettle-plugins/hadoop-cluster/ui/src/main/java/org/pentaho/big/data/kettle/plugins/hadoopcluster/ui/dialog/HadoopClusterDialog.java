@@ -50,7 +50,7 @@ public class HadoopClusterDialog extends ThinDialog {
     super( shell, width, height );
   }
 
-  public void open( String title, String thinAppState, String clusterName ) {
+  public void open( String title, String thinAppState, String clusterName, boolean duplicateCluster ) {
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
     clientPath.append( "#/" );
@@ -60,6 +60,7 @@ public class HadoopClusterDialog extends ThinDialog {
     if ( clusterName != null ) {
       clientPath.append( "?name=" ).append( clusterName );
     }
+    clientPath.append( "&duplicateCluster=" ).append( duplicateCluster );
     super.createDialog( title, getRepoURL( clientPath.toString() ),
       OPTIONS, LOGO );
     super.dialog.setMinimumSize( 640, 630 );

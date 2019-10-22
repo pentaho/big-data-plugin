@@ -35,8 +35,8 @@ public class HadoopClusterDelegate {
   private static final int WIDTH = 630;
   private static final int HEIGHT = 650;
 
-  public void openDialog( String thinAppState, String clusterName ) {
+  public void openDialog( String thinAppState, String clusterName, boolean duplicateCluster ) {
     HadoopClusterDialog hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
-    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.title" ), thinAppState, clusterName );
+    hadoopClusterDialog.open( BaseMessages.getString( PKG, "HadoopCluster.dialog.title" ), thinAppState, clusterName, duplicateCluster );
   }
 }

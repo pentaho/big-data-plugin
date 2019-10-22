@@ -55,7 +55,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private Menu rootMenu;
   private Menu maintMenu;
   private HadoopClusterDelegate hadoopClusterDelegate;
-  private NamedCluster selectedNamedCluster = null;
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate ) {
     this.hadoopClusterDelegate = hadoopClusterDelegate;
@@ -92,33 +91,34 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
   private Menu createRootPopupMenu( final Tree tree ) {
-    selectedNamedCluster = null;
     if ( rootMenu == null ) {
       rootMenu = new Menu( tree );
       createPopupMenuItem( rootMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ),
-        NEW_EDIT_STATE );
+        NEW_EDIT_STATE, null, false );
       createPopupMenuItem( rootMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
-        IMPORT_STATE );
+        IMPORT_STATE, null, false );
     }
     return rootMenu;
   }
 
   public Menu createMaintPopupMenu( final Tree selectionTree, NamedCluster namedCluster ) {
-    selectedNamedCluster = namedCluster;
     if ( maintMenu == null ) {
       maintMenu = new Menu( selectionTree );
       createPopupMenuItem( maintMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
-        NEW_EDIT_STATE );
+        NEW_EDIT_STATE, namedCluster.getName(), false );
+      createPopupMenuItem( maintMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
+        NEW_EDIT_STATE, namedCluster.getName(), true );
     }
     return maintMenu;
   }
 
-  private void createPopupMenuItem( Menu menu, String menuItemLabel, String state ) {
+  private void createPopupMenuItem( Menu menu, String menuItemLabel, String state, String selectedClusterName,
+                                    boolean duplicateCluster ) {
     MenuItem menuItem = new MenuItem( menu, SWT.NONE );
     menuItem.setText( menuItemLabel );
     menuItem.addSelectionListener( new SelectionListener() {
       public void widgetSelected( SelectionEvent selectionEvent ) {
-        hadoopClusterDelegate.openDialog( state,  selectedNamedCluster != null ? selectedNamedCluster.getName() : null );
+        hadoopClusterDelegate.openDialog( state, selectedClusterName, duplicateCluster );
       }
       public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
       }
