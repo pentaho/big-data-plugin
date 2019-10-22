@@ -34,6 +34,7 @@ import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.s3n.vfs.S3NFileProvider;
 
 import java.util.Arrays;
@@ -67,7 +68,7 @@ public class AmazonS3NFileSystemBootstrap implements KettleLifecycleListener {
         }
       }
       if ( connectionManager.get() != null ) {
-        connectionManager.get().addConnectionProvider( S3NFileProvider.SCHEME, new S3Provider() );
+        connectionManager.get().addConnectionProvider( S3FileProvider.SCHEME, new S3Provider() );
       }
     } catch ( FileSystemException e ) {
       log.logError( BaseMessages.getString( PKG, "AmazonSpoonPlugin.StartupError.FailedToLoadS3Driver" ) );

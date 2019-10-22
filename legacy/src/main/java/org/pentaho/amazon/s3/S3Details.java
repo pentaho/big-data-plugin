@@ -27,7 +27,7 @@ import org.pentaho.di.connections.annotations.Encrypted;
 import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
-import org.pentaho.s3n.vfs.S3NFileProvider;
+import org.pentaho.s3.vfs.S3FileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +80,7 @@ public class S3Details implements VFSConnectionDetails {
   }
 
   @Override public String getType() {
-    return S3NFileProvider.SCHEME;
+    return S3FileProvider.SCHEME;
   }
 
   @Override public String getDescription() {

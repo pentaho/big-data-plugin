@@ -32,6 +32,7 @@ import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.Bucket;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.pentaho.amazon.s3.S3Details;
 import org.pentaho.amazon.s3.S3Util;
@@ -40,15 +41,14 @@ import org.pentaho.di.connections.vfs.BaseVFSConnectionProvider;
 import org.pentaho.di.connections.vfs.VFSRoot;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.s3.vfs.S3FileProvider;
 import org.pentaho.s3common.S3CommonFileSystemConfigBuilder;
-import org.pentaho.s3n.vfs.S3NFileProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -88,7 +88,14 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   @Override public List<VFSRoot> getLocations( S3Details s3Details ) {
-    return Collections.singletonList( new VFSRoot( S3NFileProvider.SCHEME, new Date() ) );
+    List<VFSRoot> buckets = new ArrayList<>();
+    AmazonS3 s3 = getAmazonS3( s3Details );
+    if ( s3 != null ) {
+      for ( Bucket bucket : s3.listBuckets() ) {
+        buckets.add( new VFSRoot( bucket.getName(), bucket.getCreationDate() ) );
+      }
+    }
+    return buckets;
   }
 
   @Override
@@ -98,11 +105,11 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
 
   @Override
   public String getKey() {
-    return S3NFileProvider.SCHEME;
+    return S3FileProvider.SCHEME;
   }
 
   @Override public String getProtocol( S3Details s3Details ) {
-    return S3NFileProvider.SCHEME;
+    return S3FileProvider.SCHEME;
   }
 
   @Override public boolean test( S3Details s3Details ) {
