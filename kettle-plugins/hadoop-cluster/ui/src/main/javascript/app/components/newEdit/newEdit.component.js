@@ -73,6 +73,7 @@ define([
         vm.shimNames = shimNames;
 
         var urlNameParameter = $location.search().name;
+        var duplicateName = $location.search().duplicateName;
 
         var name;
         if (urlNameParameter) {
@@ -94,7 +95,12 @@ define([
             vm.data.model.oldName = name;
 
             //TODO: make the server and client JSON the same so we don't have to do the conversions.
-            vm.data.model.clusterName = res.data.name;
+            if(duplicateName) {
+              vm.data.model.clusterName = duplicateName;
+              vm.data.type = "duplicate";
+            } else {
+              vm.data.model.clusterName = res.data.name;
+            }
             vm.data.model.shimName = res.data.shimVendor;
             vm.data.model.shimVersion = res.data.shimVersion;
             vm.data.model.hdfsUsername = res.data.hdfsUsername;

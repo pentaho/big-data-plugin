@@ -25,8 +25,8 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
@@ -35,12 +35,14 @@ import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
 
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import static org.pentaho.di.i18n.BaseMessages.getString;
 
 @ExtensionPoint( id = "HadoopClusterPopupMenuExtension", description = "Creates popup menus for Hadoop clusters",
   extensionPointId = "SpoonPopupMenuExtension" )
@@ -95,10 +97,10 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     selectedNamedCluster = null;
     if ( rootMenu == null ) {
       rootMenu = new Menu( tree );
-      createPopupMenuItem( rootMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ),
-        NEW_EDIT_STATE );
-      createPopupMenuItem( rootMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
-        IMPORT_STATE );
+      createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ),
+        NEW_EDIT_STATE, false );
+      createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
+        IMPORT_STATE, false );
     }
     return rootMenu;
   }
@@ -107,20 +109,29 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     selectedNamedCluster = namedCluster;
     if ( maintMenu == null ) {
       maintMenu = new Menu( selectionTree );
-      createPopupMenuItem( maintMenu, BaseMessages.getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
-        NEW_EDIT_STATE );
+      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
+        NEW_EDIT_STATE, false );
+      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
+        NEW_EDIT_STATE, true );
     }
     return maintMenu;
   }
 
-  private void createPopupMenuItem( Menu menu, String menuItemLabel, String state ) {
+  private void createPopupMenuItem( Menu menu, String menuItemLabel, String state, boolean duplicateCluster ) {
     MenuItem menuItem = new MenuItem( menu, SWT.NONE );
     menuItem.setText( menuItemLabel );
-    menuItem.addSelectionListener( new SelectionListener() {
+    menuItem.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent selectionEvent ) {
-        hadoopClusterDelegate.openDialog( state,  selectedNamedCluster != null ? selectedNamedCluster.getName() : null );
-      }
-      public void widgetDefaultSelected( SelectionEvent selectionEvent ) {
+        Optional<NamedCluster> optionalNamedCluster =
+          Optional.ofNullable( HadoopClusterPopupMenuExtension.this.selectedNamedCluster );
+
+        hadoopClusterDelegate.openDialog(
+          state,
+          optionalNamedCluster.map( NamedCluster::getName ).orElse( null ),
+          duplicateCluster ? optionalNamedCluster.map(
+            nc -> getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + nc.getName() ).orElse( null )
+            : null );
       }
     } );
   }
