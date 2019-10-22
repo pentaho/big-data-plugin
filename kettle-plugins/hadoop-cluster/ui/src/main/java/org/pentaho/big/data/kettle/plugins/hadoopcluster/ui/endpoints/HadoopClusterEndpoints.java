@@ -93,7 +93,17 @@ public class HadoopClusterEndpoints {
     HadoopClusterManager
         hadoopClusterManager =
         new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
-    JSONObject response = hadoopClusterManager.editNamedCluster( model );
+    JSONObject response = hadoopClusterManager.editNamedCluster( model, true );
+    return Response.ok( response ).build();
+  }
+
+  //http://localhost:9051/cxf/hadoop-cluster/duplicateNamedCluster
+  @POST @Path( "/duplicateNamedCluster" ) @Consumes( { MediaType.APPLICATION_JSON } )
+  @Produces( { MediaType.APPLICATION_JSON } ) public Response duplicateNamedCluster( ThinNameClusterModel model ) {
+    HadoopClusterManager
+        hadoopClusterManager =
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+    JSONObject response = hadoopClusterManager.editNamedCluster( model, false );
     return Response.ok( response ).build();
   }
 
