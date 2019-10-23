@@ -265,6 +265,9 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public void updateNamedClusterTemplate( String hostName, int port, boolean isMapr ) {
+    if ( clusterTemplate == null ) {
+      getClusterTemplate();
+    }
     clusterTemplate.setHdfsHost( hostName );
     if ( port > 0 ) {
       clusterTemplate.setHdfsPort( String.valueOf( port ) );
