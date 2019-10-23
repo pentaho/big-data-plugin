@@ -21,9 +21,9 @@ define([], function() {
 
   function config($stateProvider) {
     $stateProvider
-      .state('s3nstep1', {
-        url: "/s3nstep1",
-        template: "<s3nstep1></s3nstep1>",
+      .state('s3step1', {
+        url: "/s3step1",
+        template: "<s3step1></s3step1>",
         params: {
           data: null,
           transition: null

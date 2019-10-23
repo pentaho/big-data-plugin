@@ -35,11 +35,11 @@ define([
 
   var module = {
     name: "pentaho-s3-plugin",
-    scheme: "s3n",
+    scheme: "s3",
     label: "Amazon S3",
     summary: [{
       title: i18n.get('Connection.Label.ConnectionDetails'),
-      editLink: "s3nstep1",
+      editLink: "s3step1",
       mapping: {
         "accessKey": i18n.get('S3.Label.AccessKey'),
         "secretKey": i18n.get('S3.Label.SecretKey'),

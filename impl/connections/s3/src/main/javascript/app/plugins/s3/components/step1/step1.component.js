@@ -184,7 +184,7 @@ define([
   }
 
   return {
-    name: "s3nstep1",
+    name: "s3step1",
     options: options
   };
 
