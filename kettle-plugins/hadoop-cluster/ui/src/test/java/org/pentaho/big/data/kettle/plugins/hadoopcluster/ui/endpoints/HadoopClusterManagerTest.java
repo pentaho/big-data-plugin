@@ -55,7 +55,7 @@ public class HadoopClusterManagerTest {
   private List<ShimIdentifierInterface> shimIdentifiers;
   private String ncTestName = "ncTest";
 
-  @Before public void setup() throws IOException {
+  @Before public void setup() throws Exception {
     if ( getShimTestDir().exists() ) {
       FileUtils.deleteDirectory( getShimTestDir() );
     }
@@ -73,6 +73,8 @@ public class HadoopClusterManagerTest {
     when( namedCluster.getName() ).thenReturn( ncTestName );
     when( namedClusterService.getNamedClusterByName( ncTestName, metaStore ) ).thenReturn( namedCluster );
     when( namedCluster.getShimIdentifier() ).thenReturn( "cdh514" );
+    when( namedClusterService.contains( ncTestName, metaStore ) ).thenReturn( false );
+    when( namedClusterService.contains( "existingName", metaStore ) ).thenReturn( true );
   }
 
   @Test public void testImportNamedCluster() {
@@ -96,6 +98,14 @@ public class HadoopClusterManagerTest {
     HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
+  }
+
+  @Test public void testVaidateExistingName() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( "existingName" );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    JSONObject result = hadoopClusterManager.createNamedCluster( model );
+    assertEquals( "", result.get( "namedCluster" ) );
   }
 
   @Test public void testEditNamedCluster() {
