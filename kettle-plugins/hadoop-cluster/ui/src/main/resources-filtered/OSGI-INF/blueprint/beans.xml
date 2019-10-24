@@ -30,6 +30,10 @@
            xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
            default-timeout="20000" default-activation="eager">
 
+  <reference id="metastoreLocator"
+             interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
+             availability="optional"/>
+
   <reference id="namedClusterService"
              interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 
@@ -56,6 +60,7 @@
   <jaxrs:server address="/hadoop-cluster" id="browser-endpoint">
     <jaxrs:serviceBeans>
       <bean class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterEndpoints">
+        <argument ref="metastoreLocator"/>
         <argument ref="namedClusterService"/>
         <argument ref="runtimeTester"/>
       </bean>

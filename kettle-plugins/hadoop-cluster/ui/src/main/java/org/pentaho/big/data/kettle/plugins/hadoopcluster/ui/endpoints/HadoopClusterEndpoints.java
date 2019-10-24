@@ -28,6 +28,7 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameCluste
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.runtime.test.RuntimeTester;
 
@@ -48,14 +49,17 @@ public class HadoopClusterEndpoints {
   private static final Class<?> PKG = HadoopClusterDialog.class;
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private NamedClusterService namedClusterService;
+  private MetastoreLocator metastoreLocator;
   private RuntimeTester runtimeTester;
 
   public static final String
       HELP_URL =
       Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
-  public HadoopClusterEndpoints( NamedClusterService namedClusterService, RuntimeTester runtimeTester ) {
+  public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
+      RuntimeTester runtimeTester ) {
     this.namedClusterService = namedClusterService;
+    this.metastoreLocator = metastoreLocator;
     this.runtimeTester = runtimeTester;
   }
 
@@ -72,7 +76,7 @@ public class HadoopClusterEndpoints {
       ThinNameClusterModel model ) {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     JSONObject response = hadoopClusterManager.importNamedCluster( model );
     return Response.ok( response ).build();
   }
@@ -82,7 +86,7 @@ public class HadoopClusterEndpoints {
   @Produces( { MediaType.APPLICATION_JSON } ) public Response createNamedCluster( ThinNameClusterModel model ) {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     JSONObject response = hadoopClusterManager.createNamedCluster( model );
     return Response.ok( response ).build();
   }
@@ -92,7 +96,7 @@ public class HadoopClusterEndpoints {
   @Produces( { MediaType.APPLICATION_JSON } ) public Response editNamedCluster( ThinNameClusterModel model ) {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     JSONObject response = hadoopClusterManager.editNamedCluster( model, true );
     return Response.ok( response ).build();
   }
@@ -102,7 +106,7 @@ public class HadoopClusterEndpoints {
   @Produces( { MediaType.APPLICATION_JSON } ) public Response duplicateNamedCluster( ThinNameClusterModel model ) {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     JSONObject response = hadoopClusterManager.editNamedCluster( model, false );
     return Response.ok( response ).build();
   }
@@ -112,7 +116,7 @@ public class HadoopClusterEndpoints {
       @QueryParam( "namedCluster" ) String namedCluster ) {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     return Response.ok( hadoopClusterManager.getNamedCluster( namedCluster ) ).build();
   }
 
@@ -120,7 +124,7 @@ public class HadoopClusterEndpoints {
   @GET @Path( "/getShimIdentifiers" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getShimIdentifiers() {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     return Response.ok( hadoopClusterManager.getShimIdentifiers() ).build();
   }
 
@@ -129,7 +133,7 @@ public class HadoopClusterEndpoints {
       @QueryParam( "namedCluster" ) String namedCluster ) {
     HadoopClusterManager
         hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService );
+        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
     return Response.ok( hadoopClusterManager.runTests( runtimeTester, namedCluster ) ).build();
   }
 }
