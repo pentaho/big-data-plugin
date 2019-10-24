@@ -28,9 +28,9 @@ define([
     controller: testingController
   };
 
-  testingController.$inject = ["$state", "$timeout", "$stateParams", "dataService"];
+  testingController.$inject = ["$state", "$timeout", "$stateParams", "dataService", "$location"];
 
-  function testingController($state, $timeout, $stateParams, dataService) {
+  function testingController($state, $timeout, $stateParams, dataService, $location) {
     var vm = this;
     vm.$onInit = onInit;
 
@@ -40,12 +40,22 @@ define([
       vm.almostDone = i18n.get('progress.almostdone');
       vm.message = i18n.get('testing.message');
       $timeout(function () {
-        if (vm.data.model.created === true) {
-          dataService.runTests(vm.data.model.clusterName).then(function (res) {
+        if(vm.data) {
+          if (vm.data.model.created === true) {
+            dataService.runTests(vm.data.model.clusterName).then(function (res) {
+              vm.data.model.testCategories = res.data;
+              $state.go("test-results", {data: vm.data});
+            });
+          }
+        } else {
+          vm.data = {};
+          vm.data.model = {};
+          dataService.runTests($location.search().name).then(function (res) {
             vm.data.model.testCategories = res.data;
+            vm.data.hideBack = true;
+            $state.go("test-results", {data: vm.data, transition: "slideRight"});
           });
         }
-        $state.go("test-results", {data: vm.data});
       }, 500);
     }
   }

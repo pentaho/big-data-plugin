@@ -42,7 +42,7 @@ define([
     }
 
     function getButtons() {
-      return [
+      var buttons = [
         {
           label: i18n.get('controls.close.label'),
           class: "primary",
@@ -50,15 +50,20 @@ define([
           onClick: function () {
             close();
           }
-        },
-        {
-          label: i18n.get('controls.back.label'),
-          class: "primary",
-          position: "right",
-          onClick: function () {
-            $state.go('status', {data: vm.data, transition: "slideRight"});
+        }
+      ];
+      if(!vm.data.hideBack) {
+        buttons[1] =
+          {
+            label: i18n.get('controls.back.label'),
+            class: "primary",
+            position: "right",
+            onClick: function () {
+              $state.go('status', {data: vm.data, transition: "slideRight"});
+            }
           }
-        }];
+      }
+      return buttons;
     }
   }
 
