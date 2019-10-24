@@ -78,7 +78,7 @@ public class HadoopClusterManagerTest {
   }
 
   @Test public void testImportNamedCluster() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
     model.setImportPath( "src/test/resources" );
@@ -95,7 +95,7 @@ public class HadoopClusterManagerTest {
   @Test public void testCreateNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
@@ -103,14 +103,14 @@ public class HadoopClusterManagerTest {
   @Test public void testVaidateExistingName() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( "existingName" );
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( "", result.get( "namedCluster" ) );
   }
 
   @Test public void testEditNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     model.setName( ncTestName );
     model.setOldName( ncTestName );
     JSONObject result = hadoopClusterManager.editNamedCluster( model, true );
@@ -118,7 +118,7 @@ public class HadoopClusterManagerTest {
   }
 
   @Test public void testFailNamedCluster() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
     model.setImportPath( "src/test/resources/bad" );
@@ -129,7 +129,7 @@ public class HadoopClusterManagerTest {
   }
 
   @Test public void testGetShimIdentifiers() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     List<ShimIdentifierInterface> shimIdentifiers = hadoopClusterManager.getShimIdentifiers();
     assertTrue( shimIdentifiers != null );
   }
@@ -139,7 +139,7 @@ public class HadoopClusterManagerTest {
     when( namedClusterService.getNamedClusterByName( ncTestName, this.metaStore ) ).thenReturn( namedCluster );
     when( runtimeTestStatus.isDone() ).thenReturn( true );
 
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService );
+    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     hadoopClusterManager.onProgress( runtimeTestStatus );
     Object[] categories = (Object[]) hadoopClusterManager.runTests( null, ncTestName );
 

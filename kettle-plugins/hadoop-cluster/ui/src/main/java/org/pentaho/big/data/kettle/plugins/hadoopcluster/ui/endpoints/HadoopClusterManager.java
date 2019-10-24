@@ -99,10 +99,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private RuntimeTestStatus runtimeTestStatus = null;
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterManager.class );
 
-  public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService ) {
+  public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService, IMetaStore metaStore ) {
     this.spoon = spoon;
     this.namedClusterService = namedClusterService;
-    this.metaStore = spoon.getMetaStore();
+    this.metaStore = metaStore != null ? metaStore : spoon.getMetaStore();
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
   }
 
@@ -139,8 +139,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
           namedClusterService.create( nc, metaStore );
-          createConfigProperties( nc );
           installSiteFiles( siteFilesSource, nc );
+          createConfigProperties( nc );
           refreshTree();
           response.put( NAMED_CLUSTER, nc.getName() );
         }
@@ -243,7 +243,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // If the user changed the shim, create a new config.properties file that corresponds to that shim
       // in the new config folder.
-      if ( !shimId.equals( nc.getShimIdentifier() ) ) {
+      if ( nc.getShimIdentifier() != null && !nc.getShimIdentifier().equals( shimId ) ) {
         createConfigProperties( nc );
       }
 
@@ -403,13 +403,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private void installSiteFiles( File source, NamedCluster nc ) throws IOException {
     if ( source.isDirectory() ) {
       File destination = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
-      if ( destination.exists() ) {
-        FileUtils.cleanDirectory( destination );
-      }
       File[] files = source.listFiles();
       for ( File file : files ) {
-        if ( ( file.getName().endsWith( "-site.xml" ) || file.getName().endsWith( "-default.xml" ) )
-            && parseSiteFileDocument( file ) != null ) {
+        if ( ( file.getName().endsWith( "-site.xml" ) || file.getName().endsWith( "-default.xml" ) || file.getName()
+            .equals( "config.properties" ) ) && parseSiteFileDocument( file ) != null ) {
           FileUtils.copyFileToDirectory( file, destination );
         }
       }
