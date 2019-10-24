@@ -52,6 +52,7 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
 
   public static final String IMPORT_STATE = "import";
   public static final String NEW_EDIT_STATE = "new-edit";
+  public static final String TESTING_STATE = "testing";
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
@@ -113,6 +114,8 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
         NEW_EDIT_STATE, false );
       createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
         NEW_EDIT_STATE, true );
+      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
+        TESTING_STATE, false );
     }
     return maintMenu;
   }
