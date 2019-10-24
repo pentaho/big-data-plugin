@@ -305,11 +305,21 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
 
       if ( !loadNamedCluster( getMetaStore() ) ) {
         PropertyEntry entry = config.getCustomArguments().stream()
-                .filter( p-> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
-                .findFirst()
-                .orElse( null );
+          .filter( p -> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
+          .findFirst()
+          .orElse( null );
         if ( entry != null ) {
           loadNamedCluster( entry.getValue() );
+        }
+      }
+
+      NamedCluster tempCluster = null;
+      if ( StringUtil.isEmpty( config.getNamedCluster().getName() ) ) {
+        tempCluster = namedClusterService.getNamedClusterByHost( config.getNamedCluster().getHdfsHost(), getMetaStore() );
+        if ( tempCluster != null ) {
+          config.setNamedCluster( tempCluster );
+        } else {
+          throw new KettleException( "An Hadoop Cluster matching Namenode Host could not be found" );
         }
       }
 

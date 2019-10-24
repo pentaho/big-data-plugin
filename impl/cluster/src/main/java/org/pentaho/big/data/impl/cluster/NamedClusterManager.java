@@ -253,7 +253,7 @@ public class NamedClusterManager implements NamedClusterService {
     try {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
-        if ( nc.getHdfsHost().equals( hostName ) ) {
+        if ( hostName.equals( nc.getHdfsHost() ) ) {
           return nc;
         }
       }
