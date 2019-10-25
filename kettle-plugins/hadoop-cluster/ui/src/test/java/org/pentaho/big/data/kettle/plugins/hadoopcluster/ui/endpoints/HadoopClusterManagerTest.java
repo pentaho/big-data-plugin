@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
@@ -143,6 +144,17 @@ public class HadoopClusterManagerTest {
     assertFalse( shimIdentifiers.contains( internalShim ) );
   }
 
+  @Test public void testInstallDriver() {
+    System.getProperties()
+        .setProperty( Const.SHIM_DRIVER_DEPLOYMENT_LOCATION, "src/test/resources/driver-destination" );
+    JSONObject response = hadoopClusterManager.installDriver( "src/test/resources/driver-source/driver.kar" );
+    boolean isSuccess = (boolean) response.get( "installed" );
+    if ( isSuccess ) {
+      File driver = new File( "src/test/resources/driver-destination/driver.kar" );
+      assertTrue( driver.exists() );
+    }
+  }
+
   @Test public void testRunTests() {
     RuntimeTestStatus runtimeTestStatus = mock( RuntimeTestStatus.class );
     when( namedClusterService.getNamedClusterByName( ncTestName, this.metaStore ) ).thenReturn( namedCluster );
@@ -166,6 +178,7 @@ public class HadoopClusterManagerTest {
 
   @After public void tearDown() throws IOException {
     FileUtils.deleteDirectory( getShimTestDir() );
+    FileUtils.deleteDirectory( new File( "src/test/resources/driver-destination" ) );
   }
 
   private File getShimTestDir() {
