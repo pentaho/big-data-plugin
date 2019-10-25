@@ -49,7 +49,7 @@ define([
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
       vm.browseType = "folder";
       vm.importFolderLabel = i18n.get('new.edit.folder.label.optional');
-      vm.hdfsLabel = i18n.get('new.edit.hdfs.label');
+      vm.hdfsLabel = i18n.get('hadoop.cluster.hdfs.label');
       vm.hostnameLabel = i18n.get('new.edit.hostname.label');
       vm.portLabel = i18n.get('new.edit.port.label');
       vm.usernameLabel = i18n.get('new.edit.username.label');

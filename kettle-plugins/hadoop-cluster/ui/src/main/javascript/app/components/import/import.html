@@ -18,7 +18,10 @@
     <div class="margin_bottom_20">
       <browse-local type="vm.browseType" label="vm.importFolderLabel" model="vm.data.model.importPath"></browse-local>
     </div>
-    <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
+    <fieldset class="margin_bottom_15">
+      <legend>{{::vm.hdfsLabel}}</legend>
+      <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
+    </fieldset>
   </div>
   <controls buttons="vm.buttons" data="vm.data"></controls>
 </div>
