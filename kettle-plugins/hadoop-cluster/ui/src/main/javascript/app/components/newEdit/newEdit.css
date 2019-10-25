@@ -48,24 +48,6 @@ textarea {
   float: right;
 }
 
-fieldset {
-  margin-bottom: 15px;
-  border: 1px solid #d7d7d7;
-  border-radius: 4px;
-  padding: 10px 0px 10px 10px;
-  clear: both;
-  overflow: hidden;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
-}
-
-legend {
-  padding: 2px;
-  font-family: OpenSansRegular;
-  font-size: 14px;
-  color: #666666;
-}
-
 .import-shim {
   height: 60px;
 }

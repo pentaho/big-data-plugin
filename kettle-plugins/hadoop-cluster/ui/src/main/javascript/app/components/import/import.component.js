@@ -47,6 +47,7 @@ define([
       vm.importFolderLabel = i18n.get('import.folder.label');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
+      vm.hdfsLabel = i18n.get('hadoop.cluster.hdfs.label');
 
       setDialogTitle(i18n.get('hadoop.cluster.title'));
 
