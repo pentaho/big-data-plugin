@@ -29,6 +29,7 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopCluster
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -94,6 +95,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String WARNING = "Warning";
   private static final String FAIL = "Fail";
   private static final String NAMED_CLUSTER = "namedCluster";
+  private static final String INSTALLED = "installed";
   private final String internalShim;
 
   @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
@@ -408,6 +410,21 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         }
       }
     }
+  }
+
+  @SuppressWarnings( "javasecurity:S2083" )
+  public JSONObject installDriver( String source ) {
+    boolean success = true;
+    try {
+      String destination = System.getProperties().getProperty( Const.SHIM_DRIVER_DEPLOYMENT_LOCATION, "./" );
+      FileUtils.copyFileToDirectory( new File( source ), new File( destination ) );
+    } catch ( IOException e ) {
+      success = false;
+      logChannel.error( e.getMessage() );
+    }
+    JSONObject response = new JSONObject();
+    response.put( INSTALLED, success );
+    return response;
   }
 
   private void installSiteFiles( File source, NamedCluster nc ) throws IOException {
