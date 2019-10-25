@@ -3,13 +3,13 @@
   <div class="new-edit-middle margin_bottom_10">
     <div class="cluster-name margin_bottom_15">
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
-      <input id="clusterName" type="text" ng-model="vm.data.model.clusterName" autofocus/>
+      <input id="clusterName" type="text" ng-model="vm.data.model.name" autofocus/>
     </div>
     <div class="scroll-form">
       <div class="import-shim margin_bottom_15">
         <div class="leftHalf">
-          <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
-          <select-box id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></select-box>
+          <label for="shimVendor" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
+          <select-box id="shimVendor" type="vm.shimVendor" options="vm.shimVendors" on-select="vm.onSelectShim(value)"></select-box>
         </div>
         <div class="rightHalf">
           <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
@@ -30,7 +30,7 @@
           <img class="variable" ng-src="{{::vm.variableImage}}"/>
           <div class="fill-remaining">
             <label for="hdfsHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-            <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHostname"/>
+            <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHost"/>
           </div>
         </div>
         <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
@@ -45,7 +45,7 @@
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
         <div class="fill-remaining">
           <label for="jobTrackerHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-          <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHostname"/>
+          <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHost"/>
         </div>
       </fieldset>
       <fieldset class="margin_bottom_15">
@@ -58,7 +58,7 @@
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
         <div class="fill-remaining">
           <label for="zooKeeperHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-          <input id="zooKeeperHostname" type="text" ng-model="vm.data.model.zooKeeperHostname"/>
+          <input id="zooKeeperHostname" type="text" ng-model="vm.data.model.zooKeeperHost"/>
         </div>
       </fieldset>
       <fieldset class="margin_bottom_15">
@@ -66,7 +66,7 @@
         <img class="variable" ng-src="{{::vm.variableImage}}"/>
         <div class="fill-remaining">
           <label for="oozieHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-          <input id="oozieHostname" type="text" ng-model="vm.data.model.oozieHostname"/>
+          <input id="oozieHostname" type="text" ng-model="vm.data.model.oozieUrl"/>
         </div>
       </fieldset>
       <fieldset class="margin_bottom_15">

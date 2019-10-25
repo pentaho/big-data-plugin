@@ -64,13 +64,13 @@ define([
 
       dataService.getShimIdentifiers().then(function (res) {
         vm.shimVersionJson = res.data;
-        var shimNames = [];
+        var shimVendors = [];
         for (var i = 0; i < res.data.length; i++) {
-          if (!contains(shimNames, res.data[i].vendor)) {
-            shimNames.push(res.data[i].vendor);
+          if (!contains(shimVendors, res.data[i].vendor)) {
+            shimVendors.push(res.data[i].vendor);
           }
         }
-        vm.shimNames = shimNames;
+        vm.shimVendors = shimVendors;
 
         var urlNameParameter = $location.search().name;
         var duplicateName = $location.search().duplicateName;
@@ -79,44 +79,26 @@ define([
         if (urlNameParameter) {
           name = urlNameParameter;
         } else if ($stateParams.data) {
-          name = vm.data.model.clusterName;
+          name = vm.data.model.name;
         }
 
         //Edit if we were provided a name on the url or in the data
         if (name) {
           vm.header = i18n.get('edit.header');
+          vm.data.type = "edit";
 
-          dataService.getNamedCluster(name)
-          .then(function (res) {
-            vm.data.type = "edit";
-
-            vm.data.model = {};
+          dataService.getNamedCluster(name).then(function (res) {
+            vm.data.model = res.data;
 
             vm.data.model.oldName = name;
 
-            //TODO: make the server and client JSON the same so we don't have to do the conversions.
             if(duplicateName) {
-              vm.data.model.clusterName = duplicateName;
+              vm.data.model.name = duplicateName;
               vm.data.type = "duplicate";
-            } else {
-              vm.data.model.clusterName = res.data.name;
             }
-            vm.data.model.shimName = res.data.shimVendor;
-            vm.data.model.shimVersion = res.data.shimVersion;
-            vm.data.model.hdfsUsername = res.data.hdfsUsername;
-            vm.data.model.hdfsPassword = res.data.hdfsPassword;
-            vm.data.model.hdfsHostname = res.data.hdfsHost;
-            vm.data.model.hdfsPort = res.data.hdfsPort;
-            vm.data.model.jobTrackerHostname = res.data.jobTrackerHost;
-            vm.data.model.jobTrackerPort = res.data.jobTrackerPort;
-            vm.data.model.jobTrackerPort = res.data.jobTrackerPort;
-            vm.data.model.zooKeeperHostname = res.data.zooKeeperHost;
-            vm.data.model.zooKeeperPort = res.data.zooKeeperPort;
-            vm.data.model.oozieHostname = res.data.oozieUrl;
-            vm.data.model.kafkaBootstrapServers = res.data.kafkaBootstrapServers;
 
-            vm.shimName = vm.data.model.shimName;
-            vm.shimVersions = getShimVersions(vm.shimName);
+            vm.shimVendor = vm.data.model.shimVendor;
+            vm.shimVersions = getShimVersions(vm.shimVendor);
             vm.shimVersion = vm.data.model.shimVersion;
           });
 
@@ -125,25 +107,25 @@ define([
 
           vm.data = {
             model: {
-              clusterName: "",
-              shimName: "",
+              name: "",
+              shimVendor: "",
               shimVersion: "",
               importPath: "",
-              hdfsHostname: "localhost",
+              hdfsHost: "localhost",
               hdfsPort: "8020",
               hdfsUsername: "",
               hdfsPassword: "",
-              jobTrackerHostname: "localhost",
+              jobTrackerHost: "localhost",
               jobTrackerPort: "8032",
-              zooKeeperHostname: "localhost",
+              zooKeeperHost: "localhost",
               zooKeeperPort: "2181",
-              oozieHostname: "http://localhost:8080/oozie",
-              kafkaBootstrapServers: "",
-              created: false
+              oozieUrl: "http://localhost:8080/oozie",
+              kafkaBootstrapServers: ""
             }
           };
+          vm.data.created = false;
           vm.data.type = "new";
-          vm.shimName = vm.shimNames[0];
+          vm.shimVendor = vm.shimVendors[0];
         }
       });
 
@@ -160,17 +142,17 @@ define([
     }
 
     function onSelectShim(option) {
-      vm.data.model.shimName = option;
+      vm.data.model.shimVendor = option;
       vm.shimVersions = getShimVersions(option);
       if (!vm.shimVersion || contains(vm.shimVersions, vm.shimVersion) === false) {
         vm.shimVersion = vm.shimVersions[0];
       }
     }
 
-    function getShimVersions(shimName) {
+    function getShimVersions(shimVendor) {
       var versions = [];
       for (var i = 0; i < vm.shimVersionJson.length; i++) {
-        if (vm.shimVersionJson[i].vendor === shimName) {
+        if (vm.shimVersionJson[i].vendor === shimVendor) {
           versions.push(vm.shimVersionJson[i].version);
         }
       }
@@ -202,7 +184,7 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.clusterName;
+            return !vm.data.model || !vm.data.model.name;
           },
           position: "right",
           onClick: function () {

@@ -53,32 +53,32 @@ define([
 
       dataService.getShimIdentifiers().then(function (res) {
         vm.shimVersionJson = res.data;
-        var shimNames = [];
+        var shimVendors = [];
         for (var i = 0; i < res.data.length; i++) {
-          if (!contains(shimNames, res.data[i].vendor)) {
-            shimNames.push(res.data[i].vendor);
+          if (!contains(shimVendors, res.data[i].vendor)) {
+            shimVendors.push(res.data[i].vendor);
           }
         }
-        vm.shimNames = shimNames;
+        vm.shimVendors = shimVendors;
 
         if ($stateParams.data) {
-          vm.shimName = vm.data.model.shimName;
-          vm.shimVersions = getShimVersions(vm.shimName);
+          vm.shimVendor = vm.data.model.shimVendor;
+          vm.shimVersions = getShimVersions(vm.shimVendor);
           vm.shimVersion = vm.data.model.shimVersion;
         } else {
           vm.data = {
             model: {
-              clusterName: "",
+              name: "",
               importPath: "",
-              shimName: "",
+              shimVendor: "",
               shimVersion: "",
               hdfsUsername: "",
-              hdfsPassword: "",
-              created: false
+              hdfsPassword: ""
             }
           };
+          vm.data.created = false;
           vm.data.type = "import";
-          vm.shimName = vm.shimNames[0];
+          vm.shimVendor = vm.shimVendors[0];
         }
       });
 
@@ -95,17 +95,17 @@ define([
     }
 
     function onSelectShim(option) {
-      vm.data.model.shimName = option;
+      vm.data.model.shimVendor = option;
       vm.shimVersions = getShimVersions(option);
       if (!vm.shimVersion || contains(vm.shimVersions, vm.shimVersion) === false) {
         vm.shimVersion = vm.shimVersions[0];
       }
     }
 
-    function getShimVersions(shimName) {
+    function getShimVersions(shimVendor) {
       var versions = [];
       for (var i = 0; i < vm.shimVersionJson.length; i++) {
-        if (vm.shimVersionJson[i].vendor === shimName) {
+        if (vm.shimVersionJson[i].vendor === shimVendor) {
           versions.push(vm.shimVersionJson[i].version);
         }
       }
@@ -137,7 +137,7 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.clusterName || !vm.data.model.importPath;
+            return !vm.data.model || !vm.data.model.name || !vm.data.model.importPath;
           },
           position: "right",
           onClick: function () {
