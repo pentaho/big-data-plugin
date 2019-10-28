@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
@@ -72,6 +73,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
@@ -91,19 +94,26 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String WARNING = "Warning";
   private static final String FAIL = "Fail";
   private static final String NAMED_CLUSTER = "namedCluster";
+  private final String internalShim;
 
-  private Spoon spoon;
-  private NamedClusterService namedClusterService;
-  private IMetaStore metaStore;
-  private VariableSpace variableSpace;
+  @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
+    () -> PentahoSystem.getAll( ShimIdentifierInterface.class );
+
+  private final Spoon spoon;
+  private final NamedClusterService namedClusterService;
+  private final IMetaStore metaStore;
+  private final VariableSpace variableSpace;
+
   private RuntimeTestStatus runtimeTestStatus = null;
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterManager.class );
 
-  public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService, IMetaStore metaStore ) {
+  public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService, IMetaStore metaStore,
+                               String internalShim ) {
     this.spoon = spoon;
     this.namedClusterService = namedClusterService;
     this.metaStore = metaStore != null ? metaStore : spoon.getMetaStore();
     this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
+    this.internalShim = internalShim;
   }
 
   private File decodeSiteFilesSource( String source ) throws UnsupportedEncodingException {
@@ -135,8 +145,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
       if ( siteFilesSource.exists() ) {
         boolean
-            isConfigurationSet =
-            configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
+          isConfigurationSet =
+          configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
           namedClusterService.create( nc, metaStore );
           installSiteFiles( siteFilesSource, nc );
@@ -201,8 +211,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     boolean isValid = true;
     if ( namedClusterService.contains( name, metaStore ) ) {
       logChannel.error(
-          "Invalid name. A Named Cluster with the same name already exists. A different name must be provided:{}",
-          name );
+        "Invalid name. A Named Cluster with the same name already exists. A different name must be provided:{}",
+        name );
       isValid = false;
     }
     return isValid;
@@ -289,7 +299,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     extractProperties( importPath, "core-site.xml", properties, new String[] { "fs.defaultFS" } );
     extractProperties( importPath, "yarn-site.xml", properties, new String[] { "yarn.resourcemanager.address" } );
     extractProperties( importPath, "hive-site.xml", properties,
-        new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
+      new String[] { "hive.zookeeper.quorum", "hive.zookeeper.client.port" } );
     extractProperties( importPath, "oozie-site.xml", properties, new String[] { oozieBaseUrl } );
     if ( properties.get( oozieBaseUrl ) == null ) {
       extractProperties( importPath, "oozie-default.xml", properties, new String[] { oozieBaseUrl } );
@@ -406,7 +416,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       File[] files = source.listFiles();
       for ( File file : files ) {
         if ( ( file.getName().endsWith( "-site.xml" ) || file.getName().endsWith( "-default.xml" ) || file.getName()
-            .equals( "config.properties" ) ) && parseSiteFileDocument( file ) != null ) {
+          .equals( "config.properties" ) ) && parseSiteFileDocument( file ) != null ) {
           FileUtils.copyFileToDirectory( file, destination );
         }
       }
@@ -427,14 +437,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private void createConfigProperties( NamedCluster namedCluster ) throws IOException {
     Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() );
     Path
-        configPropertiesPath =
-        Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator
-            + "config.properties" );
+      configPropertiesPath =
+      Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator
+        + "config.properties" );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream
-        inputStream =
-        HadoopClusterDelegateImpl.class.getClassLoader().getResourceAsStream( sampleConfigProperties );
+      inputStream =
+      HadoopClusterDelegateImpl.class.getClassLoader().getResourceAsStream( sampleConfigProperties );
     if ( inputStream != null ) {
       Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
     }
@@ -471,8 +481,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return xmlMetaStore;
   }
 
-  public List<ShimIdentifierInterface> getShimIdentifiers() {
-    return PentahoSystem.getAll( ShimIdentifierInterface.class );
+  /**
+   * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
+   */
+  List<ShimIdentifierInterface> getShimIdentifiers() {
+    return shimIdentifiersSupplier.get().stream()
+      .filter( s -> !internalShim.equals( s.getId() ) )
+      .collect( Collectors.toList() );
   }
 
   public Object runTests( RuntimeTester runtimeTester, String namedCluster ) {
@@ -539,7 +554,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private void configureHadoopFileSystemCategory( Category category, String status ) {
     String currentStatus = category.getCategoryStatus();
     if ( status.equals( FAIL ) || ( status.equals( WARNING ) && !currentStatus.equals( FAIL ) ) || (
-        status.equals( PASS ) && StringUtil.isEmpty( currentStatus ) ) ) {
+      status.equals( PASS ) && StringUtil.isEmpty( currentStatus ) ) ) {
       category.setCategoryStatus( status );
     }
   }
@@ -591,6 +606,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private String getNamedClusterConfigsRootDir() {
     return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
-        + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
   }
 }

@@ -28,7 +28,14 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd"
            xmlns:jaxrs="http://cxf.apache.org/blueprint/jaxrs"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
            default-timeout="20000" default-activation="eager">
+
+  <cm:property-placeholder persistent-id="pentaho.shim" update-strategy="reload">
+    <cm:default-properties>
+      <cm:property name="internal.shim" value="apache"/>
+    </cm:default-properties>
+  </cm:property-placeholder>
 
   <reference id="metastoreLocator"
              interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"
@@ -37,22 +44,23 @@
   <reference id="namedClusterService"
              interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
 
-  <bean id="HadoopClusterDelegate" scope="singleton" class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate" />
+  <bean id="HadoopClusterDelegate" scope="singleton"
+        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate"/>
 
   <bean id="HadoopClusterTreeDelegateExtension" scope="singleton"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.ThinHadoopClusterTreeDelegateExtension">
-    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
 
   <bean id="HadoopClusterPopupMenuExtension" scope="singleton"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterPopupMenuExtension">
-    <argument ref="HadoopClusterDelegate" />
-    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType" />
+    <argument ref="HadoopClusterDelegate"/>
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
 
   <bean id="HadoopClusterLifecycleListener"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.lifecycle.HadoopClusterLifecycleListener">
-    <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType" />
+    <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType"/>
   </bean>
 
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
@@ -63,13 +71,14 @@
         <argument ref="metastoreLocator"/>
         <argument ref="namedClusterService"/>
         <argument ref="runtimeTester"/>
+        <argument value="${internal.shim}"/>
       </bean>
     </jaxrs:serviceBeans>
     <jaxrs:extensionMappings>
       <entry key="json" value="application/json"/>
     </jaxrs:extensionMappings>
     <jaxrs:providers>
-      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider" />
+      <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
     </jaxrs:providers>
   </jaxrs:server>
 
