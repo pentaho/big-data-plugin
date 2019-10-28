@@ -3,12 +3,12 @@
   <div class="middle_hadoop_div margin_bottom_10">
     <div class="margin_bottom_30">
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
-      <input id="clusterName" type="text" ng-model="vm.data.model.clusterName" autofocus/>
+      <input id="clusterName" type="text" ng-model="vm.data.model.name" autofocus/>
     </div>
     <div class="import-shim margin_bottom_15">
       <div class="leftHalf">
-        <label for="importShimName" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
-        <select-box id="importShimName" type="vm.shimName" options="vm.shimNames" on-select="vm.onSelectShim(value)"></select-box>
+        <label for="shimVendor" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
+        <select-box id="shimVendor" type="vm.shimVendor" options="vm.shimVendors" on-select="vm.onSelectShim(value)"></select-box>
       </div>
       <div class="rightHalf">
         <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>

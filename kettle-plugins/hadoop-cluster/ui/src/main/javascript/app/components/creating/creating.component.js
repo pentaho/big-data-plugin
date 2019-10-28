@@ -41,64 +41,25 @@ define([
       vm.message = i18n.get('creating.message');
       $timeout(function () {
 
-        var cluster = {
-          name: vm.data.model.clusterName,
-          shimVendor: vm.data.model.shimName,
-          shimVersion: vm.data.model.shimVersion,
-          importPath: encodeURIComponent(vm.data.model.importPath),
-          hdfsUsername: vm.data.model.hdfsUsername,
-          hdfsPassword: vm.data.model.hdfsPassword
-        };
-
+        var cluster = vm.data.model;
+        cluster.importPath = encodeURIComponent(cluster.importPath);
         var process;
 
         switch (vm.data.type) {
           case "new":
             process = dataService.createNamedCluster;
-
-            //TODO: make vm.data.model json the same as cluster so we don't have to do the conversions.
-            cluster.hdfsHost = vm.data.model.hdfsHostname;
-            cluster.hdfsPort = vm.data.model.hdfsPort;
-            cluster.jobTrackerHost = vm.data.model.jobTrackerHostname;
-            cluster.jobTrackerPort = vm.data.model.jobTrackerPort;
-            cluster.zooKeeperHost = vm.data.model.zooKeeperHostname;
-            cluster.zooKeeperPort = vm.data.model.zooKeeperPort;
-            cluster.oozieUrl = vm.data.model.oozieHostname;
-            cluster.kafkaBootstrapServers = vm.data.model.kafkaBootstrapServers;
             break;
           case "edit":
             process = dataService.editNamedCluster;
-
-            //TODO: make vm.data.model json the same as cluster so we don't have to do the conversions.
-            cluster.hdfsHost = vm.data.model.hdfsHostname;
-            cluster.hdfsPort = vm.data.model.hdfsPort;
-            cluster.jobTrackerHost = vm.data.model.jobTrackerHostname;
-            cluster.jobTrackerPort = vm.data.model.jobTrackerPort;
-            cluster.zooKeeperHost = vm.data.model.zooKeeperHostname;
-            cluster.zooKeeperPort = vm.data.model.zooKeeperPort;
-            cluster.oozieUrl = vm.data.model.oozieHostname;
-            cluster.kafkaBootstrapServers = vm.data.model.kafkaBootstrapServers;
-            cluster.oldName = vm.data.model.oldName;
             break;
           case "duplicate":
             process = dataService.duplicateNamedCluster;
-
-            //TODO: make vm.data.model json the same as cluster so we don't have to do the conversions.
-            cluster.hdfsHost = vm.data.model.hdfsHostname;
-            cluster.hdfsPort = vm.data.model.hdfsPort;
-            cluster.jobTrackerHost = vm.data.model.jobTrackerHostname;
-            cluster.jobTrackerPort = vm.data.model.jobTrackerPort;
-            cluster.zooKeeperHost = vm.data.model.zooKeeperHostname;
-            cluster.zooKeeperPort = vm.data.model.zooKeeperPort;
-            cluster.oozieUrl = vm.data.model.oozieHostname;
-            cluster.kafkaBootstrapServers = vm.data.model.kafkaBootstrapServers;
-            cluster.oldName = vm.data.model.oldName;
             break;
           case "import":
             process = dataService.importNamedCluster;
             break;
           default:
-            vm.data.model.created = false;
+            vm.data.created = false;
             $state.go("status", {data: vm.data});
         }
 
@@ -107,7 +68,7 @@ define([
             return processResultAndTest(res);
           },
           function (error) {
-            vm.data.model.created = false;
+            vm.data.created = false;
             $state.go("status", {data: vm.data});
           });
 
@@ -117,14 +78,14 @@ define([
     function processResultAndTest(res) {
       //namedCluster is returned on success, otherwise there was an error
       if (res && res.data && res.data.namedCluster && 0 !== res.data.namedCluster.length) {
-        vm.data.model.created = true;
-        dataService.runTests(vm.data.model.clusterName)
+        vm.data.created = true;
+        dataService.runTests(vm.data.model.name)
         .then(function (res) {
           vm.data.model.testCategories = res.data;
           $state.go("status", {data: vm.data});
         });
       } else {
-        vm.data.model.created = false;
+        vm.data.created = false;
         $state.go("status", {data: vm.data});
       }
     }
