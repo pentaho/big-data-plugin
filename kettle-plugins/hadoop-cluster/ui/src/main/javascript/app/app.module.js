@@ -29,6 +29,9 @@ define([
   "./components/testing/testing.component",
   "./components/status/status.component",
   "./components/testResults/testResults.component",
+  "./components/addDriver/addDriver.component",
+  "./components/installingDriver/installingDriver.component",
+  "./components/driverStatus/driverStatus.component",
   "./components/selectBox/selectBox.component",
   "./components/browseLocal/browseLocal.component",
   "./components/credentials/credentials.component",
@@ -41,7 +44,8 @@ define([
   "angular-ui-router",
   "angular-animate"
 ], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent,
-             statusComponent, testResultsComponent, selectBoxComponent, browseLocalComponent, credentialsComponent,
+             statusComponent, testResultsComponent, addDriverComponent, installingDriverComponent,
+             driverStatusComponent, selectBoxComponent, browseLocalComponent, credentialsComponent,
              accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
   "use strict";
 
@@ -68,6 +72,9 @@ define([
         .component(testingComponent.name, testingComponent.options)
         .component(statusComponent.name, statusComponent.options)
         .component(testResultsComponent.name, testResultsComponent.options)
+        .component(addDriverComponent.name, addDriverComponent.options)
+        .component(installingDriverComponent.name, installingDriverComponent.options)
+        .component(driverStatusComponent.name, driverStatusComponent.options)
         .component(selectBoxComponent.name, selectBoxComponent.options)
         .component(browseLocalComponent.name, browseLocalComponent.options)
         .component(credentialsComponent.name, credentialsComponent.options)

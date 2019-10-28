@@ -52,7 +52,8 @@ define(
         duplicateNamedCluster: duplicateNamedCluster,
         getNamedCluster: getNamedCluster,
         getShimIdentifiers: getShimIdentifiers,
-        runTests: runTests
+        runTests: runTests,
+        installDriver: installDriver
       };
 
       function help() {
@@ -85,6 +86,9 @@ define(
 
       function runTests(name) {
         return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + name);
+      }
+      function installDriver(source) {
+        return helperService.httpGet([baseUrl, "installDriver"].join("/") + "?source=" + source);
       }
     }
   });

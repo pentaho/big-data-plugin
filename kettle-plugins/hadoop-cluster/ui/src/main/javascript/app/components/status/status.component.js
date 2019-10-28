@@ -16,8 +16,7 @@
 
 define([
   'text!./status.html',
-  'pentaho/i18n-osgi!hadoopCluster.messages',
-  'css!./status.css'
+  'pentaho/i18n-osgi!hadoopCluster.messages'
 ], function (template, i18n) {
 
   'use strict';

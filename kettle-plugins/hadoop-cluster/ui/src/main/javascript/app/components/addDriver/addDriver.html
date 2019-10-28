@@ -1,0 +1,13 @@
+<div class="main_div">
+  <div class="title_text margin_bottom_30 text_center">{{vm.header}}</div>
+  <div class="middle_hadoop_div margin_bottom_10">
+    <div class="margin_bottom_15 primary_text">{{::vm.driverInstructionsLabel}}</div>
+    <div class="margin_bottom_15">
+      <a href="">{{::vm.driverSupportMatrixLinkText}}</a>
+    </div>
+    <div class="margin_bottom_20">
+      <browse-local type="vm.browseType" label="vm.fileLabel" model="vm.data.driverPath"></browse-local>
+    </div>
+  </div>
+  <controls buttons="vm.buttons" data="vm.data"></controls>
+</div>
