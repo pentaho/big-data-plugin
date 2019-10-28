@@ -110,8 +110,7 @@ public class NamedClusterLoadSaveUtil {
       }
       // load from system first, then fall back to copy stored with job (AbstractMeta)
       NamedCluster nc = null;
-      if ( metaStore != null && !StringUtils.isEmpty( clusterName )
-        && namedClusterService.contains( clusterName, metaStore ) ) {
+      if ( !StringUtils.isEmpty( clusterName ) && namedClusterService.contains( clusterName, metaStore ) ) {
         // pull config from NamedCluster
         nc = namedClusterService.read( clusterName, metaStore );
       }

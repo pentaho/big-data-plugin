@@ -132,9 +132,7 @@ public class NamedClusterProvider extends HDFSFileProvider implements VfsEmbedde
     IMetaStore metaStore = getMetastore( clusterNameToResolve, fileSystemOptions );
     NamedCluster namedCluster = null;
     try {
-      if ( metaStore != null ) {
-        namedCluster = namedClusterService.read( clusterNameToResolve, metaStore );
-      }
+      namedCluster = namedClusterService.read( clusterNameToResolve, metaStore );
     } catch ( MetaStoreException e ) {
       throw new FileSystemException( e );
     }

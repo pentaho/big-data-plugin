@@ -43,11 +43,14 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 import org.pentaho.metastore.stores.xml.XmlMetaStore;
+import org.pentaho.metastore.stores.xml.XmlUtil;
 import org.pentaho.metastore.util.PentahoDefaults;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -161,8 +164,16 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
-    IMetaStore metaStoreToSearch = getSlaveMetaStoreIfNull( metastore );
-    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metaStoreToSearch );
+    MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
+
+    if ( !listNames( metastore ).contains( clusterName ) ) {
+      // only try the slave metastore if the given one fails
+      IMetaStore slaveMetastore = getSlaveServerMetastore();
+      if ( slaveMetastore != null && listNames( slaveMetastore ).contains( clusterName ) ) {
+        factory = getMetaStoreFactory( slaveMetastore );
+      }
+    }
+
     NamedCluster namedCluster = null;
     try {
       namedCluster = factory.loadElement( clusterName );
@@ -216,18 +227,35 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public boolean contains( String clusterName, IMetaStore metastore ) throws MetaStoreException {
-    IMetaStore metaStoreToSearch = getSlaveMetaStoreIfNull( metastore );
-    if ( metaStoreToSearch == null ) {
-      return false;
+    boolean found = false;
+    if ( metastore != null ) {
+      found = listNames( metastore ).contains( clusterName );
     }
-    return listNames( metaStoreToSearch ).contains( clusterName );
+    if ( !found ) {
+      IMetaStore slaveMetastore = getSlaveServerMetastore();
+      if ( slaveMetastore != null ) {
+        found = listNames( slaveMetastore ).contains( clusterName );
+      }
+    }
+    return found;
   }
 
   @Override
-  public NamedCluster getNamedClusterByName( String namedCluster, IMetaStore metastore ) {
-    if ( metastore == null ) {
-      return null;
+  public NamedCluster getNamedClusterByName( String namedClusterName, IMetaStore metastore ) {
+    NamedCluster namedCluster = null;
+    if ( metastore != null ) {
+      namedCluster = searchMetastoreByName( namedClusterName, metastore );
     }
+    if ( namedCluster == null ) {
+      IMetaStore slaveMetastore = getSlaveServerMetastore();
+      if ( slaveMetastore != null ) {
+        namedCluster = searchMetastoreByName( namedClusterName, slaveMetastore );
+      }
+    }
+    return namedCluster;
+  }
+
+  private NamedCluster searchMetastoreByName( String namedCluster, IMetaStore metastore ) {
     try {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
@@ -247,9 +275,23 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public NamedCluster getNamedClusterByHost( String hostName, IMetaStore metastore ) {
-    if ( metastore == null || hostName == null ) {
+    NamedCluster namedCluster = null;
+    if ( hostName == null ) {
       return null;
     }
+    if ( metastore != null ) {
+      namedCluster = searchMetastoreByHost( hostName, metastore );
+    }
+    if ( namedCluster == null ) {
+      IMetaStore slaveMetastore = getSlaveServerMetastore();
+      if ( slaveMetastore != null ) {
+        namedCluster = searchMetastoreByHost( hostName, slaveMetastore );
+      }
+    }
+    return namedCluster;
+  }
+
+  private NamedCluster searchMetastoreByHost( String hostName, IMetaStore metastore ) {
     try {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
@@ -284,7 +326,19 @@ public class NamedClusterManager implements NamedClusterService {
 
     try {
       legacyProperties = loadProperties( pluginInterface, "plugin.properties" );
-      return legacyProperties.getProperty( BIG_DATA_SLAVE_METASTORE_DIR );
+      String slaveMetaStoreDir = legacyProperties.getProperty( BIG_DATA_SLAVE_METASTORE_DIR );
+      if ( null == slaveMetaStoreDir || slaveMetaStoreDir.equals( "" )
+        || !Paths.get( slaveMetaStoreDir + File.separator + XmlUtil.META_FOLDER_NAME ).toFile().exists() ) {
+        // property was not set or not a file
+        // last resort is if a metastore was copied into the big data plugin directory by a yarn cluster job starting
+        slaveMetaStoreDir = pluginInterface.getPluginDirectory().getPath();
+      }
+      if ( Paths.get( slaveMetaStoreDir + File.separator + XmlUtil.META_FOLDER_NAME ).toFile().exists()
+        && Paths.get( slaveMetaStoreDir + File.separator + XmlUtil.META_FOLDER_NAME ).toFile().isDirectory() ) {
+        return slaveMetaStoreDir;
+      } else {
+        return null;
+      }
     } catch ( KettleFileException | NullPointerException e ) {
       throw new IOException( e );
     }
@@ -293,15 +347,17 @@ public class NamedClusterManager implements NamedClusterService {
   @VisibleForTesting
   IMetaStore getSlaveServerMetastore() {
     try {
-      return new XmlMetaStore( getSlaveServerMetastoreDir() );
+      String metastoreDir = getSlaveServerMetastoreDir();
+      if ( null != metastoreDir ) {
+        return new XmlMetaStore( getSlaveServerMetastoreDir() );
+      } else {
+        // it is essential that this method returns a null value if no slave metastore directory exists
+        return null;
+      }
     } catch ( IOException | MetaStoreException e ) {
       log.logError( "Error loading user-specified metastore:", e );
       return null;
     }
-  }
-
-  private IMetaStore getSlaveMetaStoreIfNull( IMetaStore metastore ) {
-    return ( metastore == null ) ? getSlaveServerMetastore() : metastore;
   }
 
   /**

@@ -195,7 +195,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   private NamedCluster getNamedCluster( OozieJobExecutorConfig config ) throws MetaStoreException {
     // load from system first, then
     NamedCluster nc = null;
-    if ( metaStore != null && !StringUtils.isEmpty( jobConfig.getClusterName() )
+    if ( !StringUtils.isEmpty( jobConfig.getClusterName() )
       && namedClusterService.contains( jobConfig.getClusterName(), metaStore ) ) {
       // pull config from NamedCluster
       nc = namedClusterService.read( jobConfig.getClusterName(), metaStore );
