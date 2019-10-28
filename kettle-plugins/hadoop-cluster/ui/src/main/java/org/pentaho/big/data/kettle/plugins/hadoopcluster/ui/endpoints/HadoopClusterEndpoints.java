@@ -47,93 +47,81 @@ import org.pentaho.di.ui.util.HelpUtils;
 public class HadoopClusterEndpoints {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
-  private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
-  private NamedClusterService namedClusterService;
-  private MetastoreLocator metastoreLocator;
-  private RuntimeTester runtimeTester;
+  private final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+  private final NamedClusterService namedClusterService;
+  private final MetastoreLocator metastoreLocator;
+  private final RuntimeTester runtimeTester;
+  private final String internalShim;
 
   public static final String
-      HELP_URL =
-      Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
+    HELP_URL =
+    Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
   public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
-      RuntimeTester runtimeTester ) {
+                                 RuntimeTester runtimeTester, String internalShim ) {
     this.namedClusterService = namedClusterService;
     this.metastoreLocator = metastoreLocator;
     this.runtimeTester = runtimeTester;
+    this.internalShim = internalShim;
+  }
+
+  private HadoopClusterManager getClusterManager() {
+    return new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService,
+      this.metastoreLocator.getMetastore(),
+      internalShim );
   }
 
   @GET @Path( "/help" ) public Response help() {
     spoonSupplier.get().getShell().getDisplay().asyncExec( () -> HelpUtils
-        .openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
-            BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ), HELP_URL,
-            BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
+      .openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
+        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ), HELP_URL,
+        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
     return Response.ok().build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster
   @POST @Path( "/importNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response importNamedCluster(
-      ThinNameClusterModel model ) {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    JSONObject response = hadoopClusterManager.importNamedCluster( model );
+    ThinNameClusterModel model ) {
+    JSONObject response = getClusterManager().importNamedCluster( model );
     return Response.ok( response ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/createNamedCluster
   @POST @Path( "/createNamedCluster" ) @Consumes( { MediaType.APPLICATION_JSON } )
   @Produces( { MediaType.APPLICATION_JSON } ) public Response createNamedCluster( ThinNameClusterModel model ) {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    JSONObject response = hadoopClusterManager.createNamedCluster( model );
+    JSONObject response = getClusterManager().createNamedCluster( model );
     return Response.ok( response ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/editNamedCluster
   @POST @Path( "/editNamedCluster" ) @Consumes( { MediaType.APPLICATION_JSON } )
   @Produces( { MediaType.APPLICATION_JSON } ) public Response editNamedCluster( ThinNameClusterModel model ) {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    JSONObject response = hadoopClusterManager.editNamedCluster( model, true );
+    JSONObject response = getClusterManager().editNamedCluster( model, true );
     return Response.ok( response ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/duplicateNamedCluster
   @POST @Path( "/duplicateNamedCluster" ) @Consumes( { MediaType.APPLICATION_JSON } )
   @Produces( { MediaType.APPLICATION_JSON } ) public Response duplicateNamedCluster( ThinNameClusterModel model ) {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    JSONObject response = hadoopClusterManager.editNamedCluster( model, false );
+    JSONObject response = getClusterManager().editNamedCluster( model, false );
     return Response.ok( response ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/getNamedCluster?namedCluster=
   @GET @Path( "/getNamedCluster" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getNamedCluster(
-      @QueryParam( "namedCluster" ) String namedCluster ) {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    return Response.ok( hadoopClusterManager.getNamedCluster( namedCluster ) ).build();
+    @QueryParam( "namedCluster" ) String namedCluster ) {
+    return Response.ok( getClusterManager().getNamedCluster( namedCluster ) ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/getShimIdentifiers
-  @GET @Path( "/getShimIdentifiers" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getShimIdentifiers() {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    return Response.ok( hadoopClusterManager.getShimIdentifiers() ).build();
+  @GET @Path( "/getShimIdentifiers" ) @Produces( { MediaType.APPLICATION_JSON } )
+  public Response getShimIdentifiers() {
+    return Response.ok( getClusterManager().getShimIdentifiers() ).build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/runTests?namedCluster=
   @GET @Path( "/runTests" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response runTests(
-      @QueryParam( "namedCluster" ) String namedCluster ) {
-    HadoopClusterManager
-        hadoopClusterManager =
-        new HadoopClusterManager( spoonSupplier.get(), this.namedClusterService, this.metastoreLocator.getMetastore() );
-    return Response.ok( hadoopClusterManager.runTests( runtimeTester, namedCluster ) ).build();
+    @QueryParam( "namedCluster" ) String namedCluster ) {
+    return Response.ok( getClusterManager().runTests( runtimeTester, namedCluster ) ).build();
   }
 }

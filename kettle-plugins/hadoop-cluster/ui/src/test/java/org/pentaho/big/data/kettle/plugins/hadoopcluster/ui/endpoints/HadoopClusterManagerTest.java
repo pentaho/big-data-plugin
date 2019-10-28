@@ -22,15 +22,15 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
@@ -41,33 +41,43 @@ import org.pentaho.runtime.test.RuntimeTestStatus;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith( MockitoJUnitRunner.class )
 public class HadoopClusterManagerTest {
-  private Spoon spoon;
-  private NamedClusterService namedClusterService;
-  private DelegatingMetaStore metaStore;
-  private NamedCluster namedCluster;
-  private List<ShimIdentifierInterface> shimIdentifiers;
+  @Mock private Spoon spoon;
+  @Mock private NamedClusterService namedClusterService;
+  @Mock private DelegatingMetaStore metaStore;
+  @Mock private NamedCluster namedCluster;
+  @Mock private ShimIdentifierInterface cdhShim;
+  @Mock private ShimIdentifierInterface internalShim;
+  @Mock private ShimIdentifierInterface maprShim;
   private String ncTestName = "ncTest";
+  private HadoopClusterManager hadoopClusterManager;
 
   @Before public void setup() throws Exception {
     if ( getShimTestDir().exists() ) {
       FileUtils.deleteDirectory( getShimTestDir() );
     }
+    when( cdhShim.getId() ).thenReturn( "cdh514" );
+    when( cdhShim.getVendor() ).thenReturn( "Cloudera" );
+    when( cdhShim.getVersion() ).thenReturn( "5.14" );
+    when( internalShim.getId() ).thenReturn( "apache" );
+    when( internalShim.getVendor() ).thenReturn( "apache" );
+    when( internalShim.getVersion() ).thenReturn( "3.1" );
+    when( maprShim.getVendor() ).thenReturn( "MapR" );
+    when( maprShim.getVersion() ).thenReturn( "4.6" );
+    when( maprShim.getId() ).thenReturn( "mapr46" );
 
-    spoon = mock( Spoon.class );
-    namedClusterService = mock( NamedClusterService.class );
-    metaStore = mock( DelegatingMetaStore.class );
-    namedCluster = mock( NamedCluster.class );
-    shimIdentifiers = new ArrayList<>();
-    ShimIdentifierInterface shimIdentifier = mock( ShimIdentifierInterface.class );
-    shimIdentifier.setId( "chd514" );
-    shimIdentifiers.add( shimIdentifier );
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
     when( spoon.getMetaStore() ).thenReturn( metaStore );
     when( namedCluster.getName() ).thenReturn( ncTestName );
@@ -75,10 +85,12 @@ public class HadoopClusterManagerTest {
     when( namedCluster.getShimIdentifier() ).thenReturn( "cdh514" );
     when( namedClusterService.contains( ncTestName, metaStore ) ).thenReturn( false );
     when( namedClusterService.contains( "existingName", metaStore ) ).thenReturn( true );
+    hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore, "apache" );
+
+    hadoopClusterManager.shimIdentifiersSupplier = () -> ImmutableList.of( cdhShim, internalShim, maprShim );
   }
 
   @Test public void testImportNamedCluster() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
     model.setImportPath( "src/test/resources" );
@@ -95,7 +107,6 @@ public class HadoopClusterManagerTest {
   @Test public void testCreateNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
@@ -103,14 +114,12 @@ public class HadoopClusterManagerTest {
   @Test public void testVaidateExistingName() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( "existingName" );
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( "", result.get( "namedCluster" ) );
   }
 
   @Test public void testEditNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     model.setName( ncTestName );
     model.setOldName( ncTestName );
     JSONObject result = hadoopClusterManager.editNamedCluster( model, true );
@@ -118,7 +127,6 @@ public class HadoopClusterManagerTest {
   }
 
   @Test public void testFailNamedCluster() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
     model.setImportPath( "src/test/resources/bad" );
@@ -129,9 +137,10 @@ public class HadoopClusterManagerTest {
   }
 
   @Test public void testGetShimIdentifiers() {
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     List<ShimIdentifierInterface> shimIdentifiers = hadoopClusterManager.getShimIdentifiers();
-    assertTrue( shimIdentifiers != null );
+    assertNotNull( shimIdentifiers );
+    assertThat( shimIdentifiers.size(), equalTo( 2 ) );
+    assertFalse( shimIdentifiers.contains( internalShim ) );
   }
 
   @Test public void testRunTests() {
@@ -139,7 +148,6 @@ public class HadoopClusterManagerTest {
     when( namedClusterService.getNamedClusterByName( ncTestName, this.metaStore ) ).thenReturn( namedCluster );
     when( runtimeTestStatus.isDone() ).thenReturn( true );
 
-    HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore );
     hadoopClusterManager.onProgress( runtimeTestStatus );
     Object[] categories = (Object[]) hadoopClusterManager.runTests( null, ncTestName );
 
@@ -148,8 +156,8 @@ public class HadoopClusterManagerTest {
       String categoryName = testCategory.getCategoryName();
       boolean isCategoryNameValid = false;
       if ( categoryName.equals( "Hadoop file system" ) || categoryName.equals( "Oozie host connection" ) || categoryName
-          .equals( "Kafka connection" ) || categoryName.equals( "Zookeeper connection" ) || categoryName
-          .equals( "Job tracker / resource manager" ) || categoryName.equals( "Pentaho big data shim" ) ) {
+        .equals( "Kafka connection" ) || categoryName.equals( "Zookeeper connection" ) || categoryName
+        .equals( "Job tracker / resource manager" ) || categoryName.equals( "Pentaho big data shim" ) ) {
         isCategoryNameValid = true;
       }
       assertTrue( isCategoryNameValid );
@@ -162,9 +170,9 @@ public class HadoopClusterManagerTest {
 
   private File getShimTestDir() {
     String
-        shimTestDir =
-        System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore" + File.separator
-            + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator + ncTestName;
+      shimTestDir =
+      System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore" + File.separator
+        + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator + ncTestName;
     return new File( shimTestDir );
   }
 }
