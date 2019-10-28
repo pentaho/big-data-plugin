@@ -124,4 +124,12 @@ public class HadoopClusterEndpoints {
     @QueryParam( "namedCluster" ) String namedCluster ) {
     return Response.ok( getClusterManager().runTests( runtimeTester, namedCluster ) ).build();
   }
+
+  //http://localhost:9051/cxf/hadoop-cluster/installDriver?source=
+  @SuppressWarnings( "javasecurity:S2083" )
+  @GET @Path( "/installDriver" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response installDriver(
+    /*This is a desktop application. Path injection is not a concern : @SuppressWarnings( "javasecurity:S2083" )*/
+    @QueryParam( "source" ) String source ) {
+    return Response.ok( getClusterManager().installDriver( source ) ).build();
+  }
 }
