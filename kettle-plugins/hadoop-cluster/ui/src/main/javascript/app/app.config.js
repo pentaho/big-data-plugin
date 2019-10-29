@@ -76,6 +76,29 @@ define([], function () {
         data: null,
         transition: null
       }
+    })
+    .state('add-driver', {
+      url: "/add-driver",
+      template: "<add-driver></add-driver>",
+      params: {
+        data: null,
+        transition: null
+      }
+    })
+    .state('installing-driver', {
+      url: "/installing-driver",
+      template: "<installing-driver></installing-driver>",
+      params: {
+        data: null,
+        transition: null
+      }
+    }).state('driver-status', {
+      url: "/driver-status",
+      template: "<driver-status></driver-status>",
+      params: {
+        data: null,
+        transition: null
+      }
     });
     $urlRouterProvider.otherwise("/import");
   }

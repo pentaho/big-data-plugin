@@ -35,6 +35,7 @@ import org.pentaho.platform.settings.ServerPortRegistry;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 
 public class HadoopClusterDialog extends ThinDialog {
@@ -50,19 +51,22 @@ public class HadoopClusterDialog extends ThinDialog {
     super( shell, width, height );
   }
 
-  public void open( String title, String thinAppState, String clusterName, String duplicateName ) {
+  public void open( String title, String thinAppState, Map<String, String> urlParams ) {
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
     clientPath.append( "#/" );
     if ( thinAppState != null ) {
       clientPath.append( thinAppState );
     }
-    if ( clusterName != null ) {
-      clientPath.append( "?name=" ).append( clusterName );
-    }
-    if ( duplicateName != null ) {
-      clientPath.append( "&duplicateName=" ).append( duplicateName );
-    }
+
+    //Convert map into url params string
+    final String paramString = urlParams.entrySet().stream()
+      .map( p -> p.getKey() + "=" + p.getValue() )
+      .reduce( ( p1, p2 ) -> p1 + "&" + p2 )
+      .map( s -> "?" + s )
+      .orElse( "" );
+
+    clientPath.append( paramString );
     super.createDialog( title, getRepoURL( clientPath.toString() ),
       OPTIONS, LOGO );
     super.dialog.setMinimumSize( 640, 630 );

@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class HadoopClusterDelegate {
@@ -35,9 +36,9 @@ public class HadoopClusterDelegate {
   private static final int WIDTH = 630;
   private static final int HEIGHT = 650;
 
-  public void openDialog( String thinAppState, String clusterName, String duplicateName ) {
+  public void openDialog( String thinAppState, Map<String, String> urlParams ) {
     HadoopClusterDialog hadoopClusterDialog = new HadoopClusterDialog( spoonSupplier.get().getShell(), WIDTH, HEIGHT );
     hadoopClusterDialog.open(
-      BaseMessages.getString( PKG, "HadoopCluster.dialog.title" ), thinAppState, clusterName, duplicateName );
+      BaseMessages.getString( PKG, "HadoopCluster.dialog.title" ), thinAppState, urlParams );
   }
 }
