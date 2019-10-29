@@ -55,6 +55,8 @@
   <bean id="HadoopClusterPopupMenuExtension" scope="singleton"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.HadoopClusterPopupMenuExtension">
     <argument ref="HadoopClusterDelegate"/>
+    <argument ref="namedClusterService"/>
+    <argument value="${internal.shim}"/>
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
 
