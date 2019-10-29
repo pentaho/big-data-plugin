@@ -25,6 +25,7 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree;
 
 import com.google.common.collect.ImmutableMap;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -32,13 +33,16 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Tree;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDelegate;
+import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 
 import java.util.Collections;
 import java.util.Map;
@@ -56,14 +60,21 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   public static final String NEW_EDIT_STATE = "new-edit";
   public static final String TESTING_STATE = "testing";
   public static final String ADD_DRIVER_STATE = "add-driver";
+  public static final String DELETE_STATE = "delete";
+  private static final int RESULT_YES = 0;
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
   private Menu maintMenu;
   private HadoopClusterDelegate hadoopClusterDelegate;
+  private NamedClusterService namedClusterService;
+  private String internalShim;
 
-  public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate ) {
+  public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
+                                          NamedClusterService namedClusterService, String internalShim ) {
     this.hadoopClusterDelegate = hadoopClusterDelegate;
+    this.namedClusterService = namedClusterService;
+    this.internalShim = internalShim;
   }
 
   public void callExtensionPoint( LogChannelInterface log, Object extension ) {
@@ -120,6 +131,9 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
 
     createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
       TESTING_STATE, ImmutableMap.of( "name", namedCluster.getName() ) );
+
+    createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ),
+      DELETE_STATE, namedCluster.getName() );
     return maintMenu;
   }
 
@@ -137,5 +151,35 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       }
     } );
   }
+
+  private void createDeleteMenuItem( Menu menu, String menuItemLabel, String state, String namedCluster ) {
+    MenuItem menuItem = new MenuItem( menu, SWT.NONE );
+    menuItem.setText( menuItemLabel );
+    menuItem.addSelectionListener( new SelectionAdapter() {
+      @Override
+      public void widgetSelected( SelectionEvent selectionEvent ) {
+        String title = BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Title" );
+        String message =
+          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Message",
+            namedCluster );
+        String deleteButton =
+          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Delete" );
+        String doNotDeleteButton =
+          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.DoNotDelete" );
+        MessageDialog dialog =
+          new MessageDialog( spoonSupplier.get().getShell(), title, null, message, MessageDialog.WARNING, new String[] {
+            deleteButton, doNotDeleteButton }, 0 );
+        int response = dialog.open();
+        if ( response != RESULT_YES ) {
+          return;
+        }
+        HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService,
+          spoonSupplier.get().getMetaStore(),
+          internalShim );
+        hadoopClusterManager.deleteNamedCluster( spoonSupplier.get().getMetaStore(), namedCluster, true );
+      }
+    } );
+  }
+
 }
 
