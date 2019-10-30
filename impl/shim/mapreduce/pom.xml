@@ -76,6 +76,10 @@
       <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
