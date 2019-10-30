@@ -128,12 +128,8 @@ public class HadoopFileOutputMeta extends TextFileOutputMeta implements HadoopFi
 
 
   public NamedCluster getNamedCluster() {
-
-    NamedCluster cluster = null;
-    if ( metaStore != null ) {
-      // If we have a metastore get the cluster from it.
-      cluster = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
-    } else {
+    NamedCluster cluster = namedClusterService.getNamedClusterByName( sourceConfigurationName, metaStore );
+    if ( cluster == null ) {
       // Still no metastore, try to make a named cluster from the embedded xml
       if ( namedClusterService.getClusterTemplate() != null ) {
         cluster = namedClusterService.getClusterTemplate().fromXmlForEmbed( embeddedNamedClusterNode );
