@@ -91,11 +91,24 @@ public class HadoopClusterManagerTest {
     hadoopClusterManager.shimIdentifiersSupplier = () -> ImmutableList.of( cdhShim, internalShim, maprShim );
   }
 
-  @Test public void testImportNamedCluster() {
+  @Test public void testSecuredImportNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
-    model.setImportPath( "src/test/resources" );
-    model.setShimVendor( "Claudera" );
+    model.setImportPath( "src/test/resources/secured" );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
+    JSONObject result = hadoopClusterManager.importNamedCluster( model );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
+    assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
+    assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
+  }
+
+  @Test public void testUnsecuredImportNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setImportPath( "src/test/resources/unsecured" );
+    model.setShimVendor( "Cloudera" );
     model.setShimVersion( "5.14" );
     JSONObject result = hadoopClusterManager.importNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
@@ -104,6 +117,7 @@ public class HadoopClusterManagerTest {
     assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
   }
+
 
   @Test public void testCreateNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
