@@ -23,6 +23,7 @@
 package org.pentaho.amazon.s3;
 
 import com.amazonaws.regions.Regions;
+import com.google.common.collect.ImmutableMap;
 import org.pentaho.di.connections.annotations.Encrypted;
 import org.pentaho.di.connections.vfs.VFSConnectionDetails;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
@@ -31,6 +32,7 @@ import org.pentaho.s3.vfs.S3FileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @MetaStoreElementType(
   name = "Amazon S3 Connection",
@@ -87,6 +89,7 @@ public class S3Details implements VFSConnectionDetails {
     return description;
   }
 
+
   public void setDescription( String description ) {
     this.description = description;
   }
@@ -141,8 +144,8 @@ public class S3Details implements VFSConnectionDetails {
 
   public List<String> getRegions() {
     List<String> names = new ArrayList<>();
-    for ( Regions region : Regions.values() ) {
-      names.add( region.getName() );
+    for ( Regions reg : Regions.values() ) {
+      names.add( reg.getName() );
     }
     return names;
   }
@@ -161,5 +164,20 @@ public class S3Details implements VFSConnectionDetails {
 
   public void setProfileName( String profileName ) {
     this.profileName = profileName;
+  }
+
+  @Override public Map<String, String> getProperties() {
+    return ImmutableMap.<String, String>builder()
+      .put( "name", getName() )
+      .put( "description", getDescription() )
+      .put( "accessKey", getAccessKey() )
+      .put( "secretKey", getSecretKey() )
+      .put( "sessionToken", getSessionToken() )
+      .put( "credentialsFilePath", getCredentialsFilePath() )
+      .put( "credentialsFile", getCredentialsFile() )
+      .put( "authType", getAuthType() )
+      .put( "region", getRegion() )
+      .put( "profileName", getProfileName() )
+      .build();
   }
 }
