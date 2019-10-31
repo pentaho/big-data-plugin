@@ -399,7 +399,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         XPath xpath = xpathFactory.newXPath();
         for ( String key : keys ) {
           try {
-            XPathExpression expr = xpath.compile( "/configuration/property[name='" + key + "']/value/text()" );
+            XPathExpression expr =
+              xpath.compile( "/configuration/property[name[starts-with(.,'" + key + "')]]/value/text()" );
             NodeList nodes = (NodeList) expr.evaluate( document, XPathConstants.NODESET );
             if ( nodes.getLength() > 0 ) {
               properties.put( key, nodes.item( 0 ).getNodeValue() );
