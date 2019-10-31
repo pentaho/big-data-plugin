@@ -24,6 +24,8 @@ package org.pentaho.big.data.impl.cluster;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
@@ -36,6 +38,7 @@ import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -50,7 +53,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -62,6 +64,7 @@ import java.util.Properties;
 public class NamedClusterManager implements NamedClusterService {
 
   public static final String BIG_DATA_SLAVE_METASTORE_DIR = "big.data.slave.metastore.dir";
+  private static final Class<?> PKG = NamedClusterManager.class;
   private BundleContext bundleContext;
 
   private Map<IMetaStore, MetaStoreFactory<NamedClusterImpl>> factoryMap = new HashMap<>();
@@ -326,22 +329,41 @@ public class NamedClusterManager implements NamedClusterService {
 
     try {
       legacyProperties = loadProperties( pluginInterface, "plugin.properties" );
-      String slaveMetaStoreDir = legacyProperties.getProperty( BIG_DATA_SLAVE_METASTORE_DIR );
-      if ( null == slaveMetaStoreDir || slaveMetaStoreDir.equals( "" )
-        || !Paths.get( slaveMetaStoreDir + File.separator + XmlUtil.META_FOLDER_NAME ).toFile().exists() ) {
-        // property was not set or not a file
-        // last resort is if a metastore was copied into the big data plugin directory by a yarn cluster job starting
-        slaveMetaStoreDir = pluginInterface.getPluginDirectory().getPath();
+      String slaveMetaStorePath = legacyProperties.getProperty( BIG_DATA_SLAVE_METASTORE_DIR );
+      FileObject slaveMetastoreDir;
+
+      // check for user-specified metastore directory
+      if ( useSlaveMetastorePathFromProperties( slaveMetaStorePath ) ) {
+        return slaveMetaStorePath;
       }
-      if ( Paths.get( slaveMetaStoreDir + File.separator + XmlUtil.META_FOLDER_NAME ).toFile().exists()
-        && Paths.get( slaveMetaStoreDir + File.separator + XmlUtil.META_FOLDER_NAME ).toFile().isDirectory() ) {
-        return slaveMetaStoreDir;
+
+      // see if metastore was copied to the big data plugin folder (yarn kettle cluster job)
+      slaveMetaStorePath = pluginInterface.getPluginDirectory().getPath() + File.separator + XmlUtil.META_FOLDER_NAME;
+      slaveMetastoreDir =
+        KettleVFS.getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
+      if ( null != slaveMetastoreDir
+        && slaveMetastoreDir.exists() && slaveMetastoreDir.getType().equals( FileType.FOLDER ) ) {
+        return slaveMetaStorePath;
       } else {
         return null;
       }
+
     } catch ( KettleFileException | NullPointerException e ) {
+      log.logError( BaseMessages.getString( PKG, "NamedClusterManager.ErrorFindingUserMetastore" ), e );
       throw new IOException( e );
     }
+  }
+
+  private boolean useSlaveMetastorePathFromProperties( String slaveMetaStorePath ) throws FileSystemException {
+    FileObject slaveMetastoreDir;
+    try {
+      slaveMetastoreDir = KettleVFS.getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
+      return null != slaveMetaStorePath && !slaveMetaStorePath.equals( "" )
+        && null != slaveMetastoreDir && slaveMetastoreDir.exists();
+    } catch ( KettleFileException e ) {
+      log.logError( BaseMessages.getString( PKG, "NamedClusterManager.ErrorFindingUserMetastore" ), e );
+    }
+    return false;
   }
 
   @VisibleForTesting
@@ -355,7 +377,7 @@ public class NamedClusterManager implements NamedClusterService {
         return null;
       }
     } catch ( IOException | MetaStoreException e ) {
-      log.logError( "Error loading user-specified metastore:", e );
+      log.logError( BaseMessages.getString( PKG, "NamedClusterManager.ErrorReadingMetastore" ), e );
       return null;
     }
   }
