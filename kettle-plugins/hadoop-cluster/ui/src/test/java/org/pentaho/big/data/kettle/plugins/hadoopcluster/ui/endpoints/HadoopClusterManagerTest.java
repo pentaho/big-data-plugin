@@ -153,7 +153,7 @@ public class HadoopClusterManagerTest {
 
   @Test public void testInstallDriver() {
     System.getProperties()
-        .setProperty( Const.SHIM_DRIVER_DEPLOYMENT_LOCATION, "src/test/resources/driver-destination" );
+      .setProperty( Const.SHIM_DRIVER_DEPLOYMENT_LOCATION, "src/test/resources/driver-destination" );
     JSONObject response = hadoopClusterManager.installDriver( "src/test/resources/driver-source/driver.kar" );
     boolean isSuccess = (boolean) response.get( "installed" );
     if ( isSuccess ) {
@@ -166,6 +166,10 @@ public class HadoopClusterManagerTest {
     RuntimeTestStatus runtimeTestStatus = mock( RuntimeTestStatus.class );
     when( namedClusterService.getNamedClusterByName( ncTestName, this.metaStore ) ).thenReturn( namedCluster );
     when( runtimeTestStatus.isDone() ).thenReturn( true );
+    when( namedCluster.getOozieUrl() ).thenReturn( "" );
+    when( namedCluster.getKafkaBootstrapServers() ).thenReturn( "" );
+    when( namedCluster.getZooKeeperHost() ).thenReturn( "" );
+    when( namedCluster.getJobTrackerHost() ).thenReturn( "" );
 
     hadoopClusterManager.onProgress( runtimeTestStatus );
     Object[] categories = (Object[]) hadoopClusterManager.runTests( null, ncTestName );
@@ -176,10 +180,11 @@ public class HadoopClusterManagerTest {
       boolean isCategoryNameValid = false;
       if ( categoryName.equals( "Hadoop file system" ) || categoryName.equals( "Oozie host connection" ) || categoryName
         .equals( "Kafka connection" ) || categoryName.equals( "Zookeeper connection" ) || categoryName
-        .equals( "Job tracker / resource manager" ) || categoryName.equals( "Pentaho big data shim" ) ) {
+        .equals( "Job tracker / resource manager" ) ) {
         isCategoryNameValid = true;
       }
       assertTrue( isCategoryNameValid );
+      assertFalse( testCategory.isCategoryActive() );
     }
   }
 

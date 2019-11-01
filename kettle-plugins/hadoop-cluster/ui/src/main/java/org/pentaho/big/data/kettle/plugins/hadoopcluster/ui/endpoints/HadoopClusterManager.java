@@ -90,7 +90,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   public static final String STRING_NAMED_CLUSTERS_THIN = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
   public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "HadoopCluster.dialog.title" );
   private final String fileSeparator = System.getProperty( "file.separator" );
-  private static final String BIG_DATA_SHIM = "Pentaho big data shim";
   private static final String PASS = "Pass";
   private static final String WARNING = "Warning";
   private static final String FAIL = "Fail";
@@ -509,7 +508,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     categories.put( KAFKA, new TestCategory( "Kafka connection" ) );
     categories.put( ZOOKEEPER, new TestCategory( "Zookeeper connection" ) );
     categories.put( MAP_REDUCE, new TestCategory( "Job tracker / resource manager" ) );
-    categories.put( BIG_DATA_SHIM, new TestCategory( BIG_DATA_SHIM ) );
 
     if ( runtimeTestStatus != null && nc != null ) {
       for ( RuntimeTestModuleResults moduleResults : runtimeTestStatus.getModuleResults() ) {
@@ -526,13 +524,15 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             test.setTestStatus( status );
             test.setTestActive( true );
             category.addTest( test );
-            configureHadoopFileSystemCategory( category, status );
+            configureHadoopFileSystemTestCategory( category, !StringUtil.isEmpty( nc.getHdfsHost() ), status );
           } else if ( module.equals( OOZIE ) ) {
-            configureOozieAndKafkaCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
           } else if ( module.equals( KAFKA ) ) {
-            configureOozieAndKafkaCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
-          } else {
-            category.setCategoryStatus( status );
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
+          } else if ( module.equals( ZOOKEEPER ) ) {
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
+          } else if ( module.equals( MAP_REDUCE ) ) {
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
           }
         }
       }
@@ -540,15 +540,18 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return categories.values().toArray();
   }
 
-  private void configureHadoopFileSystemCategory( Category category, String status ) {
-    String currentStatus = category.getCategoryStatus();
-    if ( status.equals( FAIL ) || ( status.equals( WARNING ) && !currentStatus.equals( FAIL ) ) || (
-      status.equals( PASS ) && StringUtil.isEmpty( currentStatus ) ) ) {
-      category.setCategoryStatus( status );
+  private void configureHadoopFileSystemTestCategory( Category category, boolean isActive, String status ) {
+    category.setCategoryActive( isActive );
+    if ( category.isCategoryActive() ) {
+      String currentStatus = category.getCategoryStatus();
+      if ( status.equals( FAIL ) || ( status.equals( WARNING ) && !currentStatus.equals( FAIL ) ) || (
+        status.equals( PASS ) && StringUtil.isEmpty( currentStatus ) ) ) {
+        category.setCategoryStatus( status );
+      }
     }
   }
 
-  private void configureOozieAndKafkaCategories( Category category, boolean isActive, String status ) {
+  private void configureTestCategories( Category category, boolean isActive, String status ) {
     category.setCategoryActive( isActive );
     if ( category.isCategoryActive() ) {
       category.setCategoryStatus( status );
@@ -568,6 +571,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         status = FAIL;
         break;
       case ERROR:
+        status = FAIL;
+        break;
+      case WARNING:
         status = FAIL;
         break;
       default:
