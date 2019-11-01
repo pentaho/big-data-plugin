@@ -30,7 +30,11 @@ import org.pentaho.metastore.persist.MetaStoreElementType;
 import org.pentaho.s3.vfs.S3FileProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.Collections.unmodifiableMap;
 
 @MetaStoreElementType(
   name = "Amazon S3 Connection",
@@ -87,6 +91,7 @@ public class S3Details implements VFSConnectionDetails {
     return description;
   }
 
+
   public void setDescription( String description ) {
     this.description = description;
   }
@@ -141,8 +146,8 @@ public class S3Details implements VFSConnectionDetails {
 
   public List<String> getRegions() {
     List<String> names = new ArrayList<>();
-    for ( Regions region : Regions.values() ) {
-      names.add( region.getName() );
+    for ( Regions reg : Regions.values() ) {
+      names.add( reg.getName() );
     }
     return names;
   }
@@ -161,5 +166,20 @@ public class S3Details implements VFSConnectionDetails {
 
   public void setProfileName( String profileName ) {
     this.profileName = profileName;
+  }
+
+  @Override public Map<String, String> getProperties() {
+    Map<String, String> props = new HashMap<>();
+    props.put( "name", getName() );
+    props.put( "description", getDescription() );
+    props.put( "accessKey", getAccessKey() );
+    props.put( "secretKey", getSecretKey() );
+    props.put( "sessionToken", getSessionToken() );
+    props.put( "credentialsFilePath", getCredentialsFilePath() );
+    props.put( "credentialsFile", getCredentialsFile() );
+    props.put( "authType", getAuthType() );
+    props.put( "region", getRegion() );
+    props.put( "profileName", getProfileName() );
+    return unmodifiableMap( props );
   }
 }
