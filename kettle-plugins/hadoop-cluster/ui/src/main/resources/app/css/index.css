@@ -112,7 +112,7 @@ button:not(.defaultBtn):not(.detailsBtn) {
 }
 
 button.same_width {
-  /*width: 200px;*/
+  width: 171px;
 }
 
 /* selected */

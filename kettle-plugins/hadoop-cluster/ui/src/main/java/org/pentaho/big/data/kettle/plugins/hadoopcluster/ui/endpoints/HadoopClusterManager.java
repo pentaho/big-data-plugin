@@ -130,10 +130,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
-      // Validate against using an existing name.
-      if ( !isNameValid( model.getName() ) ) {
-        return response;
-      }
       NamedCluster nc = namedClusterService.getClusterTemplate();
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
@@ -190,11 +186,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
-      // Validate against using an existing name.
-      if ( !isNameValid( model.getName() ) ) {
-        return response;
-      }
-
       NamedCluster nc = createXMLSchema( model );
       File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
       if ( siteFilesSource.exists() ) {
@@ -209,30 +200,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return response;
   }
 
-  private boolean isNameValid( String name ) throws MetaStoreException {
-    boolean isValid = true;
-    if ( namedClusterService.contains( name, metaStore ) ) {
-      logChannel.error(
-        "Invalid name. A Named Cluster with the same name already exists. A different name must be provided:{}",
-        name );
-      isValid = false;
-    }
-    return isValid;
-  }
-
   public JSONObject editNamedCluster( ThinNameClusterModel model, boolean isEditMode ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
-      // Validate against using an existing name when performing a duplicate operation.
-      if ( !isEditMode && !isNameValid( model.getName() ) ) {
-        return response;
-      }
-      // Validate against using an existing name when performing an edit operation.
-      if ( isEditMode && !model.getName().equals( model.getOldName() ) && !isNameValid( model.getName() ) ) {
-        return response;
-      }
-
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
       String shimId = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore ).getShimIdentifier();
 

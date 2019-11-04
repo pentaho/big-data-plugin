@@ -36,6 +36,7 @@ define([
   "./components/browseLocal/browseLocal.component",
   "./components/credentials/credentials.component",
   "./components/accordianItem/accordianItem.component",
+  "./components/modalDialog/modalDialog.component",
   "./components/controls/controls.component",
   "./components/help/help.component",
   "./directives/ngbodyclick.directive",
@@ -46,7 +47,8 @@ define([
 ], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent,
              statusComponent, testResultsComponent, addDriverComponent, installingDriverComponent,
              driverStatusComponent, selectBoxComponent, browseLocalComponent, credentialsComponent,
-             accordianItemComponent, controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+             accordianItemComponent, modalDialogComponent,  controlsComponent, helpComponent, bodyClickDirective,
+             helperService, dataService) {
   "use strict";
 
   var module = {
@@ -79,6 +81,7 @@ define([
         .component(browseLocalComponent.name, browseLocalComponent.options)
         .component(credentialsComponent.name, credentialsComponent.options)
         .component(accordianItemComponent.name, accordianItemComponent.options)
+        .component(modalDialogComponent.name, modalDialogComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
         .component(helpComponent.name, helpComponent.options)
         .directive(bodyClickDirective.name, bodyClickDirective.options)

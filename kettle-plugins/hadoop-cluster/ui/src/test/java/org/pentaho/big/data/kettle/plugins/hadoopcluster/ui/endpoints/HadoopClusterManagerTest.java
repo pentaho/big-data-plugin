@@ -126,13 +126,6 @@ public class HadoopClusterManagerTest {
     assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
 
-  @Test public void testVaidateExistingName() {
-    ThinNameClusterModel model = new ThinNameClusterModel();
-    model.setName( "existingName" );
-    JSONObject result = hadoopClusterManager.createNamedCluster( model );
-    assertEquals( "", result.get( "namedCluster" ) );
-  }
-
   @Test public void testEditNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
