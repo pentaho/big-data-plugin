@@ -36,8 +36,10 @@ define([
     vm.$onInit = onInit;
     vm.onSelectShim = onSelectShim;
     vm.onSelectShimVersion = onSelectShimVersion;
-    vm.validateName = validateName;
     vm.getShimVersions = getShimVersions;
+
+    var modalDialogElement = angular.element("#modalDialog");
+    var modalOverlayElement = angular.element("#modalOverlay");
 
     vm.variableImage = "img/variable.svg";
 
@@ -59,6 +61,8 @@ define([
       vm.oozieLabel = i18n.get('new.edit.oozie.label');
       vm.kafkaLabel = i18n.get('new.edit.kafka.label');
       vm.bootstrapServerLabel = i18n.get('new.edit.bootstrap.server.label');
+      vm.dialogTitle = i18n.get('hadoop.cluster.overwrite.title');
+      vm.dialogMessage = i18n.get('hadoop.cluster.overwrite.message');
 
       setDialogTitle(i18n.get('hadoop.cluster.title'));
 
@@ -92,7 +96,7 @@ define([
 
             vm.data.model.oldName = name;
 
-            if(duplicateName) {
+            if (duplicateName) {
               vm.data.model.name = duplicateName;
               vm.data.type = "duplicate";
             }
@@ -130,6 +134,7 @@ define([
       });
 
       vm.buttons = getButtons();
+      vm.overwriteDialogButtons = getOverwriteDialogButtons();
     }
 
     function contains(arr, item) {
@@ -163,10 +168,17 @@ define([
       vm.data.model.shimVersion = option;
     }
 
-    function validateName() {
-      //TODO: implement
-      return $q(function (resolve) {
-        return resolve(true);
+    function checkDuplicateName(name) {
+      return $q(function (resolve, reject) {
+        dataService.getNamedCluster(name).then(
+          function (res) {
+            //if name is returned it already exists
+            if (name === res.data.name) {
+              reject();
+            } else {
+              resolve();
+            }
+          });
       });
     }
 
@@ -175,6 +187,22 @@ define([
         setTitle(title);
       } catch (e) {
         console.log(title);
+      }
+    }
+
+    function create() {
+      if (vm.data.model.oldName === vm.data.model.name) {
+        $state.go('creating', {data: vm.data, transition: "slideLeft"});
+      } else {
+        var promise = checkDuplicateName(vm.data.model.name);
+        promise.then(
+          function () {
+            $state.go('creating', {data: vm.data, transition: "slideLeft"});
+          },
+          function () {
+            displayOverwriteDialog(true);
+          }
+        );
       }
     }
 
@@ -187,22 +215,43 @@ define([
             return !vm.data.model || !vm.data.model.name;
           },
           position: "right",
-          onClick: function () {
-            validateName().then(function (isValid) {
-              if (isValid) {
-                $state.go('creating', {data: vm.data, transition: "slideLeft"});
-              }
-            });
-          }
+          onClick: create
         },
         {
           label: i18n.get('controls.cancel.label'),
           class: "primary",
           position: "right",
+          onClick: close
+        }];
+    }
+
+    function getOverwriteDialogButtons() {
+      return [
+        {
+          label: i18n.get('hadoop.cluster.overwrite.cancel'),
+          class: "primary",
+          position: "right",
           onClick: function () {
-            close();
+            displayOverwriteDialog(false);
+          }
+        },
+        {
+          label: i18n.get('hadoop.cluster.overwrite.yes'),
+          class: "primary",
+          position: "right",
+          onClick: function () {
+            $state.go('creating', {data: vm.data, transition: "slideLeft"});
           }
         }];
+    }
+
+    function displayOverwriteDialog(show) {
+      var display = "none";
+      if (show === true) {
+        display = "block";
+      }
+      modalDialogElement.css("display", display);
+      modalOverlayElement.css("display", display);
     }
   }
 
