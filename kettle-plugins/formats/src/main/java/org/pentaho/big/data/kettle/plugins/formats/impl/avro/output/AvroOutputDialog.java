@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,8 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -51,13 +49,13 @@ import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -67,7 +65,6 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
 import org.pentaho.hadoop.shim.api.format.AvroSpec;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -261,7 +258,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
     props.setLook( wbBrowse );
     wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
-    wbSchemaBrowse.addListener( SWT.Selection, event -> browseForFileInputPathForSchema() );
+    wbSchemaBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wSchemaPath ) );
     int bOffset = ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.
         computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
@@ -819,35 +816,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     }
   }
 
-  private void browseForFileInputPathForSchema() {
-    try {
-      String path = transMeta.environmentSubstitute( wSchemaPath.getText() );
-      VfsFileChooserDialog fileChooserDialog;
-      String fileName;
-      if ( Utils.isEmpty( path ) ) {
-        fileChooserDialog = getVfsFileChooserDialog( null, null );
-        fileName = SCHEMA_SCHEME_DEFAULT + "://";
-      } else {
-        FileObject initialFile = getInitialFile( wSchemaPath.getText() );
-        FileObject rootFile = initialFile.getFileSystem().getRoot();
-        fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
-        fileName = null;
-      }
-
-      FileObject
-          selectedFile =
-          fileChooserDialog
-              .open( shell, null, getSchemeFromPath( path ), true, fileName, FILES_FILTERS, fileFilterNames, true,
-                  VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
-      if ( selectedFile != null ) {
-        wSchemaPath.setText( selectedFile.getURL().toString() );
-      }
-    } catch ( KettleFileException ex ) {
-      log.logError( getBaseMsg( "AvroInputDialog.SchemaFileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( getBaseMsg( "AvroInputDialog.SchemaFileBrowser.FileSystemException" ) );
-    }
-  }
   @Override
   protected int getWidth() {
     return SHELL_WIDTH;

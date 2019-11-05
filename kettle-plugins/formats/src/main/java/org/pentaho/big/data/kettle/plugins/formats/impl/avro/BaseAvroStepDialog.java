@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,9 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.UriParser;
 import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
@@ -55,27 +52,22 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta;
-import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.ui.core.ConstUI;
+import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TextVar;
-import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
-import org.pentaho.vfs.ui.CustomVfsUiPanel;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -102,13 +94,8 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
   private static final int TABLE_ITEM_MARGIN = 2;
   private static final int TOOLTIP_SHOW_DELAY = 350;
   private static final int TOOLTIP_HIDE_DELAY = 2000;
-  private static final String DEFAULT_LOCAL_PATH = "file:///C:/";
   // width of the icon in a varfield
   protected static final int VAR_EXTRA_WIDTH = GUIResource.getInstance().getImageVariable().getBounds().width;
-
-  protected static final String[] FILES_FILTERS = { "*.*" };
-  protected static final String[] fileFilterNames =
-    new String[] { BaseMessages.getString( "System.FileType.AllFiles" ) };
 
   protected Image icon;
 
@@ -118,8 +105,6 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
   protected Button wbGetDataFromFile;
   protected ComboVar wFieldNameCombo;
   protected CCombo encodingCombo;
-  protected VFSScheme selectedVFSScheme;
-  protected CCombo wLocation;
   protected Composite wDataFileComposite;
   protected Composite wDataFieldComposite;
 
@@ -168,7 +153,6 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
     getData(  );
-    updateLocation();
     shell.open();
     wStepname.setFocus();
     while ( !shell.isDisposed() ) {
@@ -326,34 +310,10 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
   }
 
   protected Control addFileWidgets( Composite parent, Control prev ) {
-    Label wlLocation = new Label( parent, SWT.RIGHT );
-    wlLocation.setText( getBaseMsg( "AvroDialog.Location.Label" ) );
-    props.setLook( wlLocation );
-    new FD( wlLocation ).left( 0, 0 ).top( prev, MARGIN ).apply();
-    wLocation = new CCombo( parent, SWT.BORDER | SWT.READ_ONLY );
-    try {
-      List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
-      availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
-      wLocation.addListener( SWT.Selection, event -> {
-        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
-        this.wPath.setText( "" );
-      } );
-      if ( !availableVFSSchemes.isEmpty() ) {
-        wLocation.select( 0 );
-        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
-      }
-    } catch ( KettleFileException ex ) {
-      log.logError( getBaseMsg( "AvroDialog.FileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( getBaseMsg( "AvroDialog.FileBrowser.FileSystemException" ) );
-    }
-    wLocation.addModifyListener( lsMod );
-    new FD( wLocation ).left( 0, 0 ).top( wlLocation, FIELD_LABEL_SEP ).width( FIELD_SMALL ).apply();
-
     Label wlPath = new Label( parent, SWT.RIGHT );
     wlPath.setText( getBaseMsg( "AvroDialog.Filename.Label" ) );
     props.setLook( wlPath );
-    new FD( wlPath ).left( 0, 0 ).top( wLocation, FIELDS_SEP ).apply();
+    new FD( wlPath ).left( 0, 0 ).top( prev, MARGIN ).apply();
     wPath = new TextVar( transMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wPath.addModifyListener( event -> {
       if ( wPreview != null ) {
@@ -367,69 +327,11 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     wbBrowse = new Button( parent, SWT.PUSH );
     props.setLook( wbBrowse );
     wbBrowse.setText( getMsg( "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
+    wbBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wPath ) );
     int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
       - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
     return wPath;
-  }
-
-  protected void browseForFileInputPath() {
-    try {
-      String path = transMeta.environmentSubstitute( wPath.getText() );
-      VfsFileChooserDialog fileChooserDialog;
-      String fileName;
-      if ( Utils.isEmpty( path ) ) {
-        fileChooserDialog = getVfsFileChooserDialog( null, null );
-        fileName = selectedVFSScheme.getScheme() + "://";
-      } else {
-        FileObject initialFile = getInitialFile( wPath.getText() );
-        FileObject rootFile = initialFile.getFileSystem().getRoot();
-        fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
-        fileName = null;
-      }
-
-      FileObject selectedFile =
-        fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
-          fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
-      if ( selectedFile != null ) {
-        String filePath = selectedFile.getURL().toString();
-        if ( !DEFAULT_LOCAL_PATH.equals( filePath ) ) {
-          wPath.setText( filePath );
-          updateLocation();
-        }
-      }
-    } catch ( KettleFileException ex ) {
-      log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
-    }
-  }
-
-  protected void updateLocation() {
-    String pathText = wPath.getText();
-    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
-    if ( scheme != null ) {
-      try {
-        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
-        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
-          VFSScheme s = availableVFSSchemes.get( i );
-          if ( scheme.equals( s.getScheme() ) ) {
-            wLocation.select( i );
-            selectedVFSScheme = s;
-          }
-        }
-      } catch ( KettleFileException ex ) {
-        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
-      } catch ( FileSystemException ex ) {
-        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
-      }
-    }
-    // do we have preview button?
-    if ( wPreview != null ) {
-      //update preview button
-      wPreview.setEnabled( !pathText.isEmpty() );
-    }
   }
 
   protected String getBaseMsg( String key ) {
@@ -517,39 +419,6 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     }
   }
 
-  protected FileObject getInitialFile( String filePath ) throws KettleFileException {
-    FileObject initialFile = null;
-    if ( filePath != null && !filePath.isEmpty() ) {
-      String fileName = transMeta.environmentSubstitute( filePath );
-      if ( fileName != null && !fileName.isEmpty() ) {
-        initialFile = KettleVFS.getFileObject( fileName );
-      }
-    }
-    if ( initialFile == null ) {
-      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
-    }
-    return initialFile;
-  }
-
-  protected List<VFSScheme> getAvailableVFSSchemes() throws KettleFileException, FileSystemException {
-    VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog( null, null );
-    List<CustomVfsUiPanel> customVfsUiPanels = fileChooserDialog.getCustomVfsUiPanels();
-    List<VFSScheme> vfsSchemes = new ArrayList<>();
-    customVfsUiPanels.forEach( vfsPanel -> {
-      VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
-      vfsSchemes.add( scheme );
-    } );
-    return vfsSchemes;
-  }
-
-  protected VfsFileChooserDialog getVfsFileChooserDialog( FileObject rootFile, FileObject initialFile )
-    throws KettleFileException, FileSystemException {
-    return getSpoon().getVfsFileChooserDialog( rootFile, initialFile );
-  }
-
-  private Spoon getSpoon() {
-    return Spoon.getInstance();
-  }
 
   protected int getMinHeight( Composite comp, int minWidth ) {
     comp.pack();
