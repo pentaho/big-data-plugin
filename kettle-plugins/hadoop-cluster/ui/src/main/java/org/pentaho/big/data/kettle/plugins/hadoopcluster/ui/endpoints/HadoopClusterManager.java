@@ -146,6 +146,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
           namedClusterService.create( nc, metaStore );
+          File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
+          if ( newConfigFolder.exists() ) {
+            FileUtils.deleteDirectory( newConfigFolder );
+          }
           installSiteFiles( siteFilesSource, nc );
           createConfigProperties( nc );
           refreshTree();
@@ -186,6 +190,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     response.put( NAMED_CLUSTER, "" );
     try {
       NamedCluster nc = createXMLSchema( model );
+      File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
+      if ( newConfigFolder.exists() ) {
+        FileUtils.deleteDirectory( newConfigFolder );
+      }
       File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
       if ( siteFilesSource.exists() ) {
         installSiteFiles( siteFilesSource, nc );
@@ -214,6 +222,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // Copy all files from the old config folder to the new config folder.
       if ( !oldConfigFolder.equals( newConfigFolder ) ) {
+        if ( newConfigFolder.exists() ) {
+          FileUtils.deleteDirectory( newConfigFolder );
+        }
         FileUtils.copyDirectory( oldConfigFolder, newConfigFolder );
       }
 
