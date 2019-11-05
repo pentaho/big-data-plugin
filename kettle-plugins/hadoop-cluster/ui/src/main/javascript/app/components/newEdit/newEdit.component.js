@@ -212,7 +212,12 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.name;
+            return (!vm.data.model || !vm.data.model.name) ||
+              !((vm.data.model.hdfsHost && vm.data.model.hdfsPort) ||
+                (vm.data.model.jobTrackerHost && vm.data.model.jobTrackerPort) ||
+                (vm.data.model.zooKeeperHost && vm.data.model.zooKeeperPort) ||
+                vm.data.model.oozieUrl ||
+                vm.data.model.kafkaBootstrapServers);
           },
           position: "right",
           onClick: create
@@ -221,7 +226,9 @@ define([
           label: i18n.get('controls.cancel.label'),
           class: "primary",
           position: "right",
-          onClick: close
+          onClick: function () {
+            close();
+          }
         }];
     }
 
