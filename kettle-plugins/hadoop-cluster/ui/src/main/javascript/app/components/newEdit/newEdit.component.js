@@ -115,15 +115,15 @@ define([
               shimVendor: "",
               shimVersion: "",
               importPath: "",
-              hdfsHost: "localhost",
-              hdfsPort: "8020",
+              hdfsHost: "",
+              hdfsPort: "",
               hdfsUsername: "",
               hdfsPassword: "",
-              jobTrackerHost: "localhost",
-              jobTrackerPort: "8032",
-              zooKeeperHost: "localhost",
-              zooKeeperPort: "2181",
-              oozieUrl: "http://localhost:8080/oozie",
+              jobTrackerHost: "",
+              jobTrackerPort: "",
+              zooKeeperHost: "",
+              zooKeeperPort: "",
+              oozieUrl: "",
               kafkaBootstrapServers: ""
             }
           };
