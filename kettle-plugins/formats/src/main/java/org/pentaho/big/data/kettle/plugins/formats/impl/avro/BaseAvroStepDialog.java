@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,32 +22,24 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.provider.UriParser;
 import org.eclipse.jface.window.DefaultToolTip;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -55,27 +47,22 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.input.AvroInputMeta;
-import org.pentaho.big.data.kettle.plugins.formats.impl.parquet.input.VFSScheme;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.ui.core.ConstUI;
+import org.pentaho.di.ui.core.FileDialogOperation;
+import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TextVar;
-import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
-import org.pentaho.vfs.ui.CustomVfsUiPanel;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,8 +72,7 @@ import java.util.Set;
 
 public abstract class BaseAvroStepDialog extends BaseStepDialog
   implements StepDialogInterface {
-  protected final Class<?> PKG = getClass();
-  protected final Class<?> BPKG = BaseAvroStepDialog.class;
+  protected static final Class<?> BPKG = BaseAvroStepDialog.class;
 
   protected ModifyListener lsMod;
 
@@ -102,13 +88,8 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
   private static final int TABLE_ITEM_MARGIN = 2;
   private static final int TOOLTIP_SHOW_DELAY = 350;
   private static final int TOOLTIP_HIDE_DELAY = 2000;
-  private static final String DEFAULT_LOCAL_PATH = "file:///C:/";
   // width of the icon in a varfield
   protected static final int VAR_EXTRA_WIDTH = GUIResource.getInstance().getImageVariable().getBounds().width;
-
-  protected static final String[] FILES_FILTERS = { "*.*" };
-  protected static final String[] fileFilterNames =
-    new String[] { BaseMessages.getString( "System.FileType.AllFiles" ) };
 
   protected Image icon;
 
@@ -118,13 +99,11 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
   protected Button wbGetDataFromFile;
   protected ComboVar wFieldNameCombo;
   protected CCombo encodingCombo;
-  protected VFSScheme selectedVFSScheme;
-  protected CCombo wLocation;
   protected Composite wDataFileComposite;
   protected Composite wDataFieldComposite;
 
   protected boolean isInputStep;
-  private Map<String, Integer> incomingFields = new HashMap<String, Integer>();
+  private Map<String, Integer> incomingFields = new HashMap<>();
 
   protected static final String HDFS_SCHEME = "hdfs";
 
@@ -145,20 +124,17 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     Display display = parent.getDisplay();
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE );
-    props.setLook( shell );
     setShellImage( shell, baseStepMeta );
 
-    lsMod = new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        getStepMeta().setChanged();
-      }
-    };
+    lsMod = e -> getStepMeta().setChanged();
     changed = getStepMeta().hasChanged();
 
     createUI();
+    props.setLook( shell );
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
+      @Override
       public void shellClosed( ShellEvent e ) {
         cancel();
       }
@@ -168,7 +144,6 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     shell.setMinimumSize( getWidth(), height );
     shell.setSize( getWidth(), height );
     getData(  );
-    updateLocation();
     shell.open();
     wStepname.setFocus();
     while ( !shell.isDisposed() ) {
@@ -192,30 +167,23 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     Composite afterFile = new Composite( shell, SWT.NONE );
     afterFile.setLayout( new FormLayout() );
     Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    FormData fdSpacer = new FormData();
-    fdSpacer.height = 2;
-    fdSpacer.left = new FormAttachment( 0, 0 );
-    fdSpacer.bottom = new FormAttachment( wCancel, -MARGIN );
-    fdSpacer.right = new FormAttachment( 100, 0 );
-    separator.setLayoutData( fdSpacer );
-
-    new FD( afterFile ).left( 0, 0 ).top( prev, 0 ).right( 100, 0 ).bottom( separator, -MARGIN ).apply();
-
+    separator.setLayoutData( new FormDataBuilder().left().right().bottom( wCancel, -MARGIN ).height( 2 ).result() );
+    afterFile.setLayoutData( new FormDataBuilder().left().top( prev, 0 ).right().bottom( separator, -MARGIN ).result() );
     createAfterFile( afterFile );
   }
 
   protected Control createFooter( Composite shell ) {
 
     wCancel = new Button( shell, SWT.PUSH );
-    wCancel.setText( getMsg( "System.Button.Cancel" ) );
+    wCancel.setText( BaseMessages.getString( "System.Button.Cancel" ) );
     wCancel.addListener( SWT.Selection, lsCancel );
-    new FD( wCancel ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    wCancel.setLayoutData( new FormDataBuilder().right().bottom().result() );
 
     // Some buttons
     wOK = new Button( shell, SWT.PUSH );
-    wOK.setText( getMsg( "System.Button.OK" ) );
+    wOK.setText( BaseMessages.getString( "System.Button.OK" ) );
     wOK.addListener( SWT.Selection, lsOK );
-    new FD( wOK ).right( wCancel, -FIELD_LABEL_SEP ).bottom( 100, 0 ).apply();
+    wOK.setLayoutData( new FormDataBuilder().right( wCancel, -FIELD_LABEL_SEP ).bottom().result() );
     lsPreview = getPreview();
     if ( lsPreview != null ) {
       wPreview = new Button( shell, SWT.PUSH );
@@ -223,7 +191,7 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
       wPreview.pack();
       wPreview.addListener( SWT.Selection, lsPreview );
       int offset = wPreview.getBounds().width / 2;
-      new FD( wPreview ).left( 50, -offset ).bottom( 100, 0 ).apply();
+      wPreview.setLayoutData( new FormDataBuilder().bottom().left( new FormAttachment( 50, -offset ) ).result() );
     }
     return wCancel;
   }
@@ -278,277 +246,60 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     // title
     shell.setText( getStepTitle() );
     // buttons
-    lsOK = new Listener() {
-      public void handleEvent( Event e ) {
-        ok();
-      }
-    };
-    lsCancel = new Listener() {
-      public void handleEvent( Event e ) {
-        cancel();
-      }
-    };
+    lsOK = e -> ok();
+    lsCancel = e -> cancel();
 
     // Stepname label
     wlStepname = new Label( shell, SWT.RIGHT );
     wlStepname.setText( getBaseMsg( "BaseStepDialog.StepName" ) );
-    props.setLook( wlStepname );
-    new FD( wlStepname ).left( 0, 0 ).top( 0, 0 ).apply();
+    wlStepname.setLayoutData( new FormDataBuilder().left().top().result() );
     // Stepname field
     wStepname = new Text( shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wStepname.setText( stepname );
-    props.setLook( wStepname );
     wStepname.addModifyListener( lsMod );
-    new FD( wStepname ).left( 0, 0 ).top( wlStepname, FIELD_LABEL_SEP ).width( FIELD_MEDIUM ).rright().apply();
+    wStepname.setLayoutData( new FormDataBuilder().left().top( wlStepname, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
+      .result() );
 
     Label separator = new Label( shell, SWT.HORIZONTAL | SWT.SEPARATOR );
-    FormData fdSpacer = new FormData();
-    fdSpacer.height = 2;
-    fdSpacer.left = new FormAttachment( 0, 0 );
-    fdSpacer.top = new FormAttachment( wStepname, 15 );
-    fdSpacer.right = new FormAttachment( 100, 0 );
-    separator.setLayoutData( fdSpacer );
+    separator.setLayoutData( new FormDataBuilder().left().right().top( wStepname, 15 ).height( 2 ).result() );
 
-    addIcon( separator );
+    addIcon();
     return separator;
   }
 
-  protected void addIcon( Control bottom ) {
+  protected void addIcon() {
     Label wicon = new Label( shell, SWT.RIGHT );
     String stepId = getStepMeta().getParentStepMeta().getStepID();
     wicon.setImage( GUIResource.getInstance().getImagesSteps().get( stepId ).getAsBitmapForSize( shell.getDisplay(),
       ConstUI.LARGE_ICON_SIZE, ConstUI.LARGE_ICON_SIZE ) );
-    FormData fdlicon = new FormData();
-    fdlicon.top = new FormAttachment( 0, 0 );
-    fdlicon.right = new FormAttachment( 100, 0 );
-    wicon.setLayoutData( fdlicon );
-    props.setLook( wicon );
+    wicon.setLayoutData( new FormDataBuilder().top().right().result() );
   }
 
   protected Control addFileWidgets( Composite parent, Control prev ) {
-    Label wlLocation = new Label( parent, SWT.RIGHT );
-    wlLocation.setText( getBaseMsg( "AvroDialog.Location.Label" ) );
-    props.setLook( wlLocation );
-    new FD( wlLocation ).left( 0, 0 ).top( prev, MARGIN ).apply();
-    wLocation = new CCombo( parent, SWT.BORDER | SWT.READ_ONLY );
-    try {
-      List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
-      availableVFSSchemes.forEach( scheme -> wLocation.add( scheme.getSchemeName() ) );
-      wLocation.addListener( SWT.Selection, event -> {
-        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
-        this.wPath.setText( "" );
-      } );
-      if ( !availableVFSSchemes.isEmpty() ) {
-        wLocation.select( 0 );
-        this.selectedVFSScheme = availableVFSSchemes.get( wLocation.getSelectionIndex() );
-      }
-    } catch ( KettleFileException ex ) {
-      log.logError( getBaseMsg( "AvroDialog.FileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( getBaseMsg( "AvroDialog.FileBrowser.FileSystemException" ) );
-    }
-    wLocation.addModifyListener( lsMod );
-    new FD( wLocation ).left( 0, 0 ).top( wlLocation, FIELD_LABEL_SEP ).width( FIELD_SMALL ).apply();
-
     Label wlPath = new Label( parent, SWT.RIGHT );
     wlPath.setText( getBaseMsg( "AvroDialog.Filename.Label" ) );
-    props.setLook( wlPath );
-    new FD( wlPath ).left( 0, 0 ).top( wLocation, FIELDS_SEP ).apply();
+    wlPath.setLayoutData( new FormDataBuilder().left().top( prev, MARGIN ).result() );
+
+    wbBrowse = new Button( parent, SWT.PUSH );
+    wbBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
+    wbBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wPath ) );
+    wbBrowse.setLayoutData( new FormDataBuilder().top( wlPath ).right().result() );
+
     wPath = new TextVar( transMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wPath.addModifyListener( event -> {
       if ( wPreview != null ) {
         wPreview.setEnabled( !Utils.isEmpty( wPath.getText() ) );
       }
     } );
-    props.setLook( wPath );
     wPath.addModifyListener( lsMod );
-    new FD( wPath ).left( 0, 0 ).top( wlPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH ).rright().apply();
+    wPath.setLayoutData( new FormDataBuilder().left().right( wbBrowse, -FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP )
+      .result() );
 
-    wbBrowse = new Button( parent, SWT.PUSH );
-    props.setLook( wbBrowse );
-    wbBrowse.setText( getMsg( "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> browseForFileInputPath() );
-    int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
-      - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
-    new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
     return wPath;
-  }
-
-  protected void browseForFileInputPath() {
-    try {
-      String path = transMeta.environmentSubstitute( wPath.getText() );
-      VfsFileChooserDialog fileChooserDialog;
-      String fileName;
-      if ( Utils.isEmpty( path ) ) {
-        fileChooserDialog = getVfsFileChooserDialog( null, null );
-        fileName = selectedVFSScheme.getScheme() + "://";
-      } else {
-        FileObject initialFile = getInitialFile( wPath.getText() );
-        FileObject rootFile = initialFile.getFileSystem().getRoot();
-        fileChooserDialog = getVfsFileChooserDialog( rootFile, initialFile );
-        fileName = null;
-      }
-
-      FileObject selectedFile =
-        fileChooserDialog.open( shell, null, selectedVFSScheme.getScheme(), true, fileName, FILES_FILTERS,
-          fileFilterNames, true, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, true, true );
-      if ( selectedFile != null ) {
-        String filePath = selectedFile.getURL().toString();
-        if ( !DEFAULT_LOCAL_PATH.equals( filePath ) ) {
-          wPath.setText( filePath );
-          updateLocation();
-        }
-      }
-    } catch ( KettleFileException ex ) {
-      log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
-    } catch ( FileSystemException ex ) {
-      log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
-    }
-  }
-
-  protected void updateLocation() {
-    String pathText = wPath.getText();
-    String scheme = pathText.isEmpty() ? HDFS_SCHEME : UriParser.extractScheme( pathText );
-    if ( scheme != null ) {
-      try {
-        List<VFSScheme> availableVFSSchemes = getAvailableVFSSchemes();
-        for ( int i = 0; i < availableVFSSchemes.size(); i++ ) {
-          VFSScheme s = availableVFSSchemes.get( i );
-          if ( scheme.equals( s.getScheme() ) ) {
-            wLocation.select( i );
-            selectedVFSScheme = s;
-          }
-        }
-      } catch ( KettleFileException ex ) {
-        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.KettleFileException" ) );
-      } catch ( FileSystemException ex ) {
-        log.logError( getBaseMsg( "AvroInputDialog.FileBrowser.FileSystemException" ) );
-      }
-    }
-    // do we have preview button?
-    if ( wPreview != null ) {
-      //update preview button
-      wPreview.setEnabled( !pathText.isEmpty() );
-    }
   }
 
   protected String getBaseMsg( String key ) {
     return BaseMessages.getString( BPKG, key );
-  }
-
-  protected String getMsg( String key ) {
-    return BaseMessages.getString( PKG, key );
-  }
-
-  /**
-   * Class for apply layout settings to SWT controls.
-   */
-  protected class FD {
-    private final Control control;
-    private final FormData fd;
-
-    public FD( Control control ) {
-      this.control = control;
-      props.setLook( control );
-      fd = new FormData();
-    }
-
-    public FD width( int width ) {
-      fd.width = width;
-      return this;
-    }
-
-    public FD height( int height ) {
-      fd.height = height;
-      return this;
-    }
-
-    public FD top( int numerator, int offset ) {
-      fd.top = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD top( Control control, int offset ) {
-      fd.top = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public FD bottom( int numerator, int offset ) {
-      fd.bottom = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD bottom( Control control, int offset ) {
-      fd.bottom = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public FD left( int numerator, int offset ) {
-      fd.left = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD left( int numerator ) {
-      return left( numerator, 0 );
-    }
-
-    public FD left( Control control, int offset ) {
-      fd.left = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public FD right( int numerator, int offset ) {
-      fd.right = new FormAttachment( numerator, offset );
-      return this;
-    }
-
-    public FD rright() {
-      fd.right = new FormAttachment( 100, -getControlOffset( control, fd.width ) );
-      return this;
-    }
-
-    public FD right( Control control, int offset ) {
-      fd.right = new FormAttachment( control, offset );
-      return this;
-    }
-
-    public void apply() {
-      control.setLayoutData( fd );
-    }
-  }
-
-  protected FileObject getInitialFile( String filePath ) throws KettleFileException {
-    FileObject initialFile = null;
-    if ( filePath != null && !filePath.isEmpty() ) {
-      String fileName = transMeta.environmentSubstitute( filePath );
-      if ( fileName != null && !fileName.isEmpty() ) {
-        initialFile = KettleVFS.getFileObject( fileName );
-      }
-    }
-    if ( initialFile == null ) {
-      initialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
-    }
-    return initialFile;
-  }
-
-  protected List<VFSScheme> getAvailableVFSSchemes() throws KettleFileException, FileSystemException {
-    VfsFileChooserDialog fileChooserDialog = getVfsFileChooserDialog( null, null );
-    List<CustomVfsUiPanel> customVfsUiPanels = fileChooserDialog.getCustomVfsUiPanels();
-    List<VFSScheme> vfsSchemes = new ArrayList<>();
-    customVfsUiPanels.forEach( vfsPanel -> {
-      VFSScheme scheme = new VFSScheme( vfsPanel.getVfsScheme(), vfsPanel.getVfsSchemeDisplayText() );
-      vfsSchemes.add( scheme );
-    } );
-    return vfsSchemes;
-  }
-
-  protected VfsFileChooserDialog getVfsFileChooserDialog( FileObject rootFile, FileObject initialFile )
-    throws KettleFileException, FileSystemException {
-    return getSpoon().getVfsFileChooserDialog( rootFile, initialFile );
-  }
-
-  private Spoon getSpoon() {
-    return Spoon.getInstance();
   }
 
   protected int getMinHeight( Composite comp, int minWidth ) {
@@ -557,31 +308,26 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
   }
 
   protected void setTruncatedColumn( Table table, int targetColumn ) {
-    table.addListener( SWT.EraseItem, new Listener() {
-      public void handleEvent( Event event ) {
-        if ( event.index == targetColumn ) {
-          event.detail &= ~SWT.FOREGROUND;
-        }
+    table.addListener( SWT.EraseItem, event -> {
+      if ( event.index == targetColumn ) {
+        event.detail &= ~SWT.FOREGROUND;
       }
     } );
-    table.addListener( SWT.PaintItem, new Listener() {
-      @Override
-      public void handleEvent( Event event ) {
-        TableItem item = (TableItem) event.item;
-        int colIdx = event.index;
-        if ( colIdx == targetColumn ) {
-          String contents = item.getText( colIdx );
-          if ( Utils.isEmpty( contents ) ) {
-            return;
-          }
-          Point size = event.gc.textExtent( contents );
-          int targetWidth = item.getBounds( colIdx ).width;
-          int yOffset = Math.max( 0, ( event.height - size.y ) / 2 );
-          if ( size.x > targetWidth ) {
-            contents = shortenText( event.gc, contents, targetWidth );
-          }
-          event.gc.drawText( contents, event.x + TABLE_ITEM_MARGIN, event.y + yOffset, true );
+    table.addListener( SWT.PaintItem, event -> {
+      TableItem item = (TableItem) event.item;
+      int colIdx = event.index;
+      if ( colIdx == targetColumn ) {
+        String contents = item.getText( colIdx );
+        if ( Utils.isEmpty( contents ) ) {
+          return;
         }
+        Point size = event.gc.textExtent( contents );
+        int targetWidth = item.getBounds( colIdx ).width;
+        int yOffset = Math.max( 0, ( event.height - size.y ) / 2 );
+        if ( size.x > targetWidth ) {
+          contents = shortenText( event.gc, contents, targetWidth );
+        }
+        event.gc.drawText( contents, event.x + TABLE_ITEM_MARGIN, event.y + yOffset, true );
       }
     } );
   }
@@ -599,14 +345,12 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
       public void mouseHover( MouseEvent e ) {
         Point coord = new Point( e.x, e.y );
         TableItem item = table.getItem( coord );
-        if ( item != null ) {
-          if ( item.getBounds( columnIndex ).contains( coord ) ) {
-            String contents = item.getText( columnIndex );
-            if ( !Utils.isEmpty( contents ) ) {
-              toolTip.setText( contents );
-              toolTip.show( coord );
-              return;
-            }
+        if ( item != null && item.getBounds( columnIndex ).contains( coord ) ) {
+          String contents = item.getText( columnIndex );
+          if ( !Utils.isEmpty( contents ) ) {
+            toolTip.setText( contents );
+            toolTip.show( coord );
+            return;
           }
         }
         toolTip.hide();
@@ -636,34 +380,6 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
     return text + ELLIPSIS;
   }
 
-  private int getControlOffset( Control control, int controlWidth ) {
-    // remaining space for min size match
-    return getWidth() - getMarginWidths( control ) - controlWidth;
-  }
-
-  private int getMarginWidths( Control control ) {
-    // get the width added by container margins and (wm-specific) decorations
-    int extraWidth = 0;
-    for ( Composite parent = control.getParent(); !parent.equals( getParent() ); parent = parent.getParent() ) {
-      extraWidth += parent.computeTrim( 0, 0, 0, 0 ).width;
-      if ( parent.getLayout() instanceof FormLayout ) {
-        extraWidth += 2 * ( (FormLayout) parent.getLayout() ).marginWidth;
-      }
-    }
-    return extraWidth;
-  }
-
-  protected void setIntegerOnly( TextVar textVar ) {
-    textVar.getTextWidget().addVerifyListener( new VerifyListener() {
-      @Override
-      public void verifyText( VerifyEvent e ) {
-        if ( !StringUtil.isEmpty( e.text ) && !StringUtil.isVariable( e.text ) && !StringUtil.IsInteger( e.text ) ) {
-          e.doit = false;
-        }
-      }
-    } );
-  }
-
   protected void updateIncomingFieldList( ComboVar comboVar ) {
     // Search the fields in the background
     StepMeta stepMeta = transMeta.findStep( stepname );
@@ -673,17 +389,16 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
         incomingFields.clear();
         // Remember these fields...
         for ( int i = 0; i < row.size(); i++ ) {
-          incomingFields.put( row.getValueMeta( i ).getName(), Integer.valueOf( i ) );
+          incomingFields.put( row.getValueMeta( i ).getName(), i );
         }
-        final Map<String, Integer> fields = new HashMap<String, Integer>();
 
         // Add the currentMeta fields...
-        fields.putAll( incomingFields );
+        final Map<String, Integer> fields = new HashMap<>( incomingFields );
 
         Set<String> keySet = fields.keySet();
-        List<String> entries = new ArrayList<String>( keySet );
+        List<String> entries = new ArrayList<>( keySet );
 
-        String[] fieldNames = entries.toArray( new String[ entries.size() ] );
+        String[] fieldNames = entries.toArray( new String[ 0 ] );
 
         Const.sortStrings( fieldNames );
         comboVar.setItems( fieldNames );
