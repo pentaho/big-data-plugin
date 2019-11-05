@@ -34,7 +34,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -47,7 +46,6 @@ import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NullableValuesEnum;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -56,6 +54,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.FileDialogOperation;
+import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -91,11 +90,6 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     AvroSpec.DataType.BYTES.getName()
   };
 
-
-  private static final int COLUMNS_SEP = 5 * MARGIN;
-
-  private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
-
   private TableView wOutputFields;
 
   protected ComboVar wCompression;
@@ -125,23 +119,23 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
   protected Control createAfterFile( Composite afterFile ) {
     wOverwriteExistingFile = new Button( afterFile, SWT.CHECK );
     wOverwriteExistingFile.setText( BaseMessages.getString( PKG, "AvroOutputDialog.OverwriteFile.Label" ) );
-    props.setLook( wOverwriteExistingFile );
-    new FD( wOverwriteExistingFile ).left( 0, 0 ).top( afterFile, FIELDS_SEP ).apply();
+    wOverwriteExistingFile.setLayoutData( new FormDataBuilder().left().top( afterFile, FIELDS_SEP ).result() );
     wOverwriteExistingFile.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
       }
     } );
 
     CTabFolder wTabFolder = new CTabFolder( afterFile, SWT.BORDER );
-    props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
     wTabFolder.setSimple( false );
 
     addFieldsTab( wTabFolder );
     addSchemaTab( wTabFolder );
     addOptionsTab( wTabFolder );
 
-    new FD( wTabFolder ).left( 0, 0 ).top( wOverwriteExistingFile, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    wTabFolder.setLayoutData( new FormDataBuilder().left().top( wOverwriteExistingFile, MARGIN ).right().bottom()
+      .result() );
     wTabFolder.setSelection( 0 );
     return wTabFolder;
   }
@@ -156,23 +150,17 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     wTab.setText( BaseMessages.getString( PKG, "AvroOutputDialog.FieldsTab.TabTitle" ) );
 
     Composite wComp = new Composite( wTabFolder, SWT.NONE );
-    props.setLook( wComp );
 
     FormLayout layout = new FormLayout();
     layout.marginWidth = MARGIN;
     layout.marginHeight = MARGIN;
     wComp.setLayout( layout );
 
-    lsGet = new Listener() {
-      public void handleEvent( Event e ) {
-        getFields();
-      }
-    };
+    lsGet = e -> getFields();
 
     Button wGetFields = new Button( wComp, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Fields.Get" ) );
-    props.setLook( wGetFields );
-    new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
+    wGetFields.setLayoutData( new FormDataBuilder().bottom().right().result() );
 
     wGetFields.addListener( SWT.Selection, lsGet );
 
@@ -200,13 +188,13 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     ColumnsResizer resizer = new ColumnsResizer( 0, 30, 20, 10, 10, 10, 15, 5 );
     wOutputFields.getTable().addListener( SWT.Resize, resizer );
 
-    props.setLook( wOutputFields );
-    new FD( wOutputFields ).left( 0, 0 ).right( 100, 0 ).top( wComp, 0 ).bottom( wGetFields, -FIELDS_SEP ).apply();
+    wOutputFields.setLayoutData( new FormDataBuilder().left().right().top( wComp, 0 ).bottom( wGetFields, -FIELDS_SEP )
+      .result() );
 
     wOutputFields.setRowNums();
     wOutputFields.optWidth( true );
 
-    new FD( wComp ).left( 0, 0 ).top( 0, 0 ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    wComp.setLayoutData( new FormDataBuilder().left().top().right().bottom().result() );
 
     wTab.setControl( wComp );
     for ( ColumnInfo col : parameterColumns ) {
@@ -225,14 +213,12 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     wTab.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.TabTitle" ) );
     Composite wTabComposite = new Composite( wTabFolder, SWT.NONE );
     wTab.setControl( wTabComposite );
-    props.setLook( wTabComposite );
     FormLayout formLayout = new FormLayout();
     formLayout.marginHeight = MARGIN;
     wTabComposite.setLayout( formLayout );
 
     // Set up the Source Group
     Group wSourceGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
-    props.setLook( wSourceGroup );
     wSourceGroup.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.SourceTitle" ) );
 
     FormLayout layout = new FormLayout();
@@ -248,95 +234,20 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
     Label wlSchemaPath = new Label( wSourceGroup, SWT.RIGHT );
     wlSchemaPath.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FileName" ) );
-    props.setLook( wlSchemaPath );
-    new FD( wlSchemaPath ).left( 0, 0 ).top( 0, 0 ).apply();
+    wlSchemaPath.setLayoutData( new FormDataBuilder().left().top().result() );
     wSchemaPath = new TextVar( transMeta, wSourceGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wSchemaPath );
-    new FD( wSchemaPath ).left( 0, 0 ).top( wlSchemaPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH )
-        .rright().apply();
+    wSchemaPath.setLayoutData( new FormDataBuilder().left().top( wlSchemaPath, FIELD_LABEL_SEP )
+      .width( FIELD_LARGE + VAR_EXTRA_WIDTH ).result() );
 
     wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
-    props.setLook( wbBrowse );
-    wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
+    wbSchemaBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
     wbSchemaBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wSchemaPath ) );
     int bOffset = ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.
         computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
-    new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
-        .apply();
-
-//      http://jira.pentaho.com/browse/BACKLOG-18706 - Tech Debt - Remove commented Code in AvroOutputDialog when new requirements come in
-//        The code below is commented out because the radio buttons were descoped for this release.  They will be
-//        added back in scope for a future release.  When new requirements come in, either A) uncomment the code or
-//        B) remove the code.
-
-//    // Set up the From File Button
-//    Button wFromFileButton = new Button(wSourceGroup, SWT.RADIO);
-//    wFromFileButton.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FromFile" ) );
-//    props.setLook( wFromFileButton );
-//    FormData fdFromFile = new FormData();
-//    fdFromFile.top = new FormAttachment( 0, 10 );
-//    fdFromFile.left = new FormAttachment( 0, 10 );
-//    wFromFileButton.setLayoutData( fdFromFile );
-//    wFromFileButton.addSelectionListener( new SelectionAdapter() {
-//      public void widgetSelected( SelectionEvent e ) {
-//        stackedLayout.topControl = fromFileComposite;
-//        stackedLayoutComposite.layout();
-//      }
-//    } );
-//
-//    // Set up the From Field Button
-//    Button wFromFieldButton = new Button(wSourceGroup, SWT.RADIO);
-//    wFromFieldButton.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.FromField" ) );
-//    props.setLook( wFromFieldButton );
-//    FormData fdFromField = new FormData();
-//    fdFromField.left = new FormAttachment( 0, 10 );
-//    fdFromField.top = new FormAttachment( wFromFileButton, 7 );
-//    wFromFieldButton.setLayoutData( fdFromField );
-//    wFromFieldButton.addSelectionListener( new SelectionAdapter() {
-//      public void widgetSelected( SelectionEvent e ) {
-//        stackedLayout.topControl = fromFieldComposite;
-//        stackedLayoutComposite.layout();
-//      }
-//    } );
-//
-//    // separator
-//    Label fileFieldSeparator = new Label( wSourceGroup, SWT.SEPARATOR | SWT.VERTICAL );
-//    FormData fd_environmentSeparator = new FormData();
-//    fd_environmentSeparator.top = new FormAttachment( 0, 10 );
-//    fd_environmentSeparator.left = new FormAttachment( wFromFileButton, 50 );
-//    fd_environmentSeparator.bottom = new FormAttachment( 100, -10 );
-//    fileFieldSeparator.setLayoutData( fd_environmentSeparator );
-//
-//
-//    // stacked layout composite
-//    stackedLayoutComposite = new Composite( wSourceGroup, SWT.NONE );
-//    props.setLook( stackedLayoutComposite );
-//    stackedLayout = new StackLayout();
-//    stackedLayoutComposite.setLayout( stackedLayout );
-//    FormData fd_stackedLayoutComposite = new FormData();
-//    fd_stackedLayoutComposite.top = new FormAttachment( 0 );
-//    fd_stackedLayoutComposite.left = new FormAttachment( fileFieldSeparator, 30 );
-//    fd_stackedLayoutComposite.bottom = new FormAttachment( 100, -10 );
-//    fd_stackedLayoutComposite.right = new FormAttachment( 100, -7 );
-//    stackedLayoutComposite.setLayoutData( fd_stackedLayoutComposite );
-//
-//    // Set up the From File Stack Composite (this will be shown when user clicks on "From file:" radio button
-//    fromFileComposite = new Composite( stackedLayoutComposite, SWT.NONE );
-//    fromFileComposite.setLayout( new FormLayout() );
-//    props.setLook( fromFileComposite );
-//    addSchemaFileWidgets( fromFileComposite, fileFieldSeparator );
-//
-//    // Set up the From field Stack Composite (this will be shown when user clicks on "From field:" radio button
-//    fromFieldComposite = new Composite( stackedLayoutComposite, SWT.NONE );
-//    fromFieldComposite.setLayout( new FormLayout() );
-//    props.setLook( fromFieldComposite );
-//    addSchemaFieldWidgets( fromFieldComposite, fileFieldSeparator );
-//
-//    stackedLayout.topControl = fromFileComposite;
+    wbSchemaBrowse.setLayoutData( new FormDataBuilder().left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset ).result() );
 
     // Set up Avro Details Group
     Group wAvroDetailsGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
-    props.setLook( wAvroDetailsGroup );
     wAvroDetailsGroup.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.AvroDetailsTitle" ) );
 
     layout = new FormLayout();
@@ -355,31 +266,25 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     // Set up the Namespace Text Box
     Label wlNameSpace = new Label( wAvroDetailsGroup, SWT.RIGHT );
     wlNameSpace.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.Namespace" ) );
-    props.setLook( wlNameSpace );
-    new FD( wlNameSpace ).left( 0, 0 ).top( 0, 0 ).apply();
+    wlNameSpace.setLayoutData( new FormDataBuilder().left().top().result() );
     wNameSpace = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wNameSpace );
-    new FD( wNameSpace ).left( 0, 0 ).top( wlNameSpace, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
+    wNameSpace.setLayoutData( new FormDataBuilder().left().top( wlNameSpace ).width( 250 ).result() );
     wNameSpace.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.RequiredItem" ) );
 
     // Set up the RecordName Text Box
     Label wlRecordName = new Label( wAvroDetailsGroup, SWT.RIGHT );
     wlRecordName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.RecordName" ) );
-    props.setLook( wlRecordName );
-    new FD( wlRecordName ).left( 0, 0 ).top( wNameSpace, FIELDS_SEP ).apply();
+    wlRecordName.setLayoutData( new FormDataBuilder().left().top( wNameSpace, FIELDS_SEP ).result() );
     wRecordName = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wRecordName );
-    new FD( wRecordName ).left( 0, 0 ).top( wlRecordName, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
+    wRecordName.setLayoutData( new FormDataBuilder().left().top( wlRecordName ).width( 250 ).result() );
     wRecordName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.RequiredItem" ) );
 
     // Set up the DocValue Text Box
     Label wlDocValue = new Label( wAvroDetailsGroup, SWT.RIGHT );
     wlDocValue.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Schema.DocValue" ) );
-    props.setLook( wlDocValue );
-    new FD( wlDocValue ).left( 0, 0 ).top( wRecordName, FIELDS_SEP ).apply();
+    wlDocValue.setLayoutData( new FormDataBuilder().left().top( wRecordName, FIELDS_SEP ).result() );
     wDocValue = new TextVar( transMeta, wAvroDetailsGroup, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wDocValue );
-    new FD( wDocValue ).left( 0, 0 ).top( wlDocValue, FIELD_LABEL_SEP ).width( 250 ).rright().apply();
+    wDocValue.setLayoutData( new FormDataBuilder().left().top( wlDocValue ).width( 250 ).result() );
   }
 
   private void addOptionsTab( CTabFolder wTabFolder ) {
@@ -387,21 +292,21 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     wTab.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.TabTitle" ) );
     Composite wComp = new Composite( wTabFolder, SWT.NONE );
     wTab.setControl( wComp );
-    props.setLook( wComp );
     FormLayout formLayout = new FormLayout();
     formLayout.marginHeight = formLayout.marginWidth = MARGIN;
     wComp.setLayout( formLayout );
 
     Label lCompression = createLabel( wComp, "AvroOutputDialog.Options.Compression" );
-    new FD( lCompression ).left( 0, 0 ).top( wComp, 0 ).apply();
+    lCompression.setLayoutData( new FormDataBuilder().left().top( wComp, 0 ).result() );
     wCompression = createComboVar( wComp, meta.getCompressionTypes() );
-    new FD( wCompression ).left( 0, 0 ).top( lCompression, FIELD_LABEL_SEP ).width( FIELD_SMALL + VAR_EXTRA_WIDTH ).apply();
+    wCompression.setLayoutData( new FormDataBuilder().left().top( lCompression, FIELD_LABEL_SEP )
+      .width( FIELD_SMALL + VAR_EXTRA_WIDTH ).result() );
 
     wDateInFileName = new Button( wComp, SWT.CHECK );
-    new FD( wDateInFileName ).left( 0, 0 ).top( wCompression, FIELDS_SEP ).apply();
-    props.setLook( wDateInFileName );
+    wDateInFileName.setLayoutData( new FormDataBuilder().left().top( wCompression, FIELDS_SEP ).result() );
     wDateInFileName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.DateInFileName" ) );
     wDateInFileName.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wDateInFileName.getSelection();
@@ -415,10 +320,10 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
 
     wTimeInFileName = new Button( wComp, SWT.CHECK );
-    new FD( wTimeInFileName ).left( 0, 0 ).top( wDateInFileName, FIELDS_SEP ).apply();
-    props.setLook( wTimeInFileName );
+    wTimeInFileName.setLayoutData( new FormDataBuilder().left().top( wDateInFileName, FIELDS_SEP ).result() );
     wTimeInFileName.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.TimeInFileName" ) );
     wTimeInFileName.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wTimeInFileName.getSelection();
@@ -432,10 +337,10 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
 
     wSpecifyDateTimeFormat = new Button( wComp, SWT.CHECK );
-    new FD( wSpecifyDateTimeFormat ).left( 0, 0 ).top( wTimeInFileName, FIELDS_SEP ).apply();
-    props.setLook( wSpecifyDateTimeFormat );
+    wSpecifyDateTimeFormat.setLayoutData( new FormDataBuilder().left().top( wTimeInFileName, FIELDS_SEP ).result() );
     wSpecifyDateTimeFormat.setText( BaseMessages.getString( PKG, "AvroOutputDialog.Options.SpecifyDateTimeFormat" ) );
     wSpecifyDateTimeFormat.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wSpecifyDateTimeFormat.getSelection();
@@ -458,8 +363,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
         Arrays.stream( dates ).filter( d -> d.indexOf( '/' ) < 0 && d.indexOf( '\\' ) < 0 && d.indexOf( ':' ) < 0 )
             .toArray( String[]::new ); // remove formats with slashes and colons
     wDateTimeFormat = createComboVar( wComp, dates );
-    new FD( wDateTimeFormat ).left( 0, H_OFFSET_DATETIME_COMBO_BOX ).top( wSpecifyDateTimeFormat, FIELD_LABEL_SEP ).width( 200 ).apply();
-    props.setLook( wDateTimeFormat );
+    wDateTimeFormat.setLayoutData( new FormDataBuilder().left( 0, H_OFFSET_DATETIME_COMBO_BOX )
+      .top( wSpecifyDateTimeFormat ).width( 200 ).result() );
   }
 
   protected ComboVar createComboVar( Composite container, String[] options ) {
@@ -469,16 +374,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     return combo;
   }
 
-  protected String getComboVarValue( ComboVar combo ) {
-    String text = combo.getText();
-    String data = (String) combo.getData( text );
-    return data != null ? data : text;
-  }
-
   private Label createLabel( Composite container, String labelRef ) {
     Label label = new Label( container, SWT.NONE );
     label.setText( BaseMessages.getString( PKG, labelRef ) );
-    props.setLook( label );
     return label;
   }
 
@@ -489,7 +387,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     }
     stepname = wStepname.getText();
 
-    List<String> validationErrorFields = validateOutputFields( wOutputFields, meta );
+    List<String> validationErrorFields = validateOutputFields( wOutputFields );
 
     if ( validationErrorFields != null && !validationErrorFields.isEmpty() ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
@@ -597,7 +495,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     meta.setOutputFields( outputFields );
   }
 
-  private List<String> validateOutputFields( TableView wFields, AvroOutputMeta meta ) {
+  private List<String> validateOutputFields( TableView wFields ) {
     int nrFields = wFields.nrNonEmpty();
     List<String> validationErrorFields = new ArrayList<>();
 
@@ -607,7 +505,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
       int j = 1;
 
       String path = item.getText( j++ );
-      String name = item.getText( j++ );
+      String name = item.getText( 2 );
       String type = item.getText( j++ );
       String precision = item.getText( j++ );
       if ( precision == null || precision.trim().isEmpty() ) {
@@ -675,29 +573,13 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
     try {
       RowMetaInterface r = transMeta.getPrevStepFields( stepname );
       if ( r != null ) {
-        TableItemInsertListener listener = new TableItemInsertListener() {
-          public boolean tableItemInserted( TableItem tableItem, ValueMetaInterface v ) {
-            return true;
-          }
-        };
+        TableItemInsertListener listener = ( tableItem, v ) -> true;
         getFieldsFromPreviousStep( r, wOutputFields, 1, new int[] { 1, 2 }, new int[] { 3 }, 4,
             5, true, listener );
       }
     } catch ( KettleException ke ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
           .getString( PKG, "System.Dialog.GetFieldsFailed.Message" ), ke );
-    }
-  }
-
-  private String getSchemeFromPath( String path ) {
-    if ( Utils.isEmpty( path ) ) {
-      return SCHEMA_SCHEME_DEFAULT;
-    }
-    int endIndex = path.indexOf( ':' );
-    if ( endIndex > 0 ) {
-      return path.substring( 0, endIndex );
-    } else {
-      return SCHEMA_SCHEME_DEFAULT;
     }
   }
 
@@ -739,7 +621,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
     int choice = 0;
 
-    if ( keys.size() > 0 ) {
+    if ( !keys.isEmpty() ) {
       // Ask what we should do with the existing data in the step.
       //
       MessageDialog getFieldsChoiceDialog = getFieldsChoiceDialog( tableView.getShell(), keys.size(), row.size() );
@@ -761,11 +643,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
       boolean add = true;
 
-      if ( choice == 0 ) { // hang on, see if it's not yet in the table view
-
-        if ( keys.indexOf( v.getName() ) >= 0 ) {
-          add = false;
-        }
+      // hang on, see if it's not yet in the table view
+      if ( choice == 0 && keys.indexOf( v.getName() ) >= 0 ) {
+        add = false;
       }
 
       if ( add ) {
@@ -802,10 +682,8 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
           }
         }
 
-        if ( listener != null ) {
-          if ( !listener.tableItemInserted( tableItem, v ) ) {
-            tableItem.dispose(); // remove it again
-          }
+        if ( listener != null && !listener.tableItemInserted( tableItem, v ) ) {
+          tableItem.dispose(); // remove it again
         }
       }
     }

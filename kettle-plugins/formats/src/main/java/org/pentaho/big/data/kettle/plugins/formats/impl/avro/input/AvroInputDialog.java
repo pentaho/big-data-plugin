@@ -26,8 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
@@ -37,7 +35,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -48,7 +45,6 @@ import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.avro.BaseAvroStepDialog;
 import org.pentaho.di.core.Const;
-import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
@@ -58,6 +54,7 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
 import org.pentaho.di.ui.core.FileDialogOperation;
+import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -77,9 +74,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AvroInputDialog extends BaseAvroStepDialog {
+  private static final Class<?> PKG = AvroInputMeta.class;
 
   private static final int SHELL_WIDTH = 698;
   private static final int SHELL_HEIGHT = 554;
+  private static final int RADIO_BUTTON_WIDTH = 150;
 
   private static final int AVRO_ORIGINAL_PATH_COLUMN_INDEX = 1;
   private static final int AVRO_DISPLAY_PATH_COLUMN_INDEX = 2;
@@ -89,8 +88,6 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   private static final int FIELD_TYPE_COLUMN_INDEX = 6;
   private static final int FORMAT_COLUMN_INDEX = 7;
 
-  private static final String SCHEMA_SCHEME_DEFAULT = "hdfs";
-
   private TableView wInputFields;
   protected Button wbSchemaBrowse;
   protected Composite wSchemaFileComposite;
@@ -98,9 +95,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   protected Group wSourceGroup;
   Button wbGetSchemaFromFile;
   Button wbGetSchemaFromField;
-  private Button m_getLookupFieldsBut;
   ComboVar wSchemaFieldNameCombo;
-  private TableView m_lookupView;
+  private TableView wLookupView;
   private AvroInputMeta meta;
 
   private Button wPassThruFields;
@@ -114,14 +110,13 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
   protected Control createAfterFile( Composite afterFile ) {
     CTabFolder wTabFolder = new CTabFolder( afterFile, SWT.BORDER );
-    props.setLook( wTabFolder, Props.WIDGET_STYLE_TAB );
     wTabFolder.setSimple( false );
 
     addSourceTab( wTabFolder );
     addFieldsTab( wTabFolder );
     addLookupFieldsTab( wTabFolder );
 
-    new FD( wTabFolder ).left( 0, 0 ).top( 0, MARGIN ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    wTabFolder.setLayoutData( new FormDataBuilder().left().top( 0, MARGIN ).right().bottom().result() );
     wTabFolder.setSelection( 0 );
 
     return wTabFolder;
@@ -135,7 +130,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     String avroFileName = wPath.getText();
     avroFileName = transMeta.environmentSubstitute( avroFileName );
 
-    List<? extends IAvroInputField> defaultFields = null;
+    List<? extends IAvroInputField> defaultFields;
     try {
       defaultFields = AvroInput.getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
       if ( defaultFields != null ) {
@@ -172,25 +167,20 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   }
 
   private void addLookupFieldsTab( CTabFolder wTabFolder ) {
-    CTabItem m_wVarsTab = new CTabItem( wTabFolder, SWT.NONE );
-    m_wVarsTab.setText( BaseMessages.getString( PKG, "AvroInputDialog.VarsTab.Title" ) );
+    CTabItem wVarsTab = new CTabItem( wTabFolder, SWT.NONE );
+    wVarsTab.setText( BaseMessages.getString( PKG, "AvroInputDialog.VarsTab.Title" ) );
     Composite wVarsComp = new Composite( wTabFolder, SWT.NONE );
-    props.setLook( wVarsComp );
 
     FormLayout varsLayout = new FormLayout();
     varsLayout.marginWidth = MARGIN;
     varsLayout.marginHeight = MARGIN;
     wVarsComp.setLayout( varsLayout );
 
-    //    new FD( wVarsComp ).top(0, 0).bottom( 100, 0 ).left( 0, 0 ).right( 100, 0 ).apply();
-
-    // lookup fields (variables) tab
-
     // get lookup fields but
-    m_getLookupFieldsBut = new Button( wVarsComp, SWT.PUSH | SWT.CENTER );
-    m_getLookupFieldsBut.setText( BaseMessages.getString( PKG, "AvroInputDialog.Button.GetLookupFields" ) );
-    new FD( m_getLookupFieldsBut ).bottom( 100, -Const.MARGIN * 2 ).right( 100, 0 ).apply();
-    m_getLookupFieldsBut.addSelectionListener( new SelectionAdapter() {
+    Button wGetLookupFieldsBut = new Button( wVarsComp, SWT.PUSH | SWT.CENTER );
+    wGetLookupFieldsBut.setText( BaseMessages.getString( PKG, "AvroInputDialog.Button.GetLookupFields" ) );
+    wGetLookupFieldsBut.setLayoutData( new FormDataBuilder().bottom( 100, -Const.MARGIN * 2 ).right().result() );
+    wGetLookupFieldsBut.addSelectionListener( new SelectionAdapter() {
       @Override
       public void widgetSelected( SelectionEvent e ) {
         // get incoming field names
@@ -209,23 +199,23 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     colinf2[ 0 ].setAutoResize( false );
     colinf2[ 1 ].setAutoResize( false );
     colinf2[ 2 ].setAutoResize( false );
-    m_lookupView = new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER, colinf2, 1, lsMod, props );
-    new FD( m_lookupView ).top( 0, Const.MARGIN * 2 ).bottom( m_getLookupFieldsBut, -Const.MARGIN * 2 ).left( 0, 0 ).right( 100, 0 ).apply();
+    wLookupView = new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER, colinf2, 1, lsMod, props );
+    wLookupView.setLayoutData( new FormDataBuilder().top( 0, Const.MARGIN * 2 )
+      .bottom( wGetLookupFieldsBut, -Const.MARGIN * 2 ).left().right().result() );
 
     ColumnsResizer resizer = new ColumnsResizer( 0, 33, 33, 34 );
-    resizer.addColumnResizeListeners( m_lookupView.getTable() );
-    m_lookupView.getTable().addListener( SWT.Resize, resizer );
-    m_lookupView.optWidth( true );
+    resizer.addColumnResizeListeners( wLookupView.getTable() );
+    wLookupView.getTable().addListener( SWT.Resize, resizer );
+    wLookupView.optWidth( true );
 
-    m_wVarsTab.setControl( wVarsComp );
-
+    wVarsTab.setControl( wVarsComp );
   }
 
   private void getIncomingFields() {
     try {
       RowMetaInterface r = transMeta.getPrevStepFields( stepname );
       if ( r != null ) {
-        BaseStepDialog.getFieldsFromPrevious( r, m_lookupView, 1, new int[] { 1 }, null, -1, -1, null );
+        BaseStepDialog.getFieldsFromPrevious( r, wLookupView, 1, new int[] { 1 }, null, -1, -1, null );
       }
     } catch ( KettleException e ) {
       new ErrorDialog( shell, BaseMessages.getString( PKG, "System.Dialog.GetFieldsFailed.Title" ), BaseMessages
@@ -238,7 +228,6 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wTab.setText( BaseMessages.getString( PKG, "AvroInputDialog.FieldsTab.TabTitle" ) );
 
     Composite wComp = new Composite( wTabFolder, SWT.NONE );
-    props.setLook( wComp );
 
     FormLayout layout = new FormLayout();
     layout.marginWidth = MARGIN;
@@ -247,15 +236,10 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wComp.setLayout( layout );
 
     //get fields button
-    lsGet = new Listener() {
-      public void handleEvent( Event e ) {
-        populateNestedFieldsTable();
-      }
-    };
+    lsGet = e -> populateNestedFieldsTable();
     Button wGetFields = new Button( wComp, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.Fields.Get" ) );
-    props.setLook( wGetFields );
-    new FD( wGetFields ).bottom( 100, 0 ).right( 100, 0 ).apply();
+    wGetFields.setLayoutData( new FormDataBuilder().bottom().right().result() );
     wGetFields.addListener( SWT.Selection, lsGet );
 
     // fields table
@@ -292,7 +276,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
         parameterColumns, 8, null, props );
     ColumnsResizer resizer = new ColumnsResizer( 0, 0, 20, 15, 15, 20, 15, 15 );
     wInputFields.getTable().addListener( SWT.Resize, resizer );
-    new FD( wInputFields ).left( 0, 0 ).right( 100, 0 ).top( 0, Const.MARGIN * 2 ).bottom( wGetFields, -FIELDS_SEP ).apply();
+    wInputFields.setLayoutData( new FormDataBuilder().left().right().top( 0, Const.MARGIN * 2 )
+      .bottom( wGetFields, -FIELDS_SEP ).result() );
 
     wInputFields.setRowNums();
     wInputFields.optWidth( true );
@@ -302,18 +287,16 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wPassThruFields.setText( BaseMessages.getString( PKG, "AvroInputDialog.PassThruFields.Label" ) );
     wPassThruFields.setToolTipText( BaseMessages.getString( PKG, "AvroInputDialog.PassThruFields.Tooltip" ) );
     wPassThruFields.setOrientation( SWT.LEFT_TO_RIGHT );
-    props.setLook( wPassThruFields );
-    new FD( wPassThruFields ).left( 0, 0 ).top( wInputFields, 10 ).apply();
+    wPassThruFields.setLayoutData( new FormDataBuilder().left().top( wInputFields, 10 ).result() );
 
     // Accept fields from previous steps?
     wAllowNullValues = new Button( wComp, SWT.CHECK );
     wAllowNullValues.setText( BaseMessages.getString( PKG, "AvroInputDialog.AllowNullValues.Label" ) );
     wAllowNullValues.setOrientation( SWT.LEFT_TO_RIGHT );
-    props.setLook( wAllowNullValues );
-    new FD( wAllowNullValues ).left( 0, 0 ).top( wPassThruFields, 5 ).apply();
 
+    wAllowNullValues.setLayoutData( new FormDataBuilder().left().top( wPassThruFields, 5 ).result() );
 
-    new FD( wComp ).left( 0, 0 ).top( 0, 0 ).right( 100, 0 ).bottom( 100, 0 ).apply();
+    wComp.setLayoutData( new FormDataBuilder().left().top().right().bottom().result() );
 
     wTab.setControl( wComp );
     for ( ColumnInfo col : parameterColumns ) {
@@ -329,14 +312,11 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   }
 
   protected void addSourceTab( CTabFolder wTabFolder ) {
-    AvroInputMetaBase avroBaseMeta = (AvroInputMetaBase) meta;
-
     // Create & Set up a new Tab Item
     CTabItem wTab = new CTabItem( wTabFolder, SWT.NONE );
     wTab.setText( getBaseMsg( "AvroDialog.File.TabTitle" ) );
     Composite wTabComposite = new Composite( wTabFolder, SWT.NONE );
     wTab.setControl( wTabComposite );
-    props.setLook( wTabComposite );
     FormLayout formLayout = new FormLayout();
     formLayout.marginHeight = MARGIN;
     wTabComposite.setLayout( formLayout );
@@ -344,7 +324,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     // Create file encoding Drop Down
     Label encodingLabel = new Label( wTabComposite, SWT.NONE );
     encodingLabel.setText( getBaseMsg( "AvroDialog.Encoding.Label" ) );
-    new FD( encodingLabel ).top( 0, 0 ).right( 100, -MARGIN ).left( 0, MARGIN ).apply();
+    encodingLabel.setLayoutData( new FormDataBuilder().top().right( 100, -MARGIN ).left( 0, MARGIN ).result() );
 
     encodingCombo = new CCombo( wTabComposite, SWT.BORDER | SWT.READ_ONLY );
     String[] availFormats = {
@@ -362,64 +342,57 @@ public class AvroInputDialog extends BaseAvroStepDialog {
         wSourceGroup.setVisible( encodingCombo.getSelectionIndex() > 0 );
       }
     } );
-    new FD( encodingCombo ).top( encodingLabel, 5 ).left( 0, MARGIN ).right( 0, MARGIN + 200 ).apply();
+    encodingCombo.setLayoutData( new FormDataBuilder().top( encodingLabel, 5 ).left( 0, MARGIN )
+      .right( 0, MARGIN + 200 ).result() );
 
     // Set up the File settings Group
     Group wFileSettingsGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
-    props.setLook( wFileSettingsGroup );
     wFileSettingsGroup.setText( getBaseMsg( "AvroDialog.File.FileSettingsTitle" ) );
 
     FormLayout layout = new FormLayout();
     layout.marginHeight = MARGIN;
     layout.marginWidth = MARGIN;
     wFileSettingsGroup.setLayout( layout );
-    new FD( wFileSettingsGroup ).top( encodingLabel, 35 ).left( 0, MARGIN ).right( 0, MARGIN + 620 ).apply();
+    wFileSettingsGroup.setLayoutData( new FormDataBuilder().top( encodingLabel, 35 ).left( 0, MARGIN ).right( 100, -MARGIN ).result() );
 
-    int RADIO_BUTTON_WIDTH = 150;
     Label separator = new Label( wFileSettingsGroup, SWT.SEPARATOR | SWT.VERTICAL );
-    props.setLook( separator );
-    new FD( separator ).left( 0, RADIO_BUTTON_WIDTH ).top( 0, 0 ).bottom( 100, 0 ).apply();
+    separator.setLayoutData( new FormDataBuilder().left( 0, RADIO_BUTTON_WIDTH ).top().bottom().result() );
 
     wbGetDataFromFile = new Button( wFileSettingsGroup, SWT.RADIO );
     wbGetDataFromFile.setText( getBaseMsg( "AvroDialog.File.SpecifyFileName" ) );
-    props.setLook( wbGetDataFromFile );
-    new FD( wbGetDataFromFile ).left( 0, 0 ).top( 0, 0 ).width( RADIO_BUTTON_WIDTH ).apply();
+    wbGetDataFromFile.setLayoutData( new FormDataBuilder().left().top().width( RADIO_BUTTON_WIDTH ).result() );
 
     wbGetDataFromField = new Button( wFileSettingsGroup, SWT.RADIO );
     wbGetDataFromField.setText( getBaseMsg( "AvroDialog.File.GetDataFromField" ) );
-    props.setLook( wbGetDataFromField );
-    new FD( wbGetDataFromField ).left( 0, 0 ).top( wbGetDataFromFile, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH ).apply();
+    wbGetDataFromField.setLayoutData( new FormDataBuilder().left().top( wbGetDataFromFile, FIELDS_SEP )
+      .width( RADIO_BUTTON_WIDTH ).result() );
 
     //Make a composite to hold the dynamic right side of the group
     Composite wFileSettingsDynamicArea = new Composite( wFileSettingsGroup, SWT.NONE );
-    props.setLook( wFileSettingsDynamicArea );
     FormLayout fileSettingsDynamicAreaLayout = new FormLayout();
     wFileSettingsDynamicArea.setLayout( fileSettingsDynamicAreaLayout );
-    new FD( wFileSettingsDynamicArea ).right( 100, 0 ).left( wbGetDataFromFile, MARGIN ).top( 0, -MARGIN ).apply();
+    wFileSettingsDynamicArea.setLayoutData( new FormDataBuilder().right().left( wbGetDataFromFile, MARGIN )
+      .top( 0, -MARGIN ).result() );
 
     //Put the File selection stuff in it
     wDataFileComposite = new Composite( wFileSettingsDynamicArea, SWT.NONE );
-    FormLayout fileSettingLayout = new FormLayout();
-    wDataFileComposite.setLayout( fileSettingLayout );
-    new FD( wDataFileComposite ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
+    wDataFileComposite.setLayout( new FormLayout() );
+    wDataFileComposite.setLayoutData( new FormDataBuilder().left().right().top().result() );
     addFileWidgets( wDataFileComposite, wDataFileComposite );
 
     //Setup StreamingFieldName
     wDataFieldComposite = new Composite( wFileSettingsDynamicArea, SWT.NONE );
-    props.setLook( wDataFieldComposite );
     FormLayout fieldNameLayout = new FormLayout();
     fieldNameLayout.marginHeight = MARGIN;
     wDataFieldComposite.setLayout( fieldNameLayout );
-    new FD( wDataFieldComposite ).left( 0, 0 ).top( 0, 0 ).apply();
+    wDataFieldComposite.setLayoutData( new FormDataBuilder().left().top().result() );
 
     Label fieldNameLabel = new Label( wDataFieldComposite, SWT.NONE );
     fieldNameLabel.setText( getBaseMsg( "AvroDialog.FieldName.Label" ) );
-    props.setLook( fieldNameLabel );
-    new FD( fieldNameLabel ).left( 0, 0 ).top( wDataFieldComposite, 0 ).apply();
+    fieldNameLabel.setLayoutData( new FormDataBuilder().left().top( wDataFieldComposite, 0 ).result() );
     wFieldNameCombo = new ComboVar( transMeta, wDataFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wFieldNameCombo );
-    new FD( wFieldNameCombo ).left( 0, 0 ).top( fieldNameLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-      .apply();
+    wFieldNameCombo.setLayoutData( new FormDataBuilder().left().top( fieldNameLabel ).width( FIELD_MEDIUM ).result() );
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionAdapter = new SelectionAdapter() {
@@ -434,85 +407,76 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
     //Set widgets from Meta
     wbGetDataFromFile
-      .setSelection( avroBaseMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     wbGetDataFromField
-      .setSelection( avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
+      .setSelection( meta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FILE_NAME );
     fileSettingRadioSelectionAdapter.widgetSelected( null );
     wFieldNameCombo.setText(
-      avroBaseMeta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
-        : avroBaseMeta.getDataLocation() );
+      meta.getDataLocationType() != AvroInputMetaBase.LocationDescriptor.FIELD_NAME ? ""
+        : meta.getDataLocation() );
 
     // Set up the Source Group
     wSourceGroup = new Group( wTabComposite, SWT.SHADOW_NONE );
-    props.setLook( wSourceGroup );
     wSourceGroup.setText( BaseMessages.getString( PKG, "AvroInputDialog.Schema.SourceTitle" ) );
 
     FormLayout schemaLayout = new FormLayout();
     schemaLayout.marginWidth = MARGIN;
     schemaLayout.marginHeight = MARGIN;
     wSourceGroup.setLayout( schemaLayout );
-    new FD( wSourceGroup ).top( wFileSettingsGroup, 10 ).right( 100, -MARGIN ).left( 0, MARGIN ).apply();
+    wSourceGroup.setLayoutData( new FormDataBuilder().top( wFileSettingsGroup, 10 ).right( 100, -MARGIN ).left( 0, MARGIN ).result() );
 
     Label schemaSeparator = new Label( wSourceGroup, SWT.SEPARATOR | SWT.VERTICAL );
-    props.setLook( schemaSeparator );
-    new FD( schemaSeparator ).left( 0, RADIO_BUTTON_WIDTH ).top( 0, 0 ).bottom( 100, 0 ).apply();
+    schemaSeparator.setLayoutData( new FormDataBuilder().left( 0, RADIO_BUTTON_WIDTH ).top().bottom().result() );
 
     wbGetSchemaFromFile = new Button( wSourceGroup, SWT.RADIO );
     wbGetSchemaFromFile.setText( getBaseMsg( "AvroDialog.File.SpecifyFileName" ) );
-    props.setLook( wbGetSchemaFromFile );
-    new FD( wbGetSchemaFromFile ).left( 0, 0 ).top( 0, 0 ).width( RADIO_BUTTON_WIDTH ).apply();
+    wbGetSchemaFromFile.setLayoutData( new FormDataBuilder().left().top().width( RADIO_BUTTON_WIDTH ).result() );
 
     wbGetSchemaFromField = new Button( wSourceGroup, SWT.RADIO );
     wbGetSchemaFromField.setText( getBaseMsg( "AvroDialog.File.GetDataFromField" ) );
-    props.setLook( wbGetSchemaFromField );
-    new FD( wbGetSchemaFromField ).left( 0, 0 ).top( wbGetSchemaFromFile, FIELDS_SEP ).width( RADIO_BUTTON_WIDTH ).apply();
+    wbGetSchemaFromField.setLayoutData( new FormDataBuilder().left().top( wbGetSchemaFromFile, FIELDS_SEP )
+      .width( RADIO_BUTTON_WIDTH ).result() );
 
     //Make a composite to hold the dynamic right side of the group
     Composite wSchemaSettingsDynamicArea = new Composite( wSourceGroup, SWT.NONE );
-    props.setLook( wSchemaSettingsDynamicArea );
     FormLayout fileSettingsDynamicAreaSchemaLayout = new FormLayout();
     wSchemaSettingsDynamicArea.setLayout( fileSettingsDynamicAreaSchemaLayout );
-    new FD( wSchemaSettingsDynamicArea ).right( 100, 0 ).left( wbGetSchemaFromFile, MARGIN ).top( 0, -MARGIN ).apply();
+    wSchemaSettingsDynamicArea.setLayoutData( new FormDataBuilder().right().left( wbGetSchemaFromFile, MARGIN )
+      .top( 0, -MARGIN ).result() );
 
     //Put the File selection stuff in it
     wSchemaFileComposite = new Composite( wSchemaSettingsDynamicArea, SWT.NONE );
     FormLayout schemaFileLayout = new FormLayout();
     wSchemaFileComposite.setLayout( schemaFileLayout );
-    new FD( wSchemaFileComposite ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
+    wSchemaFileComposite.setLayoutData( new FormDataBuilder().left().right().top().result() );
 
     Label wlSchemaPath = new Label( wSchemaFileComposite, SWT.RIGHT );
     wlSchemaPath.setText( BaseMessages.getString( PKG, "AvroInputDialog.Schema.FileName" ) );
-    props.setLook( wlSchemaPath );
-    new FD( wlSchemaPath ).left( 0, 0 ).top( 0, MARGIN ).apply();
-
-    wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
-    props.setLook( wSchemaPath );
-    new FD( wSchemaPath ).left( 0, 0 ).top( wlSchemaPath, FIELD_LABEL_SEP ).width( FIELD_LARGE + VAR_EXTRA_WIDTH )
-      .rright().apply();
+    wlSchemaPath.setLayoutData( new FormDataBuilder().left().top( 0, MARGIN ).result() );
 
     wbSchemaBrowse = new Button( wSchemaFileComposite, SWT.PUSH );
-    props.setLook( wbSchemaBrowse );
-    wbSchemaBrowse.setText( getMsg( "System.Button.Browse" ) );
+    wbSchemaBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
     wbSchemaBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wSchemaPath ) );
-    int bOffset =
-      ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.computeSize( SWT.DEFAULT,
-        SWT.DEFAULT, false ).y ) / 2;
-    new FD( wbSchemaBrowse ).left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset )
-      .apply();
+    wbSchemaBrowse.setLayoutData( new FormDataBuilder().top( wlSchemaPath ).right().result() );
+
+    wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wSchemaPath.setLayoutData( new FormDataBuilder().left().right( wbSchemaBrowse, -FIELD_LABEL_SEP )
+      .top( wlSchemaPath ).result() );
+
 
     wSchemaFieldComposite = new Composite( wSchemaSettingsDynamicArea, SWT.NONE );
     FormLayout schemaFieldLayout = new FormLayout();
     wSchemaFieldComposite.setLayout( schemaFieldLayout );
-    new FD( wSchemaFieldComposite ).left( 0, 0 ).right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 ).top( 0, 0 ).apply();
+    wSchemaFieldComposite.setLayoutData( new FormDataBuilder().left().right( 100, RADIO_BUTTON_WIDTH + MARGIN - 15 )
+      .top().result() );
 
     Label fieldNameSchemaLabel = new Label( wSchemaFieldComposite, SWT.NONE );
     fieldNameSchemaLabel.setText( getBaseMsg( "AvroDialog.FieldName.Label" ) );
-    props.setLook( fieldNameSchemaLabel );
-    new FD( fieldNameSchemaLabel ).left( 0, 0 ).top( 0, MARGIN ).apply();
+    fieldNameSchemaLabel.setLayoutData( new FormDataBuilder().left().top( 0, MARGIN ).result() );
     wSchemaFieldNameCombo = new ComboVar( transMeta, wSchemaFieldComposite, SWT.LEFT | SWT.BORDER );
     updateIncomingFieldList( wSchemaFieldNameCombo );
-    new FD( wSchemaFieldNameCombo ).left( 0, 0 ).top( fieldNameSchemaLabel, FIELD_LABEL_SEP ).width( FIELD_MEDIUM )
-      .apply();
+    wSchemaFieldNameCombo.setLayoutData( new FormDataBuilder().left().top( fieldNameSchemaLabel )
+      .width( FIELD_MEDIUM ).result() );
 
     //Setup the radio button event handler
     SelectionAdapter fileSettingRadioSelectionSchemaAdapter = new SelectionAdapter() {
@@ -537,7 +501,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
    */
   @Override
   protected void getData() {
-    AvroInputMeta meta = (AvroInputMeta) getStepMeta();
+    AvroInputMeta avroInputMeta = (AvroInputMeta) getStepMeta();
 
     wPath.setText( "" );
     wFieldNameCombo.setText( "" );
@@ -546,19 +510,19 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     wbGetDataFromField.setSelection( false );
     wDataFileComposite.setVisible( true );
     wDataFieldComposite.setVisible( false );
-    encodingCombo.select( meta.getFormat() );
+    encodingCombo.select( avroInputMeta.getFormat() );
 
     wbGetSchemaFromFile.setSelection( true );
     wbGetSchemaFromField.setSelection( false );
     wSchemaFileComposite.setVisible( true );
     wSchemaFieldComposite.setVisible( false );
-    wSourceGroup.setVisible( meta.getFormat() > 0 );
+    wSourceGroup.setVisible( avroInputMeta.getFormat() > 0 );
 
-    if ( meta.getDataLocation() != null ) {
-      if ( ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) ) {
-        wPath.setText( meta.getDataLocation() );
-      } else if ( ( meta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
-        wFieldNameCombo.setText( meta.getDataLocation() );
+    if ( avroInputMeta.getDataLocation() != null ) {
+      if ( ( avroInputMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) ) {
+        wPath.setText( avroInputMeta.getDataLocation() );
+      } else if ( ( avroInputMeta.getDataLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
+        wFieldNameCombo.setText( avroInputMeta.getDataLocation() );
         wbGetDataFromFile.setSelection( false );
         wbGetDataFromField.setSelection( true );
         wDataFileComposite.setVisible( false );
@@ -566,11 +530,11 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       }
     }
 
-    if ( meta.getSchemaLocation() != null ) {
-      if ( ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) ) {
-        wSchemaPath.setText( meta.getSchemaLocation() );
-      } else if ( ( meta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
-        wSchemaFieldNameCombo.setText( meta.getSchemaLocation() );
+    if ( avroInputMeta.getSchemaLocation() != null ) {
+      if ( ( avroInputMeta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FILE_NAME ) ) {
+        wSchemaPath.setText( avroInputMeta.getSchemaLocation() );
+      } else if ( ( avroInputMeta.getSchemaLocationType() == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
+        wSchemaFieldNameCombo.setText( avroInputMeta.getSchemaLocation() );
         wbGetSchemaFromFile.setSelection( false );
         wbGetSchemaFromField.setSelection( true );
         wSchemaFileComposite.setVisible( false );
@@ -578,12 +542,12 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       }
     }
 
-    wPassThruFields.setSelection( meta.passingThruFields );
-    wAllowNullValues.setSelection( meta.isAllowNullForMissingFields() );
+    wPassThruFields.setSelection( avroInputMeta.passingThruFields );
+    wAllowNullValues.setSelection( avroInputMeta.isAllowNullForMissingFields() );
 
     int itemIndex = 0;
-    for ( AvroInputField inputField : meta.getInputFields() ) {
-      TableItem item = null;
+    for ( AvroInputField inputField : avroInputMeta.getInputFields() ) {
+      TableItem item;
       if ( itemIndex < wInputFields.table.getItemCount() ) {
         item = wInputFields.table.getItem( itemIndex );
       } else {
@@ -615,31 +579,31 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       itemIndex++;
     }
 
-    setVariableTableFields( meta.getLookupFields() );
+    setVariableTableFields( avroInputMeta.getLookupFields() );
   }
 
   protected void setVariableTableFields( List<AvroLookupField> fields ) {
-    m_lookupView.clearAll();
+    wLookupView.clearAll();
 
     for ( AvroLookupField f : fields ) {
-      TableItem item = new TableItem( m_lookupView.table, SWT.NONE );
+      TableItem item = new TableItem( wLookupView.table, SWT.NONE );
 
-      if ( !Const.isEmpty( f.fieldName ) ) {
+      if ( !Utils.isEmpty( f.fieldName ) ) {
         item.setText( 1, f.fieldName );
       }
 
-      if ( !Const.isEmpty( f.variableName ) ) {
+      if ( !Utils.isEmpty( f.variableName ) ) {
         item.setText( 2, f.variableName );
       }
 
-      if ( !Const.isEmpty( f.defaultValue ) ) {
+      if ( !Utils.isEmpty( f.defaultValue ) ) {
         item.setText( 3, f.defaultValue );
       }
     }
 
-    m_lookupView.removeEmptyRows();
-    m_lookupView.setRowNums();
-    m_lookupView.optWidth( true );
+    wLookupView.removeEmptyRows();
+    wLookupView.setRowNums();
+    wLookupView.optWidth( true );
   }
 
 
@@ -682,20 +646,20 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       meta.inputFields[ i ] = field;
     }
 
-    nrFields = m_lookupView.nrNonEmpty();
+    nrFields = wLookupView.nrNonEmpty();
     if ( nrFields > 0 ) {
-      List<AvroLookupField> varFields = new ArrayList<AvroLookupField>();
+      List<AvroLookupField> varFields = new ArrayList<>();
 
       for ( int i = 0; i < nrFields; i++ ) {
-        TableItem item = m_lookupView.getNonEmpty( i );
+        TableItem item = wLookupView.getNonEmpty( i );
         AvroLookupField newField = new AvroLookupField();
         boolean add = false;
 
         newField.fieldName = item.getText( 1 ).trim();
-        if ( !Const.isEmpty( item.getText( 2 ) ) ) {
+        if ( !Utils.isEmpty( item.getText( 2 ) ) ) {
           newField.variableName = item.getText( 2 ).trim();
           add = true;
-          if ( !Const.isEmpty( item.getText( 3 ) ) ) {
+          if ( !Utils.isEmpty( item.getText( 3 ) ) ) {
             newField.defaultValue = item.getText( 3 ).trim();
           }
         }
@@ -724,7 +688,7 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   }
 
   private String extractFieldName( String parquetNameTypeFromUI ) {
-    if ( ( parquetNameTypeFromUI != null ) && ( parquetNameTypeFromUI.indexOf( "(" ) >= 0 ) ) {
+    if ( ( parquetNameTypeFromUI != null ) && ( parquetNameTypeFromUI.indexOf( '(' ) >= 0 ) ) {
       return StringUtils.substringBefore( parquetNameTypeFromUI, "(" ).trim();
     }
     return parquetNameTypeFromUI;
@@ -751,14 +715,12 @@ public class AvroInputDialog extends BaseAvroStepDialog {
       Trans trans = progressDialog.getTrans();
       String loggingText = progressDialog.getLoggingText();
 
-      if ( !progressDialog.isCancelled() ) {
-        if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
-          EnterTextDialog etd =
-            new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
-              BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
-          etd.setReadOnly();
-          etd.open();
-        }
+      if ( !progressDialog.isCancelled() && trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
+        EnterTextDialog etd =
+          new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
+            BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+        etd.setReadOnly();
+        etd.open();
       }
 
       PreviewRowsDialog prd =
@@ -770,9 +732,9 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
   private String clearIndexFromFieldName( String fieldName ) {
     String cleanFieldName = fieldName;
-    int bracketPos = cleanFieldName.indexOf( "[" );
+    int bracketPos = cleanFieldName.indexOf( '[' );
     if ( bracketPos > -1 ) {
-      int closeBracketPos = cleanFieldName.indexOf( "]" );
+      int closeBracketPos = cleanFieldName.indexOf( ']' );
       cleanFieldName = cleanFieldName.substring( 0, bracketPos + 1 ) + cleanFieldName.substring( closeBracketPos );
     }
 
@@ -785,20 +747,17 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     Display display = parent.getDisplay();
 
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE );
-    props.setLook( shell );
     setShellImage( shell, meta );
 
-    lsMod = new ModifyListener() {
-      public void modifyText( ModifyEvent e ) {
-        meta.setChanged();
-      }
-    };
+    lsMod = e -> meta.setChanged();
     changed = meta.hasChanged();
 
     createUI();
+    props.setLook( shell );
 
     // Detect X or ALT-F4 or something that kills this window...
     shell.addShellListener( new ShellAdapter() {
+      @Override
       public void shellClosed( ShellEvent e ) {
         cancel();
       }
@@ -835,10 +794,6 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
   @Override
   protected Listener getPreview() {
-    return new Listener() {
-      public void handleEvent( Event e ) {
-        doPreview();
-      }
-    };
+    return e -> doPreview();
   }
 }
