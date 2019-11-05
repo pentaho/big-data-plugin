@@ -34,8 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.unmodifiableMap;
-
 @MetaStoreElementType(
   name = "Amazon S3 Connection",
   description = "Defines the connection details for an Amazon S3 connection" )
@@ -180,6 +178,6 @@ public class S3Details implements VFSConnectionDetails {
     props.put( "authType", getAuthType() );
     props.put( "region", getRegion() );
     props.put( "profileName", getProfileName() );
-    return unmodifiableMap( props );
+    return props;
   }
 }
