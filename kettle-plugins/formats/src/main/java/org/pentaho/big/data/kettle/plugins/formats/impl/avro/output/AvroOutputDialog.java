@@ -70,6 +70,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import static org.pentaho.di.ui.core.FileDialogOperation.browse;
+
 public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogInterface {
 
   private static final Class<?> PKG = AvroOutputMeta.class;
@@ -241,7 +243,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
     wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
     wbSchemaBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
-    wbSchemaBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wSchemaPath ) );
+    wbSchemaBrowse.addListener( SWT.Selection,
+      event -> browse( FileDialogOperation.SAVE, wSchemaPath, FileDialogOperation::setStartLocation,
+        FileDialogOperation::handleSave ) );
     int bOffset = ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.
         computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     wbSchemaBrowse.setLayoutData( new FormDataBuilder().left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset ).result() );

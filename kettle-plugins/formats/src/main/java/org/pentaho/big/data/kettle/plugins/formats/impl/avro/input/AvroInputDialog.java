@@ -73,6 +73,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.pentaho.di.ui.core.FileDialogOperation.browse;
+
 public class AvroInputDialog extends BaseAvroStepDialog {
   private static final Class<?> PKG = AvroInputMeta.class;
 
@@ -456,7 +458,9 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
     wbSchemaBrowse = new Button( wSchemaFileComposite, SWT.PUSH );
     wbSchemaBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
-    wbSchemaBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wSchemaPath ) );
+    wbSchemaBrowse.addListener( SWT.Selection,
+      event -> browse( FileDialogOperation.OPEN, wSchemaPath, FileDialogOperation::setStartLocation,
+        FileDialogOperation::handleOpen ) );
     wbSchemaBrowse.setLayoutData( new FormDataBuilder().top( wlSchemaPath ).right().result() );
 
     wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
