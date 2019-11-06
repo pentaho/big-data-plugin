@@ -72,6 +72,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -513,12 +514,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private Object[] produceTestCategories( RuntimeTestStatus runtimeTestStatus, NamedCluster nc ) {
 
-    HashMap<String, TestCategory> categories = new HashMap<>();
+    LinkedHashMap<String, TestCategory> categories = new LinkedHashMap<>();
     categories.put( HADOOP_FILE_SYSTEM, new TestCategory( "Hadoop file system" ) );
-    categories.put( OOZIE, new TestCategory( "Oozie host connection" ) );
-    categories.put( KAFKA, new TestCategory( "Kafka connection" ) );
     categories.put( ZOOKEEPER, new TestCategory( "Zookeeper connection" ) );
     categories.put( MAP_REDUCE, new TestCategory( "Job tracker / resource manager" ) );
+    categories.put( OOZIE, new TestCategory( "Oozie host connection" ) );
+    categories.put( KAFKA, new TestCategory( "Kafka connection" ) );
 
     if ( runtimeTestStatus != null && nc != null ) {
       for ( RuntimeTestModuleResults moduleResults : runtimeTestStatus.getModuleResults() ) {
