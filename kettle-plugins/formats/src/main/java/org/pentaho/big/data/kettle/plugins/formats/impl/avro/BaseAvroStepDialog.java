@@ -70,6 +70,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.pentaho.di.ui.core.FileDialogOperation.browse;
+
 public abstract class BaseAvroStepDialog extends BaseStepDialog
   implements StepDialogInterface {
   protected static final Class<?> BPKG = BaseAvroStepDialog.class;
@@ -282,7 +284,11 @@ public abstract class BaseAvroStepDialog extends BaseStepDialog
 
     wbBrowse = new Button( parent, SWT.PUSH );
     wbBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> FileDialogOperation.simpleBrowse( wPath ) );
+    wbBrowse.addListener( SWT.Selection,
+      event -> browse( isInputStep ? FileDialogOperation.OPEN : FileDialogOperation.SAVE, wPath,
+        FileDialogOperation::setStartLocation,
+        isInputStep ? FileDialogOperation::handleOpen : FileDialogOperation::handleSave
+      ) );
     wbBrowse.setLayoutData( new FormDataBuilder().top( wlPath ).right().result() );
 
     wPath = new TextVar( transMeta, parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
