@@ -131,6 +131,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     response.put( NAMED_CLUSTER, "" );
     try {
       NamedCluster nc = namedClusterService.getClusterTemplate();
+
+      // Initialize the template with empty values.
+      nc.setHdfsHost( "" );
+      nc.setHdfsPort( "" );
+      nc.setJobTrackerHost( "" );
+      nc.setJobTrackerPort( "" );
+      nc.setZooKeeperHost( "" );
+      nc.setZooKeeperPort( "" );
+      nc.setOozieUrl( "" );
+
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
       nc.setHdfsPassword( model.getHdfsPassword() );
@@ -300,7 +310,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     if ( hdfsAddress != null ) {
       URI hdfsURL = URI.create( hdfsAddress );
       nc.setHdfsHost( hdfsURL.getHost() );
-      nc.setHdfsPort( hdfsURL.getPort() + "" );
+      nc.setHdfsPort( hdfsURL.getPort() != -1 ? hdfsURL.getPort() + "" : "" );
       isConfigurationSet = true;
     }
 
@@ -317,7 +327,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       URI jobTrackerURL = URI.create( jobTrackerAddress );
       nc.setJobTrackerHost( jobTrackerURL.getHost() );
-      nc.setJobTrackerPort( jobTrackerURL.getPort() + "" );
+      nc.setJobTrackerPort( jobTrackerURL.getPort() != -1 ? jobTrackerURL.getPort() + "" : "" );
       isConfigurationSet = true;
     }
 

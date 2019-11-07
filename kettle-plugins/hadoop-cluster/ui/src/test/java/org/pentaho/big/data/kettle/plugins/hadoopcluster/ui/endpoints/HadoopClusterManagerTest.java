@@ -33,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
@@ -118,6 +119,23 @@ public class HadoopClusterManagerTest {
     assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
   }
 
+  @Test public void testMissingInfoImportNamedCluster() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setImportPath( "src/test/resources/missing-info" );
+    model.setShimVendor( "Cloudera" );
+    model.setShimVersion( "5.14" );
+    JSONObject result = hadoopClusterManager.importNamedCluster( model );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
+    assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
+    assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
+    assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
+    ThinNameClusterModel thinNameClusterModel = hadoopClusterManager.getNamedCluster( ncTestName );
+    assertTrue( StringUtil.isEmpty(thinNameClusterModel.getHdfsHost()  ) );
+    assertTrue( StringUtil.isEmpty(thinNameClusterModel.getHdfsPort()  ) );
+    assertTrue( StringUtil.isEmpty(thinNameClusterModel.getJobTrackerPort()  ) );
+  }
 
   @Test public void testCreateNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
