@@ -23,6 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -132,9 +134,9 @@ public class HadoopClusterManagerTest {
     assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
     assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
     ThinNameClusterModel thinNameClusterModel = hadoopClusterManager.getNamedCluster( ncTestName );
-    assertTrue( StringUtil.isEmpty(thinNameClusterModel.getHdfsHost()  ) );
-    assertTrue( StringUtil.isEmpty(thinNameClusterModel.getHdfsPort()  ) );
-    assertTrue( StringUtil.isEmpty(thinNameClusterModel.getJobTrackerPort()  ) );
+    assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsHost() ) );
+    assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsPort() ) );
+    assertTrue( StringUtil.isEmpty( thinNameClusterModel.getJobTrackerPort() ) );
   }
 
   @Test public void testCreateNamedCluster() {
@@ -204,6 +206,32 @@ public class HadoopClusterManagerTest {
       assertTrue( isCategoryNameValid );
       assertFalse( testCategory.isCategoryActive() );
     }
+  }
+
+  @Test public void testNamedClusterKerberosPasswordSecurity() throws ConfigurationException {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setSecurityType( "Kerberos" );
+    model.setKerberosSubType( "Password" );
+    model.setKerberosAuthenticationUsername( "username" );
+    model.setKerberosAuthenticationPassword( "password" );
+    model.setKerberosImpersonationUsername( "impersonationusername" );
+    model.setKerberosImpersonationPassword( "impersonationpassword" );
+
+    hadoopClusterManager.createNamedCluster( model );
+
+    String configFile = System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
+      + "ncTest" + File.separator + "config.properties";
+
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
+    assertEquals( "password", config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
+    assertEquals( "impersonationusername",
+      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.principal" ) );
+    assertEquals( "impersonationpassword",
+      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password" ) );
+    assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
   }
 
   @After public void tearDown() throws IOException {

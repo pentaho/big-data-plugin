@@ -23,6 +23,8 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
@@ -162,7 +164,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             FileUtils.deleteDirectory( newConfigFolder );
           }
           installSiteFiles( siteFilesSource, nc );
-          createConfigProperties( nc );
+          createConfigProperties( nc, model );
           refreshTree();
           response.put( NAMED_CLUSTER, nc.getName() );
         }
@@ -209,7 +211,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( siteFilesSource.exists() ) {
         installSiteFiles( siteFilesSource, nc );
       }
-      createConfigProperties( nc );
+      createConfigProperties( nc, model );
       refreshTree();
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
@@ -248,7 +250,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       // If the user changed the shim, create a new config.properties file that corresponds to that shim
       // in the new config folder.
       if ( nc.getShimIdentifier() != null && !nc.getShimIdentifier().equals( shimId ) ) {
-        createConfigProperties( nc );
+        createConfigProperties( nc, model );
       }
 
       // Delete old config folder.
@@ -444,7 +446,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return document;
   }
 
-  private void createConfigProperties( NamedCluster namedCluster ) throws IOException {
+  private void createConfigProperties( NamedCluster namedCluster, ThinNameClusterModel model ) throws IOException {
     Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() );
     Path
       configPropertiesPath =
@@ -458,6 +460,47 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     if ( inputStream != null ) {
       Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
     }
+    setupSecurity( configPropertiesPath, model );
+  }
+
+  private void setupSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+    String securityType = model.getSecurityType();
+    if ( !StringUtil.isEmpty( securityType ) && securityType.equals( "Kerberos" ) ) {
+      String kerberosSubType = model.getKerberosSubType();
+      if ( kerberosSubType.equals( "Password" ) ) {
+        setupKerberosPasswordSecurity( configPropertiesPath, model );
+      }
+      if ( kerberosSubType.equals( "Keytab" ) ) {
+        setupKerberosKeytabSecurity( configPropertiesPath, model );
+      }
+    }
+  }
+
+  private void setupKerberosPasswordSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+    try {
+      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      config
+        .setProperty( "pentaho.authentication.default.kerberos.principal", model.getKerberosAuthenticationUsername() );
+      config
+        .setProperty( "pentaho.authentication.default.kerberos.password", model.getKerberosAuthenticationPassword() );
+      config.setProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.principal",
+        model.getKerberosImpersonationUsername() );
+      config.setProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password",
+        model.getKerberosImpersonationPassword() );
+      if ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() ) && !StringUtil
+        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
+        config.setProperty( "pentaho.authentication.default.mapping.impersonation.type", "simple" );
+      } else {
+        config.setProperty( "pentaho.authentication.default.mapping.impersonation.type", "disabled" );
+      }
+      config.save();
+    } catch ( ConfigurationException e ) {
+      logChannel.warn( e.getMessage() );
+    }
+  }
+
+  private void setupKerberosKeytabSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+    //TODO
   }
 
   public void deleteNamedCluster( IMetaStore metaStore, String namedCluster, boolean refreshTree ) {
