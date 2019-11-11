@@ -38,6 +38,12 @@ public class ThinNameClusterModel {
   private String kafkaBootstrapServers;
   private String importPath;
   private String oldName;
+  private String securityType;
+  private String kerberosSubType;
+  private String kerberosAuthenticationUsername;
+  private String kerberosAuthenticationPassword;
+  private String kerberosImpersonationUsername;
+  private String kerberosImpersonationPassword;
 
   public String getShimVendor() {
     return shimVendor;
@@ -157,5 +163,53 @@ public class ThinNameClusterModel {
 
   public void setOldName( String oldName ) {
     this.oldName = oldName;
+  }
+
+  public String getSecurityType() {
+    return securityType;
+  }
+
+  public void setSecurityType( String securityType ) {
+    this.securityType = securityType;
+  }
+
+  public String getKerberosSubType() {
+    return kerberosSubType;
+  }
+
+  public void setKerberosSubType( String kerberosSubType ) {
+    this.kerberosSubType = kerberosSubType;
+  }
+
+  public String getKerberosAuthenticationUsername() {
+    return kerberosAuthenticationUsername;
+  }
+
+  public void setKerberosAuthenticationUsername( String kerberosAuthenticationUsername ) {
+    this.kerberosAuthenticationUsername = kerberosAuthenticationUsername;
+  }
+
+  public String getKerberosAuthenticationPassword() {
+    return kerberosAuthenticationPassword;
+  }
+
+  public void setKerberosAuthenticationPassword( String kerberosAuthenticationPassword ) {
+    this.kerberosAuthenticationPassword = kerberosAuthenticationPassword;
+  }
+
+  public String getKerberosImpersonationUsername() {
+    return kerberosImpersonationUsername;
+  }
+
+  public void setKerberosImpersonationUsername( String kerberosImpersonationUsername ) {
+    this.kerberosImpersonationUsername = kerberosImpersonationUsername;
+  }
+
+  public String getKerberosImpersonationPassword() {
+    return kerberosImpersonationPassword;
+  }
+
+  public void setKerberosImpersonationPassword( String kerberosImpersonationPassword ) {
+    this.kerberosImpersonationPassword = kerberosImpersonationPassword;
   }
 }
