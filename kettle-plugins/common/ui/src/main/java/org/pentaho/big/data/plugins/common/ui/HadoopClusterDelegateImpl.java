@@ -58,6 +58,12 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   public static Class<?> PKG = HadoopClusterDelegateImpl.class; // for i18n purposes, needed by Translator2!!
   public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "NamedClusterDialog.HadoopClusters" );
 
+  public static final String SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_TITLE = "Spoon.Dialog.ErrorAddingNewConfigurationForCluster.Title";
+  public static final String SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_MESSAGE = "Spoon.Dialog.ErrorAddingNewConfigurationForCluster.Message";
+  public static final String SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_TITLE = "Spoon.Dialog.ErrorRenamingPreviousClusterConfig.Title";
+  public static final String SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_MESSAGE = "Spoon.Dialog.ErrorRenamingPreviousClusterConfig.Message";
+  public static final String SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_EXCEPTION = "Spoon.Dialog.ErrorRenamingPreviousClusterConfig.Exception";
+
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
   private final RuntimeTester runtimeTester;
@@ -138,6 +144,54 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     spoon.setShellText();
   }
 
+  private void backupAndAddShimConfiguration( IMetaStore metaStore, NamedCluster previousNamedCluster, NamedCluster selectedNamedCluster ) {
+    if ( metaStore == null ) {
+      metaStore = spoon.getMetaStore();
+    }
+
+    if ( previousNamedCluster == null ) {
+      return;
+    }
+
+    if ( selectedNamedCluster == null ) {
+      return;
+    }
+
+    XmlMetaStore xmlMetaStore;
+
+    try {
+      xmlMetaStore = getXmlMetastore( metaStore );
+    } catch ( MetaStoreException ex ) {
+      xmlMetaStore = null;
+    }
+
+    String previousNamedClusterName = previousNamedCluster.getName();
+    String selectedNamedClusterName = selectedNamedCluster.getName();
+
+    // get the previous shim configuration
+    File previousShimConfiguration = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + File.separator + previousNamedClusterName + File.separator + "config.properties" );
+    File previousShimConfigurationBackup = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + File.separator + previousNamedClusterName + File.separator + "old-config.bak" );
+
+    // backup original configuration
+    if ( previousShimConfiguration.renameTo( previousShimConfigurationBackup ) ) {
+      // create new configuration of driver being created
+      try {
+        addConfigProperties( selectedNamedCluster );
+      } catch ( Exception e ) {
+        String dialogTitle = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_TITLE );
+        String dialogMessage = java.text.MessageFormat.format( BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_MESSAGE ), selectedNamedClusterName );
+
+        commonDialogFactory.createErrorDialog( spoon.getShell(), dialogTitle, dialogMessage, e );
+      }
+    } else {
+      String dialogTitle = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_TITLE );
+      String dialogMessage = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_MESSAGE );
+      String exceptionMessage = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_EXCEPTION );
+
+      commonDialogFactory.createErrorDialog( spoon.getShell(), dialogTitle, dialogMessage, new Exception( exceptionMessage ) );
+    }
+  }
+
   public String editNamedCluster( IMetaStore metaStore, NamedCluster namedCluster, Shell shell ) {
     if ( metaStore == null ) {
       metaStore = spoon.getMetaStore();
@@ -153,11 +207,25 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
       return null;
     }
 
-    // Create the new cluster
-    saveNamedCluster( metaStore, namedClusterDialogImpl.getNamedCluster() );
+    NamedCluster selectedNamedCluster = namedClusterDialogImpl.getNamedCluster();
 
-    if ( namedCluster.getName() == namedClusterDialogImpl.getNamedCluster().getName() ) {
-      return namedClusterDialogImpl.getNamedCluster().getName();
+    // Create the new cluster
+    saveNamedCluster( metaStore, selectedNamedCluster );
+
+    String previousNamedClusterName = namedCluster.getName();
+    String selectedNamedClusterName = selectedNamedCluster.getName();
+
+    String previousShimIdentifier = namedCluster.getShimIdentifier();
+    String selectedShimIdentifier = selectedNamedCluster.getShimIdentifier();
+
+    // if the previous shim identifier differs from the selected shim identifier then backup the old config and add the new one
+    if ( !previousShimIdentifier.equals( selectedShimIdentifier ) ) {
+      backupAndAddShimConfiguration( metaStore, namedCluster, selectedNamedCluster );
+    }
+
+    // no name change so return the selected named cluster name
+    if ( previousNamedClusterName != null && previousNamedClusterName.equals( selectedNamedClusterName ) ) {
+      return selectedNamedClusterName;
     }
 
     XmlMetaStore xmlMetaStore;
@@ -168,9 +236,8 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     }
 
     // Rename the configuration folder to the new name.
-    File source = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + namedCluster.getName() );
-    File destination = new File(
-      getNamedClusterConfigsRootDir( xmlMetaStore ) + "/" + namedClusterDialogImpl.getNamedCluster().getName() );
+    File source = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + File.separator + previousNamedClusterName );
+    File destination = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + File.separator + selectedNamedClusterName );
 
     try {
       FileUtils.copyDirectory( source, destination );
