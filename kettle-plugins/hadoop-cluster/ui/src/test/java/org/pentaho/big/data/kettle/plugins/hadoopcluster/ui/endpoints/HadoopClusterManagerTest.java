@@ -205,6 +205,10 @@ public class HadoopClusterManagerTest {
       }
       assertTrue( isCategoryNameValid );
       assertFalse( testCategory.isCategoryActive() );
+      List<org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.Test> tests = testCategory.getTests();
+      for ( org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.Test test : tests ) {
+        assertEquals( "Warning", test.getTestStatus() );
+      }
     }
   }
 

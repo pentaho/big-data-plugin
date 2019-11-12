@@ -162,7 +162,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private final NamedClusterService namedClusterService;
   private final IMetaStore metaStore;
   private final VariableSpace variableSpace;
-
   private RuntimeTestStatus runtimeTestStatus = null;
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterManager.class );
 
@@ -654,26 +653,20 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       for ( RuntimeTestModuleResults moduleResults : runtimeTestStatus.getModuleResults() ) {
         for ( RuntimeTestResult testResult : moduleResults.getRuntimeTestResults() ) {
           RuntimeTest runtimeTest = testResult.getRuntimeTest();
-          String name = runtimeTest.getName();
           String status = getTestStatus( testResult.getOverallStatusEntry() );
           String module = runtimeTest.getModule();
           Category category = categories.get( module );
-          category.setCategoryActive( true );
-
           if ( module.equals( HADOOP_FILE_SYSTEM ) ) {
-            Test test = new Test( name );
-            test.setTestStatus( status );
-            test.setTestActive( true );
-            category.addTest( test );
-            configureHadoopFileSystemTestCategory( category, !StringUtil.isEmpty( nc.getHdfsHost() ), status );
+            configureHadoopFileSystemTestCategory( runtimeTest.getName(), category,
+              !StringUtil.isEmpty( nc.getHdfsHost() ), status );
           } else if ( module.equals( OOZIE ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
+            configureTestCategory( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
           } else if ( module.equals( KAFKA ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
+            configureTestCategory( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
           } else if ( module.equals( ZOOKEEPER ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
+            configureTestCategory( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
           } else if ( module.equals( MAP_REDUCE ) ) {
-            configureTestCategories( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
+            configureTestCategory( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
           }
         }
       }
@@ -681,7 +674,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return categories.values().toArray();
   }
 
-  private void configureHadoopFileSystemTestCategory( Category category, boolean isActive, String status ) {
+  private void configureHadoopFileSystemTestCategory( String testName, Category category, boolean isActive,
+                                                      String status ) {
+    Test test = new Test( testName );
+    test.setTestStatus( isActive ? status : WARNING );
+    test.setTestActive( true );
+    category.addTest( test );
     category.setCategoryActive( isActive );
     if ( category.isCategoryActive() ) {
       String currentStatus = category.getCategoryStatus();
@@ -692,7 +690,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void configureTestCategories( Category category, boolean isActive, String status ) {
+  private void configureTestCategory( Category category, boolean isActive, String status ) {
     category.setCategoryActive( isActive );
     if ( category.isCategoryActive() ) {
       category.setCategoryStatus( status );
