@@ -246,6 +246,36 @@ public class HadoopClusterManagerTest {
     assertEquals( "impersonationpassword", retrievingModel.getKerberosImpersonationPassword() );
   }
 
+  @Test public void testResetSecurity() throws ConfigurationException {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setSecurityType( "None" );
+    model.setKerberosSubType( "Password" );
+    model.setKerberosAuthenticationUsername( "username" );
+    model.setKerberosAuthenticationPassword( "password" );
+    model.setKerberosImpersonationUsername( "impersonationusername" );
+    model.setKerberosImpersonationPassword( "impersonationpassword" );
+
+    hadoopClusterManager.createNamedCluster( model );
+
+    String configFile = System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
+      + "ncTest" + File.separator + "config.properties";
+
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
+    assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
+    assertEquals( "",
+      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.principal" ) );
+    assertEquals( "",
+      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password" ) );
+    assertEquals( "disabled", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
+
+    assertEquals( "", config.getProperty( "pentaho.authentication.default.kerberos.keytabLocation" ) );
+    assertEquals( "",
+      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation" ) );
+  }
+
   @After public void tearDown() throws IOException {
     FileUtils.deleteDirectory( getShimTestDir() );
     FileUtils.deleteDirectory( new File( "src/test/resources/driver-destination" ) );

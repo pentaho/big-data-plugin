@@ -154,6 +154,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String KERBEROS_IMPERSONATION_PASS =
     "pentaho.authentication.default.mapping.server.credentials.kerberos.password";
   private static final String IMPERSONATION = "pentaho.authentication.default.mapping.impersonation.type";
+  private static final String KERBEROS_KEYTAB_AUTHENTICATION_LOCATION =
+    "pentaho.authentication.default.kerberos.keytabLocation";
+  private static final String KERBEROS_KEYTAB_IMPERSONATION_LOCATION =
+    "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation";
 
   @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
     () -> PentahoSystem.getAll( ShimIdentifierInterface.class );
@@ -218,7 +222,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
             FileUtils.deleteDirectory( newConfigFolder );
           }
           installSiteFiles( siteFilesSource, nc );
-          createConfigProperties( nc, model );
+          createConfigProperties( nc );
+          setupSecurity( model );
           refreshTree();
           response.put( NAMED_CLUSTER, nc.getName() );
         }
@@ -265,7 +270,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( siteFilesSource.exists() ) {
         installSiteFiles( siteFilesSource, nc );
       }
-      createConfigProperties( nc, model );
+      createConfigProperties( nc );
+      setupSecurity( model );
       refreshTree();
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
@@ -304,8 +310,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       // If the user changed the shim, create a new config.properties file that corresponds to that shim
       // in the new config folder.
       if ( nc.getShimIdentifier() != null && !nc.getShimIdentifier().equals( shimId ) ) {
-        createConfigProperties( nc, model );
+        createConfigProperties( nc );
       }
+      setupSecurity( model );
 
       // Delete old config folder.
       if ( isEditMode && !oldConfigFolder.equals( newConfigFolder ) ) {
@@ -501,7 +508,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return document;
   }
 
-  private void createConfigProperties( NamedCluster namedCluster, ThinNameClusterModel model ) throws IOException {
+  private void createConfigProperties( NamedCluster namedCluster ) throws IOException {
     Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() );
     Path
       configPropertiesPath =
@@ -515,33 +522,57 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     if ( inputStream != null ) {
       Files.copy( inputStream, configPropertiesPath, StandardCopyOption.REPLACE_EXISTING );
     }
-    setupSecurity( configPropertiesPath, model );
   }
 
-  private void setupSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+  private void setupSecurity( ThinNameClusterModel model ) {
+    Path
+      configPropertiesPath =
+      Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + model.getName() + fileSeparator
+        + CONFIG_PROPERTIES );
+
     String securityType = model.getSecurityType();
-    if ( !StringUtil.isEmpty( securityType ) && securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
-      String kerberosSubType = model.getKerberosSubType();
-      if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
-        setupKerberosPasswordSecurity( configPropertiesPath, model );
+    if ( !StringUtil.isEmpty( securityType ) ) {
+      if ( securityType.equals( SECURITY_TYPE.NONE.getValue() ) ) {
+        resetSecurity( configPropertiesPath );
       }
-      if ( kerberosSubType.equals( KERBEROS_SUBTYPE.KEYTAB.getValue() ) ) {
-        setupKerberosKeytabSecurity( configPropertiesPath, model );
+      if ( securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
+        String kerberosSubType = model.getKerberosSubType();
+        if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
+          setupKerberosPasswordSecurity( configPropertiesPath, model );
+        }
+        if ( kerberosSubType.equals( KERBEROS_SUBTYPE.KEYTAB.getValue() ) ) {
+          setupKerberosKeytabSecurity( configPropertiesPath, model );
+        }
       }
+      if ( securityType.equals( SECURITY_TYPE.KNOX.getValue() ) ) {
+        setupKnoxSecurity( configPropertiesPath, model );
+      }
+    }
+  }
+
+  private void resetSecurity( Path configPropertiesPath ) {
+    try {
+      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, "" );
+      config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
+      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, "" );
+      config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
+      config.setProperty( KERBEROS_KEYTAB_AUTHENTICATION_LOCATION, "" );
+      config.setProperty( KERBEROS_KEYTAB_IMPERSONATION_LOCATION, "" );
+      config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
+      config.save();
+    } catch ( ConfigurationException e ) {
+      logChannel.warn( e.getMessage() );
     }
   }
 
   private void setupKerberosPasswordSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
-      config
-        .setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      config
-        .setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
-      config.setProperty( KERBEROS_IMPERSONATION_USERNAME,
-        model.getKerberosImpersonationUsername() );
-      config.setProperty( KERBEROS_IMPERSONATION_PASS,
-        model.getKerberosImpersonationPassword() );
+      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
+      config.setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
+      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
+      config.setProperty( KERBEROS_IMPERSONATION_PASS, model.getKerberosImpersonationPassword() );
       if ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() ) && !StringUtil
         .isEmpty( model.getKerberosImpersonationPassword() ) ) {
         config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
@@ -575,6 +606,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void setupKerberosKeytabSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+    //TODO
+  }
+
+  private void setupKnoxSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
     //TODO
   }
 
@@ -653,20 +688,26 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       for ( RuntimeTestModuleResults moduleResults : runtimeTestStatus.getModuleResults() ) {
         for ( RuntimeTestResult testResult : moduleResults.getRuntimeTestResults() ) {
           RuntimeTest runtimeTest = testResult.getRuntimeTest();
+          String name = runtimeTest.getName();
           String status = getTestStatus( testResult.getOverallStatusEntry() );
           String module = runtimeTest.getModule();
           Category category = categories.get( module );
+          category.setCategoryActive( true );
+
           if ( module.equals( HADOOP_FILE_SYSTEM ) ) {
-            configureHadoopFileSystemTestCategory( runtimeTest.getName(), category,
-              !StringUtil.isEmpty( nc.getHdfsHost() ), status );
+            Test test = new Test( name );
+            test.setTestStatus( status );
+            test.setTestActive( true );
+            category.addTest( test );
+            configureHadoopFileSystemTestCategory( category, !StringUtil.isEmpty( nc.getHdfsHost() ), status );
           } else if ( module.equals( OOZIE ) ) {
-            configureTestCategory( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getOozieUrl() ), status );
           } else if ( module.equals( KAFKA ) ) {
-            configureTestCategory( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getKafkaBootstrapServers() ), status );
           } else if ( module.equals( ZOOKEEPER ) ) {
-            configureTestCategory( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getZooKeeperHost() ), status );
           } else if ( module.equals( MAP_REDUCE ) ) {
-            configureTestCategory( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
+            configureTestCategories( category, !StringUtil.isEmpty( nc.getJobTrackerHost() ), status );
           }
         }
       }
@@ -674,12 +715,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return categories.values().toArray();
   }
 
-  private void configureHadoopFileSystemTestCategory( String testName, Category category, boolean isActive,
-                                                      String status ) {
-    Test test = new Test( testName );
-    test.setTestStatus( isActive ? status : WARNING );
-    test.setTestActive( true );
-    category.addTest( test );
+  private void configureHadoopFileSystemTestCategory( Category category, boolean isActive, String status ) {
     category.setCategoryActive( isActive );
     if ( category.isCategoryActive() ) {
       String currentStatus = category.getCategoryStatus();
@@ -690,7 +726,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void configureTestCategory( Category category, boolean isActive, String status ) {
+  private void configureTestCategories( Category category, boolean isActive, String status ) {
     category.setCategoryActive( isActive );
     if ( category.isCategoryActive() ) {
       category.setCategoryStatus( status );
