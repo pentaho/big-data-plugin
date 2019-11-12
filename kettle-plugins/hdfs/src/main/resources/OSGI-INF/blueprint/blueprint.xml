@@ -14,8 +14,6 @@
   </bean>
   <bean id="hadoopFileInputMeta" class="org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputMeta" scope="prototype">
     <argument ref="namedClusterService"/>
-    <argument ref="runtimeTestActionService"/>
-    <argument ref="runtimeTester"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="hadoopFileOutputMeta" class="org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta" scope="prototype">

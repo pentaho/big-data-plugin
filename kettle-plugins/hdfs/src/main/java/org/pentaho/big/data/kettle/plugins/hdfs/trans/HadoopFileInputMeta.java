@@ -22,22 +22,13 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
-import java.net.URISyntaxException;
-import java.security.InvalidParameterException;
-import java.util.HashMap;
-import java.util.Map;
-import java.net.URI;
-
 import org.apache.commons.lang.Validate;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
@@ -49,10 +40,16 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
-import org.pentaho.runtime.test.RuntimeTester;
-import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.LOCAL_ENVIRONMENT;
 import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDialog.S3_ENVIRONMENT;
@@ -69,8 +66,6 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
 
   // is not used. Can we delete it?
   private VariableSpace variableSpace;
-  private final RuntimeTestActionService runtimeTestActionService;
-  private final RuntimeTester runtimeTester;
 
   private Map<String, String> namedClusterURLMapping = null;
 
@@ -90,15 +85,12 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   public String[] environment = {};
 
   public HadoopFileInputMeta() {
-    this( null, null, null );
+    this( null );
   }
 
-  public HadoopFileInputMeta( NamedClusterService namedClusterService,
-                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+  public HadoopFileInputMeta( NamedClusterService namedClusterService ) {
     this.namedClusterService = namedClusterService;
-    this.runtimeTestActionService = runtimeTestActionService;
-    this.runtimeTester = runtimeTester;
-    namedClusterURLMapping = new HashMap<String, String>();
+    namedClusterURLMapping = new HashMap<>();
   }
 
   @Override
@@ -154,7 +146,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
       // since that is the value that the data-lineage analyzer will have access to for cluster lookup
       try {
         mappings.put( KettleVFS.getFileObject( url ).getPublicURIString(), ncName );
-      } catch ( final KettleFileException e ) {
+      } catch ( final Exception e ) {
         // no-op
       }
     }
@@ -214,7 +206,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
       sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? HadoopFileInputMeta.STATIC_SOURCE_FILE + i : sourceNc;
       sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? HadoopFileInputMeta.S3_SOURCE_FILE + i : sourceNc;
       String source = inputFiles.fileName[ i ];
-      if ( !Const.isEmpty( source ) ) {
+      if ( !Utils.isEmpty( source ) ) {
         inputFiles.fileName[ i ] =
           loadUrl( source, sourceNc, getParentStepMeta().getParentTransMeta().getMetaStore(), null );
       } else {
@@ -243,7 +235,7 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
           return source; //no password present
         }
         String password = userInfoArray[ 1 ];
-        String processedPassword = password;
+        String processedPassword;
         switch ( direction ) {
           case ENCRYPT:
             processedPassword = Encr.encryptPasswordIfNotUsingVariables( password );
