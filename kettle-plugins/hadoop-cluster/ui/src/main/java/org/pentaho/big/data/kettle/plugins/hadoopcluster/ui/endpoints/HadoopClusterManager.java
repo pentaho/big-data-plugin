@@ -98,7 +98,62 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String FAIL = "Fail";
   private static final String NAMED_CLUSTER = "namedCluster";
   private static final String INSTALLED = "installed";
+  private static final String CONFIG_PROPERTIES = "config.properties";
   private final String internalShim;
+
+  private enum KERBEROS_SUBTYPE {
+    PASSWORD( "Password" ),
+    KEYTAB( "Keytab" );
+
+    private String val;
+
+    KERBEROS_SUBTYPE( String val ) {
+      this.val = val;
+    }
+
+    public String getValue() {
+      return this.val;
+    }
+  }
+
+  private enum SECURITY_TYPE {
+    NONE( "None" ),
+    KERBEROS( "Kerberos" ),
+    KNOX( "Knox" );
+
+    private String val;
+
+    SECURITY_TYPE( String val ) {
+      this.val = val;
+    }
+
+    public String getValue() {
+      return this.val;
+    }
+  }
+
+  private enum IMPERSONATION_TYPE {
+    SIMPLE( "simple" ),
+    DISABLED( "disabled" );
+
+    private String val;
+
+    IMPERSONATION_TYPE( String val ) {
+      this.val = val;
+    }
+
+    public String getValue() {
+      return this.val;
+    }
+  }
+
+  private static final String KERBEROS_AUTHENTICATION_USERNAME = "pentaho.authentication.default.kerberos.principal";
+  private static final String KERBEROS_AUTHENTICATION_PASS = "pentaho.authentication.default.kerberos.password";
+  private static final String KERBEROS_IMPERSONATION_USERNAME =
+    "pentaho.authentication.default.mapping.server.credentials.kerberos.principal";
+  private static final String KERBEROS_IMPERSONATION_PASS =
+    "pentaho.authentication.default.mapping.server.credentials.kerberos.password";
+  private static final String IMPERSONATION = "pentaho.authentication.default.mapping.impersonation.type";
 
   @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
     () -> PentahoSystem.getAll( ShimIdentifierInterface.class );
@@ -283,6 +338,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       model.setZooKeeperPort( nc.getZooKeeperPort() );
       model.setZooKeeperHost( nc.getZooKeeperHost() );
       resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
+      retrieveKerberosPasswordSecurity( model, nc );
     }
     return model;
   }
@@ -428,7 +484,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       File[] files = source.listFiles();
       for ( File file : files ) {
         if ( ( file.getName().endsWith( "-site.xml" ) || file.getName().endsWith( "-default.xml" ) || file.getName()
-          .equals( "config.properties" ) ) && parseSiteFileDocument( file ) != null ) {
+          .equals( CONFIG_PROPERTIES ) ) && parseSiteFileDocument( file ) != null ) {
           FileUtils.copyFileToDirectory( file, destination );
         }
       }
@@ -451,7 +507,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     Path
       configPropertiesPath =
       Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator
-        + "config.properties" );
+        + CONFIG_PROPERTIES );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream
@@ -465,12 +521,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private void setupSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
     String securityType = model.getSecurityType();
-    if ( !StringUtil.isEmpty( securityType ) && securityType.equals( "Kerberos" ) ) {
+    if ( !StringUtil.isEmpty( securityType ) && securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
       String kerberosSubType = model.getKerberosSubType();
-      if ( kerberosSubType.equals( "Password" ) ) {
+      if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
         setupKerberosPasswordSecurity( configPropertiesPath, model );
       }
-      if ( kerberosSubType.equals( "Keytab" ) ) {
+      if ( kerberosSubType.equals( KERBEROS_SUBTYPE.KEYTAB.getValue() ) ) {
         setupKerberosKeytabSecurity( configPropertiesPath, model );
       }
     }
@@ -480,22 +536,42 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
       config
-        .setProperty( "pentaho.authentication.default.kerberos.principal", model.getKerberosAuthenticationUsername() );
+        .setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
       config
-        .setProperty( "pentaho.authentication.default.kerberos.password", model.getKerberosAuthenticationPassword() );
-      config.setProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.principal",
+        .setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
+      config.setProperty( KERBEROS_IMPERSONATION_USERNAME,
         model.getKerberosImpersonationUsername() );
-      config.setProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password",
+      config.setProperty( KERBEROS_IMPERSONATION_PASS,
         model.getKerberosImpersonationPassword() );
       if ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() ) && !StringUtil
         .isEmpty( model.getKerberosImpersonationPassword() ) ) {
-        config.setProperty( "pentaho.authentication.default.mapping.impersonation.type", "simple" );
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
       } else {
-        config.setProperty( "pentaho.authentication.default.mapping.impersonation.type", "disabled" );
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       }
       config.save();
     } catch ( ConfigurationException e ) {
       logChannel.warn( e.getMessage() );
+    }
+  }
+
+  private void retrieveKerberosPasswordSecurity( ThinNameClusterModel model, NamedCluster nc ) {
+    model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
+    model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
+    try {
+      String configFile = getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator
+        + CONFIG_PROPERTIES;
+      PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+      model.setKerberosAuthenticationUsername(
+        (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
+      model.setKerberosAuthenticationPassword(
+        (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
+      model.setKerberosImpersonationUsername( (String) config
+        .getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
+      model.setKerberosImpersonationPassword( (String) config
+        .getProperty( KERBEROS_IMPERSONATION_PASS ) );
+    } catch ( ConfigurationException e ) {
+      logChannel.error( e.getMessage() );
     }
   }
 

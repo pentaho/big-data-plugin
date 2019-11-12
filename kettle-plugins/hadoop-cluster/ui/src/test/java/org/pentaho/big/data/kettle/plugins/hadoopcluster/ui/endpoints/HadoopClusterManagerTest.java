@@ -232,6 +232,14 @@ public class HadoopClusterManagerTest {
     assertEquals( "impersonationpassword",
       config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password" ) );
     assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
+
+    ThinNameClusterModel retrievingModel = hadoopClusterManager.getNamedCluster( ncTestName );
+    assertEquals( "Kerberos", retrievingModel.getSecurityType() );
+    assertEquals( "Password", retrievingModel.getKerberosSubType() );
+    assertEquals( "username", retrievingModel.getKerberosAuthenticationUsername() );
+    assertEquals( "password", retrievingModel.getKerberosAuthenticationPassword() );
+    assertEquals( "impersonationusername", retrievingModel.getKerberosImpersonationUsername() );
+    assertEquals( "impersonationpassword", retrievingModel.getKerberosImpersonationPassword() );
   }
 
   @After public void tearDown() throws IOException {
