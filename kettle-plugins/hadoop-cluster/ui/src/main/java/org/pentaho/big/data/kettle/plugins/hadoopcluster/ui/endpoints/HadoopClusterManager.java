@@ -344,7 +344,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       model.setZooKeeperPort( nc.getZooKeeperPort() );
       model.setZooKeeperHost( nc.getZooKeeperHost() );
       resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-      retrieveKerberosPasswordSecurity( model, nc );
+      resolveSecurity( model, nc );
     }
     return model;
   }
@@ -512,8 +512,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     Path clusterConfigDirPath = Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() );
     Path
       configPropertiesPath =
-      Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator
-        + CONFIG_PROPERTIES );
+      Paths.get(
+        getNamedClusterConfigsRootDir() + fileSeparator + namedCluster.getName() + fileSeparator + CONFIG_PROPERTIES );
     Files.createDirectories( clusterConfigDirPath );
     String sampleConfigProperties = namedCluster.getShimIdentifier() + "sampleconfig.properties";
     InputStream
@@ -527,8 +527,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private void setupSecurity( ThinNameClusterModel model ) {
     Path
       configPropertiesPath =
-      Paths.get( getNamedClusterConfigsRootDir() + fileSeparator + model.getName() + fileSeparator
-        + CONFIG_PROPERTIES );
+      Paths
+        .get( getNamedClusterConfigsRootDir() + fileSeparator + model.getName() + fileSeparator + CONFIG_PROPERTIES );
 
     String securityType = model.getSecurityType();
     if ( !StringUtil.isEmpty( securityType ) ) {
@@ -585,21 +585,51 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void retrieveKerberosPasswordSecurity( ThinNameClusterModel model, NamedCluster nc ) {
-    model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
-    model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
+  private void resolveSecurity( ThinNameClusterModel model, NamedCluster nc ) {
     try {
-      String configFile = getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator
-        + CONFIG_PROPERTIES;
+      String configFile =
+        getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
       PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
-      model.setKerberosAuthenticationUsername(
-        (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
-      model.setKerberosAuthenticationPassword(
-        (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
-      model.setKerberosImpersonationUsername( (String) config
-        .getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-      model.setKerberosImpersonationPassword( (String) config
-        .getProperty( KERBEROS_IMPERSONATION_PASS ) );
+      model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
+      model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
+      model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
+      model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
+      //TODO create properties, setter and getter methods in the ThinNameClusterModel.
+      String kerberosKeytabAuthenticationLocation =
+        (String) config.getProperty( KERBEROS_KEYTAB_AUTHENTICATION_LOCATION );
+      String kerberosKeytabImpersonationLocation =
+        (String) config.getProperty( KERBEROS_KEYTAB_IMPERSONATION_LOCATION );
+
+      //TODO Default security type Knox for now until it gets implemented.
+      model.setSecurityType( SECURITY_TYPE.KNOX.getValue() );
+
+      // If security properties are empty then security type is None
+      if ( StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && StringUtil
+        .isEmpty( kerberosKeytabImpersonationLocation ) && StringUtil
+        .isEmpty( model.getKerberosAuthenticationPassword() ) && StringUtil
+        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
+        model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
+      }
+
+      // If password security properties are empty but keytab properties are not then security type is Kerberos and
+      // security subtype is Password
+      if ( StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && StringUtil
+        .isEmpty( kerberosKeytabImpersonationLocation ) && !StringUtil
+        .isEmpty( model.getKerberosAuthenticationPassword() ) && !StringUtil
+        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
+        model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
+        model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
+      }
+
+      // If password keytab properties are empty but security properties  are not then security type is Kerberos and
+      // security subtype is Keytab
+      if ( !StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && !StringUtil
+        .isEmpty( kerberosKeytabImpersonationLocation ) && StringUtil
+        .isEmpty( model.getKerberosAuthenticationPassword() ) && StringUtil
+        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
+        model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
+        model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
+      }
     } catch ( ConfigurationException e ) {
       logChannel.error( e.getMessage() );
     }
