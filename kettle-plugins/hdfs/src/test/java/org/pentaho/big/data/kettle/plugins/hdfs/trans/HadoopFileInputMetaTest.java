@@ -80,8 +80,6 @@ public class HadoopFileInputMetaTest {
   @Before
   public void setUp() throws Exception {
     namedClusterService = mock( NamedClusterService.class );
-    runtimeTestActionService = mock( RuntimeTestActionService.class );
-    runtimeTester = mock( RuntimeTester.class );
   }
 
   /**
@@ -92,8 +90,7 @@ public class HadoopFileInputMetaTest {
    */
   @Test
   public void testSaveSourceCalledFromGetXml() throws Exception {
-    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
+    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService );
     hadoopFileInputMeta.allocateFiles( 1 );
     //create spy to check whether saveSource now is called
     HadoopFileInputMeta spy = initHadoopMetaInput( hadoopFileInputMeta );
@@ -143,8 +140,7 @@ public class HadoopFileInputMetaTest {
 
   @Test
   public void testLoadSourceCalledFromLoadXml() throws Exception {
-    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService, runtimeTestActionService,
-      runtimeTester );
+    HadoopFileInputMeta hadoopFileInputMeta = new HadoopFileInputMeta( namedClusterService );
     //set required data for step - empty
     HadoopFileInputMeta spy = Mockito.spy( hadoopFileInputMeta );
     Node node = loadNodeFromXml( SAMPLE_HADOOP_FILE_INPUT_STEP );
@@ -164,7 +160,7 @@ public class HadoopFileInputMetaTest {
     when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) ).thenReturn( mockNamedCluster );
     Repository mockRep = mock( Repository.class );
     when( mockRep.getJobEntryAttributeString( anyObject(), eq( 0 ), eq( "source_configuration_name" ) ) ).thenReturn( TEST_CLUSTER_NAME );
-    HadoopFileInputMeta hadoopFileInputMeta =  new HadoopFileInputMeta( namedClusterService, runtimeTestActionService, runtimeTester );
+    HadoopFileInputMeta hadoopFileInputMeta =  new HadoopFileInputMeta( namedClusterService );
     when( mockRep.getStepAttributeString( anyObject(), eq( 0 ), eq( "file_name" ) ) ).thenReturn( URL_FROM_CLUSTER );
 
     assertEquals( URL_FROM_CLUSTER, hadoopFileInputMeta.loadSourceRep( mockRep, null, 0, mockMetaStore ) );
@@ -181,7 +177,7 @@ public class HadoopFileInputMetaTest {
     when( parentTransMeta.getMetaStore() ).thenReturn( mockMetaStore );
     when( mockNamedCluster.processURLsubstitution( any(), eq( mockMetaStore ), any() ) ).thenReturn( URL_FROM_CLUSTER );
     when( namedClusterService.getNamedClusterByName( TEST_CLUSTER_NAME, mockMetaStore ) ).thenReturn( mockNamedCluster );
-    HadoopFileInputMeta hadoopFileInputMetaSpy =  initHadoopMetaInput( new HadoopFileInputMeta( namedClusterService, runtimeTestActionService, runtimeTester ) );
+    HadoopFileInputMeta hadoopFileInputMetaSpy =  initHadoopMetaInput( new HadoopFileInputMeta( namedClusterService ) );
     hadoopFileInputMetaSpy.environment = new String[] { TEST_CLUSTER_NAME };
     hadoopFileInputMetaSpy.setParentStepMeta( parentStepMeta );
     doReturn( new FileInputList() ).when( hadoopFileInputMetaSpy ).createFileList( any( VariableSpace.class ) );
