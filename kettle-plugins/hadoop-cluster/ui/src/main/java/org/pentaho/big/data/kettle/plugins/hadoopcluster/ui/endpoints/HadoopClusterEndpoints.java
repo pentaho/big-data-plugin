@@ -52,17 +52,19 @@ public class HadoopClusterEndpoints {
   private final MetastoreLocator metastoreLocator;
   private final RuntimeTester runtimeTester;
   private final String internalShim;
+  private final boolean secureEnabled;
 
   public static final String
     HELP_URL =
     Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
   public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
-                                 RuntimeTester runtimeTester, String internalShim ) {
+                                 RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
     this.namedClusterService = namedClusterService;
     this.metastoreLocator = metastoreLocator;
     this.runtimeTester = runtimeTester;
     this.internalShim = internalShim;
+    this.secureEnabled = secureEnabled;
   }
 
   private HadoopClusterManager getClusterManager() {
@@ -132,4 +134,9 @@ public class HadoopClusterEndpoints {
     @QueryParam( "source" ) String source ) {
     return Response.ok( getClusterManager().installDriver( source ) ).build();
   }
+  //http://localhost:9051/cxf/hadoop-cluster/getSecure
+  @GET @Path( "/getSecure" ) @Produces( { MediaType.APPLICATION_JSON } ) public Response getSecure() {
+    return Response.ok( "{\"secureEnabled\":\"" + Boolean.toString( this.secureEnabled ) + "\"}" ).build();
+  }
+
 }

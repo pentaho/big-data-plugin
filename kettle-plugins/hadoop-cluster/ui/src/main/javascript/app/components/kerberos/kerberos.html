@@ -1,0 +1,21 @@
+<div class="main_div">
+  <div class="title_text margin_bottom_30 text_center">{{vm.header}}</div>
+  <div class="middle_hadoop_div margin_bottom_10">
+    <div>
+      <span>{{::vm.securityTypeLabel}}</span>
+    </div>
+    <div class="margin_bottom_15">
+      <label for="kerberosSubType" class="margin_bottom_5 text_left">{{::vm.subTypeLabel}}</label>
+      <select-box id="kerberosSubType" type="vm.data.model.kerberosSubType" options="vm.subTypes" on-select="vm.onSelectSubType(value)"></select-box>
+    </div>
+    <div ng-if="vm.isPasswordType === true">
+      <div class="margin_bottom_15 auto_overflow">
+        <credentials username-label="vm.authUserLabel" username="vm.data.model.kerberosAuthenticationUsername" password-label="vm.authPasswordLabel" password="vm.data.model.kerberosAuthenticationPassword"></credentials>
+      </div>
+      <div class="margin_bottom_15 auto_overflow">
+        <credentials username-label="vm.impersonateUserLabel" username="vm.data.model.kerberosImpersonationUsername" password-label="vm.impersonatePasswordLabel" password="vm.data.model.kerberosImpersonationPassword"></credentials>
+      </div>
+    </div>
+  </div>
+  <controls buttons="vm.buttons" data="vm.data"></controls>
+</div>

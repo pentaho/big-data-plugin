@@ -143,6 +143,24 @@ define([
       }
     }
 
+    function next() {
+      var promise = checkDuplicateName(vm.data.model.name);
+      promise.then(
+        function () {
+          dataService.getSecure().then(function (res) {
+            if (res.data.secureEnabled === "true") {
+              $state.go('security', {data: vm.data, transition: "slideLeft"});
+            } else {
+              $state.go('creating', {data: vm.data, transition: "slideLeft"});
+            }
+          });
+        },
+        function () {
+          displayOverwriteDialog(true);
+        }
+      );
+    }
+
     function getButtons() {
       return [
         {
@@ -152,17 +170,7 @@ define([
             return !vm.data.model || !vm.data.model.name || !vm.data.model.importPath;
           },
           position: "right",
-          onClick: function () {
-            var promise = checkDuplicateName(vm.data.model.name);
-            promise.then(
-              function () {
-                $state.go('creating', {data: vm.data, transition: "slideLeft"});
-              },
-              function () {
-                displayOverwriteDialog(true);
-              }
-            );
-          }
+          onClick: next
         },
         {
           label: i18n.get('controls.cancel.label'),
@@ -188,9 +196,7 @@ define([
           label: i18n.get('hadoop.cluster.overwrite.yes'),
           class: "primary",
           position: "right",
-          onClick: function () {
-            $state.go('creating', {data: vm.data, transition: "slideLeft"});
-          }
+          onClick: next
         }];
     }
 

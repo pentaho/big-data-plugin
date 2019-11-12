@@ -23,7 +23,7 @@ define([
 
   var options = {
     bindings: {
-      buttons: "<",
+      buttons: "<"
     },
     controllerAs: "vm",
     template: template,
@@ -33,7 +33,6 @@ define([
   function controlsController() {
     var vm = this;
     vm.getRightButtons = getRightButtons;
-    vm.getMiddleButtons = getMiddleButtons;
 
     function getButtonsByPosition(position) {
       var buttons = [];
@@ -49,10 +48,6 @@ define([
 
     function getRightButtons() {
       return getButtonsByPosition("right");
-    }
-
-    function getMiddleButtons() {
-      return getButtonsByPosition("middle");
     }
   }
 
