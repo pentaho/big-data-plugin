@@ -1,0 +1,19 @@
+<div class="main_div">
+  <div class="title_text margin_bottom_30 text_center">{{vm.header}}</div>
+  <div class="middle_hadoop_div margin_bottom_10">
+    <div>
+      <span>{{::vm.securityTypeLabel}}</span>
+    </div>
+    <div>
+      <input id="securityNone" type="radio" ng-model="vm.data.model.securityType" name="securityType" value="{{::vm.securityType.NONE}}" checked>
+      <label class="radio-button-label" for="securityNone">{{::vm.securityType.NONE}}</label>
+      <br />
+      <input id="securityKerberos"  type="radio" ng-model="vm.data.model.securityType" name="securityType" value="{{::vm.securityType.KERBEROS}}">
+      <label class="radio-button-label" for="securityKerberos">{{::vm.securityType.KERBEROS}}</label>
+      <br />
+      <input id="securityKnox" type="radio" ng-model="vm.data.model.securityType" name="securityType" value="{{::vm.securityType.KNOX}}">
+      <label class="radio-button-label" for="securityKnox">{{::vm.securityType.KNOX}}</label>
+    </div>
+  </div>
+  <controls buttons="vm.buttons" data="vm.data"></controls>
+</div>

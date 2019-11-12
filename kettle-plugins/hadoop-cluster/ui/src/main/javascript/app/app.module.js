@@ -32,6 +32,8 @@ define([
   "./components/addDriver/addDriver.component",
   "./components/installingDriver/installingDriver.component",
   "./components/driverStatus/driverStatus.component",
+  "./components/security/security.component",
+  "./components/kerberos/kerberos.component",
   "./components/selectBox/selectBox.component",
   "./components/browseLocal/browseLocal.component",
   "./components/credentials/credentials.component",
@@ -46,9 +48,9 @@ define([
   "angular-animate"
 ], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent,
              statusComponent, testResultsComponent, addDriverComponent, installingDriverComponent,
-             driverStatusComponent, selectBoxComponent, browseLocalComponent, credentialsComponent,
-             accordianItemComponent, modalDialogComponent,  controlsComponent, helpComponent, bodyClickDirective,
-             helperService, dataService) {
+             driverStatusComponent, securityComponent, kerberosComponent, selectBoxComponent, browseLocalComponent,
+             credentialsComponent, accordianItemComponent, modalDialogComponent,  controlsComponent, helpComponent,
+             bodyClickDirective, helperService, dataService) {
   "use strict";
 
   var module = {
@@ -77,6 +79,8 @@ define([
         .component(addDriverComponent.name, addDriverComponent.options)
         .component(installingDriverComponent.name, installingDriverComponent.options)
         .component(driverStatusComponent.name, driverStatusComponent.options)
+        .component(securityComponent.name, securityComponent.options)
+        .component(kerberosComponent.name, kerberosComponent.options)
         .component(selectBoxComponent.name, selectBoxComponent.options)
         .component(browseLocalComponent.name, browseLocalComponent.options)
         .component(credentialsComponent.name, credentialsComponent.options)

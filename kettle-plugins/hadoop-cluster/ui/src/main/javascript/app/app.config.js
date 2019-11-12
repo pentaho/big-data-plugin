@@ -99,6 +99,20 @@ define([], function () {
         data: null,
         transition: null
       }
+    }).state('security', {
+      url: "/security",
+      template: "<security></security>",
+      params: {
+        data: null,
+        transition: null
+      }
+    }).state('kerberos', {
+      url: "/kerberos",
+      template: "<kerberos></kerberos>",
+      params: {
+        data: null,
+        transition: null
+      }
     });
     $urlRouterProvider.otherwise("/import");
   }

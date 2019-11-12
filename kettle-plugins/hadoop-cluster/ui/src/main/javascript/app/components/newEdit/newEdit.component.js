@@ -77,64 +77,79 @@ define([
         vm.shimVendors = shimVendors;
 
         var urlNameParameter = $location.search().name;
-        var duplicateName = $location.search().duplicateName;
-
-        var name;
         if (urlNameParameter) {
-          name = urlNameParameter;
-        } else if ($stateParams.data) {
-          name = vm.data.model.name;
-        }
-
-        //Edit if we were provided a name on the url or in the data
-        if (name) {
           vm.header = i18n.get('edit.header');
           vm.data.type = "edit";
-
-          dataService.getNamedCluster(name).then(function (res) {
+          dataService.getNamedCluster(urlNameParameter).then(function (res) {
             vm.data.model = res.data;
-
-            vm.data.model.oldName = name;
-
+            vm.data.model.oldName = urlNameParameter;
+            var duplicateName = $location.search().duplicateName;
             if (duplicateName) {
               vm.data.model.name = duplicateName;
               vm.data.type = "duplicate";
             }
-
-            vm.shimVendor = vm.data.model.shimVendor;
-            vm.shimVersions = getShimVersions(vm.shimVendor);
-            vm.shimVersion = vm.data.model.shimVersion;
+            loadShimDropDowns();
           });
-
+        } else if (vm.data.model && vm.data.model.name) {
+          //When an import is created and then edited - it is converted to an edit
+          if (vm.data.created === true) {
+            vm.header = i18n.get('edit.header');
+            vm.data.type = "edit";
+            vm.data.created = false;
+            dataService.getNamedCluster(vm.data.model.name).then(function (res) {
+              vm.data.model = res.data;
+              vm.data.model.oldName = vm.data.model.name;
+              loadShimDropDowns();
+            });
+          } else {
+            //All the data already exists in the model, so leave it as is
+            loadShimDropDowns();
+          }
         } else {
+          //this is a new state, no name exists in the model or on the URL
           vm.header = i18n.get('new.header');
-
-          vm.data = {
-            model: {
-              name: "",
-              shimVendor: "",
-              shimVersion: "",
-              importPath: "",
-              hdfsHost: "",
-              hdfsPort: "",
-              hdfsUsername: "",
-              hdfsPassword: "",
-              jobTrackerHost: "",
-              jobTrackerPort: "",
-              zooKeeperHost: "",
-              zooKeeperPort: "",
-              oozieUrl: "",
-              kafkaBootstrapServers: ""
-            }
-          };
-          vm.data.created = false;
+          vm.data = createHadoopDataModel();
           vm.data.type = "new";
+          vm.data.created = false;
           vm.shimVendor = vm.shimVendors[0];
         }
       });
 
       vm.buttons = getButtons();
       vm.overwriteDialogButtons = getOverwriteDialogButtons();
+    }
+
+    function createHadoopDataModel() {
+      return {
+        model: {
+          name: "",
+          shimVendor: "",
+          shimVersion: "",
+          importPath: "",
+          hdfsHost: "",
+          hdfsPort: "",
+          hdfsUsername: "",
+          hdfsPassword: "",
+          jobTrackerHost: "",
+          jobTrackerPort: "",
+          zooKeeperHost: "",
+          zooKeeperPort: "",
+          oozieUrl: "",
+          kafkaBootstrapServers: "",
+          securityType: "None",
+          kerberosSubType: "Password",
+          kerberosAuthenticationUsername: "",
+          kerberosAuthenticationPassword: "",
+          kerberosImpersonationUsername: "",
+          kerberosImpersonationPassword: ""
+        }
+      };
+    }
+
+    function loadShimDropDowns() {
+      vm.shimVendor = vm.data.model.shimVendor;
+      vm.shimVersions = getShimVersions(vm.shimVendor);
+      vm.shimVersion = vm.data.model.shimVersion;
     }
 
     function contains(arr, item) {
@@ -190,20 +205,28 @@ define([
       }
     }
 
-    function create() {
+    function next() {
       if (vm.data.model.oldName === vm.data.model.name) {
-        $state.go('creating', {data: vm.data, transition: "slideLeft"});
+        create();
       } else {
         var promise = checkDuplicateName(vm.data.model.name);
         promise.then(
-          function () {
-            $state.go('creating', {data: vm.data, transition: "slideLeft"});
-          },
+          create,
           function () {
             displayOverwriteDialog(true);
           }
         );
       }
+    }
+
+    function create() {
+      dataService.getSecure().then(function (res) {
+        if (res.data.secureEnabled === "true") {
+          $state.go('security', {data: vm.data, transition: "slideLeft"});
+        } else {
+          $state.go('creating', {data: vm.data, transition: "slideLeft"});
+        }
+      });
     }
 
     function getButtons() {
@@ -220,7 +243,7 @@ define([
                 vm.data.model.kafkaBootstrapServers);
           },
           position: "right",
-          onClick: create
+          onClick: next
         },
         {
           label: i18n.get('controls.cancel.label'),
@@ -246,9 +269,7 @@ define([
           label: i18n.get('hadoop.cluster.overwrite.yes'),
           class: "primary",
           position: "right",
-          onClick: function () {
-            $state.go('creating', {data: vm.data, transition: "slideLeft"});
-          }
+          onClick: create
         }];
     }
 

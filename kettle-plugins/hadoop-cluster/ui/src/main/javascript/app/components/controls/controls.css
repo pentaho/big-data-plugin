@@ -9,18 +9,12 @@ controls .bottom {
 
 controls .bottom .leftPane {
   float: left;
-  width: 33%;
-}
-
-controls .bottom .middlePane {
-  text-align: center;
-  float: left;
-  width: 33%;
+  width: 50%;
 }
 
 controls .bottom .rightPane {
   float: right;
-  width: 33%;
+  width: 50%;
 }
 
 controls .bottom .rightPane > button {

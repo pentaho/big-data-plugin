@@ -74,6 +74,7 @@
         <argument ref="namedClusterService"/>
         <argument ref="runtimeTester"/>
         <argument value="${internal.shim}"/>
+        <argument value="${secure.enabled}"/>
       </bean>
     </jaxrs:serviceBeans>
     <jaxrs:extensionMappings>

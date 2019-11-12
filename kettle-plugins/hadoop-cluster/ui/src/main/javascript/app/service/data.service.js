@@ -53,7 +53,8 @@ define(
         getNamedCluster: getNamedCluster,
         getShimIdentifiers: getShimIdentifiers,
         runTests: runTests,
-        installDriver: installDriver
+        installDriver: installDriver,
+        getSecure: getSecure
       };
 
       function help() {
@@ -89,6 +90,9 @@ define(
       }
       function installDriver(source) {
         return helperService.httpGet([baseUrl, "installDriver"].join("/") + "?source=" + source);
+      }
+      function getSecure() {
+        return helperService.httpGet([baseUrl, "getSecure"].join("/"));
       }
     }
   });

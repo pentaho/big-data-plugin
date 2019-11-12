@@ -232,3 +232,7 @@ legend {
   height: 59px;
 }
 
+.auto_overflow {
+  overflow: auto;
+}
+

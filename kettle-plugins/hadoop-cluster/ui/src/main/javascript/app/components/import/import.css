@@ -2,10 +2,6 @@ textarea {
   height: 75px;
 }
 
-.auto_overflow {
-  overflow: auto;
-}
-
 .leftHalf {
   width: 45%;
   float: left;
