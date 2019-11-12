@@ -176,11 +176,21 @@ define(
         }
 
         function open(file) {
-          select(null, file.name, file.path, file.parent, null, file.provider, null);
+          select(JSON.stringify({
+            name: file.name,
+            path: file.path,
+            parent: file.parent,
+            provider: file.provider
+          }));
         }
 
         function save(filename, folder, currentFilename, override) {
-          select(null, filename, null, folder.path, null, folder.provider, null);
+          select(JSON.stringify({
+            name: filename,
+            parent: folder.path,
+            provider: folder.provider
+          }));
+
           return $q.resolve();
         }
       }
