@@ -77,8 +77,11 @@ define([
               //TODO: implement keytab
               return false;
             } else {
-              return !((vm.data.model.kerberosAuthenticationUsername && vm.data.model.kerberosAuthenticationPassword) ||
-                (vm.data.model.kerberosImpersonationUsername && vm.data.model.kerberosImpersonationPassword));
+              return (vm.data.model.kerberosAuthenticationUsername && !vm.data.model.kerberosAuthenticationPassword) ||
+                (!vm.data.model.kerberosAuthenticationUsername && vm.data.model.kerberosAuthenticationPassword) ||
+                (vm.data.model.kerberosImpersonationUsername && !vm.data.model.kerberosImpersonationPassword) ||
+                (!vm.data.model.kerberosImpersonationUsername && vm.data.model.kerberosImpersonationPassword) ||
+                (!vm.data.model.kerberosAuthenticationUsername && !vm.data.model.kerberosImpersonationUsername);
             }
           },
           position: "right",
