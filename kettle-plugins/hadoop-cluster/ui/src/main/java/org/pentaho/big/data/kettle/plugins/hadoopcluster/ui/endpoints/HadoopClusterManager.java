@@ -216,6 +216,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           isConfigurationSet =
           configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
+          deleteNamedClusterSchemaOnly( model );
           namedClusterService.create( nc, metaStore );
           File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
           if ( newConfigFolder.exists() ) {
@@ -232,6 +233,15 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       logChannel.error( e.getMessage() );
     }
     return response;
+  }
+
+  private void deleteNamedClusterSchemaOnly( ThinNameClusterModel model ) throws MetaStoreException {
+    List<String> existingNcNames = namedClusterService.listNames( metaStore );
+    for ( String existingNcName : existingNcNames ) {
+      if ( existingNcName.equalsIgnoreCase( model.getName() ) ) {
+        namedClusterService.delete( existingNcName, metaStore );
+      }
+    }
   }
 
   private NamedCluster createXMLSchema( ThinNameClusterModel model ) throws MetaStoreException {
@@ -253,6 +263,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     } else {
       nc.initializeVariablesFrom( null );
     }
+    deleteNamedClusterSchemaOnly( model );
     namedClusterService.create( nc, metaStore );
     return nc;
   }
@@ -299,6 +310,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           FileUtils.deleteDirectory( newConfigFolder );
         }
         FileUtils.copyDirectory( oldConfigFolder, newConfigFolder );
+      } else {
+        boolean success = oldConfigFolder.renameTo( newConfigFolder );
+        if ( !success ) {
+          logChannel.error( "Renaming Named Cluster configuration folder failed." );
+        }
       }
 
       // If source provided, install site files in the new config folder deleting all existing.
@@ -328,23 +344,30 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   public ThinNameClusterModel getNamedCluster( String namedCluster ) {
-    NamedCluster nc = namedClusterService.getNamedClusterByName( namedCluster, metaStore );
     ThinNameClusterModel model = null;
-    if ( nc != null ) {
-      model = new ThinNameClusterModel();
-      model.setName( nc.getName() );
-      model.setHdfsHost( nc.getHdfsHost() );
-      model.setHdfsUsername( nc.getHdfsUsername() );
-      model.setHdfsPassword( nc.getHdfsPassword() );
-      model.setHdfsPort( nc.getHdfsPort() );
-      model.setJobTrackerHost( nc.getJobTrackerHost() );
-      model.setJobTrackerPort( nc.getJobTrackerPort() );
-      model.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
-      model.setOozieUrl( nc.getOozieUrl() );
-      model.setZooKeeperPort( nc.getZooKeeperPort() );
-      model.setZooKeeperHost( nc.getZooKeeperHost() );
-      resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-      resolveSecurity( model, nc );
+    try {
+      List<NamedCluster> namedClusters = namedClusterService.list( metaStore );
+      for ( NamedCluster nc : namedClusters ) {
+        if ( nc.getName().equalsIgnoreCase( namedCluster ) ) {
+          model = new ThinNameClusterModel();
+          model.setName( nc.getName() );
+          model.setHdfsHost( nc.getHdfsHost() );
+          model.setHdfsUsername( nc.getHdfsUsername() );
+          model.setHdfsPassword( nc.getHdfsPassword() );
+          model.setHdfsPort( nc.getHdfsPort() );
+          model.setJobTrackerHost( nc.getJobTrackerHost() );
+          model.setJobTrackerPort( nc.getJobTrackerPort() );
+          model.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
+          model.setOozieUrl( nc.getOozieUrl() );
+          model.setZooKeeperPort( nc.getZooKeeperPort() );
+          model.setZooKeeperHost( nc.getZooKeeperHost() );
+          resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
+          resolveSecurity( model, nc );
+          break;
+        }
+      }
+    } catch ( MetaStoreException e ) {
+      logChannel.error( e.getMessage() );
     }
     return model;
   }
@@ -603,31 +626,23 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       //TODO Default security type Knox for now until it gets implemented.
       model.setSecurityType( SECURITY_TYPE.KNOX.getValue() );
 
-      // If security properties are empty then security type is None
+      // If Kerberos security properties are empty then security type is None else if at least one of them has a
+      // value then the security type is Kerberos
       if ( StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && StringUtil
         .isEmpty( kerberosKeytabImpersonationLocation ) && StringUtil
         .isEmpty( model.getKerberosAuthenticationPassword() ) && StringUtil
         .isEmpty( model.getKerberosImpersonationPassword() ) ) {
         model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
+      } else {
+        model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
       }
 
-      // If password security properties are empty but keytab properties are not then security type is Kerberos and
-      // security subtype is Password
+      // If kerberos keytab impersonation and kerberos keytab impersonation location are empty then kerberos sub type
+      // is Password else is Keytab
       if ( StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && StringUtil
-        .isEmpty( kerberosKeytabImpersonationLocation ) && !StringUtil
-        .isEmpty( model.getKerberosAuthenticationPassword() ) && !StringUtil
-        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
-        model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
+        .isEmpty( kerberosKeytabImpersonationLocation ) ) {
         model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
-      }
-
-      // If password keytab properties are empty but security properties  are not then security type is Kerberos and
-      // security subtype is Keytab
-      if ( !StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && !StringUtil
-        .isEmpty( kerberosKeytabImpersonationLocation ) && StringUtil
-        .isEmpty( model.getKerberosAuthenticationPassword() ) && StringUtil
-        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
-        model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
+      } else {
         model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
       }
     } catch ( ConfigurationException e ) {

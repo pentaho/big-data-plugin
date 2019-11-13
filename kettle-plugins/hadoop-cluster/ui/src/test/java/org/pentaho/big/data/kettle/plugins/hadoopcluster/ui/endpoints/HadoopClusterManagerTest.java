@@ -92,6 +92,7 @@ public class HadoopClusterManagerTest {
     hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore, "apache" );
 
     hadoopClusterManager.shimIdentifiersSupplier = () -> ImmutableList.of( cdhShim, internalShim, maprShim );
+    when( namedClusterService.list( metaStore ) ).thenReturn( ImmutableList.of( namedCluster ) );
   }
 
   @Test public void testSecuredImportNamedCluster() {
@@ -141,6 +142,17 @@ public class HadoopClusterManagerTest {
 
   @Test public void testCreateNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    JSONObject result = hadoopClusterManager.createNamedCluster( model );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+  }
+
+  @Test public void testOverwriteNamedClusterCaseInsensitive() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( "NCTESTName" );
+    hadoopClusterManager.createNamedCluster( model );
+
+    model = new ThinNameClusterModel();
     model.setName( ncTestName );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
@@ -244,6 +256,15 @@ public class HadoopClusterManagerTest {
     assertEquals( "password", retrievingModel.getKerberosAuthenticationPassword() );
     assertEquals( "impersonationusername", retrievingModel.getKerberosImpersonationUsername() );
     assertEquals( "impersonationpassword", retrievingModel.getKerberosImpersonationPassword() );
+  }
+
+  @Test public void testGetNamedCluster() throws ConfigurationException {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    JSONObject result = hadoopClusterManager.createNamedCluster( model );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    ThinNameClusterModel nc = hadoopClusterManager.getNamedCluster( "NCTEST" );
+    assertEquals( "ncTest", nc.getName() );
   }
 
   @Test public void testResetSecurity() throws ConfigurationException {
