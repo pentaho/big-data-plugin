@@ -338,11 +338,11 @@ public class NamedClusterManager implements NamedClusterService {
       }
 
       // see if metastore was copied to the big data plugin folder (yarn kettle cluster job)
-      slaveMetaStorePath = pluginInterface.getPluginDirectory().getPath() + File.separator + XmlUtil.META_FOLDER_NAME;
+      slaveMetaStorePath = pluginInterface.getPluginDirectory().getPath();
       slaveMetastoreDir =
         KettleVFS.getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
-      if ( null != slaveMetastoreDir
-        && slaveMetastoreDir.exists() && slaveMetastoreDir.getType().equals( FileType.FOLDER ) ) {
+      if ( null != slaveMetastoreDir && slaveMetastoreDir.exists()
+        && slaveMetastoreDir.getType().equals( FileType.FOLDER ) ) {
         return slaveMetaStorePath;
       } else {
         return null;
