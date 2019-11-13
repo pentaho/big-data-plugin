@@ -24,7 +24,14 @@ import org.pentaho.di.core.database.DatabaseInterface;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.plugins.DatabaseMetaPlugin;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @DatabaseMetaPlugin( type = "IMPALA", typeDescription = "Impala" )
 public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInterface {
@@ -33,6 +40,8 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   protected static final String JAR_FILE = "hive-jdbc-cdh4.2.0-release-pentaho.jar";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
   protected static final int DEFAULT_PORT = 21050;
+
+  private static final Logger logChannel = LoggerFactory.getLogger( ImpalaDatabaseMeta.class );
 
   public ImpalaDatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                              MetastoreLocator metastoreLocator ) {
@@ -151,5 +160,21 @@ public class ImpalaDatabaseMeta extends Hive2DatabaseMeta implements DatabaseInt
   @Override
   public int getDefaultDatabasePort() {
     return DEFAULT_PORT;
+  }
+
+  @Override public List<String> getNamedClusterList() {
+    try {
+      return namedClusterService.listNames( metastoreLocator.getMetastore() );
+    } catch ( MetaStoreException e ) {
+      logChannel.error( e.getMessage(), e );
+      return Collections.emptyList();
+    }
+  }
+
+  @Override
+  public void putOptionalOptions( Map<String, String> extraOptions ) {
+    if ( getNamedCluster() != null && getNamedCluster().trim().length() > 0 ) {
+      extraOptions.put( getPluginId() + ".pentahoNamedCluster", getNamedCluster() );
+    }
   }
 }
