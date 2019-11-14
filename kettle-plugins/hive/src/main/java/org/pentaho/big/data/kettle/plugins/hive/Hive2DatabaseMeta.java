@@ -43,8 +43,8 @@ public class Hive2DatabaseMeta extends DatabaseMetaWithVersion {
   public static final int[] ACCESS_TYPE_LIST = new int[] { DatabaseMeta.TYPE_ACCESS_NATIVE };
   protected static final String JAR_FILE = "hive-jdbc-0.10.0-pentaho.jar";
   protected static final String DRIVER_CLASS_NAME = "org.apache.hive.jdbc.HiveDriver";
-  private NamedClusterService namedClusterService;
-  private MetastoreLocator metastoreLocator;
+  protected NamedClusterService namedClusterService;
+  protected MetastoreLocator metastoreLocator;
 
   public Hive2DatabaseMeta( DriverLocator driverLocator, NamedClusterService namedClusterService,
                             MetastoreLocator metastoreLocator ) {

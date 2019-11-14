@@ -25,29 +25,29 @@ package org.pentaho.big.data.kettle.plugins.hive;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleDatabaseException;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaBigNumber;
-import org.pentaho.di.core.row.value.ValueMetaBoolean;
-import org.pentaho.di.core.row.value.ValueMetaDate;
-import org.pentaho.di.core.row.value.ValueMetaInteger;
-import org.pentaho.di.core.row.value.ValueMetaInternetAddress;
-import org.pentaho.di.core.row.value.ValueMetaNumber;
-import org.pentaho.di.core.row.value.ValueMetaString;
-import org.pentaho.di.core.row.value.ValueMetaTimestamp;
+import org.pentaho.di.core.row.value.*;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.jdbc.DriverLocator;
+import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Driver;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,14 +60,23 @@ public class ImpalaDatabaseMetaTest {
   public static final String DEFAULT = "default";
   @Mock DriverLocator driverLocator;
   @Mock Driver driver;
+  @Mock NamedClusterService namedClusterService;
+  @Mock MetastoreLocator metastoreLocator;
+  @Mock IMetaStore iMetaStore;
   private ImpalaDatabaseMeta impalaDatabaseMeta;
   private String impalaDatabaseMetaURL;
+  private List<String> namedClusterList = Arrays.asList( new String[]{ "cluster1", "cluster2" } );
+  ArgumentCaptor<IMetaStore> iMetaStoreCaptor = ArgumentCaptor.forClass( IMetaStore.class );
+  private static String CLUSTER = "cluster1";
+  private static String PLUGIN_ID = "impala";
 
   @Before
   public void setup() throws Throwable {
-    impalaDatabaseMeta = new ImpalaDatabaseMeta( driverLocator, null, null );
+    impalaDatabaseMeta = new ImpalaDatabaseMeta( driverLocator, namedClusterService, metastoreLocator );
     impalaDatabaseMetaURL = impalaDatabaseMeta.getURL( LOCALHOST, PORT, DEFAULT );
     when( driverLocator.getDriver( impalaDatabaseMetaURL ) ).thenReturn( driver );
+    when( metastoreLocator.getMetastore() ).thenReturn( iMetaStore );
+    when( namedClusterService.listNames( any() ) ).thenReturn( namedClusterList );
   }
 
   @Test
@@ -275,5 +284,21 @@ public class ImpalaDatabaseMetaTest {
       false ) );
     assertEquals( valueMetaInterface.getName() + " " + expectedType,
       impalaDatabaseMeta.getFieldDefinition( valueMetaInterface, null, null, false, true, false ) );
+  }
+
+  @Test
+  public void testGetNamedClusterList() throws Exception {
+    assertEquals( namedClusterList, impalaDatabaseMeta.getNamedClusterList() );
+    verify( namedClusterService ).listNames( iMetaStoreCaptor.capture() );
+  }
+
+  @Test
+  public void testPutOptionalOptions() {
+    impalaDatabaseMeta.setNamedCluster( CLUSTER );
+    impalaDatabaseMeta.setPluginId( PLUGIN_ID );
+    Map<String, String> extraOptions = new HashMap<String, String>();
+    impalaDatabaseMeta.putOptionalOptions( extraOptions );
+    String value = extraOptions.get( PLUGIN_ID + ".pentahoNamedCluster" );
+    assertEquals( CLUSTER, value );
   }
 }
