@@ -5,8 +5,6 @@
     <bundle>wrap:mvn:com.amazonaws/aws-java-sdk/1.11.275</bundle>
     <bundle>mvn:commons-cli/commons-cli/1.2</bundle>
     <bundle>wrap:mvn:com.github.stephenc.high-scale-lib/high-scale-lib/1.1.2</bundle>
-    <bundle>wrap:mvn:org.apache.httpcomponents/httpclient/4.5.3</bundle>
-    <bundle>wrap:mvn:org.apache.httpcomponents/httpcore/4.4</bundle>
     <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.5.2</bundle>
     <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.5.2</bundle>
     <bundle>wrap:mvn:net.java.dev.jets3t/jets3t/0.9.4</bundle>
