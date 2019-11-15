@@ -64,9 +64,7 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
   }
 
   public NamedCluster getNamedCluster() {
-    NamedCluster namedCluster =
-      NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, this.getFilename() );
-    return namedCluster;
+    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.getFilename() );
   }
 
   @Override

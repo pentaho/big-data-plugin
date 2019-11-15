@@ -47,7 +47,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
-  public static long SPLIT_SIZE = 128 * 1024 * 1024;
+  public static final long SPLIT_SIZE = 128L * 1024L * 1024L;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
@@ -63,12 +63,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     data = (OrcInputData) sdi;
     try {
       if ( data.input == null || data.reader == null || data.rowIterator == null ) {
-        FormatService formatService;
-        try {
-          formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
-        } catch ( ClusterInitializationException e ) {
-          throw new KettleException( "can't get service format shim ", e );
-        }
+        FormatService formatService = getFormatService();
         if ( meta.inputFiles == null || meta.getFilename() == null || meta.getFilename().length() == 0 ) {
           throw new KettleException( "No input files defined" );
         }
@@ -100,6 +95,16 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     }
   }
 
+  private FormatService getFormatService() throws KettleException {
+    FormatService formatService;
+    try {
+      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+    } catch ( ClusterInitializationException e ) {
+      throw new KettleException( "can't get service format shim ", e );
+    }
+    return formatService;
+  }
+
 
   @Override
   protected boolean init() {
@@ -112,7 +117,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return null;
   }
 
-  public static List<? extends IOrcInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
+  public static List<IOrcInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
                                                                NamedCluster namedCluster, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoOrcInputFormat in = formatService.createInputFormat( IPentahoOrcInputFormat.class, namedCluster );
@@ -121,7 +126,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     return in.readSchema( );
   }
 
-  public static List<? extends IOrcInputField> createSchemaFromMeta( OrcInputMetaBase meta ) {
+  public static List<IOrcInputField> createSchemaFromMeta( OrcInputMetaBase meta ) {
     return Arrays.asList( meta.getInputFields() );
   }
 

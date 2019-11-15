@@ -72,10 +72,8 @@ public class AvroInputMeta extends AvroInputMetaBase {
 
   public NamedCluster getNamedCluster() {
     if ( !testing ) {
-      NamedCluster namedCluster =
-        NamedClusterResolver.resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService,
-          this.getDataLocation() );
-      return namedCluster;
+      return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService,
+        this.getDataLocation() );
     } else {
       namedClusterService.getClusterTemplate();
       return null;
@@ -83,10 +81,8 @@ public class AvroInputMeta extends AvroInputMetaBase {
   }
 
   public NamedCluster getNamedCluster( String fileUri ) {
-    NamedCluster namedCluster =
-      NamedClusterResolver
-        .resolveNamedCluster( namedClusterServiceLocator, namedClusterService, metaStoreService, fileUri );
-    return namedCluster;
+    return NamedClusterResolver
+      .resolveNamedCluster( namedClusterService, metaStoreService, fileUri );
   }
 
   public NamedClusterServiceLocator getNamedClusterServiceLocator() {

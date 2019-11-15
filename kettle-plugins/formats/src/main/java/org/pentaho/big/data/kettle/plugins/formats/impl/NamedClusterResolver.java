@@ -22,44 +22,42 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl;
 
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
-import org.pentaho.hadoop.shim.api.format.FormatService;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
-public abstract class NamedClusterResolver {
+public class NamedClusterResolver {
+
+  private NamedClusterResolver() {
+    // static methods only
+  }
+
+  private static final LogChannelInterface LOG = LogChannel.GENERAL;
 
   private static String extractScheme( String fileUri ) {
-    String scheme = null;
     try {
-      scheme = new URI( fileUri ).getScheme();
-      return scheme;
+      return new URI( fileUri ).getScheme();
     } catch ( URISyntaxException e ) {
-      e.printStackTrace();
+      LOG.logError( "Failed to extract scheme for " + fileUri, e );
     }
-    return scheme;
+    return null;
   }
 
   private static String extractHostName( String fileUri ) {
-    String hostName = null;
     try {
-      hostName = new URI( fileUri ).getHost();
-      return hostName;
+      return new URI( fileUri ).getHost();
     } catch ( URISyntaxException e ) {
-      e.printStackTrace();
+      LOG.logError( "Failed to extract hostname for " + fileUri, e );
     }
-    return hostName;
+    return null;
   }
 
-  public static NamedCluster resolveNamedCluster( NamedClusterServiceLocator namedClusterServiceLocator,
-                                                  NamedClusterService namedClusterService,
+  public static NamedCluster resolveNamedCluster( NamedClusterService namedClusterService,
                                                   MetastoreLocatorOsgi metaStoreService, String fileUri ) {
     NamedCluster namedCluster = null;
     if ( fileUri != null ) {
@@ -71,31 +69,7 @@ public abstract class NamedClusterResolver {
         namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
       }
     }
-    if ( namedCluster == null ) {
-      namedCluster =
-        getNamedClusterWithExistingFormatService( namedClusterServiceLocator, namedClusterService, metaStoreService );
-    }
     return namedCluster;
   }
 
-  private static NamedCluster getNamedClusterWithExistingFormatService(
-    NamedClusterServiceLocator namedClusterServiceLocator, NamedClusterService namedClusterService,
-    MetastoreLocatorOsgi metaStoreService ) {
-    try {
-      List<NamedCluster> namedClusters = namedClusterService.list( metaStoreService.getMetastore() );
-      for ( NamedCluster nc : namedClusters ) {
-        if ( namedClusterServiceLocator.getDefaultShim().equals( nc.getShimIdentifier() ) ) {
-          FormatService formatService = namedClusterServiceLocator.getService( nc, FormatService.class );
-          if ( formatService != null ) {
-            return nc;
-          }
-        }
-      }
-    } catch ( MetaStoreException e ) {
-      e.printStackTrace();
-    } catch ( ClusterInitializationException e ) {
-      e.printStackTrace();
-    }
-    return null;
-  }
 }
