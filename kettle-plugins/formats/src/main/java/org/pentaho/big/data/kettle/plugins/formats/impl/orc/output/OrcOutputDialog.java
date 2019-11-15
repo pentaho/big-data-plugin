@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,7 +34,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -53,6 +52,7 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -127,6 +127,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     props.setLook( wOverwriteExistingFile );
     new FD( wOverwriteExistingFile ).left( 0, 0 ).top( tabContainer, FIELDS_SEP ).apply();
     wOverwriteExistingFile.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
       }
@@ -160,11 +161,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     layout.marginHeight = MARGIN;
     wComp.setLayout( layout );
 
-    lsGet = new Listener() {
-      public void handleEvent( Event e ) {
-        getFields();
-      }
-    };
+    lsGet = e -> getFields();
 
     Button wGetFields = new Button( wComp, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "OrcOutputDialog.Fields.Get" ) );
@@ -277,6 +274,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     formData.left = new FormAttachment( wCompressSize, 50 );
     wInlineIndexes.setLayoutData( formData );
     wInlineIndexes.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wInlineIndexes.getSelection();
@@ -314,6 +312,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     formData.left = new FormAttachment( wCompressSize, 50 );
     wDateInFileName.setLayoutData( formData );
     wDateInFileName.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wDateInFileName.getSelection();
@@ -334,6 +333,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     formData.left = new FormAttachment( wCompressSize, 50 );
     wTimeInFileName.setLayoutData( formData );
     wTimeInFileName.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wTimeInFileName.getSelection();
@@ -354,6 +354,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     formData.left = new FormAttachment( wCompressSize, 50 );
     wSpecifyDateTimeFormat.setLayoutData( formData );
     wSpecifyDateTimeFormat.addSelectionListener( new SelectionAdapter() {
+      @Override
       public void widgetSelected( SelectionEvent e ) {
         meta.setChanged();
         boolean isSelected = wSpecifyDateTimeFormat.getSelection();
@@ -410,7 +411,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     }
     stepname = wStepname.getText();
 
-    List<String> validationErrorFields = validateOutputFields( wOutputFields, meta );
+    List<String> validationErrorFields = validateOutputFields( wOutputFields );
 
     if ( validationErrorFields != null && !validationErrorFields.isEmpty() ) {
       MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
@@ -528,9 +529,9 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     meta.setOutputFields( outputFields );
   }
 
-  private List<String> validateOutputFields( TableView wFields, OrcOutputMeta meta ) {
+  private List<String> validateOutputFields( TableView wFields ) {
     int nrFields = wFields.nrNonEmpty();
-    List<String> validationErrorFields = new ArrayList<String>();
+    List<String> validationErrorFields = new ArrayList<>();
 
     for ( int i = 0; i < nrFields; i++ ) {
       TableItem item = wFields.getNonEmpty( i );
@@ -606,11 +607,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
     try {
       RowMetaInterface r = transMeta.getPrevStepFields( stepname );
       if ( r != null ) {
-        TableItemInsertListener listener = new TableItemInsertListener() {
-          public boolean tableItemInserted( TableItem tableItem, ValueMetaInterface v ) {
-            return true;
-          }
-        };
+        TableItemInsertListener listener = ( tableItem, v ) -> true;
         getFieldsFromPreviousStep( r, wOutputFields, 1, new int[]{1, 2}, new int[]{3}, 4,
           5, true, listener );
       }
@@ -658,7 +655,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
 
     int choice = 0;
 
-    if ( keys.size() > 0 ) {
+    if ( !keys.isEmpty() ) {
       // Ask what we should do with the existing data in the step.
       //
       MessageDialog getFieldsChoiceDialog = getFieldsChoiceDialog( tableView.getShell(), keys.size(), row.size() );
@@ -680,11 +677,9 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
 
       boolean add = true;
 
-      if ( choice == 0 ) { // hang on, see if it's not yet in the table view
-
-        if ( keys.indexOf( v.getName() ) >= 0 ) {
-          add = false;
-        }
+      // hang on, see if it's not yet in the table view
+      if ( choice == 0 && keys.indexOf( v.getName() ) >= 0 ) {
+        add = false;
       }
 
       if ( add ) {
@@ -721,10 +716,8 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
           }
         }
 
-        if ( listener != null ) {
-          if ( !listener.tableItemInserted( tableItem, v ) ) {
-            tableItem.dispose(); // remove it again
-          }
+        if ( listener != null && !listener.tableItemInserted( tableItem, v ) ) {
+          tableItem.dispose(); // remove it again
         }
       }
     }
@@ -748,6 +741,10 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
   @Override
   protected Listener getPreview() {
     return null;
+  }
+
+  @Override protected void browseForFilePath() {
+    FileDialogOperation.browseForSave( wPath );
   }
 }
 

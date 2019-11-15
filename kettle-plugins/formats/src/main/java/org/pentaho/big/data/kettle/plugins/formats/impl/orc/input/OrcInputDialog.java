@@ -21,21 +21,18 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.pentaho.big.data.kettle.plugins.formats.impl.orc.BaseOrcStepDialog;
 import org.pentaho.big.data.kettle.plugins.formats.orc.OrcInputField;
 import org.pentaho.di.core.Const;
@@ -45,6 +42,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
+import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -52,10 +50,11 @@ import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
-import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.hadoop.shim.api.format.IOrcInputField;
 import org.pentaho.hadoop.shim.api.format.OrcSpec;
+
+import java.util.List;
 
 public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
 
@@ -71,10 +70,10 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   private static final int FORMAT_COLUMN_INDEX = 4;
 
   private static final int FIELD_SOURCE_TYPE_COLUMN_INDEX = 5;
+  private static final String UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE =
+    "OrcInput.Error.UnableToLoadSchemaFromContainerFile";
 
   private TableView wInputFields;
-  protected TextVar wSchemaPath;
-  protected Button wbSchemaBrowse;
 
   private Button wPassThruFields;
 
@@ -114,11 +113,7 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
     new FD( wPassThruFields ).left( 0, MARGIN ).top( 0, MARGIN ).apply();
 
     //get fields button
-    lsGet = new Listener() {
-      public void handleEvent( Event e ) {
-        populateFieldsTable();
-      }
-    };
+    lsGet = e -> populateFieldsTable();
     Button wGetFields = new Button( fieldsContainer, SWT.PUSH );
     wGetFields.setText( BaseMessages.getString( PKG, "OrcInputDialog.Fields.Get" ) );
     props.setLook( wGetFields );
@@ -159,8 +154,6 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   }
 
   protected void populateFieldsTable() {
-    String orcFileName = wPath.getText();
-    orcFileName = transMeta.environmentSubstitute( orcFileName );
     try {
       List<? extends IOrcInputField> inputFields = getInputFieldsFromOrcFile( false );
       wInputFields.clearAll();
@@ -178,9 +171,9 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
       wInputFields.setRowNums();
       wInputFields.optWidth( true );
     } catch ( Exception ex ) {
-      logError( BaseMessages.getString( PKG, "OrcInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
+      logError( BaseMessages.getString( PKG, UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE ), ex );
       new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
-        "OrcInput.Error.UnableToLoadSchemaFromContainerFile", getProcessedFileName() ), ex );
+        UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE, getProcessedFileName() ), ex );
     }
   }
 
@@ -195,9 +188,9 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
       inputFields = OrcInput.retrieveSchema( meta.getNamedClusterServiceLocator(), meta.getNamedCluster( orcFileName ), orcFileName );
     } catch ( Exception ex ) {
       if ( !failQuietly ) {
-        logError( BaseMessages.getString( PKG, "OrcInput.Error.UnableToLoadSchemaFromContainerFile" ), ex );
+        logError( BaseMessages.getString( PKG, UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE ), ex );
         new ErrorDialog( shell, stepname, BaseMessages.getString( PKG,
-          "OrcInput.Error.UnableToLoadSchemaFromContainerFile", orcFileName ), ex );
+          UNABLE_TO_LOAD_SCHEMA_FROM_CONTAINER_FILE, orcFileName ), ex );
       }
     }
     return inputFields;
@@ -365,14 +358,12 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
       Trans trans = progressDialog.getTrans();
       String loggingText = progressDialog.getLoggingText();
 
-      if ( !progressDialog.isCancelled() ) {
-        if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
-          EnterTextDialog etd =
-            new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
-              BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
-          etd.setReadOnly();
-          etd.open();
-        }
+      if ( !progressDialog.isCancelled() && trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
+        EnterTextDialog etd =
+          new EnterTextDialog( shell, BaseMessages.getString( PKG, "System.Dialog.PreviewError.Title" ),
+            BaseMessages.getString( PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+        etd.setReadOnly();
+        etd.open();
       }
 
       PreviewRowsDialog prd =
@@ -400,10 +391,10 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
 
   @Override
   protected Listener getPreview() {
-    return new Listener() {
-      public void handleEvent( Event e ) {
-        doPreview();
-      }
-    };
+    return e -> doPreview();
+  }
+
+  @Override protected void browseForFilePath() {
+    FileDialogOperation.browseForOpen( wPath );
   }
 }
