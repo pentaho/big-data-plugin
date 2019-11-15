@@ -62,7 +62,6 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   public static final String SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_MESSAGE = "Spoon.Dialog.ErrorAddingNewConfigurationForCluster.Message";
   public static final String SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_TITLE = "Spoon.Dialog.ErrorRenamingPreviousClusterConfig.Title";
   public static final String SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_MESSAGE = "Spoon.Dialog.ErrorRenamingPreviousClusterConfig.Message";
-  public static final String SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_EXCEPTION = "Spoon.Dialog.ErrorRenamingPreviousClusterConfig.Exception";
 
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -172,23 +171,26 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
     File previousShimConfiguration = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + File.separator + previousNamedClusterName + File.separator + "config.properties" );
     File previousShimConfigurationBackup = new File( getNamedClusterConfigsRootDir( xmlMetaStore ) + File.separator + previousNamedClusterName + File.separator + "old-config.bak" );
 
-    // backup original configuration
-    if ( previousShimConfiguration.renameTo( previousShimConfigurationBackup ) ) {
-      // create new configuration of driver being created
-      try {
-        addConfigProperties( selectedNamedCluster );
-      } catch ( Exception e ) {
-        String dialogTitle = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_TITLE );
-        String dialogMessage = java.text.MessageFormat.format( BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_MESSAGE ), selectedNamedClusterName );
-
-        commonDialogFactory.createErrorDialog( spoon.getShell(), dialogTitle, dialogMessage, e );
-      }
-    } else {
+    try {
+      // backup original configuration
+      Files.move( previousShimConfiguration.toPath(), previousShimConfigurationBackup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING );
+    } catch ( IOException e ) {
       String dialogTitle = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_TITLE );
       String dialogMessage = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_MESSAGE );
-      String exceptionMessage = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_RENAMING_PREVIOUS_CLUSTER_CONFIG_EXCEPTION );
 
-      commonDialogFactory.createErrorDialog( spoon.getShell(), dialogTitle, dialogMessage, new Exception( exceptionMessage ) );
+      commonDialogFactory.createErrorDialog( spoon.getShell(), dialogTitle, dialogMessage, e );
+
+      return;
+    }
+
+    try {
+      // create new configuration of driver being created
+      addConfigProperties( selectedNamedCluster );
+    } catch ( Exception e ) {
+      String dialogTitle = BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_TITLE );
+      String dialogMessage = java.text.MessageFormat.format( BaseMessages.getString( PKG, SPOON_DIALOG_ERROR_ADDING_NEW_CONFIGURATION_FOR_CLUSTER_MESSAGE ), selectedNamedClusterName );
+
+      commonDialogFactory.createErrorDialog( spoon.getShell(), dialogTitle, dialogMessage, e );
     }
   }
 
