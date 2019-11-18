@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2015 by Pentaho : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -48,7 +48,7 @@ public class HDFSFileSystem extends AbstractFileSystem implements FileSystem {
   protected void addCapabilities( Collection caps ) {
     caps.addAll( HDFSFileProvider.capabilities );
     // Adding capabilities depending on configuration settings
-    if ( hdfs != null && Boolean.parseBoolean( hdfs.getProperty( "dfs.support.append", "true" ) ) ) {
+    if ( Boolean.parseBoolean( hdfs.getProperty( "dfs.support.append", "true" ) ) ) {
       caps.add( Capability.APPEND_CONTENT );
     }
   }
