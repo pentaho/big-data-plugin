@@ -125,8 +125,8 @@ define([
       return $q(function (resolve, reject) {
         dataService.getNamedCluster(name).then(
           function (res) {
-            //if name is returned it already exists
-            if (name === res.data.name) {
+            //if name is returned it is a duplicate
+            if (res.data.name && res.data.name.length !== 0) {
               reject();
             } else {
               resolve();
@@ -146,19 +146,21 @@ define([
     function next() {
       var promise = checkDuplicateName(vm.data.model.name);
       promise.then(
-        function () {
-          dataService.getSecure().then(function (res) {
-            if (res.data.secureEnabled === "true") {
-              $state.go('security', {data: vm.data, transition: "slideLeft"});
-            } else {
-              $state.go('creating', {data: vm.data, transition: "slideLeft"});
-            }
-          });
-        },
+        create,
         function () {
           displayOverwriteDialog(true);
         }
       );
+    }
+
+    function create() {
+      dataService.getSecure().then(function (res) {
+        if (res.data.secureEnabled === "true") {
+          $state.go('security', {data: vm.data, transition: "slideLeft"});
+        } else {
+          $state.go('creating', {data: vm.data, transition: "slideLeft"});
+        }
+      });
     }
 
     function getButtons() {
@@ -196,7 +198,7 @@ define([
           label: i18n.get('hadoop.cluster.overwrite.yes'),
           class: "primary",
           position: "right",
-          onClick: next
+          onClick: create
         }];
     }
 
