@@ -187,8 +187,8 @@ define([
       return $q(function (resolve, reject) {
         dataService.getNamedCluster(name).then(
           function (res) {
-            //if name is returned it already exists
-            if (name === res.data.name) {
+            //if name is returned it is a duplicate
+            if (res.data.name && res.data.name.length !== 0) {
               reject();
             } else {
               resolve();
