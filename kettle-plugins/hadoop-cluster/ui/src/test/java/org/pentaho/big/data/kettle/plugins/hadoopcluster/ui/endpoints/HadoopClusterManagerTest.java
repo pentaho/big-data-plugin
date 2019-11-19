@@ -258,6 +258,33 @@ public class HadoopClusterManagerTest {
     assertEquals( "impersonationpassword", retrievingModel.getKerberosImpersonationPassword() );
   }
 
+  @Test public void testNamedClusterKerberosKeytabSecurity() throws ConfigurationException {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setSecurityType( "Kerberos" );
+    model.setKerberosSubType( "Keytab" );
+    model.setKeytabAuthenticationLocation( "authenticationlocation" );
+    model.setKeytabImpersonationLocation( "impersonationlocation" );
+
+    hadoopClusterManager.createNamedCluster( model );
+
+    String configFile = System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
+      + "ncTest" + File.separator + "config.properties";
+
+    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+    assertEquals( "authenticationlocation", config.getProperty( "pentaho.authentication.default.kerberos.keytabLocation" ) );
+    assertEquals( "impersonationlocation",
+      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation" ) );
+    assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
+
+    ThinNameClusterModel retrievingModel = hadoopClusterManager.getNamedCluster( ncTestName );
+    assertEquals( "Kerberos", retrievingModel.getSecurityType() );
+    assertEquals( "Keytab", retrievingModel.getKerberosSubType() );
+    assertEquals( "authenticationlocation", retrievingModel.getKeytabAuthenticationLocation() );
+    assertEquals( "impersonationlocation", retrievingModel.getKeytabImpersonationLocation() );
+  }
+
   @Test public void testGetNamedCluster() throws ConfigurationException {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );

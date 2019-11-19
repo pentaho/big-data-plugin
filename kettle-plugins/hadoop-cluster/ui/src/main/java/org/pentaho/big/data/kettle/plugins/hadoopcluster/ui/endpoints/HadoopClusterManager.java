@@ -154,9 +154,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String KERBEROS_IMPERSONATION_PASS =
     "pentaho.authentication.default.mapping.server.credentials.kerberos.password";
   private static final String IMPERSONATION = "pentaho.authentication.default.mapping.impersonation.type";
-  private static final String KERBEROS_KEYTAB_AUTHENTICATION_LOCATION =
-    "pentaho.authentication.default.kerberos.keytabLocation";
-  private static final String KERBEROS_KEYTAB_IMPERSONATION_LOCATION =
+  private static final String KEYTAB_AUTHENTICATION_LOCATION = "pentaho.authentication.default.kerberos.keytabLocation";
+  private static final String KEYTAB_IMPERSONATION_LOCATION =
     "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation";
 
   @VisibleForTesting Supplier<List<ShimIdentifierInterface>> shimIdentifiersSupplier =
@@ -564,7 +563,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           setupKerberosPasswordSecurity( configPropertiesPath, model );
         }
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.KEYTAB.getValue() ) ) {
-          setupKerberosKeytabSecurity( configPropertiesPath, model );
+          setupKeytabSecurity( configPropertiesPath, model );
         }
       }
       if ( securityType.equals( SECURITY_TYPE.KNOX.getValue() ) ) {
@@ -580,28 +579,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, "" );
       config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
-      config.setProperty( KERBEROS_KEYTAB_AUTHENTICATION_LOCATION, "" );
-      config.setProperty( KERBEROS_KEYTAB_IMPERSONATION_LOCATION, "" );
+      config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, "" );
+      config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
       config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
-      config.save();
-    } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
-    }
-  }
-
-  private void setupKerberosPasswordSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
-    try {
-      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
-      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      config.setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
-      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
-      config.setProperty( KERBEROS_IMPERSONATION_PASS, model.getKerberosImpersonationPassword() );
-      if ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() ) && !StringUtil
-        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
-        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
-      } else {
-        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
-      }
       config.save();
     } catch ( ConfigurationException e ) {
       logChannel.warn( e.getMessage() );
@@ -617,21 +597,18 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
       model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
       model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
-      //TODO create properties, setter and getter methods in the ThinNameClusterModel.
-      String kerberosKeytabAuthenticationLocation =
-        (String) config.getProperty( KERBEROS_KEYTAB_AUTHENTICATION_LOCATION );
-      String kerberosKeytabImpersonationLocation =
-        (String) config.getProperty( KERBEROS_KEYTAB_IMPERSONATION_LOCATION );
+      model.setKeytabAuthenticationLocation( (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION ) );
+      model.setKeytabImpersonationLocation( (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION ) );
 
       //TODO Default security type Knox for now until it gets implemented.
       model.setSecurityType( SECURITY_TYPE.KNOX.getValue() );
 
       // If Kerberos security properties are empty then security type is None else if at least one of them has a
       // value then the security type is Kerberos
-      if ( StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && StringUtil
-        .isEmpty( kerberosKeytabImpersonationLocation ) && StringUtil
-        .isEmpty( model.getKerberosAuthenticationPassword() ) && StringUtil
-        .isEmpty( model.getKerberosImpersonationPassword() ) ) {
+      if ( StringUtil.isEmpty( model.getKeytabAuthenticationLocation() )
+        && StringUtil.isEmpty( model.getKeytabImpersonationLocation() )
+        && StringUtil.isEmpty( model.getKerberosAuthenticationPassword() )
+        && StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
         model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
       } else {
         model.setSecurityType( SECURITY_TYPE.KERBEROS.getValue() );
@@ -639,8 +616,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // If kerberos keytab impersonation and kerberos keytab impersonation location are empty then kerberos sub type
       // is Password else is Keytab
-      if ( StringUtil.isEmpty( kerberosKeytabAuthenticationLocation ) && StringUtil
-        .isEmpty( kerberosKeytabImpersonationLocation ) ) {
+      if ( StringUtil.isEmpty( model.getKeytabAuthenticationLocation() )
+        && StringUtil.isEmpty( model.getKeytabImpersonationLocation() ) ) {
         model.setKerberosSubType( KERBEROS_SUBTYPE.PASSWORD.getValue() );
       } else {
         model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
@@ -650,8 +627,40 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void setupKerberosKeytabSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
-    //TODO
+  private void setupKerberosPasswordSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+    try {
+      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
+      config.setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
+      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
+      config.setProperty( KERBEROS_IMPERSONATION_PASS, model.getKerberosImpersonationPassword() );
+      if ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() )
+        && !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
+      } else {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
+      }
+      config.save();
+    } catch ( ConfigurationException e ) {
+      logChannel.warn( e.getMessage() );
+    }
+  }
+
+  private void setupKeytabSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+    try {
+      PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, model.getKeytabAuthenticationLocation() );
+      config.setProperty( KEYTAB_IMPERSONATION_LOCATION, model.getKeytabImpersonationLocation() );
+
+      if ( !StringUtil.isEmpty( model.getKeytabImpersonationLocation() ) ) {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
+      } else {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
+      }
+      config.save();
+    } catch ( ConfigurationException e ) {
+      logChannel.warn( e.getMessage() );
+    }
   }
 
   private void setupKnoxSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
