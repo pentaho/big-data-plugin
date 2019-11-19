@@ -248,6 +248,10 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
 
       boolean resolvedInitialFile = false;
 
+      if ( clusterName.equals( S3_ENVIRONMENT ) && !path.startsWith( Schemes.S3_SCHEME + "://" ) ) {
+        path = Schemes.S3_SCHEME + "://";
+      }
+
       if ( path != null ) {
 
         String fileName = jobMeta.environmentSubstitute( path );
@@ -327,14 +331,16 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
 
       if ( selectedFile != null ) {
         String url = selectedFile.getURL().toString();
-        if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
-          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
-        } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
-          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
-        } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
-          url = jobEntry.getUrlPath( url );
-          wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1,
-            namedClusterWidget.getSelectedNamedCluster().getName() );
+        if ( currentPanel != null ) {
+          if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
+            wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
+          } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
+            wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+          } else if ( namedClusterWidget != null && namedClusterWidget.getSelectedNamedCluster() != null ) {
+            url = jobEntry.getUrlPath( url );
+            wFields.getActiveTableItem().setText( wFields.getActiveTableColumn() - 1,
+              namedClusterWidget.getSelectedNamedCluster().getName() );
+          }
         }
         wFields.getActiveTableItem().setText( wFields.getActiveTableColumn(), url );
       }
