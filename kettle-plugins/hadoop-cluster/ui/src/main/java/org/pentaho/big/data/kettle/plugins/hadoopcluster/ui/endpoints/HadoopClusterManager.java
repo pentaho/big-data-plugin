@@ -829,7 +829,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private String getNamedClusterConfigsRootDir() {
+    String configsFolder = null != spoon.getRepository() ? "ServerConfigs" : "Configs";
     return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
-      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + configsFolder;
   }
 }

@@ -284,8 +284,9 @@ public class HadoopClusterDelegateImpl extends SpoonDelegate {
   }
 
   private String getNamedClusterConfigsRootDir( XmlMetaStore metaStore ) {
+    String configsFolder = null != spoon.getRepository() ? "ServerConfigs" : "Configs";
     return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
-      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + configsFolder;
   }
 
   public String newNamedCluster( VariableSpace variableSpace, IMetaStore metaStore, Shell shell ) {
