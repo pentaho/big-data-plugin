@@ -766,6 +766,9 @@ public class MappingEditor extends Composite implements ConfigurationProducer {
     HBaseService hBaseService = null;
     try {
       hBaseService = m_configProducer.getHBaseService();
+      if ( hBaseService == null ) { // Backlog-32244; If we don't have a service don't bother trying to map it.
+        return null;
+      }
     } catch ( Exception e ) {
       if ( problems != null ) {
         problems.add( e.getMessage() );
