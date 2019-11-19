@@ -141,7 +141,9 @@ define([
           kerberosAuthenticationUsername: "",
           kerberosAuthenticationPassword: "",
           kerberosImpersonationUsername: "",
-          kerberosImpersonationPassword: ""
+          kerberosImpersonationPassword: "",
+          keytabAuthenticationLocation: "",
+          keytabImpersonationLocation: ""
         }
       };
     }

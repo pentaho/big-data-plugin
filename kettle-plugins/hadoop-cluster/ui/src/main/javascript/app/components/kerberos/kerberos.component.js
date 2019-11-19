@@ -54,7 +54,9 @@ define([
       vm.impersonateUserLabel = i18n.get('kerberos.impersonate.username.label');
       vm.impersonatePasswordLabel = i18n.get('kerberos.impersonate.password.label');
 
-      vm.isPasswordType = true;
+      vm.keytabBrowseType = "file";
+      vm.keytabAuthPathLabel = i18n.get('kerberos.keytab.auth.path.label');
+      vm.keytabImpersonatePathLabel = i18n.get('kerberos.keytab.impersonate.path.label');
 
       if (!vm.data.model.kerberosSubType) {
         vm.data.model.kerberosSubType = vm.kerberosSubTypes.PASSWORD;
@@ -64,7 +66,7 @@ define([
     }
 
     function onSelectSubType(value) {
-      vm.isPasswordType = value === vm.kerberosSubTypes.PASSWORD;
+      vm.data.model.kerberosSubType = value;
     }
 
     function getButtons() {
@@ -74,8 +76,7 @@ define([
           class: "primary",
           isDisabled: function () {
             if (vm.data.model.kerberosSubType === vm.kerberosSubTypes.KEYTAB) {
-              //TODO: implement keytab
-              return false;
+              return !(vm.data.model.keytabAuthenticationLocation || vm.data.model.keytabImpersonationLocation);
             } else {
               return (vm.data.model.kerberosAuthenticationUsername && !vm.data.model.kerberosAuthenticationPassword) ||
                 (!vm.data.model.kerberosAuthenticationUsername && vm.data.model.kerberosAuthenticationPassword) ||
@@ -118,7 +119,8 @@ define([
     }
 
     function clearKerberosKeytabValues() {
-      //TODO: implement
+      vm.data.model.keytabAuthenticationLocation = "";
+      vm.data.model.keytabImpersonationLocation = "";
     }
 
   }
