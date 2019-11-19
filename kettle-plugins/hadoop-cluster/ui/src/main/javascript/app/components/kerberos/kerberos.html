@@ -8,12 +8,20 @@
       <label for="kerberosSubType" class="margin_bottom_5 text_left">{{::vm.subTypeLabel}}</label>
       <select-box id="kerberosSubType" type="vm.data.model.kerberosSubType" options="vm.subTypes" on-select="vm.onSelectSubType(value)"></select-box>
     </div>
-    <div ng-if="vm.isPasswordType === true">
+    <div ng-if="vm.kerberosSubTypes.PASSWORD === vm.data.model.kerberosSubType">
       <div class="margin_bottom_15 auto_overflow">
         <credentials username-label="vm.authUserLabel" username="vm.data.model.kerberosAuthenticationUsername" password-label="vm.authPasswordLabel" password="vm.data.model.kerberosAuthenticationPassword"></credentials>
       </div>
       <div class="margin_bottom_15 auto_overflow">
         <credentials username-label="vm.impersonateUserLabel" username="vm.data.model.kerberosImpersonationUsername" password-label="vm.impersonatePasswordLabel" password="vm.data.model.kerberosImpersonationPassword"></credentials>
+      </div>
+    </div>
+    <div ng-if="vm.kerberosSubTypes.KEYTAB === vm.data.model.kerberosSubType">
+      <div class="margin_bottom_15">
+        <browse-local type="vm.keytabBrowseType" label="vm.keytabAuthPathLabel" model="vm.data.model.keytabAuthenticationLocation"></browse-local>
+      </div>
+      <div class="margin_bottom_15">
+        <browse-local type="vm.keytabBrowseType" label="vm.keytabImpersonatePathLabel" model="vm.data.model.keytabImpersonationLocation"></browse-local>
       </div>
     </div>
   </div>
