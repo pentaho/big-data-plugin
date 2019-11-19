@@ -32,6 +32,7 @@ import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.pentaho.amazon.s3.S3Details;
@@ -39,6 +40,8 @@ import org.pentaho.amazon.s3.S3Util;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.connections.vfs.BaseVFSConnectionProvider;
 import org.pentaho.di.connections.vfs.VFSRoot;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.s3.vfs.S3FileProvider;
@@ -50,11 +53,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
  * Created by bmorrise on 2/5/19.
  */
+@SuppressWarnings( "WeakerAccess" )
 public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
 
   private static final String ACCESS_KEY_SECRET_KEY = "0";
@@ -63,6 +68,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   private Supplier<ConnectionManager> connectionManagerSupplier = ConnectionManager::getInstance;
 
   private Supplier<VariableSpace> variableSpace = Variables::getADefaultVariableSpace;
+  private LogChannelInterface log = new LogChannel( this );
 
   @Override
   public Class<S3Details> getClassType() {
@@ -115,11 +121,23 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   @Override public boolean test( S3Details s3Details ) {
     s3Details = prepare( s3Details );
     AmazonS3 amazonS3 = getAmazonS3( s3Details );
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
     try {
-      amazonS3.getS3AccountOwner();
+      // make sure that sax parsing classes are loaded from this cl.
+      // TCCL may have been set to a bundle classloader.
+      Thread.currentThread().setContextClassLoader( getClass().getClassLoader() );
+      Objects.requireNonNull( amazonS3 ).getS3AccountOwner();
       return true;
-    } catch ( Exception e ) {
+    } catch ( AmazonS3Exception e ) {
+      // expected exception if credentials are invalid.  Log just the message.
+      log.logError( e.getMessage() );
       return false;
+    } catch ( Exception e ) {
+      // unexpected exception, log the whole stack
+      log.logError( e.getMessage(), e );
+      return false;
+    } finally {
+      Thread.currentThread().setContextClassLoader( cl );
     }
   }
 
@@ -143,7 +161,7 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
   }
 
   private AmazonS3 getAmazonS3( S3Details s3Details ) {
-    AWSCredentials awsCredentials = null;
+    AWSCredentials awsCredentials;
     AWSCredentialsProvider awsCredentialsProvider = null;
 
     String accessKey = getVar( s3Details.getAccessKey(), variableSpace.get() );
