@@ -156,6 +156,12 @@ public class HadoopClusterManagerTest {
     model.setName( ncTestName );
     JSONObject result = hadoopClusterManager.createNamedCluster( model );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
+
+    String
+      shimTestDir =
+      System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore" + File.separator
+        + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator + ncTestName;
+    assertTrue( new File( shimTestDir ).exists() );
   }
 
   @Test public void testEditNamedCluster() {
@@ -273,7 +279,8 @@ public class HadoopClusterManagerTest {
       + "ncTest" + File.separator + "config.properties";
 
     PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
-    assertEquals( "authenticationlocation", config.getProperty( "pentaho.authentication.default.kerberos.keytabLocation" ) );
+    assertEquals( "authenticationlocation",
+      config.getProperty( "pentaho.authentication.default.kerberos.keytabLocation" ) );
     assertEquals( "impersonationlocation",
       config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation" ) );
     assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
