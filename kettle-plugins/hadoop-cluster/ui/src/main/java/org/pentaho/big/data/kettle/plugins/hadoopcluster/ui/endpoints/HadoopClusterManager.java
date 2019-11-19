@@ -217,10 +217,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         if ( isConfigurationSet ) {
           deleteNamedClusterSchemaOnly( model );
           namedClusterService.create( nc, metaStore );
-          File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
-          if ( newConfigFolder.exists() ) {
-            FileUtils.deleteDirectory( newConfigFolder );
-          }
+          deleteConfigFolder( nc.getName() );
           installSiteFiles( siteFilesSource, nc );
           createConfigProperties( nc );
           setupSecurity( model );
@@ -267,15 +264,27 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return nc;
   }
 
+  private void deleteConfigFolder( String configFolderName ) {
+    try {
+      File configFolder = new File( getNamedClusterConfigsRootDir() );
+      File[] files = configFolder.listFiles();
+      for ( File file : files ) {
+        if ( file.isDirectory() && file.getName().equalsIgnoreCase( configFolderName ) ) {
+          FileUtils.deleteDirectory( file );
+          break;
+        }
+      }
+    } catch ( IOException e ) {
+      logChannel.error( e.getMessage() );
+    }
+  }
+
   public JSONObject createNamedCluster( ThinNameClusterModel model ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
       NamedCluster nc = createXMLSchema( model );
-      File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
-      if ( newConfigFolder.exists() ) {
-        FileUtils.deleteDirectory( newConfigFolder );
-      }
+      deleteConfigFolder( nc.getName() );
       File siteFilesSource = decodeSiteFilesSource( model.getImportPath() );
       if ( siteFilesSource.exists() ) {
         installSiteFiles( siteFilesSource, nc );
@@ -304,10 +313,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
 
       // Copy all files from the old config folder to the new config folder.
-      if ( !oldConfigFolder.equals( newConfigFolder ) ) {
-        if ( newConfigFolder.exists() ) {
-          FileUtils.deleteDirectory( newConfigFolder );
-        }
+      if ( !oldConfigFolder.getName().equalsIgnoreCase( newConfigFolder.getName() ) ) {
+        deleteConfigFolder( nc.getName() );
         FileUtils.copyDirectory( oldConfigFolder, newConfigFolder );
       } else {
         boolean success = oldConfigFolder.renameTo( newConfigFolder );
@@ -330,7 +337,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       setupSecurity( model );
 
       // Delete old config folder.
-      if ( isEditMode && !oldConfigFolder.equals( newConfigFolder ) ) {
+      if ( isEditMode && !oldConfigFolder.getName().equalsIgnoreCase( newConfigFolder.getName() ) ) {
         deleteNamedCluster( metaStore, model.getOldName(), false );
       }
 
@@ -554,9 +561,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     String securityType = model.getSecurityType();
     if ( !StringUtil.isEmpty( securityType ) ) {
-      if ( securityType.equals( SECURITY_TYPE.NONE.getValue() ) ) {
-        resetSecurity( configPropertiesPath );
-      }
+      resetSecurity( configPropertiesPath );
       if ( securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
         String kerberosSubType = model.getKerberosSubType();
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
@@ -673,8 +678,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         namedClusterService.delete( namedCluster, metaStore );
         XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
         if ( xmlMetaStore != null ) {
-          String path = getNamedClusterConfigsRootDir() + fileSeparator + namedCluster;
-          FileUtils.deleteDirectory( new File( path ) );
+          deleteConfigFolder( namedCluster );
         }
       }
       if ( refreshTree ) {
