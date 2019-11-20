@@ -53,6 +53,9 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.ui.core.ConstUI;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogTextVar;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
@@ -262,14 +265,15 @@ public abstract class BaseParquetStepDialog<T extends BaseStepMeta & StepMetaInt
     wbBrowse = new Button( shell, SWT.PUSH );
     props.setLook( wbBrowse );
     wbBrowse.setText( getMsg( "System.Button.Browse" ) );
-    wbBrowse.addListener( SWT.Selection, event -> browseForFilePath() );
+    wbBrowse.addSelectionListener( new SelectionAdapterFileDialogTextVar(
+      log, wPath, transMeta, new SelectionAdapterOptions( selectionOperation() ) ) );
     int bOffset = ( wbBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y
       - wPath.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     new FD( wbBrowse ).left( wPath, FIELD_LABEL_SEP ).top( wlPath, FIELD_LABEL_SEP - bOffset ).apply();
     return wPath;
   }
 
-  protected abstract void browseForFilePath();
+  protected abstract SelectionOperation selectionOperation();
 
   protected String getBaseMsg( String key ) {
     return BaseMessages.getString( BPKG, key );

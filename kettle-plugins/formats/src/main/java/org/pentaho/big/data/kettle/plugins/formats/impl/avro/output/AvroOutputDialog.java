@@ -53,9 +53,11 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
-import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogTextVar;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
@@ -69,8 +71,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
-
-import static org.pentaho.di.ui.core.FileDialogOperation.browse;
 
 public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogInterface {
 
@@ -243,9 +243,9 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
 
     wbSchemaBrowse = new Button( wSourceGroup, SWT.PUSH );
     wbSchemaBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
-    wbSchemaBrowse.addListener( SWT.Selection,
-      event -> browse( FileDialogOperation.SAVE, wSchemaPath, FileDialogOperation::setStartLocation,
-        FileDialogOperation::handleSave ) );
+
+    wbSchemaBrowse.addSelectionListener( new SelectionAdapterFileDialogTextVar(
+      log, wSchemaPath, transMeta, new SelectionAdapterOptions( SelectionOperation.SAVE ) ) );
     int bOffset = ( wbSchemaBrowse.computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y - wSchemaPath.
         computeSize( SWT.DEFAULT, SWT.DEFAULT, false ).y ) / 2;
     wbSchemaBrowse.setLayoutData( new FormDataBuilder().left( wSchemaPath, FIELD_LABEL_SEP ).top( wlSchemaPath, FIELD_LABEL_SEP - bOffset ).result() );
@@ -711,6 +711,10 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
   @Override
   protected Listener getPreview() {
     return null;
+  }
+
+  @Override protected SelectionOperation selectionOperation() {
+    return SelectionOperation.OPEN;
   }
 }
 
