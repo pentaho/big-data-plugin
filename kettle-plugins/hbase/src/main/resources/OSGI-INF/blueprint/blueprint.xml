@@ -26,6 +26,7 @@
     <argument ref="namedClusterService"/>
     <argument ref="runtimeTestActionService"/>
     <argument ref="runtimeTester"/>
+    <argument ref="metastoreLocatorOsgi"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
 

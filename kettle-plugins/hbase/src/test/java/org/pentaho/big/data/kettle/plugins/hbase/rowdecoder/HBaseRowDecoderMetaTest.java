@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
@@ -63,7 +64,7 @@ public class HBaseRowDecoderMetaTest {
   public void setup() {
     hbRowDecoderMeta =
       new HBaseRowDecoderMeta( mock( NamedClusterServiceLocator.class ), mock( NamedClusterService.class ), mock(
-        RuntimeTestActionService.class ), mock( RuntimeTester.class ) );
+        RuntimeTestActionService.class ), mock( RuntimeTester.class ), mock( MetastoreLocatorOsgi.class ) );
     rowMeta = new RowMeta();
   }
 

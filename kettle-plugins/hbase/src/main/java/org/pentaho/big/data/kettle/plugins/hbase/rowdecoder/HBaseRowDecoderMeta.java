@@ -26,7 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -39,7 +42,6 @@ import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -49,10 +51,8 @@ import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionDeep;
 import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -69,6 +69,10 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
+import static org.pentaho.di.core.CheckResult.TYPE_RESULT_ERROR;
+import static org.pentaho.di.core.CheckResult.TYPE_RESULT_OK;
+import static org.pentaho.di.core.CheckResult.TYPE_RESULT_WARNING;
+
 /**
  * Meta class for the HBase row decoder.
  *
@@ -83,22 +87,25 @@ import org.w3c.dom.Node;
 @InjectionSupported( localizationPrefix = "HBaseRowDecoder.Injection.", groups = { "MAPPING" } )
 public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterface {
 
+  public static final String INCOMING_KEY_FIELD = "incoming_key_field";
+  public static final String INCOMING_RESULT_FIELD = "incoming_result_field";
   protected NamedCluster namedCluster;
 
   /** The incoming field that contains the HBase row key */
   @Injection( name = "KEY_FIELD" )
-  protected String m_incomingKeyField = "";
+  protected String mIncomingKeyField = "";
 
   /** The incoming field that contains the HBase row Result object */
   @Injection( name = "HBASE_RESULT_FIELD" )
-  protected String m_incomingResultField = "";
+  protected String mIncomingResultField = "";
 
   /** The mapping to use */
-  protected Mapping m_mapping;
+  protected Mapping mMapping;
 
   @InjectionDeep
   protected MappingDefinition mappingDefinition;
 
+  private MetastoreLocatorOsgi metaStoreService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final NamedClusterService namedClusterService;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -108,12 +115,14 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
   public HBaseRowDecoderMeta( NamedClusterServiceLocator namedClusterServiceLocator,
                               NamedClusterService namedClusterService,
-                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+                              RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester,
+                              MetastoreLocatorOsgi metaStore ) {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
     this.namedClusterService = namedClusterService;
     this.runtimeTestActionService = runtimeTestActionService;
     this.runtimeTester = runtimeTester;
     this.namedClusterLoadSaveUtil = new NamedClusterLoadSaveUtil();
+    this.metaStoreService = metaStore;
   }
 
 
@@ -140,7 +149,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
    *          the name of the field that holds the key
    */
   public void setIncomingKeyField( String inKey ) {
-    m_incomingKeyField = inKey;
+    mIncomingKeyField = inKey;
   }
 
   /**
@@ -149,7 +158,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
    * @return the name of the field that holds the key
    */
   public String getIncomingKeyField() {
-    return m_incomingKeyField;
+    return mIncomingKeyField;
   }
 
   /**
@@ -159,7 +168,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
    *          the name of the field that holds the HBase row Result object
    */
   public void setIncomingResultField( String inResult ) {
-    m_incomingResultField = inResult;
+    mIncomingResultField = inResult;
   }
 
   /**
@@ -168,7 +177,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
    * @return the name of the field that holds the HBase row Result object
    */
   public String getIncomingResultField() {
-    return m_incomingResultField;
+    return mIncomingResultField;
   }
 
   /**
@@ -178,7 +187,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
    *          the mapping to use
    */
   public void setMapping( Mapping m ) {
-    m_mapping = m;
+    mMapping = m;
   }
 
   /**
@@ -187,7 +196,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
    * @return the mapping to use
    */
   public Mapping getMapping() {
-    return m_mapping;
+    return mMapping;
   }
 
   public MappingDefinition getMappingDefinition() {
@@ -199,8 +208,8 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   }
 
   public void setDefault() {
-    m_incomingKeyField = "";
-    m_incomingResultField = "";
+    mIncomingKeyField = "";
+    mIncomingResultField = "";
     namedCluster = namedClusterService.getClusterTemplate();
   }
 
@@ -210,27 +219,27 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
     rowMeta.clear(); // start afresh - eats the input
 
-    if ( m_mapping != null ) {
+    if ( mMapping != null ) {
       int kettleType;
 
-      if ( m_mapping.getKeyType() == Mapping.KeyType.DATE
-        || m_mapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
+      if ( mMapping.getKeyType() == Mapping.KeyType.DATE
+        || mMapping.getKeyType() == Mapping.KeyType.UNSIGNED_DATE ) {
         kettleType = ValueMetaInterface.TYPE_DATE;
-      } else if ( m_mapping.getKeyType() == Mapping.KeyType.STRING ) {
+      } else if ( mMapping.getKeyType() == Mapping.KeyType.STRING ) {
         kettleType = ValueMetaInterface.TYPE_STRING;
-      } else if ( m_mapping.getKeyType() == Mapping.KeyType.BINARY ) {
+      } else if ( mMapping.getKeyType() == Mapping.KeyType.BINARY ) {
         kettleType = ValueMetaInterface.TYPE_BINARY;
       } else {
         kettleType = ValueMetaInterface.TYPE_INTEGER;
       }
 
-      ValueMetaInterface keyMeta = new ValueMeta( m_mapping.getKeyName(), kettleType );
+      ValueMetaInterface keyMeta = new ValueMetaBase( mMapping.getKeyName(), kettleType );
 
       keyMeta.setOrigin( origin );
       rowMeta.addValueMeta( keyMeta );
 
       // Add the rest of the fields in the mapping
-      Map<String, HBaseValueMetaInterface> mappedColumnsByAlias = m_mapping.getMappedColumns();
+      Map<String, HBaseValueMetaInterface> mappedColumnsByAlias = mMapping.getMappedColumns();
       Set<String> aliasSet = mappedColumnsByAlias.keySet();
       for ( String alias : aliasSet ) {
         HBaseValueMetaInterface columnMeta = mappedColumnsByAlias.get( alias );
@@ -247,26 +256,26 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
 
     if ( ( prev == null ) || ( prev.size() == 0 ) ) {
       cr = new CheckResult(
-          CheckResult.TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
+          TYPE_RESULT_WARNING, "Not receiving any fields from previous steps!", stepMeta );
       remarks.add( cr );
     } else {
       cr =
-          new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is connected to previous one, receiving " + prev.size()
+          new CheckResult( TYPE_RESULT_OK, "Step is connected to previous one, receiving " + prev.size()
               + " fields", stepMeta );
       remarks.add( cr );
     }
 
     // See if we have input streams leading to this step!
     if ( input.length > 0 ) {
-      cr = new CheckResult( CheckResult.TYPE_RESULT_OK, "Step is receiving info from other steps.", stepMeta );
+      cr = new CheckResult( TYPE_RESULT_OK, "Step is receiving info from other steps.", stepMeta );
       remarks.add( cr );
     } else {
-      cr = new CheckResult( CheckResult.TYPE_RESULT_ERROR, "No input received from other steps!", stepMeta );
+      cr = new CheckResult( TYPE_RESULT_ERROR, "No input received from other steps!", stepMeta );
       remarks.add( cr );
     }
   }
 
-  void applyInjection( VariableSpace space ) throws KettleException {
+  void applyInjection() throws KettleException {
     if ( namedCluster == null ) {
       throw new KettleException( "Named cluster was not initialized!" );
     }
@@ -275,7 +284,7 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
       Mapping tempMapping = null;
       if ( mappingDefinition != null ) {
         tempMapping = MappingUtils.getMapping( mappingDefinition, hBaseService );
-        m_mapping = tempMapping;
+        mMapping = tempMapping;
       }
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( e );
@@ -295,73 +304,77 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
   @Override
   public String getXML() {
     try {
-      applyInjection( new Variables() );
+      applyInjection();
     } catch ( KettleException e ) {
       log.logError( "Error occurred while injecting metadata. Transformation meta could be incorrect!", e );
     }
     StringBuilder retval = new StringBuilder();
 
-    if ( !Const.isEmpty( m_incomingKeyField ) ) {
-      retval.append( "\n    " ).append( XMLHandler.addTagValue( "incoming_key_field", m_incomingKeyField ) );
+    if ( StringUtils.isNotEmpty( mIncomingKeyField ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( INCOMING_KEY_FIELD, mIncomingKeyField ) );
     }
-    if ( !Const.isEmpty( m_incomingResultField ) ) {
-      retval.append( "\n    " ).append( XMLHandler.addTagValue( "incoming_result_field", m_incomingResultField ) );
+    if ( StringUtils.isNotEmpty( mIncomingResultField ) ) {
+      retval.append( "\n    " ).append( XMLHandler.addTagValue( INCOMING_RESULT_FIELD, mIncomingResultField ) );
     }
 
     namedClusterLoadSaveUtil.getXml( retval, namedClusterService, namedCluster, repository == null ? null : repository
         .getMetaStore(), log );
-    if ( m_mapping != null ) {
-      retval.append( m_mapping.getXML() );
+    if ( mMapping != null ) {
+      retval.append( mMapping.getXML() );
     }
 
     return retval.toString();
   }
 
   public void loadXML( Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore ) throws KettleXMLException {
-    m_incomingKeyField = XMLHandler.getTagValue( stepnode, "incoming_key_field" );
-    m_incomingResultField = XMLHandler.getTagValue( stepnode, "incoming_result_field" );
+    if ( metaStore == null ) {
+      metaStore = metaStoreService.getMetastore();
+    }
+
+    mIncomingKeyField = XMLHandler.getTagValue( stepnode, INCOMING_KEY_FIELD );
+    mIncomingResultField = XMLHandler.getTagValue( stepnode, INCOMING_RESULT_FIELD );
     this.namedCluster =
         namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, log );
     try {
-      m_mapping =
+      mMapping =
           namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class ).getMappingFactory()
               .createMapping();
     } catch ( ClusterInitializationException e ) {
       throw new KettleXMLException( e );
     }
-    m_mapping.loadXML( stepnode );
+    mMapping.loadXML( stepnode );
   }
 
-  public void readRep( Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases )
+  public void readRep( Repository rep, IMetaStore metaStore, ObjectId idStep, List<DatabaseMeta> databases )
     throws KettleException {
 
-    m_incomingKeyField = rep.getStepAttributeString( id_step, 0, "incoming_key_field" );
-    m_incomingResultField = rep.getStepAttributeString( id_step, 0, "incoming_result_field" );
+    mIncomingKeyField = rep.getStepAttributeString( idStep, 0, INCOMING_KEY_FIELD );
+    mIncomingResultField = rep.getStepAttributeString( idStep, 0, INCOMING_RESULT_FIELD );
     this.namedCluster =
-        namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, id_step, rep, metaStore, null, log );
+        namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, idStep, rep, metaStore, null, log );
     try {
-      m_mapping =
+      mMapping =
           namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class ).getMappingFactory()
               .createMapping();
     } catch ( ClusterInitializationException e ) {
       throw new KettleXMLException( e );
     }
-    m_mapping.readRep( rep, id_step );
+    mMapping.readRep( rep, idStep );
   }
 
-  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step ) throws KettleException {
+  public void saveRep( Repository rep, IMetaStore metaStore, ObjectId idTransformation, ObjectId idStep ) throws KettleException {
 
-    if ( !Const.isEmpty( m_incomingKeyField ) ) {
-      rep.saveStepAttribute( id_transformation, id_step, 0, "incoming_key_field", m_incomingKeyField );
+    if ( StringUtils.isNotEmpty( mIncomingKeyField ) ) {
+      rep.saveStepAttribute( idTransformation, idStep, 0, INCOMING_KEY_FIELD, mIncomingKeyField );
     }
-    if ( !Const.isEmpty( m_incomingResultField ) ) {
-      rep.saveStepAttribute( id_transformation, id_step, 0, "incoming_result_field", m_incomingResultField );
+    if ( StringUtils.isNotEmpty( mIncomingResultField ) ) {
+      rep.saveStepAttribute( idTransformation, idStep, 0, INCOMING_RESULT_FIELD, mIncomingResultField );
     }
 
-    namedClusterLoadSaveUtil.saveRep( rep, metaStore, id_transformation, id_step, namedClusterService, namedCluster, log );
+    namedClusterLoadSaveUtil.saveRep( rep, metaStore, idTransformation, idStep, namedClusterService, namedCluster, log );
 
-    if ( m_mapping != null ) {
-      m_mapping.saveRep( rep, id_transformation, id_step );
+    if ( mMapping != null ) {
+      mMapping.saveRep( rep, idTransformation, idStep );
     }
   }
 
