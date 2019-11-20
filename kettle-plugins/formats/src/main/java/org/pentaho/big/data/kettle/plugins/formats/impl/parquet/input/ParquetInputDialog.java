@@ -42,11 +42,11 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
-import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.TableView;
@@ -418,7 +418,7 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
     return e -> doPreview();
   }
 
-  @Override protected void browseForFilePath() {
-    FileDialogOperation.browseForOpen( wPath );
+  @Override protected SelectionOperation selectionOperation() {
+    return SelectionOperation.OPEN;
   }
 }

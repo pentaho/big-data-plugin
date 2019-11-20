@@ -53,8 +53,8 @@ import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
-import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
@@ -704,8 +704,8 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
     return null;
   }
 
-  @Override protected void browseForFilePath() {
-    FileDialogOperation.browseForSave( wPath );
+  @Override protected SelectionOperation selectionOperation() {
+    return SelectionOperation.SAVE;
   }
 }
 

@@ -53,12 +53,14 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
-import org.pentaho.di.ui.core.FileDialogOperation;
 import org.pentaho.di.ui.core.FormDataBuilder;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogTextVar;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.ColumnsResizer;
 import org.pentaho.di.ui.core.widget.ComboVar;
@@ -72,8 +74,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.pentaho.di.ui.core.FileDialogOperation.browse;
 
 public class AvroInputDialog extends BaseAvroStepDialog {
   private static final Class<?> PKG = AvroInputMeta.class;
@@ -458,14 +458,15 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
     wbSchemaBrowse = new Button( wSchemaFileComposite, SWT.PUSH );
     wbSchemaBrowse.setText( BaseMessages.getString( "System.Button.Browse" ) );
-    wbSchemaBrowse.addListener( SWT.Selection,
-      event -> browse( FileDialogOperation.OPEN, wSchemaPath, FileDialogOperation::setStartLocation,
-        FileDialogOperation::handleOpen ) );
+
     wbSchemaBrowse.setLayoutData( new FormDataBuilder().top( wlSchemaPath ).right().result() );
 
     wSchemaPath = new TextVar( transMeta, wSchemaFileComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wSchemaPath.setLayoutData( new FormDataBuilder().left().right( wbSchemaBrowse, -FIELD_LABEL_SEP )
       .top( wlSchemaPath ).result() );
+
+    wbSchemaBrowse.addSelectionListener( new SelectionAdapterFileDialogTextVar(
+      log, wSchemaPath, transMeta, new SelectionAdapterOptions( selectionOperation() ) ) );
 
 
     wSchemaFieldComposite = new Composite( wSchemaSettingsDynamicArea, SWT.NONE );
@@ -799,5 +800,9 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   @Override
   protected Listener getPreview() {
     return e -> doPreview();
+  }
+
+  @Override protected SelectionOperation selectionOperation() {
+    return SelectionOperation.OPEN;
   }
 }
