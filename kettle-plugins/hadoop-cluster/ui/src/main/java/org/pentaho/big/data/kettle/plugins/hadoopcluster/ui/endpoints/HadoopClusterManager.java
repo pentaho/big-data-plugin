@@ -216,11 +216,12 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           configureNamedCluster( siteFilesSource, nc, model.getShimVendor(), model.getShimVersion() );
         if ( isConfigurationSet ) {
           deleteNamedClusterSchemaOnly( model );
+          setupKnoxSecurity( nc, model );
           namedClusterService.create( nc, metaStore );
           deleteConfigFolder( nc.getName() );
           installSiteFiles( siteFilesSource, nc );
           createConfigProperties( nc );
-          setupSecurity( model );
+          setupKerberosSecurity( model );
           refreshTree();
           response.put( NAMED_CLUSTER, nc.getName() );
         }
@@ -254,6 +255,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setOozieUrl( model.getOozieUrl() );
     nc.setKafkaBootstrapServers( model.getKafkaBootstrapServers() );
     resolveShimIdentifier( nc, model.getShimVendor(), model.getShimVersion() );
+    setupKnoxSecurity( nc, model );
     if ( variableSpace != null ) {
       nc.shareVariablesWith( variableSpace );
     } else {
@@ -288,7 +290,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         installSiteFiles( siteFilesSource, nc );
       }
       createConfigProperties( nc );
-      setupSecurity( model );
+      setupKerberosSecurity( model );
       refreshTree();
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
@@ -332,7 +334,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( nc.getShimIdentifier() != null && !nc.getShimIdentifier().equals( shimId ) ) {
         createConfigProperties( nc );
       }
-      setupSecurity( model );
+      setupKerberosSecurity( model );
 
       // Delete old config folder.
       if ( isEditMode && !oldConfigFolder.getName().equalsIgnoreCase( newConfigFolder.getName() ) ) {
@@ -366,7 +368,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          resolveSecurity( model, nc );
+          model.setSecurityType( nc.isUseGateway() ? SECURITY_TYPE.KNOX.getValue() : SECURITY_TYPE.NONE.getValue() );
+          model.setGatewayPassword( nc.getGatewayPassword() );
+          model.setGatewayUrl( nc.getGatewayUrl() );
+          model.setGatewayUsername( nc.getGatewayUsername() );
+          resolveKerberosSecurity( model, nc );
           break;
         }
       }
@@ -551,7 +557,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void setupSecurity( ThinNameClusterModel model ) {
+  private void setupKerberosSecurity( ThinNameClusterModel model ) {
     Path
       configPropertiesPath =
       Paths
@@ -559,7 +565,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     String securityType = model.getSecurityType();
     if ( !StringUtil.isEmpty( securityType ) ) {
-      resetSecurity( configPropertiesPath );
+      resetKerberosSecurity( configPropertiesPath );
       if ( securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
         String kerberosSubType = model.getKerberosSubType();
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
@@ -569,13 +575,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           setupKeytabSecurity( configPropertiesPath, model );
         }
       }
-      if ( securityType.equals( SECURITY_TYPE.KNOX.getValue() ) ) {
-        setupKnoxSecurity( configPropertiesPath, model );
-      }
     }
   }
 
-  private void resetSecurity( Path configPropertiesPath ) {
+  private void resetKerberosSecurity( Path configPropertiesPath ) {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, "" );
@@ -591,7 +594,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void resolveSecurity( ThinNameClusterModel model, NamedCluster nc ) {
+  private void resolveKerberosSecurity( ThinNameClusterModel model, NamedCluster nc ) {
     try {
       String configFile =
         getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
@@ -602,9 +605,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
       model.setKeytabAuthenticationLocation( (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION ) );
       model.setKeytabImpersonationLocation( (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION ) );
-
-      //TODO Default security type Knox for now until it gets implemented.
-      model.setSecurityType( SECURITY_TYPE.KNOX.getValue() );
 
       // If Kerberos security properties are empty then security type is None else if at least one of them has a
       // value then the security type is Kerberos
@@ -666,8 +666,17 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void setupKnoxSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
-    //TODO
+  private void setupKnoxSecurity( NamedCluster nc, ThinNameClusterModel model ) {
+    if ( model.getSecurityType() != null && model.getSecurityType().equals( SECURITY_TYPE.KNOX.getValue() ) ) {
+      String userName = model.getGatewayUsername();
+      String url = model.getGatewayUrl();
+      String password = model.getGatewayPassword();
+      nc.setGatewayPassword( password );
+      nc.setGatewayUrl( url );
+      nc.setGatewayUsername( userName );
+      nc.setUseGateway(
+        !StringUtil.isEmpty( userName ) && !StringUtil.isEmpty( url ) && !StringUtil.isEmpty( password ) );
+    }
   }
 
   public void deleteNamedCluster( IMetaStore metaStore, String namedCluster, boolean refreshTree ) {

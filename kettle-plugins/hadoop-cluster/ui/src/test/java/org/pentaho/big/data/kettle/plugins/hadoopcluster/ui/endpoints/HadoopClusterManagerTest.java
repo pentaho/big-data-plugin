@@ -81,7 +81,6 @@ public class HadoopClusterManagerTest {
     when( maprShim.getVendor() ).thenReturn( "MapR" );
     when( maprShim.getVersion() ).thenReturn( "4.6" );
     when( maprShim.getId() ).thenReturn( "mapr46" );
-
     when( namedClusterService.getClusterTemplate() ).thenReturn( namedCluster );
     when( spoon.getMetaStore() ).thenReturn( metaStore );
     when( namedCluster.getName() ).thenReturn( ncTestName );
@@ -89,8 +88,11 @@ public class HadoopClusterManagerTest {
     when( namedCluster.getShimIdentifier() ).thenReturn( "cdh514" );
     when( namedClusterService.contains( ncTestName, metaStore ) ).thenReturn( false );
     when( namedClusterService.contains( "existingName", metaStore ) ).thenReturn( true );
+    when( namedCluster.isUseGateway() ).thenReturn( true );
+    when( namedCluster.getGatewayPassword() ).thenReturn( "password" );
+    when( namedCluster.getGatewayUrl() ).thenReturn( "http://localhost:8008" );
+    when( namedCluster.getGatewayUsername() ).thenReturn( "username" );
     hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore, "apache" );
-
     hadoopClusterManager.shimIdentifiersSupplier = () -> ImmutableList.of( cdhShim, internalShim, maprShim );
     when( namedClusterService.list( metaStore ) ).thenReturn( ImmutableList.of( namedCluster ) );
   }
@@ -228,6 +230,22 @@ public class HadoopClusterManagerTest {
         assertEquals( "Warning", test.getTestStatus() );
       }
     }
+  }
+
+  @Test public void testNamedClusterKnoxSecurity() {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setName( ncTestName );
+    model.setSecurityType( "Knox" );
+    model.setGatewayUsername( "username" );
+    model.setGatewayUrl( "http://localhost:8008" );
+    model.setGatewayPassword( "password" );
+    hadoopClusterManager.createNamedCluster( model );
+
+    NamedCluster namedCluster = namedClusterService.getNamedClusterByName( ncTestName, metaStore );
+    assertEquals( true, namedCluster.isUseGateway() );
+    assertEquals( "password", namedCluster.getGatewayPassword() );
+    assertEquals( "http://localhost:8008", namedCluster.getGatewayUrl() );
+    assertEquals( "username", namedCluster.getGatewayUsername() );
   }
 
   @Test public void testNamedClusterKerberosPasswordSecurity() throws ConfigurationException {
