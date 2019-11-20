@@ -25,6 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hbase.rowdecoder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.di.core.injection.BaseMetadataInjectionTest;
@@ -39,9 +40,10 @@ public class HBaseRowDecoderMetaInjectionTest extends BaseMetadataInjectionTest<
     NamedClusterServiceLocator namedClusterServiceLocator = Mockito.mock( NamedClusterServiceLocator.class );
     RuntimeTestActionService runtimeTestActionService = Mockito.mock( RuntimeTestActionService.class );
     RuntimeTester runtimeTester = Mockito.mock( RuntimeTester.class );
+    MetastoreLocatorOsgi metaStore = Mockito.mock( MetastoreLocatorOsgi.class );
 
     setup( new HBaseRowDecoderMeta( namedClusterServiceLocator, namedClusterService, runtimeTestActionService,
-        runtimeTester ) );
+        runtimeTester, metaStore ) );
   }
 
   @Test
