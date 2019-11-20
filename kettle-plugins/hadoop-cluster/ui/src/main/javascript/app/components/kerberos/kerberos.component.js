@@ -76,7 +76,7 @@ define([
           class: "primary",
           isDisabled: function () {
             if (vm.data.model.kerberosSubType === vm.kerberosSubTypes.KEYTAB) {
-              return !(vm.data.model.keytabAuthenticationLocation || vm.data.model.keytabImpersonationLocation);
+              return !vm.data.model.keytabAuthenticationLocation;
             } else {
               return (vm.data.model.kerberosAuthenticationUsername && !vm.data.model.kerberosAuthenticationPassword) ||
                 (!vm.data.model.kerberosAuthenticationUsername && vm.data.model.kerberosAuthenticationPassword) ||
