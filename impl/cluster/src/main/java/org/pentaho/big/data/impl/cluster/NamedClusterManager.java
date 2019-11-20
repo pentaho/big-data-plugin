@@ -169,7 +169,7 @@ public class NamedClusterManager implements NamedClusterService {
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedClusterImpl> factory = getMetaStoreFactory( metastore );
 
-    if ( !listNames( metastore ).contains( clusterName ) ) {
+    if ( metastore == null || !listNames( metastore ).contains( clusterName ) ) {
       // only try the slave metastore if the given one fails
       IMetaStore slaveMetastore = getSlaveServerMetastore();
       if ( slaveMetastore != null && listNames( slaveMetastore ).contains( clusterName ) ) {
