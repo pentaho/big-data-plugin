@@ -71,6 +71,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
   public static final String HTTP_ERROR_CODE_401 = "HTTP error code: 401";
   public static final String HTTP_ERROR_CODE_403 = "HTTP error code: 403";
   public static final String USER_NAME = "user.name";
+  public static final String VALIDATION_MESSAGES_MISSING_CONFIGURATION = "ValidationMessages.Missing.Configuration";
   private final NamedClusterService namedClusterService;
   private final NamedClusterServiceLocator namedClusterServiceLocator;
   private final RuntimeTestActionService runtimeTestActionService;
@@ -106,51 +107,41 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
     if ( StringUtil.isEmpty( config.getJobEntryName() ) ) {
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.JobName" ) );
     }
-
-    if ( StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
+    NamedCluster nc = null;
+    try {
+      nc = getNamedCluster( config );
+    } catch ( MetaStoreException e ) {
       messages
-        .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
-    } else {
-      try {
-
-        NamedCluster nc = getNamedCluster( config );
-
-        if ( !checkOozieConnection ) {
-          if ( nc == null ) {
-            messages.add(
-              BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Configuration" ) );
-          } else if ( StringUtils.isEmpty( nc.getOozieUrl() ) ) {
-            messages
-              .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
-          }
-        }
-      } catch ( Throwable t ) {
-        messages
-          .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
-      }
+        .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, VALIDATION_MESSAGES_MISSING_CONFIGURATION ) );
     }
 
-    if ( checkOozieConnection && !StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
-      try {
-        hadoopClientServices = getHadoopClientServices( config );
-        hadoopClientServices.getOozieProtocolUrl();
-        hadoopClientServices.validateOozieWSVersion();
-      } catch ( HadoopClientServicesException e ) {
-        if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
-          || ( e.getCause() != null
-          && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
-          messages
-            .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
-        } else if ( e.getErrorCode().equals( HTTP_ERROR_CODE_401 ) || e.getErrorCode().equals( HTTP_ERROR_CODE_403 ) ) {
-          messages.add(
-            BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Unauthorized.Oozie.Access" ) );
-        } else {
-          messages.add( BaseMessages
-            .getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Incompatible.Oozie.Versions" ) );
-        }
-      }
+    if ( null == nc || nc.getName().equals( "" ) || nc.getShimIdentifier().equals( "" ) ) {
+      messages.add(
+        BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.NamedCluster", config.getClusterName() ) );
+      return messages;
     }
 
+    verifyOozieUrl( config, checkOozieConnection, messages, nc );
+    checkOozieConnection( config, checkOozieConnection, messages );
+    verifyJobConfiguration( config, checkOozieConnection, messages );
+
+    boolean pollingIntervalValid = false;
+    try {
+      long pollingInterval = JobEntryUtils.asLong( config.getBlockingPollingInterval(), variables );
+      pollingIntervalValid = pollingInterval > 0;
+    } catch ( Exception ex ) {
+      // ignore, polling interval is not valid
+    }
+    if ( !pollingIntervalValid ) {
+      messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
+        "ValidationMessages.Invalid.PollingInterval" ) );
+    }
+
+    return messages;
+  }
+
+  private void verifyJobConfiguration( OozieJobExecutorConfig config, boolean checkOozieConnection,
+                                       List<String> messages ) {
     // path to oozie workflow properties file
     if ( config.getModeAsEnum() == JobEntryMode.QUICK_SETUP && StringUtil.isEmpty( config.getOozieWorkflowConfig() ) ) {
       messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
@@ -176,20 +167,53 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           "ValidationMessages.Workflow.Properties.ReadError" ) );
       }
     }
+  }
 
-    boolean pollingIntervalValid = false;
-    try {
-      long pollingInterval = JobEntryUtils.asLong( config.getBlockingPollingInterval(), variables );
-      pollingIntervalValid = pollingInterval > 0;
-    } catch ( Exception ex ) {
-      // ignore, polling interval is not valid
+  private void checkOozieConnection( OozieJobExecutorConfig config, boolean checkOozieConnection,
+                                     List<String> messages ) {
+    if ( checkOozieConnection && !StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
+      try {
+        hadoopClientServices = getHadoopClientServices( config );
+        hadoopClientServices.getOozieProtocolUrl();
+        hadoopClientServices.validateOozieWSVersion();
+      } catch ( HadoopClientServicesException e ) {
+        if ( e.getErrorCode().equals( HTTP_ERROR_CODE_404 )
+          || ( e.getCause() != null
+          && ( e.getCause() instanceof MalformedURLException || e.getCause() instanceof ConnectException ) ) ) {
+          messages
+            .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Invalid.Oozie.URL" ) );
+        } else if ( e.getErrorCode().equals( HTTP_ERROR_CODE_401 ) || e.getErrorCode().equals( HTTP_ERROR_CODE_403 ) ) {
+          messages.add(
+            BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Unauthorized.Oozie.Access" ) );
+        } else {
+          messages.add( BaseMessages
+            .getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Incompatible.Oozie.Versions" ) );
+        }
+      }
     }
-    if ( !pollingIntervalValid ) {
-      messages.add( BaseMessages.getString( OozieJobExecutorJobEntry.class,
-        "ValidationMessages.Invalid.PollingInterval" ) );
-    }
+  }
 
-    return messages;
+  private void verifyOozieUrl( OozieJobExecutorConfig config, boolean checkOozieConnection, List<String> messages,
+                               NamedCluster nc ) {
+    if ( StringUtils.isEmpty( getEffectiveOozieUrl( config ) ) ) {
+      messages
+        .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, VALIDATION_MESSAGES_MISSING_CONFIGURATION ) );
+    } else {
+      try {
+        if ( !checkOozieConnection ) {
+          if ( nc == null ) {
+            messages.add(
+              BaseMessages.getString( OozieJobExecutorJobEntry.class, VALIDATION_MESSAGES_MISSING_CONFIGURATION ) );
+          } else if ( StringUtils.isEmpty( nc.getOozieUrl() ) ) {
+            messages
+              .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+          }
+        }
+      } catch ( Throwable t ) {
+        messages
+          .add( BaseMessages.getString( OozieJobExecutorJobEntry.class, "ValidationMessages.Missing.Oozie.URL" ) );
+      }
+    }
   }
 
   private NamedCluster getNamedCluster( OozieJobExecutorConfig config ) throws MetaStoreException {
@@ -237,7 +261,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
       new InputStreamReader( KettleVFS.getInputStream( variableSpace.environmentSubstitute( config
         .getOozieWorkflowConfig() ) ) );
 
-    Properties jobProps = new Properties(); // PropertiesUtils.readProperties(reader, 100*1024);
+    Properties jobProps = new Properties();
     jobProps.load( reader );
     return jobProps;
   }
@@ -303,7 +327,6 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           OozieJobInfo job = hadoopClientServices.runOozie( jobProps );
           if ( JobEntryUtils.asBoolean( getJobConfig().getBlockingExecution(), variables ) ) {
             while ( job.isRunning() ) {
-              // System.out.println("Still running " + jobId + "...");
               long interval = JobEntryUtils.asLong( jobConfig.getBlockingPollingInterval(), variables );
               Thread.sleep( interval );
             }
@@ -326,11 +349,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
           setJobResultFailed( jobResult );
           logError( BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.Props.Loading" ),
             e );
-        } catch ( HadoopClientServicesException e ) {
-          setJobResultFailed( jobResult );
-          logError(
-            BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.OozieClient" ), e );
-        } catch ( OozieServiceException e ) {
+        } catch ( HadoopClientServicesException | OozieServiceException e ) {
           setJobResultFailed( jobResult );
           logError(
             BaseMessages.getString( OozieJobExecutorJobEntry.class, "Oozie.JobExecutor.ERROR.OozieClient" ), e );
@@ -376,7 +395,7 @@ public class OozieJobExecutorJobEntry extends AbstractJobEntry<OozieJobExecutorC
         HadoopClientServices.class );
     } catch ( ClusterInitializationException e ) {
       logError( "Cluster initialization failure on service load", e );
-    } catch ( MetaStoreException e ) {
+    } catch ( NullPointerException | MetaStoreException e ) {
       logError( "Failed to read cluster from metastore", e );
     }
     return null;
