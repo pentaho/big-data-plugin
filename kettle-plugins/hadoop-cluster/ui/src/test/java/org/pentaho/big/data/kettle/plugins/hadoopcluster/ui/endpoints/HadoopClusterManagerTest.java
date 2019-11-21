@@ -62,10 +62,12 @@ public class HadoopClusterManagerTest {
   @Mock private NamedClusterService namedClusterService;
   @Mock private DelegatingMetaStore metaStore;
   @Mock private NamedCluster namedCluster;
+  @Mock private NamedCluster knoxNamedCluster;
   @Mock private ShimIdentifierInterface cdhShim;
   @Mock private ShimIdentifierInterface internalShim;
   @Mock private ShimIdentifierInterface maprShim;
   private String ncTestName = "ncTest";
+  private String knoxNC = "knoxNC";
   private HadoopClusterManager hadoopClusterManager;
 
   @Before public void setup() throws Exception {
@@ -88,10 +90,11 @@ public class HadoopClusterManagerTest {
     when( namedCluster.getShimIdentifier() ).thenReturn( "cdh514" );
     when( namedClusterService.contains( ncTestName, metaStore ) ).thenReturn( false );
     when( namedClusterService.contains( "existingName", metaStore ) ).thenReturn( true );
-    when( namedCluster.isUseGateway() ).thenReturn( true );
-    when( namedCluster.getGatewayPassword() ).thenReturn( "password" );
-    when( namedCluster.getGatewayUrl() ).thenReturn( "http://localhost:8008" );
-    when( namedCluster.getGatewayUsername() ).thenReturn( "username" );
+    when( namedClusterService.getNamedClusterByName( knoxNC, metaStore ) ).thenReturn( knoxNamedCluster );
+    when( knoxNamedCluster.isUseGateway() ).thenReturn( true );
+    when( knoxNamedCluster.getGatewayPassword() ).thenReturn( "password" );
+    when( knoxNamedCluster.getGatewayUrl() ).thenReturn( "http://localhost:8008" );
+    when( knoxNamedCluster.getGatewayUsername() ).thenReturn( "username" );
     hadoopClusterManager = new HadoopClusterManager( spoon, namedClusterService, metaStore, "apache" );
     hadoopClusterManager.shimIdentifiersSupplier = () -> ImmutableList.of( cdhShim, internalShim, maprShim );
     when( namedClusterService.list( metaStore ) ).thenReturn( ImmutableList.of( namedCluster ) );
@@ -234,14 +237,14 @@ public class HadoopClusterManagerTest {
 
   @Test public void testNamedClusterKnoxSecurity() {
     ThinNameClusterModel model = new ThinNameClusterModel();
-    model.setName( ncTestName );
+    model.setName( knoxNC );
     model.setSecurityType( "Knox" );
     model.setGatewayUsername( "username" );
     model.setGatewayUrl( "http://localhost:8008" );
     model.setGatewayPassword( "password" );
     hadoopClusterManager.createNamedCluster( model );
 
-    NamedCluster namedCluster = namedClusterService.getNamedClusterByName( ncTestName, metaStore );
+    NamedCluster namedCluster = namedClusterService.getNamedClusterByName( knoxNC, metaStore );
     assertEquals( true, namedCluster.isUseGateway() );
     assertEquals( "password", namedCluster.getGatewayPassword() );
     assertEquals( "http://localhost:8008", namedCluster.getGatewayUrl() );
