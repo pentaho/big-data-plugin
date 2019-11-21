@@ -368,11 +368,15 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          model.setSecurityType( nc.isUseGateway() ? SECURITY_TYPE.KNOX.getValue() : SECURITY_TYPE.NONE.getValue() );
           model.setGatewayPassword( nc.getGatewayPassword() );
           model.setGatewayUrl( nc.getGatewayUrl() );
           model.setGatewayUsername( nc.getGatewayUsername() );
-          resolveKerberosSecurity( model, nc );
+          model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
+          if ( nc.isUseGateway() ) {
+            model.setSecurityType( SECURITY_TYPE.KNOX.getValue() );
+          } else {
+            resolveKerberosSecurity( model, nc );
+          }
           break;
         }
       }
