@@ -5,10 +5,10 @@
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-big-data-assemblies</artifactId>
-    <version>7.1-SNAPSHOT</version>
+    <version>7.1.0.30-235</version>
   </parent>
   <artifactId>pentaho-big-data-assemblies-pmr-libraries</artifactId>
-  <version>7.1-SNAPSHOT</version>
+  <version>7.1.0.30-235</version>
   <packaging>pom</packaging>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
