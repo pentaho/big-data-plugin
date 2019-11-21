@@ -46,6 +46,9 @@ public class ThinNameClusterModel {
   private String kerberosImpersonationPassword;
   private String keytabAuthenticationLocation;
   private String keytabImpersonationLocation;
+  private String gatewayUrl;
+  private String gatewayUsername;
+  private String gatewayPassword;
 
   public String getShimVendor() {
     return shimVendor;
@@ -229,5 +232,29 @@ public class ThinNameClusterModel {
 
   public void setKeytabImpersonationLocation( String keytabImpersonationLocation ) {
     this.keytabImpersonationLocation = keytabImpersonationLocation;
+  }
+
+  public String getGatewayUrl() {
+    return gatewayUrl;
+  }
+
+  public void setGatewayUrl( String gatewayUrl ) {
+    this.gatewayUrl = gatewayUrl;
+  }
+
+  public String getGatewayUsername() {
+    return gatewayUsername;
+  }
+
+  public void setGatewayUsername( String gatewayUsername ) {
+    this.gatewayUsername = gatewayUsername;
+  }
+
+  public String getGatewayPassword() {
+    return gatewayPassword;
+  }
+
+  public void setGatewayPassword( String gatewayPassword ) {
+    this.gatewayPassword = gatewayPassword;
   }
 }
