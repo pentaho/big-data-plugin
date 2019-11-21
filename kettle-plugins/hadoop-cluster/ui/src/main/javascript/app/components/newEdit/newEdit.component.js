@@ -143,7 +143,10 @@ define([
           kerberosImpersonationUsername: "",
           kerberosImpersonationPassword: "",
           keytabAuthenticationLocation: "",
-          keytabImpersonationLocation: ""
+          keytabImpersonationLocation: "",
+          gatewayUrl: "",
+          gatewayUsername: "",
+          gatewayPassword: ""
         }
       };
     }

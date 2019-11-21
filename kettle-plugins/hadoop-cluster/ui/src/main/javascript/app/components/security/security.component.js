@@ -47,7 +47,8 @@ define([
       vm.header = i18n.get(vm.data.type + ".header");
       vm.securityTypeLabel = i18n.get('security.type.label');
 
-      if (!vm.data.model.securityType) {
+      if (!vm.data.model.securityType ||
+        (vm.data.model.securityType === vm.securityType.KNOX && vm.data.model.shimVendor !== "Hortonworks")) {
         vm.data.model.securityType = vm.securityType.NONE;
       }
       vm.buttons = getButtons();
@@ -67,8 +68,7 @@ define([
                 break;
               case vm.securityType.KNOX:
                 clearKerberosValues();
-                //TODO: implement KNOX security state and go to that state.
-                $state.go('creating', {data: vm.data, transition: "slideLeft"});
+                $state.go('knox', {data: vm.data, transition: "slideLeft"});
                 break;
               default:
                 clearKnoxValues();
@@ -112,11 +112,14 @@ define([
       vm.data.model.kerberosAuthenticationPassword = "";
       vm.data.model.kerberosImpersonationUsername = "";
       vm.data.model.kerberosImpersonationPassword = "";
-      //TODO: clearKerberosKeytabValues
+      vm.data.model.keytabAuthenticationLocation = "";
+      vm.data.model.keytabImpersonationLocation = "";
     }
 
     function clearKnoxValues() {
-      //TODO: implement
+      vm.data.model.gatewayUrl = "";
+      vm.data.model.gatewayUsername = "";
+      vm.data.model.gatewayPassword = "";
     }
   }
 

@@ -113,6 +113,13 @@ define([], function () {
         data: null,
         transition: null
       }
+    }).state('knox', {
+      url: "/knox",
+      template: "<knox></knox>",
+      params: {
+        data: null,
+        transition: null
+      }
     });
     $urlRouterProvider.otherwise("/import");
   }
