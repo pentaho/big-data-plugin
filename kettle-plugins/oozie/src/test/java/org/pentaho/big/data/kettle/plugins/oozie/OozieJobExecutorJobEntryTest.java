@@ -154,7 +154,7 @@ public class OozieJobExecutorJobEntryTest {
     OozieJobExecutorJobEntry je = new OozieJobExecutorJobEntry();
     List<String> warnings = je.getValidationWarnings( config );
 
-    assertEquals( 3, warnings.size() );
+    assertEquals( 2, warnings.size() );
   }
 
   @Test
