@@ -28,6 +28,26 @@
 					<textbox pen:customclass="variabletextbox" id="jobentry-hadoopjob-name" flex="1" multiline="false"/>
 				</row>
 				<row>
+					<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
+					<grid>
+						<columns>
+							<column/>
+							<column/>
+							<column/>
+						</columns>
+						<rows>
+							<row>
+								<menulist id="named-clusters" pen:binding="name">
+									<menupopup>
+									</menupopup>
+								</menulist>
+								<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
+								<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
+							</row>
+						</rows>
+					</grid>
+				</row>
+				<row>
 					<label value="${JobEntryHadoopJobExecutor.JarUrl.Label}" />
 					<hbox>
 						<textbox pen:customclass="variabletextbox" id="jar-url" flex="1" width="400" multiline="false" />
@@ -138,26 +158,6 @@
     						<column flex="1"/>
     					</columns>
     					<rows>
-							<row>
-								<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Label}" width="200"/>
-								<grid>
-									<columns>
-										<column/>
-										<column/>
-										<column/>
-									</columns>
-									<rows>
-										<row>
-											<menulist id="named-clusters" pen:binding="name">
-											    <menupopup>
-											    </menupopup>
-											</menulist>
-											<button id="editNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.Edit}" onclick="jobEntryController.editNamedCluster()"/>
-											<button id="newNamedCluster" label="${JobEntryHadoopJobExecutor.ModeAdvanced.Tab.Paths.NamedCluster.New}" onclick="jobEntryController.newNamedCluster()"/>
-										</row>
-									</rows>
-								</grid>
-							</row>    	    					
     						<row>
     							<label value="${JobEntryHadoopJobExecutor.ModeAdvanced.NumMapTasks.Label}" />
     							<textbox pen:customclass="variabletextbox" id="num-map-tasks" flex="1" multiline="false"/>
