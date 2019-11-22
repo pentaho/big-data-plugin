@@ -60,6 +60,12 @@
     <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
   </bean>
 
+  <bean id="ThinHadoopClusterEditExtension" scope="singleton"
+        class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.tree.ThinHadoopClusterEditExtension">
+    <argument ref="HadoopClusterDelegate"/>
+    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
+  </bean>
+
   <bean id="HadoopClusterLifecycleListener"
         class="org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.lifecycle.HadoopClusterLifecycleListener">
     <pen:di-plugin type="org.pentaho.di.core.plugins.LifecyclePluginType"/>
