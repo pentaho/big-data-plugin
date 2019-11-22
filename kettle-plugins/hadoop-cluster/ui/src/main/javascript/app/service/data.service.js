@@ -78,7 +78,7 @@ define(
       }
 
       function getNamedCluster(name) {
-        return helperService.httpGet([baseUrl, "getNamedCluster"].join("/") + "?namedCluster=" + name);
+        return helperService.httpGet([baseUrl, "getNamedCluster"].join("/") + "?namedCluster=" + encodeURIComponent(name));
       }
 
       function getShimIdentifiers() {
@@ -86,7 +86,7 @@ define(
       }
 
       function runTests(name) {
-        return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + name);
+        return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + encodeURIComponent(name));
       }
       function installDriver(source) {
         return helperService.httpGet([baseUrl, "installDriver"].join("/") + "?source=" + source);
