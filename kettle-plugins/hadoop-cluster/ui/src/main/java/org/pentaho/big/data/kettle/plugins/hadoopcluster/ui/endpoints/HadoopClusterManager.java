@@ -90,8 +90,7 @@ import static org.pentaho.big.data.impl.cluster.tests.Constants.MAP_REDUCE;
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
-  public static final String STRING_NAMED_CLUSTERS_THIN = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
-  public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "HadoopCluster.dialog.title" );
+  public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
   private final String fileSeparator = System.getProperty( "file.separator" );
   private static final String PASS = "Pass";
   private static final String WARNING = "Warning";
@@ -837,9 +836,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private void refreshTree() {
     if ( spoon.getShell() != null ) {
-      //TODO Refreshing the "Hadoop clusters" tree item will go away when the SWT code is removed.
       spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS ) );
-      spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS_THIN ) );
     }
   }
 
