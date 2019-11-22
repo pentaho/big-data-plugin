@@ -43,7 +43,11 @@ import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -69,6 +73,7 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private HadoopClusterDelegate hadoopClusterDelegate;
   private NamedClusterService namedClusterService;
   private String internalShim;
+  private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterPopupMenuExtension.class );
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
                                           NamedClusterService namedClusterService, String internalShim ) {
@@ -122,18 +127,24 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
 
   public Menu createMaintPopupMenu( final Tree selectionTree, NamedCluster namedCluster ) {
     maintMenu = new Menu( selectionTree );
-    createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
-      NEW_EDIT_STATE, ImmutableMap.of( "name", namedCluster.getName() ) );
+    try {
+      String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
 
-    createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
-      NEW_EDIT_STATE, ImmutableMap.of( "name", namedCluster.getName(), "duplicateName",
-        getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + namedCluster.getName() ) );
+      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
+        NEW_EDIT_STATE, ImmutableMap.of( "name", name ) );
 
-    createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
-      TESTING_STATE, ImmutableMap.of( "name", namedCluster.getName() ) );
+      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
+        NEW_EDIT_STATE, ImmutableMap.of( "name", name, "duplicateName",
+          getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + name ) );
 
-    createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ),
-      DELETE_STATE, namedCluster.getName() );
+      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
+        TESTING_STATE, ImmutableMap.of( "name", name ) );
+
+      createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ),
+        DELETE_STATE, name );
+    } catch ( UnsupportedEncodingException e ) {
+      logChannel.error( e.getMessage() );
+    }
     return maintMenu;
   }
 
