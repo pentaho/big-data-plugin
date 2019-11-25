@@ -18,18 +18,6 @@
       </list>
     </argument>
   </bean>
-  <bean class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader" factory-method="create" scope="singleton">
-    <argument ref="blueprintBundleContext"/>
-    <argument>
-      <value type="java.lang.String">org.pentaho.big.data.plugins.common.ui.named.cluster.bridge.HadoopClusterTreeDelegateExtension</value>
-    </argument>
-    <argument>
-      <list>
-        <ref component-id="namedClusterService"/>
-      </list>
-    </argument>
-    <pen:di-plugin type="org.pentaho.di.core.extension.ExtensionPointPluginType"/>
-  </bean>
   <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
   <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
   <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
