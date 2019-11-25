@@ -63,7 +63,7 @@ import java.util.Properties;
 
 public class NamedClusterManager implements NamedClusterService {
 
-  public static final String BIG_DATA_SLAVE_METASTORE_DIR = "big.data.slave.metastore.dir";
+  public static final String BIG_DATA_SLAVE_METASTORE_DIR = "hadoop.configurations.path";
   private static final Class<?> PKG = NamedClusterManager.class;
   private BundleContext bundleContext;
 
