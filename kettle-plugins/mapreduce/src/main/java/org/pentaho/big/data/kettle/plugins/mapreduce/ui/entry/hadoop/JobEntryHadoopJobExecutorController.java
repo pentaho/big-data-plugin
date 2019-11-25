@@ -566,7 +566,12 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
       try {
         XulRoot xulDialog = (XulRoot) getXulDomContainer().getDocumentRoot().getRootElement();
         Shell shell = (Shell) xulDialog.getRootObject();
-        new ErrorDialog( shell, "Error", "Unable to populate Driver Class list", e );
+        if ( namedClusterService.getNamedClusterByName( aConf.selectedNamedCluster.getName(), jobMeta.getMetaStore() ) == null ) {
+          new ErrorDialog( shell, "Error", "Unable to find named cluster "
+            + aConf.selectedNamedCluster.getName(), e );
+        } else {
+          new ErrorDialog( shell, "Error", "Unable to populate Driver Class list", e );
+        }
         setDriverClasses( Collections.<String>emptyList() );
       } catch ( Throwable e2 ) {
         jobEntry.logError( "Unable to construct error dialog for exception.", e );
