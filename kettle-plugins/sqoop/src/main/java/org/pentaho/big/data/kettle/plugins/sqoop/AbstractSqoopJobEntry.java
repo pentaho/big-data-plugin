@@ -306,35 +306,37 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
       args.add( 0, getToolName() ); // push the tool command-line argument on the top of the args list
 
-      if ( !StringUtil.isEmpty( config.getNamedCluster().getShimIdentifier() ) ) {
+      String configuredShinIdentifier = config.getNamedCluster().getShimIdentifier();
+      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
         List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
-        if ( !shimIdentifers.stream()
-                .filter( I -> I.getId().equals( config.getNamedCluster().getShimIdentifier() ) )
-                .findAny()
-                .isPresent() ) {
-          String installedShimIdentifiers = shimIdentifers.stream().map( I -> I.getId() ).collect( Collectors.joining( ",", "{", "}" ) );
+        if ( !shimIdentifers.stream().anyMatch( I -> I.getId().equals( configuredShinIdentifier ) ) ) {
+          String installedShimIdentifiers = shimIdentifers.stream().map( identifier -> identifier.getId() ).collect( Collectors.joining( ",", "{", "}" ) );
           throw new KettleException( "Invalid driver version value: " +  config.getNamedCluster().getShimIdentifier() + " Available valid values: " + installedShimIdentifiers );
         }
-      } else {
-        if ( !loadNamedCluster( getMetaStore() ) ) {
-          PropertyEntry entry = config.getCustomArguments().stream()
-                  .filter( p -> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
-                  .findAny()
-                  .orElse( null );
-          if ( entry != null ) {
-            loadNamedCluster( entry.getValue() );
-          }
-        }
+      }
 
-        NamedCluster tempCluster = null;
-        if ( StringUtil.isEmpty( config.getNamedCluster().getName() ) ) {
-          tempCluster = namedClusterService.getNamedClusterByHost( config.getNamedCluster().getHdfsHost(), getMetaStore() );
-          if ( tempCluster != null ) {
-            config.setNamedCluster( tempCluster );
-          } else {
-            throw new KettleException( "An Hadoop Cluster matching Namenode Host could not be found" );
-          }
+      if ( !loadNamedCluster( getMetaStore() ) ) {
+        PropertyEntry entry = config.getCustomArguments().stream()
+                .filter( p -> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
+                .findAny()
+                .orElse( null );
+        if ( entry != null ) {
+          loadNamedCluster( entry.getValue() );
         }
+      }
+
+      NamedCluster tempCluster = null;
+      if ( StringUtil.isEmpty( config.getNamedCluster().getName() ) ) {
+        tempCluster = namedClusterService.getNamedClusterByHost( config.getNamedCluster().getHdfsHost(), getMetaStore() );
+        if ( tempCluster != null ) {
+          config.setNamedCluster( tempCluster );
+        } else {
+          throw new KettleException( "An Hadoop Cluster matching Namenode Host could not be found" );
+        }
+      }
+
+      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
+        config.getNamedCluster().setShimIdentifier( configuredShinIdentifier );
       }
 
       // Clone named cluster and copy in variable space
