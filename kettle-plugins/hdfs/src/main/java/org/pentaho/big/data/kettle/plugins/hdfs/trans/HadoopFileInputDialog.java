@@ -2965,6 +2965,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           String clusterName = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() - 1 );
           String path = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() );
 
+          if ( clusterName.equals( S3_ENVIRONMENT ) && !path.startsWith( Schemes.S3_SCHEME + "://" ) ) {
+            path = Schemes.S3_SCHEME + "://";
+          }
+
           // Get current file
           FileObject rootFile = null;
           FileObject initialFile = null;
@@ -3066,14 +3070,17 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
           if ( selectedFile != null ) {
             String url = selectedFile.getURL().toString();
-            if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
-              wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
-            } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
-              wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, S3_ENVIRONMENT );
-            } else if ( isCluster ) {
-              url = input.getUrlPath( url );
-              wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
+            if ( currentPanel != null ) {
+              if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
+                wFilenameList.getActiveTableItem()
+                  .setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
+              } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
+                wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+              } else if ( isCluster ) {
+                url = input.getUrlPath( url );
+                wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
                   clusterName );
+              }
             }
 
             wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn(), url );
