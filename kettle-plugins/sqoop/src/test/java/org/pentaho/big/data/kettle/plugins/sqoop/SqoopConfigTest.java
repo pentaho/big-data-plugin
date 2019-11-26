@@ -82,6 +82,7 @@ public class SqoopConfigTest {
   private static final String EMPTY = "";
   public static final String HDFS_HOST = "hdfsHost";
   public static final String HDFS_PORT = "8020";
+  public static final String SHIM_IDENTIFIER = "cdh61";
   public static final String JOB_TRACKER_HOST = "jobTracker";
   public static final String JOB_TRACKER_PORT = "2222";
   private NamedCluster namedClusterMock = mock( NamedCluster.class );
@@ -107,6 +108,10 @@ public class SqoopConfigTest {
         MockitoAutoBean<String> hdfsPort = new MockitoAutoBean<>( HDFS_PORT );
         doAnswer( hdfsPort ).when( template ).getHdfsPort();
         doAnswer( hdfsPort ).when( template ).setHdfsPort( anyString() );
+
+        MockitoAutoBean<String> shimIdentifier = new MockitoAutoBean<>( SHIM_IDENTIFIER );
+        doAnswer( shimIdentifier ).when( template ).getShimIdentifier();
+        doAnswer( shimIdentifier ).when( template ).setShimIdentifier( anyString() );
 
         MockitoAutoBean<String> jobTrackerHost = new MockitoAutoBean<>( JOB_TRACKER_HOST );
         doAnswer( jobTrackerHost ).when( template ).getJobTrackerHost();
@@ -154,7 +159,7 @@ public class SqoopConfigTest {
   @Test
   public void getAdvancedArgumentsList() {
     AbstractModelList<ArgumentWrapper> args = config.getAdvancedArgumentsList();
-    assertEquals( 59, args.size() );
+    assertEquals( 60, args.size() );
 
     PropertyChangeListener l = mock( PropertyChangeListener.class );
     config.addPropertyChangeListener( l );
@@ -167,7 +172,7 @@ public class SqoopConfigTest {
     }
 
     // We should have received one event for every property changed
-    verify( l, times( 59 ) ).propertyChange( (PropertyChangeEvent) any() );
+    verify( l, times( 60 ) ).propertyChange( (PropertyChangeEvent) any() );
   }
 
   @Test
@@ -328,7 +333,7 @@ public class SqoopConfigTest {
     } ).when( repository ).getJobEntryAttributeString( eq( id_job ), anyString() );
 
     config.saveClusterConfig( repository, id_job, jobEntryInterface );
-    verify( repository, times( 4 ) ).saveJobEntryAttribute( eq( id_job ), eq( objectId ), anyString(), anyString() );
+    verify( repository, times( 5 ) ).saveJobEntryAttribute( eq( id_job ), eq( objectId ), anyString(), anyString() );
 
     reset( createClusterTemplate );
     createSqoopConfig().loadClusterConfig( repository, id_job );
