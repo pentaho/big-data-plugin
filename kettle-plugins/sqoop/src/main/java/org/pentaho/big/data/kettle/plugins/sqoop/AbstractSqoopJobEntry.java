@@ -309,8 +309,8 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       String configuredShinIdentifier = config.getNamedCluster().getShimIdentifier();
       if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
         List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
-        if ( !shimIdentifers.stream().anyMatch( I -> I.getId().equals( configuredShinIdentifier ) ) ) {
-          String installedShimIdentifiers = shimIdentifers.stream().map( identifier -> identifier.getId() ).collect( Collectors.joining( ",", "{", "}" ) );
+        if ( shimIdentifers.stream().noneMatch( identifier -> identifier.getId().equals( configuredShinIdentifier ) ) ) {
+          String installedShimIdentifiers = shimIdentifers.stream().map( ShimIdentifierInterface::<String>getId ).collect( Collectors.joining( ",", "{", "}" ) );
           throw new KettleException( "Invalid driver version value: " +  config.getNamedCluster().getShimIdentifier() + " Available valid values: " + installedShimIdentifiers );
         }
       }
