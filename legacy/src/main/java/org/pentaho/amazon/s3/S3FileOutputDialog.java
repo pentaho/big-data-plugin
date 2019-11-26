@@ -86,6 +86,7 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.step.TableItemInsertListener;
+import org.pentaho.di.ui.vfs.VfsFileChooserHelper;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.nio.charset.Charset;
@@ -236,7 +237,7 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
 
   private boolean gotPreviousFields = false;
 
-  private S3NVfsFileChooserHelper helper = null;
+  private VfsFileChooserHelper helper = null;
   private VfsFileChooserDialog fileChooserDialog = null;
 
   public S3FileOutputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
@@ -1670,9 +1671,9 @@ public class S3FileOutputDialog extends BaseStepDialog implements StepDialogInte
     return this.getClass().getName();
   }
 
-  protected S3NVfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
+  protected VfsFileChooserHelper getFileChooserHelper() throws KettleFileException, FileSystemException {
     if ( helper == null ) {
-      helper = new S3NVfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
+      helper = new S3AVfsFileChooserHelper( shell, getFileChooserDialog(), getVariableSpace(), getFileSystemOptions() );
     }
     return helper;
   }
