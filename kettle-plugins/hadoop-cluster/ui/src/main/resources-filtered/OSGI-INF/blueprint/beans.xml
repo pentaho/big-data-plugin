@@ -34,6 +34,7 @@
   <cm:property-placeholder persistent-id="pentaho.shim" update-strategy="reload">
     <cm:default-properties>
       <cm:property name="internal.shim" value="apache"/>
+      <cm:property name="secure.enabled" value="false"/>
     </cm:default-properties>
   </cm:property-placeholder>
 
