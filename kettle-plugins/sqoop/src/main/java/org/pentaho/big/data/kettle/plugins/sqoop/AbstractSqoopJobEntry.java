@@ -31,6 +31,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.pentaho.big.data.kettle.plugins.job.PropertyEntry;
 import org.pentaho.hadoop.shim.api.HadoopClientServices;
+import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -51,6 +52,7 @@ import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
@@ -59,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Base class for all Sqoop job entries.
@@ -303,11 +306,20 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
       List<String> args = SqoopUtils.getCommandLineArgs( config, getVariables() );
       args.add( 0, getToolName() ); // push the tool command-line argument on the top of the args list
 
+      String configuredShinIdentifier = config.getNamedCluster().getShimIdentifier();
+      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
+        List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
+        if ( shimIdentifers.stream().noneMatch( identifier -> identifier.getId().equals( configuredShinIdentifier ) ) ) {
+          String installedShimIdentifiers = shimIdentifers.stream().map( ShimIdentifierInterface::<String>getId ).collect( Collectors.joining( ",", "{", "}" ) );
+          throw new KettleException( "Invalid driver version value: " +  config.getNamedCluster().getShimIdentifier() + " Available valid values: " + installedShimIdentifiers );
+        }
+      }
+
       if ( !loadNamedCluster( getMetaStore() ) ) {
         PropertyEntry entry = config.getCustomArguments().stream()
-          .filter( p -> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
-          .findFirst()
-          .orElse( null );
+                .filter( p -> p.getKey() != null && p.getKey().equals( NamedClusterNameProperty ) )
+                .findAny()
+                .orElse( null );
         if ( entry != null ) {
           loadNamedCluster( entry.getValue() );
         }
@@ -321,6 +333,10 @@ public abstract class AbstractSqoopJobEntry<S extends SqoopConfig> extends Abstr
         } else {
           throw new KettleException( "An Hadoop Cluster matching Namenode Host could not be found" );
         }
+      }
+
+      if ( !StringUtil.isEmpty( configuredShinIdentifier ) ) {
+        config.getNamedCluster().setShimIdentifier( configuredShinIdentifier );
       }
 
       // Clone named cluster and copy in variable space
