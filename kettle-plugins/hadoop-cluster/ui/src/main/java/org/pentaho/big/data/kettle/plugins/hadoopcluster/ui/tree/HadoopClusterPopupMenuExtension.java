@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Map;
@@ -69,7 +70,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
-  private Menu maintMenu;
   private HadoopClusterDelegate hadoopClusterDelegate;
   private NamedClusterService namedClusterService;
   private String internalShim;
@@ -126,7 +126,7 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
   public Menu createMaintPopupMenu( final Tree selectionTree, NamedCluster namedCluster ) {
-    maintMenu = new Menu( selectionTree );
+    Menu maintMenu = new Menu( selectionTree );
     try {
       String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
 
@@ -140,8 +140,7 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
         TESTING_STATE, ImmutableMap.of( "name", name ) );
 
-      createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ),
-        DELETE_STATE, name );
+      createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ), name );
     } catch ( UnsupportedEncodingException e ) {
       logChannel.error( e.getMessage() );
     }
@@ -163,31 +162,38 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     } );
   }
 
-  private void createDeleteMenuItem( Menu menu, String menuItemLabel, String state, String namedCluster ) {
+  private void createDeleteMenuItem( Menu menu, String menuItemLabel, String namedCluster ) {
     MenuItem menuItem = new MenuItem( menu, SWT.NONE );
     menuItem.setText( menuItemLabel );
     menuItem.addSelectionListener( new SelectionAdapter() {
       @Override
       public void widgetSelected( SelectionEvent selectionEvent ) {
-        String title = BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Title" );
-        String message =
-          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Message",
-            namedCluster );
-        String deleteButton =
-          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Delete" );
-        String doNotDeleteButton =
-          BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.DoNotDelete" );
-        MessageDialog dialog =
-          new MessageDialog( spoonSupplier.get().getShell(), title, null, message, MessageDialog.WARNING, new String[] {
-            deleteButton, doNotDeleteButton }, 0 );
-        int response = dialog.open();
-        if ( response != RESULT_YES ) {
-          return;
+        try {
+          String nCluster = URLDecoder.decode( namedCluster, "UTF-8" );
+          String title = BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Title" );
+          String message =
+            BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Message",
+              nCluster );
+          String deleteButton =
+            BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.Delete" );
+          String doNotDeleteButton =
+            BaseMessages.getString( PKG, "PopupMenuFactory.NAMEDCLUSTERS.DeleteNamedClusterAsk.DoNotDelete" );
+          MessageDialog dialog =
+            new MessageDialog( spoonSupplier.get().getShell(), title, null, message, MessageDialog.WARNING,
+              new String[] {
+                deleteButton, doNotDeleteButton }, 0 );
+          int response = dialog.open();
+          if ( response != RESULT_YES ) {
+            return;
+          }
+          HadoopClusterManager hadoopClusterManager =
+            new HadoopClusterManager( spoonSupplier.get(), namedClusterService,
+              spoonSupplier.get().getMetaStore(),
+              internalShim );
+          hadoopClusterManager.deleteNamedCluster( spoonSupplier.get().getMetaStore(), nCluster, true );
+        } catch ( UnsupportedEncodingException e ) {
+          logChannel.error( e.getMessage() );
         }
-        HadoopClusterManager hadoopClusterManager = new HadoopClusterManager( spoonSupplier.get(), namedClusterService,
-          spoonSupplier.get().getMetaStore(),
-          internalShim );
-        hadoopClusterManager.deleteNamedCluster( spoonSupplier.get().getMetaStore(), namedCluster, true );
       }
     } );
   }
