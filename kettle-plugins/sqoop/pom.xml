@@ -85,6 +85,12 @@
       <artifactId>pentaho-big-data-kettle-plugins-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-core</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

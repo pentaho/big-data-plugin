@@ -48,6 +48,7 @@ import java.util.Map;
 public abstract class SqoopConfig extends BlockableJobConfig implements XulEventSource, Cloneable {
   public static final String NAMENODE_HOST = "namenodeHost";
   public static final String NAMENODE_PORT = "namenodePort";
+  public static final String SHIM_IDENTIFIER = "shimIdentifier";
   public static final String JOBTRACKER_HOST = "jobtrackerHost";
   public static final String JOBTRACKER_PORT = "jobtrackerPort";
 
@@ -286,6 +287,11 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
       items.add( new ArgumentWrapper( NAMENODE_PORT, BaseMessages.getString( getClass(), "NamenodePort.Label" ), false,
           "", 0,
           this, getClass().getMethod( "getNamenodePort" ), getClass().getMethod( "setNamenodePort", String.class ) ) );
+
+      items.add( new ArgumentWrapper( SHIM_IDENTIFIER, BaseMessages.getString( getClass(), "ShimIdentifier.Label" ), false,
+              "", 0,
+              this, getClass().getMethod( "getShimIdentifier" ), getClass().getMethod( "setShimIdentifier", String.class ) ) );
+
       items.add( new ArgumentWrapper( JOBTRACKER_HOST, BaseMessages.getString( getClass(), "JobtrackerHost.Label" ),
           false, "", 0, this,
           getClass().getMethod( "getJobtrackerHost" ), getClass().getMethod( "setJobtrackerHost", String.class ) ) );
@@ -680,6 +686,14 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     getNamedCluster().setHdfsHost( propertyChange( NAMENODE_HOST, getNamenodeHost(), namenodeHost ) );
   }
 
+  public String getShimIdentifier() {
+    return getNamedCluster().getShimIdentifier();
+  }
+
+  public void setShimIdentifier( String shimIdentifier ) {
+    getNamedCluster().setShimIdentifier( propertyChange( SHIM_IDENTIFIER, getShimIdentifier(), shimIdentifier ) );
+  }
+
   public String getNamenodePort() {
     return getNamedCluster().getHdfsPort();
   }
@@ -925,6 +939,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     setNamedCluster( null );
     setNamenodeHost( rep.getJobEntryAttributeString( id, NAMENODE_HOST ) );
     setNamenodePort( rep.getJobEntryAttributeString( id, NAMENODE_PORT ) );
+    setShimIdentifier( rep.getJobEntryAttributeString( id, SHIM_IDENTIFIER ) );
     setJobtrackerHost( rep.getJobEntryAttributeString( id, JOBTRACKER_HOST ) );
     setJobtrackerPort( rep.getJobEntryAttributeString( id, JOBTRACKER_PORT ) );
   }
@@ -933,6 +948,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     setNamedCluster( null );
     setNamenodeHost( XMLHandler.getTagValue( entrynode, NAMENODE_HOST ) );
     setNamenodePort( XMLHandler.getTagValue( entrynode, NAMENODE_PORT ) );
+    setShimIdentifier( XMLHandler.getTagValue( entrynode, SHIM_IDENTIFIER ) );
     setJobtrackerHost( XMLHandler.getTagValue( entrynode, JOBTRACKER_HOST ) );
     setJobtrackerPort( XMLHandler.getTagValue( entrynode, JOBTRACKER_PORT ) );
   }
@@ -960,6 +976,7 @@ public abstract class SqoopConfig extends BlockableJobConfig implements XulEvent
     return ImmutableMap.of(
       NAMENODE_HOST, Strings.nullToEmpty( namedCluster.getHdfsHost() ),
       NAMENODE_PORT, Strings.nullToEmpty( namedCluster.getHdfsPort() ),
+      SHIM_IDENTIFIER, Strings.nullToEmpty( namedCluster.getShimIdentifier() ),
       JOBTRACKER_HOST, Strings.nullToEmpty( namedCluster.getJobTrackerHost() ),
       JOBTRACKER_PORT, Strings.nullToEmpty( namedCluster.getJobTrackerPort() )
     );
