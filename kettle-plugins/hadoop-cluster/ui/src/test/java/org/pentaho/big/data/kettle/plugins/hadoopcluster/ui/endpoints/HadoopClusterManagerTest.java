@@ -322,6 +322,13 @@ public class HadoopClusterManagerTest {
     assertEquals( "ncTest", nc.getName() );
   }
 
+  @Test
+  public void allowsNullSpoon() {
+    hadoopClusterManager = new HadoopClusterManager( null, namedClusterService, metaStore, "apache" );
+    hadoopClusterManager.refreshTree();
+    assertTrue( hadoopClusterManager.getNamedClusterConfigsRootDir().endsWith( "Configs" ) );
+  }
+
   @Test public void testResetSecurity() throws ConfigurationException {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );

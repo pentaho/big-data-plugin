@@ -35,6 +35,7 @@ import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -172,7 +173,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.spoon = spoon;
     this.namedClusterService = namedClusterService;
     this.metaStore = metaStore != null ? metaStore : spoon.getMetaStore();
-    this.variableSpace = (AbstractMeta) spoon.getActiveMeta();
+    this.variableSpace = spoon == null ? new Variables() : (AbstractMeta) spoon.getActiveMeta();
     this.internalShim = internalShim;
   }
 
@@ -834,15 +835,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void refreshTree() {
-    if ( spoon.getShell() != null ) {
+  @VisibleForTesting
+  void refreshTree() {
+    if ( spoon != null && spoon.getShell() != null ) {
       spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS ) );
     }
   }
 
-  private String getNamedClusterConfigsRootDir() {
-    String configsFolder = null != spoon.getRepository() ? "ServerConfigs" : "Configs";
+  @VisibleForTesting
+  String getNamedClusterConfigsRootDir() {
     return System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
-      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + configsFolder;
+      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
   }
 }
