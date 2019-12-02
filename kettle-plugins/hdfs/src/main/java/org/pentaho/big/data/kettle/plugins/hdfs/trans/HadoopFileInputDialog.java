@@ -22,7 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -75,11 +74,11 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.di.ui.core.events.dialog.FilterType;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
-import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.compress.CompressionProvider;
@@ -123,7 +122,6 @@ import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileCSVImportProgressDia
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage1;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage2;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogInterface {
@@ -133,10 +131,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private LogChannel log = new LogChannel( this );
 
   private static final String[] YES_NO_COMBO = new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.No" ),
-      BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) };
+    BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) };
 
   private static final String[] ALL_FILES_TYPE = new String[] { BaseMessages
-      .getString( PKG, "System.FileType.AllFiles" ) }; //$NON-NLS-1$
+    .getString( PKG, "System.FileType.AllFiles" ) }; //$NON-NLS-1$
 
   public static final String LOCAL_ENVIRONMENT = "Local";
   public static final String STATIC_ENVIRONMENT = "<Static>";
@@ -383,6 +381,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   private int middle, margin;
   private ModifyListener lsMod;
+  private ModifyListener lsModCompression;
 
   public static final int[] dateLengths = new int[] { 23, 19, 14, 10, 10, 10, 10, 8, 8, 8, 8, 6, 6 };
 
@@ -391,6 +390,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   protected boolean firstClickOnDateLocale;
 
   private final NamedClusterService namedClusterService;
+
+  private SelectionAdapterOptions options;
 
   public HadoopFileInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
@@ -405,6 +406,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     Shell parent = getParent();
     Display display = parent.getDisplay();
 
+    options = new SelectionAdapterOptions( SelectionOperation.FILE_OR_FOLDER, new FilterType[] {}, FilterType.CSV_TXT );
+    setupDefaultOptions();
+
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX | SWT.MIN );
     props.setLook( shell );
     setShellImage( shell, input );
@@ -415,6 +419,17 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         input.setChanged();
       }
     };
+
+    lsModCompression = modifyEvent -> {
+      input.setChanged();
+      boolean useCompression = !wCompression.getText().equals( "None" );
+      if ( useCompression ) {
+        setupCompressionOptions();
+      } else {
+        setupDefaultOptions();
+      }
+    };
+
     changed = input.hasChanged();
 
     FormLayout formLayout = new FormLayout();
@@ -592,6 +607,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     setSize();
 
+    wFilenameList.getColumns()[ 1 ].setTextVarButtonSelectionListener(
+      new HadoopInputFileSelectionAdapter( log, wFilenameList, transMeta, options ) );
+
     shell.open();
     while ( !shell.isDisposed() ) {
       if ( !display.readAndDispatch() ) {
@@ -599,6 +617,22 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       }
     }
     return stepname;
+  }
+
+  private void setupDefaultOptions() {
+    FilterType[] filterTypes = new FilterType[] {
+      FilterType.CSV_TXT, FilterType.CSV,
+      FilterType.TXT, FilterType.ALL };
+    options.setFilters( filterTypes );
+  }
+
+  private void setupCompressionOptions() {
+    FilterType[] filterTypes =
+      new FilterType[] {
+        FilterType.ZIP, FilterType.GZ,
+        FilterType.CSV_TXT, FilterType.CSV,
+        FilterType.TXT, FilterType.ALL };
+    options.setFilters( filterTypes );
   }
 
   /**
@@ -609,14 +643,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
    */
   protected String[] getFriendlyURIs( String[] files ) {
     for ( int i = 0; i < files.length; i++ ) {
-      String userinfo = URI.create( files[i] ).getUserInfo();
+      String userinfo = URI.create( files[ i ] ).getUserInfo();
 
       if ( userinfo != null ) {
         String[] credentials = userinfo.split( ":", 2 );
 
         if ( credentials.length == 2 ) {
-          credentials[1] = "***";
-          files[i] = files[i].replaceFirst( userinfo, String.join( ":", credentials ) );
+          credentials[ 1 ] = "***";
+          files[ i ] = files[ i ].replaceFirst( userinfo, String.join( ":", credentials ) );
         }
       }
     }
@@ -629,7 +663,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     getInfo( tfii );
     String[] files = tfii.getFilePaths( transMeta );
     if ( files != null && files.length > 0 ) {
-      EnterSelectionDialog esd = new EnterSelectionDialog( shell, getFriendlyURIs( files ), "Files read", "Files read:" );
+      EnterSelectionDialog esd =
+        new EnterSelectionDialog( shell, getFriendlyURIs( files ), "Files read", "Files read:" );
       esd.setViewOnly();
       esd.open();
     } else {
@@ -677,7 +712,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     ToolItem deleteToolItem = new ToolItem( tb, SWT.PUSH );
     deleteToolItem.setImage( GUIResource.getInstance().getImageDelete() );
-    deleteToolItem.setToolTipText( BaseMessages.getString( JobEntryCopyFiles.class, "JobCopyFiles.FilenameDelete.Tooltip" ) );
+    deleteToolItem
+      .setToolTipText( BaseMessages.getString( JobEntryCopyFiles.class, "JobCopyFiles.FilenameDelete.Tooltip" ) );
     deleteToolItem.addSelectionListener( new SelectionAdapter() {
       @Override
       public void widgetSelected( SelectionEvent arg0 ) {
@@ -810,28 +846,24 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     gAccepting.setLayoutData( fdAccepting );
 
     ColumnInfo[] colinfo =
-        new ColumnInfo[] {
-          new ColumnInfo( BaseMessages.getString( PKG, "HadoopFileInputDialog.Environment" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, false, true ),
-          new ColumnInfo( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileFolderColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT_BUTTON, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.WildcardColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ) };
+      new ColumnInfo[] {
+        new ColumnInfo( BaseMessages.getString( PKG, "HadoopFileInputDialog.Environment" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, false, true ),
+        new ColumnInfo( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileFolderColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT_BUTTON, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.WildcardColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ) };
 
-    setComboValues( colinfo[0] );
+    setComboValues( colinfo[ 0 ] );
 
-    colinfo[1].setUsingVariables( true );
-    colinfo[1].setTextVarButtonSelectionListener( getFileDirectoryListener() );
-    colinfo[2].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RegExpColumn.Column" ) );
-    colinfo[3].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Tooltip" ) );
-    colinfo[4].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Tooltip" ) );
+    colinfo[ 1 ].setUsingVariables( true );
 
     wFilenameList =
-        new TableView( transMeta, wFileComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, colinfo, 4, lsMod, props );
+      new TableView( transMeta, wFileComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, colinfo, 4, lsMod, props );
     props.setLook( wFilenameList );
 
     fdFilenameList = new FormData();
@@ -858,6 +890,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wFileSComp.setMinHeight( bounds.height );
 
     wFileTab.setControl( wFileSComp );
+
+    colinfo[ 2 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RegExpColumn.Column" ) );
+    colinfo[ 3 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Tooltip" ) );
+    colinfo[ 4 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Tooltip" ) );
 
     // ///////////////////////////////////////////////////////////
     // / END OF FILE TAB
@@ -1153,7 +1189,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wCompression.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Compression.Tooltip" ) );
     props.setLook( wCompression );
     wCompression.setItems( CompressionProviderFactory.getInstance().getCompressionProviderNames() );
-    wCompression.addModifyListener( lsMod );
+    wCompression.addModifyListener( lsModCompression );
     fdCompression = new FormData();
     fdCompression.left = new FormAttachment( middle, 0 );
     fdCompression.top = new FormAttachment( wNrLinesDocHeader, margin );
@@ -1442,9 +1478,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   protected void setLocales() {
     Locale[] locale = Locale.getAvailableLocales();
-    dateLocale = new String[locale.length];
+    dateLocale = new String[ locale.length ];
     for ( int i = 0; i < locale.length; i++ ) {
-      dateLocale[i] = locale[i].toString();
+      dateLocale[ i ] = locale[ i ].toString();
     }
     if ( dateLocale != null ) {
       wDateLocale.setItems( dateLocale );
@@ -1457,8 +1493,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     /**
      * Create a new Directory Browser Adapter that reads/sets the text of {@code widget} to the directory chosen.
      *
-     * @param widget
-     *          Text widget linked to the VFS browser
+     * @param widget Text widget linked to the VFS browser
      */
     public DirectoryBrowserAdapter( Text widget ) {
       this.widget = widget;
@@ -1492,8 +1527,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
         fileChooserDialog.defaultInitialFile = defaultInitialFile;
         FileObject selectedFile =
-            fileChooserDialog.open( shell, null, Schemes.HDFS_SCHEME, false, null, new String[] { "*.*" },
-                ALL_FILES_TYPE, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
+          fileChooserDialog.open( shell, null, Schemes.HDFS_SCHEME, false, null, new String[] { "*.*" },
+            ALL_FILES_TYPE, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
         if ( selectedFile != null ) {
           if ( !selectedFile.getType().equals( FileType.FOLDER ) ) {
             selectedFile = selectedFile.getParent();
@@ -1674,7 +1709,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Listen to the Variable... button
     wbvWarnDestDir.addSelectionListener( VariableButtonListenerFactory.getSelectionAdapter( shell, wWarnDestDir,
-        transMeta ) );
+      transMeta ) );
 
     // Whenever something changes, set the tooltip to the expanded version of the directory:
     wWarnDestDir.addModifyListener( getModifyListenerTooltipText( wWarnDestDir ) );
@@ -1742,7 +1777,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Listen to the Variable... button
     wbvErrorDestDir.addSelectionListener( VariableButtonListenerFactory.getSelectionAdapter( shell, wErrorDestDir,
-        transMeta ) );
+      transMeta ) );
 
     // Whenever something changes, set the tooltip to the expanded version of the directory:
     wErrorDestDir.addModifyListener( getModifyListenerTooltipText( wErrorDestDir ) );
@@ -1810,7 +1845,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Listen to the Variable... button
     wbvLineNrDestDir.addSelectionListener( VariableButtonListenerFactory.getSelectionAdapter( shell, wLineNrDestDir,
-        transMeta ) );
+      transMeta ) );
 
     // Whenever something changes, set the tooltip to the expanded version of the directory:
     wLineNrDestDir.addModifyListener( getModifyListenerTooltipText( wLineNrDestDir ) );
@@ -1857,18 +1892,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     final int FilterRows = input.getFilter().length;
 
     ColumnInfo[] colinf =
-        new ColumnInfo[] {
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterStringColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterPositionColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.StopOnFilterColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterPositiveColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ) };
+      new ColumnInfo[] {
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterStringColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterPositionColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.StopOnFilterColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterPositiveColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ) };
 
-    colinf[2].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.StopOnFilterColumn.Tooltip" ) );
-    colinf[3].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterPositiveColumn.Tooltip" ) );
+    colinf[ 2 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.StopOnFilterColumn.Tooltip" ) );
+    colinf[ 3 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterPositiveColumn.Tooltip" ) );
 
     wFilter = new TableView( transMeta, wFilterComp, SWT.FULL_SELECTION | SWT.MULTI, colinf, FilterRows, lsMod, props );
 
@@ -1914,36 +1949,36 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     final int FieldsRows = input.inputFields.length;
 
     ColumnInfo[] colinf =
-        new ColumnInfo[] {
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NameColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.TypeColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes(), true ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FormatColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_FORMAT, 2 ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.PositionColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.LengthColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.PrecisionColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.CurrencyColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.DecimalColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.GroupColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NullIfColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IfNullColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_TEXT, false ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.TrimTypeColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc, true ),
-          new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RepeatColumn.Column" ),
-              ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ),
-                  BaseMessages.getString( BASE_PKG, "System.Combo.No" ) }, true ) };
+      new ColumnInfo[] {
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NameColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.TypeColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes(), true ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FormatColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_FORMAT, 2 ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.PositionColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.LengthColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.PrecisionColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.CurrencyColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.DecimalColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.GroupColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NullIfColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IfNullColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_TEXT, false ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.TrimTypeColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc, true ),
+        new ColumnInfo( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RepeatColumn.Column" ),
+          ColumnInfo.COLUMN_TYPE_CCOMBO, new String[] { BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ),
+          BaseMessages.getString( BASE_PKG, "System.Combo.No" ) }, true ) };
 
-    colinf[12].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RepeatColumn.Tooltip" ) );
+    colinf[ 12 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RepeatColumn.Tooltip" ) );
 
     wFields = new TableView( transMeta, wFieldsComp, SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod, props );
 
@@ -2038,8 +2073,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   /**
    * Read the data from the HadoopFileInputMeta object and show it in this dialog.
    *
-   * @param meta
-   *          The HadoopFileInputMeta object to obtain the data from.
+   * @param meta The HadoopFileInputMeta object to obtain the data from.
    */
   public void getData( HadoopFileInputMeta meta ) {
     final HadoopFileInputMeta in = meta;
@@ -2056,17 +2090,17 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       wFilenameList.removeAll();
 
       for ( int i = 0; i < in.getFileName().length; i++ ) {
-        String sourceUrl = in.getFileName()[i];
+        String sourceUrl = in.getFileName()[ i ];
         String clusterName = input.getClusterNameBy( sourceUrl );
         String environment = STATIC_ENVIRONMENT;
-        if ( in.environment != null && i < in.environment.length && in.environment[i] != null ) {
-          environment = in.environment[i];
+        if ( in.environment != null && i < in.environment.length && in.environment[ i ] != null ) {
+          environment = in.environment[ i ];
         }
         if ( clusterName != null ) {
           clusterName =
-              clusterName.startsWith( HadoopFileInputMeta.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
+            clusterName.startsWith( HadoopFileInputMeta.LOCAL_SOURCE_FILE ) ? LOCAL_ENVIRONMENT : clusterName;
           clusterName =
-              clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
+            clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
           clusterName = clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
           sourceUrl = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
             || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl : input.getUrlPath( sourceUrl );
@@ -2074,9 +2108,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         }
 
         wFilenameList
-            .add( new String[] { environment, sourceUrl, in.inputFiles.fileMask[i],
-                in.getRequiredFilesDesc( in.inputFiles.fileRequired[i] ),
-                in.getRequiredFilesDesc( in.inputFiles.includeSubFolders[i] ) } );
+          .add( new String[] { environment, sourceUrl, in.inputFiles.fileMask[ i ],
+            in.getRequiredFilesDesc( in.inputFiles.fileRequired[ i ] ),
+            in.getRequiredFilesDesc( in.inputFiles.includeSubFolders[ i ] ) } );
       }
       wFilenameList.removeEmptyRows();
       wFilenameList.setRowNums();
@@ -2164,7 +2198,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     for ( int i = 0; i < in.getFilter().length; i++ ) {
       TableItem item = wFilter.table.getItem( i );
 
-      TextFileFilter filter = in.getFilter()[i];
+      TextFileFilter filter = in.getFilter()[ i ];
       if ( filter.getFilterString() != null ) {
         item.setText( 1, filter.getFilterString() );
       }
@@ -2172,9 +2206,9 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         item.setText( 2, "" + filter.getFilterPosition() );
       }
       item.setText( 3, filter.isFilterLastLine() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" )
-          : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
+        : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
       item.setText( 4, filter.isFilterPositive() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" )
-          : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
+        : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
     }
 
     // Date locale
@@ -2195,7 +2229,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   private void getFieldsData( HadoopFileInputMeta in, boolean insertAtTop ) {
     for ( int i = 0; i < in.inputFields.length; i++ ) {
-      BaseFileField field = in.inputFields[i];
+      BaseFileField field = in.inputFields[ i ];
 
       TableItem item;
 
@@ -2222,8 +2256,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       String ifNull = field.getIfNullValue();
       String trim = field.getTrimTypeDesc();
       String rep =
-          field.isRepeated() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) : BaseMessages.getString(
-              BASE_PKG, "System.Combo.No" );
+        field.isRepeated() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ) : BaseMessages.getString(
+          BASE_PKG, "System.Combo.No" );
 
       if ( type != null ) {
         item.setText( 2, type );
@@ -2321,8 +2355,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     meta.inputFiles.isaddresult = wAddResult.getSelection();
 
     meta.content.includeFilename = wInclFilename.getSelection();
-    meta.content.includeRowNumber =  wInclRownum.getSelection();
-    meta.content.rowNumberByFile =  wRownumByFile.getSelection();
+    meta.content.includeRowNumber = wInclRownum.getSelection();
+    meta.content.rowNumberByFile = wRownumByFile.getSelection();
     meta.content.header = wHeader.getSelection();
     meta.content.nrHeaderLines = Const.toInt( wNrHeader.getText(), 1 );
     meta.content.footer = wFooter.getSelection();
@@ -2343,19 +2377,19 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     meta.allocate( nrfiles, nrfields, nrfilters );
 
     Map<String, String> namedClusterURLMappings = new HashMap<String, String>();
-    String[] fileNames = new String[wFilenameList.getItems( 1 ).length];
+    String[] fileNames = new String[ wFilenameList.getItems( 1 ).length ];
     meta.environment = wFilenameList.getItems( 0 );
 
     for ( int i = 0; i < meta.environment.length; i++ ) {
-      String sourceNc = meta.environment[i];
+      String sourceNc = meta.environment[ i ];
       sourceNc = sourceNc.equals( LOCAL_ENVIRONMENT ) ? HadoopFileInputMeta.LOCAL_SOURCE_FILE + i : sourceNc;
       sourceNc = sourceNc.equals( STATIC_ENVIRONMENT ) ? HadoopFileInputMeta.STATIC_SOURCE_FILE + i : sourceNc;
       sourceNc = sourceNc.equals( S3_ENVIRONMENT ) ? HadoopFileInputMeta.S3_SOURCE_FILE + i : sourceNc;
-      String source = wFilenameList.getItems( 1 )[i];
+      String source = wFilenameList.getItems( 1 )[ i ];
       if ( !Const.isEmpty( source ) ) {
-        fileNames[i] = input.loadUrl( source, sourceNc, getMetaStore(), namedClusterURLMappings );
+        fileNames[ i ] = input.loadUrl( source, sourceNc, getMetaStore(), namedClusterURLMappings );
       } else {
-        fileNames[i] = "";
+        fileNames[ i ] = "";
       }
     }
 
@@ -2382,22 +2416,23 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       field.setNullString( item.getText( 10 ) );
       field.setIfNullValue( item.getText( 11 ) );
       field.setTrimType( ValueMeta.getTrimTypeByDesc( item.getText( 12 ) ) );
-      field.setRepeated( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase( item.getText( 13 ) ) );
+      field
+        .setRepeated( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase( item.getText( 13 ) ) );
 
-      ( meta.inputFields )[i] = field;
+      ( meta.inputFields )[ i ] = field;
     }
 
     for ( int i = 0; i < nrfilters; i++ ) {
       TableItem item = wFilter.getNonEmpty( i );
       TextFileFilter filter = new TextFileFilter();
-      ( meta.getFilter() )[i] = filter;
+      ( meta.getFilter() )[ i ] = filter;
 
       filter.setFilterString( item.getText( 1 ) );
       filter.setFilterPosition( Const.toInt( item.getText( 2 ), -1 ) );
       filter.setFilterLastLine( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase(
-          item.getText( 3 ) ) );
+        item.getText( 3 ) ) );
       filter.setFilterPositive( BaseMessages.getString( BASE_PKG, "System.Combo.Yes" ).equalsIgnoreCase(
-          item.getText( 4 ) ) );
+        item.getText( 4 ) ) );
     }
     // Error handling fields...
     meta.errorHandling.errorIgnored = wErrorIgnored.getSelection();
@@ -2465,7 +2500,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         Table table = wFields.table;
 
         CompressionProvider provider =
-            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
+          CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
         inputStream = provider.createInputStream( fileInputStream );
 
         InputStreamReader reader;
@@ -2485,11 +2520,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               // Estimate the number of input fields...
               // Chop up the line using the delimiter
               String[] fields =
-                  TextFileInputUtils.guessStringsFromLine( new Variables(), log, line, meta, delimiter, StringUtil
-                      .substituteHex( meta.content.enclosure ), StringUtil.substituteHex( meta.content.escapeCharacter ) );
+                TextFileInputUtils.guessStringsFromLine( new Variables(), log, line, meta, delimiter, StringUtil
+                  .substituteHex( meta.content.enclosure ), StringUtil.substituteHex( meta.content.escapeCharacter ) );
 
               for ( int i = 0; i < fields.length; i++ ) {
-                String field = fields[i];
+                String field = fields[ i ];
                 if ( field == null || field.length() == 0 || ( nrInputFields == 0 && !meta.content.header ) ) {
                   field = "Field" + ( i + 1 );
                 } else {
@@ -2522,7 +2557,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
             getInfo( meta );
 
             TextFileCSVImportProgressDialog pd =
-                new TextFileCSVImportProgressDialog( shell, meta, transMeta, reader, samples, clearFields == SWT.YES );
+              new TextFileCSVImportProgressDialog( shell, meta, transMeta, reader, samples, clearFields == SWT.YES );
             String message = pd.open();
             if ( message != null ) {
               wFields.removeAll();
@@ -2542,25 +2577,26 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               wFields.optWidth( true );
 
               EnterTextDialog etd =
-                  new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
-                      "TextFileInputDialog.ScanResults.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-                        "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
+                new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
+                  "TextFileInputDialog.ScanResults.DialogTitle" ), BaseMessages.getString( BASE_PKG,
+                  "TextFileInputDialog.ScanResults.DialogMessage" ), message, true );
               etd.setReadOnly();
               etd.open();
             }
           }
         } else {
           MessageBox mb = new MessageBox( shell, SWT.OK | SWT.ICON_ERROR );
-          mb.setMessage( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.UnableToReadHeaderLine.DialogMessage" ) );
+          mb.setMessage(
+            BaseMessages.getString( BASE_PKG, "TextFileInputDialog.UnableToReadHeaderLine.DialogMessage" ) );
           mb.setText( BaseMessages.getString( BASE_PKG, "System.Dialog.Error.Title" ) );
           mb.open();
         }
       } catch ( IOException e ) {
         new ErrorDialog( shell, BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IOError.DialogTitle" ),
-            BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IOError.DialogMessage" ), e );
+          BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IOError.DialogMessage" ), e );
       } catch ( KettleException e ) {
         new ErrorDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.Error.Title" ), BaseMessages
-            .getString( BASE_PKG, "TextFileInputDialog.ErrorGettingFileDesc.DialogMessage" ), e );
+          .getString( BASE_PKG, "TextFileInputDialog.ErrorGettingFileDesc.DialogMessage" ), e );
       } finally {
         try {
           inputStream.close();
@@ -2639,17 +2675,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       return;
     }
 
-    TransMeta previewMeta = TransPreviewFactory.generatePreviewTransformation( transMeta, oneMeta, wStepname.getText() );
+    TransMeta previewMeta =
+      TransPreviewFactory.generatePreviewTransformation( transMeta, oneMeta, wStepname.getText() );
 
     EnterNumberDialog numberDialog =
-        new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( BASE_PKG,
-            "TextFileInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-              "TextFileInputDialog.PreviewSize.DialogMessage" ) );
+      new EnterNumberDialog( shell, props.getDefaultPreviewSize(), BaseMessages.getString( BASE_PKG,
+        "TextFileInputDialog.PreviewSize.DialogTitle" ), BaseMessages.getString( BASE_PKG,
+        "TextFileInputDialog.PreviewSize.DialogMessage" ) );
     int previewSize = numberDialog.open();
     if ( previewSize > 0 ) {
       TransPreviewProgressDialog progressDialog =
-          new TransPreviewProgressDialog( shell, previewMeta, new String[] { wStepname.getText() },
-              new int[] { previewSize } );
+        new TransPreviewProgressDialog( shell, previewMeta, new String[] { wStepname.getText() },
+          new int[] { previewSize } );
       progressDialog.open();
 
       Trans trans = progressDialog.getTrans();
@@ -2658,17 +2695,17 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       if ( !progressDialog.isCancelled() ) {
         if ( trans.getResult() != null && trans.getResult().getNrErrors() > 0 ) {
           EnterTextDialog etd =
-              new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.PreviewError.Title" ),
-                  BaseMessages.getString( BASE_PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
+            new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.PreviewError.Title" ),
+              BaseMessages.getString( BASE_PKG, "System.Dialog.PreviewError.Message" ), loggingText, true );
           etd.setReadOnly();
           etd.open();
         }
       }
 
       PreviewRowsDialog prd =
-          new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog
-              .getPreviewRowsMeta( wStepname.getText() ), progressDialog.getPreviewRows( wStepname.getText() ),
-              loggingText );
+        new PreviewRowsDialog( shell, transMeta, SWT.NONE, wStepname.getText(), progressDialog
+          .getPreviewRowsMeta( wStepname.getText() ), progressDialog.getPreviewRows( wStepname.getText() ),
+          loggingText );
       prd.open();
     }
   }
@@ -2692,12 +2729,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               firstlines += linesList.get( i ) + Const.CR;
             }
             EnterTextDialog etd =
-                new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
-                    "TextFileInputDialog.ContentOfFirstFile.DialogTitle" ),
-                    ( nrLines == 0 ? BaseMessages.getString( BASE_PKG,
-                        "TextFileInputDialog.ContentOfFirstFile.AllLines.DialogMessage" ) : BaseMessages.getString(
-                          BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
-                    firstlines, true );
+              new EnterTextDialog( shell, BaseMessages.getString( BASE_PKG,
+                "TextFileInputDialog.ContentOfFirstFile.DialogTitle" ),
+                ( nrLines == 0 ? BaseMessages.getString( BASE_PKG,
+                  "TextFileInputDialog.ContentOfFirstFile.AllLines.DialogMessage" ) : BaseMessages.getString(
+                  BASE_PKG, "TextFileInputDialog.ContentOfFirstFile.NLines.DialogMessage", "" + nrLines ) ),
+                firstlines, true );
             etd.setReadOnly();
             etd.open();
           } else {
@@ -2715,7 +2752,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       }
     } catch ( KettleException e ) {
       new ErrorDialog( shell, BaseMessages.getString( BASE_PKG, "System.Dialog.Error.Title" ), BaseMessages.getString(
-          BASE_PKG, "TextFileInputDialog.ErrorGettingData.DialogMessage" ), e );
+        BASE_PKG, "TextFileInputDialog.ErrorGettingData.DialogMessage" ), e );
     }
   }
 
@@ -2738,7 +2775,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         fi = KettleVFS.getInputStream( file );
 
         CompressionProvider provider =
-            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
+          CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
         f = provider.createInputStream( fi );
 
         InputStreamReader reader;
@@ -2781,7 +2818,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         }
       } catch ( Exception e ) {
         throw new KettleException( BaseMessages.getString( BASE_PKG,
-            "TextFileInputDialog.Exception.ErrorGettingFirstLines", "" + nrlines, file.getName().getURI() ), e );
+          "TextFileInputDialog.Exception.ErrorGettingFirstLines", "" + nrlines, file.getName().getURI() ), e );
       } finally {
         try {
           f.close();
@@ -2831,7 +2868,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
               item.setText( 11, "" + field.getIfNullValue() );
               item.setText( 12, "" + field.getTrimTypeDesc() );
               item.setText( 13, field.isRepeated() ? BaseMessages.getString( BASE_PKG, "System.Combo.Yes" )
-                  : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
+                : BaseMessages.getString( BASE_PKG, "System.Combo.No" ) );
             }
 
           }
@@ -2860,8 +2897,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       wd.open();
     } catch ( Exception e ) {
       new ErrorDialog( shell, BaseMessages.getString( BASE_PKG,
-          "TextFileInputDialog.ErrorShowingFixedWizard.DialogTitle" ), BaseMessages.getString( BASE_PKG,
-            "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
+        "TextFileInputDialog.ErrorShowingFixedWizard.DialogTitle" ), BaseMessages.getString( BASE_PKG,
+        "TextFileInputDialog.ErrorShowingFixedWizard.DialogMessage" ), e );
     }
   }
 
@@ -2880,7 +2917,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     int dummynr = 1;
 
     for ( int i = 0; i < info.inputFields.length; i++ ) {
-      BaseFileField f = info.inputFields[i];
+      BaseFileField f = info.inputFields[ i ];
 
       // See if positions are skipped, if this is the case, add dummy fields...
       if ( f.getPosition() != prevEnd ) {
@@ -2913,7 +2950,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       fields.add( field );
     } else {
       // Take the last field and see if it reached until the maximum...
-      BaseFileField f = info.inputFields[info.inputFields.length - 1];
+      BaseFileField f = info.inputFields[ info.inputFields.length - 1 ];
 
       int pos = f.getPosition();
       int len = f.getLength();
@@ -2936,168 +2973,10 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return this.getClass().getName();
   }
 
-  private SelectionAdapter getFileDirectoryListener() {
-
-    return new SelectionAdapter() {
-      @Override
-      public void widgetSelected( SelectionEvent e ) {
-        try {
-          // Setup file type filtering
-          String[] fileFilters = null;
-          String[] fileFilterNames = null;
-          if ( !wCompression.getText().equals( "None" ) ) {
-            fileFilters = new String[] { "*.zip;*.gz", "*.txt;*.csv", "*.csv", "*.txt", "*" };
-            fileFilterNames =
-                new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.ZIPFiles" ),
-                    BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
-                    BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                    BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
-                    BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
-          } else {
-            fileFilters = new String[] { "*", "*.txt;*.csv", "*.csv", "*.txt" };
-            fileFilterNames =
-                new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ),
-                    BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
-                    BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
-                    BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ) };
-          }
-
-          String clusterName = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() - 1 );
-          String path = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() );
-
-          if ( clusterName.equals( S3_ENVIRONMENT ) && !path.startsWith( Schemes.S3_SCHEME + "://" ) ) {
-            path = Schemes.S3_SCHEME + "://";
-          }
-
-          // Get current file
-          FileObject rootFile = null;
-          FileObject initialFile = null;
-          FileObject defaultInitialFile = null;
-
-          boolean isCluster = false;
-          if ( !clusterName.equals( LOCAL_ENVIRONMENT ) && !clusterName.equals( S3_ENVIRONMENT ) ) {
-            if ( Const.isEmpty( path ) ) {
-              path = "/";
-            }
-            NamedCluster namedCluster = namedClusterService.getNamedClusterByName( clusterName, getMetaStore() );
-            if ( namedCluster == null  ) {
-              return;
-            }
-            isCluster = true;
-            path = namedCluster.processURLsubstitution( path, getMetaStore(), transMeta );
-          }
-
-          boolean resolvedInitialFile = false;
-
-          if ( path != null ) {
-            String fileName = transMeta.environmentSubstitute( path );
-            if ( fileName != null && !fileName.equals( "" ) ) {
-              try {
-                initialFile = KettleVFS.getFileObject( fileName );
-                resolvedInitialFile = true;
-              } catch ( Exception ex ) {
-                showMessageAndLog( BaseMessages.getString( PKG, "HadoopFileInputDialog.Connection.Error.title" ),
-                    BaseMessages.getString( PKG, "HadoopFileInputDialog.Connection.error" ), ex.getMessage() );
-                return;
-              }
-              File startFile = new File( System.getProperty( "user.home" ) );
-              defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
-              rootFile = initialFile.getFileSystem().getRoot();
-            } else {
-              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
-            }
-          }
-
-          if ( rootFile == null ) {
-            if ( defaultInitialFile == null ) {
-              return;
-            }
-            rootFile = defaultInitialFile.getFileSystem().getRoot();
-            initialFile = defaultInitialFile;
-          }
-
-          VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
-          fileChooserDialog.defaultInitialFile = defaultInitialFile;
-
-          NamedClusterWidgetImpl namedClusterWidget = null;
-
-          FileObject selectedFile = null;
-
-          if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
-            selectedFile =
-                fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, fileFilters,
-                    fileFilterNames, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
-          } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
-            selectedFile =
-                fileChooserDialog.open( shell, new String[] { Schemes.S3_SCHEME }, Schemes.S3_SCHEME, true,
-                    path, fileFilters, fileFilterNames, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
-                    false, true );
-          } else {
-            NamedCluster namedCluster = namedClusterService.getNamedClusterByName( clusterName, getMetaStore() );
-            if ( namedCluster != null ) {
-              if ( namedCluster.isMapr() ) {
-                selectedFile =
-                    fileChooserDialog.open( shell, new String[] { Schemes.MAPRFS_SCHEME },
-                      Schemes.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, false,
-                        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
-              } else {
-                List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
-                for ( CustomVfsUiPanel panel : customPanels ) {
-                  if ( panel instanceof HadoopVfsFileChooserDialog ) {
-                    HadoopVfsFileChooserDialog hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
-                    namedClusterWidget = hadoopDialog.getNamedClusterWidget();
-                    namedClusterWidget.initiate();
-                    hadoopDialog.setNamedCluster( clusterName );
-                    hadoopDialog.initializeConnectionPanel( initialFile );
-                  }
-                }
-                if ( resolvedInitialFile ) {
-                  fileChooserDialog.initialFile = initialFile;
-                }
-                selectedFile =
-                    fileChooserDialog.open( shell, new String[] { Schemes.HDFS_SCHEME },
-                      Schemes.HDFS_SCHEME, false, path, fileFilters, fileFilterNames, true,
-                        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
-              }
-
-            }
-          }
-
-          CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
-          if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
-            namedClusterWidget = ( (HadoopVfsFileChooserDialog) currentPanel ).getNamedClusterWidget();
-          }
-
-          if ( selectedFile != null ) {
-            String url = selectedFile.getURL().toString();
-            if ( currentPanel != null ) {
-              if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
-                wFilenameList.getActiveTableItem()
-                  .setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
-              } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
-                wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, S3_ENVIRONMENT );
-              } else if ( isCluster ) {
-                url = input.getUrlPath( url );
-                wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
-                  clusterName );
-              }
-            }
-
-            wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn(), url );
-          }
-        } catch ( KettleFileException ex ) {
-          log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.KettleFileException" ) );
-        } catch ( FileSystemException ex ) {
-          log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.FileSystemException" ) );
-        }
-      }
-    };
-  }
-
   protected void setComboValues( ColumnInfo colInfo ) {
     try {
       String[] comboValues = { LOCAL_ENVIRONMENT, STATIC_ENVIRONMENT, S3_ENVIRONMENT };
-      String[] namedClusters = namedClusterService.listNames( getMetaStore() ).toArray( new String[0] );
+      String[] namedClusters = namedClusterService.listNames( getMetaStore() ).toArray( new String[ 0 ] );
       String[] values = (String[]) ArrayUtils.addAll( comboValues, namedClusters );
       colInfo.setComboValues( values );
     } catch ( MetaStoreException e ) {
@@ -3105,11 +2984,4 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     }
   }
 
-  private void showMessageAndLog( String title, String message, String messageToLog ) {
-    MessageBox box = new MessageBox( shell );
-    box.setText( title ); //$NON-NLS-1$
-    box.setMessage( message );
-    log.logError( messageToLog );
-    box.open();
-  }
 }
