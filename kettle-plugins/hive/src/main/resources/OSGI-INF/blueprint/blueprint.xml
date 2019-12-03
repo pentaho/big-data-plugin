@@ -42,6 +42,13 @@
     <argument ref="metastoreLocator"/>
   </bean>
 
+  <bean id="hiveWarehouseDatabaseMeta" class="org.pentaho.big.data.kettle.plugins.hive.HiveWarehouseDatabaseMeta" scope="prototype">
+    <pen:di-plugin type="org.pentaho.di.core.plugins.DatabasePluginType"/>
+    <argument ref="driverLocator"/>
+    <argument ref="namedClusterManager"/>
+    <argument ref="metastoreLocator"/>
+  </bean>
+
   <reference id="driverLocator" interface="org.pentaho.hadoop.shim.api.jdbc.DriverLocator"/>
   <reference id="namedClusterManager" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
   <reference id="metastoreLocator" interface="org.pentaho.osgi.metastore.locator.api.MetastoreLocator"/>
