@@ -95,6 +95,8 @@
     <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-legacy/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/1.5.8</bundle>
+    <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/3.4.0</bundle>
   </feature>
 
 </features>
