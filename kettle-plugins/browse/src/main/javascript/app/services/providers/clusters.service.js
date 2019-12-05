@@ -23,7 +23,10 @@
  * @property {String} name The name of the module.
  */
 define(
-    ['css!../../css/hadoop-clusters.css'], function () {
+    [
+      "pentaho/i18n-osgi!cluster-browse.messages",
+      "css!../../css/hadoop-clusters.css"
+    ], function (i18n) {
       "use strict";
 
       var factoryArray = ["helperService", "$http", "$q", factory];
@@ -88,6 +91,11 @@ define(
                   folder.children[i].provider = folder.provider;
                 }
                 resolve();
+              }, function(err) {
+                reject({
+                  title: i18n.get('clusters-browse.unable-to-connect.title'),
+                  message: i18n.get('clusters-browse.unable-to-connect.message')
+                });
               });
             } else {
               resolve();
