@@ -39,6 +39,7 @@ import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.namedcluster.model.NamedCluster;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.TreeSelection;
@@ -113,6 +114,9 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
   private Menu createRootPopupMenu( final Tree tree ) {
+    if ( !showAdminFunctions() ) {
+      return null;
+    }
     if ( rootMenu == null ) {
       rootMenu = new Menu( tree );
       createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ),
@@ -130,21 +134,33 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     try {
       String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
 
-      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
-        NEW_EDIT_STATE, ImmutableMap.of( "name", name ) );
+      if ( showAdminFunctions() ) {
 
-      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
-        NEW_EDIT_STATE, ImmutableMap.of( "name", name, "duplicateName",
-          getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + name ) );
+        createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
+          NEW_EDIT_STATE, ImmutableMap.of( "name", name ) );
 
+        createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
+          NEW_EDIT_STATE, ImmutableMap.of( "name", name, "duplicateName",
+            getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + name ) );
+      }
       createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
         TESTING_STATE, ImmutableMap.of( "name", name ) );
 
-      createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ), name );
+      if ( showAdminFunctions() ) {
+        createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ), name );
+      }
     } catch ( UnsupportedEncodingException e ) {
       logChannel.error( e.getMessage() );
     }
     return maintMenu;
+  }
+
+  private boolean showAdminFunctions() {
+    Repository repo = spoonSupplier.get().getRepository();
+    if ( repo != null  && repo.getUri().isPresent() ) {
+      return repo.getSecurityProvider().getUserInfo().isAdmin();
+    }
+    return true;
   }
 
   private void createPopupMenuItem( Menu menu, String menuItemLabel, String state ) {
