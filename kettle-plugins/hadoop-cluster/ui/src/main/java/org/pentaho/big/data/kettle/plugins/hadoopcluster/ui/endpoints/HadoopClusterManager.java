@@ -222,7 +222,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           installSiteFiles( siteFilesSource, nc );
           createConfigProperties( nc );
           setupKerberosSecurity( model );
-          refreshTree();
           response.put( NAMED_CLUSTER, nc.getName() );
         }
       }
@@ -291,7 +290,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       createConfigProperties( nc );
       setupKerberosSecurity( model );
-      refreshTree();
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );
@@ -341,7 +339,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         deleteNamedCluster( metaStore, model.getOldName(), false );
       }
 
-      refreshTree();
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );

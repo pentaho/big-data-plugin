@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
 
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager.STRING_NAMED_CLUSTERS;
+
 public class HadoopClusterDialog extends ThinDialog {
 
   private static final Image LOGO = GUIResource.getInstance().getImageLogoSmall();
@@ -95,6 +97,10 @@ public class HadoopClusterDialog extends ThinDialog {
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
+        Spoon spoon = spoonSupplier.get();
+        if ( spoon != null && spoon.getShell() != null ) {
+          spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS ) );
+        }
         browser.dispose();
         dialog.close();
         dialog.dispose();
