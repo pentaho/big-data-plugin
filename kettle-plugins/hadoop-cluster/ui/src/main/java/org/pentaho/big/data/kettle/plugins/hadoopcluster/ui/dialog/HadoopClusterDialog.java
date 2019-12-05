@@ -28,15 +28,22 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.repository.IUser;
+import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.platform.settings.ServerPort;
 import org.pentaho.platform.settings.ServerPortRegistry;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 public class HadoopClusterDialog extends ThinDialog {
 
@@ -47,11 +54,16 @@ public class HadoopClusterDialog extends ThinDialog {
   private static final String THIN_CLIENT_PORT = "THIN_CLIENT_PORT";
   private static final String LOCALHOST = "localhost";
 
-  public HadoopClusterDialog( Shell shell, int width, int height ) {
+  private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
+
+  private static final LogChannelInterface LOG = LogChannel.GENERAL;
+
+  HadoopClusterDialog( Shell shell, int width, int height ) {
     super( shell, width, height );
   }
 
-  public void open( String title, String thinAppState, Map<String, String> urlParams ) {
+  void open( String title, String thinAppState, Map<String, String> urlParams ) {
+
     StringBuilder clientPath = new StringBuilder();
     clientPath.append( getClientPath() );
     clientPath.append( "#/" );
@@ -67,9 +79,19 @@ public class HadoopClusterDialog extends ThinDialog {
       .orElse( "" );
 
     clientPath.append( paramString );
-    super.createDialog( title, getRepoURL( clientPath.toString() ),
-      OPTIONS, LOGO );
+    String endpointURL = getEndpointURL( clientPath.toString() );
+    LOG.logDebug( "Thin endpoint URL:  " + endpointURL );
+    super.createDialog( title, endpointURL, OPTIONS, LOGO );
     super.dialog.setMinimumSize( 640, 630 );
+
+    if ( connectedToRepo() ) {
+      IUser userInfo = getRepo().getUserInfo();
+      LOG.logDebug( "Connecting to endpoint with user " + userInfo.getName() );
+      String auth = userInfo.getName() + ":" + userInfo.getPassword();
+      String encodedAuth = Base64.getEncoder().encodeToString( auth.getBytes() );
+      browser.setUrl( endpointURL, null, new String[] { "Authorization: Basic " + encodedAuth } );
+    }
+
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
@@ -111,32 +133,37 @@ public class HadoopClusterDialog extends ThinDialog {
     }
   }
 
-  private static String getClientPath() {
+  private String getClientPath() {
     Properties properties = new Properties();
     try {
       InputStream inputStream = HadoopClusterDialog.class.getClassLoader().getResourceAsStream( "project.properties" );
       properties.load( inputStream );
     } catch ( IOException e ) {
-      e.printStackTrace();
+      LOG.logError( e.getMessage(), e );
     }
     return properties.getProperty( "CLIENT_PATH" );
   }
 
-  private static Integer getOsgiServicePort() {
+  private int getOsgiServicePort() {
     // if no service port is specified try getting it from
     ServerPort osgiServicePort = ServerPortRegistry.getPort( OSGI_SERVICE_PORT );
     if ( osgiServicePort != null ) {
       return osgiServicePort.getAssignedPort();
     }
-    return null;
+    throw new IllegalStateException( "No osgi service port defined" );
   }
 
-  private static String getRepoURL( String path ) {
+  private String getEndpointURL( String path ) {
+    if ( connectedToRepo() ) {
+      return getRepo().getUri()
+        .orElseThrow( () -> new IllegalStateException( "Repo URI not defined" ) )
+        .toString() + "/osgi" + path;
+    }
     String host;
-    Integer port;
+    int port;
     try {
       host = getKettleProperty( THIN_CLIENT_HOST );
-      port = Integer.valueOf( getKettleProperty( THIN_CLIENT_PORT ) );
+      port = Integer.parseInt( getKettleProperty( THIN_CLIENT_PORT ) );
     } catch ( Exception e ) {
       host = LOCALHOST;
       port = getOsgiServicePort();
@@ -144,7 +171,16 @@ public class HadoopClusterDialog extends ThinDialog {
     return "http://" + host + ":" + port + path;
   }
 
-  private static String getKettleProperty( String propertyName ) {
+  private boolean connectedToRepo() {
+    Repository repo = getRepo();
+    return repo != null && repo.getUri().isPresent();
+  }
+
+  private Repository getRepo() {
+    return spoonSupplier.get().getRepository();
+  }
+
+  private String getKettleProperty( String propertyName ) {
     // loaded in system properties at startup
     return System.getProperty( propertyName );
   }
