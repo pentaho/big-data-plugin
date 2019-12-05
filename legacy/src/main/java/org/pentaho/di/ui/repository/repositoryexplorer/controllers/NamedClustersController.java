@@ -22,6 +22,8 @@
 
 package org.pentaho.di.ui.repository.repositoryexplorer.controllers;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -77,7 +79,8 @@ public class NamedClustersController extends LazilyInitializedController impleme
 
   private NamedClusterDialog namedClusterDialog;
 
-  private MainController mainController;
+  //The MainController is instantiated by a different classloader.  We will have to use reflection to access it
+  private Object mainController;
 
   protected ContextChangeVetoerCollection contextChangeVetoers;
 
@@ -123,7 +126,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
         bf.createBinding( namedClustersTable, "selectedItems", this, "selectedNamedClusters" );
       }
     } catch ( Exception ex ) {
-      if ( mainController == null || !mainController.handleLostRepository( ex ) ) {
+      if ( testForNoController( ex ) ) {
         // convert to runtime exception so it bubbles up through the UI
         throw new RuntimeException( ex );
       }
@@ -133,7 +136,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
   @Override
   protected boolean doLazyInit() {
     try {
-      mainController = (MainController) this.getXulDomContainer().getEventHandler( "mainController" );
+      mainController = this.getXulDomContainer().getEventHandler( "mainController" );
     } catch ( XulException e ) {
       return false;
     }
@@ -153,7 +156,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
 
       return true;
     } catch ( Exception e ) {
-      if ( mainController == null || !mainController.handleLostRepository( e ) ) {
+      if ( testForNoController( e ) ) {
         return false;
       }
     }
@@ -177,7 +180,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
         }
       }
     } catch ( Exception e ) {
-      if ( mainController == null || !mainController.handleLostRepository( e ) ) {
+      if ( testForNoController( e ) ) {
         // convert to runtime exception so it bubbles up through the UI
         throw new RuntimeException( e );
       }
@@ -201,7 +204,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
             }
           }
         } catch ( Exception e ) {
-          if ( mainController == null || !mainController.handleLostRepository( e ) ) {
+          if ( testForNoController( e ) ) {
             // convert to runtime exception so it bubbles up through the UI
             throw new RuntimeException( e );
           }
@@ -237,7 +240,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
         }
       }
     } catch ( Exception e ) {
-      if ( mainController == null || !mainController.handleLostRepository( e ) ) {
+      if ( testForNoController( e ) ) {
         new ErrorDialog( shell,
           BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Create.UnexpectedError.Title" ),
           BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Create.UnexpectedError.Message" ), e );
@@ -339,7 +342,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
         mb.open();
       }
     } catch ( Exception e ) {
-      if ( mainController == null || !mainController.handleLostRepository( e ) ) {
+      if ( testForNoController( e ) ) {
         new ErrorDialog( shell,
           BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Edit.UnexpectedError.Title" ),
           BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Edit.UnexpectedError.Message" ), e );
@@ -381,7 +384,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
         mb.open();
       }
     } catch ( Exception e ) {
-      if ( mainController == null || !mainController.handleLostRepository( e ) ) {
+      if ( testForNoController( e ) ) {
         new ErrorDialog( shell,
           BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Delete.UnexpectedError.Title" ),
           BaseMessages.getString( PKG, "RepositoryExplorerDialog.NamedCluster.Delete.UnexpectedError.Message" ), e );
@@ -440,4 +443,17 @@ public class NamedClustersController extends LazilyInitializedController impleme
     lazyInit();
   }
 
+  private boolean testForNoController( Throwable e ) {
+    if ( mainController == null ) {
+      return true;
+    }
+    try {
+      Method method = mainController.getClass().getMethod( "handleLostRepository", Throwable.class );
+      method.invoke( mainController, e );
+    } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException ex ) {
+      // If any of these exceptions we still did not get the mainController
+      return true;
+    }
+    return false;
+  }
 }
