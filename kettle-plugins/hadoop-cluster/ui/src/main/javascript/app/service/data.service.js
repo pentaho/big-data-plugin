@@ -43,7 +43,7 @@ define(
      * @return {Object} The dataService api
      */
     function factory(helperService) {
-      var baseUrl = "/cxf/hadoop-cluster";
+      var baseUrl = "../../cxf/hadoop-cluster";
       return {
         help: help,
         importNamedCluster: importNamedCluster,
