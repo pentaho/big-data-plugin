@@ -133,189 +133,100 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   public static final String S3_ENVIRONMENT = "S3";
 
   private CTabFolder wTabFolder;
-  private FormData fdTabFolder;
 
-  private CTabItem wFileTab;
-  private CTabItem wContentTab;
-  private CTabItem wErrorTab;
-  private CTabItem wFilterTab;
-  private CTabItem wFieldsTab;
-
-  private ScrolledComposite wFileSComp;
-  private ScrolledComposite wContentSComp;
-  private ScrolledComposite wErrorSComp;
-
-  private Composite wFileComp;
-  private Composite wContentComp;
-  private Composite wErrorComp;
-  private Composite wFilterComp;
-  private Composite wFieldsComp;
-
-  private FormData fdFileComp;
-  private FormData fdContentComp;
-  private FormData fdErrorComp;
-  private FormData fdFilterComp;
-  private FormData fdFieldsComp;
-
-  private Group gAccepting;
-  private FormData fdAccepting;
-
-  private Label wlAccFilenames;
   private Button wAccFilenames;
-  private FormData fdlAccFilenames, fdAccFilenames;
 
   private Label wlPassThruFields;
   private Button wPassThruFields;
-  private FormData fdlPassThruFields, fdPassThruFields;
 
   private Label wlAccField;
   private Text wAccField;
-  private FormData fdlAccField, fdAccField;
 
   private Label wlAccStep;
   private CCombo wAccStep;
-  private FormData fdlAccStep, fdAccStep;
 
   private Label wlFilenameList;
   private TableView wFilenameList;
-  private FormData fdlFilenameList, fdFilenameList;
 
   private Button wbShowFiles;
-  private FormData fdbShowFiles;
 
   private Button wFirst;
-  private FormData fdFirst;
-  private Listener lsFirst;
 
   private Button wFirstHeader;
-  private FormData fdFirstHeader;
-  private Listener lsFirstHeader;
 
-  private Label wlFiletype;
   private CCombo wFiletype;
-  private FormData fdlFiletype, fdFiletype;
 
-  private Label wlSeparator;
   private Button wbSeparator;
   private TextVar wSeparator;
-  private FormData fdlSeparator, fdbSeparator, fdSeparator;
 
-  private Label wlEnclosure;
   private Text wEnclosure;
-  private FormData fdlEnclosure, fdEnclosure;
 
-  private Label wlEnclBreaks;
-  private Button wEnclBreaks;
-  private FormData fdlEnclBreaks, fdEnclBreaks;
-
-  private Label wlEscape;
   private Text wEscape;
-  private FormData fdlEscape, fdEscape;
 
-  private Label wlHeader;
   private Button wHeader;
-  private FormData fdlHeader, fdHeader;
 
   private Label wlNrHeader;
   private Text wNrHeader;
-  private FormData fdlNrHeader, fdNrHeader;
 
-  private Label wlFooter;
   private Button wFooter;
-  private FormData fdlFooter, fdFooter;
 
   private Label wlNrFooter;
   private Text wNrFooter;
-  private FormData fdlNrFooter, fdNrFooter;
 
-  private Label wlWraps;
   private Button wWraps;
-  private FormData fdlWraps, fdWraps;
 
   private Label wlNrWraps;
   private Text wNrWraps;
-  private FormData fdlNrWraps, fdNrWraps;
 
-  private Label wlLayoutPaged;
   private Button wLayoutPaged;
-  private FormData fdlLayoutPaged, fdLayoutPaged;
 
   private Label wlNrLinesPerPage;
   private Text wNrLinesPerPage;
-  private FormData fdlNrLinesPerPage, fdNrLinesPerPage;
 
   private Label wlNrLinesDocHeader;
   private Text wNrLinesDocHeader;
-  private FormData fdlNrLinesDocHeader, fdNrLinesDocHeader;
 
-  private Label wlCompression;
   private CCombo wCompression;
-  private FormData fdlCompression, fdCompression;
 
-  private Label wlNoempty;
   private Button wNoempty;
-  private FormData fdlNoempty, fdNoempty;
 
-  private Label wlInclFilename;
   private Button wInclFilename;
-  private FormData fdlInclFilename, fdInclFilename;
 
   private Label wlInclFilenameField;
   private Text wInclFilenameField;
-  private FormData fdlInclFilenameField, fdInclFilenameField;
 
-  private Label wlInclRownum;
   private Button wInclRownum;
-  private FormData fdlInclRownum, fdRownum;
 
   private Label wlRownumByFileField;
   private Button wRownumByFile;
-  private FormData fdlRownumByFile, fdRownumByFile;
 
   private Label wlInclRownumField;
   private Text wInclRownumField;
-  private FormData fdlInclRownumField, fdInclRownumField;
 
-  private Label wlFormat;
   private CCombo wFormat;
-  private FormData fdlFormat, fdFormat;
 
-  private Label wlEncoding;
   private CCombo wEncoding;
-  private FormData fdlEncoding, fdEncoding;
 
-  private Label wlLimit;
   private Text wLimit;
-  private FormData fdlLimit, fdLimit;
 
-  private Label wlDateLenient;
   private Button wDateLenient;
-  private FormData fdlDateLenient, fdDateLenient;
 
-  private Label wlDateLocale;
   private CCombo wDateLocale;
-  private FormData fdlDateLocale, fdDateLocale;
 
   // ERROR HANDLING...
-  private Label wlErrorIgnored;
   private Button wErrorIgnored;
-  private FormData fdlErrorIgnored, fdErrorIgnored;
 
   private Label wlSkipErrorLines;
   private Button wSkipErrorLines;
-  private FormData fdlSkipErrorLines, fdSkipErrorLines;
 
   private Label wlErrorCount;
   private Text wErrorCount;
-  private FormData fdlErrorCount, fdErrorCount;
 
   private Label wlErrorFields;
   private Text wErrorFields;
-  private FormData fdlErrorFields, fdErrorFields;
 
   private Label wlErrorText;
   private Text wErrorText;
-  private FormData fdlErrorText, fdErrorText;
 
   // New entries for intelligent error handling AKA replay functionality
   // Bad files destination directory
@@ -323,55 +234,38 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private Button wbbWarnDestDir; // Browse: add file or directory
   private Button wbvWarnDestDir; // Variable
   private Text wWarnDestDir;
-  private FormData fdlWarnDestDir, fdbBadDestDir, fdbvWarnDestDir, fdBadDestDir;
   private Label wlWarnExt;
   private Text wWarnExt;
-  private FormData fdlWarnDestExt, fdWarnDestExt;
 
   // Error messages files destination directory
   private Label wlErrorDestDir;
   private Button wbbErrorDestDir; // Browse: add file or directory
   private Button wbvErrorDestDir; // Variable
   private Text wErrorDestDir;
-  private FormData fdlErrorDestDir, fdbErrorDestDir, fdbvErrorDestDir, fdErrorDestDir;
   private Label wlErrorExt;
   private Text wErrorExt;
-  private FormData fdlErrorDestExt, fdErrorDestExt;
 
   // Line numbers files destination directory
   private Label wlLineNrDestDir;
   private Button wbbLineNrDestDir; // Browse: add file or directory
   private Button wbvLineNrDestDir; // Variable
   private Text wLineNrDestDir;
-  private FormData fdlLineNrDestDir, fdbLineNrDestDir, fdbvLineNrDestDir, fdLineNrDestDir;
   private Label wlLineNrExt;
   private Text wLineNrExt;
-  private FormData fdlLineNrDestExt, fdLineNrDestExt;
 
   private TableView wFilter;
-  private FormData fdFilter;
 
   private TableView wFields;
-  private FormData fdFields;
-
-  private FormData fdlAddResult, fdAddFileResult, fdAddResult;
-
-  private Group wAddFileResult;
-
-  private Label wlAddResult;
 
   private Button wAddResult;
 
   private HadoopFileInputMeta input;
 
-  private ToolBar tb;
-
   // Wizard info...
   private Vector<TextFileInputFieldInterface> fields;
 
-  private String[] dateLocale;
-
-  private int middle, margin;
+  private int middle;
+  private int margin;
   private ModifyListener lsMod;
   private ModifyListener lsModCompression;
 
@@ -463,7 +357,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     addFiltersTabs();
     addFieldsTabs();
 
-    fdTabFolder = new FormData();
+    FormData fdTabFolder = new FormData();
     fdTabFolder.left = new FormAttachment( 0, 0 );
     fdTabFolder.top = new FormAttachment( wStepname, margin );
     fdTabFolder.right = new FormAttachment( 100, 0 );
@@ -488,13 +382,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
         ok();
       }
     };
-    lsFirst = new Listener() {
+    Listener lsFirst = new Listener() {
       @Override
       public void handleEvent( Event e ) {
         first( false );
       }
     };
-    lsFirstHeader = new Listener() {
+    Listener lsFirstHeader = new Listener() {
       @Override
       public void handleEvent( Event e ) {
         first( true );
@@ -672,13 +566,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // START OF FILE TAB ///
     // ////////////////////////
 
-    wFileTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wFileTab = new CTabItem( wTabFolder, SWT.NONE );
     wFileTab.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileTab.TabTitle" ) );
 
-    wFileSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL );
+    ScrolledComposite wFileSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL );
     wFileSComp.setLayout( new FillLayout() );
 
-    wFileComp = new Composite( wFileSComp, SWT.NONE );
+    Composite wFileComp = new Composite( wFileSComp, SWT.NONE );
     props.setLook( wFileComp );
 
     FormLayout fileLayout = new FormLayout();
@@ -690,12 +584,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlFilenameList = new Label( wFileComp, SWT.RIGHT );
     wlFilenameList.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilenameList.Label" ) );
     props.setLook( wlFilenameList );
-    fdlFilenameList = new FormData();
+
+    FormData fdlFilenameList = new FormData();
     fdlFilenameList.left = new FormAttachment( 0, 0 );
     fdlFilenameList.top = new FormAttachment( wFileComp, 15 );
     wlFilenameList.setLayoutData( fdlFilenameList );
 
-    tb = new ToolBar( wFileComp, SWT.HORIZONTAL | SWT.FLAT );
+    ToolBar tb = new ToolBar( wFileComp, SWT.HORIZONTAL | SWT.FLAT );
     props.setLook( tb );
     FormData fdTb = new FormData();
     fdTb.right = new FormAttachment( 100, 0 );
@@ -720,21 +615,24 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wbShowFiles = new Button( wFileComp, SWT.PUSH | SWT.CENTER );
     props.setLook( wbShowFiles );
     wbShowFiles.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ShowFiles.Button" ) );
-    fdbShowFiles = new FormData();
+
+    FormData fdbShowFiles = new FormData();
     fdbShowFiles.left = new FormAttachment( middle, 0 );
     fdbShowFiles.bottom = new FormAttachment( 100, 0 );
     wbShowFiles.setLayoutData( fdbShowFiles );
 
     wFirst = new Button( wFileComp, SWT.PUSH );
     wFirst.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.First.Button" ) );
-    fdFirst = new FormData();
+
+    FormData fdFirst = new FormData();
     fdFirst.left = new FormAttachment( wbShowFiles, margin * 2 );
     fdFirst.bottom = new FormAttachment( 100, 0 );
     wFirst.setLayoutData( fdFirst );
 
     wFirstHeader = new Button( wFileComp, SWT.PUSH );
     wFirstHeader.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FirstHeader.Button" ) );
-    fdFirstHeader = new FormData();
+
+    FormData fdFirstHeader = new FormData();
     fdFirstHeader.left = new FormAttachment( wFirst, margin * 2 );
     fdFirstHeader.bottom = new FormAttachment( 100, 0 );
     wFirstHeader.setLayoutData( fdFirstHeader );
@@ -742,7 +640,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // Accepting filenames group
     //
 
-    gAccepting = new Group( wFileComp, SWT.SHADOW_ETCHED_IN );
+    Group gAccepting = new Group( wFileComp, SWT.SHADOW_ETCHED_IN );
     gAccepting.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptingGroup.Label" ) ); //$NON-NLS-1$;
     FormLayout acceptingLayout = new FormLayout();
     acceptingLayout.marginWidth = 3;
@@ -752,10 +650,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     // Accept filenames from previous steps?
     //
-    wlAccFilenames = new Label( gAccepting, SWT.RIGHT );
+    Label wlAccFilenames = new Label( gAccepting, SWT.RIGHT );
     wlAccFilenames.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptFilenames.Label" ) );
     props.setLook( wlAccFilenames );
-    fdlAccFilenames = new FormData();
+
+    FormData fdlAccFilenames = new FormData();
     fdlAccFilenames.top = new FormAttachment( 0, margin );
     fdlAccFilenames.left = new FormAttachment( 0, 0 );
     fdlAccFilenames.right = new FormAttachment( middle, -margin );
@@ -763,7 +662,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wAccFilenames = new Button( gAccepting, SWT.CHECK );
     wAccFilenames.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptFilenames.Tooltip" ) );
     props.setLook( wAccFilenames );
-    fdAccFilenames = new FormData();
+
+    FormData fdAccFilenames = new FormData();
     fdAccFilenames.top = new FormAttachment( 0, margin );
     fdAccFilenames.left = new FormAttachment( middle, 0 );
     fdAccFilenames.right = new FormAttachment( 100, 0 );
@@ -774,7 +674,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlPassThruFields = new Label( gAccepting, SWT.RIGHT );
     wlPassThruFields.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.PassThruFields.Label" ) );
     props.setLook( wlPassThruFields );
-    fdlPassThruFields = new FormData();
+
+    FormData fdlPassThruFields = new FormData();
     fdlPassThruFields.top = new FormAttachment( wAccFilenames, margin );
     fdlPassThruFields.left = new FormAttachment( 0, 0 );
     fdlPassThruFields.right = new FormAttachment( middle, -margin );
@@ -782,7 +683,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wPassThruFields = new Button( gAccepting, SWT.CHECK );
     wPassThruFields.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.PassThruFields.Tooltip" ) );
     props.setLook( wPassThruFields );
-    fdPassThruFields = new FormData();
+
+    FormData fdPassThruFields = new FormData();
     fdPassThruFields.top = new FormAttachment( wAccFilenames, margin );
     fdPassThruFields.left = new FormAttachment( middle, 0 );
     fdPassThruFields.right = new FormAttachment( 100, 0 );
@@ -792,7 +694,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlAccStep = new Label( gAccepting, SWT.RIGHT );
     wlAccStep.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptStep.Label" ) );
     props.setLook( wlAccStep );
-    fdlAccStep = new FormData();
+
+    FormData fdlAccStep = new FormData();
     fdlAccStep.top = new FormAttachment( wPassThruFields, margin );
     fdlAccStep.left = new FormAttachment( 0, 0 );
     fdlAccStep.right = new FormAttachment( middle, -margin );
@@ -800,7 +703,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wAccStep = new CCombo( gAccepting, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wAccStep.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptStep.Tooltip" ) );
     props.setLook( wAccStep );
-    fdAccStep = new FormData();
+
+    FormData fdAccStep = new FormData();
     fdAccStep.top = new FormAttachment( wPassThruFields, margin );
     fdAccStep.left = new FormAttachment( middle, 0 );
     fdAccStep.right = new FormAttachment( 100, 0 );
@@ -811,7 +715,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlAccField = new Label( gAccepting, SWT.RIGHT );
     wlAccField.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptField.Label" ) );
     props.setLook( wlAccField );
-    fdlAccField = new FormData();
+
+    FormData fdlAccField = new FormData();
     fdlAccField.top = new FormAttachment( wAccStep, margin );
     fdlAccField.left = new FormAttachment( 0, 0 );
     fdlAccField.right = new FormAttachment( middle, -margin );
@@ -819,7 +724,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wAccField = new Text( gAccepting, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wAccField.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AcceptField.Tooltip" ) );
     props.setLook( wAccField );
-    fdAccField = new FormData();
+
+    FormData fdAccField = new FormData();
     fdAccField.top = new FormAttachment( wAccStep, margin );
     fdAccField.left = new FormAttachment( middle, 0 );
     fdAccField.right = new FormAttachment( 100, 0 );
@@ -831,7 +737,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       wAccStep.add( prevStep.getName() );
     }
 
-    fdAccepting = new FormData();
+    FormData fdAccepting = new FormData();
     fdAccepting.left = new FormAttachment( 0, 0 );
     fdAccepting.right = new FormAttachment( 100, 0 );
     fdAccepting.bottom = new FormAttachment( wFirstHeader, -margin * 2 );
@@ -861,14 +767,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       new TableView( transMeta, wFileComp, SWT.FULL_SELECTION | SWT.SINGLE | SWT.BORDER, colinfo, 4, lsMod, props );
     props.setLook( wFilenameList );
 
-    fdFilenameList = new FormData();
+    FormData fdFilenameList = new FormData();
     fdFilenameList.bottom = new FormAttachment( gAccepting, 0 );
     fdFilenameList.right = new FormAttachment( 100, 0 );
     fdFilenameList.left = new FormAttachment( 0, 0 );
     fdFilenameList.top = new FormAttachment( tb, margin );
     wFilenameList.setLayoutData( fdFilenameList );
 
-    fdFileComp = new FormData();
+    FormData fdFileComp = new FormData();
     fdFileComp.left = new FormAttachment( 0, 0 );
     fdFileComp.top = new FormAttachment( 0, 0 );
     fdFileComp.right = new FormAttachment( 100, 0 );
@@ -895,25 +801,26 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // ////////////////////////
     // START OF CONTENT TAB///
     // /
-    wContentTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wContentTab = new CTabItem( wTabFolder, SWT.NONE );
     wContentTab.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ContentTab.TabTitle" ) );
 
     FormLayout contentLayout = new FormLayout();
     contentLayout.marginWidth = 3;
     contentLayout.marginHeight = 3;
 
-    wContentSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL );
+    ScrolledComposite wContentSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL );
     wContentSComp.setLayout( new FillLayout() );
 
-    wContentComp = new Composite( wContentSComp, SWT.NONE );
+    Composite wContentComp = new Composite( wContentSComp, SWT.NONE );
     props.setLook( wContentComp );
     wContentComp.setLayout( contentLayout );
 
     // Filetype line
-    wlFiletype = new Label( wContentComp, SWT.RIGHT );
+    Label wlFiletype = new Label( wContentComp, SWT.RIGHT );
     wlFiletype.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Filetype.Label" ) );
     props.setLook( wlFiletype );
-    fdlFiletype = new FormData();
+
+    FormData fdlFiletype = new FormData();
     fdlFiletype.left = new FormAttachment( 0, 0 );
     fdlFiletype.top = new FormAttachment( 0, 0 );
     fdlFiletype.right = new FormAttachment( middle, -margin );
@@ -925,16 +832,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wFiletype.add( "Fixed" );
     wFiletype.select( 0 );
     wFiletype.addModifyListener( lsMod );
-    fdFiletype = new FormData();
+
+    FormData fdFiletype = new FormData();
     fdFiletype.left = new FormAttachment( middle, 0 );
     fdFiletype.top = new FormAttachment( 0, 0 );
     fdFiletype.right = new FormAttachment( 100, 0 );
     wFiletype.setLayoutData( fdFiletype );
 
-    wlSeparator = new Label( wContentComp, SWT.RIGHT );
+    Label wlSeparator = new Label( wContentComp, SWT.RIGHT );
     wlSeparator.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Separator.Label" ) );
     props.setLook( wlSeparator );
-    fdlSeparator = new FormData();
+
+    FormData fdlSeparator = new FormData();
     fdlSeparator.left = new FormAttachment( 0, 0 );
     fdlSeparator.top = new FormAttachment( wFiletype, margin );
     fdlSeparator.right = new FormAttachment( middle, -margin );
@@ -943,24 +852,27 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wbSeparator = new Button( wContentComp, SWT.PUSH | SWT.CENTER );
     wbSeparator.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Delimiter.Button" ) );
     props.setLook( wbSeparator );
-    fdbSeparator = new FormData();
+
+    FormData fdbSeparator = new FormData();
     fdbSeparator.right = new FormAttachment( 100, 0 );
     fdbSeparator.top = new FormAttachment( wFiletype, 0 );
     wbSeparator.setLayoutData( fdbSeparator );
     wSeparator = new TextVar( transMeta, wContentComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wSeparator );
     wSeparator.addModifyListener( lsMod );
-    fdSeparator = new FormData();
+
+    FormData fdSeparator = new FormData();
     fdSeparator.top = new FormAttachment( wFiletype, margin );
     fdSeparator.left = new FormAttachment( middle, 0 );
     fdSeparator.right = new FormAttachment( wbSeparator, -margin );
     wSeparator.setLayoutData( fdSeparator );
 
     // Enclosure
-    wlEnclosure = new Label( wContentComp, SWT.RIGHT );
+    Label wlEnclosure = new Label( wContentComp, SWT.RIGHT );
     wlEnclosure.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Enclosure.Label" ) );
     props.setLook( wlEnclosure );
-    fdlEnclosure = new FormData();
+
+    FormData fdlEnclosure = new FormData();
     fdlEnclosure.left = new FormAttachment( 0, 0 );
     fdlEnclosure.top = new FormAttachment( wSeparator, margin );
     fdlEnclosure.right = new FormAttachment( middle, -margin );
@@ -968,24 +880,28 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wEnclosure = new Text( wContentComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wEnclosure );
     wEnclosure.addModifyListener( lsMod );
-    fdEnclosure = new FormData();
+
+    FormData fdEnclosure = new FormData();
     fdEnclosure.left = new FormAttachment( middle, 0 );
     fdEnclosure.top = new FormAttachment( wSeparator, margin );
     fdEnclosure.right = new FormAttachment( 100, 0 );
     wEnclosure.setLayoutData( fdEnclosure );
 
     // Allow Enclosure breaks checkbox
-    wlEnclBreaks = new Label( wContentComp, SWT.RIGHT );
+    Label wlEnclBreaks = new Label( wContentComp, SWT.RIGHT );
     wlEnclBreaks.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.EnclBreaks.Label" ) );
     props.setLook( wlEnclBreaks );
-    fdlEnclBreaks = new FormData();
+
+    FormData fdlEnclBreaks = new FormData();
     fdlEnclBreaks.left = new FormAttachment( 0, 0 );
     fdlEnclBreaks.top = new FormAttachment( wEnclosure, margin );
     fdlEnclBreaks.right = new FormAttachment( middle, -margin );
     wlEnclBreaks.setLayoutData( fdlEnclBreaks );
-    wEnclBreaks = new Button( wContentComp, SWT.CHECK );
+
+    Button wEnclBreaks = new Button( wContentComp, SWT.CHECK );
     props.setLook( wEnclBreaks );
-    fdEnclBreaks = new FormData();
+
+    FormData fdEnclBreaks = new FormData();
     fdEnclBreaks.left = new FormAttachment( middle, 0 );
     fdEnclBreaks.top = new FormAttachment( wEnclosure, margin );
     wEnclBreaks.setLayoutData( fdEnclBreaks );
@@ -995,10 +911,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wEnclBreaks.setEnabled( false );
 
     // Escape
-    wlEscape = new Label( wContentComp, SWT.RIGHT );
+    Label wlEscape = new Label( wContentComp, SWT.RIGHT );
     wlEscape.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Escape.Label" ) );
     props.setLook( wlEscape );
-    fdlEscape = new FormData();
+
+    FormData fdlEscape = new FormData();
     fdlEscape.left = new FormAttachment( 0, 0 );
     fdlEscape.top = new FormAttachment( wEnclBreaks, margin );
     fdlEscape.right = new FormAttachment( middle, -margin );
@@ -1006,24 +923,27 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wEscape = new Text( wContentComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wEscape );
     wEscape.addModifyListener( lsMod );
-    fdEscape = new FormData();
+
+    FormData fdEscape = new FormData();
     fdEscape.left = new FormAttachment( middle, 0 );
     fdEscape.top = new FormAttachment( wEnclBreaks, margin );
     fdEscape.right = new FormAttachment( 100, 0 );
     wEscape.setLayoutData( fdEscape );
 
     // Header checkbox
-    wlHeader = new Label( wContentComp, SWT.RIGHT );
+    Label wlHeader = new Label( wContentComp, SWT.RIGHT );
     wlHeader.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Header.Label" ) );
     props.setLook( wlHeader );
-    fdlHeader = new FormData();
+
+    FormData fdlHeader = new FormData();
     fdlHeader.left = new FormAttachment( 0, 0 );
     fdlHeader.top = new FormAttachment( wEscape, margin );
     fdlHeader.right = new FormAttachment( middle, -margin );
     wlHeader.setLayoutData( fdlHeader );
     wHeader = new Button( wContentComp, SWT.CHECK );
     props.setLook( wHeader );
-    fdHeader = new FormData();
+
+    FormData fdHeader = new FormData();
     fdHeader.left = new FormAttachment( middle, 0 );
     fdHeader.top = new FormAttachment( wEscape, margin );
     wHeader.setLayoutData( fdHeader );
@@ -1032,7 +952,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlNrHeader = new Label( wContentComp, SWT.RIGHT );
     wlNrHeader.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NrHeader.Label" ) );
     props.setLook( wlNrHeader );
-    fdlNrHeader = new FormData();
+
+    FormData fdlNrHeader = new FormData();
     fdlNrHeader.left = new FormAttachment( wHeader, margin );
     fdlNrHeader.top = new FormAttachment( wEscape, margin );
     wlNrHeader.setLayoutData( fdlNrHeader );
@@ -1040,23 +961,26 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wNrHeader.setTextLimit( 3 );
     props.setLook( wNrHeader );
     wNrHeader.addModifyListener( lsMod );
-    fdNrHeader = new FormData();
+
+    FormData fdNrHeader = new FormData();
     fdNrHeader.left = new FormAttachment( wlNrHeader, margin );
     fdNrHeader.top = new FormAttachment( wEscape, margin );
     fdNrHeader.right = new FormAttachment( 100, 0 );
     wNrHeader.setLayoutData( fdNrHeader );
 
-    wlFooter = new Label( wContentComp, SWT.RIGHT );
+    Label wlFooter = new Label( wContentComp, SWT.RIGHT );
     wlFooter.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Footer.Label" ) );
     props.setLook( wlFooter );
-    fdlFooter = new FormData();
+
+    FormData fdlFooter = new FormData();
     fdlFooter.left = new FormAttachment( 0, 0 );
     fdlFooter.top = new FormAttachment( wHeader, margin );
     fdlFooter.right = new FormAttachment( middle, -margin );
     wlFooter.setLayoutData( fdlFooter );
     wFooter = new Button( wContentComp, SWT.CHECK );
     props.setLook( wFooter );
-    fdFooter = new FormData();
+
+    FormData fdFooter = new FormData();
     fdFooter.left = new FormAttachment( middle, 0 );
     fdFooter.top = new FormAttachment( wHeader, margin );
     wFooter.setLayoutData( fdFooter );
@@ -1065,7 +989,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlNrFooter = new Label( wContentComp, SWT.RIGHT );
     wlNrFooter.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NrFooter.Label" ) );
     props.setLook( wlNrFooter );
-    fdlNrFooter = new FormData();
+
+    FormData fdlNrFooter = new FormData();
     fdlNrFooter.left = new FormAttachment( wFooter, margin );
     fdlNrFooter.top = new FormAttachment( wHeader, margin );
     wlNrFooter.setLayoutData( fdlNrFooter );
@@ -1073,24 +998,27 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wNrFooter.setTextLimit( 3 );
     props.setLook( wNrFooter );
     wNrFooter.addModifyListener( lsMod );
-    fdNrFooter = new FormData();
+
+    FormData fdNrFooter = new FormData();
     fdNrFooter.left = new FormAttachment( wlNrFooter, margin );
     fdNrFooter.top = new FormAttachment( wHeader, margin );
     fdNrFooter.right = new FormAttachment( 100, 0 );
     wNrFooter.setLayoutData( fdNrFooter );
 
     // Wraps
-    wlWraps = new Label( wContentComp, SWT.RIGHT );
+    Label wlWraps = new Label( wContentComp, SWT.RIGHT );
     wlWraps.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Wraps.Label" ) );
     props.setLook( wlWraps );
-    fdlWraps = new FormData();
+
+    FormData fdlWraps = new FormData();
     fdlWraps.left = new FormAttachment( 0, 0 );
     fdlWraps.top = new FormAttachment( wFooter, margin );
     fdlWraps.right = new FormAttachment( middle, -margin );
     wlWraps.setLayoutData( fdlWraps );
     wWraps = new Button( wContentComp, SWT.CHECK );
     props.setLook( wWraps );
-    fdWraps = new FormData();
+
+    FormData fdWraps = new FormData();
     fdWraps.left = new FormAttachment( middle, 0 );
     fdWraps.top = new FormAttachment( wFooter, margin );
     wWraps.setLayoutData( fdWraps );
@@ -1099,7 +1027,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlNrWraps = new Label( wContentComp, SWT.RIGHT );
     wlNrWraps.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NrWraps.Label" ) );
     props.setLook( wlNrWraps );
-    fdlNrWraps = new FormData();
+
+    FormData fdlNrWraps = new FormData();
     fdlNrWraps.left = new FormAttachment( wWraps, margin );
     fdlNrWraps.top = new FormAttachment( wFooter, margin );
     wlNrWraps.setLayoutData( fdlNrWraps );
@@ -1107,24 +1036,27 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wNrWraps.setTextLimit( 3 );
     props.setLook( wNrWraps );
     wNrWraps.addModifyListener( lsMod );
-    fdNrWraps = new FormData();
+
+    FormData fdNrWraps = new FormData();
     fdNrWraps.left = new FormAttachment( wlNrWraps, margin );
     fdNrWraps.top = new FormAttachment( wFooter, margin );
     fdNrWraps.right = new FormAttachment( 100, 0 );
     wNrWraps.setLayoutData( fdNrWraps );
 
     // Pages
-    wlLayoutPaged = new Label( wContentComp, SWT.RIGHT );
+    Label wlLayoutPaged = new Label( wContentComp, SWT.RIGHT );
     wlLayoutPaged.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.LayoutPaged.Label" ) );
     props.setLook( wlLayoutPaged );
-    fdlLayoutPaged = new FormData();
+
+    FormData fdlLayoutPaged = new FormData();
     fdlLayoutPaged.left = new FormAttachment( 0, 0 );
     fdlLayoutPaged.top = new FormAttachment( wWraps, margin );
     fdlLayoutPaged.right = new FormAttachment( middle, -margin );
     wlLayoutPaged.setLayoutData( fdlLayoutPaged );
     wLayoutPaged = new Button( wContentComp, SWT.CHECK );
     props.setLook( wLayoutPaged );
-    fdLayoutPaged = new FormData();
+
+    FormData fdLayoutPaged = new FormData();
     fdLayoutPaged.left = new FormAttachment( middle, 0 );
     fdLayoutPaged.top = new FormAttachment( wWraps, margin );
     wLayoutPaged.setLayoutData( fdLayoutPaged );
@@ -1133,7 +1065,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlNrLinesPerPage = new Label( wContentComp, SWT.RIGHT );
     wlNrLinesPerPage.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NrLinesPerPage.Label" ) );
     props.setLook( wlNrLinesPerPage );
-    fdlNrLinesPerPage = new FormData();
+
+    FormData fdlNrLinesPerPage = new FormData();
     fdlNrLinesPerPage.left = new FormAttachment( wLayoutPaged, margin );
     fdlNrLinesPerPage.top = new FormAttachment( wWraps, margin );
     wlNrLinesPerPage.setLayoutData( fdlNrLinesPerPage );
@@ -1141,7 +1074,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wNrLinesPerPage.setTextLimit( 3 );
     props.setLook( wNrLinesPerPage );
     wNrLinesPerPage.addModifyListener( lsMod );
-    fdNrLinesPerPage = new FormData();
+
+    FormData fdNrLinesPerPage = new FormData();
     fdNrLinesPerPage.left = new FormAttachment( wlNrLinesPerPage, margin );
     fdNrLinesPerPage.top = new FormAttachment( wWraps, margin );
     fdNrLinesPerPage.right = new FormAttachment( 100, 0 );
@@ -1151,7 +1085,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlNrLinesDocHeader = new Label( wContentComp, SWT.RIGHT );
     wlNrLinesDocHeader.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NrLinesDocHeader.Label" ) );
     props.setLook( wlNrLinesDocHeader );
-    fdlNrLinesDocHeader = new FormData();
+
+    FormData fdlNrLinesDocHeader = new FormData();
     fdlNrLinesDocHeader.left = new FormAttachment( wLayoutPaged, margin );
     fdlNrLinesDocHeader.top = new FormAttachment( wNrLinesPerPage, margin );
     wlNrLinesDocHeader.setLayoutData( fdlNrLinesDocHeader );
@@ -1159,18 +1094,19 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wNrLinesDocHeader.setTextLimit( 3 );
     props.setLook( wNrLinesDocHeader );
     wNrLinesDocHeader.addModifyListener( lsMod );
-    fdNrLinesDocHeader = new FormData();
 
+    FormData fdNrLinesDocHeader = new FormData();
     fdNrLinesDocHeader.left = new FormAttachment( wlNrLinesPerPage, margin );
     fdNrLinesDocHeader.top = new FormAttachment( wNrLinesPerPage, margin );
     fdNrLinesDocHeader.right = new FormAttachment( 100, 0 );
     wNrLinesDocHeader.setLayoutData( fdNrLinesDocHeader );
 
     // Compression type (None, Zip or GZip
-    wlCompression = new Label( wContentComp, SWT.RIGHT );
+    Label wlCompression = new Label( wContentComp, SWT.RIGHT );
     wlCompression.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Compression.Label" ) );
     props.setLook( wlCompression );
-    fdlCompression = new FormData();
+
+    FormData fdlCompression = new FormData();
     fdlCompression.left = new FormAttachment( 0, 0 );
     fdlCompression.top = new FormAttachment( wNrLinesDocHeader, margin );
     fdlCompression.right = new FormAttachment( middle, -margin );
@@ -1181,16 +1117,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wCompression );
     wCompression.setItems( CompressionProviderFactory.getInstance().getCompressionProviderNames() );
     wCompression.addModifyListener( lsModCompression );
-    fdCompression = new FormData();
+
+    FormData fdCompression = new FormData();
     fdCompression.left = new FormAttachment( middle, 0 );
     fdCompression.top = new FormAttachment( wNrLinesDocHeader, margin );
     fdCompression.right = new FormAttachment( 100, 0 );
     wCompression.setLayoutData( fdCompression );
 
-    wlNoempty = new Label( wContentComp, SWT.RIGHT );
+    Label wlNoempty = new Label( wContentComp, SWT.RIGHT );
     wlNoempty.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NoEmpty.Label" ) );
     props.setLook( wlNoempty );
-    fdlNoempty = new FormData();
+
+    FormData fdlNoempty = new FormData();
     fdlNoempty.left = new FormAttachment( 0, 0 );
     fdlNoempty.top = new FormAttachment( wCompression, margin );
     fdlNoempty.right = new FormAttachment( middle, -margin );
@@ -1198,16 +1136,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wNoempty = new Button( wContentComp, SWT.CHECK );
     props.setLook( wNoempty );
     wNoempty.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.NoEmpty.Tooltip" ) );
-    fdNoempty = new FormData();
+
+    FormData fdNoempty = new FormData();
     fdNoempty.left = new FormAttachment( middle, 0 );
     fdNoempty.top = new FormAttachment( wCompression, margin );
     fdNoempty.right = new FormAttachment( 100, 0 );
     wNoempty.setLayoutData( fdNoempty );
 
-    wlInclFilename = new Label( wContentComp, SWT.RIGHT );
+    Label wlInclFilename = new Label( wContentComp, SWT.RIGHT );
     wlInclFilename.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.InclFilename.Label" ) );
     props.setLook( wlInclFilename );
-    fdlInclFilename = new FormData();
+
+    FormData fdlInclFilename = new FormData();
     fdlInclFilename.left = new FormAttachment( 0, 0 );
     fdlInclFilename.top = new FormAttachment( wNoempty, margin );
     fdlInclFilename.right = new FormAttachment( middle, -margin );
@@ -1215,7 +1155,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wInclFilename = new Button( wContentComp, SWT.CHECK );
     props.setLook( wInclFilename );
     wInclFilename.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.InclFilename.Tooltip" ) );
-    fdInclFilename = new FormData();
+
+    FormData fdInclFilename = new FormData();
     fdInclFilename.left = new FormAttachment( middle, 0 );
     fdInclFilename.top = new FormAttachment( wNoempty, margin );
     wInclFilename.setLayoutData( fdInclFilename );
@@ -1223,23 +1164,26 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlInclFilenameField = new Label( wContentComp, SWT.LEFT );
     wlInclFilenameField.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.InclFilenameField.Label" ) );
     props.setLook( wlInclFilenameField );
-    fdlInclFilenameField = new FormData();
+
+    FormData fdlInclFilenameField = new FormData();
     fdlInclFilenameField.left = new FormAttachment( wInclFilename, margin );
     fdlInclFilenameField.top = new FormAttachment( wNoempty, margin );
     wlInclFilenameField.setLayoutData( fdlInclFilenameField );
     wInclFilenameField = new Text( wContentComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wInclFilenameField );
     wInclFilenameField.addModifyListener( lsMod );
-    fdInclFilenameField = new FormData();
+
+    FormData fdInclFilenameField = new FormData();
     fdInclFilenameField.left = new FormAttachment( wlInclFilenameField, margin );
     fdInclFilenameField.top = new FormAttachment( wNoempty, margin );
     fdInclFilenameField.right = new FormAttachment( 100, 0 );
     wInclFilenameField.setLayoutData( fdInclFilenameField );
 
-    wlInclRownum = new Label( wContentComp, SWT.RIGHT );
+    Label wlInclRownum = new Label( wContentComp, SWT.RIGHT );
     wlInclRownum.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.InclRownum.Label" ) );
     props.setLook( wlInclRownum );
-    fdlInclRownum = new FormData();
+
+    FormData fdlInclRownum = new FormData();
     fdlInclRownum.left = new FormAttachment( 0, 0 );
     fdlInclRownum.top = new FormAttachment( wInclFilenameField, margin );
     fdlInclRownum.right = new FormAttachment( middle, -margin );
@@ -1247,7 +1191,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wInclRownum = new Button( wContentComp, SWT.CHECK );
     props.setLook( wInclRownum );
     wInclRownum.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.InclRownum.Tooltip" ) );
-    fdRownum = new FormData();
+
+    FormData fdRownum = new FormData();
     fdRownum.left = new FormAttachment( middle, 0 );
     fdRownum.top = new FormAttachment( wInclFilenameField, margin );
     wInclRownum.setLayoutData( fdRownum );
@@ -1255,14 +1200,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlInclRownumField = new Label( wContentComp, SWT.RIGHT );
     wlInclRownumField.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.InclRownumField.Label" ) );
     props.setLook( wlInclRownumField );
-    fdlInclRownumField = new FormData();
+
+    FormData fdlInclRownumField = new FormData();
     fdlInclRownumField.left = new FormAttachment( wInclRownum, margin );
     fdlInclRownumField.top = new FormAttachment( wInclFilenameField, margin );
     wlInclRownumField.setLayoutData( fdlInclRownumField );
     wInclRownumField = new Text( wContentComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wInclRownumField );
     wInclRownumField.addModifyListener( lsMod );
-    fdInclRownumField = new FormData();
+
+    FormData fdInclRownumField = new FormData();
     fdInclRownumField.left = new FormAttachment( wlInclRownumField, margin );
     fdInclRownumField.top = new FormAttachment( wInclFilenameField, margin );
     fdInclRownumField.right = new FormAttachment( 100, 0 );
@@ -1271,22 +1218,25 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlRownumByFileField = new Label( wContentComp, SWT.RIGHT );
     wlRownumByFileField.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RownumByFile.Label" ) );
     props.setLook( wlRownumByFileField );
-    fdlRownumByFile = new FormData();
+
+    FormData fdlRownumByFile = new FormData();
     fdlRownumByFile.left = new FormAttachment( wInclRownum, margin );
     fdlRownumByFile.top = new FormAttachment( wInclRownumField, margin );
     wlRownumByFileField.setLayoutData( fdlRownumByFile );
     wRownumByFile = new Button( wContentComp, SWT.CHECK );
     props.setLook( wRownumByFile );
     wRownumByFile.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RownumByFile.Tooltip" ) );
-    fdRownumByFile = new FormData();
+
+    FormData fdRownumByFile = new FormData();
     fdRownumByFile.left = new FormAttachment( wlRownumByFileField, margin );
     fdRownumByFile.top = new FormAttachment( wInclRownumField, margin );
     wRownumByFile.setLayoutData( fdRownumByFile );
 
-    wlFormat = new Label( wContentComp, SWT.RIGHT );
+    Label wlFormat = new Label( wContentComp, SWT.RIGHT );
     wlFormat.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Format.Label" ) );
     props.setLook( wlFormat );
-    fdlFormat = new FormData();
+
+    FormData fdlFormat = new FormData();
     fdlFormat.left = new FormAttachment( 0, 0 );
     fdlFormat.top = new FormAttachment( wRownumByFile, margin * 2 );
     fdlFormat.right = new FormAttachment( middle, -margin );
@@ -1299,16 +1249,18 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wFormat.add( "mixed" );
     wFormat.select( 0 );
     wFormat.addModifyListener( lsMod );
-    fdFormat = new FormData();
+
+    FormData fdFormat = new FormData();
     fdFormat.left = new FormAttachment( middle, 0 );
     fdFormat.top = new FormAttachment( wRownumByFile, margin * 2 );
     fdFormat.right = new FormAttachment( 100, 0 );
     wFormat.setLayoutData( fdFormat );
 
-    wlEncoding = new Label( wContentComp, SWT.RIGHT );
+    Label wlEncoding = new Label( wContentComp, SWT.RIGHT );
     wlEncoding.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Encoding.Label" ) );
     props.setLook( wlEncoding );
-    fdlEncoding = new FormData();
+
+    FormData fdlEncoding = new FormData();
     fdlEncoding.left = new FormAttachment( 0, 0 );
     fdlEncoding.top = new FormAttachment( wFormat, margin );
     fdlEncoding.right = new FormAttachment( middle, -margin );
@@ -1317,7 +1269,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wEncoding.setEditable( true );
     props.setLook( wEncoding );
     wEncoding.addModifyListener( lsMod );
-    fdEncoding = new FormData();
+
+    FormData fdEncoding = new FormData();
     fdEncoding.left = new FormAttachment( middle, 0 );
     fdEncoding.top = new FormAttachment( wFormat, margin );
     fdEncoding.right = new FormAttachment( 100, 0 );
@@ -1337,10 +1290,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       }
     } );
 
-    wlLimit = new Label( wContentComp, SWT.RIGHT );
+    Label wlLimit = new Label( wContentComp, SWT.RIGHT );
     wlLimit.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Limit.Label" ) );
     props.setLook( wlLimit );
-    fdlLimit = new FormData();
+
+    FormData fdlLimit = new FormData();
     fdlLimit.left = new FormAttachment( 0, 0 );
     fdlLimit.top = new FormAttachment( wEncoding, margin );
     fdlLimit.right = new FormAttachment( middle, -margin );
@@ -1348,17 +1302,19 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wLimit = new Text( wContentComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wLimit );
     wLimit.addModifyListener( lsMod );
-    fdLimit = new FormData();
+
+    FormData fdLimit = new FormData();
     fdLimit.left = new FormAttachment( middle, 0 );
     fdLimit.top = new FormAttachment( wEncoding, margin );
     fdLimit.right = new FormAttachment( 100, 0 );
     wLimit.setLayoutData( fdLimit );
 
     // Date Lenient checkbox
-    wlDateLenient = new Label( wContentComp, SWT.RIGHT );
+    Label wlDateLenient = new Label( wContentComp, SWT.RIGHT );
     wlDateLenient.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.DateLenient.Label" ) );
     props.setLook( wlDateLenient );
-    fdlDateLenient = new FormData();
+
+    FormData fdlDateLenient = new FormData();
     fdlDateLenient.left = new FormAttachment( 0, 0 );
     fdlDateLenient.top = new FormAttachment( wLimit, margin );
     fdlDateLenient.right = new FormAttachment( middle, -margin );
@@ -1366,15 +1322,17 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wDateLenient = new Button( wContentComp, SWT.CHECK );
     wDateLenient.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.DateLenient.Tooltip" ) );
     props.setLook( wDateLenient );
-    fdDateLenient = new FormData();
+
+    FormData fdDateLenient = new FormData();
     fdDateLenient.left = new FormAttachment( middle, 0 );
     fdDateLenient.top = new FormAttachment( wLimit, margin );
     wDateLenient.setLayoutData( fdDateLenient );
 
-    wlDateLocale = new Label( wContentComp, SWT.RIGHT );
+    Label wlDateLocale = new Label( wContentComp, SWT.RIGHT );
     wlDateLocale.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.DateLocale.Label" ) );
     props.setLook( wlDateLocale );
-    fdlDateLocale = new FormData();
+
+    FormData fdlDateLocale = new FormData();
     fdlDateLocale.left = new FormAttachment( 0, 0 );
     fdlDateLocale.top = new FormAttachment( wDateLenient, margin );
     fdlDateLocale.right = new FormAttachment( middle, -margin );
@@ -1383,7 +1341,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wDateLocale.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.DateLocale.Tooltip" ) );
     props.setLook( wDateLocale );
     wDateLocale.addModifyListener( lsMod );
-    fdDateLocale = new FormData();
+
+    FormData fdDateLocale = new FormData();
     fdDateLocale.left = new FormAttachment( middle, 0 );
     fdDateLocale.top = new FormAttachment( wDateLenient, margin );
     fdDateLocale.right = new FormAttachment( 100, 0 );
@@ -1407,7 +1366,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // START OF AddFileResult GROUP //
     // ///////////////////////////////
 
-    wAddFileResult = new Group( wContentComp, SWT.SHADOW_NONE );
+    Group wAddFileResult = new Group( wContentComp, SWT.SHADOW_NONE );
     props.setLook( wAddFileResult );
     wAddFileResult.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.wAddFileResult.Label" ) );
 
@@ -1416,10 +1375,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     AddFileResultgroupLayout.marginHeight = 10;
     wAddFileResult.setLayout( AddFileResultgroupLayout );
 
-    wlAddResult = new Label( wAddFileResult, SWT.RIGHT );
+    Label wlAddResult = new Label( wAddFileResult, SWT.RIGHT );
     wlAddResult.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AddResult.Label" ) );
     props.setLook( wlAddResult );
-    fdlAddResult = new FormData();
+
+    FormData fdlAddResult = new FormData();
     fdlAddResult.left = new FormAttachment( 0, 0 );
     fdlAddResult.top = new FormAttachment( wDateLocale, margin );
     fdlAddResult.right = new FormAttachment( middle, -margin );
@@ -1427,12 +1387,13 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wAddResult = new Button( wAddFileResult, SWT.CHECK );
     props.setLook( wAddResult );
     wAddResult.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.AddResult.Tooltip" ) );
-    fdAddResult = new FormData();
+
+    FormData fdAddResult = new FormData();
     fdAddResult.left = new FormAttachment( middle, 0 );
     fdAddResult.top = new FormAttachment( wDateLocale, margin );
     wAddResult.setLayoutData( fdAddResult );
 
-    fdAddFileResult = new FormData();
+    FormData fdAddFileResult = new FormData();
     fdAddFileResult.left = new FormAttachment( 0, margin );
     fdAddFileResult.top = new FormAttachment( wDateLocale, margin );
     fdAddFileResult.right = new FormAttachment( 100, -margin );
@@ -1452,7 +1413,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wContentSComp.setMinWidth( bounds.width );
     wContentSComp.setMinHeight( bounds.height );
 
-    fdContentComp = new FormData();
+    FormData fdContentComp = new FormData();
     fdContentComp.left = new FormAttachment( 0, 0 );
     fdContentComp.top = new FormAttachment( 0, 0 );
     fdContentComp.right = new FormAttachment( 100, 0 );
@@ -1469,7 +1430,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   protected void setLocales() {
     Locale[] locale = Locale.getAvailableLocales();
-    dateLocale = new String[ locale.length ];
+    String[] dateLocale = new String[ locale.length ];
     for ( int i = 0; i < locale.length; i++ ) {
       dateLocale[ i ] = locale[ i ].toString();
     }
@@ -1482,26 +1443,27 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // ////////////////////////
     // START OF ERROR TAB ///
     // /
-    wErrorTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wErrorTab = new CTabItem( wTabFolder, SWT.NONE );
     wErrorTab.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorTab.TabTitle" ) );
 
-    wErrorSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL );
+    ScrolledComposite wErrorSComp = new ScrolledComposite( wTabFolder, SWT.V_SCROLL | SWT.H_SCROLL );
     wErrorSComp.setLayout( new FillLayout() );
 
     FormLayout errorLayout = new FormLayout();
     errorLayout.marginWidth = 3;
     errorLayout.marginHeight = 3;
 
-    wErrorComp = new Composite( wErrorSComp, SWT.NONE );
+    Composite wErrorComp = new Composite( wErrorSComp, SWT.NONE );
     props.setLook( wErrorComp );
     wErrorComp.setLayout( errorLayout );
 
     // ERROR HANDLING...
     // ErrorIgnored?
-    wlErrorIgnored = new Label( wErrorComp, SWT.RIGHT );
+    Label wlErrorIgnored = new Label( wErrorComp, SWT.RIGHT );
     wlErrorIgnored.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorIgnored.Label" ) );
     props.setLook( wlErrorIgnored );
-    fdlErrorIgnored = new FormData();
+
+    FormData fdlErrorIgnored = new FormData();
     fdlErrorIgnored.left = new FormAttachment( 0, 0 );
     fdlErrorIgnored.top = new FormAttachment( 0, margin );
     fdlErrorIgnored.right = new FormAttachment( middle, -margin );
@@ -1509,7 +1471,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorIgnored = new Button( wErrorComp, SWT.CHECK );
     props.setLook( wErrorIgnored );
     wErrorIgnored.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorIgnored.Tooltip" ) );
-    fdErrorIgnored = new FormData();
+
+    FormData fdErrorIgnored = new FormData();
     fdErrorIgnored.left = new FormAttachment( middle, 0 );
     fdErrorIgnored.top = new FormAttachment( 0, margin );
     wErrorIgnored.setLayoutData( fdErrorIgnored );
@@ -1518,7 +1481,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlSkipErrorLines = new Label( wErrorComp, SWT.RIGHT );
     wlSkipErrorLines.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.SkipErrorLines.Label" ) );
     props.setLook( wlSkipErrorLines );
-    fdlSkipErrorLines = new FormData();
+
+    FormData fdlSkipErrorLines = new FormData();
     fdlSkipErrorLines.left = new FormAttachment( 0, 0 );
     fdlSkipErrorLines.top = new FormAttachment( wErrorIgnored, margin );
     fdlSkipErrorLines.right = new FormAttachment( middle, -margin );
@@ -1526,7 +1490,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wSkipErrorLines = new Button( wErrorComp, SWT.CHECK );
     props.setLook( wSkipErrorLines );
     wSkipErrorLines.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.SkipErrorLines.Tooltip" ) );
-    fdSkipErrorLines = new FormData();
+
+    FormData fdSkipErrorLines = new FormData();
     fdSkipErrorLines.left = new FormAttachment( middle, 0 );
     fdSkipErrorLines.top = new FormAttachment( wErrorIgnored, margin );
     wSkipErrorLines.setLayoutData( fdSkipErrorLines );
@@ -1534,7 +1499,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlErrorCount = new Label( wErrorComp, SWT.RIGHT );
     wlErrorCount.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorCount.Label" ) );
     props.setLook( wlErrorCount );
-    fdlErrorCount = new FormData();
+
+    FormData fdlErrorCount = new FormData();
     fdlErrorCount.left = new FormAttachment( 0, 0 );
     fdlErrorCount.top = new FormAttachment( wSkipErrorLines, margin );
     fdlErrorCount.right = new FormAttachment( middle, -margin );
@@ -1542,7 +1508,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorCount = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wErrorCount );
     wErrorCount.addModifyListener( lsMod );
-    fdErrorCount = new FormData();
+
+    FormData fdErrorCount = new FormData();
     fdErrorCount.left = new FormAttachment( middle, 0 );
     fdErrorCount.top = new FormAttachment( wSkipErrorLines, margin );
     fdErrorCount.right = new FormAttachment( 100, 0 );
@@ -1551,7 +1518,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlErrorFields = new Label( wErrorComp, SWT.RIGHT );
     wlErrorFields.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorFields.Label" ) );
     props.setLook( wlErrorFields );
-    fdlErrorFields = new FormData();
+
+    FormData fdlErrorFields = new FormData();
     fdlErrorFields.left = new FormAttachment( 0, 0 );
     fdlErrorFields.top = new FormAttachment( wErrorCount, margin );
     fdlErrorFields.right = new FormAttachment( middle, -margin );
@@ -1559,7 +1527,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorFields = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wErrorFields );
     wErrorFields.addModifyListener( lsMod );
-    fdErrorFields = new FormData();
+
+    FormData fdErrorFields = new FormData();
     fdErrorFields.left = new FormAttachment( middle, 0 );
     fdErrorFields.top = new FormAttachment( wErrorCount, margin );
     fdErrorFields.right = new FormAttachment( 100, 0 );
@@ -1568,7 +1537,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlErrorText = new Label( wErrorComp, SWT.RIGHT );
     wlErrorText.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorText.Label" ) );
     props.setLook( wlErrorText );
-    fdlErrorText = new FormData();
+
+    FormData fdlErrorText = new FormData();
     fdlErrorText.left = new FormAttachment( 0, 0 );
     fdlErrorText.top = new FormAttachment( wErrorFields, margin );
     fdlErrorText.right = new FormAttachment( middle, -margin );
@@ -1576,7 +1546,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorText = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wErrorText );
     wErrorText.addModifyListener( lsMod );
-    fdErrorText = new FormData();
+
+    FormData fdErrorText = new FormData();
     fdErrorText.left = new FormAttachment( middle, 0 );
     fdErrorText.top = new FormAttachment( wErrorFields, margin );
     fdErrorText.right = new FormAttachment( 100, 0 );
@@ -1589,7 +1560,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlWarnDestDir = new Label( wErrorComp, SWT.RIGHT );
     wlWarnDestDir.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.WarnDestDir.Label" ) );
     props.setLook( wlWarnDestDir );
-    fdlWarnDestDir = new FormData();
+
+    FormData fdlWarnDestDir = new FormData();
     fdlWarnDestDir.left = new FormAttachment( 0, 0 );
     fdlWarnDestDir.top = new FormAttachment( previous, margin * 4 );
     fdlWarnDestDir.right = new FormAttachment( middle, -margin );
@@ -1599,7 +1571,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wbbWarnDestDir );
     wbbWarnDestDir.setText( BaseMessages.getString( BASE_PKG, "System.Button.Browse" ) );
     wbbWarnDestDir.setToolTipText( BaseMessages.getString( BASE_PKG, "System.Tooltip.BrowseForDir" ) );
-    fdbBadDestDir = new FormData();
+
+    FormData fdbBadDestDir = new FormData();
     fdbBadDestDir.right = new FormAttachment( 100, 0 );
     fdbBadDestDir.top = new FormAttachment( previous, margin * 4 );
     wbbWarnDestDir.setLayoutData( fdbBadDestDir );
@@ -1608,7 +1581,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wbvWarnDestDir );
     wbvWarnDestDir.setText( BaseMessages.getString( BASE_PKG, "System.Button.Variable" ) );
     wbvWarnDestDir.setToolTipText( BaseMessages.getString( BASE_PKG, "System.Tooltip.VariableToDir" ) );
-    fdbvWarnDestDir = new FormData();
+
+    FormData fdbvWarnDestDir = new FormData();
     fdbvWarnDestDir.right = new FormAttachment( wbbWarnDestDir, -margin );
     fdbvWarnDestDir.top = new FormAttachment( previous, margin * 4 );
     wbvWarnDestDir.setLayoutData( fdbvWarnDestDir );
@@ -1616,7 +1590,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wWarnExt = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wWarnExt );
     wWarnExt.addModifyListener( lsMod );
-    fdWarnDestExt = new FormData();
+
+    FormData fdWarnDestExt = new FormData();
     fdWarnDestExt.left = new FormAttachment( wbvWarnDestDir, -150 );
     fdWarnDestExt.right = new FormAttachment( wbvWarnDestDir, -margin );
     fdWarnDestExt.top = new FormAttachment( previous, margin * 4 );
@@ -1625,7 +1600,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlWarnExt = new Label( wErrorComp, SWT.RIGHT );
     wlWarnExt.setText( BaseMessages.getString( BASE_PKG, "System.Label.Extension" ) );
     props.setLook( wlWarnExt );
-    fdlWarnDestExt = new FormData();
+
+    FormData fdlWarnDestExt = new FormData();
     fdlWarnDestExt.top = new FormAttachment( previous, margin * 4 );
     fdlWarnDestExt.right = new FormAttachment( wWarnExt, -margin );
     wlWarnExt.setLayoutData( fdlWarnDestExt );
@@ -1633,7 +1609,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wWarnDestDir = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wWarnDestDir );
     wWarnDestDir.addModifyListener( lsMod );
-    fdBadDestDir = new FormData();
+
+    FormData fdBadDestDir = new FormData();
     fdBadDestDir.left = new FormAttachment( middle, 0 );
     fdBadDestDir.right = new FormAttachment( wlWarnExt, -margin );
     fdBadDestDir.top = new FormAttachment( previous, margin * 4 );
@@ -1656,7 +1633,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlErrorDestDir = new Label( wErrorComp, SWT.RIGHT );
     wlErrorDestDir.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.ErrorDestDir.Label" ) );
     props.setLook( wlErrorDestDir );
-    fdlErrorDestDir = new FormData();
+
+    FormData fdlErrorDestDir = new FormData();
     fdlErrorDestDir.left = new FormAttachment( 0, 0 );
     fdlErrorDestDir.top = new FormAttachment( previous, margin );
     fdlErrorDestDir.right = new FormAttachment( middle, -margin );
@@ -1666,7 +1644,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wbbErrorDestDir );
     wbbErrorDestDir.setText( BaseMessages.getString( BASE_PKG, "System.Button.Browse" ) );
     wbbErrorDestDir.setToolTipText( BaseMessages.getString( BASE_PKG, "System.Tooltip.BrowseForDir" ) );
-    fdbErrorDestDir = new FormData();
+
+    FormData fdbErrorDestDir = new FormData();
     fdbErrorDestDir.right = new FormAttachment( 100, 0 );
     fdbErrorDestDir.top = new FormAttachment( previous, margin );
     wbbErrorDestDir.setLayoutData( fdbErrorDestDir );
@@ -1675,7 +1654,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wbvErrorDestDir );
     wbvErrorDestDir.setText( BaseMessages.getString( BASE_PKG, "System.Button.Variable" ) );
     wbvErrorDestDir.setToolTipText( BaseMessages.getString( BASE_PKG, "System.Tooltip.VariableToDir" ) );
-    fdbvErrorDestDir = new FormData();
+
+    FormData fdbvErrorDestDir = new FormData();
     fdbvErrorDestDir.right = new FormAttachment( wbbErrorDestDir, -margin );
     fdbvErrorDestDir.left = new FormAttachment( wbvWarnDestDir, 0, SWT.LEFT );
     fdbvErrorDestDir.top = new FormAttachment( previous, margin );
@@ -1684,7 +1664,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorExt = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wErrorExt );
     wErrorExt.addModifyListener( lsMod );
-    fdErrorDestExt = new FormData();
+
+    FormData fdErrorDestExt = new FormData();
     fdErrorDestExt.left = new FormAttachment( wWarnExt, 0, SWT.LEFT );
     fdErrorDestExt.right = new FormAttachment( wWarnExt, 0, SWT.RIGHT );
     fdErrorDestExt.top = new FormAttachment( previous, margin );
@@ -1693,7 +1674,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlErrorExt = new Label( wErrorComp, SWT.RIGHT );
     wlErrorExt.setText( BaseMessages.getString( BASE_PKG, "System.Label.Extension" ) );
     props.setLook( wlErrorExt );
-    fdlErrorDestExt = new FormData();
+
+    FormData fdlErrorDestExt = new FormData();
     fdlErrorDestExt.top = new FormAttachment( previous, margin );
     fdlErrorDestExt.right = new FormAttachment( wErrorExt, -margin );
     wlErrorExt.setLayoutData( fdlErrorDestExt );
@@ -1701,7 +1683,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorDestDir = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wErrorDestDir );
     wErrorDestDir.addModifyListener( lsMod );
-    fdErrorDestDir = new FormData();
+
+    FormData fdErrorDestDir = new FormData();
     fdErrorDestDir.left = new FormAttachment( middle, 0 );
     fdErrorDestDir.right = new FormAttachment( wlErrorExt, -margin );
     fdErrorDestDir.top = new FormAttachment( previous, margin );
@@ -1724,7 +1707,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlLineNrDestDir = new Label( wErrorComp, SWT.RIGHT );
     wlLineNrDestDir.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.LineNrDestDir.Label" ) );
     props.setLook( wlLineNrDestDir );
-    fdlLineNrDestDir = new FormData();
+
+    FormData fdlLineNrDestDir = new FormData();
     fdlLineNrDestDir.left = new FormAttachment( 0, 0 );
     fdlLineNrDestDir.top = new FormAttachment( previous, margin );
     fdlLineNrDestDir.right = new FormAttachment( middle, -margin );
@@ -1734,7 +1718,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wbbLineNrDestDir );
     wbbLineNrDestDir.setText( BaseMessages.getString( BASE_PKG, "System.Button.Browse" ) );
     wbbLineNrDestDir.setToolTipText( BaseMessages.getString( BASE_PKG, "System.Tooltip.Browse" ) );
-    fdbLineNrDestDir = new FormData();
+
+    FormData fdbLineNrDestDir = new FormData();
     fdbLineNrDestDir.right = new FormAttachment( 100, 0 );
     fdbLineNrDestDir.top = new FormAttachment( previous, margin );
     wbbLineNrDestDir.setLayoutData( fdbLineNrDestDir );
@@ -1743,7 +1728,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( wbvLineNrDestDir );
     wbvLineNrDestDir.setText( BaseMessages.getString( BASE_PKG, "System.Button.Variable" ) );
     wbvLineNrDestDir.setToolTipText( "System.Tooltip.VariableToDir" );
-    fdbvLineNrDestDir = new FormData();
+
+    FormData fdbvLineNrDestDir = new FormData();
     fdbvLineNrDestDir.right = new FormAttachment( wbbLineNrDestDir, -margin );
     fdbvLineNrDestDir.left = new FormAttachment( wbvErrorDestDir, 0, SWT.LEFT );
     fdbvLineNrDestDir.top = new FormAttachment( previous, margin );
@@ -1752,7 +1738,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wLineNrExt = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wLineNrExt );
     wLineNrExt.addModifyListener( lsMod );
-    fdLineNrDestExt = new FormData();
+
+    FormData fdLineNrDestExt = new FormData();
     fdLineNrDestExt.left = new FormAttachment( wErrorExt, 0, SWT.LEFT );
     fdLineNrDestExt.right = new FormAttachment( wErrorExt, 0, SWT.RIGHT );
     fdLineNrDestExt.top = new FormAttachment( previous, margin );
@@ -1761,7 +1748,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wlLineNrExt = new Label( wErrorComp, SWT.RIGHT );
     wlLineNrExt.setText( BaseMessages.getString( BASE_PKG, "System.Label.Extension" ) );
     props.setLook( wlLineNrExt );
-    fdlLineNrDestExt = new FormData();
+
+    FormData fdlLineNrDestExt = new FormData();
     fdlLineNrDestExt.top = new FormAttachment( previous, margin );
     fdlLineNrDestExt.right = new FormAttachment( wLineNrExt, -margin );
     wlLineNrExt.setLayoutData( fdlLineNrDestExt );
@@ -1769,7 +1757,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wLineNrDestDir = new Text( wErrorComp, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wLineNrDestDir );
     wLineNrDestDir.addModifyListener( lsMod );
-    fdLineNrDestDir = new FormData();
+
+    FormData fdLineNrDestDir = new FormData();
     fdLineNrDestDir.left = new FormAttachment( middle, 0 );
     fdLineNrDestDir.right = new FormAttachment( wlLineNrExt, -margin );
     fdLineNrDestDir.top = new FormAttachment( previous, margin );
@@ -1785,7 +1774,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // Whenever something changes, set the tooltip to the expanded version of the directory:
     wLineNrDestDir.addModifyListener( getModifyListenerTooltipText( wLineNrDestDir ) );
 
-    fdErrorComp = new FormData();
+    FormData fdErrorComp = new FormData();
     fdErrorComp.left = new FormAttachment( 0, 0 );
     fdErrorComp.top = new FormAttachment( 0, 0 );
     fdErrorComp.right = new FormAttachment( 100, 0 );
@@ -1824,15 +1813,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   private void addFiltersTabs() {
     // Filters tab...
-    //
-    wFilterTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wFilterTab = new CTabItem( wTabFolder, SWT.NONE );
     wFilterTab.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FilterTab.TabTitle" ) );
 
     FormLayout FilterLayout = new FormLayout();
     FilterLayout.marginWidth = Const.FORM_MARGIN;
     FilterLayout.marginHeight = Const.FORM_MARGIN;
 
-    wFilterComp = new Composite( wTabFolder, SWT.NONE );
+    Composite wFilterComp = new Composite( wTabFolder, SWT.NONE );
     wFilterComp.setLayout( FilterLayout );
     props.setLook( wFilterComp );
 
@@ -1854,14 +1842,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     wFilter = new TableView( transMeta, wFilterComp, SWT.FULL_SELECTION | SWT.MULTI, colinf, FilterRows, lsMod, props );
 
-    fdFilter = new FormData();
+    FormData fdFilter = new FormData();
     fdFilter.left = new FormAttachment( 0, 0 );
     fdFilter.top = new FormAttachment( 0, 0 );
     fdFilter.right = new FormAttachment( 100, 0 );
     fdFilter.bottom = new FormAttachment( 100, 0 );
     wFilter.setLayoutData( fdFilter );
 
-    fdFilterComp = new FormData();
+    FormData fdFilterComp = new FormData();
     fdFilterComp.left = new FormAttachment( 0, 0 );
     fdFilterComp.top = new FormAttachment( 0, 0 );
     fdFilterComp.right = new FormAttachment( 100, 0 );
@@ -1874,15 +1862,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
   private void addFieldsTabs() {
     // Fields tab...
-    //
-    wFieldsTab = new CTabItem( wTabFolder, SWT.NONE );
+    CTabItem wFieldsTab = new CTabItem( wTabFolder, SWT.NONE );
     wFieldsTab.setText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FieldsTab.TabTitle" ) );
 
     FormLayout fieldsLayout = new FormLayout();
     fieldsLayout.marginWidth = Const.FORM_MARGIN;
     fieldsLayout.marginHeight = Const.FORM_MARGIN;
 
-    wFieldsComp = new Composite( wTabFolder, SWT.NONE );
+    Composite wFieldsComp = new Composite( wTabFolder, SWT.NONE );
     wFieldsComp.setLayout( fieldsLayout );
     props.setLook( wFieldsComp );
 
@@ -1929,14 +1916,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     wFields = new TableView( transMeta, wFieldsComp, SWT.FULL_SELECTION | SWT.MULTI, colinf, FieldsRows, lsMod, props );
 
-    fdFields = new FormData();
+    FormData fdFields = new FormData();
     fdFields.left = new FormAttachment( 0, 0 );
     fdFields.top = new FormAttachment( 0, 0 );
     fdFields.right = new FormAttachment( 100, 0 );
     fdFields.bottom = new FormAttachment( wGet, -margin );
     wFields.setLayoutData( fdFields );
 
-    fdFieldsComp = new FormData();
+    FormData fdFieldsComp = new FormData();
     fdFieldsComp.left = new FormAttachment( 0, 0 );
     fdFieldsComp.top = new FormAttachment( 0, 0 );
     fdFieldsComp.right = new FormAttachment( 100, 0 );
