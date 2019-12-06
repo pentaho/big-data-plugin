@@ -1811,7 +1811,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private SelectionAdapter createErrorHandlingSelectionAdapter( Text textWidget ) {
 
     SelectionAdapterOptions errorOptions = new SelectionAdapterOptions(
-      SelectionOperation.SAVE,
+      SelectionOperation.FILE_OR_FOLDER,
       new FilterType[] { FilterType.ALL },
       FilterType.ALL );
 
