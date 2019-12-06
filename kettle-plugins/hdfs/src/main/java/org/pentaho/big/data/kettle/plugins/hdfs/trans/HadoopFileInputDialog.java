@@ -61,7 +61,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -306,12 +305,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     props.setLook( shell );
     setShellImage( shell, input );
 
-    lsMod = new ModifyListener() {
-      @Override
-      public void modifyText( ModifyEvent e ) {
-        input.setChanged();
-      }
-    };
+    lsMod = e -> input.setChanged();
 
     lsModCompression = modifyEvent -> {
       input.setChanged();
@@ -383,42 +377,12 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     positionBottomRightButtons( shell, new Button[] { wOK, wPreview, wCancel }, margin, wTabFolder );
 
     // Add listeners
-    lsOK = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        ok();
-      }
-    };
-    Listener lsFirst = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        first( false );
-      }
-    };
-    Listener lsFirstHeader = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        first( true );
-      }
-    };
-    lsGet = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        get();
-      }
-    };
-    lsPreview = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        preview();
-      }
-    };
-    lsCancel = new Listener() {
-      @Override
-      public void handleEvent( Event e ) {
-        cancel();
-      }
-    };
+    lsOK = e -> ok();
+    Listener lsFirst = e -> first( false );
+    Listener lsFirstHeader = e -> first( true );
+    lsGet = e -> get();
+    lsPreview = e -> preview();
+    lsCancel = e -> cancel();
 
     wOK.addListener( SWT.Selection, lsOK );
     wFirst.addListener( SWT.Selection, lsFirst );
@@ -2244,7 +2208,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       gotEncodings = true;
 
       wEncoding.removeAll();
-      List<Charset> values = new ArrayList<Charset>( Charset.availableCharsets().values() );
+      List<Charset> values = new ArrayList<>( Charset.availableCharsets().values() );
       for ( int i = 0; i < values.size(); i++ ) {
         Charset charSet = values.get( i );
         wEncoding.add( charSet.displayName() );
@@ -2315,7 +2279,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     int nrfilters = wFilter.nrNonEmpty();
     meta.allocate( nrfiles, nrfields, nrfilters );
 
-    Map<String, String> namedClusterURLMappings = new HashMap<String, String>();
+    Map<String, String> namedClusterURLMappings = new HashMap<>();
     String[] fileNames = new String[ wFilenameList.getItems( 1 ).length ];
     meta.environment = wFilenameList.getItems( 0 );
 
@@ -2703,7 +2667,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     StringBuilder lineStringBuilder = new StringBuilder( 256 );
     int fileFormatType = meta.getFileFormatTypeNr();
 
-    List<String> retval = new ArrayList<String>();
+    List<String> retval = new ArrayList<>();
 
     if ( textFileList.nrOfFiles() > 0 ) {
       FileObject file = textFileList.getFile( 0 );
@@ -2838,7 +2802,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   }
 
   private Vector<TextFileInputFieldInterface> getFields( HadoopFileInputMeta info, List<String> rows ) {
-    Vector<TextFileInputFieldInterface> fields = new Vector<TextFileInputFieldInterface>();
+    Vector<TextFileInputFieldInterface> fields = new Vector<>();
 
     int maxsize = 0;
     for ( int i = 0; i < rows.size(); i++ ) {
