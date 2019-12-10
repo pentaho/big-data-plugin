@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,22 +22,25 @@
 
 package org.pentaho.amazon.hive.ui;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.AbstractAmazonJobEntry;
 import org.pentaho.amazon.AbstractAmazonJobExecutorController;
 import org.pentaho.amazon.hive.job.AmazonHiveJobExecutor;
-import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
+import org.pentaho.di.ui.core.events.dialog.ConnectionFilterType;
+import org.pentaho.di.ui.core.events.dialog.FilterType;
+import org.pentaho.di.ui.core.events.dialog.ProviderFilterType;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogTextVar;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
+import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -47,6 +50,7 @@ import java.lang.reflect.InvocationTargetException;
 public class AmazonHiveJobExecutorController extends AbstractAmazonJobExecutorController {
 
   private static final Class<?> PKG = AmazonHiveJobExecutor.class;
+  private LogChannel log;
 
   // Define string names for the attributes.
   public static final String Q_URL = "qUrl";
@@ -68,6 +72,7 @@ public class AmazonHiveJobExecutorController extends AbstractAmazonJobExecutorCo
 
     super( container, jobEntry, bindingFactory );
     this.jobEntry = (AmazonHiveJobExecutor) jobEntry;
+    log = new LogChannel( this.jobEntry );
     initializeEmrSettingsGroupMenuFields();
   }
 
@@ -142,17 +147,21 @@ public class AmazonHiveJobExecutorController extends AbstractAmazonJobExecutorCo
    * Open VFS Browser when the "Browse..." button next to the "Hive Script" text box is pressed in the attribute dialog
    * box.
    */
-  public void browseQ() throws KettleException, FileSystemException {
-    String[] fileFilters = new String[] { "*.*" }; //$NON-NLS-1$
-    String[] fileFilterNames = new String[] { "All" }; //$NON-NLS-1$
+  public void browseQ() {
+    SelectionAdapterOptions options =
+      new SelectionAdapterOptions( SelectionOperation.FILE,
+        new FilterType[] { FilterType.ALL }, FilterType.ALL,
+        new ProviderFilterType[] { ProviderFilterType.LOCAL, ProviderFilterType.VFS } );
+    options.getConnectionFilters().add( ConnectionFilterType.S3 );
+    TextVar textVar = ( (ExtTextbox) container.getDocumentRoot().getElementById( XUL_QURL ) ).extText;
+    SelectionAdapterFileDialogTextVar selectionAdapterFileDialogTextVar =
+      new SelectionAdapterFileDialogTextVar( log, textVar, getJobEntry().getParentJobMeta(), options );
 
-    FileSystemOptions opts = getFileSystemOptions();
+    selectionAdapterFileDialogTextVar.widgetSelected( null );
 
-    FileObject selectedFile =
-      browse( fileFilters, fileFilterNames, getVariableSpace().environmentSubstitute( qUrl ), opts,
-        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE, true );
-    if ( selectedFile != null ) {
-      setQUrl( selectedFile.getName().getURI() );
+    String file = textVar.getText();
+    if ( file != null ) {
+      setQUrl( file );
     }
   }
 
