@@ -27,7 +27,7 @@ define(
   function () {
     "use strict";
 
-    var factoryArray = ["$http", factory];
+    var factoryArray = ["$http", "fileService", factory];
     var module = {
       name: "helperService",
       factory: factoryArray
@@ -42,10 +42,11 @@ define(
      *
      * @return {Object} The dataService api
      */
-    function factory($http) {
+    function factory($http, fileService) {
       return {
         httpGet: httpGet,
         httpPost: httpPost,
+        httpPostMultipart: httpPostMultipart,
         httpPut: httpPut,
         httpDelete: httpDelete
       };
@@ -71,6 +72,47 @@ define(
        */
       function httpPost(url, data) {
         return _wrapHttp("POST", url, data);
+      }
+
+      /**
+       * Wraps the http angular service for multipart post
+       *
+       * @param {String} url - the url
+       * @param {String} data - the post data
+       * @return {Promise} - a promise to be resolved as soon as we get confirmation from the server.
+       */
+      function httpPostMultipart(url, data) {
+        var fd = new FormData();
+
+        //Append the files to the form data
+        var files = fileService.getFiles();
+        if (files) {
+          for (var i = 0; i < files.length; i++) {
+            fd.append(files[i].name, files[i]);
+          }
+        }
+
+        var keytabAuthFile = fileService.getKeytabAuthFile();
+        if (keytabAuthFile) {
+          fd.append("keytabAuthFile", keytabAuthFile);
+        }
+
+        var keytabImpFile = fileService.getKeytabImpFile();
+        if (keytabImpFile) {
+          fd.append("keytabImpFile", keytabImpFile);
+        }
+
+        //Append the data model to the form data
+        if (data) {
+          fd.append("data", JSON.stringify(data.model));
+        }
+
+        //Even though content type is multipart we set to undefined and angular handles it
+        return $http.post(_cacheBust(url), fd, {
+            transformRequest: angular.identity,
+            headers: {'Content-Type': undefined, Accept: "application/json"}
+          }
+        );
       }
 
       /**

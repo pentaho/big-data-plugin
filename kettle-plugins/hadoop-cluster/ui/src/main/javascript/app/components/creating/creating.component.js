@@ -41,8 +41,6 @@ define([
       vm.message = i18n.get('creating.message');
       $timeout(function () {
 
-        var cluster = vm.data.model;
-        cluster.importPath = encodeURIComponent(cluster.importPath);
         var process;
 
         switch (vm.data.type) {
@@ -63,7 +61,7 @@ define([
             $state.go("status", {data: vm.data});
         }
 
-        process(cluster).then(
+        process(vm.data).then(
           function (res) {
             return processResultAndTest(res);
           },

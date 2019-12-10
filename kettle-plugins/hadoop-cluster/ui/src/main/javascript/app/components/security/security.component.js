@@ -29,9 +29,9 @@ define([
     controller: securityController
   };
 
-  securityController.$inject = ["$location", "$state", "$q", "$stateParams"];
+  securityController.$inject = ["$location", "$state", "$q", "$stateParams", "fileService"];
 
-  function securityController($location, $state, $q, $stateParams) {
+  function securityController($location, $state, $q, $stateParams, fileService) {
     var vm = this;
     vm.$onInit = onInit;
 
@@ -112,8 +112,8 @@ define([
       vm.data.model.kerberosAuthenticationPassword = "";
       vm.data.model.kerberosImpersonationUsername = "";
       vm.data.model.kerberosImpersonationPassword = "";
-      vm.data.model.keytabAuthenticationLocation = "";
-      vm.data.model.keytabImpersonationLocation = "";
+      fileService.setKeytabAuthFile(null);
+      fileService.setKeytabImpFile(null);
     }
 
     function clearKnoxValues() {

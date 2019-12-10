@@ -35,23 +35,26 @@ define([
   "./components/security/security.component",
   "./components/kerberos/kerberos.component",
   "./components/knox/knox.component",
+  "./components/browse/browse.component",
   "./components/selectBox/selectBox.component",
-  "./components/browseLocal/browseLocal.component",
+  "./components/multiBrowse/multiBrowse.component",
   "./components/credentials/credentials.component",
   "./components/accordianItem/accordianItem.component",
   "./components/modalDialog/modalDialog.component",
   "./components/controls/controls.component",
   "./components/help/help.component",
   "./directives/ngbodyclick.directive",
+  "./directives/fileInput.directive",
   "./service/helper.service",
   "./service/data.service",
+  "./service/file.service",
   "angular-ui-router",
   "angular-animate"
 ], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent,
              statusComponent, testResultsComponent, addDriverComponent, installingDriverComponent,
-             driverStatusComponent, securityComponent, kerberosComponent, knoxComponent, selectBoxComponent,
-             browseLocalComponent, credentialsComponent, accordianItemComponent, modalDialogComponent,
-             controlsComponent, helpComponent, bodyClickDirective, helperService, dataService) {
+             driverStatusComponent, securityComponent, kerberosComponent, knoxComponent, browseComponent, selectBoxComponent,
+             multiBrowseComponent, credentialsComponent, accordianItemComponent, modalDialogComponent,
+             controlsComponent, helpComponent, fileInputDirective, bodyClickDirective, helperService, dataService, fileService) {
   "use strict";
 
   var module = {
@@ -83,16 +86,19 @@ define([
         .component(securityComponent.name, securityComponent.options)
         .component(kerberosComponent.name, kerberosComponent.options)
         .component(knoxComponent.name, knoxComponent.options)
+        .component(browseComponent.name, browseComponent.options)
         .component(selectBoxComponent.name, selectBoxComponent.options)
-        .component(browseLocalComponent.name, browseLocalComponent.options)
+        .component(multiBrowseComponent.name, multiBrowseComponent.options)
         .component(credentialsComponent.name, credentialsComponent.options)
         .component(accordianItemComponent.name, accordianItemComponent.options)
         .component(modalDialogComponent.name, modalDialogComponent.options)
         .component(controlsComponent.name, controlsComponent.options)
         .component(helpComponent.name, helpComponent.options)
         .directive(bodyClickDirective.name, bodyClickDirective.options)
+        .directive(fileInputDirective.name, fileInputDirective.options)
         .service(helperService.name, helperService.factory)
         .service(dataService.name, dataService.factory)
+        .service(fileService.name, fileService.factory)
         .animation(appAnimation.class, appAnimation.factory)
         .config(appConfig);
   }

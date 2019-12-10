@@ -29,9 +29,9 @@ define([
     controller: newEditController
   };
 
-  newEditController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
+  newEditController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService", "fileService"];
 
-  function newEditController($location, $state, $q, $stateParams, dataService) {
+  function newEditController($location, $state, $q, $stateParams, dataService, fileService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelectShim = onSelectShim;
@@ -49,7 +49,6 @@ define([
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
       vm.versionLabel = i18n.get('hadoop.cluster.version.label');
-      vm.browseType = "folder";
       vm.importFolderLabel = i18n.get('new.edit.folder.label.optional');
       vm.hdfsLabel = i18n.get('hadoop.cluster.hdfs.label');
       vm.hostnameLabel = i18n.get('new.edit.hostname.label');
@@ -102,8 +101,9 @@ define([
               loadShimDropDowns();
             });
           } else {
-            //All the data already exists in the model, so leave it as is
+            //Most of the data already exists in the model
             loadShimDropDowns();
+            vm.siteFiles = fileService.getFiles();
           }
         } else {
           //this is a new state, no name exists in the model or on the URL
@@ -125,7 +125,6 @@ define([
           name: "",
           shimVendor: "",
           shimVersion: "",
-          importPath: "",
           hdfsHost: "",
           hdfsPort: "",
           hdfsUsername: "",
@@ -142,8 +141,6 @@ define([
           kerberosAuthenticationPassword: "",
           kerberosImpersonationUsername: "",
           kerberosImpersonationPassword: "",
-          keytabAuthenticationLocation: "",
-          keytabImpersonationLocation: "",
           gatewayUrl: "",
           gatewayUsername: "",
           gatewayPassword: ""
@@ -226,6 +223,11 @@ define([
 
     function create() {
       dataService.getSecure().then(function (res) {
+
+        //UI-router doesn't work to pass files between states, use fileservice to store the file(s), they are later
+        //retrieved by the helperService before passing the request to the server.
+        fileService.setFiles(vm.siteFiles);
+
         if (res.data.secureEnabled === "true") {
           $state.go('security', {data: vm.data, transition: "slideLeft"});
         } else {

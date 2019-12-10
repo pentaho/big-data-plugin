@@ -28,9 +28,9 @@ define([
     controller: kerberosController
   };
 
-  kerberosController.$inject = ["$location", "$state", "$q", "$stateParams"];
+  kerberosController.$inject = ["$location", "$state", "$q", "$stateParams", "fileService"];
 
-  function kerberosController($location, $state, $q, $stateParams) {
+  function kerberosController($location, $state, $q, $stateParams, fileService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelectSubType = onSelectSubType;
@@ -54,12 +54,29 @@ define([
       vm.impersonateUserLabel = i18n.get('kerberos.impersonate.username.label');
       vm.impersonatePasswordLabel = i18n.get('kerberos.impersonate.password.label');
 
-      vm.keytabBrowseType = "file";
       vm.keytabAuthPathLabel = i18n.get('kerberos.keytab.auth.path.label');
       vm.keytabImpersonatePathLabel = i18n.get('kerberos.keytab.impersonate.path.label');
 
       if (!vm.data.model.kerberosSubType) {
         vm.data.model.kerberosSubType = vm.kerberosSubTypes.PASSWORD;
+      }
+
+      if (vm.data.model.keytabAuthFile) {
+        vm.keytabAuthenticationFile = [{name: vm.data.model.keytabAuthFile}];
+      }
+
+      if (vm.data.model.keytabImpFile) {
+        vm.keytabImpersonationFile = [{name: vm.data.model.keytabImpFile}];
+      }
+
+      var keytabAuthFile = fileService.getKeytabAuthFile();
+      if (keytabAuthFile) {
+        vm.keytabAuthenticationFile = [keytabAuthFile];
+      }
+
+      var keytabImpFile = fileService.getKeytabImpFile();
+      if (keytabImpFile) {
+        vm.keytabImpersonationFile = [keytabImpFile];
       }
 
       vm.buttons = getButtons();
@@ -76,7 +93,7 @@ define([
           class: "primary",
           isDisabled: function () {
             if (vm.data.model.kerberosSubType === vm.kerberosSubTypes.KEYTAB) {
-              return !vm.data.model.keytabAuthenticationLocation;
+              return !vm.keytabAuthenticationFile;
             } else {
               return (vm.data.model.kerberosAuthenticationUsername && !vm.data.model.kerberosAuthenticationPassword) ||
                 (!vm.data.model.kerberosAuthenticationUsername && vm.data.model.kerberosAuthenticationPassword) ||
@@ -88,6 +105,7 @@ define([
           position: "right",
           onClick: function () {
             if (vm.data.model.kerberosSubType === vm.kerberosSubTypes.KEYTAB) {
+              setFileServiceKeytabFiles();
               clearKerberosPasswordValues();
             } else {
               clearKerberosKeytabValues();
@@ -100,6 +118,7 @@ define([
           class: "primary",
           position: "right",
           onClick: function () {
+            setFileServiceKeytabFiles();
             $state.go('security', {data: vm.data, transition: "slideRight"});
           }
         },
@@ -111,6 +130,17 @@ define([
         }];
     }
 
+    function setFileServiceKeytabFiles() {
+      //UI-router doesn't work to pass files between states, use fileservice to store the file(s), they are later
+      //retrieved by the helperService before passing the request to the server.
+      if(vm.keytabAuthenticationFile && vm.keytabAuthenticationFile[0] instanceof File) {
+        fileService.setKeytabAuthFile(vm.keytabAuthenticationFile[0]);
+      }
+      if(vm.keytabImpersonationFile && vm.keytabImpersonationFile[0] instanceof File) {
+        fileService.setKeytabImpFile(vm.keytabImpersonationFile[0]);
+      }
+    }
+
     function clearKerberosPasswordValues() {
       vm.data.model.kerberosAuthenticationUsername = "";
       vm.data.model.kerberosAuthenticationPassword = "";
@@ -119,8 +149,8 @@ define([
     }
 
     function clearKerberosKeytabValues() {
-      vm.data.model.keytabAuthenticationLocation = "";
-      vm.data.model.keytabImpersonationLocation = "";
+      fileService.setKeytabAuthFile(null);
+      fileService.setKeytabImpFile(null);
     }
 
   }

@@ -25,8 +25,6 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -51,7 +49,7 @@ public class HadoopClusterDialog extends ThinDialog {
 
   private static final Image LOGO = GUIResource.getInstance().getImageLogoSmall();
   private static final String OSGI_SERVICE_PORT = "OSGI_SERVICE_PORT";
-  private static final int OPTIONS = SWT.APPLICATION_MODAL | SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX;
+  private static final int OPTIONS = SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX;
   private static final String THIN_CLIENT_HOST = "THIN_CLIENT_HOST";
   private static final String THIN_CLIENT_PORT = "THIN_CLIENT_PORT";
   private static final String LOCALHOST = "localhost";
@@ -97,10 +95,6 @@ public class HadoopClusterDialog extends ThinDialog {
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
-        Spoon spoon = spoonSupplier.get();
-        if ( spoon != null && spoon.getShell() != null ) {
-          spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS ) );
-        }
         browser.dispose();
         dialog.close();
         dialog.dispose();
@@ -115,27 +109,14 @@ public class HadoopClusterDialog extends ThinDialog {
       }
     };
 
-    new BrowserFunction( browser, "browse" ) {
-      @Override public Object function( Object[] arguments ) {
-        String browseType = (String) arguments[ 0 ];
-        String startPath = (String) arguments[ 1 ];
-
-        if ( "folder".equals( browseType ) ) {
-          DirectoryDialog folderDialog = new DirectoryDialog( getParent().getShell(), SWT.OPEN );
-          folderDialog.setFilterPath( startPath );
-          return folderDialog.open();
-        } else {
-          FileDialog fileDialog = new FileDialog( getParent().getShell(), SWT.OPEN );
-          fileDialog.setFileName( startPath );
-          return fileDialog.open();
-        }
-      }
-    };
-
     while ( !dialog.isDisposed() ) {
       if ( !display.readAndDispatch() ) {
         display.sleep();
       }
+    }
+    Spoon spoon = spoonSupplier.get();
+    if ( spoon != null && spoon.getShell() != null ) {
+      spoon.getShell().getDisplay().asyncExec( () -> spoon.refreshTree( STRING_NAMED_CLUSTERS ) );
     }
   }
 

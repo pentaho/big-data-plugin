@@ -22,6 +22,16 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.fileupload.FileItem;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStreamReader;
+import java.util.List;
+
 public class ThinNameClusterModel {
   private String name;
   private String shimVendor;
@@ -36,7 +46,6 @@ public class ThinNameClusterModel {
   private String zooKeeperPort;
   private String oozieUrl;
   private String kafkaBootstrapServers;
-  private String importPath;
   private String oldName;
   private String securityType;
   private String kerberosSubType;
@@ -44,11 +53,13 @@ public class ThinNameClusterModel {
   private String kerberosAuthenticationPassword;
   private String kerberosImpersonationUsername;
   private String kerberosImpersonationPassword;
-  private String keytabAuthenticationLocation;
-  private String keytabImpersonationLocation;
   private String gatewayUrl;
   private String gatewayUsername;
   private String gatewayPassword;
+  private String keytabAuthFile;
+  private String keytabImpFile;
+
+  private static final Logger logChannel = LoggerFactory.getLogger( ThinNameClusterModel.class );
 
   public String getShimVendor() {
     return shimVendor;
@@ -154,14 +165,6 @@ public class ThinNameClusterModel {
     this.oozieUrl = oozieUrl;
   }
 
-  public String getImportPath() {
-    return importPath;
-  }
-
-  public void setImportPath( String importPath ) {
-    this.importPath = importPath;
-  }
-
   public String getOldName() {
     return oldName;
   }
@@ -218,22 +221,6 @@ public class ThinNameClusterModel {
     this.kerberosImpersonationPassword = kerberosImpersonationPassword;
   }
 
-  public String getKeytabAuthenticationLocation() {
-    return keytabAuthenticationLocation;
-  }
-
-  public void setKeytabAuthenticationLocation( String keytabAuthenticationLocation ) {
-    this.keytabAuthenticationLocation = keytabAuthenticationLocation;
-  }
-
-  public String getKeytabImpersonationLocation() {
-    return keytabImpersonationLocation;
-  }
-
-  public void setKeytabImpersonationLocation( String keytabImpersonationLocation ) {
-    this.keytabImpersonationLocation = keytabImpersonationLocation;
-  }
-
   public String getGatewayUrl() {
     return gatewayUrl;
   }
@@ -256,5 +243,62 @@ public class ThinNameClusterModel {
 
   public void setGatewayPassword( String gatewayPassword ) {
     this.gatewayPassword = gatewayPassword;
+  }
+
+  public String getKeytabAuthFile() {
+    return keytabAuthFile;
+  }
+
+  public void setKeytabAuthFile( String keytabAuthFile ) {
+    this.keytabAuthFile = keytabAuthFile;
+  }
+
+  public String getKeytabImpFile() {
+    return keytabImpFile;
+  }
+
+  public void setKeytabImpFile( String keytabImpFile ) {
+    this.keytabImpFile = keytabImpFile;
+  }
+
+  public static ThinNameClusterModel unmarshall( List<FileItem> siteFilesSource ) {
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    try {
+      FileItem siteFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
+        FileItem fileItem = (FileItem) object;
+        return fileItem.getFieldName().equals( "data" );
+      } );
+
+      InputStreamReader inputStreamReader = new InputStreamReader( siteFile.getInputStream() );
+      JSONParser parser = new JSONParser();
+      JSONObject json = (JSONObject) parser.parse( inputStreamReader );
+      model.setName( (String) json.get( "name" ) );
+      model.setShimVendor( (String) json.get( "shimVendor" ) );
+      model.setShimVersion( (String) json.get( "shimVersion" ) );
+      model.setHdfsHost( (String) json.get( "hdfsHost" ) );
+      model.setHdfsPort( (String) json.get( "hdfsPort" ) );
+      model.setHdfsUsername( (String) json.get( "hdfsUsername" ) );
+      model.setHdfsPassword( (String) json.get( "hdfsPassword" ) );
+      model.setJobTrackerHost( (String) json.get( "jobTrackerHost" ) );
+      model.setJobTrackerPort( (String) json.get( "jobTrackerPort" ) );
+      model.setZooKeeperHost( (String) json.get( "zooKeeperHost" ) );
+      model.setZooKeeperPort( (String) json.get( "zooKeeperPort" ) );
+      model.setOozieUrl( (String) json.get( "oozieUrl" ) );
+      model.setKafkaBootstrapServers( (String) json.get( "kafkaBootstrapServers" ) );
+      model.setOldName( (String) json.get( "oldName" ) );
+      model.setSecurityType( (String) json.get( "securityType" ) );
+      model.setKerberosSubType( (String) json.get( "kerberosSubType" ) );
+      model.setKerberosAuthenticationUsername( (String) json.get( "kerberosAuthenticationUsername" ) );
+      model.setKerberosAuthenticationPassword( (String) json.get( "kerberosAuthenticationPassword" ) );
+      model.setKerberosImpersonationUsername( (String) json.get( "kerberosImpersonationUsername" ) );
+      model.setKerberosImpersonationPassword( (String) json.get( "kerberosImpersonationPassword" ) );
+      model.setGatewayUrl( (String) json.get( "gatewayUrl" ) );
+      model.setGatewayUsername( (String) json.get( "gatewayUsername" ) );
+      model.setGatewayPassword( (String) json.get( "gatewayPassword" ) );
+      siteFilesSource.remove( siteFile );
+    } catch ( Exception e ) {
+      logChannel.error( e.getMessage() );
+    }
+    return model;
   }
 }

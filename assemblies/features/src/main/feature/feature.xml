@@ -97,6 +97,7 @@
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/1.5.8</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/3.4.0</bundle>
+    <bundle>mvn:commons-fileupload/commons-fileupload/1.4</bundle>
   </feature>
 
 </features>
