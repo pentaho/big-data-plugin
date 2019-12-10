@@ -26,9 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.BrowserFunction;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
-import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.repository.IUser;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -38,7 +36,6 @@ import org.pentaho.platform.settings.ServerPortRegistry;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
@@ -56,10 +53,10 @@ public class HadoopClusterDialog extends ThinDialog {
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
 
-  private static final LogChannelInterface LOG = LogChannel.GENERAL;
+  private final LogChannelInterface log = spoonSupplier.get().getLog();
 
   HadoopClusterDialog( Shell shell, int width, int height ) {
-    super( shell, width, height );
+    super( shell, width, height, true );
   }
 
   void open( String title, String thinAppState, Map<String, String> urlParams ) {
@@ -80,18 +77,9 @@ public class HadoopClusterDialog extends ThinDialog {
 
     clientPath.append( paramString );
     String endpointURL = getEndpointURL( clientPath.toString() );
-    LOG.logDebug( "Thin endpoint URL:  " + endpointURL );
+    log.logDebug( "Thin endpoint URL:  " + endpointURL );
     super.createDialog( title, endpointURL, OPTIONS, LOGO );
     super.dialog.setMinimumSize( 640, 630 );
-
-    if ( connectedToRepo() ) {
-      IUser userInfo = getRepo().getUserInfo();
-      LOG.logDebug( "Connecting to endpoint with user " + userInfo.getName() );
-      String auth = userInfo.getName() + ":" + userInfo.getPassword();
-      String encodedAuth = Base64.getEncoder().encodeToString( auth.getBytes() );
-      browser.setUrl( endpointURL, null, new String[] { "Authorization: Basic " + encodedAuth } );
-    }
-
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
@@ -126,7 +114,7 @@ public class HadoopClusterDialog extends ThinDialog {
       InputStream inputStream = HadoopClusterDialog.class.getClassLoader().getResourceAsStream( "project.properties" );
       properties.load( inputStream );
     } catch ( IOException e ) {
-      LOG.logError( e.getMessage(), e );
+      log.logError( e.getMessage(), e );
     }
     return properties.getProperty( "CLIENT_PATH" );
   }
