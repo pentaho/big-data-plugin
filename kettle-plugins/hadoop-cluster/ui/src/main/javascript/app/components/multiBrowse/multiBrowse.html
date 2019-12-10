@@ -1,0 +1,13 @@
+<fieldset class="margin_bottom_15">
+  <legend>{{::vm.label}}</legend>
+  <div class="select-files">
+    <label for="files" class="custom-file-upload">{{::vm.buttonLabel}}</label>
+    <div class="fill-remaining">
+      <input id="files" type="file" file-input="vm.model" multiple/>
+    </div>
+  </div>
+  <div class="selected-files-container">
+    <div class="no-files" ng-if="!vm.model || vm.model.length === 0">{{::vm.placeholder}}</div>
+    <div ng-repeat="file in vm.model" class="selected-file">{{file.name}}</div>
+  </div>
+</fieldset>

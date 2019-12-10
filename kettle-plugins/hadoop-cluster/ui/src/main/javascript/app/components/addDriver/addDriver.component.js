@@ -28,9 +28,9 @@ define([
       controller: addDriverController
     };
 
-    addDriverController.$inject = ["$state"];
+    addDriverController.$inject = ["$state", "fileService"];
 
-    function addDriverController($state) {
+    function addDriverController($state, fileService) {
       var vm = this;
       vm.$onInit = onInit;
 
@@ -38,15 +38,13 @@ define([
 
         setDialogTitle(i18n.get('hadoop.cluster.title'));
 
-        vm.browseType = "file";
         vm.header = i18n.get('add.driver.header');
         vm.driverInstructionsLabel = i18n.get('add.driver.instructions.label');
         vm.driverSupportMatrixLinkText = i18n.get('add.driver.support.matrix.line.text');
         vm.fileLabel = i18n.get('add.driver.file.label');
 
         vm.data = {
-          type: "driver",
-          driverPath: ""
+          type: "driver"
         };
 
         vm.buttons = getButtons();
@@ -66,10 +64,15 @@ define([
             label: i18n.get('controls.next.label'),
             class: "primary",
             isDisabled: function () {
-              return !vm.data.driverPath;
+              return !vm.driverFile;
             },
             position: "right",
             onClick: function () {
+
+              //UI-router doesn't work to pass files between states, use fileservice to store the file(s), they are later
+              //retrieved by the helperService before passing the request to the server.
+              fileService.setFiles(vm.driverFile);
+
               $state.go('installing-driver', {data: vm.data, transition: "slideLeft"});
             }
           },

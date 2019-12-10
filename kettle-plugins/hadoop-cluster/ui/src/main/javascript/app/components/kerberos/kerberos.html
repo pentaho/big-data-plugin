@@ -18,10 +18,10 @@
     </div>
     <div ng-if="vm.kerberosSubTypes.KEYTAB === vm.data.model.kerberosSubType">
       <div class="margin_bottom_15">
-        <browse-local type="vm.keytabBrowseType" label="vm.keytabAuthPathLabel" model="vm.data.model.keytabAuthenticationLocation"></browse-local>
+        <browse label="vm.keytabAuthPathLabel" model="vm.keytabAuthenticationFile"></browse>
       </div>
       <div class="margin_bottom_15">
-        <browse-local type="vm.keytabBrowseType" label="vm.keytabImpersonatePathLabel" model="vm.data.model.keytabImpersonationLocation"></browse-local>
+        <browse label="vm.keytabImpersonatePathLabel" model="vm.keytabImpersonationFile"></browse>
       </div>
     </div>
   </div>

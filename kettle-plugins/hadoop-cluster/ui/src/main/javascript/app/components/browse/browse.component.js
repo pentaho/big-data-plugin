@@ -15,46 +15,43 @@
  */
 
 define([
-  'text!./installingDriver.html',
-  'pentaho/i18n-osgi!hadoopCluster.messages'
+  'text!./browse.html',
+  'pentaho/i18n-osgi!hadoopCluster.messages',
+  'css!./browse.css'
 ], function (template, i18n) {
 
   'use strict';
 
   var options = {
-    bindings: {},
+    bindings: {
+      label: "<",
+      model: "=",
+      buttonLabel: "<?", //optional - has defaults
+      placeholder: "<?" // optional - has defaults
+    },
     controllerAs: "vm",
     template: template,
-    controller: installingDriverController
+    controller: browseController
   };
 
-  installingDriverController.$inject = ["$state", "$timeout", "$stateParams", "dataService"];
+  browseController.$inject = ["$document", "$scope"];
 
-  function installingDriverController($state, $timeout, $stateParams, dataService) {
+  function browseController($document, $scope) {
     var vm = this;
     vm.$onInit = onInit;
 
     function onInit() {
-      vm.data = $stateParams.data;
-
-      vm.almostDone = i18n.get('progress.almostdone');
-      vm.message = i18n.get('installing.driver.message');
-      $timeout(function () {
-        dataService.installDriver().then(
-          function (res) {
-              vm.data = res.data;
-              $state.go("driver-status", {data: vm.data});
-          },
-          function (error) {
-            vm.data.installed = false;
-            $state.go("driver-status", {data: vm.data});
-          });
-      }, 500);
+      if (!vm.placeholder) {
+        vm.placeholder = i18n.get('browse.placeholder.default');
+      }
+      if (!vm.buttonLabel) {
+        vm.buttonLabel = i18n.get('browse.button.default');
+      }
     }
   }
 
   return {
-    name: "installingDriver",
+    name: "browse",
     options: options
   };
 

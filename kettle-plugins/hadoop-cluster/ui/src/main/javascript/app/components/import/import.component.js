@@ -29,9 +29,9 @@ define([
     controller: importController
   };
 
-  importController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService"];
+  importController.$inject = ["$location", "$state", "$q", "$stateParams", "dataService", "fileService"];
 
-  function importController($location, $state, $q, $stateParams, dataService) {
+  function importController($location, $state, $q, $stateParams, dataService, fileService) {
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelectShim = onSelectShim;
@@ -43,7 +43,6 @@ define([
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
-      vm.browseType = "folder";
       vm.header = i18n.get('import.header');
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
       vm.importFolderLabel = i18n.get('import.folder.label');
@@ -69,11 +68,11 @@ define([
           vm.shimVendor = vm.data.model.shimVendor;
           vm.shimVersions = getShimVersions(vm.shimVendor);
           vm.shimVersion = vm.data.model.shimVersion;
+          vm.siteFiles = fileService.getFiles();
         } else {
           vm.data = {
             model: {
               name: "",
-              importPath: "",
               shimVendor: "",
               shimVersion: "",
               hdfsUsername: "",
@@ -155,6 +154,11 @@ define([
 
     function create() {
       dataService.getSecure().then(function (res) {
+
+        //UI-router doesn't work to pass files between states, use fileservice to store the file(s), they are later
+        //retrieved by the helperService before passing the request to the server.
+        fileService.setFiles(vm.siteFiles);
+
         if (res.data.secureEnabled === "true") {
           $state.go('security', {data: vm.data, transition: "slideLeft"});
         } else {
@@ -169,7 +173,7 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.name || !vm.data.model.importPath;
+            return !vm.data.model || !vm.data.model.name || !vm.siteFiles;
           },
           position: "right",
           onClick: next

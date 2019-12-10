@@ -62,19 +62,19 @@ define(
       }
 
       function createNamedCluster(data) {
-        return helperService.httpPost([baseUrl, "createNamedCluster"].join("/"), data);
+        return helperService.httpPostMultipart([baseUrl, "createNamedCluster"].join("/"), data);
       }
 
       function editNamedCluster(data) {
-        return helperService.httpPost([baseUrl, "editNamedCluster"].join("/"), data);
+        return helperService.httpPostMultipart([baseUrl, "editNamedCluster"].join("/"), data);
       }
 
       function duplicateNamedCluster(data) {
-        return helperService.httpPost([baseUrl, "duplicateNamedCluster"].join("/"), data);
+        return helperService.httpPostMultipart([baseUrl, "duplicateNamedCluster"].join("/"), data);
       }
 
       function importNamedCluster(data) {
-        return helperService.httpPost([baseUrl, "importNamedCluster"].join("/"), data);
+        return helperService.httpPostMultipart([baseUrl, "importNamedCluster"].join("/"), data);
       }
 
       function getNamedCluster(name) {
@@ -88,8 +88,8 @@ define(
       function runTests(name) {
         return helperService.httpGet([baseUrl, "runTests"].join("/") + "?namedCluster=" + encodeURIComponent(name));
       }
-      function installDriver(source) {
-        return helperService.httpGet([baseUrl, "installDriver"].join("/") + "?source=" + source);
+      function installDriver() {
+        return helperService.httpPostMultipart([baseUrl, "installDriver"].join("/"));
       }
       function getSecure() {
         return helperService.httpGet([baseUrl, "getSecure"].join("/"));

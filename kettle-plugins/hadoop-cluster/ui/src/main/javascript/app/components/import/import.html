@@ -1,28 +1,30 @@
 <modal-dialog dialog-title="vm.dialogTitle" message="vm.dialogMessage" buttons="vm.overwriteDialogButtons"></modal-dialog>
-<div class="main_div">
+<div class="import-main">
   <div class="title_text margin_bottom_30 text_center">{{vm.header}}</div>
-  <div class="middle_hadoop_div margin_bottom_10">
-    <div class="margin_bottom_30">
+  <div class="import-middle">
+    <div class="margin_bottom_15">
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
       <input id="clusterName" type="text" ng-model="vm.data.model.name" autofocus/>
     </div>
-    <div class="import-shim margin_bottom_15">
-      <div class="leftHalf">
-        <label for="shimVendor" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
-        <select-box id="shimVendor" type="vm.shimVendor" options="vm.shimVendors" on-select="vm.onSelectShim(value)"></select-box>
+    <div class="import-scroll-form">
+      <div class="import-shim margin_bottom_15">
+        <div class="leftHalf">
+          <label for="shimVendor" class="margin_bottom_5 text_left">{{::vm.importLabel}}</label>
+          <select-box id="shimVendor" type="vm.shimVendor" options="vm.shimVendors" on-select="vm.onSelectShim(value)"></select-box>
+        </div>
+        <div class="rightHalf">
+          <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
+          <select-box id="shimVersion" type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></select-box>
+        </div>
       </div>
-      <div class="rightHalf">
-        <label for="shimVersion" class="margin_bottom_5 text_left">{{::vm.versionLabel}}</label>
-        <select-box id="shimVersion" type="vm.shimVersion" options="vm.shimVersions" on-select="vm.onSelectShimVersion(value)"></select-box>
+      <div class="margin_bottom_15">
+        <multi-browse label="vm.importFolderLabel" model="vm.siteFiles"></multi-browse>
       </div>
+      <fieldset>
+        <legend>{{::vm.hdfsLabel}}</legend>
+        <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
+      </fieldset>
     </div>
-    <div class="margin_bottom_20">
-      <browse-local type="vm.browseType" label="vm.importFolderLabel" model="vm.data.model.importPath"></browse-local>
-    </div>
-    <fieldset class="margin_bottom_15">
-      <legend>{{::vm.hdfsLabel}}</legend>
-      <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
-    </fieldset>
+    <controls buttons="vm.buttons" data="vm.data"></controls>
   </div>
-  <controls buttons="vm.buttons" data="vm.data"></controls>
 </div>

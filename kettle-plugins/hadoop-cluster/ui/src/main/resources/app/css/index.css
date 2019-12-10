@@ -13,7 +13,7 @@ body {
   min-width: 545px;
 }
 
-.middle_hadoop_div, .new-edit-middle {
+.middle_hadoop_div, .new-edit-middle, .import-middle {
   min-width: 392px;
   padding: 0px 80px;
 }
