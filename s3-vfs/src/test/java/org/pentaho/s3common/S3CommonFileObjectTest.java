@@ -44,32 +44,6 @@ public class S3CommonFileObjectTest {
    * @throws IOException
    */
   @Test
-  public void activateContentWithS3Object() throws IOException {
-    S3CommonFileObject s3n = mock( S3CommonFileObject.class );
-    doReturn( mock( S3Object.class ) ).when( s3n ).getS3Object();
-    doCallRealMethod().when( s3n ).activateContent();
-
-    S3Object s3object = mock( S3Object.class );
-    setInternalState( s3n, "s3Object", s3object );
-
-    s3n.activateContent();
-
-    verify( s3object, times( 1 ) ).close();
-    assertNotEquals( s3object, (S3Object) getInternalState( s3n, "s3Object" ) );
-  }
-
-  @Test
-  public void activateContentWithNull() throws IOException {
-    S3CommonFileObject s3n = mock( S3CommonFileObject.class );
-    doReturn( mock( S3Object.class ) ).when( s3n ).getS3Object();
-    doCallRealMethod().when( s3n ).activateContent();
-
-    s3n.activateContent();
-
-    assertNotNull( getInternalState( s3n, "s3Object" ) );
-  }
-
-  @Test
   public void getContentSize() {
     ObjectMetadata meta = mock( ObjectMetadata.class );
     doReturn( 1L ).when( meta ).getContentLength();

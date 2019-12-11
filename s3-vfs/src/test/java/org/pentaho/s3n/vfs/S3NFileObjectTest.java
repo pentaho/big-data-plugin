@@ -249,7 +249,7 @@ public class S3NFileObjectTest {
   public void testDoDetach() throws Exception {
     s3FileObjectFileSpy.doAttach();
     s3FileObjectFileSpy.doDetach();
-    verify( s3ObjectMock, times( 2 ) ).close();
+    verify( s3ObjectMock, times( 1 ) ).close();
   }
 
   @Test

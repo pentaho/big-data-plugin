@@ -248,6 +248,7 @@ public class S3FileObjectTest {
     S3FileObject newFile = new S3FileObject( newFileName, fileSystemSpy );
     ArgumentCaptor<CopyObjectRequest> copyObjectRequestArgumentCaptor = ArgumentCaptor.forClass( CopyObjectRequest.class );
     when( s3ServiceMock.doesBucketExistV2( someNewBucketName ) ).thenReturn( true );
+    s3FileObjectFileSpy.doAttach();
     s3FileObjectFileSpy.moveTo( newFile );
 
     verify( s3ServiceMock ).copyObject( copyObjectRequestArgumentCaptor.capture() );
@@ -308,7 +309,7 @@ public class S3FileObjectTest {
   public void testDoDetach() throws Exception {
     s3FileObjectFileSpy.doAttach();
     s3FileObjectFileSpy.doDetach();
-    verify( s3ObjectMock, times( 2 ) ).close();
+    verify( s3ObjectMock, times( 1 ) ).close();
   }
 
   @Test
