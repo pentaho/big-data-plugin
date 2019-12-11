@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -118,8 +118,6 @@ public class NamedClustersController extends LazilyInitializedController impleme
     //CHECKSTYLE:LineLength:OFF
     try {
       bf.createBinding( namedClustersList, "children", namedClustersTable, "elements" ).fireSourceChanged();
-      ( bindButtonNew = bf.createBinding( this, "repReadOnly", "named-clusters-new", "disabled" ) ).fireSourceChanged();
-      ( bindButtonEdit = bf.createBinding( this, "repReadOnly", "named-clusters-edit", "disabled" ) ).fireSourceChanged();
       ( bindButtonRemove = bf.createBinding( this, "repReadOnly", "named-clusters-remove", "disabled" ) ).fireSourceChanged();
 
       if ( diRepository != null ) {
@@ -152,7 +150,7 @@ public class NamedClustersController extends LazilyInitializedController impleme
       if ( bf != null ) {
         createBindings();
       }
-      enableButtons( true, false, false );
+      enableButtons( false );
 
       return true;
     } catch ( Exception e ) {
@@ -408,16 +406,12 @@ public class NamedClustersController extends LazilyInitializedController impleme
     }
 
     // ENABLE BUTTONS LOGIC
-    boolean enableEdit = false;
     boolean enableRemove = false;
     if ( namedClusters != null && namedClusters.size() > 0 ) {
       enableRemove = true;
-      if ( namedClusters.size() == 1 ) {
-        enableEdit = true;
-      }
     }
     // Convenience - Leave 'new' enabled, modify 'edit' and 'remove'
-    enableButtons( true, enableEdit, enableRemove );
+    enableButtons( enableRemove );
   }
 
   public List<UINamedCluster> getRepositoryNamedClusters() {
@@ -429,13 +423,8 @@ public class NamedClustersController extends LazilyInitializedController impleme
     firePropertyChange( "repositoryNamedClusters", null, repositoryNamedClusters );
   }
 
-  public void enableButtons( boolean enableNew, boolean enableEdit, boolean enableRemove ) {
-    XulButton bNew = (XulButton) document.getElementById( "named-clusters-new" );
-    XulButton bEdit = (XulButton) document.getElementById( "named-clusters-edit" );
+  public void enableButtons( boolean enableRemove ) {
     XulButton bRemove = (XulButton) document.getElementById( "named-clusters-remove" );
-
-    bNew.setDisabled( !enableNew );
-    bEdit.setDisabled( !enableEdit );
     bRemove.setDisabled( !enableRemove );
   }
 
