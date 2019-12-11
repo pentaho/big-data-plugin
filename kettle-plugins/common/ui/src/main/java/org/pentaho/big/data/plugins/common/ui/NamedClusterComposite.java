@@ -328,13 +328,10 @@ public class NamedClusterComposite extends Composite {
     // Create a storage type Drop Down
     final CCombo shimVendorCombo = new CCombo( container, SWT.BORDER );
     List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
-    String[] vendorList = new String[ shimIdentifers.size() ];
-
-    int i = 0;
-    for ( ShimIdentifierInterface shim : shimIdentifers ) {
-      vendorList[ i ] = shim.getId();
-      i++;
-    }
+    String[] vendorList = shimIdentifers.stream()
+      .map( ShimIdentifierInterface::getId )
+      .filter( shimId -> !shimId.equals( "apache" ) )
+      .toArray( String[]::new );
 
     shimVendorCombo.setItems( vendorList );
     shimVendorCombo.setEditable( false );
