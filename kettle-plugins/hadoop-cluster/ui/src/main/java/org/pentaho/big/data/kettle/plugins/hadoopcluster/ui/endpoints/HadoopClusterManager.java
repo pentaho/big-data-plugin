@@ -46,8 +46,6 @@ import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
-import org.pentaho.metastore.stores.xml.XmlMetaStore;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTest;
 import org.pentaho.runtime.test.RuntimeTestProgressCallback;
@@ -512,10 +510,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( isValidConfigurationFile( sitefile ) ) {
         String name = sitefile.getFieldName();
         if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) ) {
-          name = sitefile.getName();
-          int lastIndex = name.lastIndexOf( '/' ) != -1 ? name.lastIndexOf( '/' ) : name.lastIndexOf( '\\' );
-          lastIndex = lastIndex == -1 ? 0 : lastIndex + 1;
-          name = name.substring( lastIndex );
+          name = extractFileNameFromFullPath( sitefile.getName() );
         }
 
         File destination = new File(
@@ -735,10 +730,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     try {
       if ( namedClusterService.read( namedCluster, metaStore ) != null ) {
         namedClusterService.delete( namedCluster, metaStore );
-        XmlMetaStore xmlMetaStore = getXmlMetastore( metaStore );
-        if ( xmlMetaStore != null ) {
-          deleteConfigFolder( namedCluster );
-        }
+        deleteConfigFolder( namedCluster );
       }
       if ( refreshTree ) {
         refreshTree();
@@ -746,19 +738,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     } catch ( Exception e ) {
       logChannel.warn( e.getMessage() );
     }
-  }
-
-  private XmlMetaStore getXmlMetastore( IMetaStore metaStore ) throws MetaStoreException {
-    XmlMetaStore xmlMetaStore = null;
-    if ( metaStore instanceof DelegatingMetaStore ) {
-      IMetaStore activeMetastore = ( (DelegatingMetaStore) metaStore ).getActiveMetaStore();
-      if ( activeMetastore instanceof XmlMetaStore ) {
-        xmlMetaStore = (XmlMetaStore) activeMetastore;
-      }
-    } else if ( metaStore instanceof XmlMetaStore ) {
-      xmlMetaStore = (XmlMetaStore) metaStore;
-    }
-    return xmlMetaStore;
   }
 
   /**
