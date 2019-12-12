@@ -45,6 +45,7 @@ define([
   "./components/help/help.component",
   "./directives/ngbodyclick.directive",
   "./directives/fileInput.directive",
+  "./directives/multiFileInput.directive",
   "./service/helper.service",
   "./service/data.service",
   "./service/file.service",
@@ -52,9 +53,10 @@ define([
   "angular-animate"
 ], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent,
              statusComponent, testResultsComponent, addDriverComponent, installingDriverComponent,
-             driverStatusComponent, securityComponent, kerberosComponent, knoxComponent, browseComponent, selectBoxComponent,
-             multiBrowseComponent, credentialsComponent, accordianItemComponent, modalDialogComponent,
-             controlsComponent, helpComponent, fileInputDirective, bodyClickDirective, helperService, dataService, fileService) {
+             driverStatusComponent, securityComponent, kerberosComponent, knoxComponent, browseComponent,
+             selectBoxComponent, multiBrowseComponent, credentialsComponent, accordianItemComponent,
+             modalDialogComponent, controlsComponent, helpComponent, multiFileInputDirective, fileInputDirective,
+             bodyClickDirective, helperService, dataService, fileService) {
   "use strict";
 
   var module = {
@@ -96,6 +98,7 @@ define([
         .component(helpComponent.name, helpComponent.options)
         .directive(bodyClickDirective.name, bodyClickDirective.options)
         .directive(fileInputDirective.name, fileInputDirective.options)
+        .directive(multiFileInputDirective.name, multiFileInputDirective.options)
         .service(helperService.name, helperService.factory)
         .service(dataService.name, dataService.factory)
         .service(fileService.name, fileService.factory)

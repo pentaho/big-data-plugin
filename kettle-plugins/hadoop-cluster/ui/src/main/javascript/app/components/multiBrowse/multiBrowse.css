@@ -42,3 +42,13 @@ input[type="file"] {
   overflow: auto;
   margin-bottom: 5px;
 }
+
+.multi-browse-remove {
+  float: right;
+  font-family: OpenSansRegular;
+  font-size: 11px;
+  text-decoration: underline;
+  padding: 1px 4px 4px 0px;
+  color: #005DA6;
+  cursor: pointer;
+}

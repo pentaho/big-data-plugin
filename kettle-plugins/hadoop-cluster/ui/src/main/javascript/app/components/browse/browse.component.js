@@ -34,9 +34,9 @@ define([
     controller: browseController
   };
 
-  browseController.$inject = ["$document", "$scope"];
+  browseController.$inject = [];
 
-  function browseController($document, $scope) {
+  function browseController() {
     var vm = this;
     vm.$onInit = onInit;
 

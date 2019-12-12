@@ -90,16 +90,19 @@ define(
           for (var i = 0; i < files.length; i++) {
             fd.append(files[i].name, files[i]);
           }
+          fileService.setFiles(null);
         }
 
         var keytabAuthFile = fileService.getKeytabAuthFile();
         if (keytabAuthFile) {
           fd.append("keytabAuthFile", keytabAuthFile);
+          fileService.setKeytabAuthFile(null);
         }
 
         var keytabImpFile = fileService.getKeytabImpFile();
         if (keytabImpFile) {
           fd.append("keytabImpFile", keytabImpFile);
+          fileService.setKeytabImpFile(null);
         }
 
         //Append the data model to the form data
