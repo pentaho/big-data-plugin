@@ -295,6 +295,8 @@ public class ThinNameClusterModel {
       model.setGatewayUrl( (String) json.get( "gatewayUrl" ) );
       model.setGatewayUsername( (String) json.get( "gatewayUsername" ) );
       model.setGatewayPassword( (String) json.get( "gatewayPassword" ) );
+      model.setKeytabImpFile( (String) json.get( "keytabImpFile" ) );
+      model.setKeytabAuthFile( (String) json.get( "keytabAuthFile" ) );
       siteFilesSource.remove( siteFile );
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );

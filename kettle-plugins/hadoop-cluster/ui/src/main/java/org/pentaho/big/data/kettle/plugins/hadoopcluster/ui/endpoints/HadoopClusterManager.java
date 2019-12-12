@@ -564,28 +564,32 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     String securityType = model.getSecurityType();
     if ( !StringUtil.isEmpty( securityType ) ) {
-      resetKerberosSecurity( configPropertiesPath );
+      resetKerberosSecurity( configPropertiesPath, model );
       if ( securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
         String kerberosSubType = model.getKerberosSubType();
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
           setupKerberosPasswordSecurity( configPropertiesPath, model );
         }
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.KEYTAB.getValue() ) ) {
-          setupKeytabSecurity( model.getName(), configPropertiesPath, siteFilesSource );
+          setupKeytabSecurity( model, configPropertiesPath, siteFilesSource );
         }
       }
     }
   }
 
-  private void resetKerberosSecurity( Path configPropertiesPath ) {
+  private void resetKerberosSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+      if ( StringUtil.isEmpty( model.getKeytabAuthFile() ) ) {
+        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, "" );
+      }
+      if ( StringUtil.isEmpty( model.getKeytabImpFile() ) ) {
+        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
+      }
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, "" );
       config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, "" );
       config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
-      config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, "" );
-      config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
       config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       config.save();
     } catch ( ConfigurationException e ) {
@@ -672,9 +676,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return fileName;
   }
 
-  private void setupKeytabSecurity( String namedClusterName, Path configPropertiesPath,
+  private void setupKeytabSecurity( ThinNameClusterModel model, Path configPropertiesPath,
                                     List<FileItem> siteFilesSource ) {
-
+    String namedClusterName = model.getName();
     FileItem keytabAuthFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
       FileItem fileItem = (FileItem) object;
       return fileItem.getFieldName().equals( KEYTAB_AUTH_FILE );
@@ -699,8 +703,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
-      config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, keytabAuthenticationLocation );
-      config.setProperty( KEYTAB_IMPERSONATION_LOCATION, keytabImpersonationLocation );
+      if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
+        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, keytabAuthenticationLocation );
+      }
+      if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
+        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, keytabImpersonationLocation );
+      }
+      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
+      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
 
       if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
         config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
