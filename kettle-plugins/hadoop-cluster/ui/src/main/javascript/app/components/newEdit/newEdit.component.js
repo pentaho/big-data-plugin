@@ -113,6 +113,7 @@ define([
           vm.data.created = false;
           vm.shimVendor = vm.shimVendors[0];
         }
+        vm.data.connectedToRepo = $location.search().connectedToRepo === 'true';
       });
 
       vm.buttons = getButtons();
