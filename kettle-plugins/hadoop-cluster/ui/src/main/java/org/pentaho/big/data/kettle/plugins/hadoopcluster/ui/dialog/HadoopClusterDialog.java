@@ -36,6 +36,7 @@ import org.pentaho.platform.settings.ServerPortRegistry;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
@@ -69,7 +70,9 @@ public class HadoopClusterDialog extends ThinDialog {
     }
 
     //Convert map into url params string
-    final String paramString = urlParams.entrySet().stream()
+    HashMap<String, String> params = new HashMap<>( urlParams );
+    params.put( "connectedToRepo", Boolean.toString( connectedToRepo() ) );
+    final String paramString = params.entrySet().stream()
       .map( p -> p.getKey() + "=" + p.getValue() )
       .reduce( ( p1, p2 ) -> p1 + "&" + p2 )
       .map( s -> "?" + s )
