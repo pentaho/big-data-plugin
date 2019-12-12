@@ -19,7 +19,15 @@
     </div>
     <div ng-if="vm.kerberosSubTypes.KEYTAB === vm.data.model.kerberosSubType">
       <div class="margin_bottom_15">
+        <label for="authUser" class="margin_bottom_5 text_left">{{::vm.authUserLabel}}</label>
+        <input id="authUser" type="text" ng-model="vm.data.model.kerberosAuthenticationUsername" autofocus/>
+      </div>
+      <div class="margin_bottom_15">
         <browse label="vm.keytabAuthPathLabel" model="vm.keytabAuthenticationFile"></browse>
+      </div>
+      <div ng-if="vm.data.connectedToRepo" class="margin_bottom_15">
+        <label for="impUser" class="margin_bottom_5 text_left">{{::vm.impersonateUserLabel}}</label>
+        <input id="impUser" type="text" ng-model="vm.data.model.kerberosImpersonationUsername" autofocus/>
       </div>
       <div ng-if="vm.data.connectedToRepo" class="margin_bottom_15">
         <browse label="vm.keytabImpersonatePathLabel" model="vm.keytabImpersonationFile"></browse>

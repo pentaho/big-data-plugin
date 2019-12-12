@@ -142,9 +142,7 @@ define([
     }
 
     function clearKerberosPasswordValues() {
-      vm.data.model.kerberosAuthenticationUsername = "";
       vm.data.model.kerberosAuthenticationPassword = "";
-      vm.data.model.kerberosImpersonationUsername = "";
       vm.data.model.kerberosImpersonationPassword = "";
     }
 
