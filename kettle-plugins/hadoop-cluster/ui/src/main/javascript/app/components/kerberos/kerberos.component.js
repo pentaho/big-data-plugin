@@ -135,9 +135,15 @@ define([
       //retrieved by the helperService before passing the request to the server.
       if(vm.keytabAuthenticationFile && vm.keytabAuthenticationFile[0] instanceof File) {
         fileService.setKeytabAuthFile(vm.keytabAuthenticationFile[0]);
+
+        //We use the following to keep track of the previous name, clear it out when we upload a new file
+        vm.data.model.keytabAuthFile = "";
       }
       if(vm.keytabImpersonationFile && vm.keytabImpersonationFile[0] instanceof File) {
         fileService.setKeytabImpFile(vm.keytabImpersonationFile[0]);
+
+        //We use the following to keep track of the previous name, clear it out when we upload a new file
+        vm.data.model.keytabImpFile = "";
       }
     }
 

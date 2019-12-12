@@ -28,25 +28,34 @@ define([
       model: "=",
       buttonLabel: "<?", //optional - has defaults
       placeholder: "<?" // optional - has defaults
-     },
+    },
     controllerAs: "vm",
     template: template,
     controller: multiBrowseController
   };
 
-  multiBrowseController.$inject = ["$document", "$scope"];
+  multiBrowseController.$inject = [];
 
-  function multiBrowseController($document, $scope) {
+  function multiBrowseController() {
     var vm = this;
     vm.$onInit = onInit;
+    vm.removeFile = removeFile;
 
     function onInit() {
-     if (!vm.placeholder) {
+      if (!vm.placeholder) {
         vm.placeholder = i18n.get('multi.browse.placeholder.default');
       }
       if (!vm.buttonLabel) {
         vm.buttonLabel = i18n.get('multi.browse.button.default');
       }
+      vm.removeLabel = i18n.get('multi.browse.remove');
+    }
+
+    function removeFile(file) {
+      vm.model = vm.model.filter(
+        function (e) {
+          return e !== file;
+        });
     }
   }
 
