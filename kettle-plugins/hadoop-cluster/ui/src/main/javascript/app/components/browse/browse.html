@@ -5,6 +5,6 @@
     <input id="browse_{{::$id}}" type="file" file-input="vm.model"/>
   </div>
   <div class="fill-remaining">
-    <input class="browse-file" type="text" size="50" readonly value="{{(vm.model[0] && vm.model.length > 0) ? vm.model[0].name : vm.placeholder}}">
+    <input class="browse-file" type="text" size="50" readonly disabled value="{{(vm.model[0] && vm.model.length > 0) ? vm.model[0].name : vm.placeholder}}">
   </div>
 </div>

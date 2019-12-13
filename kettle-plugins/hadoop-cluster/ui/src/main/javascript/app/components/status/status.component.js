@@ -34,6 +34,7 @@ define([
     var vm = this;
     vm.$onInit = onInit;
     vm.onCreateNew = onCreateNew;
+    vm.onImportNew = onImportNew;
     vm.onEditConnection = onEditConnection;
     vm.onTestCluster = onTestCluster;
     vm.getStatusImage = getStatusImage;
@@ -44,6 +45,7 @@ define([
 
       vm.question = i18n.get('status.question');
       vm.createNewCluster = i18n.get('status.new');
+      vm.importCluster = i18n.get('status.import');
       vm.editCluster = i18n.get('status.edit');
       vm.testCluster = i18n.get('status.test');
       vm.closeLabel = i18n.get('controls.close.label');
@@ -57,6 +59,10 @@ define([
     }
 
     function onCreateNew() {
+        $state.go("new-edit");
+    }
+
+    function onImportNew() {
       $state.go("import");
     }
 

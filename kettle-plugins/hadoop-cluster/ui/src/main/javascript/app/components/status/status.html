@@ -8,7 +8,6 @@
   <div class="primary_text text_center">
     <div class="margin_bottom_30">{{::vm.overallStatusDescription}}</div>
     <div class="margin_bottom_30">{{::vm.question}}</div>
-
     <div ng-if="vm.data.created === true" class="margin_bottom_30">
       <button class="same_width secondary" type="button" ng-click="vm.onTestCluster()">
         <span>
@@ -16,7 +15,6 @@
         </span>
       </button>
     </div>
-
     <div class="margin_bottom_30">
       <button class="same_width secondary" type="button" ng-click="vm.onEditConnection()">
         <span>
@@ -24,15 +22,14 @@
         </span>
       </button>
     </div>
-
     <div>
-      <button class="same_width secondary" type="button" ng-click="vm.onCreateNew()">
-        <span>
-          {{::vm.createNewCluster}}
-        </span>
+      <button ng-if="vm.data.type ==='import'" class="same_width secondary" type="button" ng-click="vm.onImportNew()">
+        <span>{{::vm.importCluster}}</span>
+      </button>
+      <button ng-if="vm.data.type !=='import'" class="same_width secondary" type="button" ng-click="vm.onCreateNew()">
+        <span>{{::vm.createNewCluster}}</span>
       </button>
     </div>
-
   </div>
   <controls buttons="vm.buttons"></controls>
 </div>
