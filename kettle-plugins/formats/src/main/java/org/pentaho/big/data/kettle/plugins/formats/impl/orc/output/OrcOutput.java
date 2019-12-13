@@ -97,6 +97,11 @@ public class OrcOutput extends BaseStep implements StepInterface {
         setOutputDone();
         return false;
       }
+    } catch ( IllegalStateException e ) {
+      getLogChannel().logError( e.getMessage() );
+      setErrors( 1 );
+      setOutputDone();
+      return false;
     } catch ( KettleException ex ) {
       throw ex;
     } catch ( Exception ex ) {
