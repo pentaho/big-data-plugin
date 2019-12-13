@@ -102,7 +102,9 @@ define([
           label: i18n.get('controls.cancel.label'),
           class: "primary",
           position: "right",
-          onClick: close
+          onClick: function () {
+            close();
+          }
         }];
     }
 
