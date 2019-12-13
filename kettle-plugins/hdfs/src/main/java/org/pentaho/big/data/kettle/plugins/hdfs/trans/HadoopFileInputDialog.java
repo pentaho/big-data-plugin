@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -103,6 +103,7 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileField;
+import org.pentaho.di.trans.steps.fileinput.text.EncodingType;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
@@ -2459,28 +2460,16 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
       try {
         wFields.table.removeAll();
-
-        FileObject fileObject = textFileList.getFile( 0 );
-        fileInputStream = KettleVFS.getInputStream( fileObject );
         Table table = wFields.table;
-
-        CompressionProvider provider =
-            CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
-        inputStream = provider.createInputStream( fileInputStream );
-
-        InputStreamReader reader;
-        if ( meta.getEncoding() != null && meta.getEncoding().length() > 0 ) {
-          reader = new InputStreamReader( inputStream, meta.getEncoding() );
-        } else {
-          reader = new InputStreamReader( inputStream );
-        }
+        inputStream = getInputStream( meta, textFileList );
+        InputStreamReader reader = getInputStreamReader( meta, inputStream );
 
         if ( clearFields == SWT.YES || !meta.content.header || nrInputFields > 0 ) {
           // Scan the header-line, determine fields...
           String line = null;
 
           if ( meta.content.header || meta.inputFields.length == 0 ) {
-            line = TextFileInputUtils.getLine( log, reader, fileFormatType, lineStringBuilder );
+            line = getLine( meta, textFileList );
             if ( line != null ) {
               // Estimate the number of input fields...
               // Chop up the line using the delimiter
@@ -3112,4 +3101,42 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     log.logError( messageToLog );
     box.open();
   }
+  
+  private InputStream getInputStream( HadoopFileInputMeta meta, FileInputList textFileList ) throws IOException {
+
+    FileObject fileObject = textFileList.getFile( 0 );
+    InputStream fileInputStream = KettleVFS.getInputStream( fileObject );
+    CompressionProvider provider =
+      CompressionProviderFactory.getInstance().createCompressionProviderInstance( meta.content.fileCompression );
+
+    return provider.createInputStream( fileInputStream );
+  }
+
+  private InputStreamReader getInputStreamReader( HadoopFileInputMeta meta, InputStream inputStream ) throws IOException {
+
+    if ( meta.getEncoding() != null && meta.getEncoding().length() > 0 ) {
+      return new InputStreamReader( inputStream, meta.getEncoding() );
+    }
+
+    return new InputStreamReader( inputStream );
+  }
+
+  private String getLine( HadoopFileInputMeta meta, FileInputList textFileList )
+    throws IOException, KettleFileException {
+
+    InputStream inputStream = null;
+    InputStreamReader reader = null;
+
+    inputStream = getInputStream( meta, textFileList );
+    reader = getInputStreamReader( meta, inputStream );
+
+    EncodingType encodingType = EncodingType.guessEncodingType( reader.getEncoding() );
+    StringBuilder lineStringBuilder = new StringBuilder( 256 );
+    String enclosure = StringUtil.substituteHex( meta.content.enclosure );
+    String sLine = TextFileInputUtils.getLine( log, reader, encodingType, meta.getFileFormatTypeNr(), lineStringBuilder, enclosure );
+    inputStream.close();
+
+    return sLine;
+  }
+
 }
