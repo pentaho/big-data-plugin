@@ -65,6 +65,11 @@ public class AvroOutput extends BaseStep implements StepInterface {
       if ( data.output == null ) {
         try {
           init();
+        } catch ( UnsupportedOperationException e  ) {
+          getLogChannel().logError( e.getMessage() );
+          setErrors( 1 );
+          setOutputDone();
+          return false;
         } catch ( Throwable e ) {
           String error = e.getMessage().replaceAll( "TRANS_NAME", getTrans().getName() );
           error = error.replaceAll( "STEP_NAME", getStepname() );

@@ -83,6 +83,11 @@ public class ParquetOutput extends BaseStep implements StepInterface {
         // Do nothing
       }
       throw ex;
+    } catch ( IllegalStateException e ) {
+      getLogChannel().logError( e.getMessage() );
+      setErrors( 1 );
+      setOutputDone();
+      return false;
     } catch ( Exception ex ) {
       try {
         closeWriter();
