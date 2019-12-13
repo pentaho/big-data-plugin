@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,28 +22,32 @@
 
 package org.pentaho.amazon.emr.ui;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.FileSystemOptions;
 import org.eclipse.swt.widgets.Text;
 import org.pentaho.amazon.AbstractAmazonJobEntry;
 import org.pentaho.amazon.AbstractAmazonJobExecutorController;
 import org.pentaho.amazon.emr.job.AmazonElasticMapReduceJobExecutor;
-import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
+import org.pentaho.di.ui.core.events.dialog.ConnectionFilterType;
+import org.pentaho.di.ui.core.events.dialog.FilterType;
+import org.pentaho.di.ui.core.events.dialog.ProviderFilterType;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogTextVar;
+import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
+import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
+import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 import org.pentaho.ui.xul.binding.Binding;
 import org.pentaho.ui.xul.binding.BindingFactory;
-import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 import java.lang.reflect.InvocationTargetException;
 
 public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJobExecutorController {
 
   private static final Class<?> PKG = AmazonElasticMapReduceJobExecutor.class;
+  private LogChannel log;
 
   // Define string names for the attributes.
   public static final String JAR_URL = "jarUrl";
@@ -58,6 +62,7 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
 
     super( container, jobEntry, bindingFactory );
     this.jobEntry = (AmazonElasticMapReduceJobExecutor) jobEntry;
+    log = new LogChannel( this.jobEntry );
     initializeEmrSettingsGroupMenuFields();
   }
 
@@ -133,17 +138,20 @@ public class AmazonElasticMapReduceJobExecutorController extends AbstractAmazonJ
     }
   }
 
-  public void browseJar() throws KettleException, FileSystemException {
-    String[] fileFilters = new String[] { "*.jar;*.zip" };
-    String[] fileFilterNames = new String[] { "Java Archives (jar)" };
+  public void browseJar() {
+    SelectionAdapterOptions options = new SelectionAdapterOptions( SelectionOperation.FILE,
+      new FilterType[] { FilterType.JAR_ZIP }, FilterType.JAR_ZIP,
+      new ProviderFilterType[] { ProviderFilterType.LOCAL, ProviderFilterType.VFS } );
+    options.getConnectionFilters().add( ConnectionFilterType.S3 );
+    TextVar textVar = ( (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JAR_URL ) ).extText;
+    SelectionAdapterFileDialogTextVar selectionAdapterFileDialogTextVar =
+      new SelectionAdapterFileDialogTextVar( log, textVar, this.jobEntry.getParentJobMeta(), options );
 
-    FileSystemOptions opts = getFileSystemOptions();
+    selectionAdapterFileDialogTextVar.widgetSelected( null );
 
-    FileObject selectedFile =
-      browse( fileFilters, fileFilterNames, getVariableSpace().environmentSubstitute( jarUrl ), opts,
-        VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE, true );
-    if ( selectedFile != null ) {
-      setJarUrl( selectedFile.getName().getURI() );
+    String file = textVar.getText();
+    if ( file != null ) {
+      setJarUrl( file );
     }
   }
 
