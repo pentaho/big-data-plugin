@@ -81,6 +81,7 @@ define([
         var urlNameParameter = $location.search().name;
         if (urlNameParameter) {
           vm.header = i18n.get('edit.header');
+          vm.repositoryNotification = i18n.get('repositoryNotification.header');
           vm.data.type = "edit";
           dataService.getNamedCluster(urlNameParameter).then(function (res) {
             vm.data.model = res.data;
@@ -96,6 +97,7 @@ define([
           //When an import is created and then edited - it is converted to an edit
           if (vm.data.created === true) {
             vm.header = i18n.get('edit.header');
+            vm.repositoryNotification = i18n.get('repositoryNotification.header');
             vm.data.type = "edit";
             vm.data.created = false;
             dataService.getNamedCluster(vm.data.model.name).then(function (res) {
@@ -111,6 +113,7 @@ define([
         } else {
           //this is a new state, no name exists in the model or on the URL
           vm.header = i18n.get('new.header');
+          vm.repositoryNotification = i18n.get('repositoryNotification.header');
           vm.data = createHadoopDataModel();
           vm.data.type = "new";
           vm.data.created = false;
