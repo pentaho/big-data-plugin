@@ -52,7 +52,7 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
   public OrcInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                   Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -67,10 +67,10 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
         if ( meta.inputFiles == null || meta.getFilename() == null || meta.getFilename().length() == 0 ) {
           throw new KettleException( "No input files defined" );
         }
-        data.input = formatService.createInputFormat( IPentahoOrcInputFormat.class, meta.getNamedCluster() );
+        data.input = formatService.createInputFormat( IPentahoOrcInputFormat.class, getNamedCluster() );
 
         String inputFileName = getKettleVFSFileName(
-                meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
+          meta.getParentStepMeta().getParentTransMeta().environmentSubstitute( meta.getFilename() ) );
 
         data.input.setInputFile( inputFileName );
         data.input.setSchema( createSchemaFromMeta( meta ) );
@@ -95,10 +95,14 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
     }
   }
 
+  private NamedCluster getNamedCluster() {
+    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+  }
+
   private FormatService getFormatService() throws KettleException {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+      formatService = namedClusterServiceLocator.getService( getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
@@ -118,12 +122,12 @@ public class OrcInput extends BaseFileInputStep<OrcInputMeta, OrcInputData> {
   }
 
   public static List<IOrcInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
-                                                               NamedCluster namedCluster, String dataPath ) throws Exception {
+                                                     NamedCluster namedCluster, String dataPath ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoOrcInputFormat in = formatService.createInputFormat( IPentahoOrcInputFormat.class, namedCluster );
 
     in.setInputFile( getKettleVFSFileName( dataPath ) );
-    return in.readSchema( );
+    return in.readSchema();
   }
 
   public static List<IOrcInputField> createSchemaFromMeta( OrcInputMetaBase meta ) {

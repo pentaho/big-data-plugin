@@ -23,18 +23,15 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import org.apache.commons.vfs2.FileObject;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroLookupField;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -42,6 +39,9 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IAvroInputField;
 import org.pentaho.hadoop.shim.api.format.IAvroLookupField;
@@ -92,7 +92,7 @@ public class AvroInput extends BaseStep {
     indexedLookupField.setIndex( index );
 
     String variableName = lookupField.getVariableName();
-    if ( Const.isEmpty( variableName ) ) {
+    if ( Utils.isEmpty( variableName ) ) {
       return null;
     }
     indexedLookupField.setVariableName( variableName.replaceAll( "\\.", "_" ) );
@@ -144,7 +144,7 @@ public class AvroInput extends BaseStep {
       try {
         ValueMetaInterface valueMeta = rowMeta.getValueMeta( ( (IndexedLookupField) lookupField ).getIndex() );
         if ( valueMeta.isNull( this.inputToStepRow[ ( (IndexedLookupField) lookupField ).getIndex() ] ) ) {
-          if ( !Const.isEmpty( lookupField.getDefaultValue() ) ) {
+          if ( !Utils.isEmpty( lookupField.getDefaultValue() ) ) {
             valueToSet = lookupField.getDefaultValue();
           } else {
             valueToSet = "null";
@@ -183,14 +183,14 @@ public class AvroInput extends BaseStep {
   }
 
   /**
-   *
    * @return false if no rows to process
    * @throws Exception
    */
   private boolean initializeSource() throws Exception {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+      formatService = namedClusterServiceLocator
+        .getService( getNamedCluster(), FormatService.class );
       inputToStepRow = getRow();
       if ( inputToStepRow == null && ( meta.getDataLocationType()
         == AvroInputMetaBase.LocationDescriptor.FIELD_NAME ) ) {
@@ -213,7 +213,7 @@ public class AvroInput extends BaseStep {
       outRowMeta = new RowMeta();
     }
 
-    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class, meta.getNamedCluster() );
+    data.input = formatService.createInputFormat( IPentahoAvroInputFormat.class, getNamedCluster() );
     meta.getFields( outRowMeta, getStepname(), null, null, this, null, null );
     data.input.setIncomingRowMeta( getInputRowMeta() );
     data.input.setOutputRowMeta( outRowMeta );
@@ -223,7 +223,7 @@ public class AvroInput extends BaseStep {
     String inputFileName = null;
     data.input.setVariableSpace( this );
 
-    AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[meta.getFormat()];
+    AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
     if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
       || sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_JSON ) {
       isDatum = true;
@@ -288,14 +288,18 @@ public class AvroInput extends BaseStep {
     return true;
   }
 
+  private NamedCluster getNamedCluster() {
+    return meta.getNamedCluster( environmentSubstitute( meta.getDataLocation() ) );
+  }
+
   public void checkForLegacyFieldNames( String schemaFileName, String avroFileName ) {
     // This routine will detect any field names in the schema that use the "_delimiter_" hack introduced in 8.0, find
     // the truncated avro field names in the field list and rename them to what the avro file actually has.
     try {
       if ( !data.input.isUseFieldAsInputStream() ) {
         List<? extends IAvroInputField> rawAvroFields = AvroInput
-          .getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
-        Map<String, String> hackedFieldNames = new HashMap<String, String>();
+          .getLeafFields( meta.getNamedClusterServiceLocator(), getNamedCluster(), schemaFileName, avroFileName );
+        Map<String, String> hackedFieldNames = new HashMap<>();
         int pointer;
         String fieldName;
         for ( IAvroInputField rawField : rawAvroFields ) {
