@@ -52,6 +52,9 @@ define([
       vm.dialogTitle = i18n.get('hadoop.cluster.overwrite.title');
       vm.dialogMessage = i18n.get('hadoop.cluster.overwrite.message');
 
+      vm.onNameChange = onNameChange;
+      vm.onNameKeyDown = onNameKeyDown;
+
       setDialogTitle(i18n.get('hadoop.cluster.title'));
 
       dataService.getShimIdentifiers().then(function (res) {
@@ -84,7 +87,6 @@ define([
           vm.shimVendor = vm.shimVendors[0];
         }
       });
-
       vm.buttons = getButtons();
       vm.overwriteDialogButtons = getOverwriteDialogButtons();
     }
@@ -142,7 +144,25 @@ define([
       }
     }
 
+    // Prevent pressing the slash key, not allowed in cluster name
+    function onNameKeyDown($event) {
+      return $event.key !== '/'
+    }
+
+    // Replace slash if it got into the name field somehow
+    function onNameChange() {
+      vm.data.model.name = cleanseName(vm.data.model.name)
+    }
+
+    function cleanseName(s) {
+      return s.replace(/\//g,'')
+    }
+
+
     function next() {
+      vm.data.connectedToRepo = $location.search().connectedToRepo === 'true';
+      // should not be possible to get to this point w/o a cleansed name, but just to be safe
+      vm.data.model.name = cleanseName(vm.data.model.name)
       var promise = checkDuplicateName(vm.data.model.name);
       promise.then(
         create,
