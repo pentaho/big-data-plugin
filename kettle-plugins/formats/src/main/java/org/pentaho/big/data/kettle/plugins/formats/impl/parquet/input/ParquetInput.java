@@ -51,12 +51,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInputData> {
-  public static long SPLIT_SIZE = 128 * 1024 * 1024;
+  public static final long SPLIT_SIZE = 128 * 1024 * 1024L;
 
   private final NamedClusterServiceLocator namedClusterServiceLocator;
 
   public ParquetInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                       Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -101,7 +101,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   void initSplits() throws Exception {
-    FormatService formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+    FormatService formatService = namedClusterServiceLocator.getService( getNamedCluster(), FormatService.class );
     if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
       throw new KettleException( "No input files defined" );
     }
@@ -112,15 +112,15 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
       inputFileName = ( (AliasedFileObject) inputFileObject ).getOriginalURIString();
     }
 
-    data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class, meta.getNamedCluster() );
+    data.input = formatService.createInputFormat( IPentahoParquetInputFormat.class, getNamedCluster() );
 
     // Pentaho 8.0 transformations will have the formatType set to 0. Get the fields from the schema and set the
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField> actualFileFields =
-      ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, meta.getNamedCluster(), inputFileName );
+      ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, getNamedCluster(), inputFileName );
 
-    if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.size() == 0 ) ) {
-      data.splits = new ArrayList<>(  );
+    if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.isEmpty() ) ) {
+      data.splits = new ArrayList<>();
       logBasic( "No Parquet input files found." );
     } else {
       Map<String, IParquetInputField> fieldNamesToTypes = actualFileFields.stream().collect(
@@ -145,6 +145,10 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     data.currentSplit = 0;
   }
 
+  private NamedCluster getNamedCluster() {
+    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+  }
+
 
   void openReader( ParquetInputData data ) throws Exception {
     logDebug( "Open split {0}", data.currentSplit );
@@ -164,8 +168,9 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     return null;
   }
 
-  public static List<? extends IParquetInputField> retrieveSchema( NamedClusterServiceLocator namedClusterServiceLocator,
-                                                                   NamedCluster namedCluster, String path ) throws Exception {
+  public static List<? extends IParquetInputField> retrieveSchema(
+    NamedClusterServiceLocator namedClusterServiceLocator,
+    NamedCluster namedCluster, String path ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoParquetInputFormat in = formatService.createInputFormat( IPentahoParquetInputFormat.class, namedCluster );
     FileObject inputFileObject = KettleVFS.getFileObject( path );
@@ -176,7 +181,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   public static List<IParquetInputField> createSchemaFromMeta( ParquetInputMetaBase meta ) {
-    List<IParquetInputField> fields = new ArrayList<>(  );
+    List<IParquetInputField> fields = new ArrayList<>();
     for ( ParquetInputField f : meta.getInputFields() ) {
       fields.add( f );
     }

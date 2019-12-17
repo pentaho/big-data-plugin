@@ -24,6 +24,7 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
 import java.io.IOException;
 
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.di.core.RowMetaAndData;
@@ -65,12 +66,12 @@ public class AvroOutput extends BaseStep implements StepInterface {
       if ( data.output == null ) {
         try {
           init();
-        } catch ( UnsupportedOperationException e  ) {
+        } catch ( UnsupportedOperationException e ) {
           getLogChannel().logError( e.getMessage() );
           setErrors( 1 );
           setOutputDone();
           return false;
-        } catch ( Throwable e ) {
+        } catch ( Exception e ) {
           String error = e.getMessage().replaceAll( "TRANS_NAME", getTrans().getName() );
           error = error.replaceAll( "STEP_NAME", getStepname() );
           getLogChannel().logError( error );
@@ -119,12 +120,13 @@ public class AvroOutput extends BaseStep implements StepInterface {
   public void init() throws Exception {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+      formatService = namedClusterServiceLocator
+        .getService( getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
     TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
-    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, meta.getNamedCluster() );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, getNamedCluster() );
     data.output
       .setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ),
         meta.isOverrideOutput() );
@@ -145,6 +147,10 @@ public class AvroOutput extends BaseStep implements StepInterface {
         parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getSchemaFilename() ) ) );
     }
     data.writer = data.output.createRecordWriter();
+  }
+
+  private NamedCluster getNamedCluster() {
+    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
   }
 
   public void closeWriter() throws KettleException {

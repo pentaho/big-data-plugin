@@ -134,7 +134,9 @@ public class AvroInputDialog extends BaseAvroStepDialog {
 
     List<? extends IAvroInputField> defaultFields;
     try {
-      defaultFields = AvroInput.getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster(), schemaFileName, avroFileName );
+      defaultFields = AvroInput
+        .getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster( avroFileName ), schemaFileName,
+          avroFileName );
       if ( defaultFields != null ) {
         wInputFields.clearAll();
         for ( IAvroInputField field : defaultFields ) {
@@ -201,7 +203,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     colinf2[ 0 ].setAutoResize( false );
     colinf2[ 1 ].setAutoResize( false );
     colinf2[ 2 ].setAutoResize( false );
-    wLookupView = new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER, colinf2, 1, lsMod, props );
+    wLookupView =
+      new TableView( transMeta, wVarsComp, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER, colinf2, 1, lsMod, props );
     wLookupView.setLayoutData( new FormDataBuilder().top( 0, Const.MARGIN * 2 )
       .bottom( wGetLookupFieldsBut, -Const.MARGIN * 2 ).left().right().result() );
 
@@ -355,7 +358,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     layout.marginHeight = MARGIN;
     layout.marginWidth = MARGIN;
     wFileSettingsGroup.setLayout( layout );
-    wFileSettingsGroup.setLayoutData( new FormDataBuilder().top( encodingLabel, 35 ).left( 0, MARGIN ).right( 100, -MARGIN ).result() );
+    wFileSettingsGroup
+      .setLayoutData( new FormDataBuilder().top( encodingLabel, 35 ).left( 0, MARGIN ).right( 100, -MARGIN ).result() );
 
     Label separator = new Label( wFileSettingsGroup, SWT.SEPARATOR | SWT.VERTICAL );
     separator.setLayoutData( new FormDataBuilder().left( 0, RADIO_BUTTON_WIDTH ).top().bottom().result() );
@@ -425,7 +429,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     schemaLayout.marginWidth = MARGIN;
     schemaLayout.marginHeight = MARGIN;
     wSourceGroup.setLayout( schemaLayout );
-    wSourceGroup.setLayoutData( new FormDataBuilder().top( wFileSettingsGroup, 10 ).right( 100, -MARGIN ).left( 0, MARGIN ).result() );
+    wSourceGroup.setLayoutData(
+      new FormDataBuilder().top( wFileSettingsGroup, 10 ).right( 100, -MARGIN ).left( 0, MARGIN ).result() );
 
     Label schemaSeparator = new Label( wSourceGroup, SWT.SEPARATOR | SWT.VERTICAL );
     schemaSeparator.setLayoutData( new FormDataBuilder().left( 0, RADIO_BUTTON_WIDTH ).top().bottom().result() );
@@ -684,7 +689,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     Matcher m = p.matcher( value );
     while ( m.find() ) {
       if ( m.end() - m.start() < 3 ) {
-        value = new StringBuilder( value ).insert( m.start() + 1, item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) ).toString();
+        value = new StringBuilder( value ).insert( m.start() + 1, item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) )
+          .toString();
       } else {
         value = value.replace( m.group( 1 ), item.getText( AVRO_INDEXED_VALUES_COLUMN_INDEX ) );
       }

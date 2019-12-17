@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.di.core.RowMetaAndData;
@@ -54,7 +55,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
   private OrcOutputData data;
 
   public OrcOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                   Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                    Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -74,17 +75,18 @@ public class OrcOutput extends BaseStep implements StepInterface {
         //create new outputMeta
         RowMetaInterface outputRMI = new RowMeta();
         //create data equals with output fileds
-        Object[] outputData = new Object[meta.getOutputFields().size()];
+        Object[] outputData = new Object[ meta.getOutputFields().size() ];
         for ( int i = 0; i < meta.getOutputFields().size(); i++ ) {
           int inputRowIndex = getInputRowMeta().indexOfValue( meta.getOutputFields().get( i ).getPentahoFieldName() );
           if ( inputRowIndex == -1 ) {
-            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getPentahoFieldName() + " ] couldn't be found in the input stream!" );
+            throw new KettleException( "Field name [" + meta.getOutputFields().get( i ).getPentahoFieldName()
+              + " ] couldn't be found in the input stream!" );
           } else {
             ValueMetaInterface vmi = ValueMetaFactory.cloneValueMeta( getInputRowMeta().getValueMeta( inputRowIndex ) );
             //add output value meta according output fields
-            outputRMI.addValueMeta( i,  vmi );
+            outputRMI.addValueMeta( i, vmi );
             //add output data according output fields
-            outputData[i] = currentRow[inputRowIndex];
+            outputData[ i ] = currentRow[ inputRowIndex ];
           }
         }
         RowMetaAndData row = new RowMetaAndData( outputRMI, outputData );
@@ -112,7 +114,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
   public void init() throws Exception {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+      formatService = namedClusterServiceLocator.getService( getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
@@ -121,7 +123,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
       throw new KettleException( "No output files defined" );
     }
 
-    data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class, meta.getNamedCluster() );
+    data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class, getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
@@ -146,6 +148,10 @@ public class OrcOutput extends BaseStep implements StepInterface {
     data.writer = data.output.createRecordWriter();
   }
 
+  private NamedCluster getNamedCluster() {
+    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+  }
+
   public void closeWriter() throws KettleException {
     try {
       data.writer.close();
@@ -158,9 +164,6 @@ public class OrcOutput extends BaseStep implements StepInterface {
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
     meta = (OrcOutputMeta) smi;
     data = (OrcOutputData) sdi;
-    if ( super.init( smi, sdi ) ) {
-      return true;
-    }
-    return false;
+    return super.init( smi, sdi );
   }
 }

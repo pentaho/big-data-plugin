@@ -64,8 +64,8 @@ public class OrcOutputMeta extends OrcOutputMetaBase {
     return new OrcOutputData();
   }
 
-  public NamedCluster getNamedCluster() {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.getFilename() );
+  public NamedCluster getNamedCluster( String filename ) {
+    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, filename );
   }
 
 }

@@ -23,6 +23,7 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
@@ -52,7 +53,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   private ParquetOutputData data;
 
   public ParquetOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-      Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                        Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
@@ -101,7 +102,8 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   public void init( RowMetaInterface rowMeta ) throws Exception {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator.getService( meta.getNamedCluster(), FormatService.class );
+      formatService = namedClusterServiceLocator
+        .getService( getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
@@ -109,7 +111,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
       throw new KettleException( "No output files defined" );
     }
 
-    data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class, meta.getNamedCluster() );
+    data.output = formatService.createOutputFormat( IPentahoParquetOutputFormat.class, getNamedCluster() );
 
     String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
     FileObject outputFileObject = KettleVFS.getFileObject( outputFileName, getTransMeta() );
@@ -144,6 +146,10 @@ public class ParquetOutput extends BaseStep implements StepInterface {
     }
 
     data.writer = data.output.createRecordWriter();
+  }
+
+  private NamedCluster getNamedCluster() {
+    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
   }
 
   public void closeWriter() throws KettleException {
