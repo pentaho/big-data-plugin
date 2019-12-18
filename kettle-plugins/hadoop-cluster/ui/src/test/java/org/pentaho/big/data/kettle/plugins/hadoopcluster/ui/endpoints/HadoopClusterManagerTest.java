@@ -36,7 +36,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
-import org.pentaho.di.core.Const;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
@@ -197,7 +196,7 @@ public class HadoopClusterManagerTest {
 
   @Test public void testInstallDriver() {
     System.getProperties()
-      .setProperty( Const.SHIM_DRIVER_DEPLOYMENT_LOCATION, "src/test/resources/driver-destination" );
+      .setProperty( "SHIM_DRIVER_DEPLOYMENT_LOCATION", "src/test/resources/driver-destination" );
     JSONObject response =
       hadoopClusterManager.installDriver( getFiles( "src/test/resources/driver-source" ) );
     boolean isSuccess = (boolean) response.get( "installed" );
