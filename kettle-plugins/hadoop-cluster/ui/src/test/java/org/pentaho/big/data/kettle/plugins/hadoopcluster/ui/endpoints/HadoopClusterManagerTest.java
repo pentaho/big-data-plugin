@@ -172,6 +172,7 @@ public class HadoopClusterManagerTest {
 
   @Test public void testEditNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setKerberosSubType( "" );
     model.setName( ncTestName );
     model.setOldName( ncTestName );
     JSONObject result = hadoopClusterManager.editNamedCluster( model, true, getFiles( "/" ) );
