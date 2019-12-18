@@ -44,6 +44,7 @@ define([
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
       vm.header = i18n.get('import.header');
+      vm.repositoryNotification = i18n.get('repositoryNotification.header');
       vm.clusterNameLabel = i18n.get('hadoop.cluster.name.label');
       vm.importFolderLabel = i18n.get('import.folder.label');
       vm.importLabel = i18n.get('hadoop.cluster.import.label');
@@ -86,6 +87,7 @@ define([
           vm.data.type = "import";
           vm.shimVendor = vm.shimVendors[0];
         }
+        vm.data.connectedToRepo = $location.search().connectedToRepo === 'true';
       });
       vm.buttons = getButtons();
       vm.overwriteDialogButtons = getOverwriteDialogButtons();

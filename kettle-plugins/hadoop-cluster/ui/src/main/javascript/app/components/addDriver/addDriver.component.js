@@ -39,7 +39,6 @@ define([
         setDialogTitle(i18n.get('hadoop.cluster.title'));
 
         vm.header = i18n.get('add.driver.header');
-        vm.driverInstructionsLabel = i18n.get('add.driver.instructions.label');
         vm.driverSupportMatrixLinkText = i18n.get('add.driver.support.matrix.line.text');
         vm.fileLabel = i18n.get('add.driver.file.label');
 
