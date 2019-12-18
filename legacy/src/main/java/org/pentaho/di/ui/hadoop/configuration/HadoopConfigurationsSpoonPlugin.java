@@ -20,18 +20,12 @@
 
 package org.pentaho.di.ui.hadoop.configuration;
 
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.ui.spoon.SpoonLifecycleListener;
 import org.pentaho.di.ui.spoon.SpoonPerspective;
 import org.pentaho.di.ui.spoon.SpoonPlugin;
 import org.pentaho.di.ui.spoon.SpoonPluginCategories;
 import org.pentaho.di.ui.spoon.SpoonPluginInterface;
-import org.pentaho.di.ui.spoon.XulSpoonResourceBundle;
 import org.pentaho.ui.xul.XulDomContainer;
-import org.pentaho.ui.xul.XulException;
-
-import java.util.ResourceBundle;
 
 /**
  * Created by bryan on 8/10/15.
@@ -40,51 +34,9 @@ import java.util.ResourceBundle;
 @SpoonPlugin( id = "HadoopConfigurationsSpoonPlugin", image = "" )
 public class HadoopConfigurationsSpoonPlugin implements SpoonPluginInterface {
 
-  private static Class<?> PKG = HadoopConfigurationsSpoonPlugin.class;
-
-  private LogChannelInterface log = new LogChannel( HadoopConfigurationsSpoonPlugin.class.getName() );
-
-  private ResourceBundle resourceBundle = new XulSpoonResourceBundle( PKG );
-
-  public void applyToContainer( String category, XulDomContainer container ) throws XulException {
-    try {
-      container.registerClassLoader( getClass().getClassLoader() );
-      container.loadOverlay( "org/pentaho/di/ui/hadoop/configuration/toolbar-overlay.xul", resourceBundle );
-      HadoopConfigurationsController controller = new HadoopConfigurationsController();
-      container.addEventHandler( controller );
-    } catch ( XulException e ) {
-      log.logError( e.getMessage() );
-    }
-    //todo:no more active shim require needed - here ui rethink when select shim for step
-//    HadoopConfigurationBootstrap.getInstance().setPrompter( new HadoopConfigurationPrompter() {
-//      @Override
-//      public String getConfigurationSelection( final List<HadoopConfigurationInfo> hadoopConfigurationInfos ) {
-//        final Spoon spoon = Spoon.getInstance();
-//        final AtomicReference<String> atomicReference = new AtomicReference<>();
-//        spoon.getDisplay().syncExec( new Runnable() {
-//          @Override
-//          public void run() {
-//            // If there are no shims, bring up the "no shims" dialog, otherwise bring up the shim select dialog
-//            atomicReference
-//              .set( Const.isEmpty( hadoopConfigurationInfos )
-//                ? new NoHadoopConfigurationsXulDialog( spoon.getShell() ).open()
-//                : new HadoopConfigurationsXulDialog( spoon.getShell(), hadoopConfigurationInfos ).open() );
-//          }
-//        } );
-//        return atomicReference.get();
-//      }
-//
-//      @Override
-//      public void promptForRestart() {
-//        final Spoon spoon = Spoon.getInstance();
-//        spoon.getDisplay().syncExec( new Runnable() {
-//          @Override
-//          public void run() {
-//            new HadoopConfigurationRestartXulDialog( spoon.getShell() ).open();
-//          }
-//        } );
-//      }
-//    } );
+  public void applyToContainer( String category, XulDomContainer container ) {
+    HadoopConfigurationsController controller = new HadoopConfigurationsController();
+    container.addEventHandler( controller );
   }
 
   public SpoonLifecycleListener getLifecycleListener() {
