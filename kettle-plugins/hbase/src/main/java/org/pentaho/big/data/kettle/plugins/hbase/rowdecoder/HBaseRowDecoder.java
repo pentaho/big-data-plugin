@@ -30,9 +30,6 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.hbase.mapping.HBaseRowToKettleTuple;
 import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
 import org.pentaho.hadoop.shim.api.hbase.HBaseService;
-import org.pentaho.hadoop.shim.api.hbase.Result;
-import org.pentaho.hadoop.shim.api.hbase.ResultFactory;
-import org.pentaho.hadoop.shim.api.hbase.ResultFactoryException;
 import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.di.core.exception.KettleException;
@@ -51,7 +48,7 @@ import org.pentaho.di.trans.step.StepMetaInterface;
  * Step for decoding incoming HBase row objects using a supplied mapping. Can be used in a Hadoop MR job for processing
  * tables split by org.pentaho.hbase.mapred.PentahoTableInputFormat (see the javadoc for this class for properties that
  * can be set in the job to control the query)
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
 public class HBaseRowDecoder extends BaseStep implements StepInterface {
@@ -65,7 +62,6 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
   protected HBaseRowDecoderMeta hBaseRowDecoderMeta;
   protected HBaseRowDecoderData hBaseRowDecoderData;
   private HBaseService hBaseService;
-  private ResultFactory resultFactory;
 
   public HBaseRowDecoder( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                           Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
@@ -73,16 +69,24 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
     this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
-  /** The mapping information to use in order to decode HBase column values */
+  /**
+   * The mapping information to use in order to decode HBase column values
+   */
   protected Mapping mTableMapping;
 
-  /** Information from the mapping */
+  /**
+   * Information from the mapping
+   */
   protected HBaseValueMetaInterface[] mOutputColumns;
 
-  /** Index of incoming key value */
+  /**
+   * Index of incoming key value
+   */
   protected int mKeyInIndex = -1;
 
-  /** Index of incoming HBase row (Result object) */
+  /**
+   * Index of incoming HBase row (Result object)
+   */
   protected int mResultInIndex = -1;
 
   /**
@@ -90,7 +94,9 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
    */
   protected HBaseRowToKettleTuple mTupleHandler;
 
-  /** Bytes util */
+  /**
+   * Bytes util
+   */
   protected ByteConversionUtil mBytesUtil;
 
   @Override
@@ -109,8 +115,8 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
       hBaseRowDecoderData = (HBaseRowDecoderData) sdi;
 
       try {
-        hBaseService = namedClusterServiceLocator.getService( hBaseRowDecoderMeta.getNamedCluster(), HBaseService.class );
-        resultFactory = hBaseService.getResultFactory();
+        hBaseService =
+          namedClusterServiceLocator.getService( hBaseRowDecoderMeta.getNamedCluster(), HBaseService.class );
         mBytesUtil = hBaseService.getByteConversionUtil();
 
         // no configuration needed here because we don't need access to the
@@ -123,17 +129,18 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
       mTableMapping = hBaseRowDecoderMeta.getMapping();
 
       if ( mTableMapping == null || StringUtils.isEmpty( mTableMapping.getKeyName() ) ) {
-        throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.NoMappingInfo" ) );
+        throw new KettleException(
+          BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.NoMappingInfo" ) );
       }
 
       if ( mTableMapping.isTupleMapping() ) {
         mTupleHandler = new HBaseRowToKettleTuple( mBytesUtil );
       }
 
-      mOutputColumns = new HBaseValueMetaInterface[ mTableMapping.getMappedColumns().keySet().size()];
+      mOutputColumns = new HBaseValueMetaInterface[ mTableMapping.getMappedColumns().keySet().size() ];
       int k = 0;
       for ( String alias : mTableMapping.getMappedColumns().keySet() ) {
-        mOutputColumns[k++] = mTableMapping.getMappedColumns().get( alias );
+        mOutputColumns[ k++ ] = mTableMapping.getMappedColumns().get( alias );
       }
 
       hBaseRowDecoderData.setOutputRowMeta( getInputRowMeta().clone() );
@@ -145,12 +152,13 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
 
       mKeyInIndex = inputMeta.indexOfValue( inKey );
       if ( mKeyInIndex == -1 ) {
-        throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToFindHBaseKey", inKey ) );
+        throw new KettleException(
+          BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToFindHBaseKey", inKey ) );
       }
 
       try {
         inputRow[ mKeyInIndex ] = mBytesUtil.convertToImmutableBytesWritable( inputRow[ mKeyInIndex ] );
-      } catch ( InvocationTargetException | IllegalAccessException e ) {
+      } catch ( InvocationTargetException | IllegalAccessException | NoSuchMethodException e ) {
         throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass,
           HBASE_ROW_DECODER_ERROR_NOT_IMMUTABLE_BYTES_WRITABLE,
           hBaseRowDecoderMeta.getIncomingKeyField() ) );
@@ -159,56 +167,32 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
       if ( !mBytesUtil.isImmutableBytesWritable( inputRow[ mKeyInIndex ] ) ) {
         throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass,
           HBASE_ROW_DECODER_ERROR_NOT_IMMUTABLE_BYTES_WRITABLE,
-            hBaseRowDecoderMeta.getIncomingKeyField() ) );
+          hBaseRowDecoderMeta.getIncomingKeyField() ) );
       }
 
       String inResult = environmentSubstitute( hBaseRowDecoderMeta.getIncomingResultField() );
       mResultInIndex = inputMeta.indexOfValue( inResult );
       if ( mResultInIndex == -1 ) {
         throw new KettleException(
-            BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToFindHBaseRow", inResult ) );
-      }
-
-      try {
-        inputRow[ mResultInIndex ] = resultFactory.convertToResult( inputRow[ mResultInIndex ] );
-      } catch ( InvocationTargetException | IllegalAccessException e ) {
-        throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, HBASE_ROW_DECODER_ERROR_NOT_RESULT, hBaseRowDecoderMeta
-          .getIncomingResultField() ) );
-      }
-
-      if ( !resultFactory.canHandle( inputRow[ mResultInIndex ] ) ) {
-        throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, HBASE_ROW_DECODER_ERROR_NOT_RESULT, hBaseRowDecoderMeta
-            .getIncomingResultField() ) );
+          BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToFindHBaseRow", inResult ) );
       }
     }
 
     try {
       inputRow[ mKeyInIndex ] = mBytesUtil.convertToImmutableBytesWritable( inputRow[ mKeyInIndex ] );
-    } catch ( InvocationTargetException | IllegalAccessException e ) {
+    } catch ( InvocationTargetException | IllegalAccessException | NoSuchMethodException e ) {
       throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass,
         HBASE_ROW_DECODER_ERROR_NOT_IMMUTABLE_BYTES_WRITABLE,
         hBaseRowDecoderMeta.getIncomingKeyField() ) );
     }
 
-    try {
-      inputRow[ mResultInIndex ] = resultFactory.convertToResult( inputRow[ mResultInIndex ] );
-    } catch ( InvocationTargetException | IllegalAccessException e ) {
-      throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, HBASE_ROW_DECODER_ERROR_NOT_RESULT, hBaseRowDecoderMeta
-        .getIncomingResultField() ) );
-    }
-
-    Result hRow = null;
-    try {
-      hRow = resultFactory.create( inputRow[ mResultInIndex ] );
-    } catch ( ResultFactoryException e ) {
-      throw new KettleException( e.getMessage(), e );
-    }
+    Object hRow = inputRow[ mResultInIndex ];
     if ( inputRow[ mKeyInIndex ] != null && hRow != null ) {
       if ( mTableMapping.isTupleMapping() ) {
         List<Object[]> hrowToKettleRow =
-            mTupleHandler.hbaseRowToKettleTupleMode( hBaseService.getHBaseValueMetaInterfaceFactory(), hRow,
-              mTableMapping, mTableMapping
-                .getMappedColumns(), hBaseRowDecoderData.getOutputRowMeta() );
+          mTupleHandler.hbaseRowToKettleTupleMode( hBaseService.getHBaseValueMetaInterfaceFactory(), hRow,
+            mTableMapping, mTableMapping
+              .getMappedColumns(), hBaseRowDecoderData.getOutputRowMeta() );
 
         for ( Object[] tuple : hrowToKettleRow ) {
           putRow( hBaseRowDecoderData.getOutputRowMeta(), tuple );
@@ -218,29 +202,32 @@ public class HBaseRowDecoder extends BaseStep implements StepInterface {
 
         byte[] rowKey = null;
         try {
-          rowKey = hRow.getRow();
+          rowKey = (byte[]) hRow.getClass().getMethod( "getRow" ).invoke( hRow );
         } catch ( Exception ex ) {
-          throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToGetRowKey" ), ex );
+          throw new KettleException(
+            BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToGetRowKey" ), ex );
         }
         Object decodedKey = mTableMapping.decodeKeyValue( rowKey );
-        outputRowData[0] = decodedKey;
+        outputRowData[ 0 ] = decodedKey;
 
         for ( int i = 0; i < mOutputColumns.length; i++ ) {
-          HBaseValueMetaInterface current = mOutputColumns[i];
+          HBaseValueMetaInterface current = mOutputColumns[ i ];
 
-          String colFamilyName = current.getColumnFamily();
-          String qualifier = current.getColumnName();
+          byte[] colFamilyName = current.getColumnFamily().getBytes();
+          byte[] qualifier = current.getColumnName().getBytes();
 
           byte[] kv = null;
           try {
-            kv = hRow.getValue( colFamilyName, qualifier, false );
+            kv = (byte[]) hRow.getClass().getMethod( "getValue", byte[].class, byte[].class )
+              .invoke( hRow, colFamilyName, qualifier );
           } catch ( Exception ex ) {
-            throw new KettleException( BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToGetColumnValue" ),
-                ex );
+            throw new KettleException(
+              BaseMessages.getString( hBaseRowDecoderMetaClass, "HBaseRowDecoder.Error.UnableToGetColumnValue" ),
+              ex );
           }
 
           Object decodedVal = current.decodeColumnValue( ( kv == null ) ? null : kv );
-          outputRowData[i + 1] = decodedVal;
+          outputRowData[ i + 1 ] = decodedVal;
         }
 
         // output the row
