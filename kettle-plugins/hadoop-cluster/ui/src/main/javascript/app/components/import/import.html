@@ -1,8 +1,8 @@
 <modal-dialog dialog-title="vm.dialogTitle" message="vm.dialogMessage" buttons="vm.overwriteDialogButtons"></modal-dialog>
 <div class="import-main">
   <div class="title_text margin_bottom_15 text_center">{{vm.header}}</div>
+  <div ng-if="vm.data.connectedToRepo" class="subtitle_text margin_bottom_15 text_center">{{vm.repositoryNotification}}</div>
   <div class="import-middle">
-    <div ng-if="vm.data.connectedToRepo" class="subtitle_text margin_bottom_30 text_center">{{vm.repositoryNotification}}</div>
     <div class="margin_bottom_15">
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
       <input id="clusterName" type="text" ng-model="vm.data.model.name" ng-keydown="vm.onNameKeyDown($event)" ng-change="vm.onNameChange()" autofocus/>

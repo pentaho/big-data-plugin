@@ -1,11 +1,11 @@
 <modal-dialog dialog-title="vm.dialogTitle" message="vm.dialogMessage" buttons="vm.overwriteDialogButtons"></modal-dialog>
 <div class="new-edit-main">
   <div class="title_text margin_bottom_15 text_center">{{vm.header}}</div>
+  <div ng-if="vm.data.connectedToRepo" class="subtitle_text margin_bottom_15 text_center">{{vm.repositoryNotification}}</div>
   <div class="new-edit-middle margin_bottom_10">
-    <div ng-if="vm.data.connectedToRepo" class="subtitle_text margin_bottom_30 text_center">{{vm.repositoryNotification}}</div>
     <div class="cluster-name margin_bottom_15">
       <label for="clusterName" class="margin_bottom_5 text_left">{{::vm.clusterNameLabel}}</label>
-      <input id="clusterName" type="text"   ng-model="vm.data.model.name" ng-keydown="vm.onNameKeyDown($event)" ng-change="vm.onNameChange()" autofocus/>
+      <input id="clusterName" type="text" ng-model="vm.data.model.name" ng-keydown="vm.onNameKeyDown($event)" ng-change="vm.onNameChange()" autofocus/>
     </div>
     <div class="scroll-form">
       <div class="import-shim margin_bottom_15">
