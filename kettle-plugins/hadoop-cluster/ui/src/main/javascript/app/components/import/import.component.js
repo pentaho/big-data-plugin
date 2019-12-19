@@ -41,6 +41,8 @@ define([
     var modalDialogElement = angular.element("#modalDialog");
     var modalOverlayElement = angular.element("#modalOverlay");
 
+    const connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
+
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
       vm.header = i18n.get('import.header');
@@ -87,7 +89,6 @@ define([
           vm.data.type = "import";
           vm.shimVendor = vm.shimVendors[0];
         }
-        vm.data.connectedToRepo = $location.search().connectedToRepo === 'true';
       });
       vm.buttons = getButtons();
       vm.overwriteDialogButtons = getOverwriteDialogButtons();
@@ -162,7 +163,7 @@ define([
 
 
     function next() {
-      vm.data.connectedToRepo = $location.search().connectedToRepo === 'true';
+      vm.data.connectedToRepo = connectedToRepo;
       // should not be possible to get to this point w/o a cleansed name, but just to be safe
       vm.data.model.name = cleanseName(vm.data.model.name)
       var promise = checkDuplicateName(vm.data.model.name);

@@ -59,11 +59,11 @@ define([
     }
 
     function onCreateNew() {
-        $state.go("new-edit");
+      $state.go("new-edit", {data: {"connectedToRepo": vm.data.connectedToRepo}});
     }
 
     function onImportNew() {
-      $state.go("import");
+      $state.go("import", {data: {"connectedToRepo": vm.data.connectedToRepo}});
     }
 
     function onEditConnection() {

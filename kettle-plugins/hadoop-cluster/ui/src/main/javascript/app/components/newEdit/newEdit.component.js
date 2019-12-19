@@ -38,6 +38,8 @@ define([
     vm.onSelectShimVersion = onSelectShimVersion;
     vm.getShimVersions = getShimVersions;
 
+    const connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
+
     var modalDialogElement = angular.element("#modalDialog");
     var modalOverlayElement = angular.element("#modalOverlay");
 
@@ -119,7 +121,6 @@ define([
           vm.data.created = false;
           vm.shimVendor = vm.shimVendors[0];
         }
-        vm.data.connectedToRepo = $location.search().connectedToRepo === 'true';
       });
 
       vm.buttons = getButtons();
@@ -229,6 +230,7 @@ define([
     }
 
     function next() {
+      vm.data.connectedToRepo = connectedToRepo;
       // should not be possible to get to this point w/o a cleansed name, but just to be safe
       vm.data.model.name = cleanseName(vm.data.model.name)
       if (vm.data.model.oldName === vm.data.model.name) {
