@@ -336,13 +336,14 @@ public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterfa
     this.namedCluster =
         namedClusterLoadSaveUtil.loadClusterConfig( namedClusterService, null, repository, metaStore, stepnode, log );
     try {
-      mMapping =
-          namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class ).getMappingFactory()
-              .createMapping();
+      HBaseService hbaseService = namedClusterServiceLocator.getService( this.namedCluster, HBaseService.class );
+      mMapping = ( hbaseService == null ? null : hbaseService.getMappingFactory().createMapping() );
     } catch ( ClusterInitializationException e ) {
       throw new KettleXMLException( e );
     }
-    mMapping.loadXML( stepnode );
+    if ( mMapping != null ) {
+      mMapping.loadXML( stepnode );
+    }
   }
 
   public void readRep( Repository rep, IMetaStore metaStore, ObjectId idStep, List<DatabaseMeta> databases )
