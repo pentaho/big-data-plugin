@@ -492,7 +492,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   public JSONObject installDriver( List<FileItem> driver ) {
     boolean success = true;
     try {
-      String destination = System.getProperties().getProperty( Const.SHIM_DRIVER_DEPLOYMENT_LOCATION, "./drivers" );
+      String destination = Const.getShimDriverDeploymentLocation();
       FileItem driverFile = driver.get( 0 );
       FileUtils.copyInputStreamToFile( driverFile.getInputStream(),
         new File( destination + fileSeparator + driverFile.getFieldName() ) );
