@@ -419,6 +419,6 @@ public class ParquetInputDialog extends BaseParquetStepDialog<ParquetInputMeta> 
   }
 
   @Override protected SelectionOperation selectionOperation() {
-    return SelectionOperation.OPEN;
+    return SelectionOperation.FILE_OR_FOLDER;
   }
 }

@@ -714,7 +714,7 @@ public class AvroOutputDialog extends BaseAvroStepDialog implements StepDialogIn
   }
 
   @Override protected SelectionOperation selectionOperation() {
-    return SelectionOperation.SAVE;
+    return SelectionOperation.SAVE_TO_FILE_FOLDER;
   }
 }
 

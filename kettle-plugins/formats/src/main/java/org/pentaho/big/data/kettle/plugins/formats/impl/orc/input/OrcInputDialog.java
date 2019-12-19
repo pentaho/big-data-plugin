@@ -395,6 +395,6 @@ public class OrcInputDialog extends BaseOrcStepDialog<OrcInputMeta> {
   }
 
   @Override protected SelectionOperation selectionOperation() {
-    return SelectionOperation.OPEN;
+    return SelectionOperation.FILE_OR_FOLDER;
   }
 }

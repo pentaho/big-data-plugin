@@ -744,7 +744,7 @@ public class OrcOutputDialog extends BaseOrcStepDialog<OrcOutputMeta> implements
   }
 
   @Override protected SelectionOperation selectionOperation() {
-    return SelectionOperation.SAVE;
+    return SelectionOperation.SAVE_TO_FILE_FOLDER;
   }
 }
 
