@@ -705,7 +705,7 @@ public class ParquetOutputDialog extends BaseParquetStepDialog<ParquetOutputMeta
   }
 
   @Override protected SelectionOperation selectionOperation() {
-    return SelectionOperation.SAVE;
+    return SelectionOperation.SAVE_TO_FILE_FOLDER;
   }
 }
 

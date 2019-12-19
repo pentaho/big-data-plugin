@@ -809,6 +809,6 @@ public class AvroInputDialog extends BaseAvroStepDialog {
   }
 
   @Override protected SelectionOperation selectionOperation() {
-    return SelectionOperation.OPEN;
+    return SelectionOperation.FILE_OR_FOLDER;
   }
 }
