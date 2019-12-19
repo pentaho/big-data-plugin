@@ -30,6 +30,7 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 public class NamedClusterResolver {
 
@@ -39,30 +40,14 @@ public class NamedClusterResolver {
 
   private static final LogChannelInterface LOG = LogChannel.GENERAL;
 
-  private static String extractScheme( String fileUri ) {
-    try {
-      return new URI( fileUri ).getScheme();
-    } catch ( URISyntaxException e ) {
-      LOG.logError( "Failed to extract scheme for " + fileUri, e );
-    }
-    return null;
-  }
-
-  private static String extractHostName( String fileUri ) {
-    try {
-      return new URI( fileUri ).getHost();
-    } catch ( URISyntaxException e ) {
-      LOG.logError( "Failed to extract hostname for " + fileUri, e );
-    }
-    return null;
-  }
-
   public static NamedCluster resolveNamedCluster( NamedClusterService namedClusterService,
-                                                  MetastoreLocatorOsgi metaStoreService, String fileUri ) {
+                                                  MetastoreLocatorOsgi metaStoreService, String fileName ) {
     NamedCluster namedCluster = null;
-    if ( fileUri != null ) {
-      String scheme = extractScheme( fileUri );
-      String hostName = extractHostName( fileUri );
+    Optional<URI> uri = NamedClusterResolver.fileUri( fileName );
+
+    if ( uri.isPresent() ) {
+      String scheme = uri.get().getScheme();
+      String hostName = uri.get().getHost();
       if ( scheme != null && scheme.equals( "hc" ) ) {
         namedCluster = namedClusterService.getNamedClusterByName( hostName, metaStoreService.getMetastore() );
       } else {
@@ -70,6 +55,15 @@ public class NamedClusterResolver {
       }
     }
     return namedCluster;
+  }
+
+  private static Optional<URI> fileUri( String fileName ) {
+    try {
+      return Optional.of( new URI( fileName ) );
+    } catch ( URISyntaxException e ) {
+      LOG.logDebug( String.format( "Couldn't parse %s as a URI.", fileName ) );
+      return Optional.empty();
+    }
   }
 
 }
