@@ -121,8 +121,8 @@ define([
           vm.data.created = false;
           vm.shimVendor = vm.shimVendors[0];
         }
+        vm.data.connectedToRepo = connectedToRepo;
       });
-
       vm.buttons = getButtons();
       vm.overwriteDialogButtons = getOverwriteDialogButtons();
     }
