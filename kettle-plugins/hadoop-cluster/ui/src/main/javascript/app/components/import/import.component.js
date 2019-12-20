@@ -89,7 +89,9 @@ define([
           vm.data.type = "import";
           vm.shimVendor = vm.shimVendors[0];
         }
+        vm.data.connectedToRepo = connectedToRepo;
       });
+
       vm.buttons = getButtons();
       vm.overwriteDialogButtons = getOverwriteDialogButtons();
     }
