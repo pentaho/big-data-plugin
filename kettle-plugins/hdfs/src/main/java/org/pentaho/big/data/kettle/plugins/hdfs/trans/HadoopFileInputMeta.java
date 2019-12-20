@@ -24,11 +24,9 @@ package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileSystemException;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.injection.Injection;
 import org.pentaho.di.core.injection.InjectionSupported;
@@ -65,6 +63,8 @@ import static org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileInputDial
 public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFileMeta {
 
   // is not used. Can we delete it?
+
+  @SuppressWarnings( "squid:S1068" )
   private VariableSpace variableSpace;
 
   private Map<String, String> namedClusterURLMapping = null;
@@ -139,17 +139,28 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, new Variables() );
-    }
-    if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) && mappings != null ) {
-      mappings.put( url, ncName );
-      // in addition to the url as-is, add the public uri string version of the url (hidden password) to the map,
-      // since that is the value that the data-lineage analyzer will have access to for cluster lookup
+      if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) && mappings != null ) {
+        mappings.put( url, ncName );
+        // in addition to the url as-is, add the public uri string version of the url (hidden password) to the map,
+        // since that is the value that the data-lineage analyzer will have access to for cluster lookup
+        try {
+          mappings.put( KettleVFS.getFileObject( url ).getPublicURIString(), ncName );
+        } catch ( final Exception e ) {
+          // no-op
+        }
+      }
+    } else {
+      mappings.put( url, "" );
       try {
-        mappings.put( KettleVFS.getFileObject( url ).getPublicURIString(), ncName );
-      } catch ( final Exception e ) {
+        URI origUri = new URI( url );
+        URI friendlyUri = new URI( origUri.getScheme(), null, origUri.getHost(), origUri.getPort(),
+          origUri.getPath(), origUri.getQuery(), origUri.getFragment() );
+        mappings.put( friendlyUri.toString(), "" );
+      } catch ( URISyntaxException e ) {
         // no-op
       }
     }
+
     return url;
   }
 
@@ -165,8 +176,11 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   public String getClusterName( final String url ) {
     String clusterName = null;
     try {
-      clusterName = getClusterNameBy( KettleVFS.getFileObject( url ).getParent().getPublicURIString() );
-    } catch ( final KettleFileException | FileSystemException e ) {
+      URI origUri = new URI( url );
+      URI friendlyUri = new URI( origUri.getScheme(), null, origUri.getHost(), origUri.getPort(),
+        origUri.getPath(), origUri.getQuery(), origUri.getFragment() );
+      clusterName = getClusterNameBy( friendlyUri.toString() );
+    } catch ( final URISyntaxException e ) {
       // no-op
     }
     return clusterName;
