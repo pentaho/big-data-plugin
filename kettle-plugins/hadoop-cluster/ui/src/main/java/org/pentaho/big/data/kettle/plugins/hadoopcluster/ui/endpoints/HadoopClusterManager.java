@@ -209,7 +209,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         deleteConfigFolder( nc.getName() );
         installSiteFiles( siteFilesSource, nc );
         createConfigProperties( nc );
-        setupKerberosSecurity( model, siteFilesSource );
+        setupKerberosSecurity( model, siteFilesSource, "", "" );
         response.put( NAMED_CLUSTER, nc.getName() );
       }
     } catch ( Exception e ) {
@@ -273,7 +273,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       deleteConfigFolder( nc.getName() );
       installSiteFiles( siteFilesSource, nc );
       createConfigProperties( nc );
-      setupKerberosSecurity( model, siteFilesSource );
+      setupKerberosSecurity( model, siteFilesSource, "", "" );
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
       logChannel.error( e.getMessage() );
@@ -308,11 +308,22 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       installSiteFiles( siteFilesSource, nc );
 
       // If the user changed the shim, create a new config.properties file that corresponds to that shim
-      // in the new config folder.
+      // in the new config folder. Also save the keytab locations to set them again in the new config.properties
+      // unless the kerberos subtype is Password.
+      String keytabAuthenticationLocation = "";
+      String keytabImpersonationLocation = "";
+      String kerberosSubType = model.getKerberosSubType();
+      if ( !kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
+        String configFile =
+          getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
+        PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
+        keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
+        keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
+      }
       if ( nc.getShimIdentifier() != null && !nc.getShimIdentifier().equals( shimId ) ) {
         createConfigProperties( nc );
       }
-      setupKerberosSecurity( model, siteFilesSource );
+      setupKerberosSecurity( model, siteFilesSource, keytabAuthenticationLocation, keytabImpersonationLocation );
 
       // Delete old config folder.
       if ( isEditMode && !oldConfigFolder.getName().equalsIgnoreCase( newConfigFolder.getName() ) ) {
@@ -556,7 +567,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void setupKerberosSecurity( ThinNameClusterModel model, List<FileItem> siteFilesSource ) {
+  private void setupKerberosSecurity( ThinNameClusterModel model, List<FileItem> siteFilesSource,
+                                      String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     Path
       configPropertiesPath =
       Paths
@@ -564,33 +576,30 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     String securityType = model.getSecurityType();
     if ( !StringUtil.isEmpty( securityType ) ) {
-      resetKerberosSecurity( configPropertiesPath, model );
+      resetKerberosSecurity( configPropertiesPath );
       if ( securityType.equals( SECURITY_TYPE.KERBEROS.getValue() ) ) {
         String kerberosSubType = model.getKerberosSubType();
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.PASSWORD.getValue() ) ) {
           setupKerberosPasswordSecurity( configPropertiesPath, model );
         }
         if ( kerberosSubType.equals( KERBEROS_SUBTYPE.KEYTAB.getValue() ) ) {
-          setupKeytabSecurity( model, configPropertiesPath, siteFilesSource );
+          setupKeytabSecurity( model, configPropertiesPath, siteFilesSource, keytabAuthenticationLocation,
+            keytabImpersonationLocation );
         }
       }
     }
   }
 
-  private void resetKerberosSecurity( Path configPropertiesPath, ThinNameClusterModel model ) {
+  private void resetKerberosSecurity( Path configPropertiesPath ) {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
-      if ( StringUtil.isEmpty( model.getKeytabAuthFile() ) ) {
-        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, "" );
-      }
-      if ( StringUtil.isEmpty( model.getKeytabImpFile() ) ) {
-        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
-      }
+      config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, "" );
+      config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
+      config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, "" );
       config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, "" );
       config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
-      config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       config.save();
     } catch ( ConfigurationException e ) {
       logChannel.warn( e.getMessage() );
@@ -677,7 +686,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void setupKeytabSecurity( ThinNameClusterModel model, Path configPropertiesPath,
-                                    List<FileItem> siteFilesSource ) {
+                                    List<FileItem> siteFilesSource, String keytabAuthenticationLocation,
+                                    String keytabImpersonationLocation ) {
     String namedClusterName = model.getName();
     FileItem keytabAuthFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
       FileItem fileItem = (FileItem) object;
@@ -688,13 +698,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       return fileItem.getFieldName().equals( KEYTAB_IMPL_FILE );
     } );
 
-    String keytabAuthenticationLocation = "";
     if ( keytabAuthFile != null ) {
       String name = extractFileNameFromFullPath( keytabAuthFile.getName() );
       keytabAuthenticationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
-    String keytabImpersonationLocation = "";
     if ( keytabImpFile != null ) {
       String name = extractFileNameFromFullPath( keytabImpFile.getName() );
       keytabImpersonationLocation =
@@ -703,20 +711,23 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
+
+      // Authentication
+      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
       if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
         config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, keytabAuthenticationLocation );
       }
-      if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
+
+      // Impersonation
+      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
+      if ( keytabImpFile == null && StringUtil.isEmpty( model.getKeytabImpFile() ) ) {
+        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
+      } else if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, keytabImpersonationLocation );
       }
-      config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
 
-      if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
-      } else {
-        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
-      }
       config.save();
     } catch ( ConfigurationException e ) {
       logChannel.warn( e.getMessage() );
