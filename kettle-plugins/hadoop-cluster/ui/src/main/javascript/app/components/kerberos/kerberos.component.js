@@ -34,6 +34,7 @@ define([
     var vm = this;
     vm.$onInit = onInit;
     vm.onSelectSubType = onSelectSubType;
+    vm.onClearImpersonation = onClearImpersonation;
 
     function onInit() {
 
@@ -84,6 +85,12 @@ define([
 
     function onSelectSubType(value) {
       vm.data.model.kerberosSubType = value;
+    }
+
+    function onClearImpersonation() {
+      vm.keytabImpersonationFile = [];
+      vm.data.model.keytabImpFile = "";
+      fileService.setKeytabImpFile(null);
     }
 
     function getButtons() {
