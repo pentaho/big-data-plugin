@@ -225,7 +225,7 @@ public class NamedClusterManager implements NamedClusterService {
 
   @Override
   public List<String> listNames( IMetaStore metastore ) throws MetaStoreException {
-    return getMetaStoreFactory( metastore ).getElementNames();
+    return getMetaStoreFactory( metastore ).getElementNames( false );
   }
 
   @Override
