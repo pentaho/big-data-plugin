@@ -147,7 +147,7 @@ public class HadoopFileInputMetaTest {
     //create spy to check whether saveSource now is called
     IMetaStore metaStore = mock( IMetaStore.class );
     spy.loadXML( node, Collections.emptyList(), metaStore );
-    assertEquals( TEST_CLUSTER_NAME, hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
+    assertEquals( "", hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
     verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( Node.class ), anyInt(), any( IMetaStore.class ) );
   }
 
