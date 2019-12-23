@@ -221,7 +221,7 @@ public class NamedClusterManagerTest {
   @Test
   public void testListNames() throws MetaStoreException {
     List<String> names = new ArrayList<>( Arrays.asList( "testName" ) );
-    when( metaStoreFactory.getElementNames() ).thenReturn( names );
+    when( metaStoreFactory.getElementNames( false ) ).thenReturn( names );
     assertEquals( names, namedClusterManager.listNames( metaStore ) );
   }
 
@@ -237,7 +237,7 @@ public class NamedClusterManagerTest {
   public void testContains() throws MetaStoreException {
     String testName = "testName";
     List<String> names = new ArrayList<>( Arrays.asList( testName ) );
-    when( metaStoreFactory.getElementNames() ).thenReturn( names );
+    when( metaStoreFactory.getElementNames( false ) ).thenReturn( names );
     assertFalse( namedClusterManager.contains( testName, null ) );
     assertTrue( namedClusterManager.contains( testName, metaStore ) );
     assertFalse( namedClusterManager.contains( "testName2", metaStore ) );
