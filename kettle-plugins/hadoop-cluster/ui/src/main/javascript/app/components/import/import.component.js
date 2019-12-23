@@ -41,7 +41,7 @@ define([
     var modalDialogElement = angular.element("#modalDialog");
     var modalOverlayElement = angular.element("#modalOverlay");
 
-    const connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
+    var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};

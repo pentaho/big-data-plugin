@@ -38,7 +38,7 @@ define([
     vm.onSelectShimVersion = onSelectShimVersion;
     vm.getShimVersions = getShimVersions;
 
-    const connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
+    var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
 
     var modalDialogElement = angular.element("#modalDialog");
     var modalOverlayElement = angular.element("#modalOverlay");
