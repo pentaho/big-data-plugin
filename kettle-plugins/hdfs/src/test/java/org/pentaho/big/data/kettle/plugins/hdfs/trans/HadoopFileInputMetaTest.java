@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p/>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  * <p/>
  * ******************************************************************************
  * <p/>
@@ -148,7 +148,7 @@ public class HadoopFileInputMetaTest {
     //create spy to check whether saveSource now is called
     IMetaStore metaStore = mock( IMetaStore.class );
     spy.loadXML( node, Collections.emptyList(), metaStore );
-    assertNull( hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
+    assertEquals( TEST_CLUSTER_NAME, hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
     verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( Node.class ), anyInt(), any( IMetaStore.class ) );
   }
 
