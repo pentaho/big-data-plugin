@@ -51,6 +51,7 @@ import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
@@ -147,7 +148,7 @@ public class HadoopFileInputMetaTest {
     //create spy to check whether saveSource now is called
     IMetaStore metaStore = mock( IMetaStore.class );
     spy.loadXML( node, Collections.emptyList(), metaStore );
-    assertEquals( "", hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
+    assertNull( hadoopFileInputMeta.getNamedClusterURLMapping().get( TEST_FILE_NAME ) );
     verify( spy, times( 1 ) ).loadSource( any( Node.class ), any( Node.class ), anyInt(), any( IMetaStore.class ) );
   }
 

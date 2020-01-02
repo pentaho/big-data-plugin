@@ -33,7 +33,6 @@ import org.pentaho.di.core.injection.InjectionSupported;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
@@ -144,18 +143,16 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
         // in addition to the url as-is, add the public uri string version of the url (hidden password) to the map,
         // since that is the value that the data-lineage analyzer will have access to for cluster lookup
         try {
-          mappings.put( KettleVFS.getFileObject( url ).getPublicURIString(), ncName );
+          mappings.put( getFriendlyUri( url ).toString(), ncName );
         } catch ( final Exception e ) {
           // no-op
         }
       }
     } else {
-      mappings.put( url, "" );
+      mappings.put( url, null );
       try {
-        URI origUri = new URI( url );
-        URI friendlyUri = new URI( origUri.getScheme(), null, origUri.getHost(), origUri.getPort(),
-          origUri.getPath(), origUri.getQuery(), origUri.getFragment() );
-        mappings.put( friendlyUri.toString(), "" );
+        URI friendlyUri = getFriendlyUri( url );
+        mappings.put( friendlyUri.toString(), null );
       } catch ( URISyntaxException e ) {
         // no-op
       }
@@ -176,14 +173,18 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
   public String getClusterName( final String url ) {
     String clusterName = null;
     try {
-      URI origUri = new URI( url );
-      URI friendlyUri = new URI( origUri.getScheme(), null, origUri.getHost(), origUri.getPort(),
-        origUri.getPath(), origUri.getQuery(), origUri.getFragment() );
+      URI friendlyUri = getFriendlyUri( url );
       clusterName = getClusterNameBy( friendlyUri.toString() );
     } catch ( final URISyntaxException e ) {
       // no-op
     }
     return clusterName;
+  }
+
+  private URI getFriendlyUri( String url ) throws URISyntaxException {
+    URI origUri = new URI( url );
+    return new URI( origUri.getScheme(), null, origUri.getHost(), origUri.getPort(),
+      origUri.getPath(), origUri.getQuery(), origUri.getFragment() );
   }
 
   public String getClusterNameBy( String url ) {
