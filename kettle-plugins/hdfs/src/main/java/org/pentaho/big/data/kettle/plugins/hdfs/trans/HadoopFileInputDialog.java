@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,6 +38,8 @@ import java.util.Vector;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -71,14 +74,15 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
+import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
+import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.trans.steps.fileinput.text.EncodingType;
-import org.pentaho.di.ui.core.events.dialog.FilterType;
-import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogText;
-import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
-import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
+import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
@@ -120,10 +124,14 @@ import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileCSVImportProgressDia
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage1;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage2;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.vfs.ui.CustomVfsUiPanel;
+import org.pentaho.vfs.ui.VfsFileChooserDialog;
 
 public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogInterface {
   private static final Class<?> BASE_PKG = TextFileInputMeta.class; // for i18n purposes, needed by Translator2!!
   private static final Class<?> PKG = HadoopFileInputMeta.class; // for i18n purposes, needed by Translator2!!
+  private static final String[] ALL_FILES_TYPE = new String[] {
+    BaseMessages.getString( PKG, "System.FileType.AllFiles" ) };
 
   private LogChannel log = new LogChannel( this );
 
@@ -276,7 +284,6 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   private int middle;
   private int margin;
   private ModifyListener lsMod;
-  private ModifyListener lsModCompression;
 
   public static final int[] dateLengths = new int[] { 23, 19, 14, 10, 10, 10, 10, 8, 8, 8, 8, 6, 6 };
 
@@ -285,8 +292,6 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
   protected boolean firstClickOnDateLocale;
 
   private final NamedClusterService namedClusterService;
-
-  private SelectionAdapterOptions options;
 
   public HadoopFileInputDialog( Shell parent, Object in, TransMeta transMeta, String sname ) {
     super( parent, (BaseStepMeta) in, transMeta, sname );
@@ -301,24 +306,11 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     Shell parent = getParent();
     Display display = parent.getDisplay();
 
-    options = new SelectionAdapterOptions( SelectionOperation.FILE_OR_FOLDER, new FilterType[] {}, FilterType.CSV_TXT );
-    setupDefaultOptions();
-
     shell = new Shell( parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX | SWT.MIN );
     props.setLook( shell );
     setShellImage( shell, input );
 
     lsMod = e -> input.setChanged();
-
-    lsModCompression = modifyEvent -> {
-      input.setChanged();
-      boolean useCompression = !wCompression.getText().equals( "None" );
-      if ( useCompression ) {
-        setupCompressionOptions();
-      } else {
-        setupDefaultOptions();
-      }
-    };
 
     changed = input.hasChanged();
 
@@ -467,9 +459,6 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
 
     setSize();
 
-    wFilenameList.getColumns()[ 1 ].setTextVarButtonSelectionListener(
-      new HadoopInputFileSelectionAdapter( log, wFilenameList, transMeta, options ) );
-
     shell.open();
     while ( !shell.isDisposed() ) {
       if ( !display.readAndDispatch() ) {
@@ -477,22 +466,6 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
       }
     }
     return stepname;
-  }
-
-  private void setupDefaultOptions() {
-    FilterType[] filterTypes = new FilterType[] {
-      FilterType.CSV_TXT, FilterType.CSV,
-      FilterType.TXT, FilterType.ALL };
-    options.setFilters( filterTypes );
-  }
-
-  private void setupCompressionOptions() {
-    FilterType[] filterTypes =
-      new FilterType[] {
-        FilterType.ZIP, FilterType.GZ,
-        FilterType.CSV_TXT, FilterType.CSV,
-        FilterType.TXT, FilterType.ALL };
-    options.setFilters( filterTypes );
   }
 
   /**
@@ -731,8 +704,8 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           ColumnInfo.COLUMN_TYPE_CCOMBO, YES_NO_COMBO ) };
 
     setComboValues( colinfo[ 0 ] );
-
     colinfo[ 1 ].setUsingVariables( true );
+    colinfo[ 1 ].setTextVarButtonSelectionListener( getFileDirectoryListener() );
     colinfo[ 2 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RegExpColumn.Column" ) );
     colinfo[ 3 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.RequiredColumn.Tooltip" ) );
     colinfo[ 4 ].setToolTip( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.IncludeSubDirs.Tooltip" ) );
@@ -1090,7 +1063,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wCompression.setToolTipText( BaseMessages.getString( BASE_PKG, "TextFileInputDialog.Compression.Tooltip" ) );
     props.setLook( wCompression );
     wCompression.setItems( CompressionProviderFactory.getInstance().getCompressionProviderNames() );
-    wCompression.addModifyListener( lsModCompression );
+    wCompression.addModifyListener( lsMod );
 
     FormData fdCompression = new FormData();
     fdCompression.left = new FormAttachment( middle, 0 );
@@ -1591,7 +1564,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wWarnDestDir.setLayoutData( fdBadDestDir );
 
     // Listen to the Browse... button
-    wbbWarnDestDir.addSelectionListener( createErrorHandlingSelectionAdapter( wWarnDestDir ) );
+    wbbWarnDestDir.addSelectionListener( new DirectoryBrowserAdapter( wWarnDestDir ) );
 
     // Listen to the Variable... button
     wbvWarnDestDir.addSelectionListener( VariableButtonListenerFactory.getSelectionAdapter( shell, wWarnDestDir,
@@ -1665,7 +1638,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wErrorDestDir.setLayoutData( fdErrorDestDir );
 
     // Listen to the Browse... button
-    wbbErrorDestDir.addSelectionListener( createErrorHandlingSelectionAdapter( wErrorDestDir ) );
+    wbbErrorDestDir.addSelectionListener( new DirectoryBrowserAdapter( wErrorDestDir ) );
 
     // Listen to the Variable... button
     wbvErrorDestDir.addSelectionListener( VariableButtonListenerFactory.getSelectionAdapter( shell, wErrorDestDir,
@@ -1739,7 +1712,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     wLineNrDestDir.setLayoutData( fdLineNrDestDir );
 
     // Listen to the Browse... button
-    wbbLineNrDestDir.addSelectionListener( createErrorHandlingSelectionAdapter( wLineNrDestDir ) );
+    wbbLineNrDestDir.addSelectionListener( new DirectoryBrowserAdapter( wLineNrDestDir ) );
 
     // Listen to the Variable... button
     wbvLineNrDestDir.addSelectionListener( VariableButtonListenerFactory.getSelectionAdapter( shell, wLineNrDestDir,
@@ -1770,18 +1743,6 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     // ///////////////////////////////////////////////////////////
     // / END OF CONTENT TAB
     // ///////////////////////////////////////////////////////////
-
-  }
-
-  private SelectionAdapter createErrorHandlingSelectionAdapter( Text textWidget ) {
-
-    SelectionAdapterOptions errorOptions = new SelectionAdapterOptions(
-      SelectionOperation.FILE_OR_FOLDER,
-      new FilterType[] { FilterType.ALL },
-      FilterType.ALL );
-
-    return new SelectionAdapterFileDialogText( log, textWidget, transMeta,
-      errorOptions );
 
   }
 
@@ -2862,6 +2823,164 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return this.getClass().getName();
   }
 
+  private SelectionAdapter getFileDirectoryListener() {
+
+    return new SelectionAdapter() {
+      @Override
+      public void widgetSelected( SelectionEvent e ) {
+        try {
+          // Setup file type filtering
+          String[] fileFilters = null;
+          String[] fileFilterNames = null;
+          if ( !wCompression.getText().equals( "None" ) ) {
+            fileFilters = new String[] { "*.zip;*.gz", "*.txt;*.csv", "*.csv", "*.txt", "*" };
+            fileFilterNames =
+              new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.ZIPFiles" ),
+                BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ) };
+          } else {
+            fileFilters = new String[] { "*", "*.txt;*.csv", "*.csv", "*.txt" };
+            fileFilterNames =
+              new String[] { BaseMessages.getString( BASE_PKG, "System.FileType.AllFiles" ),
+                BaseMessages.getString( BASE_PKG, "TextFileInputDialog.FileType.TextAndCSVFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.CSVFiles" ),
+                BaseMessages.getString( BASE_PKG, "System.FileType.TextFiles" ) };
+          }
+
+          String clusterName = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() - 1 );
+          String path = wFilenameList.getActiveTableItem().getText( wFilenameList.getActiveTableColumn() );
+
+          if ( clusterName.equals( S3_ENVIRONMENT ) && !path.startsWith( Schemes.S3_SCHEME + "://" ) ) {
+            path = Schemes.S3_SCHEME + "://";
+          }
+
+          // Get current file
+          FileObject rootFile = null;
+          FileObject initialFile = null;
+          FileObject defaultInitialFile = null;
+
+          boolean isCluster = false;
+          if ( !clusterName.equals( LOCAL_ENVIRONMENT ) && !clusterName.equals( S3_ENVIRONMENT ) ) {
+            if ( Const.isEmpty( path ) ) {
+              path = "/";
+            }
+            NamedCluster namedCluster = namedClusterService.getNamedClusterByName( clusterName, getMetaStore() );
+            if ( namedCluster == null ) {
+              return;
+            }
+            isCluster = true;
+            path = namedCluster.processURLsubstitution( path, getMetaStore(), transMeta );
+          }
+
+          boolean resolvedInitialFile = false;
+
+          if ( path != null ) {
+            String fileName = transMeta.environmentSubstitute( path );
+            if ( fileName != null && !fileName.equals( "" ) ) {
+              try {
+                initialFile = KettleVFS.getFileObject( fileName );
+                resolvedInitialFile = true;
+              } catch ( Exception ex ) {
+                showMessageAndLog( BaseMessages.getString( PKG, "HadoopFileInputDialog.Connection.Error.title" ),
+                  BaseMessages.getString( PKG, "HadoopFileInputDialog.Connection.error" ), ex.getMessage() );
+                return;
+              }
+              File startFile = new File( System.getProperty( "user.home" ) );
+              defaultInitialFile = KettleVFS.getFileObject( startFile.getAbsolutePath() );
+              rootFile = initialFile.getFileSystem().getRoot();
+            } else {
+              defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+            }
+          }
+
+          if ( rootFile == null ) {
+            if ( defaultInitialFile == null ) {
+              return;
+            }
+            rootFile = defaultInitialFile.getFileSystem().getRoot();
+            initialFile = defaultInitialFile;
+          }
+
+          VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
+          fileChooserDialog.defaultInitialFile = defaultInitialFile;
+
+          NamedClusterWidgetImpl namedClusterWidget = null;
+
+          FileObject selectedFile = null;
+
+          if ( clusterName.equals( LOCAL_ENVIRONMENT ) ) {
+            selectedFile =
+              fileChooserDialog.open( shell, new String[] { "file" }, "file", true, path, fileFilters,
+                fileFilterNames, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+          } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
+            selectedFile =
+              fileChooserDialog.open( shell, new String[] { Schemes.S3_SCHEME }, Schemes.S3_SCHEME, true,
+                path, fileFilters, fileFilterNames, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
+                false, true );
+          } else {
+            NamedCluster namedCluster = namedClusterService.getNamedClusterByName( clusterName, getMetaStore() );
+            if ( namedCluster != null ) {
+              if ( namedCluster.isMapr() ) {
+                selectedFile =
+                  fileChooserDialog.open( shell, new String[] { Schemes.MAPRFS_SCHEME },
+                    Schemes.MAPRFS_SCHEME, true, path, fileFilters, fileFilterNames, false,
+                    VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+              } else {
+                List<CustomVfsUiPanel> customPanels = fileChooserDialog.getCustomVfsUiPanels();
+                for ( CustomVfsUiPanel panel : customPanels ) {
+                  if ( panel instanceof HadoopVfsFileChooserDialog ) {
+                    HadoopVfsFileChooserDialog hadoopDialog = ( (HadoopVfsFileChooserDialog) panel );
+                    namedClusterWidget = hadoopDialog.getNamedClusterWidget();
+                    namedClusterWidget.initiate();
+                    hadoopDialog.setNamedCluster( clusterName );
+                    hadoopDialog.initializeConnectionPanel( initialFile );
+                  }
+                }
+                if ( resolvedInitialFile ) {
+                  fileChooserDialog.initialFile = initialFile;
+                }
+                selectedFile =
+                  fileChooserDialog.open( shell, new String[] { Schemes.HDFS_SCHEME },
+                    Schemes.HDFS_SCHEME, false, path, fileFilters, fileFilterNames, true,
+                    VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
+              }
+
+            }
+          }
+
+          CustomVfsUiPanel currentPanel = fileChooserDialog.getCurrentPanel();
+          if ( currentPanel instanceof HadoopVfsFileChooserDialog ) {
+            namedClusterWidget = ( (HadoopVfsFileChooserDialog) currentPanel ).getNamedClusterWidget();
+          }
+
+          if ( selectedFile != null ) {
+            String url = selectedFile.getURL().toString();
+            if ( currentPanel != null ) {
+              if ( currentPanel.getVfsSchemeDisplayText().equals( LOCAL_ENVIRONMENT ) ) {
+                wFilenameList.getActiveTableItem()
+                  .setText( wFilenameList.getActiveTableColumn() - 1, LOCAL_ENVIRONMENT );
+              } else if ( currentPanel.getVfsSchemeDisplayText().equals( S3_ENVIRONMENT ) ) {
+                wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1, S3_ENVIRONMENT );
+              } else if ( isCluster ) {
+                url = input.getUrlPath( url );
+                wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn() - 1,
+                  clusterName );
+              }
+            }
+
+            wFilenameList.getActiveTableItem().setText( wFilenameList.getActiveTableColumn(), url );
+          }
+        } catch ( KettleFileException ex ) {
+          log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.KettleFileException" ) );
+        } catch ( FileSystemException ex ) {
+          log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.FileSystemException" ) );
+        }
+      }
+    };
+  }
+
   protected void setComboValues( ColumnInfo colInfo ) {
     try {
       String[] comboValues = { LOCAL_ENVIRONMENT, STATIC_ENVIRONMENT, S3_ENVIRONMENT };
@@ -2883,13 +3002,22 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     return provider.createInputStream( fileInputStream );
   }
 
-  private InputStreamReader getInputStreamReader( HadoopFileInputMeta meta, InputStream inputStream ) throws IOException {
+  private InputStreamReader getInputStreamReader( HadoopFileInputMeta meta, InputStream inputStream )
+    throws IOException {
 
     if ( meta.getEncoding() != null && meta.getEncoding().length() > 0 ) {
       return new InputStreamReader( inputStream, meta.getEncoding() );
     }
 
     return new InputStreamReader( inputStream );
+  }
+
+  private void showMessageAndLog( String title, String message, String messageToLog ) {
+    MessageBox box = new MessageBox( shell );
+    box.setText( title ); //$NON-NLS-1$
+    box.setMessage( message );
+    log.logError( messageToLog );
+    box.open();
   }
 
   private String getLine( HadoopFileInputMeta meta, FileInputList textFileList )
@@ -2904,10 +3032,66 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     EncodingType encodingType = EncodingType.guessEncodingType( reader.getEncoding() );
     StringBuilder lineStringBuilder = new StringBuilder( 256 );
     String enclosure = StringUtil.substituteHex( meta.content.enclosure );
-    String sLine = TextFileInputUtils.getLine( log, reader, encodingType, meta.getFileFormatTypeNr(), lineStringBuilder, enclosure );
+    String sLine =
+      TextFileInputUtils.getLine( log, reader, encodingType, meta.getFileFormatTypeNr(), lineStringBuilder, enclosure );
     inputStream.close();
 
     return sLine;
   }
 
+  private class DirectoryBrowserAdapter extends SelectionAdapter {
+    private Text widget;
+
+    /**
+     * Create a new Directory Browser Adapter that reads/sets the text of {@code widget} to the directory chosen.
+     *
+     * @param widget Text widget linked to the VFS browser
+     */
+    public DirectoryBrowserAdapter( Text widget ) {
+      this.widget = widget;
+    }
+
+    @Override
+    public void widgetSelected( SelectionEvent e ) {
+      try {
+        // Get current file
+        FileObject rootFile = null;
+        FileObject initialFile = null;
+        FileObject defaultInitialFile = null;
+
+        if ( widget.getText() != null ) {
+          String fileName = transMeta.environmentSubstitute( widget.getText() );
+
+          if ( fileName != null && !fileName.equals( "" ) ) {
+            initialFile = KettleVFS.getFileObject( fileName );
+            rootFile = initialFile.getFileSystem().getRoot();
+          } else {
+            defaultInitialFile = KettleVFS.getFileObject( Spoon.getInstance().getLastFileOpened() );
+          }
+        }
+
+        defaultInitialFile = KettleVFS.getFileObject( "file:///c:/" );
+        if ( rootFile == null ) {
+          rootFile = defaultInitialFile.getFileSystem().getRoot();
+          initialFile = defaultInitialFile;
+        }
+
+        VfsFileChooserDialog fileChooserDialog = Spoon.getInstance().getVfsFileChooserDialog( rootFile, initialFile );
+        fileChooserDialog.defaultInitialFile = defaultInitialFile;
+        FileObject selectedFile =
+          fileChooserDialog.open( shell, null, Schemes.HDFS_SCHEME, false, null, new String[] { "*.*" },
+            ALL_FILES_TYPE, VfsFileChooserDialog.VFS_DIALOG_OPEN_DIRECTORY );
+        if ( selectedFile != null ) {
+          if ( !selectedFile.getType().equals( FileType.FOLDER ) ) {
+            selectedFile = selectedFile.getParent();
+          }
+          widget.setText( selectedFile.getURL().toString() );
+        }
+      } catch ( KettleFileException ex ) {
+        log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.KettleFileException" ) );
+      } catch ( FileSystemException ex ) {
+        log.logError( BaseMessages.getString( PKG, "HadoopFileInputDialog.FileBrowser.FileSystemException" ) );
+      }
+    }
+  }
 }
