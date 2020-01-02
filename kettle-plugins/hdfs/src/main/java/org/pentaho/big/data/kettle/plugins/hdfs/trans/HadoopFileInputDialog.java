@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -21,20 +21,6 @@
  ******************************************************************************/
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Vector;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -77,23 +63,19 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.HadoopVfsFileChooserDialog;
 import org.pentaho.big.data.kettle.plugins.hdfs.vfs.Schemes;
 import org.pentaho.big.data.plugins.common.ui.NamedClusterWidgetImpl;
-import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.row.value.ValueMetaBase;
-import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.trans.steps.fileinput.text.EncodingType;
-import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.compress.CompressionProvider;
 import org.pentaho.di.core.compress.CompressionProviderFactory;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.gui.TextFileInputFieldInterface;
 import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.util.StringUtil;
+import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.i18n.BaseMessages;
@@ -105,6 +87,7 @@ import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.steps.file.BaseFileField;
+import org.pentaho.di.trans.steps.fileinput.text.EncodingType;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileFilter;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputMeta;
 import org.pentaho.di.trans.steps.fileinput.text.TextFileInputUtils;
@@ -118,14 +101,31 @@ import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.core.widget.VariableButtonListenerFactory;
+import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileCSVImportProgressDialog;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage1;
 import org.pentaho.di.ui.trans.steps.fileinput.text.TextFileImportWizardPage2;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.vfs.ui.CustomVfsUiPanel;
 import org.pentaho.vfs.ui.VfsFileChooserDialog;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Vector;
 
 public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogInterface {
   private static final Class<?> BASE_PKG = TextFileInputMeta.class; // for i18n purposes, needed by Translator2!!
@@ -1970,9 +1970,14 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
           clusterName =
             clusterName.startsWith( HadoopFileInputMeta.STATIC_SOURCE_FILE ) ? STATIC_ENVIRONMENT : clusterName;
           clusterName = clusterName.startsWith( HadoopFileInputMeta.S3_SOURCE_FILE ) ? S3_ENVIRONMENT : clusterName;
-          sourceUrl = clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
-            || clusterName.equals( S3_ENVIRONMENT ) ? sourceUrl : input.getUrlPath( sourceUrl );
-          environment = clusterName;
+          if ( clusterName.equals( LOCAL_ENVIRONMENT ) || clusterName.equals( STATIC_ENVIRONMENT )
+            || clusterName.equals( S3_ENVIRONMENT ) ) {
+            environment = clusterName;
+          } else {
+            sourceUrl = input.getUrlPath( sourceUrl );
+            NamedCluster c = namedClusterService.getNamedClusterByName( clusterName, metaStore );
+            environment = c == null ? "" : clusterName;
+          }
         }
 
         wFilenameList

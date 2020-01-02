@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -138,26 +138,17 @@ public class HadoopFileInputMeta extends TextFileInputMeta implements HadoopFile
     NamedCluster c = namedClusterService.getNamedClusterByName( ncName, metastore );
     if ( c != null ) {
       url = c.processURLsubstitution( url, metastore, new Variables() );
-      if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) && mappings != null ) {
-        mappings.put( url, ncName );
-        // in addition to the url as-is, add the public uri string version of the url (hidden password) to the map,
-        // since that is the value that the data-lineage analyzer will have access to for cluster lookup
-        try {
-          mappings.put( getFriendlyUri( url ).toString(), ncName );
-        } catch ( final Exception e ) {
-          // no-op
-        }
-      }
-    } else {
-      mappings.put( url, null );
+    }
+    if ( !Utils.isEmpty( ncName ) && !Utils.isEmpty( url ) && mappings != null ) {
+      mappings.put( url, ncName );
+      // in addition to the url as-is, add the public uri string version of the url (hidden password) to the map,
+      // since that is the value that the data-lineage analyzer will have access to for cluster lookup
       try {
-        URI friendlyUri = getFriendlyUri( url );
-        mappings.put( friendlyUri.toString(), null );
-      } catch ( URISyntaxException e ) {
+        mappings.put( getFriendlyUri( url ).toString(), ncName );
+      } catch ( final Exception e ) {
         // no-op
       }
     }
-
     return url;
   }
 
