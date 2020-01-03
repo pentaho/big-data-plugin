@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   protected String bucketName;
   protected String key;
   protected S3Object s3Object;
+  protected ObjectMetadata s3ObjectMetadata;
   protected FileType fileType;
 
   protected S3CommonFileObject( final AbstractFileName name, final S3CommonFileSystem fileSystem ) {
@@ -62,7 +63,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
 
   @Override
   protected long doGetContentSize() {
-    return getS3Object().getObjectMetadata().getContentLength();
+    return s3ObjectMetadata.getContentLength();
   }
 
   @Override
@@ -212,6 +213,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
       // 1. Is it an existing file?
       if ( s3Object == null ) {
         s3Object = getS3Object();
+        s3ObjectMetadata = s3Object.getObjectMetadata();
       }
       injectType( getName().getType() ); // if this worked then the automatically detected type is right
     } catch ( AmazonS3Exception e ) { // S3 object doesn't exist
@@ -300,7 +302,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
 
   @Override
   public long doGetLastModifiedTime() {
-    return getS3Object().getObjectMetadata().getLastModified().getTime();
+    return s3ObjectMetadata.getLastModified().getTime();
   }
 
   @Override
