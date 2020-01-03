@@ -46,6 +46,7 @@ define([
 
     function onInit() {
       vm.learnMoreLabel = i18n.get('accordian.item.learn.more');
+      vm.learnMoreLink = i18n.get('accordion.item.learn.more.link');
     }
 
     function toggleExpand($event) {
