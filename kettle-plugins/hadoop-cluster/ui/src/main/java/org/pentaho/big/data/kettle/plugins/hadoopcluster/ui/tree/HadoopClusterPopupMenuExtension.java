@@ -3,7 +3,7 @@
  *
  *  Pentaho Data Integration
  *
- *  Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ *  Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *  *******************************************************************************
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -71,10 +71,12 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private Menu rootMenu;
+  private Menu itemMenu;
   private HadoopClusterDelegate hadoopClusterDelegate;
   private NamedClusterService namedClusterService;
   private String internalShim;
   private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterPopupMenuExtension.class );
+  private NamedCluster lastNamedCluster;
 
   public HadoopClusterPopupMenuExtension( HadoopClusterDelegate hadoopClusterDelegate,
                                           NamedClusterService namedClusterService, String internalShim ) {
@@ -130,34 +132,38 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   }
 
   public Menu createMaintPopupMenu( final Tree selectionTree, NamedCluster namedCluster ) {
-    Menu maintMenu = new Menu( selectionTree );
-    try {
-      String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
+    // don't create another menu if the current one is for this namedCluster,
+    // otherwise we can see extra pop-up menus.
+    if ( itemMenu == null || !namedCluster.equals( this.lastNamedCluster ) ) {
+      this.lastNamedCluster = namedCluster;
+      itemMenu = new Menu( selectionTree );
+      try {
+        String name = URLEncoder.encode( namedCluster.getName(), "UTF-8" );
 
-      if ( showAdminFunctions() ) {
+        if ( showAdminFunctions() ) {
+          createPopupMenuItem( itemMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
+            NEW_EDIT_STATE, ImmutableMap.of( "name", name ) );
 
-        createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Edit" ),
-          NEW_EDIT_STATE, ImmutableMap.of( "name", name ) );
+          createPopupMenuItem( itemMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
+            NEW_EDIT_STATE, ImmutableMap.of( "name", name, "duplicateName",
+              getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + name ) );
+        }
+        createPopupMenuItem( itemMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
+          TESTING_STATE, ImmutableMap.of( "name", name ) );
 
-        createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Duplicate" ),
-          NEW_EDIT_STATE, ImmutableMap.of( "name", name, "duplicateName",
-            getString( PKG, "HadoopClusterPopupMenuExtension.Duplicate.Prefix" ) + name ) );
+        if ( showAdminFunctions() ) {
+          createDeleteMenuItem( itemMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ), name );
+        }
+      } catch ( UnsupportedEncodingException e ) {
+        logChannel.error( e.getMessage() );
       }
-      createPopupMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Test" ),
-        TESTING_STATE, ImmutableMap.of( "name", name ) );
-
-      if ( showAdminFunctions() ) {
-        createDeleteMenuItem( maintMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Delete" ), name );
-      }
-    } catch ( UnsupportedEncodingException e ) {
-      logChannel.error( e.getMessage() );
     }
-    return maintMenu;
+    return itemMenu;
   }
 
   private boolean showAdminFunctions() {
     Repository repo = spoonSupplier.get().getRepository();
-    if ( repo != null  && repo.getUri().isPresent() ) {
+    if ( repo != null && repo.getUri().isPresent() ) {
       return repo.getSecurityProvider().getUserInfo().isAdmin();
     }
     return true;
@@ -174,6 +180,8 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
       @Override
       public void widgetSelected( SelectionEvent selectionEvent ) {
         hadoopClusterDelegate.openDialog( state, urlParams );
+
+
       }
     } );
   }
