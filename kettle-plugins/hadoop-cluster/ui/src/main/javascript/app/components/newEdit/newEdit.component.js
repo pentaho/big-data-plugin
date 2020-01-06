@@ -94,6 +94,7 @@ define([
               vm.data.type = "duplicate";
             }
             loadShimDropDowns();
+            setDefaultPorts();
           });
         } else if (vm.data.model && vm.data.model.name) {
           //When an import is created and then edited - it is converted to an edit
@@ -106,10 +107,12 @@ define([
               vm.data.model = res.data;
               vm.data.model.oldName = vm.data.model.name;
               loadShimDropDowns();
+              setDefaultPorts();
             });
           } else {
             //Most of the data already exists in the model
             loadShimDropDowns();
+            setDefaultPorts();
             vm.siteFiles = fileService.getFiles();
           }
         } else {
@@ -156,6 +159,18 @@ define([
       };
     }
 
+    function setDefaultPorts() {
+      if (!vm.data.model.hdfsPort || vm.data.model.hdfsPort === "") {
+        vm.data.model.hdfsPort = "8020";
+      }
+      if (!vm.data.model.jobTrackerPort || vm.data.model.jobTrackerPort === "") {
+        vm.data.model.jobTrackerPort = "8032";
+      }
+      if (!vm.data.model.zooKeeperPort || vm.data.model.zooKeeperPort === "") {
+        vm.data.model.zooKeeperPort = "2181";
+      }
+    }
+
     function loadShimDropDowns() {
       vm.shimVendor = vm.data.model.shimVendor;
       vm.shimVersions = getShimVersions(vm.shimVendor);
@@ -164,16 +179,16 @@ define([
 
     // Prevent pressing the slash key, not allowed in cluster name
     function onNameKeyDown($event) {
-      return $event.key !== '/'
+      return $event.key !== '/';
     }
 
     // Replace slash if it got into the name field somehow
     function onNameChange() {
-      vm.data.model.name = cleanseName(vm.data.model.name)
+      vm.data.model.name = cleanseName(vm.data.model.name);
     }
 
     function cleanseName(s) {
-      return s.replace(/\//g,'')
+      return s.replace(/\//g, '');
     }
 
     function contains(arr, item) {
@@ -232,7 +247,7 @@ define([
     function next() {
       vm.data.connectedToRepo = connectedToRepo;
       // should not be possible to get to this point w/o a cleansed name, but just to be safe
-      vm.data.model.name = cleanseName(vm.data.model.name)
+      vm.data.model.name = cleanseName(vm.data.model.name);
       if (vm.data.model.oldName === vm.data.model.name) {
         create();
       } else {
