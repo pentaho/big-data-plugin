@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -47,7 +48,6 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
-import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
@@ -57,7 +57,6 @@ import org.pentaho.ui.xul.XulEventSourceAdapter;
 import org.pentaho.ui.xul.components.XulMenuList;
 import org.pentaho.ui.xul.components.XulTextbox;
 import org.pentaho.ui.xul.containers.XulDialog;
-import org.pentaho.ui.xul.containers.XulRoot;
 import org.pentaho.ui.xul.containers.XulVbox;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 import org.pentaho.ui.xul.jface.tags.JfaceCMenuList;
@@ -82,7 +81,7 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
   private String hadoopJobName;
   private String jarUrl = "";
   private String driverClass = "";
-  private List<String> driverClasses = new ArrayList<String>();
+  private List<String> driverClasses = new ArrayList<>();
 
   private boolean isSimple = true;
 
@@ -544,38 +543,36 @@ public class JobEntryHadoopJobExecutorController extends AbstractXulEventHandler
     if ( Const.isEmpty( jarUrl ) ) {
       return;
     }
+    MapReduceService mapReduceService = null;
     try {
-      MapReduceJarInfo mapReduceJarInfo =
-        namedClusterServiceLocator.getService( aConf.selectedNamedCluster, MapReduceService.class )
-          .getJarInfo( JobEntryHadoopJobExecutor.resolveJarUrl( jarUrl, getVariableSpace() ) );
-      List<String> driverClasses = new ArrayList<String>( mapReduceJarInfo.getClassesWithMain() );
-      if ( Const.isEmpty( driverClass ) ) {
-        setDriverClasses( driverClasses );
-        String mainClass = mapReduceJarInfo.getMainClass();
-        if ( mainClass != null ) {
-          setDriverClass( mainClass );
-        } else if ( !driverClasses.isEmpty() ) {
-          setDriverClass( driverClasses.get( 0 ) );
-        }
+      mapReduceService = namedClusterServiceLocator.getService( aConf.selectedNamedCluster, MapReduceService.class );
+    } catch ( ClusterInitializationException e ) {
+      jobEntry.logError( "Unable to locate map reduce service for cluster." );
+    }
+
+    MapReduceJarInfo mapReduceJarInfo = null;
+    try {
+      mapReduceJarInfo = mapReduceService != null ? mapReduceService.getJarInfo( JobEntryHadoopJobExecutor.resolveJarUrl( jarUrl, getVariableSpace() ) ) : null;
+    } catch ( Exception e ) {
+      jobEntry.logError( "Unable to locate map reduce jar." );
+    }
+
+    List<String> driverClassesInJar = ( mapReduceJarInfo != null ? new ArrayList<>( mapReduceJarInfo.getClassesWithMain() ) : Collections.emptyList() );
+
+    if ( Const.isEmpty( driverClass ) ) {
+      setDriverClasses( driverClassesInJar );
+      String mainClass = mapReduceJarInfo != null ? mapReduceJarInfo.getMainClass() : null;
+      if ( mainClass != null ) {
+        setDriverClass( mainClass );
+      } else if ( !driverClassesInJar.isEmpty( ) ) {
+        setDriverClass( driverClassesInJar.get( 0 ) );
       } else {
-        String saveDriverClass = driverClass;
-        setDriverClasses( driverClasses );
-        setDriverClass( saveDriverClass );
+        setDriverClass( "" );
       }
-    } catch ( Throwable e ) {
-      try {
-        XulRoot xulDialog = (XulRoot) getXulDomContainer().getDocumentRoot().getRootElement();
-        Shell shell = (Shell) xulDialog.getRootObject();
-        if ( namedClusterService.getNamedClusterByName( aConf.selectedNamedCluster.getName(), jobMeta.getMetaStore() ) == null ) {
-          new ErrorDialog( shell, "Error", "Unable to find named cluster "
-            + aConf.selectedNamedCluster.getName(), e );
-        } else {
-          new ErrorDialog( shell, "Error", "Unable to populate Driver Class list", e );
-        }
-        setDriverClasses( Collections.<String>emptyList() );
-      } catch ( Throwable e2 ) {
-        jobEntry.logError( "Unable to construct error dialog for exception.", e );
-      }
+    } else {
+      String saveDriverClass = driverClass;
+      setDriverClasses( driverClassesInJar );
+      setDriverClass( saveDriverClass );
     }
   }
 
