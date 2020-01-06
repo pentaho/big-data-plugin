@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019 Hitachi Vantara. All rights reserved.
+ * Copyright 2019-2020 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,11 @@ define([
     vm.getShimVersions = getShimVersions;
 
     var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
+
+    //Characters not allowed by Windows OS
+    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|'];
+    var notAllowedGlobalRegex = new RegExp("[" + notAllowedChars.join('') + "]", "g");
+    notAllowedChars[0] = '\\'; //remove extra escape for the backslash char in the array
 
     var modalDialogElement = angular.element("#modalDialog");
     var modalOverlayElement = angular.element("#modalOverlay");
@@ -177,18 +182,18 @@ define([
       vm.shimVersion = vm.data.model.shimVersion;
     }
 
-    // Prevent pressing the slash key, not allowed in cluster name
+    // Prevent pressing characters not allowed in cluster name
     function onNameKeyDown($event) {
-      return $event.key !== '/';
+      return !contains(notAllowedChars, $event.key);
     }
 
-    // Replace slash if it got into the name field somehow
+    // Replace not allowed characters if they got into the name field somehow
     function onNameChange() {
       vm.data.model.name = cleanseName(vm.data.model.name);
     }
 
     function cleanseName(s) {
-      return s.replace(/\//g, '');
+      return s.replace(notAllowedGlobalRegex, '');
     }
 
     function contains(arr, item) {
