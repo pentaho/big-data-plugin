@@ -26,7 +26,6 @@ import org.pentaho.hadoop.shim.api.hbase.ByteConversionUtil;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterface;
 import org.pentaho.hadoop.shim.api.hbase.mapping.Mapping;
 import org.pentaho.hadoop.shim.api.hbase.meta.HBaseValueMetaInterfaceFactory;
-import org.pentaho.hadoop.shim.api.hbase.Result;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
@@ -40,7 +39,7 @@ import java.util.NavigableMap;
 
 /**
  * Class for decoding HBase rows to a <key, family, column, value, time stamp> Kettle row format.
- * 
+ *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  * @version $Revision$
  */
@@ -49,79 +48,84 @@ public class HBaseRowToKettleTuple {
   /**
    * Holds a set of tuples (Kettle rows) - one for each column from an HBase row
    */
-  protected List<Object[]> m_decodedTuples;
+  protected List<Object[]> mDecodedTuples;
 
-  /** Index in the Kettle row format of the key column */
-  protected int m_keyIndex = -1;
+  /**
+   * Index in the Kettle row format of the key column
+   */
+  protected int mKeyIndex = -1;
 
-  /** Index in the Kettle row format of the family column */
-  protected int m_familyIndex = -1;
+  /**
+   * Index in the Kettle row format of the family column
+   */
+  protected int mFamilyIndex = -1;
 
-  /** Index in the Kettle row format of the column name column */
-  protected int m_colNameIndex = -1;
+  /**
+   * Index in the Kettle row format of the column name column
+   */
+  protected int mColNameIndex = -1;
 
-  /** Index in the Kettle row format of the column value column */
-  protected int m_valueIndex = -1;
+  /**
+   * Index in the Kettle row format of the column value column
+   */
+  protected int mValueIndex = -1;
 
-  /** Index in the Kettle row format of the time stamp column */
-  protected int m_timestampIndex = -1;
+  /**
+   * Index in the Kettle row format of the time stamp column
+   */
+  protected int mTimestampIndex = -1;
 
   /**
    * List of (optional) byte array encoded user-specified column families to extract column values for
    */
-  protected List<byte[]> m_userSpecifiedFamilies;
+  protected List<byte[]> mUserSpecifiedFamilies;
 
   /**
    * List of (optional) human-readable user-specified column families to extract column values for
    */
-  protected List<String> m_userSpecifiedFamiliesHumanReadable;
+  protected List<String> mUserSpecifiedFamiliesHumanReadable;
 
-  protected List<HBaseValueMetaInterface> m_tupleColsFromAliasMap;
+  protected List<HBaseValueMetaInterface> mTupleColsFromAliasMap;
 
-  protected ByteConversionUtil m_bytesUtil;
+  protected ByteConversionUtil mBytesUtil;
 
   public HBaseRowToKettleTuple( ByteConversionUtil bytesUtil ) {
     if ( bytesUtil == null ) {
       throw new NullPointerException();
     }
-    m_bytesUtil = bytesUtil;
+    mBytesUtil = bytesUtil;
   }
 
   public void reset() {
-    m_decodedTuples = null;
+    mDecodedTuples = null;
 
-    m_keyIndex = -1;
-    m_familyIndex = -1;
-    m_colNameIndex = -1;
-    m_valueIndex = -1;
-    m_timestampIndex = -1;
-    m_userSpecifiedFamilies = null;
-    m_userSpecifiedFamiliesHumanReadable = null;
+    mKeyIndex = -1;
+    mFamilyIndex = -1;
+    mColNameIndex = -1;
+    mValueIndex = -1;
+    mTimestampIndex = -1;
+    mUserSpecifiedFamilies = null;
+    mUserSpecifiedFamiliesHumanReadable = null;
 
-    m_tupleColsFromAliasMap = null;
-    m_decodedTuples = null;
+    mTupleColsFromAliasMap = null;
   }
 
   /**
    * Convert an HBase row to (potentially) multiple Kettle rows in tuple format.
-   * 
-   * @param admin
-   *          the HBaseAdmin instance to use
-   * @param mapping
-   *          the mapping information to use (must be a "tuple" mapping)
-   * @param tupleColsMappedByAlias
-   *          the meta data for each of the tuple columns the user has opted to have output
-   * @param outputRowMeta
-   *          the outgoing Kettle row format
+   *
+   * @param mapping                the mapping information to use (must be a "tuple" mapping)
+   * @param tupleColsMappedByAlias the meta data for each of the tuple columns the user has opted to have output
+   * @param outputRowMeta          the outgoing Kettle row format
    * @return a list of Kettle rows in tuple format
-   * @throws KettleException
-   *           if a problem occurs
+   * @throws KettleException if a problem occurs
    */
-  public List<Object[]> hbaseRowToKettleTupleMode( HBaseValueMetaInterfaceFactory hBaseValueMetaInterfaceFactory, Result result, Mapping mapping,
-                                                   Map<String, HBaseValueMetaInterface> tupleColsMappedByAlias, RowMetaInterface outputRowMeta ) throws KettleException {
+  public List<Object[]> hbaseRowToKettleTupleMode( HBaseValueMetaInterfaceFactory hBaseValueMetaInterfaceFactory,
+                                                   Object result, Mapping mapping,
+                                                   Map<String, HBaseValueMetaInterface> tupleColsMappedByAlias,
+                                                   RowMetaInterface outputRowMeta ) throws KettleException {
 
-    if ( m_decodedTuples == null ) {
-      m_tupleColsFromAliasMap = new ArrayList<>();
+    if ( mDecodedTuples == null ) {
+      mTupleColsFromAliasMap = new ArrayList<>();
       // add the key first - type (or name for that matter)
       // is not important as this is just a dummy placeholder
       // here so that indexes into m_tupleColsFromAliasMap align with the output
@@ -129,59 +133,54 @@ public class HBaseRowToKettleTuple {
       // format
       HBaseValueMetaInterface keyMeta = hBaseValueMetaInterfaceFactory
         .createHBaseValueMetaInterface( null, mapping.getKeyName(), "dummy", ValueMetaInterface.TYPE_INTEGER, 0, 0 );
-      m_tupleColsFromAliasMap.add( keyMeta );
+      mTupleColsFromAliasMap.add( keyMeta );
 
-      for ( String alias : tupleColsMappedByAlias.keySet() ) {
-        m_tupleColsFromAliasMap.add( tupleColsMappedByAlias.get( alias ) );
+      for ( Map.Entry<String, HBaseValueMetaInterface> entry : tupleColsMappedByAlias.entrySet() ) {
+        mTupleColsFromAliasMap.add( tupleColsMappedByAlias.get( entry.getValue() ) );
       }
     }
 
-    return hbaseRowToKettleTupleMode( result, mapping, m_tupleColsFromAliasMap, outputRowMeta );
+    return hbaseRowToKettleTupleMode( result, mapping, mTupleColsFromAliasMap, outputRowMeta );
   }
 
   /**
    * Convert an HBase row to (potentially) multiple Kettle rows in tuple format.
-   * 
-   * @param admin
-   *          the HBaseAdmin instance to use
-   * @param mapping
-   *          the mapping information to use (must be a "tuple" mapping)
-   * @param tupleCols
-   *          the meta data for each of the tuple columns the user has opted to have output
-   * @param outputRowMeta
-   *          the outgoing Kettle row format
+   *
+   * @param mapping       the mapping information to use (must be a "tuple" mapping)
+   * @param tupleCols     the meta data for each of the tuple columns the user has opted to have output
+   * @param outputRowMeta the outgoing Kettle row format
    * @return a list of Kettle rows in tuple format
-   * @throws KettleException
-   *           if a problem occurs
+   * @throws KettleException if a problem occurs
    */
-  public List<Object[]> hbaseRowToKettleTupleMode( Result result, Mapping mapping,
-                                                   List<HBaseValueMetaInterface> tupleCols, RowMetaInterface outputRowMeta ) throws KettleException {
+  public List<Object[]> hbaseRowToKettleTupleMode( Object result, Mapping mapping,
+                                                   List<HBaseValueMetaInterface> tupleCols,
+                                                   RowMetaInterface outputRowMeta ) throws KettleException {
 
-    if ( m_decodedTuples == null ) {
-      m_decodedTuples = new ArrayList<>();
-      m_keyIndex = outputRowMeta.indexOfValue( mapping.getKeyName() );
-      m_familyIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.FAMILY.toString() );
-      m_colNameIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.COLUMN.toString() );
-      m_valueIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.VALUE.toString() );
-      m_timestampIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.TIMESTAMP.toString() );
+    if ( mDecodedTuples == null ) {
+      mDecodedTuples = new ArrayList<>();
+      mKeyIndex = outputRowMeta.indexOfValue( mapping.getKeyName() );
+      mFamilyIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.FAMILY.toString() );
+      mColNameIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.COLUMN.toString() );
+      mValueIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.VALUE.toString() );
+      mTimestampIndex = outputRowMeta.indexOfValue( Mapping.TupleMapping.TIMESTAMP.toString() );
 
       if ( !Const.isEmpty( mapping.getTupleFamilies() ) ) {
         String[] familiesS = mapping.getTupleFamiliesSplit();
-        m_userSpecifiedFamilies = new ArrayList<byte[]>();
-        m_userSpecifiedFamiliesHumanReadable = new ArrayList<String>();
+        mUserSpecifiedFamilies = new ArrayList<>();
+        mUserSpecifiedFamiliesHumanReadable = new ArrayList<>();
 
         for ( String family : familiesS ) {
-          m_userSpecifiedFamiliesHumanReadable.add( family );
-          m_userSpecifiedFamilies.add( m_bytesUtil.toBytes( family.trim() ) );
+          mUserSpecifiedFamiliesHumanReadable.add( family );
+          mUserSpecifiedFamilies.add( mBytesUtil.toBytes( family.trim() ) );
         }
       }
     } else {
-      m_decodedTuples.clear();
+      mDecodedTuples.clear();
     }
 
     byte[] rawKey = null;
     try {
-      rawKey = result.getRow();
+      rawKey = (byte[]) result.getClass().getMethod( "getRow" ).invoke( result );
     } catch ( Exception ex ) {
       throw new KettleException( ex );
     }
@@ -189,111 +188,113 @@ public class HBaseRowToKettleTuple {
 
     NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> rowData = null;
     try {
-      rowData = result.getMap();
+      rowData =
+        (NavigableMap<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>>) result.getClass().getMethod( "getMap" )
+          .invoke( result );
     } catch ( Exception ex ) {
       throw new KettleException( ex );
     }
 
     if ( !Const.isEmpty( mapping.getTupleFamilies() ) ) {
       int i = 0;
-      for ( byte[] family : m_userSpecifiedFamilies ) {
+      for ( byte[] family : mUserSpecifiedFamilies ) {
         NavigableMap<byte[], NavigableMap<Long, byte[]>> colMap = rowData.get( family );
-        for ( byte[] colName : colMap.keySet() ) {
-          NavigableMap<Long, byte[]> valuesByTimestamp = colMap.get( colName );
+        for ( Map.Entry<byte[], NavigableMap<Long, byte[]>> colMapEntry : colMap.entrySet() ) {
+          NavigableMap<Long, byte[]> valuesByTimestamp = colMapEntry.getValue();
 
           Object[] newTuple = RowDataUtil.allocateRowData( outputRowMeta.size() );
 
           // row key
-          if ( m_keyIndex != -1 ) {
-            newTuple[m_keyIndex] = decodedKey;
+          if ( mKeyIndex != -1 ) {
+            newTuple[ mKeyIndex ] = decodedKey;
           }
 
           // get value of most recent column value
           Map.Entry<Long, byte[]> mostRecentColVal = valuesByTimestamp.lastEntry();
 
           // store the timestamp
-          if ( m_timestampIndex != -1 ) {
-            newTuple[m_timestampIndex] = mostRecentColVal.getKey();
+          if ( mTimestampIndex != -1 ) {
+            newTuple[ mTimestampIndex ] = mostRecentColVal.getKey();
           }
 
           // column name
-          if ( m_colNameIndex != -1 ) {
-            HBaseValueMetaInterface colNameMeta = tupleCols.get( m_colNameIndex );
-            Object decodedColName = colNameMeta.decodeColumnValue( colName );
-            newTuple[m_colNameIndex] = decodedColName;
+          if ( mColNameIndex != -1 ) {
+            HBaseValueMetaInterface colNameMeta = tupleCols.get( mColNameIndex );
+            Object decodedColName = colNameMeta.decodeColumnValue( colMapEntry.getKey() );
+            newTuple[ mColNameIndex ] = decodedColName;
           }
 
           // column value
-          if ( m_valueIndex != -1 ) {
-            HBaseValueMetaInterface colValueMeta = tupleCols.get( m_valueIndex );
+          if ( mValueIndex != -1 ) {
+            HBaseValueMetaInterface colValueMeta = tupleCols.get( mValueIndex );
             Object decodedValue =
               colValueMeta.decodeColumnValue( mostRecentColVal.getValue() );
-            newTuple[m_valueIndex] = decodedValue;
+            newTuple[ mValueIndex ] = decodedValue;
           }
 
           // column family
-          if ( m_familyIndex != -1 ) {
-            newTuple[m_familyIndex] = m_userSpecifiedFamiliesHumanReadable.get( i );
+          if ( mFamilyIndex != -1 ) {
+            newTuple[ mFamilyIndex ] = mUserSpecifiedFamiliesHumanReadable.get( i );
           }
 
-          m_decodedTuples.add( newTuple );
+          mDecodedTuples.add( newTuple );
         }
         i++;
       }
     } else {
       // process all column families
-      for ( byte[] family : rowData.keySet() ) {
+      for ( Map.Entry<byte[], NavigableMap<byte[], NavigableMap<Long, byte[]>>> rowDataEntry : rowData.entrySet() ) {
 
         // column family
         Object decodedFamily = null;
-        if ( m_familyIndex != -1 ) {
-          HBaseValueMetaInterface colFamMeta = tupleCols.get( m_familyIndex );
-          decodedFamily = colFamMeta.decodeColumnValue( family );
+        if ( mFamilyIndex != -1 ) {
+          HBaseValueMetaInterface colFamMeta = tupleCols.get( mFamilyIndex );
+          decodedFamily = colFamMeta.decodeColumnValue( rowDataEntry.getKey() );
         }
 
-        NavigableMap<byte[], NavigableMap<Long, byte[]>> colMap = rowData.get( family );
-        for ( byte[] colName : colMap.keySet() ) {
-          NavigableMap<Long, byte[]> valuesByTimestamp = colMap.get( colName );
+        NavigableMap<byte[], NavigableMap<Long, byte[]>> colMap = rowDataEntry.getValue();
+        for ( Map.Entry<byte[], NavigableMap<Long, byte[]>> colMapEntry : colMap.entrySet() ) {
+          NavigableMap<Long, byte[]> valuesByTimestamp = colMapEntry.getValue();
 
           Object[] newTuple = RowDataUtil.allocateRowData( outputRowMeta.size() );
 
           // row key
-          if ( m_keyIndex != -1 ) {
-            newTuple[m_keyIndex] = decodedKey;
+          if ( mKeyIndex != -1 ) {
+            newTuple[ mKeyIndex ] = decodedKey;
           }
 
           // get value of most recent column value
           Map.Entry<Long, byte[]> mostRecentColVal = valuesByTimestamp.lastEntry();
 
           // store the timestamp
-          if ( m_timestampIndex != -1 ) {
-            newTuple[m_timestampIndex] = mostRecentColVal.getKey();
+          if ( mTimestampIndex != -1 ) {
+            newTuple[ mTimestampIndex ] = mostRecentColVal.getKey();
           }
 
           // column name
-          if ( m_colNameIndex != -1 ) {
-            HBaseValueMetaInterface colNameMeta = tupleCols.get( m_colNameIndex );
-            Object decodedColName = colNameMeta.decodeColumnValue( colName );
-            newTuple[m_colNameIndex] = decodedColName;
+          if ( mColNameIndex != -1 ) {
+            HBaseValueMetaInterface colNameMeta = tupleCols.get( mColNameIndex );
+            Object decodedColName = colNameMeta.decodeColumnValue( colMapEntry.getKey() );
+            newTuple[ mColNameIndex ] = decodedColName;
           }
 
           // column value
-          if ( m_valueIndex != -1 ) {
-            HBaseValueMetaInterface colValueMeta = tupleCols.get( m_valueIndex );
+          if ( mValueIndex != -1 ) {
+            HBaseValueMetaInterface colValueMeta = tupleCols.get( mValueIndex );
             Object decodedValue = colValueMeta.decodeColumnValue( mostRecentColVal.getValue() );
-            newTuple[m_valueIndex] = decodedValue;
+            newTuple[ mValueIndex ] = decodedValue;
           }
 
           // column family
-          if ( m_familyIndex != -1 ) {
-            newTuple[m_familyIndex] = decodedFamily;
+          if ( mFamilyIndex != -1 ) {
+            newTuple[ mFamilyIndex ] = decodedFamily;
           }
 
-          m_decodedTuples.add( newTuple );
+          mDecodedTuples.add( newTuple );
         }
       }
     }
 
-    return m_decodedTuples;
+    return mDecodedTuples;
   }
 }
