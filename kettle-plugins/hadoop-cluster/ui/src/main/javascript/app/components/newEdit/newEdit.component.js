@@ -253,7 +253,7 @@ define([
       vm.data.connectedToRepo = connectedToRepo;
       // should not be possible to get to this point w/o a cleansed name, but just to be safe
       vm.data.model.name = cleanseName(vm.data.model.name);
-      if (vm.data.model.oldName === vm.data.model.name) {
+      if (vm.data.model.oldName === vm.data.model.name && vm.data.type !== "duplicate") {
         create();
       } else {
         var promise = checkDuplicateName(vm.data.model.name);
