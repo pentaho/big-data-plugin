@@ -55,8 +55,6 @@
                 <include>org.eclipse.equinox:common</include>
                 <include>commons-cli:commons-cli</include>
                 <include>com.github.stephenc.high-scale-lib:high-scale-lib</include>
-                <include>org.apache.httpcomponents:httpclient</include>
-                <include>org.apache.httpcomponents:httpcore</include>
                 <include>org.codehaus.jackson:jackson-core-asl</include>
                 <include>org.codehaus.jackson:jackson-mapper-asl</include>
                 <include>net.java.dev.jets3t:jets3t</include>
