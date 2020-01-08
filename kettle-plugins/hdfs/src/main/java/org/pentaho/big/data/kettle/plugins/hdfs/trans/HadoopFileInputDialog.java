@@ -3101,7 +3101,7 @@ public class HadoopFileInputDialog extends BaseStepDialog implements StepDialogI
     log.logError( messageToLog );
     box.open();
   }
-  
+
   private InputStream getInputStream( HadoopFileInputMeta meta, FileInputList textFileList ) throws IOException {
 
     FileObject fileObject = textFileList.getFile( 0 );
