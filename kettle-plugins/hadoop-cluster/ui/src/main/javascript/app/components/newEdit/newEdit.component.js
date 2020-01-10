@@ -40,8 +40,7 @@ define([
 
     var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
 
-    //Characters not allowed by Windows OS
-    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|'];
+    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|', '%', '+', '#'];
     var notAllowedGlobalRegex = new RegExp("[" + notAllowedChars.join('') + "]", "g");
     notAllowedChars[0] = '\\'; //remove extra escape for the backslash char in the array
 
