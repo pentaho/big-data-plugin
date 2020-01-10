@@ -661,8 +661,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
       config.setProperty( KERBEROS_IMPERSONATION_PASS, model.getKerberosImpersonationPassword() );
-      if ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() )
-        && !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
+      if ( ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() )
+        && !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) )
+        || ( !StringUtil.isEmpty( model.getKerberosAuthenticationUsername() )
+        && !StringUtil.isEmpty( model.getKerberosAuthenticationPassword() ) ) ) {
         config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
       } else {
         config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
@@ -722,10 +724,15 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
       if ( keytabImpFile == null && StringUtil.isEmpty( model.getKeytabImpFile() ) ) {
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
-        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       } else if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, keytabImpersonationLocation );
+      }
+
+      if ( !StringUtil.isEmpty( (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION ) )
+        || !StringUtil.isEmpty( (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION ) ) ) {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.SIMPLE.getValue() );
+      } else {
+        config.setProperty( IMPERSONATION, IMPERSONATION_TYPE.DISABLED.getValue() );
       }
 
       config.save();

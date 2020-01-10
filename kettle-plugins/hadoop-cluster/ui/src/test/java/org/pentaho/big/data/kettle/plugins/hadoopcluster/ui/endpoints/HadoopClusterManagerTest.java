@@ -319,7 +319,7 @@ public class HadoopClusterManagerTest {
       config.getProperty( "pentaho.authentication.default.kerberos.keytabLocation" ) );
     assertEquals( "",
       config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation" ) );
-    assertEquals( "disabled", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
+    assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
 
     ThinNameClusterModel retrievingModel = hadoopClusterManager.getNamedCluster( ncTestName );
     assertEquals( "Kerberos", retrievingModel.getSecurityType() );
