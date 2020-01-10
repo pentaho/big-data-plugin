@@ -131,6 +131,7 @@ public class S3FileObject extends S3CommonFileObject {
     String keyWithDelimiter = newPath.getKey() + DELIMITER;
     try {
       s3Object = getS3Object( keyWithDelimiter, newPath.getValue() );
+      s3ObjectMetadata = s3Object.getObjectMetadata();
       injectType( FileType.FOLDER );
     } catch ( AmazonS3Exception e2 ) {
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest()

@@ -228,6 +228,7 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
     String keyWithDelimiter = key + DELIMITER;
     try {
       s3Object = getS3Object( keyWithDelimiter, bucket );
+      s3ObjectMetadata = s3Object.getObjectMetadata();
       injectType( FileType.FOLDER );
       this.key = keyWithDelimiter;
     } catch ( AmazonS3Exception e2 ) {
