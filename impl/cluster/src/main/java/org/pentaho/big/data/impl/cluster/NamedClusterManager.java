@@ -31,6 +31,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
@@ -342,7 +343,10 @@ public class NamedClusterManager implements NamedClusterService {
       slaveMetastoreDir =
         KettleVFS.getFileObject( slaveMetaStorePath + File.separator + XmlUtil.META_FOLDER_NAME );
       if ( null != slaveMetastoreDir && slaveMetastoreDir.exists()
-        && slaveMetastoreDir.getType().equals( FileType.FOLDER ) ) {
+        && slaveMetastoreDir.getType().equals( FileType.FOLDER )
+        // last condition exists to ensure that this path doesn't get used if two jobs are running on a slave instance
+        // at once, and one of them is packaging up the install for a yarn carte job
+        && KettleClientEnvironment.getInstance().getClient().equals( KettleClientEnvironment.ClientType.CARTE ) ) {
         return slaveMetaStorePath;
       } else {
         return null;
