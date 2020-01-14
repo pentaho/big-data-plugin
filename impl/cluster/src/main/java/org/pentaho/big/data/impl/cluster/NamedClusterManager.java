@@ -348,10 +348,17 @@ public class NamedClusterManager implements NamedClusterService {
         // at once, and one of them is packaging up the install for a yarn carte job
         && KettleClientEnvironment.getInstance().getClient().equals( KettleClientEnvironment.ClientType.CARTE ) ) {
         return slaveMetaStorePath;
+      }
+
+      slaveMetaStorePath = System.getProperty( "user.home" ) + File.separator + ".pentaho";
+      slaveMetastoreDir =
+        KettleVFS.getFileObject( slaveMetaStorePath );
+      if ( null != slaveMetastoreDir && slaveMetastoreDir.exists()
+        && slaveMetastoreDir.getType().equals( FileType.FOLDER ) ) {
+        return slaveMetaStorePath;
       } else {
         return null;
       }
-
     } catch ( KettleFileException | NullPointerException e ) {
       log.logError( BaseMessages.getString( PKG, "NamedClusterManager.ErrorFindingUserMetastore" ), e );
       throw new IOException( e );
