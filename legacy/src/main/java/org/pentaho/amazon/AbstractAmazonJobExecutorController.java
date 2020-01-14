@@ -39,11 +39,9 @@ import org.pentaho.amazon.client.ClientType;
 import org.pentaho.amazon.client.api.AimClient;
 import org.pentaho.amazon.client.api.PricingClient;
 import org.pentaho.amazon.s3.S3VfsFileChooserHelper;
-import org.pentaho.di.connections.vfs.provider.ConnectionFileProvider;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.plugins.JobEntryPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -55,14 +53,7 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.entry.JobEntryInterface;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.database.dialog.tags.ExtTextbox;
-import org.pentaho.di.ui.core.events.dialog.ConnectionFilterType;
-import org.pentaho.di.ui.core.events.dialog.FilterType;
-import org.pentaho.di.ui.core.events.dialog.ProviderFilterType;
-import org.pentaho.di.ui.core.events.dialog.SelectionAdapterFileDialogTextVar;
-import org.pentaho.di.ui.core.events.dialog.SelectionAdapterOptions;
-import org.pentaho.di.ui.core.events.dialog.SelectionOperation;
 import org.pentaho.di.ui.core.gui.WindowProperty;
-import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.s3.vfs.S3FileProvider;
@@ -93,7 +84,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractAmazonJobExecutorController extends AbstractXulEventHandler {
 
   private static final Class<?> PKG = AbstractAmazonJobExecutorController.class;
-  private LogChannel log;
 
   /* property change names */
   public static final String JOB_ENTRY_NAME = "jobEntryName";
@@ -201,7 +191,6 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.jobEntry = jobEntry;
     this.container = container;
     this.bindingFactory = bindingFactory;
-    log = new LogChannel( this.jobEntry );
 
     regions = new AbstractModelList<>();
     ec2Roles = new AbstractModelList<>();
@@ -750,10 +739,10 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     }
 
     String s3Protocol = S3FileProvider.SCHEME + "://";
-    String pvfsProtocol = ConnectionFileProvider.SCHEME + "://";
     String sdir = getVariableSpace().environmentSubstitute( stagingDir );
-    if ( StringUtil.isEmpty( getStagingDir() )
-      || ( !sdir.startsWith( s3Protocol ) && !sdir.startsWith( pvfsProtocol ) ) ) {
+    if ( StringUtil.isEmpty( getStagingDir() ) ) {
+      warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) );
+    } else if ( !sdir.startsWith( s3Protocol ) ) {
       warnings.add( BaseMessages.getString( PKG, "AbstractAmazonJobExecutorController.StagingDir.Error" ) );
     }
 
@@ -1165,19 +1154,17 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     return getFileChooserHelper().browse( fileFilters, fileFilterNames, fileUri, opts, fileDialogMode );
   }
 
-  public void browseS3StagingDir() {
-    SelectionAdapterOptions options = new SelectionAdapterOptions( SelectionOperation.FOLDER,
-      new FilterType[] { FilterType.ALL }, FilterType.ALL,
-      new ProviderFilterType[] { ProviderFilterType.LOCAL, ProviderFilterType.VFS } );
-    options.getConnectionFilters().add( ConnectionFilterType.S3 );
-    TextVar textVar = ( (ExtTextbox) container.getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY ) ).extText;
-    SelectionAdapterFileDialogTextVar selectionAdapterFileDialogTextVar =
-      new SelectionAdapterFileDialogTextVar( log, textVar, getJobEntry().getParentJobMeta(), options );
+  public void browseS3StagingDir() throws KettleException, FileSystemException {
+    String[] fileFilters = new String[] { "*.*" };
+    String[] fileFilterNames = new String[] { "All" };
 
-    selectionAdapterFileDialogTextVar.widgetSelected( null );
-    String file = textVar.getText();
-    if ( file != null ) {
-      setStagingDir( file );
+    String stagingDirText = getVariableSpace().environmentSubstitute( stagingDir );
+    FileSystemOptions opts = getFileSystemOptions();
+
+    FileObject selectedFile = browse( fileFilters, fileFilterNames, stagingDirText, opts );
+
+    if ( selectedFile != null ) {
+      setStagingDir( selectedFile.getName().getURI() );
     }
   }
 
