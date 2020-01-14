@@ -67,7 +67,6 @@
     <publish-sonar-phase></publish-sonar-phase>
     <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.junit.revision>4.11</dependency.junit.revision>
-    <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
     <pentaho-osgi-bundles.version>${project.version}</pentaho-osgi-bundles.version>
     <pdi-osgi-bridge.version>${project.version}</pdi-osgi-bridge.version>
     <dependency.jline.revision>0.9.94</dependency.jline.revision>
@@ -95,7 +94,6 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>${dependency.maven-bundle-plugin.version}</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
