@@ -21,7 +21,6 @@
     <dependency.org.powermock.version>1.6.0</dependency.org.powermock.version>
     <dependency.com.tinkerpop.frames.version>2.5.0</dependency.com.tinkerpop.frames.version>
     <dependency.com.tinkerpop.blueprints.version>2.6.0</dependency.com.tinkerpop.blueprints.version>
-    <dependency.mockito.version>1.9.5-rc1</dependency.mockito.version>
     <osgi.version>5.0.0</osgi.version>
   </properties>
   <dependencies>
@@ -82,7 +81,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${dependency.mockito.version}</version>
+      <version>${dependency.mockito.revision}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -118,19 +117,16 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-core</artifactId>
-      <version>${dependency.org.powermock.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
-      <version>${dependency.org.powermock.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
-      <version>${dependency.org.powermock.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
