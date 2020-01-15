@@ -40,8 +40,7 @@ define([
 
     var connectedToRepo = ($stateParams.data && $stateParams.data.connectedToRepo) || $location.search().connectedToRepo === 'true';
 
-    //Characters not allowed by Windows OS
-    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|'];
+    var notAllowedChars = ['\\\\', '/', '*', ':', '?', '"', '<', '>', '|', '%', '+', '#'];
     var notAllowedGlobalRegex = new RegExp("[" + notAllowedChars.join('') + "]", "g");
     notAllowedChars[0] = '\\'; //remove extra escape for the backslash char in the array
 
@@ -99,7 +98,6 @@ define([
               vm.data.type = "duplicate";
             }
             loadShimDropDowns();
-            setDefaultPorts();
           });
         } else if (vm.data.model && vm.data.model.name) {
           //When an import is created and then edited - it is converted to an edit
@@ -112,12 +110,10 @@ define([
               vm.data.model = res.data;
               vm.data.model.oldName = vm.data.model.name;
               loadShimDropDowns();
-              setDefaultPorts();
             });
           } else {
             //Most of the data already exists in the model
             loadShimDropDowns();
-            setDefaultPorts();
             vm.siteFiles = fileService.getFiles();
           }
         } else {
@@ -162,18 +158,6 @@ define([
           gatewayPassword: ""
         }
       };
-    }
-
-    function setDefaultPorts() {
-      if (!vm.data.model.hdfsPort || vm.data.model.hdfsPort === "") {
-        vm.data.model.hdfsPort = "8020";
-      }
-      if (!vm.data.model.jobTrackerPort || vm.data.model.jobTrackerPort === "") {
-        vm.data.model.jobTrackerPort = "8032";
-      }
-      if (!vm.data.model.zooKeeperPort || vm.data.model.zooKeeperPort === "") {
-        vm.data.model.zooKeeperPort = "2181";
-      }
     }
 
     function loadShimDropDowns() {
@@ -253,7 +237,7 @@ define([
       vm.data.connectedToRepo = connectedToRepo;
       // should not be possible to get to this point w/o a cleansed name, but just to be safe
       vm.data.model.name = cleanseName(vm.data.model.name);
-      if (vm.data.model.oldName === vm.data.model.name) {
+      if (vm.data.model.oldName === vm.data.model.name && vm.data.type !== "duplicate") {
         create();
       } else {
         var promise = checkDuplicateName(vm.data.model.name);
@@ -288,11 +272,8 @@ define([
           class: "primary",
           isDisabled: function () {
             return (!vm.data.model || !vm.data.model.name) ||
-              !((vm.data.model.hdfsHost && vm.data.model.hdfsPort) ||
-                (vm.data.model.jobTrackerHost && vm.data.model.jobTrackerPort) ||
-                (vm.data.model.zooKeeperHost && vm.data.model.zooKeeperPort) ||
-                vm.data.model.oozieUrl ||
-                vm.data.model.kafkaBootstrapServers);
+              !(vm.data.model.hdfsHost || vm.data.model.jobTrackerHost || vm.data.model.zooKeeperHost ||
+                vm.data.model.oozieUrl || vm.data.model.kafkaBootstrapServers);
           },
           position: "right",
           onClick: next

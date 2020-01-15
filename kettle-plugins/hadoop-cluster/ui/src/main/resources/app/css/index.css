@@ -8,6 +8,22 @@ body {
   margin: 0;
 }
 
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+}
+
+::-webkit-scrollbar {
+  background-color: white;
+}
+
+
+
+
 .main_div {
   padding: 30px;
   min-width: 545px;
