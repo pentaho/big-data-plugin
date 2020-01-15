@@ -78,10 +78,6 @@ public class HadoopClusterEndpoints {
     }
   }
 
-  public static final String
-    HELP_URL =
-    Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
-
   public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
                                  RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
     this.namedClusterService = namedClusterService;
@@ -122,16 +118,6 @@ public class HadoopClusterEndpoints {
     ) {
       files.add( fileItem );
     }
-  }
-
-  @GET
-  @Path( "/help" )
-  public Response help() {
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () -> HelpUtils
-      .openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
-        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ), HELP_URL,
-        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
-    return Response.ok().build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster

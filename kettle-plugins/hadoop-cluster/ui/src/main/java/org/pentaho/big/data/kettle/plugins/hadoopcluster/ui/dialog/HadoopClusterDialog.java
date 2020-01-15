@@ -31,6 +31,7 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.dialog.ThinDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.util.HelpUtils;
 import org.pentaho.platform.settings.ServerPort;
 import org.pentaho.platform.settings.ServerPortRegistry;
 
@@ -83,6 +84,13 @@ public class HadoopClusterDialog extends ThinDialog {
     log.logDebug( "Thin endpoint URL:  " + endpointURL );
     super.createDialog( title, endpointURL, OPTIONS, LOGO );
     super.dialog.setMinimumSize( 640, 630 );
+
+    new BrowserFunction( browser, "open" ) {
+      @Override public Object function( Object[] arguments ) {
+        HelpUtils.openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),"", (String) arguments[ 0 ], "" );
+        return true;
+      }
+    };
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {

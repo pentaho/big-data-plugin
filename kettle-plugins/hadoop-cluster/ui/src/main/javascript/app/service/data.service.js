@@ -45,7 +45,6 @@ define(
     function factory(helperService) {
       var baseUrl = "../../cxf/hadoop-cluster";
       return {
-        help: help,
         importNamedCluster: importNamedCluster,
         createNamedCluster: createNamedCluster,
         editNamedCluster: editNamedCluster,
@@ -56,10 +55,6 @@ define(
         installDriver: installDriver,
         getSecure: getSecure
       };
-
-      function help() {
-        return helperService.httpGet([baseUrl, "help"].join("/"));
-      }
 
       function createNamedCluster(data) {
         return helperService.httpPostMultipart([baseUrl, "createNamedCluster"].join("/"), data);
