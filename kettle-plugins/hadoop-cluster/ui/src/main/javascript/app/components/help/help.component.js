@@ -22,7 +22,9 @@ define([
   'use strict';
 
   var options = {
-    bindings: {},
+    bindings: {
+      link: "<"
+    },
     controllerAs: "vm",
     template: template,
     controller: helpController
@@ -33,7 +35,7 @@ define([
   function helpController(dataService) {
     var vm = this;
     vm.$onInit = onInit;
-    vm.click = click;
+    vm.openLink = openLink;
 
     /**
      * The $onInit hook of components lifecycle which is called on each controller
@@ -44,8 +46,8 @@ define([
       vm.helpLabel = i18n.get('help.helpLabel');
     }
 
-    function click() {
-      dataService.help();
+    function openLink() {
+      open(vm.link ,'','height=600,width=800,scrollbars=yes,toolbar=no,status=no,menubar=no,location=no,resizable=yes');
     }
   }
 

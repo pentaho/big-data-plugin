@@ -28,10 +28,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.json.simple.JSONObject;
-import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
-import org.pentaho.di.core.Const;
-import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -51,11 +48,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.pentaho.di.ui.util.HelpUtils;
-
 public class HadoopClusterEndpoints {
 
-  private static final Class<?> PKG = HadoopClusterDialog.class;
   private final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private final NamedClusterService namedClusterService;
   private final MetastoreLocator metastoreLocator;
@@ -77,10 +71,6 @@ public class HadoopClusterEndpoints {
       return this.val;
     }
   }
-
-  public static final String
-    HELP_URL =
-    Const.getDocUrl( BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Help" ) );
 
   public HadoopClusterEndpoints( MetastoreLocator metastoreLocator, NamedClusterService namedClusterService,
                                  RuntimeTester runtimeTester, String internalShim, boolean secureEnabled ) {
@@ -122,16 +112,6 @@ public class HadoopClusterEndpoints {
     ) {
       files.add( fileItem );
     }
-  }
-
-  @GET
-  @Path( "/help" )
-  public Response help() {
-    spoonSupplier.get().getShell().getDisplay().asyncExec( () -> HelpUtils
-      .openHelpDialog( spoonSupplier.get().getDisplay().getActiveShell(),
-        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Title" ), HELP_URL,
-        BaseMessages.getString( PKG, "HadoopCluster.help.dialog.Header" ) ) );
-    return Response.ok().build();
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster

@@ -57,6 +57,7 @@ define([
 
       vm.keytabAuthPathLabel = i18n.get('kerberos.keytab.auth.path.label');
       vm.keytabImpersonatePathLabel = i18n.get('kerberos.keytab.impersonate.path.label');
+      vm.helpLink = i18n.get('kerberos.help');
 
       if (!vm.data.model.kerberosSubType) {
         vm.data.model.kerberosSubType = vm.kerberosSubTypes.PASSWORD;
