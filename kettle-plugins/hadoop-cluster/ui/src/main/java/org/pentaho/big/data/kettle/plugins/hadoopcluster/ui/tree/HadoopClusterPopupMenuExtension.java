@@ -70,8 +70,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   private static final int RESULT_YES = 0;
 
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
-  private Menu rootMenu;
-  private Menu itemMenu;
   private HadoopClusterDelegate hadoopClusterDelegate;
   private NamedClusterService namedClusterService;
   private String internalShim;
@@ -119,14 +117,13 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
     if ( !showAdminFunctions() ) {
       return null;
     }
+    Menu rootMenu = null;
     if ( rootMenu == null ) {
       rootMenu = new Menu( tree );
       createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.New" ),
         NEW_EDIT_STATE );
       createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
         IMPORT_STATE );
-      createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Add.Driver" ),
-        ADD_DRIVER_STATE );
     }
     return rootMenu;
   }
@@ -134,6 +131,7 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
   public Menu createMaintPopupMenu( final Tree selectionTree, NamedCluster namedCluster ) {
     // don't create another menu if the current one is for this namedCluster,
     // otherwise we can see extra pop-up menus.
+    Menu itemMenu = null;
     if ( itemMenu == null || !namedCluster.equals( this.lastNamedCluster ) ) {
       this.lastNamedCluster = namedCluster;
       itemMenu = new Menu( selectionTree );

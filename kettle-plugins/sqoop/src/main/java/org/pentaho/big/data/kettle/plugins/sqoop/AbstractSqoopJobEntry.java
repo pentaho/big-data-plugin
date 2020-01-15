@@ -61,6 +61,7 @@ import org.pentaho.platform.api.util.LogUtil;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.action.RuntimeTestActionService;
+import org.slf4j.MDC;
 import org.w3c.dom.Node;
 
 import java.nio.charset.StandardCharsets;

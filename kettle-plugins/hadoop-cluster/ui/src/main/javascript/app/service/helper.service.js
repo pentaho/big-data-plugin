@@ -177,6 +177,8 @@ define(
         } else {
           url += "?v=" + value;
         }
+        var cid = getConnectionId();
+        url += "&cid=" + cid;
         return url;
       }
     }

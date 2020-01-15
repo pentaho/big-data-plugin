@@ -56,7 +56,7 @@ define([
 
     function onBodyClick() {
       $scope.$apply(function () {
-        vm.isShowOptions = false;
+        vm.isShowOptions = !vm.isShowOptions;
       });
     }
 
@@ -67,8 +67,10 @@ define([
 
     function selectOption(option) {
       vm.selectedValue = option;
-      vm.isShowOptions = false;
       vm.onSelect({value: option});
+      $scope.$apply(function () {
+          vm.isShowOptions = !vm.isShowOptions;
+        });
     }
 
   function keyDownOnCurrentValue($event) {
@@ -82,6 +84,30 @@ define([
         }
       }
     }
+
+  function keyDownOnCurrentValue($event) {
+    var mainInput = $event.target
+    if ($event.which == 13 || $event.keyCode == 13) {
+      vm.toggleOptions($event);
+      if (vm.isShowOptions) {
+        for (var i = 0; i < vm.options.length; i++) {
+          if (vm.options[i] === vm.selectedValue) {
+          }
+        }
+      }
+    }
+  }
+
+  function keyDownOnOption($event) {
+    var optionSelected = $event.target
+    if ($event.which == 13 || $event.keyCode == 13) {
+      selectOption(optionSelected.textContent)
+      return false;
+    }
+    return true;
+  }
+
+
   }
 
   function keyDownOnOption($event) {

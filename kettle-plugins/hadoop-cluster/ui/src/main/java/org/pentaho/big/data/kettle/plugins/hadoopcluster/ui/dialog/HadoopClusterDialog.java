@@ -46,7 +46,6 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.Had
 
 public class HadoopClusterDialog extends ThinDialog {
 
-  private static final Image LOGO = GUIResource.getInstance().getImageLogoSmall();
   private static final String OSGI_SERVICE_PORT = "OSGI_SERVICE_PORT";
   private static final int OPTIONS = SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX;
   private static final String THIN_CLIENT_HOST = "THIN_CLIENT_HOST";
@@ -82,7 +81,7 @@ public class HadoopClusterDialog extends ThinDialog {
     clientPath.append( paramString );
     String endpointURL = getEndpointURL( clientPath.toString() );
     log.logDebug( "Thin endpoint URL:  " + endpointURL );
-    super.createDialog( title, endpointURL, OPTIONS, LOGO );
+    super.createDialog( title, endpointURL, OPTIONS, GUIResource.getInstance().getImageLogoSmall() );
     super.dialog.setMinimumSize( 640, 630 );
 
     new BrowserFunction( browser, "open" ) {
@@ -94,16 +93,22 @@ public class HadoopClusterDialog extends ThinDialog {
 
     new BrowserFunction( browser, "close" ) {
       @Override public Object function( Object[] arguments ) {
-        browser.dispose();
-        dialog.close();
-        dialog.dispose();
+        Runnable execute = () -> {
+          browser.dispose();
+          dialog.close();
+          dialog.dispose();
+        };
+        display.asyncExec( execute );
         return true;
       }
     };
 
     new BrowserFunction( browser, "setTitle" ) {
       @Override public Object function( Object[] arguments ) {
-        dialog.setText( (String) arguments[ 0 ] );
+        Runnable execute = () -> {
+          dialog.setText( (String) arguments[ 0 ] );
+        };
+        display.asyncExec( execute );
         return true;
       }
     };
@@ -145,16 +150,7 @@ public class HadoopClusterDialog extends ThinDialog {
         .orElseThrow( () -> new IllegalStateException( "Repo URI not defined" ) )
         .toString() + "/osgi" + path;
     }
-    String host;
-    int port;
-    try {
-      host = getKettleProperty( THIN_CLIENT_HOST );
-      port = Integer.parseInt( getKettleProperty( THIN_CLIENT_PORT ) );
-    } catch ( Exception e ) {
-      host = LOCALHOST;
-      port = getOsgiServicePort();
-    }
-    return "http://" + host + ":" + port + path;
+    return System.getProperty( "KETTLE_CONTEXT_PATH", "" ) + "/osgi" + path;
   }
 
   private boolean connectedToRepo() {
