@@ -23,7 +23,8 @@ define([
 
   var options = {
     bindings: {
-      buttons: "<"
+      buttons: "<",
+      helpLink: "<"
     },
     controllerAs: "vm",
     template: template,
