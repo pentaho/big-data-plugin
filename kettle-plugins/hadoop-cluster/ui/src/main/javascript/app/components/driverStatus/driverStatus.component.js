@@ -45,6 +45,7 @@ define([
       vm.overallStatusImage = vm.getStatusImage(vm.overallStatus);
       vm.overallStatusHeader = i18n.get('driver.status.header.' + vm.overallStatus);
       vm.overallStatusDescription = i18n.get('driver.status.description.' + vm.overallStatus);
+      vm.helpLink = i18n.get('driver.status.help');
 
       vm.buttons = getButtons();
     }

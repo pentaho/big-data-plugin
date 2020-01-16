@@ -35,6 +35,7 @@ define([
     var vm = this;
     vm.$onInit = onInit;
     vm.title = i18n.get('test.results.title');
+    vm.helpLink = i18n.get('test.results.help');
 
     function onInit() {
       vm.data = $stateParams.data ? $stateParams.data : {};
