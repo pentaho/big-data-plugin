@@ -68,6 +68,7 @@ define([
       vm.bootstrapServerLabel = i18n.get('new.edit.bootstrap.server.label');
       vm.dialogTitle = i18n.get('hadoop.cluster.overwrite.title');
       vm.dialogMessage = i18n.get('hadoop.cluster.overwrite.message');
+      vm.helpLink = i18n.get('new.edit.help');
 
       vm.onNameChange = onNameChange;
       vm.onNameKeyDown = onNameKeyDown;

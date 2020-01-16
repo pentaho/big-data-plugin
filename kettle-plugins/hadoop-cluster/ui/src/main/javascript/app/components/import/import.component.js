@@ -58,6 +58,7 @@ define([
       vm.hdfsLabel = i18n.get('hadoop.cluster.hdfs.label');
       vm.dialogTitle = i18n.get('hadoop.cluster.overwrite.title');
       vm.dialogMessage = i18n.get('hadoop.cluster.overwrite.message');
+      vm.helpLink = i18n.get('import.help');
 
       vm.onNameChange = onNameChange;
       vm.onNameKeyDown = onNameKeyDown;
