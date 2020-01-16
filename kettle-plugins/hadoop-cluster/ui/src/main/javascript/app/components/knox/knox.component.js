@@ -41,6 +41,7 @@ define([
       vm.gatewayUrlLabel = i18n.get('knox.gateway.url.label');
       vm.gatewayUsernameLabel = i18n.get('knox.gateway.username.label');
       vm.gatewayPasswordLabel = i18n.get('knox.gateway.password.label');
+      vm.helpLink = i18n.get('knox.help');
 
       vm.buttons = getButtons();
     }
