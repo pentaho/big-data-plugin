@@ -202,7 +202,8 @@ define([
           label: i18n.get('controls.next.label'),
           class: "primary",
           isDisabled: function () {
-            return !vm.data.model || !vm.data.model.name || !vm.siteFiles;
+            return !vm.data.model || !vm.data.model.name || !vm.siteFiles  || vm.siteFiles.length === 0 ||
+              !(vm.data.model.shimVendor && vm.data.model.shimVersion);
           },
           position: "right",
           onClick: next
