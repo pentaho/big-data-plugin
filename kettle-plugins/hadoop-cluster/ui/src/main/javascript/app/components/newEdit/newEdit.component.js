@@ -274,7 +274,8 @@ define([
           isDisabled: function () {
             return (!vm.data.model || !vm.data.model.name) ||
               !(vm.data.model.hdfsHost || vm.data.model.jobTrackerHost || vm.data.model.zooKeeperHost ||
-                vm.data.model.oozieUrl || vm.data.model.kafkaBootstrapServers);
+                vm.data.model.oozieUrl || vm.data.model.kafkaBootstrapServers) ||
+              !(vm.data.model.shimVendor && vm.data.model.shimVersion);
           },
           position: "right",
           onClick: next
