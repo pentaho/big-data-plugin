@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -82,7 +82,7 @@ import static org.pentaho.di.core.CheckResult.TYPE_RESULT_WARNING;
 @Step( id = "HBaseRowDecoder", image = "HBRD.svg", name = "HBaseRowDecoder.Name",
     description = "HBaseRowDecoder.Description",
     categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.BigData",
-    documentationUrl = "http://wiki.pentaho.com/display/EAI/HBase+Row+Decoder",
+    documentationUrl = "Products/HBase_Row_Decoder",
     i18nPackageName = "org.pentaho.di.trans.steps.hbaserowdecoder" )
 @InjectionSupported( localizationPrefix = "HBaseRowDecoder.Injection.", groups = { "MAPPING" } )
 public class HBaseRowDecoderMeta extends BaseStepMeta implements StepMetaInterface {
