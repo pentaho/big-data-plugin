@@ -1056,7 +1056,6 @@
                   <artifactId>pmr</artifactId>
                   <type>zip</type>
                   <outputDirectory>target/dependencies/karaf</outputDirectory>
-                  <excludes>system/org/pentaho/hadoop/shims/</excludes>
                 </artifactItem>
               </artifactItems>
             </configuration>
