@@ -72,6 +72,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -772,9 +773,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
    * @return shim identifiers, excluding the internal shim, which should not be exposed to the cluster ui.
    */
   List<ShimIdentifierInterface> getShimIdentifiers() {
-    return shimIdentifiersSupplier.get().stream()
+    List<ShimIdentifierInterface> shims = shimIdentifiersSupplier.get().stream()
       .filter( s -> !internalShim.equals( s.getId() ) )
       .collect( Collectors.toList() );
+    shims.sort( Comparator.comparing( ShimIdentifierInterface::getVendor ) );
+    return shims;
   }
 
   public Object runTests( RuntimeTester runtimeTester, String namedCluster ) {
