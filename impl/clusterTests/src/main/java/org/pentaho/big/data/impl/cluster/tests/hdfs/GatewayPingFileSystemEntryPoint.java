@@ -59,7 +59,7 @@ public class GatewayPingFileSystemEntryPoint extends PingFileSystemEntryPointTes
         connectivityTestFactory.create( messageGetterFactory,
           variables.environmentSubstitute( namedCluster.getGatewayUrl() ), TEST_PATH,
           variables.environmentSubstitute( namedCluster.getGatewayUsername() ),
-          variables.environmentSubstitute( namedCluster.getGatewayPassword() ) )
+          variables.environmentSubstitute( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) )
           .runTest(), ClusterRuntimeTestEntry.DocAnchor.CLUSTER_CONNECT_GATEWAY ) );
     }
   }

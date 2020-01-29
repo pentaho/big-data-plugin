@@ -79,7 +79,7 @@ public class NamedClusterManager {
       clusterTemplate.setHdfsHost( "localhost" );
       clusterTemplate.setHdfsPort( "8020" );
       clusterTemplate.setHdfsUsername( "user" );
-      clusterTemplate.setHdfsPassword( "password" );
+      clusterTemplate.setHdfsPassword( clusterTemplate.encodePassword( "password" ) );
       clusterTemplate.setJobTrackerHost( "localhost" );
       clusterTemplate.setJobTrackerPort( "8032" );
       clusterTemplate.setZooKeeperHost( "localhost" );

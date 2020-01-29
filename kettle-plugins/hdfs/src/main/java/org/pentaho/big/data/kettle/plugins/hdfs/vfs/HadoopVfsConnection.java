@@ -88,7 +88,7 @@ public class HadoopVfsConnection {
       hostname = nCluster.getHdfsHost() != null ? nCluster.getHdfsHost() : EMPTY;
       port = nCluster.getHdfsPort() != null ? nCluster.getHdfsPort() : EMPTY;
       username = nCluster.getHdfsUsername() != null ? nCluster.getHdfsUsername() : EMPTY;
-      password = nCluster.getHdfsPassword() != null ? nCluster.getHdfsPassword() : EMPTY;
+      password = nCluster.getHdfsPassword() != null ? nCluster.decodePassword( nCluster.getHdfsPassword() ) : EMPTY;
 
       hostname = vs.environmentSubstitute( hostname );
       port = vs.environmentSubstitute( port );

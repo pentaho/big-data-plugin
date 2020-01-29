@@ -499,11 +499,11 @@ public class NamedClusterComposite extends Composite {
     // hdfs password input
     Callback hdfsPasswordCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
-        nc.setHdfsPassword( value );
+        nc.setHdfsPassword( nc.encodePassword( value ) );
       }
     };
     hdfsPasswordText =
-      createTextVar( c, passwordUIComposite, c.getHdfsPassword(), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
+      createTextVar( c, passwordUIComposite, c.decodePassword( c.getHdfsPassword() ), passwordGridData, PASSWORD_FLAGS, hdfsPasswordCB );
   }
 
   private void createJobTrackerGroup( Composite parentComposite, final NamedCluster c ) {
@@ -642,11 +642,11 @@ public class NamedClusterComposite extends Composite {
     // gateway password input
     Callback gatewayPasswordCB = new Callback() {
       public void invoke( NamedCluster nc, TextVar textVar, String value ) {
-        nc.setGatewayPassword( value );
+        nc.setGatewayPassword( nc.encodePassword( value ) );
         stateChanged();
       }
     };
-    createTextVar( c, passwordUIComposite, c.getGatewayPassword(), passwordGridData, PASSWORD_FLAGS,
+    createTextVar( c, passwordUIComposite, c.decodePassword( c.getGatewayPassword() ), passwordGridData, PASSWORD_FLAGS,
       gatewayPasswordCB );
   }
 

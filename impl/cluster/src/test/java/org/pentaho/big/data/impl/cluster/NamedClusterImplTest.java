@@ -21,6 +21,9 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
@@ -29,15 +32,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.pentaho.di.core.encryption.Encr;
+import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
+import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEqualsFor;
@@ -88,6 +97,9 @@ public class NamedClusterImplTest {
 
   @Before
   public void setup() throws Exception {
+    PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
+    PluginRegistry.init( false );
+    Encr.init( "Kettle" );
     mockStatic( VFS.class );
     mockStatic( UriParser.class );
     spy( UriParser.class );
@@ -114,7 +126,7 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsHost( namedClusterHdfsHost );
     namedCluster.setHdfsPort( namedClusterHdfsPort );
     namedCluster.setHdfsUsername( namedClusterHdfsUsername );
-    namedCluster.setHdfsPassword( namedClusterHdfsPassword );
+    namedCluster.setHdfsPassword( namedCluster.encodePassword( namedClusterHdfsPassword ) );
     namedCluster.setJobTrackerHost( namedClusterJobTrackerHost );
     namedCluster.setJobTrackerPort( namedClusterJobTrackerPort );
     namedCluster.setZooKeeperHost( namedClusterZookeeperHost );
@@ -144,7 +156,7 @@ public class NamedClusterImplTest {
     assertEquals( namedClusterHdfsHost, newNamedCluster.getHdfsHost() );
     assertEquals( namedClusterHdfsPort, newNamedCluster.getHdfsPort() );
     assertEquals( namedClusterHdfsUsername, newNamedCluster.getHdfsUsername() );
-    assertEquals( namedClusterHdfsPassword, newNamedCluster.getHdfsPassword() );
+    assertEquals( namedClusterHdfsPassword, newNamedCluster.decodePassword( newNamedCluster.getHdfsPassword() ) );
     assertEquals( namedClusterJobTrackerHost, newNamedCluster.getJobTrackerHost() );
     assertEquals( namedClusterJobTrackerPort, newNamedCluster.getJobTrackerPort() );
     assertEquals( namedClusterZookeeperHost, newNamedCluster.getZooKeeperHost() );
@@ -289,8 +301,8 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsHost( " " + testHost + " " );
     namedCluster.setHdfsPort( " " + testPort + " " );
     namedCluster.setHdfsUsername( " " + testUsername + " " );
-    namedCluster.setHdfsPassword( " " + testPassword + " " );
-    buildAppendEncodedUserPassMocks( testUsername, testPassword );
+    namedCluster.setHdfsPassword( namedCluster.encodePassword( testPassword ) );
+    buildAppendEncodedUserPassMocks( testUsername, namedCluster.encodePassword( testPassword ) );
     assertEquals( scheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
       namedCluster.generateURL( scheme, metaStore, null ) );
   }
@@ -552,16 +564,44 @@ public class NamedClusterImplTest {
 
   @Test
   public void testXMLEmbedding() throws Exception {
-    String clusterXml = namedCluster.toXmlForEmbed( "NamedCluster" );
-    System.out.println( clusterXml );
-
-    Element node =
-      DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-        new ByteArrayInputStream( clusterXml.getBytes() ) )
-        .getDocumentElement();
+    Element node = createNodeFromNamedCluster();
 
     NamedCluster nc = new NamedClusterImpl();
     nc = nc.fromXmlForEmbed( node );
+
+    assertNamedClusterEquality( nc );
+  }
+
+  @Test
+  public void testLegacyXMLEmbedding() throws Exception {
+    Element node = createNodeFromNamedCluster();
+
+    XPath xPath = XPathFactory.newInstance().newXPath();
+    //Find the node containing the hdfsPassword
+    Node n = ( (Node) xPath.evaluate( "/NamedCluster/child/id[text()='hdfsPassword']", node, XPathConstants.NODE ) )
+      .getNextSibling();
+    //Set the password value to what it would be if we were still encoding the legacy way
+    ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
+    n.setTextContent( passwordEncoder.encode( namedCluster.getHdfsPassword() ) );
+
+    //Now check that we can still decode it
+    NamedCluster nc = new NamedClusterImpl();
+    nc = nc.fromXmlForEmbed( node );
+
+    assertNamedClusterEquality( nc );
+  }
+
+  private Element createNodeFromNamedCluster() throws Exception {
+    String clusterXml = namedCluster.toXmlForEmbed( "NamedCluster" );
+    System.out.println( clusterXml );
+
+    return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+        new ByteArrayInputStream( clusterXml.getBytes() ) )
+        .getDocumentElement();
+  }
+
+  private void assertNamedClusterEquality( NamedCluster nc ) {
+
     assertEquals( namedCluster.getHdfsHost(), nc.getHdfsHost() );
     assertEquals( namedCluster.getHdfsPort(), nc.getHdfsPort() );
     assertEquals( namedCluster.getHdfsUsername(), nc.getHdfsUsername() );

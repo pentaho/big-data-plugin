@@ -388,4 +388,14 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
     delegate.setKafkaBootstrapServers( kafkaBootstrapServers );
   }
+
+  @Override
+  public String decodePassword( String password ) {
+    return delegate.decodePassword( password );
+  }
+
+  @Override
+  public String encodePassword( String password ) {
+    return delegate.encodePassword( password );
+  }
 }
