@@ -146,7 +146,7 @@ public class NamedClusterManager implements NamedClusterService {
       clusterTemplate.setHdfsHost( LOCALHOST );
       clusterTemplate.setHdfsPort( "8020" );
       clusterTemplate.setHdfsUsername( "user" );
-      clusterTemplate.setHdfsPassword( "password" );
+      clusterTemplate.setHdfsPassword( clusterTemplate.encodePassword( "password" ) );
       clusterTemplate.setJobTrackerHost( LOCALHOST );
       clusterTemplate.setJobTrackerPort( "8032" );
       clusterTemplate.setZooKeeperHost( LOCALHOST );

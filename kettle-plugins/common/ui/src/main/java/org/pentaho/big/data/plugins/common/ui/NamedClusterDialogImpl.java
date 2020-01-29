@@ -216,7 +216,7 @@ public class NamedClusterDialogImpl extends Dialog {
           || ( StringUtils.isNotBlank( namedCluster.getName() )
           && StringUtils.isNotBlank( namedCluster.getGatewayUrl() )
           && StringUtils.isNotBlank( namedCluster.getGatewayUsername() )
-          && StringUtils.isNotBlank( namedCluster.getGatewayPassword() ) );
+          && StringUtils.isNotBlank( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) );
 
       if ( wOK.isEnabled() != enabled ) {
         wOK.setEnabled( enabled );

@@ -25,12 +25,16 @@ package org.pentaho.di.core.namedcluster.model;
 import java.util.Comparator;
 import java.util.Map;
 
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
+import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
+import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
+import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 import org.w3c.dom.Node;
@@ -59,7 +63,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private String hdfsPort;
   @MetaStoreAttribute
   private String hdfsUsername;
-  @MetaStoreAttribute ( password = true )
+  @MetaStoreAttribute
   private String hdfsPassword;
 
   @MetaStoreAttribute
@@ -84,7 +88,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   @MetaStoreAttribute
   private String gatewayUsername;
 
-  @MetaStoreAttribute ( password = true )
+  @MetaStoreAttribute
   private String gatewayPassword;
 
   @MetaStoreAttribute
@@ -95,6 +99,8 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
+
+  private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   // Comparator for sorting clusters alphabetically by name
   public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
@@ -403,5 +409,21 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public void setKafkaBootstrapServers( String kafkaBootstrapServers ) {
     this.kafkaBootstrapServers = kafkaBootstrapServers;
+  }
+
+  public String decodePassword( String password ) {
+    if ( password == null || password.startsWith( Encr.PASSWORD_ENCRYPTED_PREFIX ) ) {
+      return Encr.decryptPasswordOptionallyEncrypted( password );
+    } else {
+      //Password is likely stored encrypted with legacy Base64TwoWayPasswordEncoder
+      if ( !StringUtil.isVariable( password ) ) {
+        return passwordEncoder.decode( password );
+      }
+    }
+    return password;
+  }
+
+  public String encodePassword( String password ) {
+    return Encr.encryptPasswordIfNotUsingVariables( password );
   }
 }
