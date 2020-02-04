@@ -1,0 +1,33 @@
+branches:
+  only:
+    - /^webspoon-.*$/
+language: java
+jdk: openjdk8
+cache:
+  directories:
+  - "$HOME/.m2"
+install: true
+script:
+  - wget https://raw.githubusercontent.com/pentaho/maven-parent-poms/master/maven-support-files/settings.xml
+  - mvn -s settings.xml clean source:jar package -pl kettle-plugins/hadoop-cluster/ui
+before_deploy:
+  - git config --local user.name "Hiromu Hota"
+  - git config --local user.email "hiromu.hota@hal.hitachi.com"
+  - export TRAVIS_TAG=webspoon/nightly
+  - git tag $TRAVIS_TAG --force
+  - git push -f https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git $TRAVIS_TAG
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file_glob: true
+  file:
+    - kettle-plugins/hadoop-cluster/ui/target/hadoop-cluster-ui-*.jar
+  skip_cleanup: true
+  on:
+    branch: webspoon-9.0
+  name: webSpoon/nightly
+  body: Auto-build of $TRAVIS_BRANCH ($TRAVIS_COMMIT) by Travis CI on $(date +'%F %T %Z').
+  prerelease: true
+  overwrite: true
+  tag_name: $TRAVIS_TAG
+  target_commitish: $TRAVIS_COMMIT
