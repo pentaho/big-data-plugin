@@ -124,8 +124,6 @@ public class HadoopClusterPopupMenuExtension implements ExtensionPointInterface 
         NEW_EDIT_STATE );
       createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Import" ),
         IMPORT_STATE );
-      createPopupMenuItem( rootMenu, getString( PKG, "HadoopClusterPopupMenuExtension.MenuItem.Add.Driver" ),
-        ADD_DRIVER_STATE );
     }
     return rootMenu;
   }
