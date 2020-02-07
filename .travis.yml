@@ -22,6 +22,7 @@ deploy:
   file_glob: true
   file:
     - kettle-plugins/hadoop-cluster/ui/target/hadoop-cluster-ui-*.jar
+  skip_cleanup: true
   on:
     branch: webspoon-9.0
   name: webSpoon/nightly
