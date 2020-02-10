@@ -23,7 +23,7 @@
       </button>
     </div>
     <div>
-      <button ng-if="vm.data.type ==='import'" class="same_width secondary" type="button" ng-click="vm.onImportNew()">
+      <button ng-if="vm.data.type ==='import' && vm.overallStatus !== 'import.fail'" class="same_width secondary" type="button" ng-click="vm.onImportNew()">
         <span>{{::vm.importCluster}}</span>
       </button>
       <button ng-if="vm.data.type !=='import'" class="same_width secondary" type="button" ng-click="vm.onCreateNew()">
