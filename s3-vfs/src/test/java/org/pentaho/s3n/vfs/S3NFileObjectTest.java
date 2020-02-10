@@ -140,7 +140,7 @@ public class S3NFileObjectTest {
     s3ObjectInputStream = mock( S3ObjectInputStream.class );
     s3ObjectMetadata = mock( ObjectMetadata.class );
     when( s3ObjectMock.getObjectContent() ).thenReturn( s3ObjectInputStream );
-    when( s3ObjectMock.getObjectMetadata() ).thenReturn( s3ObjectMetadata );
+    when( s3ServiceMock.getObjectMetadata( anyString(), anyString() ) ).thenReturn( s3ObjectMetadata );
     when( s3ObjectMetadata.getContentLength() ).thenReturn( contentLength );
     when( s3ObjectMetadata.getLastModified() ).thenReturn( testDate );
     when( s3ServiceMock.getObject( anyString(), anyString() ) ).thenReturn( s3ObjectMock );
@@ -246,18 +246,11 @@ public class S3NFileObjectTest {
   }
 
   @Test
-  public void testDoDetach() throws Exception {
-    s3FileObjectFileSpy.doAttach();
-    s3FileObjectFileSpy.doDetach();
-    verify( s3ObjectMock, times( 1 ) ).close();
-  }
-
-  @Test
   public void testHandleAttachException() throws FileSystemException {
     AmazonS3Exception exception = new AmazonS3Exception( "NoSuchKey" );
 
     //test the case where the folder exists and contains things; no exception should be thrown
-    when( s3ServiceMock.getObject( BUCKET_NAME, origKey ) ).thenThrow( exception );
+    when( s3ServiceMock.getObjectMetadata( BUCKET_NAME, origKey ) ).thenThrow( exception );
     try {
       s3FileObjectFileSpy.doAttach();
     } catch ( Exception e ) {
