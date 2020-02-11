@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -53,12 +53,9 @@ import java.util.stream.Collectors;
 public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInputData> {
   public static final long SPLIT_SIZE = 128 * 1024 * 1024L;
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-
   public ParquetInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                       Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                       Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
   @Override
@@ -101,7 +98,8 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   void initSplits() throws Exception {
-    FormatService formatService = namedClusterServiceLocator.getService( getNamedCluster(), FormatService.class );
+    FormatService formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()
+      .getService( getNamedCluster(), FormatService.class );
     if ( meta.inputFiles == null || meta.inputFiles.fileName == null || meta.inputFiles.fileName.length == 0 ) {
       throw new KettleException( "No input files defined" );
     }
@@ -117,7 +115,8 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
     // Pentaho 8.0 transformations will have the formatType set to 0. Get the fields from the schema and set the
     // formatType to the formatType retrieved from the schema.
     List<? extends IParquetInputField> actualFileFields =
-      ParquetInput.retrieveSchema( meta.namedClusterServiceLocator, getNamedCluster(), inputFileName );
+      ParquetInput.retrieveSchema( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+        getNamedCluster(), inputFileName );
 
     if ( meta.isIgnoreEmptyFolder() && ( actualFileFields.isEmpty() ) ) {
       data.splits = new ArrayList<>();
@@ -146,7 +145,7 @@ public class ParquetInput extends BaseFileInputStep<ParquetInputMeta, ParquetInp
   }
 
   private NamedCluster getNamedCluster() {
-    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getFilename() ) );
   }
 
 

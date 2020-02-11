@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,17 +19,15 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
+package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputField;
+import org.pentaho.big.data.kettle.plugins.formats.orc.output.OrcOutputField;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
@@ -47,10 +45,9 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.hadoop.shim.api.format.FormatService;
-import org.pentaho.hadoop.shim.api.format.IPentahoParquetOutputFormat;
-import org.pentaho.hadoop.shim.api.format.ParquetSpec;
+import org.pentaho.hadoop.shim.api.format.IPentahoOrcOutputFormat;
+import org.pentaho.hadoop.shim.api.format.OrcSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +57,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -69,14 +65,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
-public class ParquetOutputTest {
+public class OrcOutputTest {
 
   private static final String OUTPUT_STEP_NAME = "Output Step Name";
   private static final String OUTPUT_TRANS_NAME = "Output Trans Name";
   private static final String OUTPUT_FILE_NAME = "outputFileName";
-
-  @Rule
-  public ExpectedException expectedException;
 
   @Mock
   private StepMeta mockStepMeta;
@@ -95,37 +88,36 @@ public class ParquetOutputTest {
   @Mock
   private FormatService mockFormatService;
   @Mock
-  private ParquetOutputData parquetOutputData;
+  private OrcOutputData orcOutputData;
   @Mock
   private RowHandler mockRowHandler;
   @Mock
-  private IPentahoParquetOutputFormat mockPentahoParquetOutputFormat;
+  private IPentahoOrcOutputFormat mockPentahoOrcOutputFormat;
   @Mock
   private LogChannelInterface mockLogChannelInterface;
   @Mock
-  IPentahoParquetOutputFormat.IPentahoRecordWriter mockPentahoParquetRecordWriter;
+  IPentahoOrcOutputFormat.IPentahoRecordWriter mockPentahoOrcRecordWriter;
 
-  private ParquetOutput parquetOutput;
-  private List<ParquetOutputField> parquetOutputFields;
-  private ParquetOutputMeta parquetOutputMeta;
+  private OrcOutput orcOutput;
+  private List<OrcOutputField> orcOutputFields;
+  private OrcOutputMeta orcOutputMeta;
   private NamedClusterResolver namedClusterResolver;
   private RowMeta dataInputRowMeta;
   private RowMetaAndData[] dataInputRows;
-  private int currentParquetRow;
+  private int currentOrcRow;
 
   @Before
   public void setUp() throws Exception {
-    expectedException = ExpectedException.none();
-    currentParquetRow = 0;
+    currentOrcRow = 0;
     setDataInputRows();
-    setParquetOutputRows();
+    setOrcOutputRows();
     namedClusterResolver =
       new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
-    parquetOutputMeta = new ParquetOutputMeta( namedClusterResolver );
-    parquetOutputMeta.setFilename( OUTPUT_FILE_NAME );
-    parquetOutputMeta.setOutputFields( parquetOutputFields );
+    orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
+    orcOutputMeta.setFilename( OUTPUT_FILE_NAME );
+    orcOutputMeta.setOutputFields( orcOutputFields );
 
-    parquetOutputMeta.setParentStepMeta( mockStepMeta );
+    orcOutputMeta.setParentStepMeta( mockStepMeta );
     when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
     when( mockTransMeta.getName() ).thenReturn( OUTPUT_TRANS_NAME );
@@ -139,18 +131,18 @@ public class ParquetOutputTest {
       ke.printStackTrace();
     }
 
-    when( mockFormatService.createOutputFormat( IPentahoParquetOutputFormat.class,
-      parquetOutputMeta.getNamedClusterResolver().resolveNamedCluster( parquetOutputMeta.getFilename() ) ) )
-      .thenReturn( mockPentahoParquetOutputFormat );
+    when( mockFormatService.createOutputFormat( IPentahoOrcOutputFormat.class,
+      orcOutputMeta.getNamedClusterResolver().resolveNamedCluster( orcOutputMeta.getFilename() ) ) )
+      .thenReturn( mockPentahoOrcOutputFormat );
     when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
-    when( mockPentahoParquetOutputFormat.createRecordWriter() ).thenReturn( mockPentahoParquetRecordWriter );
+    when( mockPentahoOrcOutputFormat.createRecordWriter() ).thenReturn( mockPentahoOrcRecordWriter );
 
-    parquetOutput = spy( new ParquetOutput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta, mockTrans ) );
-    parquetOutput.init( parquetOutputMeta, parquetOutputData );
-    parquetOutput.setInputRowMeta( dataInputRowMeta );
-    parquetOutput.setRowHandler( mockRowHandler );
-    parquetOutput.setLogLevel( LogLevel.ERROR );
+    orcOutput = spy( new OrcOutput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta, mockTrans ) );
+    orcOutput.init( orcOutputMeta, orcOutputData );
+    orcOutput.setInputRowMeta( dataInputRowMeta );
+    orcOutput.setRowHandler( mockRowHandler );
+    orcOutput.setLogLevel( LogLevel.ERROR );
   }
 
   @Test
@@ -161,13 +153,13 @@ public class ParquetOutputTest {
     ArgumentCaptor<Object[]> dataCaptor = ArgumentCaptor.forClass( Object[].class );
 
     do {
-      result = parquetOutput.processRow( parquetOutputMeta, parquetOutputData );
+      result = orcOutput.processRow( orcOutputMeta, orcOutputData );
       if ( result ) {
         rowsProcessed++;
       }
     } while ( result );
 
-    // 3 rows to be outputted to an parquet file
+    // 3 rows to be outputted to an Orc file
     assertEquals( 3, rowsProcessed );
     verify( mockRowHandler, times( 3 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
     List<RowMeta> rowMetaCaptured = rowMetaCaptor.getAllValues();
@@ -179,35 +171,20 @@ public class ParquetOutputTest {
   }
 
   @Test
-  public void initShouldPassEmbeddedMetastoreKey() {
-    ParquetOutputMeta stepMetaInterface = mock( ParquetOutputMeta.class );
-    ParquetOutputData stepDataInterface = mock( ParquetOutputData.class );
-    NamedClusterEmbedManager namedClusterEmbedManager = mock( NamedClusterEmbedManager.class );
-    when( mockTransMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
-    when( mockTransMeta.getEmbeddedMetastoreProviderKey() ).thenReturn( "metastoreProviderKey" );
-    parquetOutput.init( stepMetaInterface, stepDataInterface );
-
-    verify( namedClusterEmbedManager ).passEmbeddedMetastoreKey( mockTransMeta, "metastoreProviderKey" );
-  }
-
-  @Test
   public void testProcessRowIllegalState() throws Exception {
-    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( parquetOutput ).init( any() );
-    when( parquetOutput.getLogChannel() ).thenReturn( mockLogChannelInterface );
-    assertFalse( parquetOutput.processRow( parquetOutputMeta, parquetOutputData ) );
+    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( orcOutput ).init();
+    when( orcOutput.getLogChannel() ).thenReturn( mockLogChannelInterface );
+    assertFalse( orcOutput.processRow( orcOutputMeta, orcOutputData ) );
 
-    verify( mockLogChannelInterface,
-      times( 1 ) )
-      .logError( "IllegalStateExceptionMessage" );
+    verify( mockLogChannelInterface, times( 1 ) ).logError( "IllegalStateExceptionMessage" );
   }
 
   @Test
   public void testProcessRowKettleFailure() {
     String expectedMessage = "KettleExceptionMessage";
     try {
-      doNothing().when( parquetOutput ).closeWriter();
-      doThrow( new KettleException( expectedMessage ) ).when( parquetOutput ).init( any() );
-      parquetOutput.processRow( parquetOutputMeta, parquetOutputData );
+      doThrow( new KettleException( expectedMessage ) ).when( orcOutput ).init();
+      orcOutput.processRow( orcOutputMeta, orcOutputData );
       fail( "No Kettle Exception thrown" );
     } catch ( KettleException kex ) {
       assertTrue( kex.getMessage().contains( expectedMessage ) );
@@ -220,9 +197,8 @@ public class ParquetOutputTest {
   public void testProcessRowGeneralFailure() {
     String expectedMessage = "GeneralExceptionMessage";
     try {
-      doNothing().when( parquetOutput ).closeWriter();
-      doThrow( new Exception( expectedMessage ) ).when( parquetOutput ).init( any() );
-      parquetOutput.processRow( parquetOutputMeta, parquetOutputData );
+      doThrow( new Exception( expectedMessage ) ).when( orcOutput ).init();
+      orcOutput.processRow( orcOutputMeta, orcOutputData );
       fail( "No Kettle Exception thrown" );
     } catch ( KettleException kex ) {
       assertTrue( kex.getMessage().contains( expectedMessage ) );
@@ -233,19 +209,19 @@ public class ParquetOutputTest {
 
   private Object[] returnNextParquetRow() {
     Object[] result = null;
-    if ( currentParquetRow < dataInputRows.length ) {
-      result = dataInputRows[ currentParquetRow ].getData().clone();
-      currentParquetRow++;
+    if ( currentOrcRow < dataInputRows.length ) {
+      result = dataInputRows[ currentOrcRow ].getData().clone();
+      currentOrcRow++;
     }
     return result;
   }
 
-  private void setParquetOutputRows() {
-    ParquetOutputField parquetOutputField = mock( ParquetOutputField.class );
-    when( parquetOutputField.getParquetType() ).thenReturn( ParquetSpec.DataType.BINARY );
-    when( parquetOutputField.getPentahoFieldName() ).thenReturn( "StringName" );
-    parquetOutputFields =  new ArrayList<>();
-    parquetOutputFields.add( parquetOutputField );
+  private void setOrcOutputRows() {
+    OrcOutputField orcOutputField = mock( OrcOutputField.class );
+    when( orcOutputField.getOrcType() ).thenReturn( OrcSpec.DataType.STRING );
+    when( orcOutputField.getPentahoFieldName() ).thenReturn( "StringName" );
+    orcOutputFields =  new ArrayList<>();
+    orcOutputFields.add( orcOutputField );
   }
 
   private void setDataInputRowMeta() {

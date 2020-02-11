@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,16 +35,22 @@ import java.util.Optional;
 
 public class NamedClusterResolver {
 
-  private NamedClusterResolver() {
-    // static methods only
+  private final NamedClusterServiceLocator namedClusterServiceLocator;
+  private final NamedClusterService namedClusterService;
+  private MetastoreLocatorOsgi metaStoreService;
+
+  public NamedClusterResolver( NamedClusterServiceLocator namedClusterServiceLocator,
+                               NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
+    this.namedClusterServiceLocator = namedClusterServiceLocator;
+    this.namedClusterService = namedClusterService;
+    this.metaStoreService = metaStore;
   }
 
   private static final LogChannelInterface LOG = LogChannel.GENERAL;
 
-  public static NamedCluster resolveNamedCluster( NamedClusterService namedClusterService,
-                                                  MetastoreLocatorOsgi metaStoreService, String fileName ) {
+  public NamedCluster resolveNamedCluster( String fileName ) {
     NamedCluster namedCluster = null;
-    Optional<URI> uri = NamedClusterResolver.fileUri( fileName );
+    Optional<URI> uri = fileUri( fileName );
 
     if ( uri.isPresent() ) {
       String scheme = uri.get().getScheme();
@@ -57,7 +64,7 @@ public class NamedClusterResolver {
     return namedCluster;
   }
 
-  private static Optional<URI> fileUri( String fileName ) {
+  private Optional<URI> fileUri( String fileName ) {
     try {
       return Optional.of( new URI( fileName ) );
     } catch ( URISyntaxException e ) {
@@ -66,4 +73,7 @@ public class NamedClusterResolver {
     }
   }
 
+  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
+    return namedClusterServiceLocator;
+  }
 }

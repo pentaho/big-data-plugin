@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -42,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -97,6 +98,8 @@ public class AvroInputMetaTest {
   @Mock
   private PluginInterface pluginInterface;
 
+  private NamedClusterResolver namedClusterResolver;
+
   private RowMetaInterface[] info;
 
   /**
@@ -108,7 +111,9 @@ public class AvroInputMetaTest {
 
   @Before
   public void setUp() throws KettlePluginException {
-    meta = new AvroInputMeta( namedClusterServiceLocator, namedClusterService, metaStoreLocator );
+    namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator,
+      namedClusterService, metaStoreLocator );
+    meta = new AvroInputMeta( namedClusterResolver );
     when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );
     when( field.getPentahoType() ).thenReturn( ValueMetaInterface.TYPE_STRING );
 
@@ -176,17 +181,8 @@ public class AvroInputMetaTest {
   }
 
   @Test
-  public void testGetNamedCluster() throws KettleStepException {
-    meta.setTesting( true );
-    NamedCluster nc = meta.getNamedCluster();
-    verify( namedClusterService ).getClusterTemplate();
-    //since namedClusterService is mock it should return null
-    assertNull( nc );
-  }
-
-  @Test
   public void testGetNamedClusterServiceLocator() throws KettleStepException {
-    assertEquals( namedClusterServiceLocator, meta.getNamedClusterServiceLocator() );
+    assertEquals( namedClusterServiceLocator, meta.getNamedClusterResolver().getNamedClusterServiceLocator() );
   }
 
 }

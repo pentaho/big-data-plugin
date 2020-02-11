@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -102,10 +103,10 @@ public class AvroInputTest {
   IPentahoAvroInputFormat.IPentahoRecordReader mockPentahoAvroRecordReader;
 
   private AvroInputMeta avroInputMeta;
+  private NamedClusterResolver namedClusterResolver;
   private AvroInput avroInput;
   private RowMeta avroRowMeta;
   private RowMetaAndData[] avroRows;
-  private Iterator<RowMetaAndData> avroRowsRead;
   private RowMeta inputRowMeta;
   private RowMetaAndData[] inputRows;
 
@@ -114,7 +115,9 @@ public class AvroInputTest {
     currentInputRow = 0;
     setInputRows();
     setAvroRows();
-    avroInputMeta = new AvroInputMeta( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
+    namedClusterResolver =
+      new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
+    avroInputMeta = new AvroInputMeta( namedClusterResolver );
     avroInputMeta.setDataLocation( INPUT_STREAM_FIELD_NAME, AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
     when( mockPentahoAvroInputFormat.getInputStreamFieldName() ).thenReturn( INPUT_STREAM_FIELD_NAME );
 
@@ -134,7 +137,8 @@ public class AvroInputTest {
       e.printStackTrace();
     }
 
-    when( mockFormatService.createInputFormat( IPentahoAvroInputFormat.class, avroInputMeta.getNamedCluster() ) )
+    when( mockFormatService.createInputFormat( IPentahoAvroInputFormat.class,
+      avroInputMeta.getNamedClusterResolver().resolveNamedCluster( avroInputMeta.getDataLocation() ) ) )
       .thenReturn( mockPentahoAvroInputFormat );
     when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
@@ -142,7 +146,7 @@ public class AvroInputTest {
     when( mockPentahoAvroRecordReader.iterator() ).thenReturn( new AvroRecordIterator() );
 
     avroInput = new AvroInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
-      mockTrans, mockNamedClusterServiceLocator );
+      mockTrans );
     avroInput.setRowHandler( mockRowHandler );
     avroInput.setInputRowMeta( inputRowMeta );
     avroInput.setLogLevel( LogLevel.ERROR );

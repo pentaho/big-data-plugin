@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
 
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.ParquetTypeConverter;
@@ -39,11 +40,8 @@ public class ParquetOutputMetaInjectionTest extends BaseMetadataInjectionTest<Pa
 
   @Before
   public void setup() {
-    NamedClusterService namedClusterService = mock( NamedClusterService.class );
-    NamedClusterServiceLocator namedClusterServiceLocator = mock( NamedClusterServiceLocator.class );
-    MetastoreLocatorOsgi metaStoreService = mock( MetastoreLocatorOsgi.class );
-    setup( new ParquetOutputMeta( namedClusterServiceLocator,
-      namedClusterService, metaStoreService ) );
+    NamedClusterResolver namedClusterResolver = mock( NamedClusterResolver.class );
+    setup( new ParquetOutputMeta( namedClusterResolver ) );
   }
 
   @Test

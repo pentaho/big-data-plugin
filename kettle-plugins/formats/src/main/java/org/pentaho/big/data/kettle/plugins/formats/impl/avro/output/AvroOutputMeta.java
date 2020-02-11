@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,6 +22,7 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
+import org.olap4j.impl.Named;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -43,21 +44,16 @@ import org.pentaho.di.trans.step.StepMeta;
 @InjectionSupported( localizationPrefix = "AvroOutput.Injection.", groups = { "FIELDS" } )
 public class AvroOutputMeta extends AvroOutputMetaBase {
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-  private final NamedClusterService namedClusterService;
-  private MetastoreLocatorOsgi metaStoreService;
+  private final NamedClusterResolver namedClusterResolver;
 
-  public AvroOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator, NamedClusterService namedClusterService,
-                         MetastoreLocatorOsgi metaStore ) {
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
-    this.namedClusterService = namedClusterService;
-    this.metaStoreService = metaStore;
+  public AvroOutputMeta( NamedClusterResolver namedClusterResolver ) {
+    this.namedClusterResolver = namedClusterResolver;
   }
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans ) {
-    return new AvroOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
+    return new AvroOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   @Override
@@ -65,8 +61,7 @@ public class AvroOutputMeta extends AvroOutputMetaBase {
     return new AvroOutputData();
   }
 
-  public NamedCluster getNamedCluster( String filename ) {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, filename );
+  public NamedClusterResolver getNamedClusterResolver() {
+    return namedClusterResolver;
   }
-
 }

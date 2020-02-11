@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -46,25 +46,16 @@ import org.pentaho.di.trans.step.StepMeta;
 } )
 public class ParquetOutputMeta extends ParquetOutputMetaBase {
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-  private final NamedClusterService namedClusterService;
-  private MetastoreLocatorOsgi metaStoreService;
+  private final NamedClusterResolver namedClusterResolver;
 
-  public ParquetOutputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
-                            NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
-    this.namedClusterService = namedClusterService;
-    this.metaStoreService = metaStore;
+  public ParquetOutputMeta( NamedClusterResolver namedClusterResolver ) {
+    this.namedClusterResolver = namedClusterResolver;
   }
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                                 Trans trans ) {
-    return new ParquetOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
-  }
-
-  public NamedCluster getNamedCluster( String filename ) {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, filename );
+    return new ParquetOutput( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   @Override
@@ -72,4 +63,7 @@ public class ParquetOutputMeta extends ParquetOutputMetaBase {
     return new ParquetOutputData();
   }
 
+  public NamedClusterResolver getNamedClusterResolver() {
+    return namedClusterResolver;
+  }
 }

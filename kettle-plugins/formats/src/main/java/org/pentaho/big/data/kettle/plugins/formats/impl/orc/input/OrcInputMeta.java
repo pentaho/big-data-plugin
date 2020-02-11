@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -55,21 +55,16 @@ import org.pentaho.di.trans.step.StepMeta;
 } )
 public class OrcInputMeta extends OrcInputMetaBase {
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-  private final NamedClusterService namedClusterService;
-  private MetastoreLocatorOsgi metaStoreService;
+  private final NamedClusterResolver namedClusterResolver;
 
-  public OrcInputMeta( NamedClusterServiceLocator namedClusterServiceLocator,
-                       NamedClusterService namedClusterService, MetastoreLocatorOsgi metaStore ) {
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
-    this.namedClusterService = namedClusterService;
-    this.metaStoreService = metaStore;
+  public OrcInputMeta( NamedClusterResolver namedClusterResolver ) {
+    this.namedClusterResolver = namedClusterResolver;
   }
 
   @Override
   public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
       Trans trans ) {
-    return new OrcInput( stepMeta, stepDataInterface, copyNr, transMeta, trans, namedClusterServiceLocator );
+    return new OrcInput( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
 
   @Override
@@ -77,15 +72,7 @@ public class OrcInputMeta extends OrcInputMetaBase {
     return new OrcInputData();
   }
 
-  public NamedCluster getNamedCluster() {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, this.getFilename() );
-  }
-
-  public NamedCluster getNamedCluster( String fileUri ) {
-    return NamedClusterResolver.resolveNamedCluster( namedClusterService, metaStoreService, fileUri );
-  }
-
-  public NamedClusterServiceLocator getNamedClusterServiceLocator() {
-    return namedClusterServiceLocator;
+  public NamedClusterResolver getNamedClusterResolver() {
+    return namedClusterResolver;
   }
 }

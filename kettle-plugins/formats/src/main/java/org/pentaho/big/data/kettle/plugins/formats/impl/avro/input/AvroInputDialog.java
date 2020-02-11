@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -135,8 +135,8 @@ public class AvroInputDialog extends BaseAvroStepDialog {
     List<? extends IAvroInputField> defaultFields;
     try {
       defaultFields = AvroInput
-        .getLeafFields( meta.getNamedClusterServiceLocator(), meta.getNamedCluster( avroFileName ), schemaFileName,
-          avroFileName );
+        .getLeafFields( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+          meta.getNamedClusterResolver().resolveNamedCluster( avroFileName ), schemaFileName, avroFileName );
       if ( defaultFields != null ) {
         wInputFields.clearAll();
         for ( IAvroInputField field : defaultFields ) {
