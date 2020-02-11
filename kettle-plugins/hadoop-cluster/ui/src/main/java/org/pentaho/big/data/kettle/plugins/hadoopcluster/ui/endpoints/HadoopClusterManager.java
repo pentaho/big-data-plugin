@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,10 +23,9 @@
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.dialog.HadoopClusterDialog;
@@ -36,6 +35,8 @@ import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -55,8 +56,6 @@ import org.pentaho.runtime.test.RuntimeTester;
 import org.pentaho.runtime.test.module.RuntimeTestModuleResults;
 import org.pentaho.runtime.test.result.RuntimeTestResult;
 import org.pentaho.runtime.test.result.RuntimeTestResultEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -66,8 +65,10 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -101,6 +102,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private static final String CONFIG_PROPERTIES = "config.properties";
   private static final String KEYTAB_AUTH_FILE = "keytabAuthFile";
   private static final String KEYTAB_IMPL_FILE = "keytabImpFile";
+
+  private static final LogChannelInterface log =
+    KettleLogStore.getLogChannelInterfaceFactory().create( "HadoopClusterManager" );
 
   private final String internalShim;
 
@@ -169,7 +173,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private final IMetaStore metaStore;
   private final VariableSpace variableSpace;
   private RuntimeTestStatus runtimeTestStatus = null;
-  private static final Logger logChannel = LoggerFactory.getLogger( HadoopClusterManager.class );
 
   public HadoopClusterManager( Spoon spoon, NamedClusterService namedClusterService, IMetaStore metaStore,
                                String internalShim ) {
@@ -180,7 +183,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     this.internalShim = internalShim;
   }
 
-  public JSONObject importNamedCluster( ThinNameClusterModel model, List<FileItem> siteFilesSource ) {
+  public JSONObject importNamedCluster( ThinNameClusterModel model,
+                                        Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
@@ -215,7 +219,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         response.put( NAMED_CLUSTER, nc.getName() );
       }
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return response;
   }
@@ -267,7 +271,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  public JSONObject createNamedCluster( ThinNameClusterModel model, List<FileItem> siteFilesSource ) {
+  public JSONObject createNamedCluster( ThinNameClusterModel model,
+                                        Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
@@ -278,12 +283,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       setupKerberosSecurity( model, siteFilesSource, "", "" );
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return response;
   }
 
-  public JSONObject editNamedCluster( ThinNameClusterModel model, boolean isEditMode, List<FileItem> siteFilesSource ) {
+  public JSONObject editNamedCluster( ThinNameClusterModel model, boolean isEditMode,
+                                      Map<String, CachedFileItemStream> siteFilesSource ) {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
@@ -303,7 +309,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       } else {
         boolean success = oldConfigFolder.renameTo( newConfigFolder );
         if ( !success ) {
-          logChannel.error( "Renaming Named Cluster configuration folder failed." );
+          log.logError( "Renaming Named Cluster configuration folder failed." );
         }
       }
 
@@ -334,7 +340,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       response.put( NAMED_CLUSTER, nc.getName() );
     } catch ( Exception e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return response;
   }
@@ -371,13 +377,13 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         }
       }
     } catch ( MetaStoreException e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
     return model;
   }
 
-  private boolean configureNamedCluster( List<FileItem> siteFilesSource, NamedCluster nc, String shimVendor,
-                                         String shimVersion ) {
+  private boolean configureNamedCluster( Map<String, CachedFileItemStream> siteFilesSource, NamedCluster nc,
+                                         String shimVendor, String shimVersion ) {
     resolveShimIdentifier( nc, shimVendor, shimVersion );
 
     String oozieBaseUrl = "oozie.base.url";
@@ -474,12 +480,10 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void extractProperties( List<FileItem> siteFilesSource, String fileName, Map<String, String> properties,
+  private void extractProperties( Map<String, CachedFileItemStream> siteFilesSource, String fileName,
+                                  Map<String, String> properties,
                                   String[] keys ) {
-    FileItem siteFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-      FileItem fileItem = (FileItem) object;
-      return fileItem.getName().endsWith( fileName );
-    } );
+    CachedFileItemStream siteFile = siteFilesSource.get( fileName );
 
     if ( siteFile != null ) {
       Document document = parseSiteFileDocument( siteFile );
@@ -495,60 +499,62 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
               properties.put( key, nodes.item( 0 ).getNodeValue() );
             }
           } catch ( XPathExpressionException e ) {
-            logChannel.warn( e.getMessage() );
+            log.logMinimal( e.getMessage() );
           }
         }
       }
     }
   }
 
-  public JSONObject installDriver( List<FileItem> driver ) {
-    boolean success = true;
-    try {
+  public JSONObject installDriver( FileItemStream driver ) {
+    boolean success = false;
+    if ( driver != null ) {
       String destination = Const.getShimDriverDeploymentLocation();
-      FileItem driverFile = driver.get( 0 );
-      FileUtils.copyInputStreamToFile( driverFile.getInputStream(),
-        new File( destination + fileSeparator + driverFile.getFieldName() ) );
-    } catch ( IOException e ) {
-      success = false;
-      logChannel.error( e.getMessage() );
+
+      try ( final InputStream driverStream = driver.openStream() ) {
+        FileUtils.copyInputStreamToFile( driverStream,
+          new File( destination + fileSeparator + driver.getFieldName() ) );
+        success = true;
+      } catch ( IOException e ) {
+        log.logError( e.getMessage() );
+      }
     }
     JSONObject response = new JSONObject();
     response.put( INSTALLED, success );
     return response;
   }
 
-  private void installSiteFiles( List<FileItem> siteFilesSource, NamedCluster nc ) throws IOException {
-    for ( FileItem sitefile : siteFilesSource ) {
-      if ( isValidConfigurationFile( sitefile ) ) {
-        String name = sitefile.getFieldName();
+  private void installSiteFiles( Map<String, CachedFileItemStream> siteFileSource, NamedCluster nc )
+    throws IOException {
+    for ( Map.Entry<String, CachedFileItemStream> siteFile : siteFileSource.entrySet() ) {
+      String name = siteFile.getKey();
+      if ( isValidConfigurationFile( name ) ) {
         if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) ) {
-          name = extractFileNameFromFullPath( sitefile.getName() );
+          name = extractFileNameFromFullPath( siteFile.getValue().getName() );
         }
 
         File destination = new File(
           getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + name );
-        FileUtils.copyInputStreamToFile( sitefile.getInputStream(), destination );
+        destination.getParentFile().mkdirs();
+        try ( OutputStream fos = new FileOutputStream( destination ) ) {
+          siteFile.getValue().getCachedOutputStream().writeTo( fos );
+        }
       }
     }
   }
 
-  public boolean isValidConfigurationFile( FileItem fileItem ) {
-    return fileItem.getFieldName() != null && ( fileItem.getFieldName().endsWith( "-site.xml" ) || fileItem
-      .getFieldName()
-      .endsWith( "-default.xml" ) || fileItem.getFieldName().equals( CONFIG_PROPERTIES ) || fileItem.getFieldName()
-      .equals( KEYTAB_AUTH_FILE ) || fileItem.getFieldName().equals( KEYTAB_IMPL_FILE ) || fileItem.getFieldName()
-      .equals( "data" ) );
+  public boolean isValidConfigurationFile( String fileName ) {
+    return fileName != null && ( fileName.endsWith( "-site.xml" ) || fileName.endsWith( "-default.xml" )
+      || fileName.equals( CONFIG_PROPERTIES ) || fileName.equals( KEYTAB_AUTH_FILE )
+      || fileName.equals( KEYTAB_IMPL_FILE ) || fileName.equals( "data" ) );
   }
 
-  private Document parseSiteFileDocument( FileItem file ) {
+  private Document parseSiteFileDocument( CachedFileItemStream file ) {
     Document document = null;
     try {
-      document = XMLHandler.loadXMLFile( file.getInputStream() );
+      document = XMLHandler.loadXMLFile( file.getCachedInputStream() );
     } catch ( KettleXMLException e ) {
-      logChannel.warn( String.format( "Site file %s is not a well formed XML document", file.getName() ) );
-    } catch ( IOException e ) {
-      logChannel.error( e.getMessage() );
+      log.logMinimal( String.format( "Site file %s is not a well formed XML document", file.getName() ) );
     }
     return document;
   }
@@ -569,7 +575,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private void setupKerberosSecurity( ThinNameClusterModel model, List<FileItem> siteFilesSource,
+  private void setupKerberosSecurity( ThinNameClusterModel model, Map<String, CachedFileItemStream> siteFilesSource,
                                       String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     Path
       configPropertiesPath =
@@ -604,7 +610,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
       config.save();
     } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -654,7 +660,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         model.setKerberosSubType( KERBEROS_SUBTYPE.KEYTAB.getValue() );
       }
     } catch ( ConfigurationException e ) {
-      logChannel.error( e.getMessage() );
+      log.logError( e.getMessage() );
     }
   }
 
@@ -677,7 +683,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       }
       config.save();
     } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -694,26 +700,23 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   }
 
   private void setupKeytabSecurity( ThinNameClusterModel model, Path configPropertiesPath,
-                                    List<FileItem> siteFilesSource, String keytabAuthenticationLocation,
-                                    String keytabImpersonationLocation ) {
+                                    Map<String, CachedFileItemStream> siteFilesSource,
+                                    String keytabAuthenticationLocation, String keytabImpersonationLocation ) {
     String namedClusterName = model.getName();
-    FileItem keytabAuthFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-      FileItem fileItem = (FileItem) object;
-      return fileItem.getFieldName().equals( KEYTAB_AUTH_FILE );
-    } );
-    FileItem keytabImpFile = (FileItem) CollectionUtils.find( siteFilesSource, ( Object object ) -> {
-      FileItem fileItem = (FileItem) object;
-      return fileItem.getFieldName().equals( KEYTAB_IMPL_FILE );
-    } );
+    CachedFileItemStream keytabAuthFile = siteFilesSource.get( KEYTAB_AUTH_FILE );
+    CachedFileItemStream keytabImpFile = siteFilesSource.get( KEYTAB_IMPL_FILE );
+
+    String authenticationLocation = keytabAuthenticationLocation;
+    String impersonationLocation = keytabImpersonationLocation;
 
     if ( keytabAuthFile != null ) {
       String name = extractFileNameFromFullPath( keytabAuthFile.getName() );
-      keytabAuthenticationLocation =
+      authenticationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
     if ( keytabImpFile != null ) {
       String name = extractFileNameFromFullPath( keytabImpFile.getName() );
-      keytabImpersonationLocation =
+      impersonationLocation =
         getNamedClusterConfigsRootDir() + fileSeparator + namedClusterName + fileSeparator + name;
     }
 
@@ -722,16 +725,16 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       // Authentication
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      if ( !StringUtil.isEmpty( keytabAuthenticationLocation ) ) {
-        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, keytabAuthenticationLocation );
+      if ( !StringUtil.isEmpty( authenticationLocation ) ) {
+        config.setProperty( KEYTAB_AUTHENTICATION_LOCATION, authenticationLocation );
       }
 
       // Impersonation
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
       if ( keytabImpFile == null && StringUtil.isEmpty( model.getKeytabImpFile() ) ) {
         config.setProperty( KEYTAB_IMPERSONATION_LOCATION, "" );
-      } else if ( !StringUtil.isEmpty( keytabImpersonationLocation ) ) {
-        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, keytabImpersonationLocation );
+      } else if ( !StringUtil.isEmpty( impersonationLocation ) ) {
+        config.setProperty( KEYTAB_IMPERSONATION_LOCATION, impersonationLocation );
       }
 
       if ( !StringUtil.isEmpty( (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION ) )
@@ -743,7 +746,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
       config.save();
     } catch ( ConfigurationException e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -770,7 +773,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         refreshTree();
       }
     } catch ( Exception e ) {
-      logChannel.warn( e.getMessage() );
+      log.logMinimal( e.getMessage() );
     }
   }
 
@@ -799,7 +802,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           }
         }
       } catch ( Exception e ) {
-        logChannel.warn( e.getLocalizedMessage() );
+        log.logMinimal( e.getLocalizedMessage() );
       }
       return produceTestCategories( runtimeTestStatus, nc );
     } else {
