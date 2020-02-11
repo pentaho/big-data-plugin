@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -25,8 +25,7 @@ package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -38,6 +37,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -48,9 +50,11 @@ import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -58,12 +62,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
 public class HadoopClusterManagerTest {
   @Mock private Spoon spoon;
+  @Mock private LogChannelInterfaceFactory logChannelFactory;
+  @Mock private LogChannelInterface logChannel;
   @Mock private NamedClusterService namedClusterService;
   @Mock private DelegatingMetaStore metaStore;
   @Mock private NamedCluster namedCluster;
@@ -76,6 +83,10 @@ public class HadoopClusterManagerTest {
   private HadoopClusterManager hadoopClusterManager;
 
   @Before public void setup() throws Exception {
+    KettleLogStore.setLogChannelInterfaceFactory( logChannelFactory );
+    when( logChannelFactory.create( any(), any() ) ).thenReturn( logChannel );
+    when( logChannelFactory.create( any() ) ).thenReturn( logChannel );
+
     PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
     PluginRegistry.init( false );
     Encr.init( "Kettle" );
@@ -202,11 +213,18 @@ public class HadoopClusterManagerTest {
     assertFalse( shimIdentifiers.contains( internalShim ) );
   }
 
-  @Test public void testInstallDriver() {
+  @Test public void testInstallDriver() throws IOException {
     System.getProperties()
       .setProperty( "SHIM_DRIVER_DEPLOYMENT_LOCATION", "src/test/resources/driver-destination" );
-    JSONObject response =
-      hadoopClusterManager.installDriver( getFiles( "src/test/resources/driver-source" ) );
+
+    File driverFile = new File( "src/test/resources/driver-source/driver.kar" );
+
+    FileItemStream fileItemStream = mock( FileItemStream.class );
+    when( fileItemStream.getFieldName() ).thenReturn( driverFile.getName() );
+    when( fileItemStream.getName() ).thenReturn( driverFile.getName() );
+    when( fileItemStream.openStream() ).thenReturn( new FileInputStream( driverFile ) );
+
+    JSONObject response = hadoopClusterManager.installDriver( fileItemStream );
     boolean isSuccess = (boolean) response.get( "installed" );
     if ( isSuccess ) {
       File driver = new File( "src/test/resources/driver-destination/driver.kar" );
@@ -301,20 +319,10 @@ public class HadoopClusterManagerTest {
     model.setSecurityType( "Kerberos" );
     model.setKerberosSubType( "Keytab" );
 
-    List<FileItem> diskFileItems = new ArrayList<>();
-    try {
-      File siteFilesDirectory = new File( "src/test/resources/keytab" );
-      File[] siteFiles = siteFilesDirectory.listFiles();
-      for ( File siteFile : siteFiles ) {
-        DiskFileItem diskFileItem =
-          new DiskFileItem( "keytabAuthFile", "text/xml", false, siteFile.getName(), 10240, null );
-        FileUtils.copyFile( siteFile, diskFileItem.getOutputStream() );
-        diskFileItems.add( diskFileItem );
-      }
-    } catch ( IOException e ) {
-    }
+    File keytabFileDirectory = new File( "src/test/resources/keytab" );
+    Map<String, CachedFileItemStream> keytabFileItems = getFiles( keytabFileDirectory.getPath(), "keytabAuthFile" );
 
-    hadoopClusterManager.createNamedCluster( model, diskFileItems );
+    hadoopClusterManager.createNamedCluster( model, keytabFileItems );
 
     String configFile = System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
       + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
@@ -345,15 +353,9 @@ public class HadoopClusterManagerTest {
 
   @Test
   public void testValidSiteFile() {
-    assertFalse( hadoopClusterManager
-      .isValidConfigurationFile(
-        new DiskFileItem( "file", "application/octet-stream", false, "bad-site-file.exe", 10240, null ) ) );
-    assertTrue( hadoopClusterManager
-      .isValidConfigurationFile(
-        new DiskFileItem( "core-site.xml", "text/xml", false, "core-site.xml", 10240, null ) ) );
-    assertTrue( hadoopClusterManager
-      .isValidConfigurationFile(
-        new DiskFileItem( "config.properties", "text/xml", false, "config.properties", 10240, null ) ) );
+    assertFalse( hadoopClusterManager.isValidConfigurationFile( "file" ) );
+    assertTrue( hadoopClusterManager.isValidConfigurationFile( "core-site.xml" ) );
+    assertTrue( hadoopClusterManager.isValidConfigurationFile( "config.properties" ) );
   }
 
   @Test
@@ -408,20 +410,24 @@ public class HadoopClusterManagerTest {
     return new File( shimTestDir );
   }
 
-  private List<FileItem> getFiles( String siteFilesLocation ) {
-    List<FileItem> diskFileItems = new ArrayList<>();
+  private Map<String, CachedFileItemStream> getFiles( String filesLocation ) {
+    return getFiles( filesLocation, null );
+  }
+
+  private Map<String, CachedFileItemStream> getFiles( String filesLocation, String customFieldName ) {
+    Map<String, CachedFileItemStream> fileItemStreamByName = new HashMap<>();
     try {
-      File siteFilesDirectory = new File( siteFilesLocation );
+      File siteFilesDirectory = new File( filesLocation );
       File[] siteFiles = siteFilesDirectory.listFiles();
       for ( File siteFile : siteFiles ) {
-        DiskFileItem diskFileItem =
-          new DiskFileItem( siteFile.getName(), "text/xml", false, siteFile.getName(), 10240, null );
-        FileUtils.copyFile( siteFile, diskFileItem.getOutputStream() );
-        diskFileItems.add( diskFileItem );
+        String fieldName = customFieldName == null ? siteFile.getName() : customFieldName;
+        CachedFileItemStream cachedFileItemStream =
+          new CachedFileItemStream( new FileInputStream( siteFile ), siteFile.getName(), fieldName );
+        fileItemStreamByName.put( fieldName, cachedFileItemStream );
       }
     } catch ( IOException e ) {
-      diskFileItems = new ArrayList<>();
+      fileItemStreamByName = new HashMap<>();
     }
-    return diskFileItems;
+    return fileItemStreamByName;
   }
 }

@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,13 +22,15 @@
 
 package org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.json.simple.JSONObject;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.osgi.metastore.locator.api.MetastoreLocator;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
@@ -44,12 +46,18 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class HadoopClusterEndpoints {
-
+  private static final LogChannelInterface log =
+    KettleLogStore.getLogChannelInterfaceFactory().create( "HadoopClusterEndpoints" );
   private final Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private final NamedClusterService namedClusterService;
   private final MetastoreLocator metastoreLocator;
@@ -57,17 +65,17 @@ public class HadoopClusterEndpoints {
   private final String internalShim;
   private final boolean secureEnabled;
 
-  private enum FILE_TYPE {
+  enum FileType {
     CONFIGURATION( "configuration" ),
     DRIVER( ".kar" );
 
     private String val;
 
-    FILE_TYPE( String val ) {
+    FileType( String val ) {
       this.val = val;
     }
 
-    public String getValue() {
+    String getValue() {
       return this.val;
     }
   }
@@ -87,31 +95,76 @@ public class HadoopClusterEndpoints {
       internalShim );
   }
 
-  private List<FileItem> parseRequest( HttpServletRequest request, FILE_TYPE fileType ) {
-    List<FileItem> files = new ArrayList<>();
+  private Map<String, CachedFileItemStream> parseRequest( HttpServletRequest request, FileType fileType ) {
+    Map<String, CachedFileItemStream> fileStreamByName = new HashMap<>();
     if ( ServletFileUpload.isMultipartContent( request ) ) {
       try {
-        FileItemFactory factory = new DiskFileItemFactory();
-        ServletFileUpload fileUpload = new ServletFileUpload( factory );
-        List<FileItem> fileItems = fileUpload.parseRequest( request );
-        for ( FileItem fileItem : fileItems ) {
-          validateUpload( fileItem, fileType, files );
+        FileItemIterator streamItemIterator = ( new ServletFileUpload() ).getItemIterator( request );
+        while ( streamItemIterator.hasNext() ) {
+          List<CachedFileItemStream> fileItemStreams = copyAndUnzip( streamItemIterator.next(), fileType );
+          for ( CachedFileItemStream fileItemStream : fileItemStreams ) {
+            fileStreamByName.put( fileItemStream.getFieldName(), fileItemStream );
+          }
         }
-      } catch ( FileUploadException e ) {
-        files = new ArrayList<>();
+      } catch ( FileUploadException | IOException e ) {
+        log.logError( e.getMessage() );
       }
     }
-    return files;
+    return fileStreamByName;
   }
 
-  private void validateUpload( FileItem fileItem, FILE_TYPE fileType, List<FileItem> files ) {
+  private boolean isValidUpload( String fileName, FileType fileType ) {
+    boolean valid = false;
     if (
-      ( fileType.equals( FILE_TYPE.CONFIGURATION ) && getClusterManager().isValidConfigurationFile( fileItem ) )
+      ( fileType.equals( FileType.CONFIGURATION ) && getClusterManager().isValidConfigurationFile( fileName ) )
         ||
-        ( fileType.equals( FILE_TYPE.DRIVER ) && fileItem.getFieldName().endsWith( FILE_TYPE.DRIVER.getValue() ) )
+        ( fileType.equals( FileType.DRIVER ) && fileName.endsWith( FileType.DRIVER.getValue() ) )
     ) {
-      files.add( fileItem );
+      valid = true;
     }
+    return valid;
+  }
+
+  /**
+   * Copy and Unzip
+   * <p>
+   * Copies a {@link FileItemStream} to a {@link List} of {@link CachedFileItemStream}s. A single {@link FileItemStream}
+   * may be zipped. This method unzips the zipped stream and copies each unzipped file to their own {@link
+   * CachedFileItemStream}
+   *
+   * @param fileItemStream the file item stream to unzip (if zipped) and copy
+   * @return a {@link List} of {@link CachedFileItemStream}s
+   * @throws IOException
+   */
+  @VisibleForTesting
+  List<CachedFileItemStream> copyAndUnzip( FileItemStream fileItemStream, FileType fileType ) throws IOException {
+
+    List<CachedFileItemStream> unzippedFileItemStreams = new ArrayList<>();
+
+    if ( fileItemStream.getFieldName().endsWith( ".zip" ) ) {
+
+      try ( ZipInputStream zis = new ZipInputStream( fileItemStream.openStream() ) ) {
+
+        for ( ZipEntry zipEntry = zis.getNextEntry(); zipEntry != null; zipEntry = zis.getNextEntry() ) {
+          if ( !zipEntry.isDirectory() ) {
+            //remove all directory structure from the zip file names and only unzip the files
+            String[] split = zipEntry.getName().split( System.getProperty( "file.separator" ) );
+            String unzippedFileName = split[ split.length - 1 ];
+            if ( isValidUpload( unzippedFileName, fileType ) ) {
+              CachedFileItemStream unzippedFileItemStream =
+                new CachedFileItemStream( zis, fileItemStream.getName(), unzippedFileName );
+              unzippedFileItemStreams.add( unzippedFileItemStream );
+            }
+          }
+        }
+      }
+    } else {
+      //file is not zipped
+      if ( isValidUpload( fileItemStream.getFieldName(), fileType ) ) {
+        unzippedFileItemStreams.add( new CachedFileItemStream( fileItemStream ) );
+      }
+    }
+    return unzippedFileItemStreams;
   }
 
   //http://localhost:9051/cxf/hadoop-cluster/importNamedCluster
@@ -120,7 +173,7 @@ public class HadoopClusterEndpoints {
   @Path( "/importNamedCluster" )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response importNamedCluster( @Context HttpServletRequest request ) {
-    List<FileItem> siteFilesSource = parseRequest( request, FILE_TYPE.CONFIGURATION );
+    Map<String, CachedFileItemStream> siteFilesSource = parseRequest( request, FileType.CONFIGURATION );
     ThinNameClusterModel model = ThinNameClusterModel.unmarshall( siteFilesSource );
     JSONObject response = getClusterManager().importNamedCluster( model, siteFilesSource );
     return Response.ok( response ).build();
@@ -132,7 +185,7 @@ public class HadoopClusterEndpoints {
   @Consumes( { MediaType.MULTIPART_FORM_DATA } )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response createNamedCluster( @Context HttpServletRequest request ) {
-    List<FileItem> siteFilesSource = parseRequest( request, FILE_TYPE.CONFIGURATION );
+    Map<String, CachedFileItemStream> siteFilesSource = parseRequest( request, FileType.CONFIGURATION );
     ThinNameClusterModel model = ThinNameClusterModel.unmarshall( siteFilesSource );
     JSONObject response = getClusterManager().createNamedCluster( model, siteFilesSource );
     return Response.ok( response ).build();
@@ -144,7 +197,7 @@ public class HadoopClusterEndpoints {
   @Consumes( { MediaType.MULTIPART_FORM_DATA } )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response editNamedCluster( @Context HttpServletRequest request ) {
-    List<FileItem> siteFilesSource = parseRequest( request, FILE_TYPE.CONFIGURATION );
+    Map<String, CachedFileItemStream> siteFilesSource = parseRequest( request, FileType.CONFIGURATION );
     ThinNameClusterModel model = ThinNameClusterModel.unmarshall( siteFilesSource );
     JSONObject response = getClusterManager().editNamedCluster( model, true, siteFilesSource );
     return Response.ok( response ).build();
@@ -156,7 +209,7 @@ public class HadoopClusterEndpoints {
   @Consumes( { MediaType.MULTIPART_FORM_DATA } )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response duplicateNamedCluster( @Context HttpServletRequest request ) {
-    List<FileItem> siteFilesSource = parseRequest( request, FILE_TYPE.CONFIGURATION );
+    Map<String, CachedFileItemStream> siteFilesSource = parseRequest( request, FileType.CONFIGURATION );
     ThinNameClusterModel model = ThinNameClusterModel.unmarshall( siteFilesSource );
     JSONObject response = getClusterManager().editNamedCluster( model, false, siteFilesSource );
     return Response.ok( response ).build();
@@ -192,7 +245,20 @@ public class HadoopClusterEndpoints {
   @Consumes( { MediaType.MULTIPART_FORM_DATA } )
   @Produces( { MediaType.APPLICATION_JSON } )
   public Response installDriver( @Context HttpServletRequest request ) {
-    List<FileItem> driver = parseRequest( request, FILE_TYPE.DRIVER );
+    FileItemStream driver = null;
+    if ( ServletFileUpload.isMultipartContent( request ) ) {
+      try {
+        FileItemIterator streamItemIterator = ( new ServletFileUpload() ).getItemIterator( request );
+        if ( streamItemIterator.hasNext() ) {
+          FileItemStream fileItemStream = streamItemIterator.next();
+          if ( isValidUpload( fileItemStream.getFieldName(), FileType.DRIVER ) ) {
+            driver = fileItemStream;
+          }
+        }
+      } catch ( FileUploadException | IOException e ) {
+        log.logError( e.getMessage() );
+      }
+    }
     return Response.ok( getClusterManager().installDriver( driver ) ).build();
   }
 
