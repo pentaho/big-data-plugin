@@ -33,7 +33,6 @@
 
     <!-- Third-party dependencies -->
     <commons-io.version>1.4</commons-io.version>
-    <commons-codec.version>1.10</commons-codec.version>
     <slf4j-api.version>1.7.7</slf4j-api.version>
     <guava.version>19.0</guava.version>
 
@@ -47,16 +46,6 @@
     <developerConnection>scm:git:git@github.com:pentaho/${project.artifactId}.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>${commons-codec.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <!-- Third-party dependencies -->
   <dependencies>
