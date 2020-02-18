@@ -22,7 +22,6 @@
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
@@ -43,7 +42,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputField;
@@ -98,8 +96,6 @@ public class AvroInputMetaTest {
   @Mock
   private PluginInterface pluginInterface;
 
-  private NamedClusterResolver namedClusterResolver;
-
   private RowMetaInterface[] info;
 
   /**
@@ -111,7 +107,7 @@ public class AvroInputMetaTest {
 
   @Before
   public void setUp() throws KettlePluginException {
-    namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator,
+    NamedClusterResolver namedClusterResolver = new NamedClusterResolver( namedClusterServiceLocator,
       namedClusterService, metaStoreLocator );
     meta = new AvroInputMeta( namedClusterResolver );
     when( field.getAvroType() ).thenReturn( AvroSpec.DataType.STRING );

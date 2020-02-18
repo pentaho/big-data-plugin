@@ -96,12 +96,11 @@ public class OrcOutputTest {
   @Mock
   private LogChannelInterface mockLogChannelInterface;
   @Mock
-  IPentahoOrcOutputFormat.IPentahoRecordWriter mockPentahoOrcRecordWriter;
+  private IPentahoOrcOutputFormat.IPentahoRecordWriter mockPentahoOrcRecordWriter;
 
   private OrcOutput orcOutput;
   private List<OrcOutputField> orcOutputFields;
   private OrcOutputMeta orcOutputMeta;
-  private NamedClusterResolver namedClusterResolver;
   private RowMeta dataInputRowMeta;
   private RowMetaAndData[] dataInputRows;
   private int currentOrcRow;
@@ -111,7 +110,7 @@ public class OrcOutputTest {
     currentOrcRow = 0;
     setDataInputRows();
     setOrcOutputRows();
-    namedClusterResolver =
+    NamedClusterResolver namedClusterResolver =
       new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
     orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
     orcOutputMeta.setFilename( OUTPUT_FILE_NAME );

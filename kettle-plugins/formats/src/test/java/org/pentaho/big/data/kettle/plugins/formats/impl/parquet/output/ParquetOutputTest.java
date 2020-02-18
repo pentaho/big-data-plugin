@@ -103,12 +103,11 @@ public class ParquetOutputTest {
   @Mock
   private LogChannelInterface mockLogChannelInterface;
   @Mock
-  IPentahoParquetOutputFormat.IPentahoRecordWriter mockPentahoParquetRecordWriter;
+  private IPentahoParquetOutputFormat.IPentahoRecordWriter mockPentahoParquetRecordWriter;
 
   private ParquetOutput parquetOutput;
   private List<ParquetOutputField> parquetOutputFields;
   private ParquetOutputMeta parquetOutputMeta;
-  private NamedClusterResolver namedClusterResolver;
   private RowMeta dataInputRowMeta;
   private RowMetaAndData[] dataInputRows;
   private int currentParquetRow;
@@ -119,7 +118,7 @@ public class ParquetOutputTest {
     currentParquetRow = 0;
     setDataInputRows();
     setParquetOutputRows();
-    namedClusterResolver =
+    NamedClusterResolver namedClusterResolver =
       new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
     parquetOutputMeta = new ParquetOutputMeta( namedClusterResolver );
     parquetOutputMeta.setFilename( OUTPUT_FILE_NAME );

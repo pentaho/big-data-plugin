@@ -95,11 +95,10 @@ public class AvroOutputTest {
   @Mock
   private LogChannelInterface mockLogChannelInterface;
   @Mock
-  IPentahoAvroOutputFormat.IPentahoRecordWriter mockPentahoAvroRecordWriter;
+  private IPentahoAvroOutputFormat.IPentahoRecordWriter mockPentahoAvroRecordWriter;
 
   private List<AvroOutputField> avroOutputFields;
   private AvroOutputMeta avroOutputMeta;
-  private NamedClusterResolver namedClusterResolver;
   private AvroOutput avroOutput;
   private RowMeta dataInputRowMeta;
   private RowMetaAndData[] dataInputRows;
@@ -110,7 +109,7 @@ public class AvroOutputTest {
     currentAvroRow = 0;
     setDataInputRows();
     setAvroOutputRows();
-    namedClusterResolver =
+    NamedClusterResolver namedClusterResolver =
       new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
     avroOutputMeta = new AvroOutputMeta( namedClusterResolver );
     avroOutputMeta.setFilename( OUTPUT_FILE_NAME );
