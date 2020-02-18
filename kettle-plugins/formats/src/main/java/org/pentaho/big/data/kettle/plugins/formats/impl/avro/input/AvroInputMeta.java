@@ -21,15 +21,10 @@
  ******************************************************************************/
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
@@ -48,7 +43,6 @@ import org.pentaho.di.trans.step.StepMeta;
 public class AvroInputMeta extends AvroInputMetaBase {
 
   private final NamedClusterResolver namedClusterResolver;
-  private Boolean testing = false;
 
   public AvroInputMeta( NamedClusterResolver namedClusterResolver ) {
     this.namedClusterResolver = namedClusterResolver;
@@ -67,10 +61,5 @@ public class AvroInputMeta extends AvroInputMetaBase {
 
   public NamedClusterResolver getNamedClusterResolver() {
     return namedClusterResolver;
-  }
-
-  @VisibleForTesting
-  void setTesting( Boolean isTesting ) {
-    testing = isTesting;
   }
 }

@@ -22,14 +22,10 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;

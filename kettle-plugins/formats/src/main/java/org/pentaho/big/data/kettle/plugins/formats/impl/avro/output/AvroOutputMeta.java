@@ -22,15 +22,10 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.avro.output;
 
-import org.olap4j.impl.Named;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.big.data.kettle.plugins.formats.avro.output.AvroOutputMetaBase;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.injection.InjectionSupported;
-import org.pentaho.di.core.osgi.api.MetastoreLocatorOsgi;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
