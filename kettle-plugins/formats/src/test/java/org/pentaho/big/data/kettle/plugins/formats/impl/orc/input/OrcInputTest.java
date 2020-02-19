@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -19,7 +19,7 @@
  * limitations under the License.
  *
  ******************************************************************************/
-package org.pentaho.big.data.kettle.plugins.formats.impl.avro.input;
+package org.pentaho.big.data.kettle.plugins.formats.impl.orc.input;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,10 +28,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
-import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
-import org.pentaho.big.data.kettle.plugins.formats.avro.input.AvroInputMetaBase;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogLevel;
@@ -46,34 +42,32 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.RowHandler;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.format.FormatService;
-import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
+import org.pentaho.hadoop.shim.api.format.IPentahoOrcInputFormat;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
-
-/**
- * This test simulates two avro file contents being sent as pdi input fields.  Each file contains two rows of data so
- * the processRow method should be successfull 4 times.  We check that all 4 rows are returned and that the fields
- * passed to pdi output are syncronized with the input row that corresponds to the avro content processed.
- *
- * @author tkafalas
- */
-public class AvroInputTest {
-
-  static final String INPUT_STEP_NAME = "Input Step Name";
-  static final String INPUT_STREAM_FIELD_NAME = "inputStreamFieldName";
-  static final String PASS_FIELD_NAME = "passFieldName";
-  int currentInputRow;
+public class OrcInputTest {
+  private static final String INPUT_STEP_NAME = "Input Step Name";
+  private static final String INPUT_STREAM_FIELD_NAME = "inputStreamFieldName";
+  private static final String PASS_FIELD_NAME = "passFieldName";
+  private static final String FILENAME = "orcFile";
 
   @Mock
   private StepMeta mockStepMeta;
@@ -92,33 +86,35 @@ public class AvroInputTest {
   @Mock
   private FormatService mockFormatService;
   @Mock
-  private AvroInputData sdi;
+  private OrcInputData orcInputData;
+
   @Mock
   private RowHandler mockRowHandler;
   @Mock
-  private IPentahoAvroInputFormat mockPentahoAvroInputFormat;
+  private IPentahoOrcInputFormat mockPentahoOrcInputFormat;
   @Mock
-  IPentahoAvroInputFormat.IPentahoRecordReader mockPentahoAvroRecordReader;
+  private IPentahoOrcInputFormat.IPentahoRecordReader mockPentahoOrcRecordReader;
 
-  private AvroInputMeta avroInputMeta;
-  private AvroInput avroInput;
-  private RowMeta avroRowMeta;
-  private RowMetaAndData[] avroRows;
+  private OrcInputMeta orcInputMeta;
+  private OrcInput orcInput;
+  private RowMeta orcRowMeta;
+  private RowMetaAndData[] orcRows;
   private RowMeta inputRowMeta;
   private RowMetaAndData[] inputRows;
+  private int currentOrcInputRow;
 
   @Before
   public void setUp() throws Exception {
-    currentInputRow = 0;
+    currentOrcInputRow = 0;
     setInputRows();
-    setAvroRows();
+    setOrcRows();
     NamedClusterResolver namedClusterResolver =
       new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
-    avroInputMeta = new AvroInputMeta( namedClusterResolver );
-    avroInputMeta.setDataLocation( INPUT_STREAM_FIELD_NAME, AvroInputMetaBase.LocationDescriptor.FIELD_NAME );
-    when( mockPentahoAvroInputFormat.getInputStreamFieldName() ).thenReturn( INPUT_STREAM_FIELD_NAME );
+    orcInputMeta = spy( new OrcInputMeta( namedClusterResolver ) );
+    orcInputMeta.inputFiles.fileName = new String[1];
+    orcInputMeta.setFilename( INPUT_STREAM_FIELD_NAME );
 
-    avroInputMeta.setParentStepMeta( mockStepMeta );
+    orcInputMeta.setParentStepMeta( mockStepMeta );
     when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
     when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
@@ -129,29 +125,28 @@ public class AvroInputTest {
       e.printStackTrace();
     }
 
-    when( mockFormatService.createInputFormat( IPentahoAvroInputFormat.class,
-      avroInputMeta.getNamedClusterResolver().resolveNamedCluster( avroInputMeta.getDataLocation() ) ) )
-      .thenReturn( mockPentahoAvroInputFormat );
+    orcInputData.input = mockPentahoOrcInputFormat;
+    when( mockFormatService.createInputFormat( IPentahoOrcInputFormat.class,
+      orcInputMeta.getNamedClusterResolver().resolveNamedCluster( orcInputMeta.getFilename() ) ) )
+      .thenReturn( mockPentahoOrcInputFormat );
     when( mockNamedClusterServiceLocator.getService( any( NamedCluster.class ), any( Class.class ) ) )
       .thenReturn( mockFormatService );
-    when( mockPentahoAvroInputFormat.createRecordReader( null ) ).thenReturn( mockPentahoAvroRecordReader );
-    when( mockPentahoAvroRecordReader.iterator() ).thenReturn( new AvroRecordIterator() );
+    when( mockTransMeta.environmentSubstitute( INPUT_STREAM_FIELD_NAME ) ).thenReturn( INPUT_STREAM_FIELD_NAME );
+    when( mockPentahoOrcInputFormat.createRecordReader( null ) ).thenReturn( mockPentahoOrcRecordReader );
+    when( mockPentahoOrcRecordReader.iterator() ).thenReturn( new OrcInputTest.OrcRecordIterator() );
 
-    avroInput = new AvroInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
-      mockTrans );
-    avroInput.setRowHandler( mockRowHandler );
-    avroInput.setInputRowMeta( inputRowMeta );
-    avroInput.setLogLevel( LogLevel.ERROR );
-
+    orcInput = spy( new OrcInput( mockStepMeta, mockStepDataInterface, 0, mockTransMeta,
+      mockTrans ) );
+    orcInput.setRowHandler( mockRowHandler );
+    orcInput.setInputRowMeta( inputRowMeta );
+    orcInput.setLogLevel( LogLevel.ERROR );
   }
 
   private Object[] returnNextInputRow() {
     Object[] result = null;
-    if ( currentInputRow < inputRows.length ) {
-      result = inputRows[ currentInputRow ].getData().clone();
-      currentInputRow++;
-    } else {
-      result = null;
+    if ( currentOrcInputRow < inputRows.length ) {
+      result = inputRows[ currentOrcInputRow ].getData().clone();
+      currentOrcInputRow++;
     }
     return result;
   }
@@ -164,37 +159,67 @@ public class AvroInputTest {
     ArgumentCaptor<Object[]> dataCaptor = ArgumentCaptor.forClass( Object[].class );
 
     do {
-      result = avroInput.processRow( avroInputMeta, sdi );
-      if ( result == true ) {
+      result = orcInput.processRow( orcInputMeta, orcInputData );
+      if ( result ) {
         rowsProcessed++;
       }
-    } while ( result == true );
+    } while ( result );
 
-    assertEquals( 4, rowsProcessed ); // 2 files 2 rows each
-    verify( mockRowHandler, times( 4 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
+    // 1 file, 2 rows.
+    assertEquals( 2, rowsProcessed );
+    verify( mockRowHandler, times( 2 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
     List<RowMeta> rowMeta = rowMetaCaptor.getAllValues();
     List<Object[]> dataCaptured = dataCaptor.getAllValues();
-    for ( int rowNum = 0; rowNum < 4; rowNum++ ) {
+    for ( int rowNum = 0; rowNum < 2; rowNum++ ) {
       assertEquals( 0, rowMeta.get( rowNum ).indexOfValue( "str" ) );
       assertEquals( "string" + ( rowNum % 2 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
     }
-
   }
 
   @Test
   public void testInit() {
-    assertEquals( true, avroInput.init() );
+    assertEquals( true, orcInput.init() );
   }
 
-  private RowMeta setAvroRowMeta() {
-    avroRowMeta = new RowMeta();
+  @Test
+  public void testProcessRowKettleFailure() {
+    String expectedMessage = "KettleExceptionMessage";
+    try {
+      doThrow( new KettleException( expectedMessage ) )
+        .when( mockPentahoOrcInputFormat ).createRecordReader( null );
+      orcInput.processRow( orcInputMeta, orcInputData );
+      fail( "No Kettle Exception thrown" );
+    } catch ( KettleException kex ) {
+      assertTrue( kex.getMessage().contains( expectedMessage ) );
+    } catch ( Exception ex ) {
+      fail( "No other type of exception should be thrown" );
+    }
+  }
+
+  @Test
+  public void testProcessRowGeneralFailure() {
+    String expectedMessage = "KettleExceptionMessage";
+    try {
+      doThrow( new Exception( expectedMessage ) )
+        .when( mockPentahoOrcInputFormat ).createRecordReader( null );
+      orcInput.processRow( orcInputMeta, orcInputData );
+      fail( "No Kettle Exception thrown" );
+    } catch ( KettleException kex ) {
+      assertTrue( kex.getMessage().contains( expectedMessage ) );
+    } catch ( Exception ex ) {
+      fail( "No other type of exception should be thrown" );
+    }
+  }
+
+  private RowMeta setOrcRowMeta() {
+    orcRowMeta = new RowMeta();
     ValueMetaInterface valueMetaString = new ValueMetaString( "str" );
-    avroRowMeta.addValueMeta( valueMetaString );
+    orcRowMeta.addValueMeta( valueMetaString );
     ValueMetaInterface valueMetaBoolean = new ValueMetaBoolean( "bool" );
-    avroRowMeta.addValueMeta( valueMetaBoolean );
+    orcRowMeta.addValueMeta( valueMetaBoolean );
     ValueMetaInterface valueMetaInteger = new ValueMetaInteger( "int" );
-    avroRowMeta.addValueMeta( valueMetaInteger );
-    return avroRowMeta;
+    orcRowMeta.addValueMeta( valueMetaInteger );
+    return orcRowMeta;
   }
 
   private RowMeta setInputRowMeta() {
@@ -209,30 +234,29 @@ public class AvroInputTest {
   private void setInputRows() {
     setInputRowMeta();
     inputRows = new RowMetaAndData[] {
-      new RowMetaAndData( avroRowMeta, "avroFile1", "pass1" ),
-      new RowMetaAndData( avroRowMeta, "avroFile2", "pass2" )
+      new RowMetaAndData( orcRowMeta, FILENAME, "pass1" )
     };
 
   }
 
-  private void setAvroRows() {
-    setAvroRowMeta();
-    avroRows = new RowMetaAndData[] {
-      new RowMetaAndData( avroRowMeta, "string1", true, new Integer( 123 ) ),
-      new RowMetaAndData( avroRowMeta, "string2", true, new Integer( 321 ) )
+  private void setOrcRows() {
+    setOrcRowMeta();
+    orcRows = new RowMetaAndData[] {
+      new RowMetaAndData( orcRowMeta, "string1", true, new Integer( 123 ) ),
+      new RowMetaAndData( orcRowMeta, "string2", true, new Integer( 321 ) )
     };
   }
 
-  private class AvroRecordIterator implements Iterator<RowMetaAndData> {
-    Iterator<RowMetaAndData> iter;
-    boolean reset;
+  private class OrcRecordIterator implements Iterator<RowMetaAndData> {
+    private Iterator<RowMetaAndData> iter;
+    private boolean reset;
 
-    AvroRecordIterator() {
+    OrcRecordIterator() {
       init();
     }
 
     private void init() {
-      iter = Arrays.asList( avroRows ).iterator();
+      iter = Arrays.asList( orcRows ).iterator();
       reset = false;
     }
 

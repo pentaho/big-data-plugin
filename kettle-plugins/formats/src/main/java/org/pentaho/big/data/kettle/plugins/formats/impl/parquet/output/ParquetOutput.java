@@ -1,8 +1,8 @@
-/*******************************************************************************
+/*! ******************************************************************************
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,7 +24,6 @@ package org.pentaho.big.data.kettle.plugins.formats.impl.parquet.output;
 
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.big.data.kettle.plugins.formats.parquet.output.ParquetOutputMetaBase;
 import org.pentaho.di.core.RowMetaAndData;
@@ -46,16 +45,13 @@ import java.io.IOException;
 
 public class ParquetOutput extends BaseStep implements StepInterface {
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-
   private ParquetOutputMeta meta;
 
   private ParquetOutputData data;
 
   public ParquetOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                        Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                        Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
   @Override
@@ -102,7 +98,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   public void init( RowMetaInterface rowMeta ) throws Exception {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator
+      formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()
         .getService( getNamedCluster(), FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
@@ -149,7 +145,7 @@ public class ParquetOutput extends BaseStep implements StepInterface {
   }
 
   private NamedCluster getNamedCluster() {
-    return meta.getNamedCluster( environmentSubstitute( meta.getFilename() ) );
+    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getFilename() ) );
   }
 
   public void closeWriter() throws KettleException {

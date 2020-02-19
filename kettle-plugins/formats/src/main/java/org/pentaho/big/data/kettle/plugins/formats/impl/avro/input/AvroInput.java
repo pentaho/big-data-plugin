@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2019-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -73,12 +73,9 @@ public class AvroInput extends BaseStep {
   protected AvroInputMeta meta;
   protected AvroInputData data;
 
-  private final NamedClusterServiceLocator namedClusterServiceLocator;
-
   public AvroInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
-                    Trans trans, NamedClusterServiceLocator namedClusterServiceLocator ) {
+                    Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
-    this.namedClusterServiceLocator = namedClusterServiceLocator;
   }
 
   private IndexedLookupField resolveLookupField( IAvroLookupField lookupField ) {
@@ -189,7 +186,7 @@ public class AvroInput extends BaseStep {
   private boolean initializeSource() throws Exception {
     FormatService formatService;
     try {
-      formatService = namedClusterServiceLocator
+      formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()
         .getService( getNamedCluster(), FormatService.class );
       inputToStepRow = getRow();
       if ( inputToStepRow == null && ( meta.getDataLocationType()
@@ -289,7 +286,7 @@ public class AvroInput extends BaseStep {
   }
 
   private NamedCluster getNamedCluster() {
-    return meta.getNamedCluster( environmentSubstitute( meta.getDataLocation() ) );
+    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getDataLocation() ) );
   }
 
   public void checkForLegacyFieldNames( String schemaFileName, String avroFileName ) {
@@ -298,7 +295,8 @@ public class AvroInput extends BaseStep {
     try {
       if ( !data.input.isUseFieldAsInputStream() ) {
         List<? extends IAvroInputField> rawAvroFields = AvroInput
-          .getLeafFields( meta.getNamedClusterServiceLocator(), getNamedCluster(), schemaFileName, avroFileName );
+          .getLeafFields( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
+            getNamedCluster(), schemaFileName, avroFileName );
         Map<String, String> hackedFieldNames = new HashMap<>();
         int pointer;
         String fieldName;
