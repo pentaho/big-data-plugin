@@ -116,6 +116,13 @@ define([
             //Most of the data already exists in the model
             loadShimDropDowns();
             vm.siteFiles = fileService.getFiles();
+            if (vm.data.type) {
+              if (vm.data.type === "new") {
+                vm.header = i18n.get('new.header');
+              } else if (vm.data.type === "edit" || vm.data.type === "duplicate") {
+                vm.header = i18n.get('edit.header');
+              }
+            }
           }
         } else {
           //this is a new state, no name exists in the model or on the URL
