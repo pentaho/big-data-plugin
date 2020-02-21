@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -39,6 +39,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
 import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -90,8 +91,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   private String hdfsPort;
   @MetaStoreAttribute
   private String hdfsUsername;
-  @MetaStoreAttribute( password = true )
-  private String hdfsPassword;
+  @MetaStoreAttribute
+  private String hdfsPassword; //encrypted
   @MetaStoreAttribute
   private String jobTrackerHost;
   @MetaStoreAttribute
@@ -115,8 +116,8 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   @MetaStoreAttribute
   private String gatewayUsername;
 
-  @MetaStoreAttribute ( password = true )
-  private String gatewayPassword;
+  @MetaStoreAttribute
+  private String gatewayPassword;  //encrypted
   @MetaStoreAttribute
   private boolean useGateway;
 
@@ -358,7 +359,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
         String ncHostname = getHdfsHost() != null ? getHdfsHost() : "";
         String ncPort = getHdfsPort() != null ? getHdfsPort() : "";
         String ncUsername = getHdfsUsername() != null ? getHdfsUsername() : "";
-        String ncPassword = getHdfsPassword() != null ? getHdfsPassword() : "";
+        String ncPassword = getHdfsPassword() != null ? decodePassword( getHdfsPassword() ) : "";
 
         if ( variableSpace != null ) {
           variableSpace.initializeVariablesFrom( getParentVariableSpace() );
@@ -567,7 +568,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
               try {
                 value = (String) entry.getValue();
                 if ( elementName.toLowerCase().contains( "password" ) ) {
-                  value = passwordEncoder.encode( value );
+                  value = encodePassword( value );
                 }
               } catch ( Exception e ) {
                 e.printStackTrace();
@@ -600,7 +601,7 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
       String fieldName = XMLHandler.getTagValue( field, "id" );
       String fieldValue = XMLHandler.getTagValue(  field, "value" );
       if ( fieldName.toLowerCase().contains( "password" ) ) {
-        fieldValue = passwordEncoder.decode( fieldValue );
+        fieldValue = decodePassword( fieldValue );
       }
       try {
         BeanUtils.setProperty( returnCluster, fieldName, fieldValue );
@@ -647,12 +648,12 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   @Override
   public String getGatewayPassword() {
-    return gatewayPassword;
+    return decodePassword( gatewayPassword );
   }
 
   @Override
   public void setGatewayPassword( String gatewayPassword ) {
-    this.gatewayPassword = gatewayPassword;
+    this.gatewayPassword = encodePassword( gatewayPassword );
   }
 
   @Override
@@ -675,5 +676,21 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   @Override public NamedClusterOsgi nonOsgiFromXmlForEmbed( Node node ) {
     return (NamedClusterOsgi) fromXmlForEmbed( node );
+  }
+
+  public String decodePassword( String password ) {
+    if ( password == null || password.startsWith( Encr.PASSWORD_ENCRYPTED_PREFIX ) ) {
+      return Encr.decryptPasswordOptionallyEncrypted( password );
+    } else {
+      //Password is likely stored encrypted with legacy Base64TwoWayPasswordEncoder
+      if ( !StringUtil.isVariable( password ) ) {
+        return passwordEncoder.decode( password );
+      }
+    }
+    return password;
+  }
+
+  public String encodePassword( String password ) {
+    return Encr.encryptPasswordIfNotUsingVariables( password );
   }
 }

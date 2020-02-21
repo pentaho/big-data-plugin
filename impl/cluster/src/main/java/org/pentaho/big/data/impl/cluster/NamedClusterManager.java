@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -146,7 +146,7 @@ public class NamedClusterManager implements NamedClusterService {
       clusterTemplate.setHdfsHost( LOCALHOST );
       clusterTemplate.setHdfsPort( "8020" );
       clusterTemplate.setHdfsUsername( "user" );
-      clusterTemplate.setHdfsPassword( "password" );
+      clusterTemplate.setHdfsPassword( clusterTemplate.encodePassword( "password" ) );
       clusterTemplate.setJobTrackerHost( LOCALHOST );
       clusterTemplate.setJobTrackerPort( "8032" );
       clusterTemplate.setZooKeeperHost( LOCALHOST );

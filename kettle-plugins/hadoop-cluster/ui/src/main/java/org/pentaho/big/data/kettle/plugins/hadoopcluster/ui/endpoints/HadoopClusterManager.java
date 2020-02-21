@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,7 @@ import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameCluste
 import org.pentaho.big.data.plugins.common.ui.HadoopClusterDelegateImpl;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -194,7 +195,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       nc.setOozieUrl( "" );
       nc.setName( model.getName() );
       nc.setHdfsUsername( model.getHdfsUsername() );
-      nc.setHdfsPassword( model.getHdfsPassword() );
+      nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
       if ( variableSpace != null ) {
         nc.shareVariablesWith( variableSpace );
       } else {
@@ -234,7 +235,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     nc.setHdfsHost( model.getHdfsHost() );
     nc.setHdfsPort( model.getHdfsPort() );
     nc.setHdfsUsername( model.getHdfsUsername() );
-    nc.setHdfsPassword( model.getHdfsPassword() );
+    nc.setHdfsPassword( nc.encodePassword( model.getHdfsPassword() ) );
     nc.setJobTrackerHost( model.getJobTrackerHost() );
     nc.setJobTrackerPort( model.getJobTrackerPort() );
     nc.setZooKeeperHost( model.getZooKeeperHost() );
@@ -348,7 +349,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setName( nc.getName() );
           model.setHdfsHost( nc.getHdfsHost() );
           model.setHdfsUsername( nc.getHdfsUsername() );
-          model.setHdfsPassword( nc.getHdfsPassword() );
+          model.setHdfsPassword( nc.decodePassword( nc.getHdfsPassword() ) );
           model.setHdfsPort( nc.getHdfsPort() );
           model.setJobTrackerHost( nc.getJobTrackerHost() );
           model.setJobTrackerPort( nc.getJobTrackerPort() );
@@ -357,7 +358,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           model.setZooKeeperPort( nc.getZooKeeperPort() );
           model.setZooKeeperHost( nc.getZooKeeperHost() );
           resolveShimVendorAndVersion( model, nc.getShimIdentifier() );
-          model.setGatewayPassword( nc.getGatewayPassword() );
+          model.setGatewayPassword( nc.decodePassword( nc.getGatewayPassword() ) );
           model.setGatewayUrl( nc.getGatewayUrl() );
           model.setGatewayUsername( nc.getGatewayUsername() );
           model.setSecurityType( SECURITY_TYPE.NONE.getValue() );
@@ -613,9 +614,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + CONFIG_PROPERTIES;
       PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
       model.setKerberosAuthenticationUsername( (String) config.getProperty( KERBEROS_AUTHENTICATION_USERNAME ) );
-      model.setKerberosAuthenticationPassword( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) );
+      model.setKerberosAuthenticationPassword(
+        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) ) );
       model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-      model.setKerberosImpersonationPassword( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
+      model.setKerberosImpersonationPassword(
+        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) ) );
       String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
       String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
 
@@ -659,9 +662,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      config.setProperty( KERBEROS_AUTHENTICATION_PASS, model.getKerberosAuthenticationPassword() );
+      config.setProperty( KERBEROS_AUTHENTICATION_PASS,
+        Encr.encryptPasswordIfNotUsingVariables( model.getKerberosAuthenticationPassword() ) );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
-      config.setProperty( KERBEROS_IMPERSONATION_PASS, model.getKerberosImpersonationPassword() );
+      config.setProperty( KERBEROS_IMPERSONATION_PASS,
+        Encr.encryptPasswordIfNotUsingVariables( model.getKerberosImpersonationPassword() ) );
       if ( ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() )
         && !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) )
         || ( !StringUtil.isEmpty( model.getKerberosAuthenticationUsername() )
@@ -747,7 +752,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       String userName = model.getGatewayUsername();
       String url = model.getGatewayUrl();
       String password = model.getGatewayPassword();
-      nc.setGatewayPassword( password );
+      nc.setGatewayPassword( nc.encodePassword( password ) );
       nc.setGatewayUrl( url );
       nc.setGatewayUsername( userName );
       nc.setUseGateway(
