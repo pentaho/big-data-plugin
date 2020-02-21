@@ -25,8 +25,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.provider.UriParser;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -38,6 +43,8 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
 import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -52,13 +59,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.doAnswer;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
 
 /**
  * Created by bryan on 7/14/15.
  */
+@RunWith( PowerMockRunner.class )
+@PrepareForTest( { UriParser.class, VFS.class } )
 public class NamedClusterImplTest {
   private VariableSpace variableSpace;
   private NamedClusterImpl namedCluster;
@@ -77,15 +91,20 @@ public class NamedClusterImplTest {
   private String namedClusterKafkaBootstrapServers;
   private boolean isMapr;
   private IMetaStore metaStore;
+  private StandardFileSystemManager fsm;
 
   @Before
-  public void setup() {
+  public void setup() throws Exception {
+    mockStatic( VFS.class );
+    mockStatic( UriParser.class );
+    spy( UriParser.class );
+
     PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
     PluginRegistry.init( false );
     Encr.init( "Kettle" );
     metaStore = mock( IMetaStore.class );
     variableSpace = mock( VariableSpace.class );
-    variableSpace = mock( VariableSpace.class );
+
     namedCluster = new NamedClusterImpl();
     namedCluster.shareVariablesWith( variableSpace );
     namedClusterName = "namedClusterName";
@@ -115,6 +134,9 @@ public class NamedClusterImplTest {
     namedCluster.setMapr( isMapr );
     namedCluster.setStorageScheme( namedClusterStorageScheme );
     namedCluster.setKafkaBootstrapServers( namedClusterKafkaBootstrapServers );
+
+    fsm = mock( StandardFileSystemManager.class );
+    when( VFS.getManager() ).thenReturn( fsm );
   }
 
   @Test
@@ -268,7 +290,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFS() throws MetaStoreException {
+  public void testGenerateURLHDFS() throws Exception {
     String scheme = "hdfs";
     String testHost = "testHost";
     String testPort = "9333";
@@ -565,5 +587,19 @@ public class NamedClusterImplTest {
     assertEquals( namedCluster.getOozieUrl(), nc.getOozieUrl() );
     assertEquals( namedCluster.getKafkaBootstrapServers(), nc.getKafkaBootstrapServers() );
     assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
+  }
+
+  private Answer buildUrlEncodeAnswer( String value ) {
+    Answer urlEncodeAnswer = invocation -> {
+      Object[] args = invocation.getArguments();
+      ( (StringBuilder) args[0] ).append( (String) args[1] );
+      return null;
+    };
+    return urlEncodeAnswer;
+  }
+
+  private void buildAppendEncodedUserPassMocks( String username, String password ) throws Exception {
+    doAnswer( buildUrlEncodeAnswer ( username ) ).when( UriParser.class, "appendEncoded",
+      any( StringBuilder.class ), eq( username ), any( char[].class ) );
   }
 }

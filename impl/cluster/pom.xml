@@ -15,6 +15,7 @@
   <url>http://www.pentaho.com</url>
   <properties>
     <publish-sonar-phase>site</publish-sonar-phase>
+    <dependency.org.powermock.version>1.7.3</dependency.org.powermock.version>
   </properties>
   <dependencies>
     <dependency>
@@ -55,6 +56,18 @@
       <groupId>com.google.code.bean-matchers</groupId>
       <artifactId>bean-matchers</artifactId>
       <version>${dependency.bean-matchers.revision}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <version>${dependency.org.powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>${dependency.org.powermock.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
