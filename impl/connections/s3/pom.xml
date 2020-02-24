@@ -15,9 +15,8 @@
   <name>Pentaho S3 Connection UI</name>
 
   <properties>
-    <js.project.list>requirejs,requirejs-text,angular,angular-ui-router,ui-router-extras,require-css</js.project.list>
+    <js.project.list>requirejs,requirejs-text,angular,require-css</js.project.list>
     <maven-replacer-plugin.version>1.5.2</maven-replacer-plugin.version>
-    <angular.version>1.5.8</angular.version>
     <requirejs-text.version>2.0.10</requirejs-text.version>
     <require-css.version>0.1.8</require-css.version>
     <pentaho-osgi-bundles.version>9.1.0.0-SNAPSHOT</pentaho-osgi-bundles.version>
@@ -44,13 +43,11 @@
     <dependency>
       <groupId>org.webjars.bower</groupId>
       <artifactId>angular</artifactId>
-      <version>${angular.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.webjars.bower</groupId>
+      <groupId>org.webjars.npm</groupId>
       <artifactId>angular-i18n</artifactId>
-      <version>${angular.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
