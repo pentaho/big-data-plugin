@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019 Hitachi Vantara. All rights reserved.
+ * Copyright 2019-2020 Hitachi Vantara. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ define([
   "./service/helper.service",
   "./service/data.service",
   "./service/file.service",
-  "angular-ui-router",
+  "@uirouter/angularjs",
   "angular-animate"
 ], function (angular, appConfig, appAnimation, importComponent, newEditComponent, creatingComponent, testingComponent,
              statusComponent, testResultsComponent, addDriverComponent, installingDriverComponent,
