@@ -63,7 +63,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -127,9 +129,9 @@ public class HadoopClusterManagerTest {
     model.setShimVersion( "5.14" );
     JSONObject result = hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/secured" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
+    verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
   }
 
   @Test public void testUnsecuredImportNamedCluster() {
@@ -140,10 +142,10 @@ public class HadoopClusterManagerTest {
     JSONObject result =
       hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/unsecured" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
+    verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "oozie-default.xml" ), any( String.class ) );
   }
 
   @Test public void testMissingInfoImportNamedCluster() {
@@ -154,10 +156,10 @@ public class HadoopClusterManagerTest {
     JSONObject result =
       hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/missing-info" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    assertTrue( new File( getShimTestDir(), "core-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "yarn-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "hive-site.xml" ).exists() );
-    assertTrue( new File( getShimTestDir(), "oozie-default.xml" ).exists() );
+    verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( "oozie-default.xml" ), any( String.class ) );
     ThinNameClusterModel thinNameClusterModel = hadoopClusterManager.getNamedCluster( ncTestName );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsHost() ) );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsPort() ) );

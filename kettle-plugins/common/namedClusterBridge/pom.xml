@@ -55,6 +55,12 @@
       <artifactId>mockito-all</artifactId>
       <version>${dependency.mockito.revision}</version>
     </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>9.1.0.0-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

@@ -17,8 +17,11 @@
 
 package org.pentaho.big.data.impl.cluster;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +45,8 @@ import org.apache.commons.vfs2.provider.url.UrlFileNameParser;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
@@ -127,9 +132,13 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
 
+  @MetaStoreAttribute
+  private List<NamedClusterSiteFile> siteFiles;
+
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   public NamedClusterImpl() {
+    siteFiles = new ArrayList<>();
     initializeVariablesFrom( null );
   }
 
@@ -252,6 +261,9 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
     this.setUseGateway( nc.isUseGateway() );
     this.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
     this.lastModifiedDate = System.currentTimeMillis();
+    for ( NamedClusterSiteFile ncsf : nc.getSiteFiles() ) {
+      this.siteFiles.add( ncsf.copy() );
+    }
   }
 
   public NamedClusterImpl clone() {
@@ -692,5 +704,27 @@ public class NamedClusterImpl implements NamedCluster, NamedClusterOsgi {
 
   public String encodePassword( String password ) {
     return Encr.encryptPasswordIfNotUsingVariables( password );
+  }
+
+  @Override
+  public List<NamedClusterSiteFile> getSiteFiles() {
+    return siteFiles;
+  }
+
+  @Override
+  public void setSiteFiles( List<NamedClusterSiteFile> siteFiles ) {
+    this.siteFiles = siteFiles;
+  }
+
+  @Override
+  public void addSiteFile( String fileName, String content ) {
+    siteFiles.add( new NamedClusterSiteFileImpl( fileName, content ) );
+  }
+
+  @Override
+  public InputStream getSiteFileInputStream( String siteFileName ) {
+    NamedClusterSiteFile n = siteFiles.stream().filter( sf -> sf.getSiteFileName().equals( siteFileName ) )
+      .findFirst().orElse( null );
+    return n == null ? null : new ByteArrayInputStream( n.getSiteFileContents().getBytes() );
   }
 }

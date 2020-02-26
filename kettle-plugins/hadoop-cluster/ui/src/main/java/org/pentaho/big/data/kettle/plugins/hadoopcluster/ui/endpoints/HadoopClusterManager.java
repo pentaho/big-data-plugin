@@ -64,11 +64,11 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -233,7 +233,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private NamedCluster createXMLSchema( ThinNameClusterModel model ) throws MetaStoreException {
+  private NamedCluster createXMLSchema( ThinNameClusterModel model, Map<String, CachedFileItemStream> siteFilesSource )
+    throws MetaStoreException, IOException {
     NamedCluster nc = namedClusterService.getClusterTemplate();
     nc.setName( model.getName() );
     nc.setHdfsHost( model.getHdfsHost() );
@@ -253,7 +254,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     } else {
       nc.initializeVariablesFrom( null );
     }
-    deleteNamedClusterSchemaOnly( model );
+    installSiteFiles( siteFilesSource, nc );
     namedClusterService.create( nc, metaStore );
     return nc;
   }
@@ -276,9 +277,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
-      NamedCluster nc = createXMLSchema( model );
+      NamedCluster nc = createXMLSchema( model, siteFilesSource );
       deleteConfigFolder( nc.getName() );
-      installSiteFiles( siteFilesSource, nc );
       createConfigProperties( nc );
       setupKerberosSecurity( model, siteFilesSource, "", "" );
       response.put( NAMED_CLUSTER, nc.getName() );
@@ -297,7 +297,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       String shimId = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore ).getShimIdentifier();
 
       // Create new or update existing Named Cluster XML schema.
-      NamedCluster nc = createXMLSchema( model );
+      NamedCluster nc = createXMLSchema( model, siteFilesSource );
 
       File oldConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + model.getOldName() );
       File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
@@ -532,13 +532,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) ) {
           name = extractFileNameFromFullPath( siteFile.getValue().getName() );
         }
-
-        File destination = new File(
-          getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + name );
-        destination.getParentFile().mkdirs();
-        try ( OutputStream fos = new FileOutputStream( destination ) ) {
-          siteFile.getValue().getCachedOutputStream().writeTo( fos );
+        InputStreamReader isReader = new InputStreamReader( siteFile.getValue().getCachedInputStream() );
+        BufferedReader reader = new BufferedReader( isReader );
+        StringBuilder sb = new StringBuilder();
+        String str;
+        while ( ( str = reader.readLine() ) != null ) {
+          sb.append( str );
         }
+        nc.addSiteFile( name, sb.toString() );
       }
     }
   }
