@@ -148,7 +148,7 @@ public class HadoopClusterEndpoints {
         for ( ZipEntry zipEntry = zis.getNextEntry(); zipEntry != null; zipEntry = zis.getNextEntry() ) {
           if ( !zipEntry.isDirectory() ) {
             //remove all directory structure from the zip file names and only unzip the files
-            String[] split = zipEntry.getName().split( System.getProperty( "file.separator" ) );
+            String[] split = zipEntry.getName().split( "/" ); //zip files always use forward slash
             String unzippedFileName = split[ split.length - 1 ];
             if ( isValidUpload( unzippedFileName, fileType ) ) {
               CachedFileItemStream unzippedFileItemStream =

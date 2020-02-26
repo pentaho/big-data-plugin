@@ -24,6 +24,7 @@ package org.pentaho.big.data.plugins.common.ui.named.cluster.bridge;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.namedcluster.NamedClusterManager;
@@ -34,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Node;
 
+import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -96,6 +99,9 @@ public class NamedClusterBridgeImpl implements NamedCluster {
     delegate.setGatewayPassword( nc.getGatewayPassword() );
     delegate.setUseGateway( nc.isUseGateway() );
     delegate.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
+    for ( NamedClusterSiteFile ncsf : nc.getSiteFiles() ) {
+      delegate.getSiteFiles().add( ncsf.copy() );
+    }
   }
 
   public String getStorageScheme() {
@@ -397,5 +403,25 @@ public class NamedClusterBridgeImpl implements NamedCluster {
   @Override
   public String encodePassword( String password ) {
     return delegate.encodePassword( password );
+  }
+
+  @Override
+  public List<NamedClusterSiteFile> getSiteFiles() {
+    return delegate.getSiteFiles();
+  }
+
+  @Override
+  public void setSiteFiles( List<NamedClusterSiteFile> siteFiles ) {
+    delegate.setSiteFiles( siteFiles );
+  }
+
+  @Override
+  public void addSiteFile( String fileName, String content ) {
+    delegate.addSiteFile( fileName, content );
+  }
+
+  @Override
+  public InputStream getSiteFileInputStream( String siteFileName ) {
+    return delegate.getSiteFileInputStream( siteFileName );
   }
 }

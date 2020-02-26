@@ -22,11 +22,17 @@
 
 package org.pentaho.di.core.namedcluster.model;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.StringUtil;
@@ -100,6 +106,9 @@ public class NamedCluster implements Cloneable, VariableSpace {
   @MetaStoreAttribute
   private long lastModifiedDate = System.currentTimeMillis();
 
+  @MetaStoreAttribute
+  private List<NamedClusterSiteFile> siteFiles;
+
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   // Comparator for sorting clusters alphabetically by name
@@ -111,6 +120,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   };
 
   public NamedCluster() {
+    siteFiles = new ArrayList<>();
     initializeVariablesFrom( null );
   }
 
@@ -205,6 +215,10 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.setGatewayPassword( nc.getGatewayPassword() );
     this.setUseGateway( nc.isUseGateway() );
     this.setKafkaBootstrapServers( nc.getKafkaBootstrapServers() );
+    for ( NamedClusterSiteFile ncsf : nc.getSiteFiles() ) {
+      this.siteFiles.add( ncsf.copy() );
+    }
+
   }
 
   public NamedCluster clone() {
@@ -425,5 +439,23 @@ public class NamedCluster implements Cloneable, VariableSpace {
 
   public String encodePassword( String password ) {
     return Encr.encryptPasswordIfNotUsingVariables( password );
+  }
+
+  public List<NamedClusterSiteFile> getSiteFiles() {
+    return siteFiles;
+  }
+
+  public void setSiteFiles( List<NamedClusterSiteFile> siteFiles ) {
+    this.siteFiles = siteFiles;
+  }
+
+  public void addSiteFile( String fileName, String content ) {
+    siteFiles.add( new NamedClusterSiteFileImpl( fileName, content ) );
+  }
+
+  public InputStream getSiteFileInputStream( String siteFileName ) {
+    NamedClusterSiteFile n = siteFiles.stream().filter( sf -> sf.getSiteFileName().equals( siteFileName ) )
+      .findFirst().orElse( null );
+    return n == null ? null : new ByteArrayInputStream( n.getSiteFileContents().getBytes() );
   }
 }
