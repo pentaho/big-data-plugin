@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,41 +22,80 @@
 
 package org.pentaho.big.data.kettle.plugins.hdfs.trans;
 
+import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.provider.UriParser;
 import org.eclipse.swt.custom.CCombo;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.stubbing.Answer;
 import org.pentaho.di.core.Const;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.any;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Created by bryan on 11/23/15.
  */
+@RunWith( PowerMockRunner.class )
+@PrepareForTest( { VFS.class, UriParser.class } )
 public class HadoopFileOutputDialogTest {
-  @Test
-  public void testGetUrlPathHdfsPrefix() {
-    String prefixToBeRemoved = "hdfs://myhost:8020";
-    String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
+
+  private static final String[] SCHEMES = { "hdfs", "maprfs", "mySpecialPrefix" };
+  private static final String HDFS_PREFIX = "hdfs";
+  private static final String MY_HOST_URL = "//myhost:8020";
+  private StandardFileSystemManager fsm;
+
+  @Before
+  public void setUp() throws Exception {
+    mockStatic( UriParser.class );
+    mockStatic( VFS.class );
+    fsm = mock( StandardFileSystemManager.class );
+    when( VFS.getManager() ).thenReturn( fsm );
+    when( fsm.getSchemes() ).thenReturn( SCHEMES );
   }
 
   @Test
-  public void testGetUrlPathMapRPRefix() {
-    String prefixToBeRemoved = "maprfs://";
+  public void testGetUrlPathHdfsPrefix() throws Exception {
+    String prefix = HDFS_PREFIX;
+    String pathBase = MY_HOST_URL;
     String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
+    String fullPath = prefix + ":" + pathBase + expected;
+
+    buildExtractSchemeMocks( prefix, fullPath, pathBase + expected );
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( fullPath ) );
   }
 
   @Test
-  public void testGetUrlPathSpecialPrefix() {
-    String prefixToBeRemoved = "mySpecialPrefix://host";
+  public void testGetUrlPathMapRPRefix() throws Exception  {
+    String prefix = "maprfs";
+    String pathBase = "//";
     String expected = "/path/to/file";
-    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( prefixToBeRemoved + expected ) );
+    String fullPath = prefix + ":" + pathBase + expected;
+
+    buildExtractSchemeMocks( prefix, fullPath, pathBase + expected );
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( fullPath ) );
+  }
+
+  @Test
+  public void testGetUrlPathSpecialPrefix() throws Exception {
+    String prefix = "mySpecialPrefix";
+    String pathBase = "//host";
+    String expected = "/path/to/file";
+    String fullPath = prefix + ":" + pathBase + expected;
+
+    buildExtractSchemeMocks( prefix, fullPath, pathBase + expected );
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( fullPath ) );
   }
 
   @Test
@@ -72,13 +111,23 @@ public class HadoopFileOutputDialogTest {
   }
 
   @Test
-  public void testGetUrlPathRootPath() {
-    assertEquals( "/", HadoopFileOutputDialog.getUrlPath( "hdfs://myhost:8020/" ) );
+  public void testGetUrlPathRootPath() throws Exception  {
+    String prefix = HDFS_PREFIX;
+    String pathBase = MY_HOST_URL;
+    String expected = "/";
+    String fullPath = prefix + ":" + pathBase + expected;
+    buildExtractSchemeMocks( prefix, fullPath, pathBase + expected );
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( fullPath ) );
   }
 
   @Test
-  public void testGetUrlPathRootPathWithoutSlash() {
-    assertEquals( "/", HadoopFileOutputDialog.getUrlPath( "hdfs://myhost:8020" ) );
+  public void testGetUrlPathRootPathWithoutSlash() throws Exception  {
+    String prefix = HDFS_PREFIX;
+    String pathBase = MY_HOST_URL;
+    String expected = "/";
+    String fullPath = prefix + ":" + pathBase;
+    buildExtractSchemeMocks( prefix, fullPath, pathBase );
+    assertEquals( expected, HadoopFileOutputDialog.getUrlPath( fullPath ) );
   }
 
   @Test
@@ -96,5 +145,21 @@ public class HadoopFileOutputDialogTest {
     dialog.fillWithSupportedDateFormats( combo, dates );
 
     verify( combo, times( 10 ) ).add( any() );
+  }
+
+  private Answer buildSchemeAnswer( String prefix, String buildPath ) {
+    Answer extractSchemeAnswer = invocation -> {
+      Object[] args = invocation.getArguments();
+      ( (StringBuilder) args[2] ).append( buildPath );
+      return prefix;
+    };
+
+    return extractSchemeAnswer;
+  }
+
+  private void buildExtractSchemeMocks( String prefix, String fullPath, String pathWithoutPrefix ) {
+    when( UriParser.extractScheme( any( String[].class ), eq( fullPath ) ) ).thenReturn( prefix );
+    when( UriParser.extractScheme( any( String[].class ), eq( fullPath ),
+      any( StringBuilder.class ) ) ).thenAnswer( buildSchemeAnswer( prefix, pathWithoutPrefix ) );
   }
 }
