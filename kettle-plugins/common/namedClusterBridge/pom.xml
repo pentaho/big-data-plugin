@@ -58,7 +58,7 @@
     <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-core</artifactId>
-      <version>9.1.0.0-SNAPSHOT</version>
+      <version>${pdi.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
