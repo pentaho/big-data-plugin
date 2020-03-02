@@ -22,10 +22,6 @@
 
 package org.pentaho.di.core.namedcluster;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.provider.url.UrlFileName;
@@ -38,6 +34,11 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 import org.pentaho.metastore.util.PentahoDefaults;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class NamedClusterManager {
   private static final NamedClusterManager instance = new NamedClusterManager( new MetaStoreFactoryFactory() );
@@ -59,10 +60,7 @@ public class NamedClusterManager {
   }
 
   private MetaStoreFactory<NamedCluster> getMetaStoreFactory( IMetaStore metastore ) {
-    if ( factoryMap.get( metastore ) == null ) {
-      factoryMap.put( metastore, metaStoreFactoryFactory.createFactory( metastore ) );
-    }
-    return factoryMap.get( metastore );
+    return factoryMap.computeIfAbsent( metastore, k -> metaStoreFactoryFactory.createFactory( metastore ) );
   }
 
   /**
@@ -73,16 +71,17 @@ public class NamedClusterManager {
    * @return the NamedCluster template
    */
   public NamedCluster getClusterTemplate() {
+    String localHost = "localhost";
     if ( clusterTemplate == null ) {
       clusterTemplate = new NamedCluster();
       clusterTemplate.setName( "" );
-      clusterTemplate.setHdfsHost( "localhost" );
+      clusterTemplate.setHdfsHost( localHost );
       clusterTemplate.setHdfsPort( "8020" );
       clusterTemplate.setHdfsUsername( "user" );
       clusterTemplate.setHdfsPassword( clusterTemplate.encodePassword( "password" ) );
-      clusterTemplate.setJobTrackerHost( "localhost" );
+      clusterTemplate.setJobTrackerHost( localHost );
       clusterTemplate.setJobTrackerPort( "8032" );
-      clusterTemplate.setZooKeeperHost( "localhost" );
+      clusterTemplate.setZooKeeperHost( localHost );
       clusterTemplate.setZooKeeperPort( "2181" );
       clusterTemplate.setOozieUrl( "http://localhost:8080/oozie" );
     }
@@ -120,8 +119,7 @@ public class NamedClusterManager {
    */
   public NamedCluster read( String clusterName, IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
-    NamedCluster namedCluster = factory.loadElement( clusterName );
-    return namedCluster;
+    return factory.loadElement( clusterName );
   }
 
 
@@ -165,8 +163,7 @@ public class NamedClusterManager {
    */
   public List<NamedCluster> list( IMetaStore metastore ) throws MetaStoreException {
     MetaStoreFactory<NamedCluster> factory = getMetaStoreFactory( metastore );
-    List<NamedCluster> namedClusters = factory.getElements();
-    return namedClusters;
+    return factory.getElements();
   }
 
   /**
@@ -217,58 +214,34 @@ public class NamedClusterManager {
       if ( !Utils.isEmpty( scheme ) && !Utils.isEmpty( clusterName ) && metastore != null ) {
         NamedCluster namedCluster = read( clusterName, metastore );
         if ( namedCluster != null ) {
-          String ncHostname = namedCluster.getHdfsHost() != null ? namedCluster.getHdfsHost() : "";
-          String ncPort = namedCluster.getHdfsPort() != null ? namedCluster.getHdfsPort() : "";
-          String ncUsername = namedCluster.getHdfsUsername() != null ? namedCluster.getHdfsUsername() : "";
-          String ncPassword = namedCluster.getHdfsPassword() != null ? namedCluster.getHdfsPassword() : "";
+          String ncHostname = Optional.ofNullable( namedCluster.getHdfsHost() ).orElse( "" );
+          String ncPort = Optional.ofNullable( namedCluster.getHdfsPort() ).orElse( "" );
+          String ncUsername = Optional.ofNullable( namedCluster.getHdfsUsername() ).orElse( "" );
+          String ncPassword = Optional.ofNullable( namedCluster.getHdfsPassword() ).orElse( "" );
 
           if ( variableSpace != null ) {
             variableSpace.initializeVariablesFrom( namedCluster.getParentVariableSpace() );
-            if ( StringUtil.isVariable( scheme ) ) {
-              scheme =
-                variableSpace.getVariable( StringUtil.getVariableName( scheme ) ) != null ? variableSpace
-                  .environmentSubstitute( scheme ) : null;
-            }
-            if ( StringUtil.isVariable( ncHostname ) ) {
-              ncHostname =
-                  variableSpace.getVariable( StringUtil.getVariableName( ncHostname ) ) != null ? variableSpace
-                      .environmentSubstitute( ncHostname ) : null;
-            }
-            if ( StringUtil.isVariable( ncPort ) ) {
-              ncPort =
-                  variableSpace.getVariable( StringUtil.getVariableName( ncPort ) ) != null ? variableSpace
-                      .environmentSubstitute( ncPort ) : null;
-            }
-            if ( StringUtil.isVariable( ncUsername ) ) {
-              ncUsername =
-                  variableSpace.getVariable( StringUtil.getVariableName( ncUsername ) ) != null ? variableSpace
-                      .environmentSubstitute( ncUsername ) : null;
-            }
-            if ( StringUtil.isVariable( ncPassword ) ) {
-              ncPassword =
-                  variableSpace.getVariable( StringUtil.getVariableName( ncPassword ) ) != null ? variableSpace
-                      .environmentSubstitute( ncPassword ) : null;
-            }
+            scheme = getVariableValue( scheme, variableSpace );
+            ncHostname = getVariableValue( ncHostname, variableSpace );
+            ncPort = getVariableValue( ncPort, variableSpace );
+            ncUsername = getVariableValue( ncUsername, variableSpace );
+            ncPassword = getVariableValue( ncPassword, variableSpace );
           }
 
-          ncHostname = ncHostname != null ? ncHostname.trim() : "";
-          if ( ncPort == null ) {
+          ncHostname = Optional.ofNullable( ncHostname ).orElse( "" ).trim();
+          if ( ncPort == null || Utils.isEmpty( ncPort.trim() ) ) {
             ncPort = "-1";
-          } else {
-            ncPort = ncPort.trim();
-            if ( Utils.isEmpty( ncPort ) ) {
-              ncPort = "-1";
-            }
           }
-          ncUsername = ncUsername != null ? ncUsername.trim() : "";
-          ncPassword = ncPassword != null ? ncPassword.trim() : "";
+          ncPort = ncPort.trim();
+          ncUsername = Optional.ofNullable( ncUsername ).orElse( "" ).trim();
+          ncPassword = Optional.ofNullable( ncPassword ).orElse( "" ).trim();
 
           UrlFileName file =
               new UrlFileName( scheme, ncHostname, Integer.parseInt( ncPort ), -1, ncUsername, ncPassword, null, null,
                   null );
           clusterURL = file.getURI();
           if ( clusterURL.endsWith( "/" ) ) {
-            clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( "/" ) );
+            clusterURL = clusterURL.substring( 0, clusterURL.lastIndexOf( '/' ) );
           }
         }
       }
@@ -276,6 +249,20 @@ public class NamedClusterManager {
       clusterURL = null;
     }
     return clusterURL;
+  }
+
+  /**
+   * This method checks a value to see if it is a variable and, if it is, gets the value from a variable space.
+   * @param variableName The String to check if it is a variable
+   * @param variableSpace The variable space to check for values
+   * @return The value of the variable within the variable space if found, null if not found or the original value if is not a variable.
+   */
+  private String getVariableValue( String variableName, VariableSpace variableSpace ) {
+    if ( StringUtil.isVariable( variableName ) ) {
+      return variableSpace.getVariable( StringUtil.getVariableName( variableName ) ) != null ? variableSpace
+                      .environmentSubstitute( variableName ) : null;
+    }
+    return variableName;
   }
 
   /**
@@ -301,7 +288,7 @@ public class NamedClusterManager {
         outgoingURL = incomingURL;
       } else if ( incomingURL.equals( "/" ) ) {
         outgoingURL = clusterURL;
-      } else if ( clusterURL != null ) {
+      } else {
         String noVariablesURL = incomingURL.replaceAll( "[${}]", "/" );
 
         String fullyQualifiedIncomingURL = incomingURL;
@@ -314,7 +301,7 @@ public class NamedClusterManager {
         FileName fileName = parser.parseUri( null, null, noVariablesURL );
         String root = fileName.getRootURI();
         String path = fullyQualifiedIncomingURL.substring( root.length() - 1 );
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append( clusterURL );
         buffer.append( path );
         outgoingURL = buffer.toString();

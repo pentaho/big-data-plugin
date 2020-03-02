@@ -149,6 +149,7 @@
         </property>
       </activation>
       <modules>
+        <module>legacy-core</module>
         <module>legacy</module>
         <module>api</module>
         <module>impl</module>

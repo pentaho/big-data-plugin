@@ -29,7 +29,10 @@ import org.pentaho.di.core.plugins.PluginTypeInterface;
 
 /**
  * Created by bryan on 10/5/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class PluginClassloaderGetter {
   private final PluginRegistry pluginRegistry;
 

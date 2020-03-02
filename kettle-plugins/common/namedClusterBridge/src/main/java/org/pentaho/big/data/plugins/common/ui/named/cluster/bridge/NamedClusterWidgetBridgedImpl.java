@@ -30,7 +30,10 @@ import org.pentaho.di.ui.core.namedcluster.NamedClusterWidget;
 
 /**
  * Created by bryan on 8/17/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class NamedClusterWidgetBridgedImpl implements NamedClusterWidget {
   private final NamedClusterWidgetImpl namedClusterWidget;
 

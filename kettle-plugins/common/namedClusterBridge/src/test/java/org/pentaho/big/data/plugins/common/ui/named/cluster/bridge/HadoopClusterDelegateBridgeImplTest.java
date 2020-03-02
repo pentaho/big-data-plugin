@@ -40,7 +40,10 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Created by bryan on 8/28/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class HadoopClusterDelegateBridgeImplTest {
   private HadoopClusterDelegateImpl hadoopClusterDelegate;
   private HadoopClusterDelegateBridgeImpl hadoopClusterDelegateBridge;

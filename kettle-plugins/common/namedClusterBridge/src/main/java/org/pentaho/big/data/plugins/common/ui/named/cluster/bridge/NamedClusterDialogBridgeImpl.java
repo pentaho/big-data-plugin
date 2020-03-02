@@ -28,7 +28,10 @@ import org.pentaho.di.ui.core.namedcluster.NamedClusterDialog;
 
 /**
  * Created by bryan on 8/17/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class NamedClusterDialogBridgeImpl implements NamedClusterDialog {
   private final NamedClusterDialogImpl delegate;
 

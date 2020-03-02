@@ -5,20 +5,4 @@
            xsi:schemaLocation="
             http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
             http://www.pentaho.com/xml/schemas/pentaho-blueprint http://www.pentaho.com/xml/schemas/pentaho-blueprint.xsd">
-  <bean class="com.pentaho.big.data.bundles.impl.shim.common.ShimBridgingClassloader" factory-method="create">
-    <argument ref="blueprintBundleContext"/>
-    <argument>
-      <value type="java.lang.String">org.pentaho.big.data.plugins.common.ui.named.cluster.bridge.NamedClusterUIFactoryBridgeImpl</value>
-    </argument>
-    <argument>
-      <list>
-        <ref component-id="namedClusterService"/>
-        <ref component-id="runtimeTestActionService"/>
-        <ref component-id="runtimeTester"/>
-      </list>
-    </argument>
-  </bean>
-  <reference id="namedClusterService" interface="org.pentaho.hadoop.shim.api.cluster.NamedClusterService"/>
-  <reference id="runtimeTestActionService" interface="org.pentaho.runtime.test.action.RuntimeTestActionService"/>
-  <reference id="runtimeTester" interface="org.pentaho.runtime.test.RuntimeTester"/>
 </blueprint>
