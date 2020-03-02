@@ -397,41 +397,6 @@ public class HadoopClusterManagerTest {
       config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.keytabLocation" ) );
   }
 
-  @Test public void testNamedClusterKerberosPasswordSecurityWithBlankPassword() throws ConfigurationException {
-    ThinNameClusterModel model = new ThinNameClusterModel();
-    model.setName( ncTestName );
-    model.setSecurityType( "Kerberos" );
-    model.setKerberosSubType( "Password" );
-    model.setKerberosAuthenticationUsername( "username" );
-    model.setKerberosAuthenticationPassword( "password" );
-    model.setKerberosImpersonationUsername( "" );
-    model.setKerberosImpersonationPassword( "" );
-
-    hadoopClusterManager.createNamedCluster( model, getFiles( "/" ) );
-
-    String configFile = System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore"
-      + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs" + File.separator
-      + "ncTest" + File.separator + "config.properties";
-
-    PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
-    assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
-    assertEquals( Encr.encryptPasswordIfNotUsingVariables( "password" ),
-      config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
-    assertEquals( "",
-      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.principal" ) );
-    assertEquals( "",
-      config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password" ) );
-    assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
-
-    ThinNameClusterModel retrievingModel = hadoopClusterManager.getNamedCluster( ncTestName );
-    assertEquals( "Kerberos", retrievingModel.getSecurityType() );
-    assertEquals( "Password", retrievingModel.getKerberosSubType() );
-    assertEquals( "username", retrievingModel.getKerberosAuthenticationUsername() );
-    assertEquals( "password", retrievingModel.getKerberosAuthenticationPassword() );
-    assertEquals( "", retrievingModel.getKerberosImpersonationUsername() );
-    assertEquals( "", retrievingModel.getKerberosImpersonationPassword() );
-  }
-
   @After public void tearDown() throws IOException {
     FileUtils.deleteDirectory( getShimTestDir() );
     FileUtils.deleteDirectory( new File( "src/test/resources/driver-destination" ) );

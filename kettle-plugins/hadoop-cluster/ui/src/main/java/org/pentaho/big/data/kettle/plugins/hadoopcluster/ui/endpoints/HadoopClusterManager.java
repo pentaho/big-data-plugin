@@ -624,13 +624,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       model.setKerberosAuthenticationPassword(
         Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_AUTHENTICATION_PASS ) ) );
       model.setKerberosImpersonationUsername( (String) config.getProperty( KERBEROS_IMPERSONATION_USERNAME ) );
-      String impersonationPasswordValue =
-        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) );
-      if ( "Encrypted".equals( impersonationPasswordValue ) ) {
-        impersonationPasswordValue = "";
-      }
-      model.setKerberosImpersonationPassword( impersonationPasswordValue );
-
+      model.setKerberosImpersonationPassword(
+        Encr.decryptPasswordOptionallyEncrypted( (String) config.getProperty( KERBEROS_IMPERSONATION_PASS ) ) );
       String keytabAuthenticationLocation = (String) config.getProperty( KEYTAB_AUTHENTICATION_LOCATION );
       String keytabImpersonationLocation = (String) config.getProperty( KEYTAB_IMPERSONATION_LOCATION );
 
@@ -674,19 +669,11 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     try {
       PropertiesConfiguration config = new PropertiesConfiguration( configPropertiesPath.toFile() );
       config.setProperty( KERBEROS_AUTHENTICATION_USERNAME, model.getKerberosAuthenticationUsername() );
-      if ( !StringUtil.isEmpty( model.getKerberosAuthenticationPassword() ) ) {
-        config.setProperty( KERBEROS_AUTHENTICATION_PASS,
-          Encr.encryptPasswordIfNotUsingVariables( model.getKerberosAuthenticationPassword() ) );
-      } else {
-        config.setProperty( KERBEROS_AUTHENTICATION_PASS, "" );
-      }
+      config.setProperty( KERBEROS_AUTHENTICATION_PASS,
+        Encr.encryptPasswordIfNotUsingVariables( model.getKerberosAuthenticationPassword() ) );
       config.setProperty( KERBEROS_IMPERSONATION_USERNAME, model.getKerberosImpersonationUsername() );
-      if ( !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) ) {
-        config.setProperty( KERBEROS_IMPERSONATION_PASS,
-          Encr.encryptPasswordIfNotUsingVariables( model.getKerberosImpersonationPassword() ) );
-      } else {
-        config.setProperty( KERBEROS_IMPERSONATION_PASS, "" );
-      }
+      config.setProperty( KERBEROS_IMPERSONATION_PASS,
+        Encr.encryptPasswordIfNotUsingVariables( model.getKerberosImpersonationPassword() ) );
       if ( ( !StringUtil.isEmpty( model.getKerberosImpersonationUsername() )
         && !StringUtil.isEmpty( model.getKerberosImpersonationPassword() ) )
         || ( !StringUtil.isEmpty( model.getKerberosAuthenticationUsername() )
