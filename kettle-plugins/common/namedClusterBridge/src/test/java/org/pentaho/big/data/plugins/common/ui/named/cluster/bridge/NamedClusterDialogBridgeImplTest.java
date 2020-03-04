@@ -35,7 +35,10 @@ import static org.mockito.Mockito.when;
 
 /**
  * Created by bryan on 10/5/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class NamedClusterDialogBridgeImplTest {
   private NamedClusterDialogImpl delegate;
   private NamedClusterDialogBridgeImpl namedClusterDialogBridge;

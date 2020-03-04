@@ -52,7 +52,6 @@
     <feature>pentaho-big-data-common</feature>
     <bundle>mvn:org.pentaho/shim-api/${pentaho-hadoop-shims.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-api-runtimeTest/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-impl-shim-common/${project.version}</bundle>
     <bundle>mvn:org.pentaho/pentaho-hadoop-shims-common-services-api/${pentaho-hadoop-shims.version}</bundle>
   </feature>
 
@@ -72,7 +71,6 @@
     <feature>pentaho-jackson</feature>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-ui/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-job/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-common-named-cluster-bridge/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-guiTestActionHandlers/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hdfs/${project.version}</bundle>
     <bundle>mvn:pentaho/pentaho-big-data-kettle-plugins-hbase/${project.version}</bundle>
@@ -90,7 +88,6 @@
 
   <feature name="pentaho-hadoop-cluster-ui" version="1.0">
     <bundle>mvn:org.pentaho.di.plugins/core-ui/${project.version}</bundle>
-    <bundle>mvn:pentaho/pentaho-big-data-legacy/${project.version}</bundle>
     <bundle>mvn:pentaho/hadoop-cluster-ui/${project.version}</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.bower/angular-animate/1.5.8</bundle>
     <bundle>pentaho-webjars:mvn:org.webjars.npm/jquery/${jquery.version}</bundle>

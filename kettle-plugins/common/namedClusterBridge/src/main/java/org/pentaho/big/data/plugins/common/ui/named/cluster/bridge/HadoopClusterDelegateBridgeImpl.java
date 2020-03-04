@@ -31,7 +31,10 @@ import org.pentaho.metastore.api.IMetaStore;
 
 /**
  * Created by bryan on 8/17/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class HadoopClusterDelegateBridgeImpl implements HadoopClusterDelegate {
   private final HadoopClusterDelegateImpl delegate;
 

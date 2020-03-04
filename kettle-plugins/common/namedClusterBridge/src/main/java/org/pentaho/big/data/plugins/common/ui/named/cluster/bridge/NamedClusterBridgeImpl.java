@@ -41,7 +41,10 @@ import java.util.Map;
 
 /**
  * Created by bryan on 8/17/15.
+ *
+ * @deprecated
  */
+@Deprecated
 public class NamedClusterBridgeImpl implements NamedCluster {
 
   private static final Logger LOGGER = LoggerFactory.getLogger( NamedClusterBridgeImpl.class );

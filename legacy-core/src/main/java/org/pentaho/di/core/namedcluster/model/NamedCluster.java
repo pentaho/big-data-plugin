@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleValueException;
@@ -112,12 +113,7 @@ public class NamedCluster implements Cloneable, VariableSpace {
   private ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
 
   // Comparator for sorting clusters alphabetically by name
-  public static final Comparator<NamedCluster> comparator = new Comparator<NamedCluster>() {
-    @Override
-    public int compare( NamedCluster c1, NamedCluster c2 ) {
-      return c1.getName().compareToIgnoreCase( c2.getName() );
-    }
-  };
+  public static final Comparator<NamedCluster> comparator = ( NamedCluster c1, NamedCluster c2 ) -> c1.getName().compareToIgnoreCase( c2.getName() );
 
   public NamedCluster() {
     siteFiles = new ArrayList<>();
@@ -252,6 +248,11 @@ public class NamedCluster implements Cloneable, VariableSpace {
     return true;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash( name );
+  }
+
   public String getHdfsHost() {
     return hdfsHost;
   }
@@ -338,7 +339,6 @@ public class NamedCluster implements Cloneable, VariableSpace {
     }
   }
 
-  @Deprecated
   public boolean isMapr() {
     if ( storageScheme == null ) {
       return mapr;
@@ -375,11 +375,13 @@ public class NamedCluster implements Cloneable, VariableSpace {
     this.storageScheme = storageScheme;
   }
 
-
+  @SuppressWarnings( "squid:S1172" )
   public String toXmlForEmbed( String rootTag ) {
     // This method should only be called on the real NamedClusterImpl
     return null;
   }
+
+  @SuppressWarnings( "squid:S1172" )
   public NamedCluster fromXmlForEmbed( Node node ) {
     // This method should only be called on the real NamedClusterImpl
     return null;

@@ -51,7 +51,10 @@ import static org.mockito.Matchers.any;
 /**
  * Unit tests for NamedClusterBridgeImpl. This is a bridge class to bridge NamedCluster objects from the legacy plugin
  * to OSGi.
+ *
+ * @deprecated
  */
+@Deprecated
 public class NamedClusterBridgeImplTest {
   private org.pentaho.di.core.namedcluster.model.NamedCluster legacyNamedCluster;
   private NamedClusterBridgeImpl namedClusterBridge;
