@@ -23,6 +23,7 @@
 package org.pentaho.big.data.impl.cluster;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
@@ -35,6 +36,7 @@ import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
@@ -54,7 +56,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -256,6 +260,7 @@ public class NamedClusterManager implements NamedClusterService {
         namedCluster = searchMetastoreByName( namedClusterName, slaveMetastore );
       }
     }
+    loadSiteFilesIfNecessary( namedCluster, metastore );
     return namedCluster;
   }
 
@@ -300,6 +305,7 @@ public class NamedClusterManager implements NamedClusterService {
       List<NamedCluster> namedClusters = list( metastore );
       for ( NamedCluster nc : namedClusters ) {
         if ( hostName.equals( nc.getHdfsHost() ) ) {
+          loadSiteFilesIfNecessary( nc, metastore );
           return nc;
         }
       }
@@ -420,5 +426,63 @@ public class NamedClusterManager implements NamedClusterService {
       // packages for this exception.
       throw new IOException( e );
     }
+  }
+
+  private void loadSiteFilesIfNecessary( NamedCluster namedCluster, IMetaStore metaStore ) {
+    if ( namedCluster != null && namedCluster.getSiteFiles().isEmpty() ) {
+      String rootDir = getNamedClusterConfigsRootDir( metaStore );
+      for ( String siteFileName : Arrays.asList( "hdfs-site.xml", "core-site.xml", "mapred-site.xml", "yarn-site.xml",
+        "hbase-site.xml", "hive-site.xml" ) ) {
+        String path = rootDir + File.separator + namedCluster.getName() + File.separator + siteFileName;
+        File file = new File( path );
+        if ( file.exists() ) {
+          try {
+            namedCluster.addSiteFile( siteFileName, FileUtils.readFileToString( file, StandardCharsets.UTF_8.toString() ) );
+          } catch ( IOException e ) {
+            log.logError( "An error occurred importing " + path + " into HadoopCluster " + namedCluster.getName(), e );
+          }
+        }
+      }
+      if ( !namedCluster.getSiteFiles().isEmpty() ) {
+        autoUpdateMetastoreWithSiteFiles( namedCluster, metaStore );
+      }
+    }
+  }
+
+  private void autoUpdateMetastoreWithSiteFiles( NamedCluster namedCluster, IMetaStore metaStore ) {
+    boolean recoverOriginal = false;
+    try {
+      update( namedCluster, metaStore );
+    } catch ( MetaStoreException e ) {
+      log.logError( "An error occurred trying to save HadoopCluster " + namedCluster.getName()
+        + " with embedded site files in the metastore.  Recovering original HadoopCluster.", e );
+      recoverOriginal = true;
+    }
+    //As a safeguard make sure we can read the metastore
+    if ( !recoverOriginal ) {
+      try {
+        getNamedClusterByName( namedCluster.getName(), metaStore );
+      } catch ( Exception e ) {
+        log.logError( "Could not successfully read back Hadoop Cluster " + namedCluster.getName()
+          + " after embedding site files.  Recovering original HadoopCluster." );
+        recoverOriginal = true;
+      }
+    }
+    if ( recoverOriginal ) {
+      // We can't read the metastore or could store the new one.  Try to put the old hadoop cluster back
+      namedCluster.setSiteFiles( new ArrayList<NamedClusterSiteFile>() );
+      try {
+        update( namedCluster, metaStore );
+      } catch ( MetaStoreException e ) {
+        log.logError( "An error occurred trying to recover the old HadoopCluster" + namedCluster.getName(), e );
+      }
+    }
+  }
+
+  private String getNamedClusterConfigsRootDir( IMetaStore metaStore ) {
+    String rootDir = metaStore instanceof XmlMetaStore ? ( (XmlMetaStore) metaStore ).getRootFolder()
+      : System.getProperty( "user.home" ) + File.separator + ".pentaho" + File.separator + "metastore";
+
+    return rootDir + File.separator + "pentaho" + File.separator + "NamedCluster" + File.separator + "Configs";
   }
 }
