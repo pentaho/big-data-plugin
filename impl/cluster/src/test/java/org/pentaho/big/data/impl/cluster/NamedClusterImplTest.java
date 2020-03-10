@@ -18,6 +18,7 @@
 package org.pentaho.big.data.impl.cluster;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,6 +26,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.UriParser;
@@ -34,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
@@ -94,6 +97,8 @@ public class NamedClusterImplTest {
   private boolean isMapr;
   private IMetaStore metaStore;
   private StandardFileSystemManager fsm;
+  private String fileContents1;
+  private String fileContents2;
 
   @Before
   public void setup() throws Exception {
@@ -121,6 +126,9 @@ public class NamedClusterImplTest {
     namedClusterStorageScheme = "hdfs";
     namedClusterKafkaBootstrapServers = "kafkaBootstrapServers";
     isMapr = true;
+    fileContents1 =
+      FileUtils.readFileToString( new File( getClass().getResource( "/core-site.xml" ).getFile() ), "UTF-8" );
+    fileContents2 = "some printable contents";
 
     namedCluster.setName( namedClusterName );
     namedCluster.setHdfsHost( namedClusterHdfsHost );
@@ -135,6 +143,8 @@ public class NamedClusterImplTest {
     namedCluster.setMapr( isMapr );
     namedCluster.setStorageScheme( namedClusterStorageScheme );
     namedCluster.setKafkaBootstrapServers( namedClusterKafkaBootstrapServers );
+    namedCluster.addSiteFile( "core-site.xml", fileContents1 );
+    namedCluster.addSiteFile( "hbase-site.xml", fileContents2 );
 
     fsm = mock( StandardFileSystemManager.class );
     when( VFS.getManager() ).thenReturn( fsm );
@@ -616,6 +626,11 @@ public class NamedClusterImplTest {
     assertEquals( namedCluster.getOozieUrl(), nc.getOozieUrl() );
     assertEquals( namedCluster.getKafkaBootstrapServers(), nc.getKafkaBootstrapServers() );
     assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
+    assertEquals( namedCluster.getSiteFiles().size(), nc.getSiteFiles().size() );
+    for ( NamedClusterSiteFile siteFile : namedCluster.getSiteFiles() ) {
+      String contents = getSiteFileContents( nc, siteFile.getSiteFileName() );
+      assertEquals( siteFile.getSiteFileContents(), contents );
+    }
   }
 
   private Answer buildSchemeAnswer( String prefix, String buildPath ) {
@@ -648,5 +663,11 @@ public class NamedClusterImplTest {
       any( StringBuilder.class ), eq( username ), any( char[].class ) );
     doAnswer( buildUrlEncodeAnswer( password ) ).when( UriParser.class, "appendEncoded",
       any( StringBuilder.class ), eq( password ), any( char[].class ) );
+  }
+
+  private String getSiteFileContents( NamedCluster nc, String siteFileName ) {
+    NamedClusterSiteFile n = nc.getSiteFiles().stream().filter( sf -> sf.getSiteFileName().equals( siteFileName ) )
+      .findFirst().orElse( null );
+    return n == null ? null : n.getSiteFileContents();
   }
 }
