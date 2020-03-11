@@ -60,13 +60,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Mockito.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Created by bryan on 7/14/15.
@@ -74,8 +74,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { UriParser.class, VFS.class } )
 public class NamedClusterImplTest {
-  private static final String HDFS_PREFIX = "hdfs";
-
   private VariableSpace variableSpace;
   private NamedClusterImpl namedCluster;
 
@@ -277,10 +275,9 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLNullParameters() throws Exception {
+  public void testGenerateURLNullParameters() {
     namedCluster.setName( null );
     String scheme = "testScheme";
-    buildAppendEncodedUserPassMocks( namedClusterHdfsUsername, namedClusterHdfsPassword );
     assertEquals(
       scheme + "://" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@" + namedClusterHdfsHost + ":"
         + namedClusterHdfsPort,
@@ -387,14 +384,11 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLhdfsFullSubstitution() throws Exception {
-    String pathBase = "//namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340";
-    String filePathInFileSystem = "/tmp/hdsfDemo.txt";
+  public void testProcessURLhdfsFullSubstitution() throws MetaStoreException {
     namedCluster.setHdfsHost( "hostname" );
     namedCluster.setHdfsPort( "12340" );
-    namedCluster.setStorageScheme( HDFS_PREFIX );
-    String incomingURL = HDFS_PREFIX + ":" + pathBase + filePathInFileSystem;
-    buildExtractSchemeMocks( HDFS_PREFIX, incomingURL, pathBase + filePathInFileSystem );
+    namedCluster.setStorageScheme( "hdfs" );
+    String incomingURL = "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
 
@@ -408,16 +402,11 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLWASBFullSubstitution() throws Exception {
-    String prefix = "wasb";
-    String pathBase = "//namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340";
-    String filePathInFileSystem = "/tmp/hdsfDemo.txt";
+  public void testProcessURLWASBFullSubstitution() throws MetaStoreException {
     namedCluster.setHdfsHost( "hostname" );
     namedCluster.setHdfsPort( "12340" );
-    namedCluster.setStorageScheme( prefix );
-    String incomingURL = prefix + ":" + pathBase + filePathInFileSystem;
-    buildAppendEncodedUserPassMocks( namedClusterHdfsUsername, namedClusterHdfsPassword );
-    buildExtractSchemeMocks( prefix, incomingURL, pathBase + filePathInFileSystem );
+    namedCluster.setStorageScheme( "wasb" );
+    String incomingURL = "wasb://namedClusterHdfsUsername:namedClusterHdfsPassword@hostname:12340/tmp/hdsfDemo.txt";
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, null ) );
   }
 
@@ -430,9 +419,9 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testProcessURLHostVariableNotNull() throws Exception {
+  public void testProcessURLHostVariableNotNull() throws MetaStoreException {
     namedCluster.setHdfsHost( "${hostUrl}" );
-    namedCluster.setStorageScheme( HDFS_PREFIX );
+    namedCluster.setStorageScheme( "hdfs" );
     String hostPort = "1000";
     namedCluster.setHdfsPort( hostPort );
     namedCluster.setHdfsUsername( "" );
@@ -442,29 +431,21 @@ public class NamedClusterImplTest {
     when( variableSpace.getVariable( "hostUrl" ) ).thenReturn( hostName );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsHost() ) ).thenReturn( hostName );
     when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( hostName + "/test" );
-    String pathWithoutPrefix = "//" + hostName + ":" + hostPort + "//hdfsUrl//test";
-    String pathWithPrefix = HDFS_PREFIX + ":" + pathWithoutPrefix;
-    buildExtractSchemeMocks( HDFS_PREFIX, pathWithPrefix, pathWithoutPrefix );
     assertEquals( "hdfs://" + hostName + ":" + hostPort + incomingURL,
       namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
   }
 
   @Test
-  public void testProcessCompleteClusterVariableReplacement() throws Exception {
-    String hostname = "hostname";
-    String hostPort = "1000";
-    String variableName = "hdfsUrl";
+  public void testProcessCompleteClusterVariableReplacement() throws MetaStoreException {
     // special case to allow legacy fully qualified urls to work
-    namedCluster.setHdfsHost( hostname );
-    namedCluster.setStorageScheme( HDFS_PREFIX );
+    namedCluster.setHdfsHost( "hostname" );
+    namedCluster.setStorageScheme( "hdfs" );
+    String hostPort = "1000";
     namedCluster.setHdfsPort( hostPort );
     namedCluster.setHdfsUsername( "" );
     namedCluster.setHdfsPassword( "" );
-    String incomingURL = "${" + variableName + "}/test";
-    String pathWithoutPrefix = "//" + hostname + ":" + hostPort + "//" + variableName + "//test";
-    String pathWithPrefix = HDFS_PREFIX + ":" + pathWithoutPrefix;
+    String incomingURL = "${hdfsUrl}/test";
     when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( "hdfs://FullyQualifiedPath/test" );
-    buildExtractSchemeMocks( HDFS_PREFIX, pathWithPrefix, pathWithoutPrefix );
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
   }
 
@@ -484,24 +465,14 @@ public class NamedClusterImplTest {
 
   @Test
   public void testProcessURLsubstitutionNC() throws Exception {
-    String prefix = "hc";
-    String pathWithoutPrefix = "//cluster/input/file.txt";
-    String pathWithPrefix = prefix + ":" + pathWithoutPrefix;
-    buildAppendEncodedUserPassMocks( namedClusterHdfsUsername, namedClusterHdfsPassword );
-    buildExtractSchemeMocks( prefix, pathWithPrefix, pathWithoutPrefix );
     assertEquals( "hdfs://namedClusterHdfsUsername:namedClusterHdfsPassword@namedClusterHdfsHost:12345/input/file.txt",
       namedCluster.processURLsubstitution( "hc://cluster/input/file.txt", metaStore, null ) );
   }
 
   @Test
   public void testProcessURLSubstitutionNC_variable() throws Exception {
-    String pathWithoutPrefix = "//" + namedClusterHdfsUsername + ":" + namedClusterHdfsPassword + "@"
-      + namedClusterHdfsHost + ":" + namedClusterHdfsPort + "//ncUrl//test";
-    String pathWithPrefix = HDFS_PREFIX + ":" + pathWithoutPrefix;
     String incomingURL = "${ncUrl}/test";
     when( variableSpace.environmentSubstitute( incomingURL ) ).thenReturn( "hc://cluster/test" );
-    buildAppendEncodedUserPassMocks( namedClusterHdfsUsername, namedClusterHdfsPassword );
-    buildExtractSchemeMocks( HDFS_PREFIX, pathWithPrefix, pathWithoutPrefix );
     assertEquals( incomingURL, namedCluster.processURLsubstitution( incomingURL, metaStore, variableSpace ) );
   }
 
@@ -517,7 +488,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFSVariableSpace() throws Exception {
+  public void testGenerateURLHDFSVariableSpace() throws MetaStoreException {
     String schemeVar = "schemeVar";
     String testScheme = "hdfs";
     String hostVar = "hostVar";
@@ -543,7 +514,6 @@ public class NamedClusterImplTest {
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsPort() ) ).thenReturn( testPort );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsUsername() ) ).thenReturn( testUsername );
     when( variableSpace.environmentSubstitute( namedCluster.getHdfsPassword() ) ).thenReturn( testPassword );
-    buildAppendEncodedUserPassMocks( testUsername, testPassword );
     assertEquals( testScheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
       namedCluster.generateURL( "${" + schemeVar + "}", metaStore, variableSpace ) );
   }
@@ -619,15 +589,6 @@ public class NamedClusterImplTest {
     assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
   }
 
-  private Answer buildSchemeAnswer( String prefix, String buildPath ) {
-    Answer extractSchemeAnswer = invocation -> {
-      Object[] args = invocation.getArguments();
-      ( (StringBuilder) args[2] ).append( buildPath );
-      return prefix;
-    };
-    return extractSchemeAnswer;
-  }
-
   private Answer buildUrlEncodeAnswer( String value ) {
     Answer urlEncodeAnswer = invocation -> {
       Object[] args = invocation.getArguments();
@@ -637,17 +598,8 @@ public class NamedClusterImplTest {
     return urlEncodeAnswer;
   }
 
-  private void buildExtractSchemeMocks( String prefix, String fullPath, String pathWithoutPrefix ) throws Exception {
-    String[] schemes = { "hc", "hdfs", "maprfs", "wasb" };
-    when( fsm.getSchemes() ).thenReturn( schemes );
-    doAnswer( buildSchemeAnswer( prefix, pathWithoutPrefix ) ).when( UriParser.class, "extractScheme",
-      eq( schemes ), eq( fullPath ), any( StringBuilder.class ) );
-  }
-
   private void buildAppendEncodedUserPassMocks( String username, String password ) throws Exception {
-    doAnswer( buildUrlEncodeAnswer( username ) ).when( UriParser.class, "appendEncoded",
+    doAnswer( buildUrlEncodeAnswer ( username ) ).when( UriParser.class, "appendEncoded",
       any( StringBuilder.class ), eq( username ), any( char[].class ) );
-    doAnswer( buildUrlEncodeAnswer( password ) ).when( UriParser.class, "appendEncoded",
-      any( StringBuilder.class ), eq( password ), any( char[].class ) );
   }
 }
