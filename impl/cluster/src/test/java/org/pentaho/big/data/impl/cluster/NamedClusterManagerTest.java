@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -29,8 +29,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
-import org.pentaho.di.core.encryption.Encr;
-import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.plugins.LifecyclePluginType;
@@ -85,9 +83,6 @@ public class NamedClusterManagerTest {
   @Before
   @SuppressWarnings( "unchecked" )
   public void setup() throws KettleException, IOException {
-    PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
-    PluginRegistry.init( false );
-    Encr.init( "Kettle" );
     KettleLogStore.init();
     metaStore = mock( IMetaStore.class );
     metaStoreFactory = mock( MetaStoreFactory.class );
@@ -251,7 +246,7 @@ public class NamedClusterManagerTest {
   @Test
   public void testContainsSlaveServer() throws MalformedURLException, MetaStoreException {
     String pluginFilePath = getClass().getResource( "/plugin.properties" ).getFile();
-    String resourceDir = pluginFilePath.substring( 0, pluginFilePath.lastIndexOf( "/" ) );
+    String resourceDir = pluginFilePath.substring( 0, pluginFilePath.lastIndexOf( File.separator ) );
     when( mockBigDataPlugin.getPluginDirectory() ).thenReturn( new URL( "file://" + resourceDir ) );
     String testName = "testName";
     assertFalse( namedClusterManager.contains( testName, null ) );
