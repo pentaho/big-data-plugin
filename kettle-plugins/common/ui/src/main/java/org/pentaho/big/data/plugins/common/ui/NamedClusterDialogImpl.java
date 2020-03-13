@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -216,7 +216,7 @@ public class NamedClusterDialogImpl extends Dialog {
           || ( StringUtils.isNotBlank( namedCluster.getName() )
           && StringUtils.isNotBlank( namedCluster.getGatewayUrl() )
           && StringUtils.isNotBlank( namedCluster.getGatewayUsername() )
-          && StringUtils.isNotBlank( namedCluster.decodePassword( namedCluster.getGatewayPassword() ) ) );
+          && StringUtils.isNotBlank( namedCluster.getGatewayPassword() ) );
 
       if ( wOK.isEnabled() != enabled ) {
         wOK.setEnabled( enabled );

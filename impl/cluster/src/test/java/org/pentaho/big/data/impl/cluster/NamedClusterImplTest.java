@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Pentaho Big Data
  * <p>
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  * <p>
  * ******************************************************************************
  * <p>
@@ -21,32 +21,16 @@ import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.vfs2.VFS;
-import org.apache.commons.vfs2.impl.StandardFileSystemManager;
-import org.apache.commons.vfs2.provider.UriParser;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.stubbing.Answer;
-import org.pentaho.di.core.encryption.Encr;
-import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
-import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
-import org.pentaho.metastore.api.security.Base64TwoWayPasswordEncoder;
-import org.pentaho.metastore.api.security.ITwoWayPasswordEncoder;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanConstructor;
 import static com.google.code.beanmatchers.BeanMatchers.hasValidBeanEqualsFor;
@@ -59,20 +43,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.spy;
 
 /**
  * Created by bryan on 7/14/15.
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( { UriParser.class, VFS.class } )
 public class NamedClusterImplTest {
   private VariableSpace variableSpace;
   private NamedClusterImpl namedCluster;
@@ -91,20 +68,12 @@ public class NamedClusterImplTest {
   private String namedClusterKafkaBootstrapServers;
   private boolean isMapr;
   private IMetaStore metaStore;
-  private StandardFileSystemManager fsm;
 
   @Before
-  public void setup() throws Exception {
-    mockStatic( VFS.class );
-    mockStatic( UriParser.class );
-    spy( UriParser.class );
-
-    PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
-    PluginRegistry.init( false );
-    Encr.init( "Kettle" );
+  public void setup() {
     metaStore = mock( IMetaStore.class );
     variableSpace = mock( VariableSpace.class );
-
+    variableSpace = mock( VariableSpace.class );
     namedCluster = new NamedClusterImpl();
     namedCluster.shareVariablesWith( variableSpace );
     namedClusterName = "namedClusterName";
@@ -125,7 +94,7 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsHost( namedClusterHdfsHost );
     namedCluster.setHdfsPort( namedClusterHdfsPort );
     namedCluster.setHdfsUsername( namedClusterHdfsUsername );
-    namedCluster.setHdfsPassword( namedCluster.encodePassword( namedClusterHdfsPassword ) );
+    namedCluster.setHdfsPassword( namedClusterHdfsPassword );
     namedCluster.setJobTrackerHost( namedClusterJobTrackerHost );
     namedCluster.setJobTrackerPort( namedClusterJobTrackerPort );
     namedCluster.setZooKeeperHost( namedClusterZookeeperHost );
@@ -134,9 +103,6 @@ public class NamedClusterImplTest {
     namedCluster.setMapr( isMapr );
     namedCluster.setStorageScheme( namedClusterStorageScheme );
     namedCluster.setKafkaBootstrapServers( namedClusterKafkaBootstrapServers );
-
-    fsm = mock( StandardFileSystemManager.class );
-    when( VFS.getManager() ).thenReturn( fsm );
   }
 
   @Test
@@ -155,7 +121,7 @@ public class NamedClusterImplTest {
     assertEquals( namedClusterHdfsHost, newNamedCluster.getHdfsHost() );
     assertEquals( namedClusterHdfsPort, newNamedCluster.getHdfsPort() );
     assertEquals( namedClusterHdfsUsername, newNamedCluster.getHdfsUsername() );
-    assertEquals( namedClusterHdfsPassword, newNamedCluster.decodePassword( newNamedCluster.getHdfsPassword() ) );
+    assertEquals( namedClusterHdfsPassword, newNamedCluster.getHdfsPassword() );
     assertEquals( namedClusterJobTrackerHost, newNamedCluster.getJobTrackerHost() );
     assertEquals( namedClusterJobTrackerPort, newNamedCluster.getJobTrackerPort() );
     assertEquals( namedClusterZookeeperHost, newNamedCluster.getZooKeeperHost() );
@@ -290,7 +256,7 @@ public class NamedClusterImplTest {
   }
 
   @Test
-  public void testGenerateURLHDFS() throws Exception {
+  public void testGenerateURLHDFS() throws MetaStoreException {
     String scheme = "hdfs";
     String testHost = "testHost";
     String testPort = "9333";
@@ -299,8 +265,7 @@ public class NamedClusterImplTest {
     namedCluster.setHdfsHost( " " + testHost + " " );
     namedCluster.setHdfsPort( " " + testPort + " " );
     namedCluster.setHdfsUsername( " " + testUsername + " " );
-    namedCluster.setHdfsPassword( namedCluster.encodePassword( testPassword ) );
-    buildAppendEncodedUserPassMocks( testUsername, namedCluster.encodePassword( testPassword ) );
+    namedCluster.setHdfsPassword( " " + testPassword + " " );
     assertEquals( scheme + "://" + testUsername + ":" + testPassword + "@" + testHost + ":" + testPort,
       namedCluster.generateURL( scheme, metaStore, null ) );
   }
@@ -535,44 +500,16 @@ public class NamedClusterImplTest {
 
   @Test
   public void testXMLEmbedding() throws Exception {
-    Element node = createNodeFromNamedCluster();
-
-    NamedCluster nc = new NamedClusterImpl();
-    nc = nc.fromXmlForEmbed( node );
-
-    assertNamedClusterEquality( nc );
-  }
-
-  @Test
-  public void testLegacyXMLEmbedding() throws Exception {
-    Element node = createNodeFromNamedCluster();
-
-    XPath xPath = XPathFactory.newInstance().newXPath();
-    //Find the node containing the hdfsPassword
-    Node n = ( (Node) xPath.evaluate( "/NamedCluster/child/id[text()='hdfsPassword']", node, XPathConstants.NODE ) )
-      .getNextSibling();
-    //Set the password value to what it would be if we were still encoding the legacy way
-    ITwoWayPasswordEncoder passwordEncoder = new Base64TwoWayPasswordEncoder();
-    n.setTextContent( passwordEncoder.encode( namedCluster.getHdfsPassword() ) );
-
-    //Now check that we can still decode it
-    NamedCluster nc = new NamedClusterImpl();
-    nc = nc.fromXmlForEmbed( node );
-
-    assertNamedClusterEquality( nc );
-  }
-
-  private Element createNodeFromNamedCluster() throws Exception {
     String clusterXml = namedCluster.toXmlForEmbed( "NamedCluster" );
     System.out.println( clusterXml );
 
-    return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+    Element node =
+      DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
         new ByteArrayInputStream( clusterXml.getBytes() ) )
         .getDocumentElement();
-  }
 
-  private void assertNamedClusterEquality( NamedCluster nc ) {
-
+    NamedCluster nc = new NamedClusterImpl();
+    nc = nc.fromXmlForEmbed( node );
     assertEquals( namedCluster.getHdfsHost(), nc.getHdfsHost() );
     assertEquals( namedCluster.getHdfsPort(), nc.getHdfsPort() );
     assertEquals( namedCluster.getHdfsUsername(), nc.getHdfsUsername() );
@@ -587,19 +524,5 @@ public class NamedClusterImplTest {
     assertEquals( namedCluster.getOozieUrl(), nc.getOozieUrl() );
     assertEquals( namedCluster.getKafkaBootstrapServers(), nc.getKafkaBootstrapServers() );
     assertEquals( namedCluster.getLastModifiedDate(), nc.getLastModifiedDate() );
-  }
-
-  private Answer buildUrlEncodeAnswer( String value ) {
-    Answer urlEncodeAnswer = invocation -> {
-      Object[] args = invocation.getArguments();
-      ( (StringBuilder) args[0] ).append( (String) args[1] );
-      return null;
-    };
-    return urlEncodeAnswer;
-  }
-
-  private void buildAppendEncodedUserPassMocks( String username, String password ) throws Exception {
-    doAnswer( buildUrlEncodeAnswer ( username ) ).when( UriParser.class, "appendEncoded",
-      any( StringBuilder.class ), eq( username ), any( char[].class ) );
   }
 }

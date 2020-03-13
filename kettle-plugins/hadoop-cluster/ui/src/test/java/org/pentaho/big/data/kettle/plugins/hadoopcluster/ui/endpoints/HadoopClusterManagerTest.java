@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -36,9 +36,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
-import org.pentaho.di.core.encryption.Encr;
-import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
-import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
@@ -76,10 +73,6 @@ public class HadoopClusterManagerTest {
   private HadoopClusterManager hadoopClusterManager;
 
   @Before public void setup() throws Exception {
-    PluginRegistry.addPluginType( TwoWayPasswordEncoderPluginType.getInstance() );
-    PluginRegistry.init( false );
-    Encr.init( "Kettle" );
-
     if ( getShimTestDir().exists() ) {
       FileUtils.deleteDirectory( getShimTestDir() );
     }
@@ -278,11 +271,10 @@ public class HadoopClusterManagerTest {
 
     PropertiesConfiguration config = new PropertiesConfiguration( new File( configFile ) );
     assertEquals( "username", config.getProperty( "pentaho.authentication.default.kerberos.principal" ) );
-    assertEquals( Encr.encryptPasswordIfNotUsingVariables( "password" ),
-      config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
+    assertEquals( "password", config.getProperty( "pentaho.authentication.default.kerberos.password" ) );
     assertEquals( "impersonationusername",
       config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.principal" ) );
-    assertEquals( Encr.encryptPasswordIfNotUsingVariables( "impersonationpassword" ),
+    assertEquals( "impersonationpassword",
       config.getProperty( "pentaho.authentication.default.mapping.server.credentials.kerberos.password" ) );
     assertEquals( "simple", config.getProperty( "pentaho.authentication.default.mapping.impersonation.type" ) );
 
