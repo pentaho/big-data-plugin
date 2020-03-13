@@ -73,6 +73,7 @@
     <dependency.jline.revision>0.9.94</dependency.jline.revision>
     <dependency.xmlpull.revision>1.1.3.1</dependency.xmlpull.revision>
     <pentaho-s3-vfs.version>${project.version}</pentaho-s3-vfs.version>
+    <dependency.commons-vfs-revision>2.2</dependency.commons-vfs-revision>
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
     <dependency.avro.revision>1.6.2</dependency.avro.revision>
     <dependency.cxf.revision>3.0.13</dependency.cxf.revision>
@@ -87,43 +88,7 @@
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
-    <powermock.version>1.7.3</powermock.version>
-  </properties>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-reflect</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-core</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4-common</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-support</artifactId>
-        <version>${powermock.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+</properties>
 
   <build>
     <plugins>
