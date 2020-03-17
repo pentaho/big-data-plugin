@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -278,6 +278,7 @@ public class KafkaConsumerInputMetaTest {
     meta.setTransformationPath( "/home/pentaho/myKafkaTransformation.ktr" );
     meta.setBatchSize( "54321" );
     meta.setBatchDuration( "987" );
+    meta.setPrefetchCount( "12345" );
     meta.setConnectionType( DIRECT );
     meta.setDirectBootstrapServers( "localhost:888" );
 
@@ -302,6 +303,7 @@ public class KafkaConsumerInputMetaTest {
         + "    <batchSize>54321</batchSize>" + Const.CR
         + "    <batchDuration>987</batchDuration>" + Const.CR
         + "    <PARALLELISM>1</PARALLELISM>" + Const.CR
+        + "    <prefetchMessageCount>12345</prefetchMessageCount>" + Const.CR
         + "    <connectionType>DIRECT</connectionType>" + Const.CR
         + "    <directBootstrapServers>localhost:888</directBootstrapServers>" + Const.CR
         + "    <AUTO_COMMIT>Y</AUTO_COMMIT>" + Const.CR
