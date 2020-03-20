@@ -32,6 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel;
@@ -64,9 +65,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.inOrder;
 
 @RunWith( MockitoJUnitRunner.class )
 public class HadoopClusterManagerTest {
@@ -122,16 +125,27 @@ public class HadoopClusterManagerTest {
     when( namedClusterService.list( metaStore ) ).thenReturn( ImmutableList.of( namedCluster ) );
   }
 
-  @Test public void testSecuredImportNamedCluster() {
+  @Test public void testSecuredImportNamedCluster() throws Exception {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setName( ncTestName );
     model.setShimVendor( "Cloudera" );
     model.setShimVersion( "5.14" );
-    JSONObject result = hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/secured" ) );
+
+    Map<String, CachedFileItemStream> cachedFileItemStream = getFiles( "src/test/resources/secured" );
+    File keytabFileDirectory = new File( "src/test/resources/keytab" );
+    Map<String, CachedFileItemStream> keytabFileItems = getFiles( keytabFileDirectory.getPath(), "keytabAuthFile" );
+    cachedFileItemStream.putAll( keytabFileItems );
+
+    JSONObject result = hadoopClusterManager.importNamedCluster( model, cachedFileItemStream );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
+    InOrder inOrder = inOrder( namedCluster, namedClusterService );
     verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
     verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
+    inOrder.verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
+    verify( namedCluster, never() ).addSiteFile( eq( "test.keytab" ), any( String.class ) );
+    inOrder.verify( namedClusterService ).create( any( ), any( ) );
+    assertTrue( new File( getShimTestDir(), "test.keytab" ).exists() );
+
   }
 
   @Test public void testUnsecuredImportNamedCluster() {

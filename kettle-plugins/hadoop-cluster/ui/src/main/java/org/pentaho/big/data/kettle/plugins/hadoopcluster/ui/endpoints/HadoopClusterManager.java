@@ -65,10 +65,13 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -211,9 +214,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       if ( isConfigurationSet ) {
         deleteNamedClusterSchemaOnly( model );
         setupKnoxSecurity( nc, model );
-        namedClusterService.create( nc, metaStore );
         deleteConfigFolder( nc.getName() );
         installSiteFiles( siteFilesSource, nc );
+        namedClusterService.create( nc, metaStore );
         createConfigProperties( nc );
         setupKerberosSecurity( model, siteFilesSource, "", "" );
         response.put( NAMED_CLUSTER, nc.getName() );
@@ -527,21 +530,38 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
   private void installSiteFiles( Map<String, CachedFileItemStream> siteFileSource, NamedCluster nc )
     throws IOException {
     for ( Map.Entry<String, CachedFileItemStream> siteFile : siteFileSource.entrySet() ) {
-      String name = siteFile.getKey();
+      String name = siteFile.getValue().getFieldName();
       if ( isValidConfigurationFile( name ) ) {
         if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) ) {
           name = extractFileNameFromFullPath( siteFile.getValue().getName() );
+          addFileToConfigFolder( siteFile.getValue().getCachedOutputStream(), name, nc );
+        } else {
+          addFileToNamedClusterSiteFiles( siteFile.getValue().getCachedInputStream(), name, nc );
         }
-        InputStreamReader isReader = new InputStreamReader( siteFile.getValue().getCachedInputStream() );
-        BufferedReader reader = new BufferedReader( isReader );
-        StringBuilder sb = new StringBuilder();
-        String str;
-        while ( ( str = reader.readLine() ) != null ) {
-          sb.append( str );
-        }
-        nc.addSiteFile( name, sb.toString() );
       }
     }
+  }
+
+  private void addFileToConfigFolder( ByteArrayOutputStream outputStream, String fileName, NamedCluster nc )
+    throws IOException {
+    File destination = new File(
+      getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() + fileSeparator + fileName );
+    destination.getParentFile().mkdirs();
+    try ( OutputStream fos = new FileOutputStream( destination ) ) {
+      outputStream.writeTo( fos );
+    }
+  }
+
+  private void addFileToNamedClusterSiteFiles( InputStream inputStream, String fileName, NamedCluster nc )
+    throws IOException {
+    InputStreamReader isReader = new InputStreamReader( inputStream );
+    BufferedReader reader = new BufferedReader( isReader );
+    StringBuilder sb = new StringBuilder();
+    String str;
+    while ( ( str = reader.readLine() ) != null ) {
+      sb.append( str );
+    }
+    nc.addSiteFile( fileName, sb.toString() );
   }
 
   public boolean isValidConfigurationFile( String fileName ) {
