@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>pentaho</groupId>
+    <artifactId>pentaho-big-data-bundles</artifactId>
+    <version>9.1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <groupId>pentaho</groupId>
+  <artifactId>pentaho-s3-vfs</artifactId>
+  <version>9.1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <properties>
+    <!-- License Configuration -->
+    <license.licenseName>apache_v2</license.licenseName>
+
+    <!-- Third-party dependencies -->
+    <commons-io.version>1.4</commons-io.version>
+    <slf4j-api.version>1.7.7</slf4j-api.version>
+    <guava.version>19.0</guava.version>
+
+    <!-- Test dependencies -->
+    <junit.version>4.12</junit.version>
+    <mockito.version>1.10.19</mockito.version>
+    <powermock.version>1.7.4</powermock.version>
+  </properties>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:pentaho/${project.artifactId}.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <!-- Third-party dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2</artifactId>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

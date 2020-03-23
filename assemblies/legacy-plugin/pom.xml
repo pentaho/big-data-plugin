@@ -54,7 +54,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-s3-vfs</artifactId>
-      <version>${pentaho-s3-vfs.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.oozie</groupId>
