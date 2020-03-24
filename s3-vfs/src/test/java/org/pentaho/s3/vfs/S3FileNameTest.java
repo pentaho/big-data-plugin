@@ -1,5 +1,5 @@
 /*!
-* Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+* Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import static junit.framework.Assert.assertEquals;
 public class S3FileNameTest {
 
   private S3FileName fileName = null;
+  private static final String SCHEME_DELIMITER = ":/";
 
   public static final String awsAccessKey = "ABC123456DEF7890";             // fake out a key
   public static final String awsSecretKey = "A+123456BCD99/99999999ZZZ+B";   // fake out a secret key
@@ -59,23 +60,23 @@ public class S3FileNameTest {
 
   @Test
   public void testCreateName() throws Exception {
-    assertEquals( "s3:///path/to/my/file",
+    assertEquals( "s3://path/to/my/file",
             fileName.createName( "/path/to/my/file", FileType.FILE ).getURI() );
   }
 
   @Test
   public void testAppendRootUriWithNonDefaultPort() throws Exception {
     fileName = new S3FileName( SCHEME, "/", "FooFolder", FileType.FOLDER );
-    String expectedUri = SCHEME + "://" + "FooFolder";
+    String expectedUri = SCHEME + SCHEME_DELIMITER + "FooFolder";
     assertEquals( expectedUri, fileName.getURI() );
 
     fileName = new S3FileName( SCHEME, "FooBucket", "FooBucket/FooFolder", FileType.FOLDER );
-    expectedUri = SCHEME + "://FooBucket/" + "FooFolder";
+    expectedUri = SCHEME + ":/FooBucket/" + "FooFolder";
     assertEquals( expectedUri, fileName.getURI() );
   }
 
   public static String buildS3URL( String path ) throws UnsupportedEncodingException {
-    return SCHEME + "://" + path;
+    return SCHEME + SCHEME_DELIMITER + path;
   }
 
 }
