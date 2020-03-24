@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -69,6 +69,8 @@ import static org.pentaho.big.data.kettle.plugins.kafka.KafkaConsumerInputMeta.C
 public class KafkaConsumerInputDialog extends BaseStreamingDialog implements StepDialogInterface {
 
   private static final int INPUT_WIDTH = 350;
+  private static final int SHELL_MIN_WIDTH = 527;
+  private static final int SHELL_MIN_HEIGHT = 682;
   private static final Class<?> PKG = KafkaConsumerInputMeta.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
@@ -107,6 +109,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
   }
 
   @Override protected void createAdditionalTabs() {
+    shell.setMinimumSize( SHELL_MIN_WIDTH, SHELL_MIN_HEIGHT );
     buildFieldsTab();
     buildOptionsTab();
     buildOffsetManagement();
@@ -121,7 +124,7 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     wOffsetGroup.setLayout( flOffsetGroup );
 
     FormData fdOffsetGroup = new FormData();
-    fdOffsetGroup.top = new FormAttachment( wParallelism, 15 );
+    fdOffsetGroup.top = new FormAttachment( wPrefetchCount, 15 );
     fdOffsetGroup.left = new FormAttachment( 0, 0 );
     fdOffsetGroup.right = new FormAttachment( 100, 0 );
     wOffsetGroup.setLayoutData( fdOffsetGroup );
@@ -609,6 +612,9 @@ public class KafkaConsumerInputDialog extends BaseStreamingDialog implements Ste
     }
     if ( meta.getParallelism() != null ) {
       wParallelism.setText( meta.getParallelism() );
+    }
+    if ( meta.getPrefetchCount() != null ) {
+      wPrefetchCount.setText( meta.getPrefetchCount() );
     }
 
     wbCluster.setSelection( !isDirect() );

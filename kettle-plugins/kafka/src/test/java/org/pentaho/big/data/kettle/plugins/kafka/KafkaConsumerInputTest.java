@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,7 +22,6 @@
 
 package org.pentaho.big.data.kettle.plugins.kafka;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -296,7 +295,8 @@ public class KafkaConsumerInputTest {
 
     KafkaStreamSource kafkaStreamSource = (KafkaStreamSource) spy( step.getSource() );
     step.setSource( kafkaStreamSource );
-    Iterable rows = kafkaStreamSource.flowable().blockingIterable();
+    List<Object> items = new ArrayList();
+    kafkaStreamSource.flowable().forEach( i -> items.add( i ) );
 
     Runnable processRowRunnable = () -> {
       try {
@@ -314,7 +314,7 @@ public class KafkaConsumerInputTest {
 
     verify( kafkaStreamSource ).open();
     verify( kafkaStreamSource, times( 2 ) ).flowable();
-    assertEquals( 5, Iterables.size( rows ) );
+    assertEquals( 5, items.size() );
 
     // make sure all of the appropriate columns are in the output row meta
     assertNotNull( data.outputRowMeta.searchValueMeta( meta.getMessageField().getOutputName() ) );
