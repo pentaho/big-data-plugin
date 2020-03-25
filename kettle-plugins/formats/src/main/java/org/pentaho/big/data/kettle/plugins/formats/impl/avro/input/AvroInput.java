@@ -32,6 +32,7 @@ import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStep;
@@ -171,9 +172,10 @@ public class AvroInput extends BaseStep {
 
   public static List<? extends IAvroInputField> getLeafFields( NamedClusterServiceLocator namedClusterServiceLocator,
                                                                NamedCluster namedCluster, String schemaPath,
-                                                               String dataPath ) throws Exception {
+                                                               String dataPath, VariableSpace variableSpace ) throws Exception {
     FormatService formatService = namedClusterServiceLocator.getService( namedCluster, FormatService.class );
     IPentahoAvroInputFormat in = formatService.createInputFormat( IPentahoAvroInputFormat.class, namedCluster );
+    in.setVariableSpace( variableSpace );
     in.setInputSchemaFile( schemaPath );
     in.setInputFile( dataPath );
     return in.getLeafFields();
@@ -218,7 +220,7 @@ public class AvroInput extends BaseStep {
     Boolean useFieldAsSchema = false;
     String inputSchemaFileName = null;
     String inputFileName = null;
-    data.input.setVariableSpace( this );
+    data.input.setVariableSpace( this.getTransMeta() );
 
     AvroInputMetaBase.SourceFormat sourceFormat = AvroInputMetaBase.SourceFormat.values[ meta.getFormat() ];
     if ( sourceFormat == AvroInputMetaBase.SourceFormat.DATUM_BINARY
@@ -296,7 +298,7 @@ public class AvroInput extends BaseStep {
       if ( !data.input.isUseFieldAsInputStream() ) {
         List<? extends IAvroInputField> rawAvroFields = AvroInput
           .getLeafFields( meta.getNamedClusterResolver().getNamedClusterServiceLocator(),
-            getNamedCluster(), schemaFileName, avroFileName );
+            getNamedCluster(), schemaFileName, avroFileName, this.getTransMeta() );
         Map<String, String> hackedFieldNames = new HashMap<>();
         int pointer;
         String fieldName;
@@ -332,6 +334,15 @@ public class AvroInput extends BaseStep {
 
   protected boolean init() {
     return true;
+  }
+
+  @Override public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
+    //Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
+    if ( getTransMeta().getNamedClusterEmbedManager() != null ) {
+      getTransMeta().getNamedClusterEmbedManager()
+        .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
+    }
+    return super.init( smi, sdi );
   }
 
   protected IBaseFileInputReader createReader( AvroInputMeta meta, AvroInputData data, FileObject file )

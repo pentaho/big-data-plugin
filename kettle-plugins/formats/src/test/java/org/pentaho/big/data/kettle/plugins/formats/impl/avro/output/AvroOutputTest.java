@@ -42,6 +42,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.RowHandler;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -96,6 +97,7 @@ public class AvroOutputTest {
   private LogChannelInterface mockLogChannelInterface;
   @Mock
   private IPentahoAvroOutputFormat.IPentahoRecordWriter mockPentahoAvroRecordWriter;
+  @Mock NamedClusterEmbedManager namedClusterEmbedManager;
 
   private List<AvroOutputField> avroOutputFields;
   private AvroOutputMeta avroOutputMeta;
@@ -119,6 +121,7 @@ public class AvroOutputTest {
     when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
     when( mockTransMeta.findStep( OUTPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+    when( mockTransMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
     when( mockTrans.isRunning() ).thenReturn( true );
 
     try {
@@ -154,6 +157,7 @@ public class AvroOutputTest {
       }
     } while ( result );
 
+    verify( namedClusterEmbedManager ).passEmbeddedMetastoreKey( any(), any() );
     // 3 rows to be outputted to an avro file
     assertEquals( 3, rowsProcessed );
     verify( mockRowHandler, times( 3 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );

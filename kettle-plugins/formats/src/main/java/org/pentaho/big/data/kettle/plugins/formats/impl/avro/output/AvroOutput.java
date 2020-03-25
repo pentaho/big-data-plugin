@@ -114,6 +114,12 @@ public class AvroOutput extends BaseStep implements StepInterface {
   }
 
   public void init() throws Exception {
+    //Set Embedded NamedCluter MetatStore Provider Key so that it can be passed to VFS
+    if ( getTransMeta().getNamedClusterEmbedManager() != null ) {
+      getTransMeta().getNamedClusterEmbedManager()
+        .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
+    }
+
     FormatService formatService;
     try {
       formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()

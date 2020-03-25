@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
@@ -48,9 +49,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
 
 /**
  * Created by rmansoor on 4/8/2018.
@@ -70,8 +74,12 @@ public class AvroOutputMetaBaseTest {
   @Mock
   private List<DatabaseMeta> databases;
 
+  @Mock
+  private NamedClusterEmbedManager embedManager;
+
   @Before
   public void setUp() throws Exception {
+
     metaBase = spy( new AvroOutputMetaBase() {
       @Override
       public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr,
@@ -84,6 +92,14 @@ public class AvroOutputMetaBaseTest {
         return null;
       }
     } );
+
+    TransMeta parentTransMeta = mock( TransMeta.class );
+    doReturn( embedManager ).when( parentTransMeta ).getNamedClusterEmbedManager();
+
+    StepMeta parentStepMeta = mock( StepMeta.class );
+    doReturn( parentTransMeta ).when( parentStepMeta ).getParentTransMeta();
+
+    metaBase.setParentStepMeta( parentStepMeta );
   }
 
   @Test
@@ -133,6 +149,12 @@ public class AvroOutputMetaBaseTest {
     String constructedFileName = metaBase.constructOutputFilename( fileName );
 
     assertTrue( constructedFileName.matches( VALID_PART_FILE_URI_REGEX ) );
+  }
+
+  @Test
+  public void getXmlTest() {
+    metaBase.getXML();
+    verify( embedManager ).registerUrl( anyString() );
   }
 
   private void loadStepMeta( String resourceFile )

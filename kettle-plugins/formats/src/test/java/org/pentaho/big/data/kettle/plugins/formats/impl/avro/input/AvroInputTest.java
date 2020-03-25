@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
+import org.pentaho.di.trans.steps.named.cluster.NamedClusterEmbedManager;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.hadoop.shim.api.cluster.NamedClusterServiceLocator;
@@ -45,6 +46,7 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.RowHandler;
 import org.pentaho.di.trans.step.StepDataInterface;
+import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoAvroInputFormat;
@@ -75,7 +77,7 @@ public class AvroInputTest {
   static final String PASS_FIELD_NAME = "passFieldName";
   int currentInputRow;
 
-  @Mock
+  @Mock( extraInterfaces = StepMetaInterface.class )
   private StepMeta mockStepMeta;
   @Mock
   private StepDataInterface mockStepDataInterface;
@@ -99,6 +101,7 @@ public class AvroInputTest {
   private IPentahoAvroInputFormat mockPentahoAvroInputFormat;
   @Mock
   IPentahoAvroInputFormat.IPentahoRecordReader mockPentahoAvroRecordReader;
+  @Mock NamedClusterEmbedManager namedClusterEmbedManager;
 
   private AvroInputMeta avroInputMeta;
   private AvroInput avroInput;
@@ -122,6 +125,7 @@ public class AvroInputTest {
     when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( INPUT_STEP_NAME );
     when( mockTransMeta.findStep( INPUT_STEP_NAME ) ).thenReturn( mockStepMeta );
+    when( mockTransMeta.getNamedClusterEmbedManager() ).thenReturn( namedClusterEmbedManager );
     when( mockTrans.isRunning() ).thenReturn( true );
     try {
       when( mockRowHandler.getRow() ).thenAnswer( answer -> returnNextInputRow() );
@@ -154,6 +158,12 @@ public class AvroInputTest {
       result = null;
     }
     return result;
+  }
+
+  @Test
+  public void testEmbedSetup() {
+    avroInput.init( (StepMetaInterface) mockStepMeta, mockStepDataInterface );
+    verify( namedClusterEmbedManager ).passEmbeddedMetastoreKey( any(), any() );
   }
 
   @Test
