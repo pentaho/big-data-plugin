@@ -71,9 +71,9 @@ public class S3FileName extends AbstractFileName {
     // [PDI-18634] Only 1 slash is needed here, because this class is not expecting an authority, instead it is
     // expecting that the connection has already been established to the Amazon AWS S3 file system, the second slash
     // comes from the absolute path of the file stored in the file system.  So the root path with this Uri ends up
-    // being: s3:// instead of s3:///.  A file located at the root would be s3://example.txt instead of
-    // s3:///example.txt.  In our VFS, this is handled the same, in CLS 3 slashes do not resolve appropriately. For
-    // consistency, the code here changes so that we will end up with 2 slashes.
+    // being: s3:// instead of s3:///.  A file located in a top level bucket would be s3://bucket/example.txt instead of
+    // s3:///bucket/example.txt.  In our VFS, this is handled the same, in CLS 3 slashes do not resolve appropriately.
+    // For consistency, the code here changes so that we will end up with 2 slashes.
     buffer.append( ":/" );
   }
 }
