@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.pentaho.s3common.S3CommonFileObject;
 
 public class S3NFileObject extends S3CommonFileObject {
 
-  protected S3NFileObject( final AbstractFileName name, final S3NFileSystem fileSystem ) throws FileSystemException {
+  protected S3NFileObject( final AbstractFileName name, final S3NFileSystem fileSystem ) {
     super( name, fileSystem );
   }
 }

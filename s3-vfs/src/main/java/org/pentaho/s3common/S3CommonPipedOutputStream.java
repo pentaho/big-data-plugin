@@ -21,10 +21,8 @@ import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
-import org.apache.commons.vfs2.FileSystemOptions;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.util.StorageUnitConverter;
@@ -128,7 +126,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
         try {
           Thread.sleep( 100 );
         } catch ( InterruptedException e ) {
-          e.printStackTrace();
+          logger.error( BaseMessages.getString( PKG, "ERROR.S3MultiPart.ExceptionCaught" ), e );
           Thread.currentThread().interrupt();
         }
       }
@@ -140,13 +138,10 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
 
     public Boolean call() throws Exception {
       boolean returnVal = true;
-      List<PartETag> partETags = new ArrayList<PartETag>();
+      List<PartETag> partETags = new ArrayList<>();
 
       // Step 1: Initialize
-      FileSystemOptions fsOpts = fileSystem.getFileSystemOptions();
-
       InitiateMultipartUploadRequest initRequest;
-      ObjectMetadata objectMetadata;
       initRequest = new InitiateMultipartUploadRequest( bucketId, key );
 
       InitiateMultipartUploadResult initResponse = null;
@@ -218,7 +213,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
           oome );
         returnVal = false;
       } catch ( Exception e ) {
-        e.printStackTrace();
+        logger.error( BaseMessages.getString( PKG, "ERROR.S3MultiPart.ExceptionCaught" ), e );
         if ( initResponse == null ) {
           close();
         } else {

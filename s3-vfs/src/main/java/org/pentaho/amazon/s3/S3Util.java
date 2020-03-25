@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,7 @@ public final class S3Util {
     if ( isEmpty( previousValue ) && !isEmpty( currentValue ) ) {
       return true;
     }
-    if ( !isEmpty( previousValue ) && !isEmpty( currentValue ) && !currentValue.equals( previousValue ) ) {
-      return true;
-    }
-    return false;
+    return !isEmpty( previousValue ) && !isEmpty( currentValue ) && !currentValue.equals( previousValue );
   }
 
   public static boolean isEmpty( String value ) {

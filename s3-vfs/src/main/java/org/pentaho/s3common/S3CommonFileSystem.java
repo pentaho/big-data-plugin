@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,9 +124,6 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
     }
     //check if configuration file exists in default location
     File awsConfigFolder = new File( System.getProperty( "user.home" ) + File.separator + S3Util.AWS_FOLDER + File.separator + S3Util.CONFIG_FILE );
-    if ( awsConfigFolder.exists() ) {
-      return true;
-    }
-    return false;
+    return awsConfigFolder.exists();
   }
 }
