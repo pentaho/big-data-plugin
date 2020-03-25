@@ -193,6 +193,7 @@ public abstract class AvroOutputMetaBase extends BaseStepMeta implements StepMet
     final String INDENT = "    ";
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( FILE_NAME, filename ) );
+    parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( filename );
     retval.append( INDENT ).append( XMLHandler.addTagValue( FieldNames.OVERRIDE_OUTPUT, overrideOutput ) );
 
     retval.append( "    <fields>" ).append( Const.CR );

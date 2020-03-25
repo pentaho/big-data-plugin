@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2018-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -248,6 +248,7 @@ public abstract class AvroInputMetaBase extends BaseStepMeta implements StepMeta
 
     retval.append( INDENT ).append( XMLHandler.addTagValue( "passing_through_fields", passingThruFields ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocation", getDataLocation() ) );
+    parentStepMeta.getParentTransMeta().getNamedClusterEmbedManager().registerUrl( getDataLocation() );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "sourceFormat", getFormat() ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "dataLocationType", dataLocationType ) );
     retval.append( INDENT ).append( XMLHandler.addTagValue( "schemaLocation", getSchemaLocation() ) );
