@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,12 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.util.StorageUnitConverter;
+import org.pentaho.di.i18n.BaseMessages;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,7 +48,15 @@ import java.util.concurrent.ThreadPoolExecutor;
  * Custom OutputStream that enables chunked uploads into S3
  */
 public class S3CommonPipedOutputStream extends PipedOutputStream {
-  private static int PART_SIZE = 1024 * 1024 * 5;
+
+  private static final Class<?> PKG = S3CommonPipedOutputStream.class;
+  private static final Logger logger = LoggerFactory.getLogger( S3CommonPipedOutputStream.class );
+  private static final LogChannelInterface consoleLog = new LogChannel( BaseMessages.getString( PKG, "TITLE.S3File" ) );
+
+  /**
+   * set to aws multipart minimum 5MB.
+   */
+  private static final int DEFAULT_PART_SIZE = 5 * 1024 * 1024;
   private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool( 1 );
   private boolean initialized = false;
   private boolean blockedUntilDone = true;
@@ -52,21 +66,30 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
   private Future<Boolean> result = null;
   private String bucketId;
   private String key;
+  /**
+   * AWS Multipart part size.
+   */
+  private int partSize;
 
   public S3CommonPipedOutputStream( S3CommonFileSystem fileSystem, String bucketId, String key ) throws IOException {
+    this( fileSystem, bucketId, key, DEFAULT_PART_SIZE );
+  }
+
+  public S3CommonPipedOutputStream( S3CommonFileSystem fileSystem, String bucketId, String key, int partSize ) throws IOException {
     this.pipedInputStream = new PipedInputStream();
 
     try {
       this.pipedInputStream.connect( this );
     } catch ( IOException e ) {
       // FATAL, unexpected
-      throw new RuntimeException( e );
+      throw new IOException( "could not connect to pipedInputStream", e );
     }
 
     this.s3AsyncTransferRunner = new S3AsyncTransferRunner();
     this.bucketId = bucketId;
     this.key = key;
     this.fileSystem = fileSystem;
+    this.partSize = partSize;
   }
 
   private void initializeWrite() {
@@ -128,19 +151,19 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
 
       InitiateMultipartUploadResult initResponse = null;
 
-
-      try ( ByteArrayOutputStream baos = new ByteArrayOutputStream( PART_SIZE );
-            BufferedInputStream bis = new BufferedInputStream( pipedInputStream, PART_SIZE ) ) {
+      // NOTE: byte[] max size is ~2GB < 5GB = aws api max part size
+      try ( ByteArrayOutputStream baos = new ByteArrayOutputStream( partSize );
+            BufferedInputStream bis = new BufferedInputStream( pipedInputStream, partSize ) ) {
         initResponse = fileSystem.getS3Client().initiateMultipartUpload( initRequest );
         // Step 2: Upload parts.
-        byte[] tmpBuffer = new byte[ PART_SIZE ];
+        byte[] tmpBuffer = new byte[ partSize ];
         int read = 0;
         long offset = 0;
-        int totalRead = 0;
+        long totalRead = 0;
         int partNum = 1;
 
         S3CommonWindowedSubstream s3is;
-
+        logger.info( BaseMessages.getString( PKG, "INFO.S3MultiPart.Start" ) );
         while ( ( read = bis.read( tmpBuffer ) ) >= 0 ) {
 
           // if something was actually read
@@ -149,7 +172,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
             totalRead += read;
           }
 
-          if ( totalRead > PART_SIZE ) { // do we have a minimally accepted chunk above 5Mb?
+          if ( totalRead > partSize ) {
             s3is = new S3CommonWindowedSubstream( baos.toByteArray() );
 
             UploadPartRequest uploadRequest = new UploadPartRequest()
@@ -160,6 +183,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
               .withInputStream( s3is );
 
             // Upload part and add response to our list.
+            logger.info( BaseMessages.getString( PKG, "INFO.S3MultiPart.Upload", partNum - 1, offset, Long.toString( totalRead ) ) );
             partETags.add( fileSystem.getS3Client().uploadPart( uploadRequest ).getPartETag() );
 
             offset += totalRead;
@@ -179,13 +203,20 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
           .withInputStream( s3is )
           .withLastPart( true );
 
+        logger.info( BaseMessages.getString( PKG, "INFO.S3MultiPart.Upload", partNum - 1, offset, totalRead ) );
         partETags.add( fileSystem.getS3Client().uploadPart( uploadRequest ).getPartETag() );
 
         // Step 3: Complete.
+        logger.info( BaseMessages.getString( PKG, "INFO.S3MultiPart.Complete" ) );
         CompleteMultipartUploadRequest compRequest =
           new CompleteMultipartUploadRequest( bucketId, key, initResponse.getUploadId(), partETags );
 
         fileSystem.getS3Client().completeMultipartUpload( compRequest );
+      } catch ( OutOfMemoryError oome ) {
+        consoleLog.logError( BaseMessages.getString( PKG,
+          "ERROR.S3MultiPart.UploadOutOfMemory", new StorageUnitConverter().byteCountToDisplaySize( partSize ) ),
+          oome );
+        returnVal = false;
       } catch ( Exception e ) {
         e.printStackTrace();
         if ( initResponse == null ) {
@@ -193,6 +224,7 @@ public class S3CommonPipedOutputStream extends PipedOutputStream {
         } else {
           fileSystem.getS3Client()
             .abortMultipartUpload( new AbortMultipartUploadRequest( bucketId, key, initResponse.getUploadId() ) );
+          logger.error( BaseMessages.getString( PKG, "ERROR.S3MultiPart.Aborted" ) );
         }
         returnVal = false;
       }

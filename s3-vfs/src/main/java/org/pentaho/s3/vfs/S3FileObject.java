@@ -1,5 +1,5 @@
 /*!
- * Copyright 2010 - 2019 Hitachi Vantara.  All rights reserved.
+ * Copyright 2010 - 2020 Hitachi Vantara.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,8 @@ public class S3FileObject extends S3CommonFileObject {
   @Override
   protected OutputStream doGetOutputStream( boolean bAppend ) throws Exception {
     SimpleEntry<String, String> newPath = fixFilePath( key, bucketName );
-    return new S3CommonPipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey() );
+    return new S3CommonPipedOutputStream( this.fileSystem, newPath.getValue(), newPath.getKey(),
+            ( (S3FileSystem) this.fileSystem ).getPartSize() );
   }
 
   @Override

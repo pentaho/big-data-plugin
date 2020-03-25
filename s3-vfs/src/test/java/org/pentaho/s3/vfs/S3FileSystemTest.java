@@ -16,22 +16,22 @@
 */
 package org.pentaho.s3.vfs;
 
-import org.apache.commons.vfs2.Capability;
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.UserAuthenticationData;
 import org.apache.commons.vfs2.UserAuthenticator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
-import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.util.StorageUnitConverter;
+import org.pentaho.s3common.S3KettleProperty;
 
-import java.util.ArrayList;
-import java.util.Collection;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +43,11 @@ public class S3FileSystemTest {
 
   S3FileSystem fileSystem;
   S3FileName fileName;
+
+  @BeforeClass
+  public static void initKettle() throws Exception {
+    KettleEnvironment.init( false );
+  }
 
   @Before
   public void setUp() throws Exception {
@@ -74,4 +79,79 @@ public class S3FileSystemTest {
     fileSystem = new S3FileSystem( fileName, options );
     assertNotNull( fileSystem.getS3Client() );
   }
+
+  @Test
+  public void getPartSize() throws Exception {
+
+    S3FileSystem s3FileSystem = getTestInstance();
+    s3FileSystem.storageUnitConverter = new StorageUnitConverter();
+    S3KettleProperty s3KettleProperty = mock( S3KettleProperty.class );
+    when( s3KettleProperty.getPartSize() ).thenReturn( "6MB" );
+    s3FileSystem.s3KettleProperty = s3KettleProperty;
+
+
+    //TEST 1: Below max
+    assertEquals( 6 * 1024 * 1024, s3FileSystem.getPartSize() );
+
+    // TEst 2: above max
+    when( s3KettleProperty.getPartSize() ).thenReturn( "600GB" );
+    assertEquals( Integer.MAX_VALUE, s3FileSystem.getPartSize() );
+
+  }
+
+  @Test
+  public void testParsePartSize() throws Exception {
+    S3FileSystem s3FileSystem = getTestInstance();
+    s3FileSystem.storageUnitConverter = new StorageUnitConverter();
+    long _5MBLong = 5L * 1024L * 1024L;
+    long _124MBLong = 124L * 1024L * 1024L;
+    long _5GBLong = 5L * 1024L * 1024L * 1024L;
+    long _12GBLong = 12L * 1024L * 1024L * 1024L;
+    long minimumPartSize = _5MBLong;
+    long maximumPartSize = _5GBLong;
+
+
+    // TEST 1: below minimum
+    assertEquals( minimumPartSize, s3FileSystem.parsePartSize( "1MB" ) );
+
+    // TEST 2: at minimum
+    assertEquals( minimumPartSize, s3FileSystem.parsePartSize( "5MB" ) );
+
+    // TEST 3: between minimum and maximum
+    assertEquals( _124MBLong, s3FileSystem.parsePartSize( "124MB" ) );
+
+    // TEST 4: at maximum
+    assertEquals( maximumPartSize, s3FileSystem.parsePartSize( "5GB" ) );
+
+    // TEST 5: above maximum
+    assertEquals( _12GBLong, s3FileSystem.parsePartSize( "12GB" ) );
+  }
+
+    @Test
+    public void testConvertToInt() throws Exception {
+      S3FileSystem s3FileSystem = getTestInstance();
+  
+      // TEST 1: below int max
+      assertEquals( 10, s3FileSystem.convertToInt( 10L ) );
+  
+      // TEST 2: at int max
+      assertEquals( Integer.MAX_VALUE, s3FileSystem.convertToInt( (long) Integer.MAX_VALUE ) );
+  
+      // TEST 3: above int max
+      assertEquals( Integer.MAX_VALUE, s3FileSystem.convertToInt( 5L* 1024L * 1024L * 1024L ) );
+    }
+
+    @Test
+    public void testConvertToLong() throws Exception  {
+      S3FileSystem s3FileSystem = getTestInstance();
+      long _10MBLong = 10L * 1024L * 1024L;
+      s3FileSystem.storageUnitConverter = new StorageUnitConverter();
+      assertEquals( _10MBLong, s3FileSystem.convertToLong( "10MB" ) );
+    }
+
+    public S3FileSystem getTestInstance() throws Exception {
+      FileName rootName = mock( FileName.class );
+      FileSystemOptions fileSystemOptions = new FileSystemOptions();
+      return new S3FileSystem( rootName, fileSystemOptions );
+    }
 }
