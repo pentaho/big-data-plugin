@@ -40,6 +40,7 @@ import org.apache.commons.vfs2.FilesCache;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import java.io.OutputStream;
@@ -48,6 +49,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.util.StorageUnitConverter;
+import org.pentaho.s3common.S3KettleProperty;
 
 import static java.util.AbstractMap.SimpleEntry;
 import static org.junit.Assert.assertEquals;
@@ -93,6 +97,11 @@ public class S3FileObjectTest {
   private final String origKey = "some/key";
   private Date testDate = new Date();
 
+  @BeforeClass
+  public static void initKettle() throws Exception {
+    KettleEnvironment.init( false );
+  }
+
   @Before
   public void setUp() throws Exception {
 
@@ -103,7 +112,10 @@ public class S3FileObjectTest {
 
     filename = new S3FileName( SCHEME, BUCKET_NAME, BUCKET_NAME, FileType.FOLDER );
     S3FileName rootFileName = new S3FileName( SCHEME, "", "", FileType.FOLDER );
-    S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions() );
+    S3KettleProperty s3KettleProperty  = mock( S3KettleProperty.class );
+    when ( s3KettleProperty.getPartSize() ).thenReturn( "5MB" );
+    S3FileSystem fileSystem = new S3FileSystem( rootFileName, new FileSystemOptions(), new StorageUnitConverter(),
+            s3KettleProperty );
     fileSystemSpy = spy( fileSystem );
     VfsComponentContext context = mock( VfsComponentContext.class );
     final DefaultFileSystemManager fsm = new DefaultFileSystemManager();
@@ -179,10 +191,11 @@ public class S3FileObjectTest {
     assertNotNull( s3FileObjectBucketSpy.doGetOutputStream( false ) );
     OutputStream out = s3FileObjectBucketSpy.doGetOutputStream( true );
     assertNotNull( out );
-    out.write( new byte[ 1024 * 1024 * 6 ] );
+    out.write( new byte[ 1024 * 1024 * 6 ] ); // 6MB
     out.close();
 
-    verify( s3ServiceMock, times( 2 ) ).uploadPart( any() );
+    // check kettle.properties 's3.vfs.partSize' is less than [5MB, 6MB)
+    verify(s3ServiceMock, times(2) ).uploadPart(any());
     verify( s3ServiceMock, atMost( 1 ) ).completeMultipartUpload( any() );
   }
 

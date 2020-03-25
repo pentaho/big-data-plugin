@@ -25,6 +25,11 @@
   </licenses>
 
   <properties>
+
+    <!-- pentaho dependencies -->
+    <kettle.core.version>${project.version}</kettle.core.version>
+    <kettle.engine.version>${project.version}</kettle.engine.version>
+
     <!-- License Configuration -->
     <license.licenseName>apache_v2</license.licenseName>
 
@@ -84,6 +89,13 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
 
+    <!-- pentaho depenencies -->
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${kettle.core.version}</version>
+    </dependency>
+
     <!-- Test dependencies -->
     <dependency>
       <groupId>junit</groupId>
@@ -107,6 +119,18 @@
       <groupId>org.powermock</groupId>
       <artifactId>powermock-reflect</artifactId>
       <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+      <version>${kettle.engine.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j-api.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
