@@ -49,6 +49,10 @@ public class NamedClusterResolver {
   private static final LogChannelInterface LOG = LogChannel.GENERAL;
 
   public NamedCluster resolveNamedCluster( String fileName ) {
+    return resolveNamedCluster( fileName, null );
+  }
+
+  public NamedCluster resolveNamedCluster( String fileName, String embeddedMetastoreKey ) {
     NamedCluster namedCluster = null;
     Optional<URI> uri = fileUri( fileName );
 
@@ -56,9 +60,18 @@ public class NamedClusterResolver {
       String scheme = uri.get().getScheme();
       String hostName = uri.get().getHost();
       if ( scheme != null && scheme.equals( "hc" ) ) {
-        namedCluster = namedClusterService.getNamedClusterByName( hostName, metaStoreService.getMetastore() );
+        namedCluster = namedClusterService.getNamedClusterByName( hostName, metaStoreService.getMetastore( ) );
+        if ( namedCluster == null && embeddedMetastoreKey != null ) {
+          namedCluster = namedClusterService
+            .getNamedClusterByName( hostName, metaStoreService.getExplicitMetastore( embeddedMetastoreKey ) );
+        }
       } else {
-        namedCluster = namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore() );
+        namedCluster =
+          namedClusterService.getNamedClusterByHost( hostName, metaStoreService.getMetastore( embeddedMetastoreKey ) );
+        if ( namedCluster == null && embeddedMetastoreKey != null ) {
+          namedCluster = namedClusterService
+            .getNamedClusterByHost( hostName, metaStoreService.getExplicitMetastore( embeddedMetastoreKey ) );
+        }
       }
     }
     return namedCluster;
