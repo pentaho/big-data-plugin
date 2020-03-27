@@ -120,19 +120,22 @@ public class AvroOutput extends BaseStep implements StepInterface {
         .passEmbeddedMetastoreKey( getTransMeta(), getTransMeta().getEmbeddedMetastoreProviderKey() );
     }
 
+    NamedCluster namedCluster = getNamedCluster(); //Do this once, it has overhead
+
     FormatService formatService;
     try {
       formatService = meta.getNamedClusterResolver().getNamedClusterServiceLocator()
-        .getService( getNamedCluster(), FormatService.class );
+        .getService( namedCluster, FormatService.class );
     } catch ( ClusterInitializationException e ) {
       throw new KettleException( "can't get service format shim ", e );
     }
     TransMeta parentTransMeta = meta.getParentStepMeta().getParentTransMeta();
-    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, getNamedCluster() );
+    data.output = formatService.createOutputFormat( IPentahoAvroOutputFormat.class, namedCluster );
     data.output
       .setOutputFile( parentTransMeta.environmentSubstitute( meta.constructOutputFilename( meta.getFilename() ) ),
         meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
+    data.output.setVariableSpace( parentTransMeta );
     IPentahoAvroOutputFormat.COMPRESSION compression;
     try {
       compression = IPentahoAvroOutputFormat.COMPRESSION
@@ -152,7 +155,8 @@ public class AvroOutput extends BaseStep implements StepInterface {
   }
 
   private NamedCluster getNamedCluster() {
-    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getFilename() ) );
+    return meta.getNamedClusterResolver().resolveNamedCluster( environmentSubstitute( meta.getFilename() ),
+      meta.getParentStepMeta().getParentTransMeta().getEmbeddedMetastoreProviderKey() );
   }
 
   public void closeWriter() throws KettleException {
@@ -167,9 +171,6 @@ public class AvroOutput extends BaseStep implements StepInterface {
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
     meta = (AvroOutputMeta) smi;
     data = (AvroOutputData) sdi;
-    if ( super.init( smi, sdi ) ) {
-      return true;
-    }
-    return false;
+    return super.init( smi, sdi );
   }
 }
