@@ -22,7 +22,9 @@
 
 package org.pentaho.big.data.kettle.plugins.formats.impl.orc.output;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.hadoop.shim.api.cluster.NamedCluster;
 import org.pentaho.hadoop.shim.api.cluster.ClusterInitializationException;
 import org.pentaho.di.core.RowMetaAndData;
@@ -44,12 +46,19 @@ import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcOutputFormat;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 
 public class OrcOutput extends BaseStep implements StepInterface {
 
   private OrcOutputMeta meta;
 
   private OrcOutputData data;
+
+  private String outputFileName;
+
+  private String pvfsFile;
 
   public OrcOutput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                     Trans trans ) {
@@ -92,6 +101,7 @@ public class OrcOutput extends BaseStep implements StepInterface {
       } else {
         // no more input to be expected...
         closeWriter();
+        copyFileAndDeleteTempSource();
         setOutputDone();
         return false;
       }
@@ -122,11 +132,26 @@ public class OrcOutput extends BaseStep implements StepInterface {
 
     data.output = formatService.createOutputFormat( IPentahoOrcOutputFormat.class, getNamedCluster() );
 
-    String outputFileName = environmentSubstitute( meta.constructOutputFilename() );
-    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName );
+    outputFileName = environmentSubstitute( meta.constructOutputFilename() );
+    FileObject outputFileObject = KettleVFS.getFileObject( outputFileName, getTransMeta() );
     if ( AliasedFileObject.isAliasedFile( outputFileObject ) ) {
       outputFileName = ( (AliasedFileObject) outputFileObject ).getOriginalURIString();
     }
+
+    //See if we need to use a another URI because the HadoopFileSystem is not supported for this URL.
+    String aliasedFile = data.output.generateAlias( outputFileName );
+    if ( aliasedFile != null ) {
+      if ( outputFileObject.exists() ) {
+        if ( meta.isOverrideOutput() ) {
+          outputFileObject.delete();
+        } else {
+          throw new FileAlreadyExistsException( outputFileName );
+        }
+      }
+      pvfsFile = outputFileName;  //Save the original pvfs final destination for later use
+      outputFileName = aliasedFile;  //set the outputFile to the temporary alias file
+    }
+
     data.output.setOutputFile( outputFileName, meta.isOverrideOutput() );
     data.output.setFields( meta.getOutputFields() );
 
@@ -162,5 +187,26 @@ public class OrcOutput extends BaseStep implements StepInterface {
     meta = (OrcOutputMeta) smi;
     data = (OrcOutputData) sdi;
     return super.init( smi, sdi );
+  }
+
+  private void copyFileAndDeleteTempSource( ) throws KettleFileException, IOException {
+    // if pvfsFile is present the assumption is we used a temporary file with hadoop and must now copy the file to
+    // its final destination.
+    if ( pvfsFile != null ) {
+      FileObject srcFile = KettleVFS.getFileObject( outputFileName, getTransMeta() );
+      FileObject destFile = KettleVFS.getFileObject( pvfsFile, getTransMeta() );
+      try ( InputStream in = KettleVFS.getInputStream( srcFile );
+            OutputStream out = KettleVFS.getOutputStream( destFile, false ) ) {
+        IOUtils.copy( in, out );
+      }
+      deleteTempFileAndFolder();
+    }
+  }
+
+  private void deleteTempFileAndFolder( ) throws KettleFileException, IOException {
+    if ( pvfsFile != null ) {
+      FileObject srcFile = KettleVFS.getFileObject( outputFileName, getTransMeta() );
+      srcFile.getParent().deleteAll();
+    }
   }
 }

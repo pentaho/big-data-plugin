@@ -49,6 +49,8 @@ import org.pentaho.hadoop.shim.api.format.FormatService;
 import org.pentaho.hadoop.shim.api.format.IPentahoOrcOutputFormat;
 import org.pentaho.hadoop.shim.api.format.OrcSpec;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +59,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -236,5 +239,37 @@ public class OrcOutputTest {
       new RowMetaAndData( dataInputRowMeta, "string2" ),
       new RowMetaAndData( dataInputRowMeta, "string3" )
     };
+  }
+
+  @Test
+  public void testAliasFile() throws Exception {
+    String aliasPath = Files.createTempDirectory( "testAliasFile" ) + File.separator + "dummyFile";
+    new File( aliasPath ).createNewFile();  //create the alias file so it and it's parent can be successfully deleted
+    when( mockPentahoOrcOutputFormat.generateAlias( anyString() ) ).thenReturn( aliasPath );
+    boolean result;
+    int rowsProcessed = 0;
+    ArgumentCaptor<RowMeta> rowMetaCaptor = ArgumentCaptor.forClass( RowMeta.class );
+    ArgumentCaptor<Object[]> dataCaptor = ArgumentCaptor.forClass( Object[].class );
+
+    do {
+      result = orcOutput.processRow( orcOutputMeta, orcOutputData );
+      if ( result ) {
+        rowsProcessed++;
+      }
+    } while ( result );
+
+    // 3 rows to be outputted to an Orc file
+    assertEquals( 3, rowsProcessed );
+    verify( mockRowHandler, times( 3 ) ).putRow( rowMetaCaptor.capture(), dataCaptor.capture() );
+    List<RowMeta> rowMetaCaptured = rowMetaCaptor.getAllValues();
+    List<Object[]> dataCaptured = dataCaptor.getAllValues();
+    for ( int rowNum = 0; rowNum < 3; rowNum++ ) {
+      assertEquals( 0, rowMetaCaptured.get( rowNum ).indexOfValue( "StringName" ) );
+      assertEquals( "string" + ( rowNum % 3 + 1 ), dataCaptured.get( rowNum )[ 0 ] );
+    }
+    assertFalse( new File( aliasPath ).exists() );
+    File outputFile = new File( OUTPUT_FILE_NAME );
+    assertTrue( outputFile.exists() );
+    outputFile.delete();
   }
 }
