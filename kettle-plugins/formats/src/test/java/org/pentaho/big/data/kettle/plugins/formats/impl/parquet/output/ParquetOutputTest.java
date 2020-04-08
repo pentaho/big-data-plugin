@@ -63,6 +63,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -125,6 +126,7 @@ public class ParquetOutputTest {
       new NamedClusterResolver( mockNamedClusterServiceLocator, mockNamedClusterService, mockMetaStoreLocator );
     parquetOutputMeta = new ParquetOutputMeta( namedClusterResolver );
     parquetOutputMeta.setFilename( OUTPUT_FILE_NAME );
+    parquetOutputMeta.setOverrideOutput( true );
     parquetOutputMeta.setOutputFields( parquetOutputFields );
 
     parquetOutputMeta.setParentStepMeta( mockStepMeta );
@@ -194,7 +196,8 @@ public class ParquetOutputTest {
 
   @Test
   public void testProcessRowIllegalState() throws Exception {
-    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( parquetOutput ).init( any() );
+    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( mockPentahoParquetOutputFormat )
+      .setOutputFile( anyString(), anyBoolean() );
     when( parquetOutput.getLogChannel() ).thenReturn( mockLogChannelInterface );
     assertFalse( parquetOutput.processRow( parquetOutputMeta, parquetOutputData ) );
 

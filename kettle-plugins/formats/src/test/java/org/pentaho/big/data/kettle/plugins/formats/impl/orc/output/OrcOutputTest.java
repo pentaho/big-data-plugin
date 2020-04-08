@@ -60,6 +60,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -118,7 +119,7 @@ public class OrcOutputTest {
     orcOutputMeta = new OrcOutputMeta( namedClusterResolver );
     orcOutputMeta.setFilename( OUTPUT_FILE_NAME );
     orcOutputMeta.setOutputFields( orcOutputFields );
-
+    orcOutputMeta.setOverrideOutput( true );
     orcOutputMeta.setParentStepMeta( mockStepMeta );
     when( mockStepMeta.getParentTransMeta() ).thenReturn( mockTransMeta );
     when( mockStepMeta.getName() ).thenReturn( OUTPUT_STEP_NAME );
@@ -174,7 +175,8 @@ public class OrcOutputTest {
 
   @Test
   public void testProcessRowIllegalState() throws Exception {
-    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( orcOutput ).init();
+    doThrow( new IllegalStateException( "IllegalStateExceptionMessage" ) ).when( mockPentahoOrcOutputFormat )
+      .setOutputFile( anyString(), anyBoolean() );
     when( orcOutput.getLogChannel() ).thenReturn( mockLogChannelInterface );
     assertFalse( orcOutput.processRow( orcOutputMeta, orcOutputData ) );
 
