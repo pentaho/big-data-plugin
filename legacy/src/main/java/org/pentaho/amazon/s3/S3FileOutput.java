@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -24,6 +24,7 @@ package org.pentaho.amazon.s3;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.util.StringUtil;
@@ -71,10 +72,10 @@ public class S3FileOutput extends TextFileOutput {
       String secretKeySystemProperty = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
 
       if ( !StringUtil.isEmpty( s3Meta.getAccessKey() ) && StringUtil.isEmpty( accessKeySystemProperty ) ) {
-        System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getAccessKey() ) );
+        System.setProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY, Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getAccessKey() ) ) );
       }
       if ( !StringUtil.isEmpty( s3Meta.getSecretKey() ) && StringUtil.isEmpty( secretKeySystemProperty ) ) {
-        System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, environmentSubstitute( s3Meta.getSecretKey() ) );
+        System.setProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY, Encr.decryptPasswordOptionallyEncrypted( environmentSubstitute( s3Meta.getSecretKey() ) ) );
       }
     }
   }
