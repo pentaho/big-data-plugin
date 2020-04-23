@@ -37,6 +37,7 @@ import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
@@ -77,25 +78,31 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.pentaho.big.data.impl.cluster.tests.Constants.HADOOP_FILE_SYSTEM;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.OOZIE;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.KAFKA;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.ZOOKEEPER;
 import static org.pentaho.big.data.impl.cluster.tests.Constants.MAP_REDUCE;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 
 //HadoopClusterDelegateImpl
 public class HadoopClusterManager implements RuntimeTestProgressCallback {
 
   private static final Class<?> PKG = HadoopClusterDialog.class;
   public static final String STRING_NAMED_CLUSTERS = BaseMessages.getString( PKG, "HadoopClusterTree.Title" );
+  public static final String PLACEHOLDER_VALUE = "[object Object]";
   private final String fileSeparator = System.getProperty( "file.separator" );
   private static final String PASS = "Pass";
   private static final String WARNING = "Warning";
@@ -236,8 +243,8 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     }
   }
 
-  private NamedCluster createXMLSchema( ThinNameClusterModel model, Map<String, CachedFileItemStream> siteFilesSource )
-    throws MetaStoreException, IOException {
+  private NamedCluster convertToNamedCluster( ThinNameClusterModel model ) {
+
     NamedCluster nc = namedClusterService.getClusterTemplate();
     nc.setName( model.getName() );
     nc.setHdfsHost( model.getHdfsHost() );
@@ -257,8 +264,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     } else {
       nc.initializeVariablesFrom( null );
     }
-    installSiteFiles( siteFilesSource, nc );
-    namedClusterService.create( nc, metaStore );
     return nc;
   }
 
@@ -280,7 +285,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
-      NamedCluster nc = createXMLSchema( model, siteFilesSource );
+      NamedCluster nc = convertToNamedCluster( model );
+      installSiteFiles( siteFilesSource, nc );
+      namedClusterService.create( nc, metaStore );
       deleteConfigFolder( nc.getName() );
       createConfigProperties( nc );
       setupKerberosSecurity( model, siteFilesSource, "", "" );
@@ -299,8 +306,14 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
       String shimId = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore ).getShimIdentifier();
 
-      // Create new or update existing Named Cluster XML schema.
-      NamedCluster nc = createXMLSchema( model, siteFilesSource );
+      final List<NamedClusterSiteFile> existingSiteFiles =
+        namedClusterService.getNamedClusterByName( model.getName(), metaStore ).getSiteFiles();
+
+      NamedCluster nc = convertToNamedCluster( model );
+      nc.setSiteFiles( getIntersectionSiteFiles( model, existingSiteFiles ) );
+      installSiteFiles( siteFilesSource, nc );
+      namedClusterService.update( nc, metaStore );
+
 
       File oldConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + model.getOldName() );
       File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
@@ -316,7 +329,6 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
         }
       }
 
-      installSiteFiles( siteFilesSource, nc );
 
       // If the user changed the shim, create a new config.properties file that corresponds to that shim
       // in the new config folder. Also save the keytab locations to set them again in the new config.properties
@@ -376,6 +388,9 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
           } else {
             resolveKerberosSecurity( model, nc );
           }
+          model.setSiteFiles( nc.getSiteFiles().stream()
+            .map( sf -> new SimpleImmutableEntry<>( NAME_KEY, sf.getSiteFileName() ) )
+            .collect( Collectors.toList() ) );
           break;
         }
       }
@@ -527,6 +542,27 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     return response;
   }
 
+  /**
+   * Get Intersection of siteFiles
+   *
+   * @param model
+   * @param existingSiteFiles
+   * @return a list of siteFiles at the intersection of siteFiles in the model and the existingSiteFiles
+   */
+  private List<NamedClusterSiteFile> getIntersectionSiteFiles( ThinNameClusterModel model,
+                                                               List<NamedClusterSiteFile> existingSiteFiles ) {
+    List<String> newSiteFileNames =
+      Optional.ofNullable( model.getSiteFiles() )
+        .map( Collection::stream )
+        .orElseGet( Stream::empty )
+        .map( SimpleImmutableEntry::getValue )
+        .collect( Collectors.toList() );
+
+    return existingSiteFiles.stream()
+      .filter( siteFile -> newSiteFileNames.contains( siteFile.getSiteFileName() ) )
+      .collect( Collectors.toList() );
+  }
+
   private void installSiteFiles( Map<String, CachedFileItemStream> siteFileSource, NamedCluster nc )
     throws IOException {
     for ( Map.Entry<String, CachedFileItemStream> siteFile : siteFileSource.entrySet() ) {
@@ -561,7 +597,22 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     while ( ( str = reader.readLine() ) != null ) {
       sb.append( str );
     }
-    nc.addSiteFile( fileName, sb.toString() );
+    //skip placeholder site file contents because the site file content is in the NamedCluster already
+    if ( !sb.toString().equals( PLACEHOLDER_VALUE ) ) {
+      boolean nameExists = false;
+      //replace the contents if the name exists
+      for ( NamedClusterSiteFile siteFile : nc.getSiteFiles() ) {
+        if ( siteFile.getSiteFileName().equals( fileName ) ) {
+          siteFile.setSiteFileContents( sb.toString() );
+          nameExists = true;
+          break;
+        }
+      }
+      //Add the file if the name didn't exist
+      if ( !nameExists ) {
+        nc.addSiteFile( fileName, sb.toString() );
+      }
+    }
   }
 
   public boolean isValidConfigurationFile( String fileName ) {
