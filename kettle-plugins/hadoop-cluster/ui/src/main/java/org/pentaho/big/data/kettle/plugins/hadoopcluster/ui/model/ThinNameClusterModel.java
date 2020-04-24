@@ -29,11 +29,16 @@ import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 
 import java.io.InputStreamReader;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ThinNameClusterModel {
   private static final LogChannelInterface log =
     KettleLogStore.getLogChannelInterfaceFactory().create( "ThinNameClusterModel" );
+
+  public static final String NAME_KEY = "name";
 
   private String name;
   private String shimVendor;
@@ -60,6 +65,7 @@ public class ThinNameClusterModel {
   private String gatewayPassword;
   private String keytabAuthFile;
   private String keytabImpFile;
+  private List<SimpleImmutableEntry<String, String>> siteFiles;
 
   public String getShimVendor() {
     return shimVendor;
@@ -261,6 +267,14 @@ public class ThinNameClusterModel {
     this.keytabImpFile = keytabImpFile;
   }
 
+  public List<SimpleImmutableEntry<String, String>> getSiteFiles() {
+    return siteFiles;
+  }
+
+  public void setSiteFiles( List<SimpleImmutableEntry<String, String>> siteFiles ) {
+    this.siteFiles = siteFiles;
+  }
+
   public static ThinNameClusterModel unmarshall( Map<String, CachedFileItemStream> siteFilesSource ) {
     ThinNameClusterModel model = new ThinNameClusterModel();
     try {
@@ -294,6 +308,9 @@ public class ThinNameClusterModel {
       model.setGatewayPassword( (String) json.get( "gatewayPassword" ) );
       model.setKeytabImpFile( (String) json.get( "keytabImpFile" ) );
       model.setKeytabAuthFile( (String) json.get( "keytabAuthFile" ) );
+      model.setSiteFiles( siteFilesSource.keySet().stream()
+        .map( name -> new SimpleImmutableEntry<>( NAME_KEY, name ) )
+        .collect( Collectors.toList() ) );
     } catch ( Exception e ) {
       log.logError( e.getMessage() );
     }

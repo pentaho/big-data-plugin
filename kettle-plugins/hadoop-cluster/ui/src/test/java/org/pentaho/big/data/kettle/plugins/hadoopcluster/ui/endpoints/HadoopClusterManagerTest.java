@@ -32,6 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -41,6 +42,8 @@ import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.logging.LogChannelInterfaceFactory;
+import org.pentaho.di.core.osgi.api.NamedClusterSiteFile;
+import org.pentaho.di.core.osgi.impl.NamedClusterSiteFileImpl;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.StringUtil;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -50,9 +53,12 @@ import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 import org.pentaho.runtime.test.RuntimeTestStatus;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +69,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -70,9 +77,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.inOrder;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.endpoints.HadoopClusterManager.PLACEHOLDER_VALUE;
+import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNameClusterModel.NAME_KEY;
 
 @RunWith( MockitoJUnitRunner.class )
 public class HadoopClusterManagerTest {
+  private static final String CORE_SITE = "core-site.xml";
+  private static final String HIVE_SITE = "hive-site.xml";
+  private static final String OOZIE_SITE = "oozie-default.xml";
+  private static final String YARN_SITE = "yarn-site.xml";
+
   @Mock private Spoon spoon;
   @Mock private LogChannelInterfaceFactory logChannelFactory;
   @Mock private LogChannelInterface logChannel;
@@ -139,11 +153,11 @@ public class HadoopClusterManagerTest {
     JSONObject result = hadoopClusterManager.importNamedCluster( model, cachedFileItemStream );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
     InOrder inOrder = inOrder( namedCluster, namedClusterService );
-    verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
-    inOrder.verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
+    inOrder.verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
     verify( namedCluster, never() ).addSiteFile( eq( "test.keytab" ), any( String.class ) );
-    inOrder.verify( namedClusterService ).create( any( ), any( ) );
+    inOrder.verify( namedClusterService ).create( any(), any() );
     assertTrue( new File( getShimTestDir(), "test.keytab" ).exists() );
 
   }
@@ -156,10 +170,10 @@ public class HadoopClusterManagerTest {
     JSONObject result =
       hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/unsecured" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "oozie-default.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( OOZIE_SITE ), any( String.class ) );
   }
 
   @Test public void testMissingInfoImportNamedCluster() {
@@ -170,10 +184,10 @@ public class HadoopClusterManagerTest {
     JSONObject result =
       hadoopClusterManager.importNamedCluster( model, getFiles( "src/test/resources/missing-info" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
-    verify( namedCluster ).addSiteFile( eq( "core-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "yarn-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "hive-site.xml" ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( "oozie-default.xml" ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
+    verify( namedCluster ).addSiteFile( eq( OOZIE_SITE ), any( String.class ) );
     ThinNameClusterModel thinNameClusterModel = hadoopClusterManager.getNamedCluster( ncTestName );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsHost() ) );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsPort() ) );
@@ -212,6 +226,156 @@ public class HadoopClusterManagerTest {
     JSONObject result = hadoopClusterManager.editNamedCluster( model, true, getFiles( "/" ) );
     assertEquals( ncTestName, result.get( "namedCluster" ) );
   }
+
+  @Test public void testEditRemoveSiteFileNotInModel() {
+    //Create thin model with reference to only 1 site file (mimics 3 being removed in the UI)
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setKerberosSubType( "" );
+    model.setName( ncTestName );
+    model.setOldName( ncTestName );
+    List<SimpleImmutableEntry<String, String>> siteFiles = new ArrayList<>();
+    SimpleImmutableEntry<String, String> onlySiteFile = new SimpleImmutableEntry<>( NAME_KEY, CORE_SITE );
+    siteFiles.add( onlySiteFile );
+    model.setSiteFiles( siteFiles );
+
+    //Initialize named cluster mock with 4 site files
+    List<NamedClusterSiteFile> namedClusterSiteFiles = new ArrayList<>();
+    NamedClusterSiteFileImpl sf1 = new NamedClusterSiteFileImpl();
+    sf1.setSiteFileName( CORE_SITE );
+    namedClusterSiteFiles.add( sf1 );
+    NamedClusterSiteFileImpl sf2 = new NamedClusterSiteFileImpl();
+    sf2.setSiteFileName( HIVE_SITE );
+    namedClusterSiteFiles.add( sf2 );
+    NamedClusterSiteFileImpl sf3 = new NamedClusterSiteFileImpl();
+    sf3.setSiteFileName( OOZIE_SITE );
+    namedClusterSiteFiles.add( sf3 );
+    NamedClusterSiteFileImpl sf4 = new NamedClusterSiteFileImpl();
+    sf4.setSiteFileName( YARN_SITE );
+    namedClusterSiteFiles.add( sf4 );
+
+    //Implement getSiteFiles() for the namedCluster mock
+    when( namedCluster.getSiteFiles() ).thenReturn( namedClusterSiteFiles );
+
+    //Get the files, but remove all but 1 to match the thin model
+    final Map<String, CachedFileItemStream> filesFromThinClient = getFiles( "src/test/resources/unsecured" );
+    filesFromThinClient.remove( HIVE_SITE );
+    filesFromThinClient.remove( OOZIE_SITE );
+    filesFromThinClient.remove( YARN_SITE );
+
+    //Call the edit method
+    JSONObject result =
+      hadoopClusterManager.editNamedCluster( model, true, filesFromThinClient );
+
+    //Capture setSiteFiles() for the namedCluster mock
+    ArgumentCaptor<List<NamedClusterSiteFile>> siteFileCaptor = ArgumentCaptor.forClass( (Class) List.class );
+    verify( namedCluster ).setSiteFiles( siteFileCaptor.capture() );
+
+    //Assert that setSiteFiles() siteFileCaptor argument was set to have only 1 site file, matching the model
+    assertEquals( 1, siteFileCaptor.getValue().size() );
+
+    //Assert that the edit method ran without error and returned the name of the cluster
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+  }
+
+  @Test public void testKeepFilesNotChangedInThinClient() throws IOException {
+    //Create thin model
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setKerberosSubType( "" );
+    model.setName( ncTestName );
+    model.setOldName( ncTestName );
+
+    //Thin model references 4 site files
+    List<SimpleImmutableEntry<String, String>> siteFiles = new ArrayList<>();
+    SimpleImmutableEntry<String, String> thinSiteFile1 = new SimpleImmutableEntry<>( "name", CORE_SITE );
+    siteFiles.add( thinSiteFile1 );
+    SimpleImmutableEntry<String, String> thinSiteFile2 = new SimpleImmutableEntry<>( "name", HIVE_SITE );
+    siteFiles.add( thinSiteFile2 );
+    SimpleImmutableEntry<String, String> thinSiteFile3 = new SimpleImmutableEntry<>( "name", OOZIE_SITE );
+    siteFiles.add( thinSiteFile3 );
+    SimpleImmutableEntry<String, String> thinSiteFile4 = new SimpleImmutableEntry<>( "name", YARN_SITE );
+    siteFiles.add( thinSiteFile4 );
+
+    model.setSiteFiles( siteFiles );
+
+    //Initialize named cluster mock with 4 site files
+    List<NamedClusterSiteFile> namedClusterSiteFiles = new ArrayList<>();
+    NamedClusterSiteFileImpl sf1 = new NamedClusterSiteFileImpl();
+    sf1.setSiteFileName( CORE_SITE );
+    String originalContent = "originalContent";
+    sf1.setSiteFileContents( originalContent );
+    namedClusterSiteFiles.add( sf1 );
+
+    NamedClusterSiteFileImpl sf2 = new NamedClusterSiteFileImpl();
+    sf2.setSiteFileName( HIVE_SITE );
+    sf2.setSiteFileContents( originalContent );
+    namedClusterSiteFiles.add( sf2 );
+
+    NamedClusterSiteFileImpl sf3 = new NamedClusterSiteFileImpl();
+    sf3.setSiteFileName( OOZIE_SITE );
+    String originalOozieFileContent = "orig ofc";
+    sf3.setSiteFileContents( originalOozieFileContent );
+    namedClusterSiteFiles.add( sf3 );
+
+    NamedClusterSiteFileImpl sf4 = new NamedClusterSiteFileImpl();
+    sf4.setSiteFileName( YARN_SITE );
+    String originalYarnFileContent = "orig yfc";
+    sf4.setSiteFileContents( originalYarnFileContent );
+    namedClusterSiteFiles.add( sf4 );
+
+    //Implement getSiteFiles() for the namedCluster mock
+    when( namedCluster.getSiteFiles() ).thenReturn( namedClusterSiteFiles );
+
+    //Modify the content of the core and hive site files but leave the other two the same by using the placeholder value
+    //The placeholder value represents a file in the thin client that was not changed.
+    final Map<String, CachedFileItemStream> filesFromThinClient = new HashMap<>();
+
+    String modifiedCoreFileContent = "new cfc";
+    CachedFileItemStream modifiedCoreSiteFile =
+      new CachedFileItemStream( new ByteArrayInputStream( modifiedCoreFileContent.getBytes() ), CORE_SITE,
+        CORE_SITE );
+    filesFromThinClient.put( CORE_SITE, modifiedCoreSiteFile );
+
+
+    String modifiedHiveFileContent = "new hfc";
+    CachedFileItemStream modifiedHiveSiteFile =
+      new CachedFileItemStream( new ByteArrayInputStream( modifiedHiveFileContent.getBytes() ), HIVE_SITE,
+        HIVE_SITE );
+    filesFromThinClient.put( HIVE_SITE, modifiedHiveSiteFile );
+
+    CachedFileItemStream unmodifiedOozieSiteFile =
+      new CachedFileItemStream( new ByteArrayInputStream( PLACEHOLDER_VALUE.getBytes() ), OOZIE_SITE,
+        OOZIE_SITE );
+    filesFromThinClient.put( OOZIE_SITE, unmodifiedOozieSiteFile );
+
+
+    CachedFileItemStream unmodifiedYarnSiteFile =
+      new CachedFileItemStream( new ByteArrayInputStream( PLACEHOLDER_VALUE.getBytes() ), YARN_SITE,
+        YARN_SITE );
+    filesFromThinClient.put( YARN_SITE, unmodifiedYarnSiteFile );
+
+    //Call the edit method
+    JSONObject result =
+      hadoopClusterManager.editNamedCluster( model, true, filesFromThinClient );
+
+    //Assert that the edit method ran without error and returned the name of the cluster
+    assertEquals( ncTestName, result.get( "namedCluster" ) );
+
+    //Assert that Core and hive site files were modified, but that oozie and yarn maintained original content
+    for ( NamedClusterSiteFile ncsf : namedClusterSiteFiles ) {
+      if ( ncsf.getSiteFileName().equals( CORE_SITE ) ) {
+        assertEquals( modifiedCoreFileContent, ncsf.getSiteFileContents() );
+      } else if ( ncsf.getSiteFileName().equals( HIVE_SITE ) ) {
+        assertEquals( modifiedHiveFileContent, ncsf.getSiteFileContents() );
+      } else if ( ncsf.getSiteFileName().equals( OOZIE_SITE ) ) {
+        assertEquals( originalOozieFileContent, ncsf.getSiteFileContents() );
+      } else if ( ncsf.getSiteFileName().equals( YARN_SITE ) ) {
+        assertEquals( originalYarnFileContent, ncsf.getSiteFileContents() );
+      } else {
+        fail();
+      }
+    }
+  }
+
 
   @Test public void testFailNamedCluster() {
     ThinNameClusterModel model = new ThinNameClusterModel();
@@ -370,7 +534,7 @@ public class HadoopClusterManagerTest {
   @Test
   public void testValidSiteFile() {
     assertFalse( hadoopClusterManager.isValidConfigurationFile( "file" ) );
-    assertTrue( hadoopClusterManager.isValidConfigurationFile( "core-site.xml" ) );
+    assertTrue( hadoopClusterManager.isValidConfigurationFile( CORE_SITE ) );
     assertTrue( hadoopClusterManager.isValidConfigurationFile( "config.properties" ) );
   }
 

@@ -98,6 +98,7 @@ define([
               vm.data.model.name = duplicateName;
               vm.data.type = "duplicate";
             }
+            vm.siteFiles = vm.data.model.siteFiles;
             loadShimDropDowns();
           });
         } else if (vm.data.model && vm.data.model.name) {
@@ -110,6 +111,7 @@ define([
             dataService.getNamedCluster(vm.data.model.name).then(function (res) {
               vm.data.model = res.data;
               vm.data.model.oldName = vm.data.model.name;
+              vm.siteFiles = vm.data.model.siteFiles;
               loadShimDropDowns();
             });
           } else {
