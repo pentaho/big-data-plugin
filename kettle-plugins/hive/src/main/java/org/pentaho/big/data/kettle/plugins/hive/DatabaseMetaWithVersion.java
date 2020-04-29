@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,7 +26,8 @@ import org.pentaho.big.data.api.jdbc.DriverLocator;
 import org.pentaho.di.core.database.BaseDatabaseMeta;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.platform.api.data.DBDatasourceServiceException;
-import org.pentaho.platform.engine.services.connection.datasource.dbcp.PooledDatasourceHelper;
+import org.pentaho.platform.api.data.IDBDatasourceService;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -63,11 +64,11 @@ public abstract class DatabaseMetaWithVersion extends BaseDatabaseMeta {
 
     // If it is a JNDI connection
     if ( getAccessType() == DatabaseMeta.TYPE_ACCESS_JNDI ) {
-      PooledDatasourceHelper pooledDatasourceHelper = new PooledDatasourceHelper();
+      IDBDatasourceService dss = PentahoSystem.get( IDBDatasourceService.class );
 
       DataSource dataSource = null;
       try {
-        dataSource = pooledDatasourceHelper.getJndiDataSource( this.getDatabaseName() );
+        dataSource = dss.getDataSource( this.getDatabaseName() );
       } catch ( DBDatasourceServiceException e ) {
         logger.error( e.getMessage(), e );
       }
