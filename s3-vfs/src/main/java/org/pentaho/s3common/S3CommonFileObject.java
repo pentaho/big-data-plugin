@@ -230,15 +230,18 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
     } catch ( AmazonS3Exception e1 ) {
       String errorCode = e1.getErrorCode();
       try {
+        //S3 Object does not exist (could be the process of creating a new file. Lets fallback to old the old behavior. (getting the s3 object)
         if ( errorCode.equals( "404 Not Found" ) ) {
           s3Object = getS3Object( keyWithDelimiter, bucket );
           s3ObjectMetadata = s3Object.getObjectMetadata();
           injectType( FileType.FOLDER );
           this.key = keyWithDelimiter;
         } else {
+          //The exception was not related with not finding the file
           handleAttachExceptionFallback( bucket, keyWithDelimiter, e1 );
         }
       } catch ( AmazonS3Exception e2 ) {
+        //something went wrong getting the s3 object
         handleAttachExceptionFallback( bucket, keyWithDelimiter, e2 );
       }
     } finally {
