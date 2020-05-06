@@ -248,7 +248,7 @@ public class S3NFileObjectTest {
   @Test
   public void testHandleAttachException() throws FileSystemException {
     AmazonS3Exception exception = new AmazonS3Exception( "NoSuchKey" );
-
+    exception.setErrorCode( "NoSuchKey" );
     //test the case where the folder exists and contains things; no exception should be thrown
     when( s3ServiceMock.getObjectMetadata( BUCKET_NAME, origKey ) ).thenThrow( exception );
     try {
