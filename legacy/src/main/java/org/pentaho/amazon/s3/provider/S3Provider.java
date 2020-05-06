@@ -95,11 +95,15 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
 
   @Override public List<VFSRoot> getLocations( S3Details s3Details ) {
     List<VFSRoot> buckets = new ArrayList<>();
-    AmazonS3 s3 = getAmazonS3( s3Details );
-    if ( s3 != null ) {
-      for ( Bucket bucket : s3.listBuckets() ) {
-        buckets.add( new VFSRoot( bucket.getName(), bucket.getCreationDate() ) );
+    try {
+      AmazonS3 s3 = getAmazonS3( s3Details );
+      if ( s3 != null ) {
+        for ( Bucket bucket : s3.listBuckets() ) {
+          buckets.add( new VFSRoot( bucket.getName(), bucket.getCreationDate() ) );
+        }
       }
+    } catch ( Exception e ) {
+      log.logError( e.getMessage(), e );
     }
     return buckets;
   }
