@@ -44,9 +44,9 @@
       <version>138</version>
     </dependency>
     <dependency>
-      <groupId>bouncycastle</groupId>
+      <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk14</artifactId>
-      <version>138</version>
+      <version>1.65</version>
     </dependency>
     <dependency>
       <groupId>bsf</groupId>
