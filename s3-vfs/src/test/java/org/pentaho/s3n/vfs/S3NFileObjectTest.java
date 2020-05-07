@@ -248,7 +248,7 @@ public class S3NFileObjectTest {
   @Test
   public void testHandleAttachException() throws FileSystemException {
     AmazonS3Exception exception = new AmazonS3Exception( "NoSuchKey" );
-
+    exception.setErrorCode( "NoSuchKey" );
     //test the case where the folder exists and contains things; no exception should be thrown
     when( s3ServiceMock.getObjectMetadata( BUCKET_NAME, origKey ) ).thenThrow( exception );
     try {
@@ -267,6 +267,28 @@ public class S3NFileObjectTest {
     //test the case where the folder exists and contains things; no exception should be thrown
     when( s3ServiceMock.getObject( BUCKET_NAME, origKey ) ).thenThrow( exception );
     when( s3ServiceMock.getObject( BUCKET_NAME, origKey + "/" ) ).thenThrow( exception );
+    childObjectListing = mock( ObjectListing.class );
+    when( childObjectListing.getObjectSummaries() ).thenReturn( new ArrayList<>() );
+    when( childObjectListing.getCommonPrefixes() ).thenReturn( new ArrayList<>() );
+    when( s3ServiceMock.listObjects( any( ListObjectsRequest.class ) ) ).thenReturn( childObjectListing );
+    try {
+      s3FileObjectFileSpy.doAttach();
+    } catch ( Exception e ) {
+      fail( "Caught exception " + e.getMessage() );
+    }
+    assertEquals( FileType.IMAGINARY, s3FileObjectFileSpy.getType() );
+  }
+
+  @Test
+  public void testHandleAttachExceptionFileNotFound() throws FileSystemException {
+    AmazonS3Exception notFoundException = new AmazonS3Exception( "404 Not Found" );
+    notFoundException.setErrorCode( "404 Not Found" );
+    AmazonS3Exception noSuchKeyException = new AmazonS3Exception( "NoSuchKey" );
+    noSuchKeyException.setErrorCode( "NoSuchKey" );
+
+    //test the case where the file is not found; no exception should be thrown
+    when( s3ServiceMock.getObject( BUCKET_NAME, origKey ) ).thenThrow( notFoundException );
+    when( s3ServiceMock.getObject( BUCKET_NAME, origKey + "/" ) ).thenThrow( noSuchKeyException );
     childObjectListing = mock( ObjectListing.class );
     when( childObjectListing.getObjectSummaries() ).thenReturn( new ArrayList<>() );
     when( childObjectListing.getCommonPrefixes() ).thenReturn( new ArrayList<>() );

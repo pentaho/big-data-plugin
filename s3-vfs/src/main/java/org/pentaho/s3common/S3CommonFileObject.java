@@ -227,28 +227,48 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
       s3ObjectMetadata = fileSystem.getS3Client().getObjectMetadata( bucketName, key );
       injectType( FileType.FOLDER );
       this.key = keyWithDelimiter;
-    } catch ( AmazonS3Exception e2 ) {
-      ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-        .withBucketName( bucket )
-        .withPrefix( keyWithDelimiter )
-        .withDelimiter( DELIMITER );
-      ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
-
-      if ( !( ol.getCommonPrefixes().isEmpty() && ol.getObjectSummaries().isEmpty() ) ) {
-        injectType( FileType.FOLDER );
-      } else {
-        //Folders don't really exist - they will generate a "NoSuchKey" exception
-        String errorCode = e2.getErrorCode();
-        // confirms key doesn't exist but connection okay
-        if ( !errorCode.equals( "NoSuchKey" ) ) {
-          // bubbling up other connection errors
-          logger.error( "Could not get information on " + getQualifiedName(),
-            e2 ); // make sure this gets printed for the user
-          throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), e2 );
+    } catch ( AmazonS3Exception e1 ) {
+      String errorCode = e1.getErrorCode();
+      try {
+        //S3 Object does not exist (could be the process of creating a new file. Lets fallback to old the old behavior. (getting the s3 object)
+        if ( errorCode.equals( "404 Not Found" ) ) {
+          s3Object = getS3Object( keyWithDelimiter, bucket );
+          s3ObjectMetadata = s3Object.getObjectMetadata();
+          injectType( FileType.FOLDER );
+          this.key = keyWithDelimiter;
+        } else {
+          //The exception was not related with not finding the file
+          handleAttachExceptionFallback( bucket, keyWithDelimiter, e1 );
         }
+      } catch ( AmazonS3Exception e2 ) {
+        //something went wrong getting the s3 object
+        handleAttachExceptionFallback( bucket, keyWithDelimiter, e2 );
       }
     } finally {
       closeS3Object();
+    }
+  }
+
+  private void handleAttachExceptionFallback( String bucket, String keyWithDelimiter, AmazonS3Exception exception )
+    throws FileSystemException {
+    ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
+      .withBucketName( bucket )
+      .withPrefix( keyWithDelimiter )
+      .withDelimiter( DELIMITER );
+    ObjectListing ol = fileSystem.getS3Client().listObjects( listObjectsRequest );
+
+    if ( !( ol.getCommonPrefixes().isEmpty() && ol.getObjectSummaries().isEmpty() ) ) {
+      injectType( FileType.FOLDER );
+    } else {
+      //Folders don't really exist - they will generate a "NoSuchKey" exception
+      // confirms key doesn't exist but connection okay
+      String errorCode = exception.getErrorCode();
+      if ( !errorCode.equals( "NoSuchKey" ) ) {
+        // bubbling up other connection errors
+        logger.error( "Could not get information on " + getQualifiedName(),
+          exception ); // make sure this gets printed for the user
+        throw new FileSystemException( "vfs.provider/get-type.error", getQualifiedName(), exception );
+      }
     }
   }
 
