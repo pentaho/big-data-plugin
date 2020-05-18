@@ -29,6 +29,7 @@
     <!-- pentaho dependencies -->
     <kettle.core.version>${project.version}</kettle.core.version>
     <kettle.engine.version>${project.version}</kettle.engine.version>
+    <encryption-support.version>${project.version}</encryption-support.version>
 
     <!-- License Configuration -->
     <license.licenseName>apache_v2</license.licenseName>
@@ -95,6 +96,12 @@
       <artifactId>kettle-core</artifactId>
       <version>${kettle.core.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-encryption-support</artifactId>
+      <version>${encryption-support.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Test dependencies -->
     <dependency>
@@ -125,6 +132,13 @@
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
       <version>${kettle.engine.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${kettle.core.version}</version>
+      <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
     <dependency>

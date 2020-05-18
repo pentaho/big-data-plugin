@@ -87,6 +87,13 @@
       <version>${pentaho-hadoop-shims.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${project.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
   <build>
