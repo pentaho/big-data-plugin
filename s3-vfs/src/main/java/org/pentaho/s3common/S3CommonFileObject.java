@@ -52,7 +52,6 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   protected String key;
   protected S3Object s3Object;
   protected ObjectMetadata s3ObjectMetadata;
-  protected FileType fileType;
 
   protected S3CommonFileObject( final AbstractFileName name, final S3CommonFileSystem fileSystem ) {
     super( name, fileSystem );
@@ -77,20 +76,6 @@ public abstract class S3CommonFileObject extends AbstractFileObject {
   @Override
   protected FileType doGetType() throws Exception {
     return getType();
-  }
-
-  @Override
-  protected void injectType( FileType fileType ) {
-    this.fileType = fileType;
-    super.injectType( fileType );
-  }
-
-  @Override
-  public FileType getType() throws FileSystemException {
-    if ( fileType == null ) {
-      fileType = super.getType();
-    }
-    return fileType;
   }
 
   @Override
