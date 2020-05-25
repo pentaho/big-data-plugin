@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -110,6 +110,18 @@ public class S3FileOutputTest {
     System.setProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS, "N" );
     when( smi.getAccessKey() ).thenReturn( "accessKey" );
     when( smi.getSecretKey() ).thenReturn( "secretKey" );
+
+    s3FileOutput.init( smi );
+
+    Assert.assertEquals( "accessKey", System.getProperty( "aws.accessKeyId" ) );
+    Assert.assertEquals( "secretKey", System.getProperty( "aws.secretKey" ) );
+  }
+
+  @Test
+  public void initWithCredentialsEncryptedTest() {
+    System.setProperty( Const.KETTLE_USE_AWS_DEFAULT_CREDENTIALS, "N" );
+    when( smi.getAccessKey() ).thenReturn( "Encrypted 2be98afc86aa7f285a81aab63cdb9aac3" ); // -> accessKey
+    when( smi.getSecretKey() ).thenReturn( "Encrypted 2be98afc86aa7f297ae1abc75cab9aac3" ); // -> secretKey
 
     s3FileOutput.init( smi );
 
