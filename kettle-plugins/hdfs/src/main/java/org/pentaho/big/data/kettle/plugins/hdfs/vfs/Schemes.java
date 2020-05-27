@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,4 +33,5 @@ public class Schemes {
   public static final String NAMED_CLUSTER_SCHEME = "hc";
   public static final String NAMED_CLUSTER_SCHEME_DISPLAY_NAME = "Hadoop Cluster";
   public static final String S3_SCHEME = "s3";
+  public static final String S3N_SCHEME = "s3n";
 }
