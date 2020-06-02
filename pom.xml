@@ -5,11 +5,11 @@
   <parent>
     <groupId>org.pentaho</groupId>
     <artifactId>pentaho-ce-jar-parent-pom</artifactId>
-    <version>9.0.0.0-SNAPSHOT</version>
+    <version>9.0.0.4-606</version>
   </parent>
   <groupId>pentaho</groupId>
   <artifactId>pentaho-big-data-bundles</artifactId>
-  <version>9.0.0.0-SNAPSHOT</version>
+  <version>9.0.0.4-606</version>
   <packaging>pom</packaging>
   <name>Pentaho Community Edition Project: ${project.artifactId}</name>
   <description>Parent project for Pentaho OSGI Bundles</description>
@@ -28,62 +28,62 @@
     <url>scm:git:git@github.com:${github.user}/${project.artifactId}.git</url>
   </scm>
   <properties>
-    <pentaho-hadoop-shims.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims.version>
-    <pentaho-hadoop-shims-cdh514.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh514.version>
-    <pentaho-hadoop-shims-cdh61.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-cdh61.version>
-    <pentaho-hadoop-shims-hdp26.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp26.version>
-    <pentaho-hadoop-shims-hdp30.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-hdp30.version>
-    <pentaho-hadoop-shims-mapr60.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-mapr60.version>
-    <pentaho-hadoop-shims-emr521.version>9.0.0.0-SNAPSHOT</pentaho-hadoop-shims-emr521.version>
+    <pentaho-hadoop-shims.version>9.0.2020.02.00-606</pentaho-hadoop-shims.version>
+    <pentaho-hadoop-shims-cdh514.version>9.0.2020.02.00-606</pentaho-hadoop-shims-cdh514.version>
+    <pentaho-hadoop-shims-cdh61.version>9.0.2020.02.00-606</pentaho-hadoop-shims-cdh61.version>
+    <pentaho-hadoop-shims-hdp26.version>9.0.2020.02.00-606</pentaho-hadoop-shims-hdp26.version>
+    <pentaho-hadoop-shims-hdp30.version>9.0.2020.02.00-606</pentaho-hadoop-shims-hdp30.version>
+    <pentaho-hadoop-shims-mapr60.version>9.0.2020.02.00-606</pentaho-hadoop-shims-mapr60.version>
+    <pentaho-hadoop-shims-emr521.version>9.0.2020.02.00-606</pentaho-hadoop-shims-emr521.version>
     
     <dependency.mockito.revision>1.10.19</dependency.mockito.revision>
     <dependency.joda-time.revision>2.9.4</dependency.joda-time.revision>
-    <pentaho-json.version>${project.version}</pentaho-json.version>
+    <pentaho-json.version>9.0.0.4-606</pentaho-json.version>
     <plugin.org.codehaus.mojo.build-helper-maven-plugin.version>1.5</plugin.org.codehaus.mojo.build-helper-maven-plugin.version>
-    <pentaho-registry.version>${project.version}</pentaho-registry.version>
+    <pentaho-registry.version>9.0.0.4-606</pentaho-registry.version>
     <dependency.guava.revision>17.0</dependency.guava.revision>
     <dependency.maven-resources-plugin.revision>2.7</dependency.maven-resources-plugin.revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dependency.common.revision>3.3.0-v20070426</dependency.common.revision>
-    <metastore.version>${project.version}</metastore.version>
+    <metastore.version>9.0.0.4-606</metastore.version>
     <dependency.commons-configuration.revision>1.9</dependency.commons-configuration.revision>
     <dependency.high-scale-lib.revision>1.1.2</dependency.high-scale-lib.revision>
-    <mondrian.version>${project.version}</mondrian.version>
-    <oss-licenses.version>${project.version}</oss-licenses.version>
-    <pdi.version>${project.version}</pdi.version>
-    <pentaho-reporting.version>${project.version}</pentaho-reporting.version>
+    <mondrian.version>9.0.0.4-606</mondrian.version>
+    <oss-licenses.version>9.0.0.4-606</oss-licenses.version>
+    <pdi.version>9.0.0.4-606</pdi.version>
+    <pentaho-reporting.version>9.0.0.4-606</pentaho-reporting.version>
     <dependency.simple-jndi.revision>1.0.2</dependency.simple-jndi.revision>
     <dependency.xpp3.revision>1.1.4c</dependency.xpp3.revision>
     <dependency.jets3t.revision>0.9.4</dependency.jets3t.revision>
     <dependency.oozie.revision>3.1.3-incubating</dependency.oozie.revision>
-    <pentaho-metadata.version>${project.version}</pentaho-metadata.version>
+    <pentaho-metadata.version>9.0.0.4-606</pentaho-metadata.version>
     <dependency.maven-clean-plugin.revision>2.5</dependency.maven-clean-plugin.revision>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <commons-database.version>${project.version}</commons-database.version>
+    <commons-database.version>9.0.0.4-606</commons-database.version>
     <dependency.jackson.revision>1.5.2</dependency.jackson.revision>
-    <pentaho-reporting.version>${project.version}</pentaho-reporting.version>
+    <pentaho-reporting.version>9.0.0.4-606</pentaho-reporting.version>
     <dependency.libthrift.revision>0.6</dependency.libthrift.revision>
     <dependency.commands.revision>3.3.0-I20070605-0010</dependency.commands.revision>
     <publish-sonar-phase></publish-sonar-phase>
     <plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>2.17</plugin.org.apache.maven.plugins.maven-failsafe-plugin.version>
     <dependency.junit.revision>4.11</dependency.junit.revision>
     <dependency.maven-bundle-plugin.version>2.4.0</dependency.maven-bundle-plugin.version>
-    <pentaho-osgi-bundles.version>${project.version}</pentaho-osgi-bundles.version>
-    <pdi-osgi-bridge.version>${project.version}</pdi-osgi-bridge.version>
+    <pentaho-osgi-bundles.version>9.0.0.4-606</pentaho-osgi-bundles.version>
+    <pdi-osgi-bridge.version>9.0.0.4-606</pdi-osgi-bridge.version>
     <dependency.jline.revision>0.9.94</dependency.jline.revision>
     <dependency.xmlpull.revision>1.1.3.1</dependency.xmlpull.revision>
-    <pentaho-s3-vfs.version>${project.version}</pentaho-s3-vfs.version>
+    <pentaho-s3-vfs.version>9.0.0.4-606</pentaho-s3-vfs.version>
     <dependency.bean-matchers.revision>0.9</dependency.bean-matchers.revision>
     <dependency.avro.revision>1.6.2</dependency.avro.revision>
     <dependency.cxf.revision>3.0.13</dependency.cxf.revision>
     <aws-java-sdk.version>1.11.275</aws-java-sdk.version>
     <kafka-clients.version>0.10.2.1</kafka-clients.version>
     <dependency.hamcrest.revision>1.3</dependency.hamcrest.revision>
-    <commons-xul.version>${project.version}</commons-xul.version>
-    <pentaho-osgi-bundles.version>${project.version}</pentaho-osgi-bundles.version>
-    <platform.version>${project.version}</platform.version>
-    <pentaho-karaf.version>${project.version}</pentaho-karaf.version>
-    <pentaho-metaverse.version>${project.version}</pentaho-metaverse.version>
+    <commons-xul.version>9.0.0.4-606</commons-xul.version>
+    <pentaho-osgi-bundles.version>9.0.0.4-606</pentaho-osgi-bundles.version>
+    <platform.version>9.0.0.4-606</platform.version>
+    <pentaho-karaf.version>9.0.0.4-606</pentaho-karaf.version>
+    <pentaho-metaverse.version>9.0.0.4-606</pentaho-metaverse.version>
     <dependency.pdi-osgi-bridge-core.revision>${project.version}</dependency.pdi-osgi-bridge-core.revision>
     <thoughtworks.paranamer.version>2.7</thoughtworks.paranamer.version>
     <dependency.commons-httpclient.revision>3.1</dependency.commons-httpclient.revision>
