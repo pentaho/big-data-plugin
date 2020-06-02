@@ -16,6 +16,7 @@
     <blueprints-core.version>2.6.0</blueprints-core.version>
     <rxjava.version>2.2.3</rxjava.version>
     <jsch.version>0.1.54</jsch.version>
+    <encryption-support.version>9.1.0.0-SNAPSHOT</encryption-support.version>
   </properties>
   <dependencies>
     <dependency>
@@ -696,6 +697,11 @@
       <version>${pdi.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.pentaho</groupId>
+      <artifactId>pentaho-encryption-support</artifactId>
+      <version>${encryption-support.version}</version>
+    </dependency>
+    <dependency>
       <groupId>pentaho-kettle</groupId>
       <artifactId>kettle-engine</artifactId>
       <version>${pdi.version}</version>
@@ -792,7 +798,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>simple-jndi</artifactId>
-      <version>${dependency.simple-jndi.revision}</version>
+      <version>${simple-jndi.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
