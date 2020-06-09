@@ -26,5 +26,6 @@
     <module>formats</module>
     <module>hadoop-cluster</module>
     <module>browse</module>
+    <module>catalog</module>
   </modules>
 </project>
