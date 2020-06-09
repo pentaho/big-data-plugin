@@ -24,9 +24,12 @@ package com.pentaho.di.plugins.catalog.write;
 
 import com.pentaho.di.plugins.catalog.api.CatalogClient;
 import com.pentaho.di.plugins.catalog.provider.CatalogDetails;
+import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
+import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -35,9 +38,12 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.function.Supplier;
 
 
@@ -122,6 +128,23 @@ public class WritePayload extends BaseStep implements StepInterface {
       data.setOutputRowMeta( data.getInputRowMeta().clone() );
       first = false;
       meta.getFields( data.getOutputRowMeta(), getStepname(), null, null, this, repository, metaStore );
+
+      // Get HDFS Connection
+      NamedClusterServiceOsgi ncs = this.getTransMeta().getNamedClusterServiceOsgi();
+      NamedClusterOsgi hdfsConnection = null;
+      try {
+        String hdfsHost = "hdp30nl.pentaho.net";
+        List<NamedClusterOsgi> namedClusters = ncs.list(metaStore);
+        for ( NamedClusterOsgi nco : namedClusters) {
+          if ( hdfsHost.equals( nco.getHdfsHost() ) ) {
+            hdfsConnection = nco;
+            break;
+          }
+        }
+        HadoopFileOutputMeta hfom = new HadoopFileOutputMeta( meta.getNamedClusterService(), meta.getRuntimeTestActionService(), meta.getRuntimeTester()  );
+      } catch ( MetaStoreException e ) {
+        e.printStackTrace();
+      }
     }
 
     return writeOutPayload( row );

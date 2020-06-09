@@ -48,7 +48,10 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.steps.textfileoutput.TextFileField;
+import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.runtime.test.RuntimeTester;
+import org.pentaho.runtime.test.action.RuntimeTestActionService;
 import org.w3c.dom.Node;
 
 import java.util.List;
@@ -89,6 +92,19 @@ public class WritePayloadMeta extends BaseStepMeta implements StepMetaInterface 
   protected static final String[] DATA_TYPES = new String[] {
     DATA_RESOURCE, DATA_SOURCE
   };
+
+  private final NamedClusterService namedClusterService;
+  public NamedClusterService getNamedClusterService() {
+    return namedClusterService;
+  }
+  private final RuntimeTestActionService runtimeTestActionService;
+  public RuntimeTestActionService getRuntimeTestActionService() {
+    return runtimeTestActionService;
+  }
+  private final RuntimeTester runtimeTester;
+  public RuntimeTester getRuntimeTester() {
+    return runtimeTester;
+  }
 
 
   @Injection( name = "TAB_SELECTION_INDEX" )
@@ -260,9 +276,13 @@ public class WritePayloadMeta extends BaseStepMeta implements StepMetaInterface 
     this.outputFields = outputFields;
   }
 
-  public WritePayloadMeta() {
+  public WritePayloadMeta( NamedClusterService namedClusterService,
+                           RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
     super(); // allocate BaseStepMeta
     outputFields = new TextFileField[ 0 ];
+    this.namedClusterService = namedClusterService;
+    this.runtimeTestActionService = runtimeTestActionService;
+    this.runtimeTester = runtimeTester;
   }
 
   public void allocate( int nrfields ) {
