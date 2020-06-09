@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>pentaho</groupId>
+    <artifactId>catalog-assemblies</artifactId>
+    <version>9.1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>catalog-plugin</artifactId>
+  <version>9.1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>PDI Catalog Plugin Distribution</name>
+
+  <properties>
+    <project.revision>9.1.0.0-SNAPSHOT</project.revision>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.pentaho.di.plugins</groupId>
+      <artifactId>catalog-plugin-core</artifactId>
+      <version>${project.revision}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.pentaho.di.plugins</groupId>
+      <artifactId>catalog-plugin-api</artifactId>
+      <version>${project.revision}</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

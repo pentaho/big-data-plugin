@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>pentaho</groupId>
+    <artifactId>pentaho-big-data-kettle-plugins-catalog</artifactId>
+    <version>9.1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>catalog-plugin-api</artifactId>
+  <version>9.1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Catalog API</name>
+  <description>Interact with the Catalog</description>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <repositories>
+    <repository>
+      <id>pentaho-nexus</id>
+      <name>PentahoNexus</name>
+      <url>http://nexus.pentaho.org/content/groups/omni</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${pdi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+      <version>${pdi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-ui-swt</artifactId>
+      <version>${pdi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-metaverse-api</artifactId>
+      <version>${pdi.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>

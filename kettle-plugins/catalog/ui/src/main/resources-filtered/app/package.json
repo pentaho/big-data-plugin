@@ -1,0 +1,26 @@
+{
+  "name": "@pentaho/di-plugin-catalog",
+  "version": "${project.version}",
+  "description": "${project.description}",
+  "paths": {
+    "pentaho/di/plugin/catalog": "/"
+  },
+  "packages": [
+    {
+      "name": "pentaho/di/plugin/catalog",
+      "main": "app.module.js"
+    }
+  ],
+  "dependencies": {
+    "angular": "${angular.version}",
+    "angular-animate": "${angular.version}",
+    "angular-i18n": "${angular.version}",
+    "require-css": "${require-css.version}",
+    "requirejs-text": "${requirejs-text.version}"
+  },
+  "config": {
+    "pentaho/modules": {
+      "pentaho/di/plugin/catalog/plugins/catalog/catalog.module": {"type": "IPenConnectionProvider"}
+    }
+  }
+}

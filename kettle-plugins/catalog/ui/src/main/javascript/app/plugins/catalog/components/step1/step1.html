@@ -1,0 +1,19 @@
+<message message="vm.message"></message>
+<div class="main_div">
+  <div class="title_text margin_bottom_30 text_center">{{::vm.connectionDetails}}</div>
+  <div class="middle_div overflow-container">
+    <div class="margin_bottom_15">
+      <label for="url" class="margin_bottom_5 block text_left">{{::vm.url}}</label>
+      <input id="url" class="block" type="text" size="50" ng-model="vm.data.model.url">
+    </div>
+    <div class="margin_bottom_15">
+      <label for="username" class="margin_bottom_5 block text_left">{{::vm.username}}</label>
+      <input id="username" class="block" type="text" size="50" ng-model="vm.data.model.username">
+    </div>
+    <div class="margin_bottom_15">
+      <label for="password" class="margin_bottom_5 block text_left">{{::vm.password}}</label>
+      <input id="password" class="block" type="password" size="50" ng-model="vm.data.model.password" showpassword>
+    </div>
+  </div>
+  <controls buttons="vm.buttons"></controls>
+</div>
