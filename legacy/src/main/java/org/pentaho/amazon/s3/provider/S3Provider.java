@@ -22,6 +22,7 @@
 
 package org.pentaho.amazon.s3.provider;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -29,6 +30,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfilesConfigFile;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -85,6 +87,9 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     s3CommonFileSystemConfigBuilder.setRegion( s3Details.getRegion() );
     s3CommonFileSystemConfigBuilder.setCredentialsFile( s3Details.getCredentialsFilePath() );
     s3CommonFileSystemConfigBuilder.setProfileName( s3Details.getProfileName() );
+    s3CommonFileSystemConfigBuilder.setEndpoint( s3Details.getEndpoint() );
+    s3CommonFileSystemConfigBuilder.setPathStyleAccess( s3Details.getPathStyleAccess() );
+    s3CommonFileSystemConfigBuilder.setSignatureVersion( s3Details.getSignatureVersion() );
     return s3CommonFileSystemConfigBuilder.getFileSystemOptions();
   }
 
@@ -174,6 +179,11 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
     String credentialsFilePath = getVar( s3Details.getCredentialsFilePath(), variableSpace.get() );
     String profileName = getVar( s3Details.getProfileName(), variableSpace.get() );
 
+    String endpoint = getVar( s3Details.getEndpoint(), variableSpace.get() );
+    String pathStyleAccess = getVar( s3Details.getPathStyleAccess(), variableSpace.get() );
+    String signatureVersion = getVar( s3Details.getSignatureVersion(), variableSpace.get() );
+    boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
+
     if ( s3Details.getAuthType().equals( ACCESS_KEY_SECRET_KEY ) ) {
       if ( S3Util.isEmpty( s3Details.getSessionToken() ) ) {
         awsCredentials = new BasicAWSCredentials( accessKey, secretKey );
@@ -187,11 +197,20 @@ public class S3Provider extends BaseVFSConnectionProvider<S3Details> {
       ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
       awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
     }
-    if ( awsCredentialsProvider != null ) {
-      Regions regions =
+    Regions regions =
         !S3Util.isEmpty( s3Details.getRegion() ) ? Regions.fromName( s3Details.getRegion() ) : Regions.DEFAULT_REGION;
+    if ( awsCredentialsProvider != null && S3Util.isEmpty( s3Details.getEndpoint() ) ) {
       return AmazonS3ClientBuilder.standard().withCredentials( awsCredentialsProvider )
         .enableForceGlobalBucketAccess().withRegion( regions ).build();
+    } else if ( awsCredentialsProvider != null && !S3Util.isEmpty( s3Details.getEndpoint() ) ) {
+      ClientConfiguration clientConfiguration = new ClientConfiguration();
+      clientConfiguration.setSignerOverride( S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
+      return AmazonS3ClientBuilder.standard()
+          .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint,  regions.getName() ) )
+          .withPathStyleAccessEnabled(  access )
+          .withClientConfiguration( clientConfiguration )
+          .withCredentials( awsCredentialsProvider )
+          .build();
     }
     return null;
   }

@@ -45,7 +45,31 @@ public class S3DetailsTest {
     assertThat( props.get( "region" ), equalTo( "aws-west-1" ) );
     assertThat( props.get( "accessKey" ), equalTo( "ASIAXJ3TZZPFVO3NK6O" ) );
     assertThat( props.get( "secretKey" ), equalTo( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" ) );
-    assertThat( props.size(), equalTo( 10 ) );
+    assertThat( props.size(), equalTo( 13 ) );
     assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 4L ) );
   }
+
+  @Test
+  public void getPropertiesWithEndpoint() {
+    s3Details.setName( "name" );
+    s3Details.setRegion( "aws-west-1" );
+    s3Details.setAccessKey( "ASIAXJ3TZZPFVO3NK6O" );
+    s3Details.setSecretKey( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" );
+    s3Details.setEndpoint( "http://localhost:9000" );
+    s3Details.setPathStyleAccess( "true");
+    s3Details.setSignatureVersion( "v4" );
+
+    Map<String, String> props = s3Details.getProperties();
+    assertThat( props.get( "name" ), equalTo( "name" ) );
+    assertThat( props.get( "region" ), equalTo( "aws-west-1" ) );
+    assertThat( props.get( "accessKey" ), equalTo( "ASIAXJ3TZZPFVO3NK6O" ) );
+    assertThat( props.get( "secretKey" ), equalTo( "jKbmptEdHk6cTXXqGodacxJn5yaETIIhKjJb/oZ" ) );
+    assertThat( props.get( "endpoint" ), equalTo( "http://localhost:9000" ) );
+    assertThat( props.get( "pathStyleAccess" ), equalTo( "true" ) );
+    assertThat( props.get( "signatureVersion" ), equalTo( "v4" ) );
+
+    assertThat( props.size(), equalTo( 13 ) );
+    assertThat( props.entrySet().stream().filter( e -> e.getValue() != null ).count(), equalTo( 7L ) );
+  }
+
 }

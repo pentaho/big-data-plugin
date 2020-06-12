@@ -18,6 +18,12 @@ package org.pentaho.amazon.s3;
 
 public final class S3Util {
 
+  /** System property name for the AWS Endpoint (This is for Minio) */
+  public static final String ENDPOINT_SYSTEM_PROPERTY = "aws.endpoint";
+
+  /** System property name for the AWS Signature version (This is for Minio) */
+  public static final String SIGNATURE_VERSION_SYSTEM_PROPERTY = "aws.endpoint";
+
   /** System property name for the AWS access key ID */
   public static final String ACCESS_KEY_SYSTEM_PROPERTY = "aws.accessKeyId";
 
