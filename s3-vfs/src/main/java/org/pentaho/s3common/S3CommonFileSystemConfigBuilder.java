@@ -33,6 +33,9 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
   private static final String REGION = "region";
   private static final String CREDENTIALS_FILE = "credentialsFile";
   private static final String PROFILE_NAME = "profileName";
+  private static final String ENDPOINT = "endpoint";
+  private static final String SIGNATURE_VERSION = "signature_version";
+  private static final String PATHSTYLE_ACCESS = "pathSyleAccess";
 
   private FileSystemOptions fileSystemOptions;
 
@@ -94,6 +97,31 @@ public class S3CommonFileSystemConfigBuilder extends FileSystemConfigBuilder {
 
   public void setProfileName( String profileName ) {
     this.setParam( getFileSystemOptions(), PROFILE_NAME, profileName );
+  }
+
+  public void setEndpoint ( String endpoint ) {
+    this.setParam( getFileSystemOptions(), ENDPOINT, endpoint );
+  }
+
+  public String getEndpoint() {
+    return (String) this.getParam( getFileSystemOptions(), ENDPOINT );
+  }
+
+
+  public void setSignatureVersion ( String signatureVersion ) {
+    this.setParam( getFileSystemOptions(), SIGNATURE_VERSION, signatureVersion );
+  }
+
+  public String getSignatureVersion() {
+    return (String) this.getParam( getFileSystemOptions(), SIGNATURE_VERSION );
+  }
+
+  public void setPathStyleAccess( String pathStyleAccess ) {
+    this.setParam( getFileSystemOptions(), PATHSTYLE_ACCESS, pathStyleAccess );
+  }
+
+  public String getPathStyleAccess() {
+    return (String) this.getParam( getFileSystemOptions(), PATHSTYLE_ACCESS );
   }
 
   @Override protected Class<? extends FileSystem> getConfigClass() {

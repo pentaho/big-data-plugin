@@ -73,6 +73,15 @@ public class S3Details implements VFSConnectionDetails {
   @MetaStoreAttribute
   private String profileName;
 
+  @MetaStoreAttribute
+  private String endpoint;
+
+  @MetaStoreAttribute
+  private String pathStyleAccess;
+
+  @MetaStoreAttribute
+  private String signatureVersion;
+
   @Override public String getName() {
     return name;
   }
@@ -166,6 +175,30 @@ public class S3Details implements VFSConnectionDetails {
     this.profileName = profileName;
   }
 
+  public String getEndpoint() {
+    return endpoint;
+  }
+
+  public void setEndpoint( String endpoint ) {
+    this.endpoint = endpoint;
+  }
+
+  public String getSignatureVersion() {
+    return signatureVersion;
+  }
+
+  public void setSignatureVersion( String signatureVersion ) {
+    this.signatureVersion = signatureVersion;
+  }
+
+  public String getPathStyleAccess() {
+    return pathStyleAccess;
+  }
+
+  public void setPathStyleAccess( String pathStyleAccess ) {
+    this.pathStyleAccess = pathStyleAccess;
+  }
+
   @Override public Map<String, String> getProperties() {
     Map<String, String> props = new HashMap<>();
     props.put( "name", getName() );
@@ -178,6 +211,10 @@ public class S3Details implements VFSConnectionDetails {
     props.put( "authType", getAuthType() );
     props.put( "region", getRegion() );
     props.put( "profileName", getProfileName() );
+    props.put( "endpoint", getEndpoint() );
+    props.put( "signatureVersion", getSignatureVersion() );
+    props.put( "pathStyleAccess", getPathStyleAccess() );
+
     return props;
   }
 }

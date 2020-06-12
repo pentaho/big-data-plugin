@@ -17,6 +17,7 @@
 
 package org.pentaho.s3common;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -24,6 +25,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.auth.profile.ProfilesConfigFile;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -68,7 +70,10 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       String region = s3CommonFileSystemConfigBuilder.getRegion();
       String credentialsFilePath = s3CommonFileSystemConfigBuilder.getCredentialsFile();
       String profileName = s3CommonFileSystemConfigBuilder.getProfileName();
-
+      String endpoint = s3CommonFileSystemConfigBuilder.getEndpoint();
+      String signatureVersion = s3CommonFileSystemConfigBuilder.getSignatureVersion();
+      String pathStyleAccess = s3CommonFileSystemConfigBuilder.getPathStyleAccess();
+      boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
       AWSCredentialsProvider awsCredentialsProvider = null;
       Regions regions = Regions.DEFAULT_REGION;
       if ( !S3Util.isEmpty( accessKey ) && !S3Util.isEmpty( secretKey ) ) {
@@ -84,11 +89,23 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
         ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
         awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
       }
-      client = AmazonS3ClientBuilder.standard()
-        .enableForceGlobalBucketAccess()
-        .withRegion( regions )
-        .withCredentials( awsCredentialsProvider )
-        .build();
+
+      if ( !S3Util.isEmpty( endpoint ) ) {
+        ClientConfiguration clientConfiguration = new ClientConfiguration();
+        clientConfiguration.setSignerOverride( S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
+        client = AmazonS3ClientBuilder.standard()
+            .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint,  regions.getName() ) )
+            .withPathStyleAccessEnabled( access )
+            .withClientConfiguration( clientConfiguration )
+            .withCredentials( awsCredentialsProvider )
+            .build();
+      } else {
+        client = AmazonS3ClientBuilder.standard()
+            .enableForceGlobalBucketAccess()
+            .withRegion( regions )
+            .withCredentials( awsCredentialsProvider )
+            .build();
+      }
     }
     if ( client == null || hasClientChangedCredentials() ) {
       try {

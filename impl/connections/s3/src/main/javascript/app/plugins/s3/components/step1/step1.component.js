@@ -58,6 +58,11 @@ define([
       vm.secretKey = i18n.get('S3.Label.SecretKey');
       vm.sessionToken = i18n.get('S3.Label.SessionToken.Label');
       vm.fileLocation = i18n.get('S3.Label.FileLocation');
+      vm.endpoint = i18n.get('S3.Label.Endpoint');
+      vm.pathStyleAccess = i18n.get('S3.Label.PathStyleAccess');
+      vm.signatureVersion = i18n.get('S3.Label.SignatureVersion');
+      vm.yes = i18n.get('S3.Label.Yes');
+      vm.no = i18n.get('S3.Label.No');
       vm.browse = i18n.get('S3.Label.Browse');
       vm.buttons = getButtons();
 
@@ -85,6 +90,9 @@ define([
         vm.data.model.accessKey = null;
         vm.data.model.secretKey = null;
         vm.data.model.sessionToken = null;
+        vm.data.model.endpoint = null;
+        vm.data.model.pathStyleAccess = null;
+        vm.data.model.signatureVersion = null;
         vm.data.model.profileName = null;
         vm.data.model.credentialsFilePath = null;
         vm.region = null;

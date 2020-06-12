@@ -46,7 +46,10 @@ define([
         "sessionToken": i18n.get('S3.Label.SessionToken'),
         "region": i18n.get('S3.Label.Region'),
         "credentialsFilePath": i18n.get('S3.Label.Type.CredentialsFile'),
-        "profileName": i18n.get('S3.Label.ProfileName')
+        "profileName": i18n.get('S3.Label.ProfileName'),
+        "endpoint": i18n.get('S3.Label.Endpoint'),
+        "pathStyleAccess": i18n.get('S3.Label.PathStyleAccess'),
+        "signatureVersion": i18n.get('S3.Label.SignatureVersion')
       },
       filters: {
         "accessKey": mask,
