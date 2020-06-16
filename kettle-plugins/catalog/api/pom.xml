@@ -9,7 +9,7 @@
 
   <artifactId>catalog-plugin-api</artifactId>
   <version>9.1.0.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
 
   <name>Catalog API</name>
   <description>Interact with the Catalog</description>

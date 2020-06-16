@@ -11,9 +11,7 @@
     <argument ref="metastoreLocatorOsgi"/>
   </bean>
   <bean id="writePayloadMeta" class="com.pentaho.di.plugins.catalog.write.WritePayloadMeta" scope="prototype">
-    <argument ref="namedClusterService"/>
-    <argument ref="runtimeTestActionService"/>
-    <argument ref="runtimeTester"/>
+    <argument ref="namedClusterResolver"/>
     <pen:di-plugin type="org.pentaho.di.core.plugins.StepPluginType"/>
   </bean>
   <bean id="searchCatalogMeta" class="com.pentaho.di.plugins.catalog.search.SearchCatalogMeta" scope="prototype">

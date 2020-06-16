@@ -23,13 +23,14 @@
 package com.pentaho.di.plugins.catalog.write;
 
 import com.pentaho.di.plugins.catalog.api.CatalogClient;
+import com.pentaho.di.plugins.catalog.common.MetaAdaptorInterface;
+import com.pentaho.di.plugins.catalog.common.WriterBuilder;
+import com.pentaho.di.plugins.catalog.common.WriterInterface;
 import com.pentaho.di.plugins.catalog.provider.CatalogDetails;
-import org.pentaho.big.data.kettle.plugins.hdfs.trans.HadoopFileOutputMeta;
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.connections.ConnectionManager;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
-import org.pentaho.di.core.osgi.api.NamedClusterOsgi;
-import org.pentaho.di.core.osgi.api.NamedClusterServiceOsgi;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
@@ -38,26 +39,24 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.hadoop.shim.api.cluster.NamedClusterService;
-import org.pentaho.metastore.api.exceptions.MetaStoreException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.function.Supplier;
 
 
 /**
  * Describe your step plugin.
  */
-public class WritePayload extends BaseStep implements StepInterface {
+public class WritePayload extends BaseStep implements StepInterface, MetaAdaptorInterface {
 
   @SuppressWarnings( "java:S1068" )
-  private static Class<?> catalogMetaClass = WritePayloadMeta.class;
+  private static Class<?> catalogMetaClass = WritePayload.class;
   // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
 
   private WritePayloadMeta meta;
   private WritePayloadData data;
+  private WriterInterface writer;
 
   @SuppressWarnings( "java:S1450" )
   private RowMetaInterface previousStepRowMeta;
@@ -122,42 +121,18 @@ public class WritePayload extends BaseStep implements StepInterface {
       return false;
     }
 
-    // Get Input row metadata
+    // Create the writter based on filetype
     if ( first ) {
-      data.setInputRowMeta( getInputRowMeta() );
-      data.setOutputRowMeta( data.getInputRowMeta().clone() );
+      writer = WriterBuilder.instance().createWriter( meta.getFileFormat().toUpperCase() );
       first = false;
-      meta.getFields( data.getOutputRowMeta(), getStepname(), null, null, this, repository, metaStore );
-
-      // Get HDFS Connection
-      NamedClusterServiceOsgi ncs = this.getTransMeta().getNamedClusterServiceOsgi();
-      NamedClusterOsgi hdfsConnection = null;
-      try {
-        String hdfsHost = "hdp30nl.pentaho.net";
-        List<NamedClusterOsgi> namedClusters = ncs.list(metaStore);
-        for ( NamedClusterOsgi nco : namedClusters) {
-          if ( hdfsHost.equals( nco.getHdfsHost() ) ) {
-            hdfsConnection = nco;
-            break;
-          }
-        }
-        HadoopFileOutputMeta hfom = new HadoopFileOutputMeta( meta.getNamedClusterService(), meta.getRuntimeTestActionService(), meta.getRuntimeTester()  );
-      } catch ( MetaStoreException e ) {
-        e.printStackTrace();
-      }
+      String path = meta.getVirtualFolders() + "/" + meta.getResourceName() + "." + meta.getFileFormat();
     }
 
-    return writeOutPayload( row );
+    return writer.processRow( this, data );
   }
 
-  public boolean writeOutPayload( Object[] row ) throws KettleException {
-
-    // TODO Process Individual rows aka write out Payload
-
-    // Send Data it to down stream steps
-    putRow( data.getOutputRowMeta(), row );
-    return true;
+  @Override public NamedClusterResolver getNamedClusterResolver() {
+    return meta.getNamedClusterResolver();
   }
-
 }
 

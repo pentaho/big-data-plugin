@@ -22,12 +22,13 @@
 
 package com.pentaho.di.plugins.catalog.write;
 
-import org.pentaho.di.core.row.RowMetaInterface;
 import com.pentaho.di.plugins.catalog.api.CatalogClient;
+import com.pentaho.di.plugins.catalog.common.DataAdaptorInterface;
+import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
-public class WritePayloadData extends BaseStepData implements StepDataInterface {
+public class WritePayloadData extends BaseStepData implements StepDataInterface, DataAdaptorInterface {
   // Add any execution-specific data here
 
   private RowMetaInterface outputRowMeta;
@@ -55,6 +56,11 @@ public class WritePayloadData extends BaseStepData implements StepDataInterface 
     return inputRowMeta;
   }
 
+  @Override public String getFullFileName() {
+    // TODO Realy build the url
+    return catalogClient.buildUrl( "" );
+  }
+
   public void setInputRowMeta( RowMetaInterface inputRowMeta ) {
     this.inputRowMeta = inputRowMeta;
   }
@@ -65,5 +71,6 @@ public class WritePayloadData extends BaseStepData implements StepDataInterface 
   public WritePayloadData() {
     super();
   }
+
 }
 

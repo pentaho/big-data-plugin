@@ -32,6 +32,16 @@
       <artifactId>catalog-vfs-ui</artifactId>
       <version>${pentaho-osgi-bundles.version}</version>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>catalog-plugin-api</artifactId>
+      <version>${pentaho-osgi-bundles.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>catalog-plugin-core</artifactId>
+      <version>${pentaho-osgi-bundles.version}</version>
+    </dependency>
   </dependencies>
 
 </project>

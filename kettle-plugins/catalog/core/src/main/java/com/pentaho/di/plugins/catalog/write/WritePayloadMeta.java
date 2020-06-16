@@ -22,6 +22,7 @@
 
 package com.pentaho.di.plugins.catalog.write;
 
+import org.pentaho.big.data.kettle.plugins.formats.impl.NamedClusterResolver;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.CheckResult;
@@ -93,19 +94,11 @@ public class WritePayloadMeta extends BaseStepMeta implements StepMetaInterface 
     DATA_RESOURCE, DATA_SOURCE
   };
 
-  private final NamedClusterService namedClusterService;
-  public NamedClusterService getNamedClusterService() {
-    return namedClusterService;
-  }
-  private final RuntimeTestActionService runtimeTestActionService;
-  public RuntimeTestActionService getRuntimeTestActionService() {
-    return runtimeTestActionService;
-  }
-  private final RuntimeTester runtimeTester;
-  public RuntimeTester getRuntimeTester() {
-    return runtimeTester;
-  }
+  private final NamedClusterResolver namedClusterResolver;
 
+  public NamedClusterResolver getNamedClusterResolver() {
+    return namedClusterResolver;
+  }
 
   @Injection( name = "TAB_SELECTION_INDEX" )
   private Integer tabSelectionIndex = 0;
@@ -276,13 +269,10 @@ public class WritePayloadMeta extends BaseStepMeta implements StepMetaInterface 
     this.outputFields = outputFields;
   }
 
-  public WritePayloadMeta( NamedClusterService namedClusterService,
-                           RuntimeTestActionService runtimeTestActionService, RuntimeTester runtimeTester ) {
+  public WritePayloadMeta( NamedClusterResolver namedClusterResolver) {
     super(); // allocate BaseStepMeta
     outputFields = new TextFileField[ 0 ];
-    this.namedClusterService = namedClusterService;
-    this.runtimeTestActionService = runtimeTestActionService;
-    this.runtimeTester = runtimeTester;
+    this.namedClusterResolver = namedClusterResolver;
   }
 
   public void allocate( int nrfields ) {
