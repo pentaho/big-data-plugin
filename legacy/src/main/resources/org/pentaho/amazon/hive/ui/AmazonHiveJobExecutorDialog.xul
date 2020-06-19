@@ -87,6 +87,17 @@
                           <hbox padding="0">
                             <hbox padding="0"></hbox>
                             <vbox padding="0">
+                              <label value="${AmazonHiveJobExecutor.AWSSessionToken.Label}"/>
+                              <textbox pen:customclass="variabletextbox" type="password" id="session-token" flex="1"
+                                       multiline="false" width="263"/>
+                              <hbox padding="0"></hbox>
+                            </vbox>
+                          </hbox>
+                        </row>
+                        <row>
+                          <hbox padding="0">
+                            <hbox padding="0"></hbox>
+                            <vbox padding="0">
                               <label value="${AmazonHiveJobExecutor.Region.Label}"/>
                               <hbox padding="0">
                                 <menulist id="region" width="160">

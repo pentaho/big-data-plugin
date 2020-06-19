@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -26,6 +26,7 @@ package org.pentaho.amazon.client;
  * Created by Aliaksandr_Zhuk on 2/8/2018.
  */
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,9 +40,9 @@ public class AmazonClientCredentialsTest {
     String expectedSecretKey = "secretKey";
 
     AmazonClientCredentials clientInitializer =
-      new AmazonClientCredentials( "accessKey", "secretKey", "US East (N. Virginia)" );
+      new AmazonClientCredentials( "accessKey", "secretKey", "", "US East (N. Virginia)" );
 
-    BasicAWSCredentials awsCredentials = clientInitializer.getAWSCredentials();
+    AWSCredentials awsCredentials = clientInitializer.getAWSCredentials();
 
     Assert.assertEquals( expectedAccesskey, awsCredentials.getAWSAccessKeyId() );
     Assert.assertEquals( expectedSecretKey, awsCredentials.getAWSSecretKey() );
@@ -53,7 +54,7 @@ public class AmazonClientCredentialsTest {
     String expectedRegion = "us-east-1";
 
     AmazonClientCredentials clientInitializer =
-      new AmazonClientCredentials( "accessKey", "secretKey", "US East (N. Virginia)" );
+      new AmazonClientCredentials( "accessKey", "secretKey", "", "US East (N. Virginia)" );
 
     Assert.assertEquals( expectedRegion, clientInitializer.getRegion() );
   }
@@ -64,7 +65,7 @@ public class AmazonClientCredentialsTest {
     String expectedRegion = "us-east-1";
 
     AmazonClientCredentials clientInitializer =
-      new AmazonClientCredentials( "accessKey", "secretKey", null );
+      new AmazonClientCredentials( "accessKey", "secretKey", "", null );
 
     Assert.assertEquals( expectedRegion, clientInitializer.getRegion() );
   }

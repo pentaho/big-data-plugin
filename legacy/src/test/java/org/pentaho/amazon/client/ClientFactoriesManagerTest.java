@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -51,7 +51,7 @@ public class ClientFactoriesManagerTest {
 
     S3Client s3Client;
 
-    s3Client = factoriesManager.createClient( "accessKey", "secretKey", "US East ( N. Virginia)", ClientType.S3 );
+    s3Client = factoriesManager.createClient( "accessKey", "secretKey", "", "US East ( N. Virginia)", ClientType.S3 );
 
     Assert.assertNotNull( s3Client );
   }
@@ -61,7 +61,7 @@ public class ClientFactoriesManagerTest {
 
     EmrClient emrClient;
 
-    emrClient = factoriesManager.createClient( "accessKey", "secretKey", "US East ( N. Virginia)", ClientType.EMR );
+    emrClient = factoriesManager.createClient( "accessKey", "secretKey", "", "US East ( N. Virginia)", ClientType.EMR );
 
     Assert.assertNotNull( emrClient );
   }
@@ -72,7 +72,7 @@ public class ClientFactoriesManagerTest {
     PricingClient pricingClient;
 
     pricingClient =
-      factoriesManager.createClient( "accessKey", "secretKey", "US East ( N. Virginia)", ClientType.PRICING );
+      factoriesManager.createClient( "accessKey", "secretKey", "", "US East ( N. Virginia)", ClientType.PRICING );
 
     Assert.assertNotNull( pricingClient );
   }
@@ -82,7 +82,7 @@ public class ClientFactoriesManagerTest {
 
     AimClient aimClient;
 
-    aimClient = factoriesManager.createClient( "accessKey", "secretKey", "US East ( N. Virginia)", ClientType.AIM );
+    aimClient = factoriesManager.createClient( "accessKey", "secretKey", "", "US East ( N. Virginia)", ClientType.AIM );
 
     Assert.assertNotNull( aimClient );
   }

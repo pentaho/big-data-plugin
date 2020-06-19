@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,8 +34,8 @@ import org.pentaho.amazon.client.api.AimClient;
 public class AimClientFactory extends AbstractClientFactory<AimClient> {
 
   @Override
-  public AimClient createClient( String accessKey, String secretKey, String region ) {
-    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
+  public AimClient createClient( String accessKey, String secretKey, String sessionToken, String region ) {
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, sessionToken, region );
 
     AmazonIdentityManagement awsAimClient =
       AmazonIdentityManagementClientBuilder.standard().withRegion( clientCredentials.getRegion() )

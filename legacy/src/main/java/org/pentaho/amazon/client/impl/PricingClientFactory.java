@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -36,8 +36,8 @@ import org.pentaho.amazon.client.api.PricingClient;
 public class PricingClientFactory extends AbstractClientFactory<PricingClient> {
 
   @Override
-  public PricingClient createClient( String accessKey, String secretKey, String region ) {
-    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
+  public PricingClient createClient( String accessKey, String secretKey, String sessionToken, String region ) {
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, sessionToken, region );
 
     AWSPricing awsPricingClient =
       AWSPricingAsyncClientBuilder.standard().withRegion( Region.US_Standard.toAWSRegion().getName() )

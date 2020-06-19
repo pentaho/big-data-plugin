@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,8 +35,8 @@ import org.pentaho.amazon.client.api.EmrClient;
 public class EmrClientFactory extends AbstractClientFactory<EmrClient> {
 
   @Override
-  public EmrClient createClient( String accessKey, String secretKey, String region ) {
-    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
+  public EmrClient createClient( String accessKey, String secretKey, String sessionToken, String region ) {
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, sessionToken, region );
 
     AmazonElasticMapReduce awsEmrClient =
       AmazonElasticMapReduceClientBuilder.standard().withRegion( clientCredentials.getRegion() )
