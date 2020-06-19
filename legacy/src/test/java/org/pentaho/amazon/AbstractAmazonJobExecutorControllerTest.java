@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -390,6 +390,7 @@ public class AbstractAmazonJobExecutorControllerTest {
     when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
     when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "secret-key" ) ).thenReturn( textBox );
+    when( container.getDocumentRoot().getElementById( "session-token" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "emr-settings" ) ).thenReturn( btn );
 
     doNothing().when( btn ).setDisabled( true );
@@ -414,6 +415,7 @@ public class AbstractAmazonJobExecutorControllerTest {
     when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
     when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "secret-key" ) ).thenReturn( textBox );
+    when( container.getDocumentRoot().getElementById( "session-token" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "emr-settings" ) ).thenReturn( btn );
     when( textBox.getValue() ).thenReturn( "testing" );
 
@@ -450,6 +452,7 @@ public class AbstractAmazonJobExecutorControllerTest {
     when( hiveJobExecutorController.getXulDomContainer() ).thenReturn( container );
     when( container.getDocumentRoot().getElementById( "access-key" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "secret-key" ) ).thenReturn( textBox );
+    when( container.getDocumentRoot().getElementById( "session-token" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "num-instances" ) ).thenReturn( textBox );
     when( container.getDocumentRoot().getElementById( "emr-settings" ) ).thenReturn( btn );
     when( textBox.getValue() ).thenReturn( "testing" );
@@ -462,9 +465,9 @@ public class AbstractAmazonJobExecutorControllerTest {
     doNothing().when( hiveJobExecutorController ).setSelectedItemForEachMenu();
 
     doReturn( aimClient ).when( manager )
-      .createClient( anyString(), anyString(), anyString(), eq( ClientType.AIM ) );
+      .createClient( anyString(), anyString(), anyString(), anyString(), eq( ClientType.AIM ) );
     doReturn( pricingClient ).when( manager )
-      .createClient( anyString(), anyString(), anyString(), eq( ClientType.PRICING ) );
+      .createClient( anyString(), anyString(), anyString(), anyString(), eq( ClientType.PRICING ) );
 
     hiveJobExecutorController.getEmrSettings();
 

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -53,9 +53,9 @@ public class ClientFactoriesManager {
     return instance;
   }
 
-  public <T> T createClient( String accessKey, String secretKey, String region, ClientType clientType ) {
+  public <T> T createClient( String accessKey, String secretKey, String sessionToken, String region, ClientType clientType ) {
     AbstractClientFactory clientFactory = getClientFactory( clientType );
-    T amazonClient = (T) clientFactory.createClient( accessKey, secretKey, region );
+    T amazonClient = (T) clientFactory.createClient( accessKey, secretKey, sessionToken, region );
     return amazonClient;
   }
 

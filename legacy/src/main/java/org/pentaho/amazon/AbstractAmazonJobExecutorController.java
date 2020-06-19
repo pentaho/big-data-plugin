@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -92,6 +92,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String JAR_URL = "jarUrl";
   public static final String ACCESS_KEY = "accessKey";
   public static final String SECRET_KEY = "secretKey";
+  public static final String SESSION_TOKEN = "sessionToken";
   public static final String STAGING_DIR = "stagingDir";
   public static final String STAGING_DIR_FILE = "stagingDirFile";
   public static final String NUM_INSTANCES = "numInstances";
@@ -111,6 +112,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   public static final String XUL_JOBENTRY_HADOOPJOB_NAME = "jobentry-hadoopjob-name";
   public static final String XUL_ACCESS_KEY = "access-key";
   public static final String XUL_SECRET_KEY = "secret-key";
+  public static final String XUL_SESSION_TOKEN = "session-token";
   public static final String XUL_EMR_SETTINGS = "emr-settings";
   public static final String XUL_REGION = "region";
   public static final String XUL_EC2_ROLE = "ec2-role";
@@ -136,6 +138,9 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   private static final String EC2_DEFAULT_ROLE = "EMR_EC2_DefaultRole";
   private static final String EMR_DEFAULT_ROLE = "EMR_DefaultRole";
 
+  private static final String DISABLED_FLAG = "disabled";
+  private static final String BOOLEAN_TO_STR_CONVERSION_ERROR = "Boolean to String conversion is not supported";
+
   protected static final String[] XUL_EMR_MENU_ID_ARRAY =
     { XUL_EC2_ROLE, XUL_EMR_ROLE, XUL_MASTER_INSTANCE_TYPE, XUL_SLAVE_INSTANCE_TYPE, XUL_EMR_RELEASE };
 
@@ -144,6 +149,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
   protected String hadoopJobFlowId;
   protected String accessKey = "";
   protected String secretKey = "";
+  protected String sessionToken = "";
 
   protected String stagingDir = "";
   protected FileObject stagingDirFile = null;
@@ -224,6 +230,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     ExtTextbox tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_ACCESS_KEY );
     tempBox.setVariableSpace( getVariableSpace() );
     tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SECRET_KEY );
+    tempBox.setVariableSpace( getVariableSpace() );
+    tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
     tempBox.setVariableSpace( getVariableSpace() );
     tempBox = (ExtTextbox) container.getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_NAME );
     tempBox.setVariableSpace( getVariableSpace() );
@@ -339,6 +347,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     bindingFactory.createBinding( XUL_JOBENTRY_HADOOPJOB_FLOW_ID, "value", this, HADOOP_JOB_FLOW_ID );
     bindingFactory.createBinding( XUL_ACCESS_KEY, "value", this, ACCESS_KEY );
     bindingFactory.createBinding( XUL_SECRET_KEY, "value", this, SECRET_KEY );
+    bindingFactory.createBinding( XUL_SESSION_TOKEN, "value", this, SESSION_TOKEN );
     bindingFactory.createBinding( XUL_S3_STAGING_DIRECTORY, "value", this, STAGING_DIR );
     bindingFactory.createBinding( XUL_COMMAND_LINE_ARGUMENTS, "value", this, CMD_LINE_ARGS );
     bindingFactory.createBinding( XUL_NUM_INSTANCES, "value", this, NUM_INSTANCES );
@@ -348,9 +357,11 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
     bindingFactory.setBindingType( Binding.Type.ONE_WAY );
     bindingFactory
-      .createBinding( XUL_ACCESS_KEY, "value", XUL_EMR_SETTINGS, "disabled", secretKeyIsEmpty( container ) );
+      .createBinding( XUL_ACCESS_KEY, "value", XUL_EMR_SETTINGS, DISABLED_FLAG, secretKeyIsEmpty( container ) );
     bindingFactory
-      .createBinding( XUL_SECRET_KEY, "value", XUL_EMR_SETTINGS, "disabled", accessKeyIsEmpty( container ) );
+      .createBinding( XUL_SECRET_KEY, "value", XUL_EMR_SETTINGS, DISABLED_FLAG, accessKeyIsEmpty( container ) );
+    bindingFactory
+            .createBinding( XUL_SESSION_TOKEN, "value", XUL_EMR_SETTINGS, DISABLED_FLAG, sessionTokenIsEmpty( container ) );
   }
 
   private static void disableAwsConnection( XulDomContainer container ) {
@@ -410,7 +421,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       }
 
       @Override public String targetToSource( Boolean value ) {
-        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+        throw new AbstractMethodError( BOOLEAN_TO_STR_CONVERSION_ERROR );
       }
     };
   }
@@ -422,7 +433,19 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       }
 
       @Override public String targetToSource( Boolean value ) {
-        throw new AbstractMethodError( "Boolean to String conversion is not supported" );
+        throw new AbstractMethodError( BOOLEAN_TO_STR_CONVERSION_ERROR );
+      }
+    };
+  }
+
+  private static BindingConvertor<String, Boolean> sessionTokenIsEmpty( XulDomContainer container ) {
+    return new BindingConvertor<String, Boolean>() {
+      @Override public Boolean sourceToTarget( String value ) {
+        return disableConnectButton( container );
+      }
+
+      @Override public String targetToSource( Boolean value ) {
+        throw new AbstractMethodError( BOOLEAN_TO_STR_CONVERSION_ERROR );
       }
     };
   }
@@ -569,26 +592,28 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     getXulMenu( XUL_SLAVE_INSTANCE_TYPE ).setSelectedItem( getJobEntry().getSlaveInstanceType() );
   }
 
-  private List<String> initRolesAndTypes( String accessKey, String secretKey ) throws Exception {
+  private List<String> initRolesAndTypes( String accessKey, String secretKey, String sessionToken ) throws Exception {
 
     ClientFactoriesManager manager = ClientFactoriesManager.getInstance();
 
     AimClient aimClient = manager
-      .createClient( accessKey, secretKey, getJobEntry().getRegion(), ClientType.AIM );
+      .createClient( accessKey, secretKey, sessionToken, getJobEntry().getRegion(), ClientType.AIM );
 
     setRolesFromAmazonAccount( aimClient );
 
     PricingClient pricingClient = manager
-      .createClient( accessKey, secretKey, getJobEntry().getRegion(), ClientType.PRICING );
+      .createClient( accessKey, secretKey, sessionToken, getJobEntry().getRegion(), ClientType.PRICING );
 
     return populateInstanceTypesForSelectedRegion( pricingClient );
   }
 
   public void getEmrSettings() {
 
-    ExtTextbox accessKey = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
+    ExtTextbox accessKeyBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_ACCESS_KEY );
 
-    ExtTextbox secretKey = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
+    ExtTextbox secretKeyBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
+
+    ExtTextbox sessionTokenBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
 
     XulButton connectButton = (XulButton) getXulDomContainer().getDocumentRoot().getElementById( XUL_EMR_SETTINGS );
 
@@ -602,7 +627,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
     try {
 
-      List<String> instanceTypes = initRolesAndTypes( accessKey.getValue(), secretKey.getValue() );
+      List<String> instanceTypes = initRolesAndTypes( accessKeyBox.getValue(), secretKeyBox.getValue(), sessionTokenBox.getValue() );
 
       if ( ec2Role != null && ec2Roles.contains( ec2Role ) ) {
         this.ec2Role = ec2Role;
@@ -698,6 +723,8 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     this.accessKey = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SECRET_KEY );
     this.secretKey = ( (Text) tempBox.getTextControl() ).getText();
+    tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_SESSION_TOKEN );
+    this.sessionToken = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_JOBENTRY_HADOOPJOB_FLOW_ID );
     this.hadoopJobFlowId = ( (Text) tempBox.getTextControl() ).getText();
     tempBox = (ExtTextbox) getXulDomContainer().getDocumentRoot().getElementById( XUL_S3_STAGING_DIRECTORY );
@@ -804,6 +831,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
     getJobEntry().setHadoopJobFlowId( getHadoopJobFlowId() );
     getJobEntry().setAccessKey( getAccessKey() );
     getJobEntry().setSecretKey( getSecretKey() );
+    getJobEntry().setSessionToken( getSessionToken() );
     getJobEntry().setStagingDir( getStagingDir() );
     getJobEntry().setNumInstances( getNumInstances() );
     getJobEntry().setMasterInstanceType( getMasterInstanceType() );
@@ -993,6 +1021,7 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
       setHadoopJobFlowId( getJobEntry().getHadoopJobFlowId() );
       setAccessKey( getJobEntry().getAccessKey() );
       setSecretKey( getJobEntry().getSecretKey() );
+      setSessionToken( getJobEntry().getSessionToken() );
       setStagingDir( getJobEntry().getStagingDir() );
       setNumInstances( getJobEntry().getNumInstances() );
       setMasterInstanceType( getJobEntry().getMasterInstanceType() );
@@ -1241,6 +1270,18 @@ public abstract class AbstractAmazonJobExecutorController extends AbstractXulEve
 
     this.secretKey = secretKey;
     firePropertyChange( SECRET_KEY, previousVal, newVal );
+  }
+
+  public String getSessionToken() {
+    return sessionToken;
+  }
+
+  public void setSessionToken( String sessionToken ) {
+    String previousVal = this.sessionToken;
+    String newVal = sessionToken;
+
+    this.sessionToken = sessionToken;
+    firePropertyChange( SESSION_TOKEN, previousVal, newVal );
   }
 
   public String getRegion() {

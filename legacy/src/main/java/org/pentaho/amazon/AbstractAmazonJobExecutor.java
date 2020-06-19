@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -161,9 +161,9 @@ public abstract class AbstractAmazonJobExecutor extends AbstractAmazonJobEntry {
   private void initAmazonClients() {
     ClientFactoriesManager manager = ClientFactoriesManager.getInstance();
     s3Client = manager
-      .createClient( getAWSAccessKeyId(), getAWSSecretKey(), region, ClientType.S3 );
+      .createClient( getAWSAccessKeyId(), getAWSSecretKey(), getSessionToken(), region, ClientType.S3 );
     emrClient = manager
-      .createClient( getAWSAccessKeyId(), getAWSSecretKey(), region, ClientType.EMR );
+      .createClient( getAWSAccessKeyId(), getAWSSecretKey(), getSessionToken(), region, ClientType.EMR );
   }
 
   @Override

@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,8 +35,8 @@ import org.pentaho.amazon.client.api.S3Client;
 public class S3ClientFactory extends AbstractClientFactory<S3Client> {
 
   @Override
-  public S3Client createClient( String accessKey, String secretKey, String region ) {
-    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, region );
+  public S3Client createClient( String accessKey, String secretKey, String sessionToken, String region ) {
+    AmazonClientCredentials clientCredentials = new AmazonClientCredentials( accessKey, secretKey, sessionToken, region );
 
     AmazonS3 awsS3Client =
       AmazonS3ClientBuilder.standard().withRegion( clientCredentials.getRegion() )

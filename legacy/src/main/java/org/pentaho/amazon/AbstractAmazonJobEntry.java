@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -34,6 +34,7 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
   protected String hadoopJobFlowId;
   protected String accessKey = "";
   protected String secretKey = "";
+  protected String sessionToken = "";
   protected String region;
   protected String ec2Role;
   protected String emrRole;
@@ -64,20 +65,28 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
     this.hadoopJobFlowId = hadoopJobFlowId;
   }
 
+  public void setAccessKey( String accessKey ) {
+    this.accessKey = accessKey;
+  }
+
   public String getAccessKey() {
     return accessKey;
   }
 
-  public void setAccessKey( String accessKey ) {
-    this.accessKey = accessKey;
+  public void setSecretKey( String secretKey ) {
+    this.secretKey = secretKey;
   }
 
   public String getSecretKey() {
     return secretKey;
   }
 
-  public void setSecretKey( String secretKey ) {
-    this.secretKey = secretKey;
+  public void setSessionToken( String sessionToken ) {
+    this.sessionToken = sessionToken;
+  }
+
+  public String getSessionToken() {
+    return sessionToken;
   }
 
   public String getStagingDir() {
@@ -190,5 +199,9 @@ public abstract class AbstractAmazonJobEntry extends JobEntryBase implements Clo
 
   public String getAWSAccessKeyId() {
     return environmentSubstitute( accessKey );
+  }
+
+  public String getAWSSessionToken() {
+    return environmentSubstitute( sessionToken );
   }
 }

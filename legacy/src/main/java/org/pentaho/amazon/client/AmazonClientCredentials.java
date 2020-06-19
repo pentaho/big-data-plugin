@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,24 +22,31 @@
 
 package org.pentaho.amazon.client;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.RegionUtils;
 import org.pentaho.amazon.AmazonRegion;
+import org.pentaho.di.core.util.StringUtil;
 
 /**
  * Created by Aliaksandr_Zhuk on 2/5/2018.
  */
 public class AmazonClientCredentials {
 
-  private BasicAWSCredentials credentials;
+  private AWSCredentials credentials;
   private String region;
 
-  public AmazonClientCredentials( String accessKey, String secretKey, String region ) {
-    credentials = new BasicAWSCredentials( accessKey, secretKey );
+  public AmazonClientCredentials( String accessKey, String secretKey, String sessionToken, String region ) {
+    if ( !StringUtil.isEmpty( sessionToken ) ) {
+      credentials = new BasicSessionCredentials( accessKey, secretKey, sessionToken );
+    } else {
+      credentials = new BasicAWSCredentials( accessKey, secretKey );
+    }
     this.region = extractRegion( region );
   }
 
-  public BasicAWSCredentials getAWSCredentials() {
+  public AWSCredentials getAWSCredentials() {
     return credentials;
   }
 

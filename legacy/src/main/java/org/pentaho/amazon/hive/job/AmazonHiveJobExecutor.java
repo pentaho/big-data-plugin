@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -58,6 +58,7 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
 
   private static Class<?> PKG = AmazonHiveJobExecutor.class;
   private static final String STEP_HIVE = "hive";
+  private static final String SESSION_TOKEN_TAG = "session_token";
 
   protected String qUrl = "";
   protected String bootstrapActions = "";
@@ -127,6 +128,8 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, "access_key" ) );
     secretKey =
       Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, "secret_key" ) );
+    sessionToken =
+            Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, SESSION_TOKEN_TAG ) );
     region = XMLHandler.getTagValue( entrynode, "region" );
     ec2Role = XMLHandler.getTagValue( entrynode, "ec2_role" );
     emrRole = XMLHandler.getTagValue( entrynode, "emr_role" );
@@ -158,6 +161,8 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       .append( XMLHandler.addTagValue( "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
+    retval.append( "      " )
+            .append( XMLHandler.addTagValue( SESSION_TOKEN_TAG, Encr.encryptPasswordIfNotUsingVariables( sessionToken ) ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "region", region ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "ec2_role", ec2Role ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "emr_role", emrRole ) );
@@ -194,6 +199,9 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
       setSecretKey( Encr
         .decryptPasswordOptionallyEncrypted(
           rep.getJobEntryAttributeString( id_jobentry, "secret_key" ) ) );
+      setSessionToken( Encr
+              .decryptPasswordOptionallyEncrypted(
+                      rep.getJobEntryAttributeString( id_jobentry, SESSION_TOKEN_TAG ) ) );
       setRegion( rep.getJobEntryAttributeString( id_jobentry, "region" ) );
       setEc2Role( rep.getJobEntryAttributeString( id_jobentry, "ec2_role" ) );
       setEmrRole( rep.getJobEntryAttributeString( id_jobentry, "emr_role" ) );
@@ -229,6 +237,8 @@ public class AmazonHiveJobExecutor extends AbstractAmazonJobExecutor {
         "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) );
       rep.saveJobEntryAttribute( id_job, getObjectId(),
         "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) );
+      rep.saveJobEntryAttribute( id_job, getObjectId(),
+              SESSION_TOKEN_TAG, Encr.encryptPasswordIfNotUsingVariables( sessionToken ) );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "region", region );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "ec2_role", ec2Role );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "emr_role", emrRole );

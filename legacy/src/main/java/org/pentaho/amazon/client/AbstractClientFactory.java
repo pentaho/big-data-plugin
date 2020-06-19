@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -28,5 +28,5 @@ package org.pentaho.amazon.client;
  */
 public abstract class AbstractClientFactory<T> {
 
-  public abstract T createClient( String accessKey, String secretKey, String region );
+  public abstract T createClient( String accessKey, String secretKey, String sessionToken, String region );
 }
