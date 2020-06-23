@@ -65,6 +65,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
 
   private static Class<?> PKG = AmazonElasticMapReduceJobExecutor.class;
   private static final String STEP_EMR = "emr";
+  private static final String SESSION_TOKEN_TAG = "session_token";
   private URL localFileUrl;
 
   protected String jarUrl = "";
@@ -139,6 +140,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
     jarUrl = XMLHandler.getTagValue( entrynode, "jar_url" );
     accessKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, "access_key" ) );
     secretKey = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, "secret_key" ) );
+    sessionToken = Encr.decryptPasswordOptionallyEncrypted( XMLHandler.getTagValue( entrynode, SESSION_TOKEN_TAG ) );
     stagingDir = XMLHandler.getTagValue( entrynode, "staging_dir" );
     region = XMLHandler.getTagValue( entrynode, "region" );
     ec2Role = XMLHandler.getTagValue( entrynode, "ec2_role" );
@@ -165,6 +167,8 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
       .append( XMLHandler.addTagValue( "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) ) );
     retval.append( "      " )
       .append( XMLHandler.addTagValue( "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) ) );
+    retval.append( "      " )
+            .append( XMLHandler.addTagValue( SESSION_TOKEN_TAG, Encr.encryptPasswordIfNotUsingVariables( sessionToken ) ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "region", region ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "ec2_role", ec2Role ) );
     retval.append( "      " ).append( XMLHandler.addTagValue( "emr_role", emrRole ) );
@@ -195,6 +199,8 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
         .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, "access_key" ) ) );
       setSecretKey( Encr
         .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, "secret_key" ) ) );
+      setSessionToken( Encr
+              .decryptPasswordOptionallyEncrypted( rep.getJobEntryAttributeString( id_jobentry, SESSION_TOKEN_TAG ) ) );
       setStagingDir( rep.getJobEntryAttributeString( id_jobentry, "staging_dir" ) );
       setRegion( rep.getJobEntryAttributeString( id_jobentry, "region" ) );
       setEc2Role( rep.getJobEntryAttributeString( id_jobentry, "ec2_role" ) );
@@ -227,6 +233,8 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
         "secret_key", Encr.encryptPasswordIfNotUsingVariables( secretKey ) );
       rep.saveJobEntryAttribute( id_job, getObjectId(),
         "access_key", Encr.encryptPasswordIfNotUsingVariables( accessKey ) );
+      rep.saveJobEntryAttribute( id_job, getObjectId(),
+              SESSION_TOKEN_TAG, Encr.encryptPasswordIfNotUsingVariables( sessionToken ) );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "staging_dir", stagingDir );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "region", region );
       rep.saveJobEntryAttribute( id_job, getObjectId(), "ec2_role", ec2Role );
