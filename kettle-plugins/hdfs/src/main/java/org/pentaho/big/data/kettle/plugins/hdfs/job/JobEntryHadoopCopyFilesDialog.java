@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2017 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -291,7 +291,7 @@ public class JobEntryHadoopCopyFilesDialog extends JobEntryCopyFilesDialog {
                 FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY, false, false );
       } else if ( clusterName.equals( S3_ENVIRONMENT ) ) {
         selectedFile =
-            fileChooserDialog.open( shell, new String[] { Schemes.S3_SCHEME }, Schemes.S3_SCHEME, true,
+            fileChooserDialog.open( shell, new String[] { Schemes.S3_SCHEME, Schemes.S3N_SCHEME }, Schemes.S3_SCHEME, true,
               path, new String[] { "*.*" }, FILETYPES, false, VfsFileChooserDialog.VFS_DIALOG_OPEN_FILE_OR_DIRECTORY,
                 false, true );
       } else {
