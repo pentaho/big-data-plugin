@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -35,14 +35,15 @@ import org.pentaho.vfs.ui.VfsFileChooserDialog;
 @LifecyclePlugin( id = "AmazonSpoonPlugin", name = "Amazon Spoon Plugin EE" )
 public class AmazonSpoonPlugin implements LifecycleListener, GUIOption<Object> {
 
-  private static final int S_3_PRIORITY = 120;
+  private static final int S3N_PRIORITY = 120;
+  private static final int S3A_PRIORITY = 125;
 
   public void onStart( LifeEventHandler arg0 ) throws LifecycleException {
     VfsFileChooserDialog dialog = Spoon.getInstance().getVfsFileChooserDialog( null, null );
     Spoon.getInstance().getVfsFileChooserDialog( null, null )
-      .addVFSUIPanel( S_3_PRIORITY, new S3NVfsFileChooserDialog( dialog, null, null ) );
+      .addVFSUIPanel( S3N_PRIORITY, new S3NVfsFileChooserDialog( dialog, null, null ) );
     Spoon.getInstance().getVfsFileChooserDialog( null, null )
-      .addVFSUIPanel( S_3_PRIORITY, new S3AVfsFileChooserDialog( dialog, null, null ) );
+      .addVFSUIPanel( S3A_PRIORITY, new S3AVfsFileChooserDialog( dialog, null, null ) );
   }
 
   public void onExit( LifeEventHandler arg0 ) throws LifecycleException {
