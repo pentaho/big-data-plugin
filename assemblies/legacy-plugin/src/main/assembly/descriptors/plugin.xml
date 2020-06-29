@@ -67,6 +67,7 @@
                 <include>xmlpull:xmlpull</include>
                 <include>xpp3:xpp3_min</include>
                 <include>com.thoughtworks.xstream:xstream</include>
+                <include>org.pentaho:shim-api</include>
             </includes>
         </dependencySet>
         <dependencySet>

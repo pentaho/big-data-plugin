@@ -353,6 +353,12 @@
       <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>pentaho</groupId>
+      <artifactId>pentaho-platform-core</artifactId>
+      <version>${platform.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   <build>
     <resources>

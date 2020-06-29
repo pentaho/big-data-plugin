@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2019 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -53,7 +54,9 @@ import org.pentaho.di.core.xml.XMLHandler;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.repository.ObjectId;
 import org.pentaho.di.repository.Repository;
+import org.pentaho.hadoop.shim.api.ShimIdentifierInterface;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.w3c.dom.Node;
 
 @JobEntry( id = "EMRJobExecutorPlugin", image = "EMR.svg", name = "EMRJobExecutorPlugin.Name",
@@ -66,6 +69,8 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   private static Class<?> PKG = AmazonElasticMapReduceJobExecutor.class;
   private static final String STEP_EMR = "emr";
   private static final String SESSION_TOKEN_TAG = "session_token";
+  private static final String EMR_SHIM_VENDOR = "EMR";
+  private static final String SHIM_IDENTIFIER_VENDOR_METHOD = "getVendor";
   private URL localFileUrl;
 
   protected String jarUrl = "";
@@ -82,16 +87,32 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
   }
 
   public String getMainClass( URL localJarUrl ) throws Exception {
-    //todo: here we should select named cluster according to step or url
-//    HadoopShim shim = null;
-//    HadoopConfigurationBootstrap.getHadoopConfigurationProvider().getActiveConfiguration().getHadoopShim();
 
-    final Class<?> mainClass = getMainClassFromManifest( localJarUrl, null /*shim.getClass().getClassLoader()*/ );
+    List<ShimIdentifierInterface> shimIdentifers = PentahoSystem.getAll( ShimIdentifierInterface.class );
+    Iterator iterator = shimIdentifers.iterator();
+    ClassLoader parentClassloader = null;
+
+    while ( iterator.hasNext() ) {
+      Object next = iterator.next();
+      String vendor = (String) next.getClass().getMethod( SHIM_IDENTIFIER_VENDOR_METHOD ).invoke( next );
+      if ( vendor.equals( EMR_SHIM_VENDOR ) ) {
+        parentClassloader = next.getClass().getClassLoader();
+      }
+    }
+
+    if ( parentClassloader == null ) {
+      throw new KettleException(
+              BaseMessages.getString( PKG, "AmazonElasticMapReduceJobExecutor.Shim.Error" ) );
+    }
+
+    URLClassLoader newClassLoader = new URLClassLoader( new URL[] { localJarUrl }, parentClassloader );
+
+    final Class<?> mainClass = getMainClassFromManifest( localJarUrl, newClassLoader );
     if ( mainClass != null ) {
       return mainClass.getName();
     } else {
       List<Class<?>> classesWithMains =
-          getClassesInJarWithMain( localJarUrl.toExternalForm(), null /*shim.getClass().getClassLoader()*/ );
+          getClassesInJarWithMain( localJarUrl.toExternalForm(), parentClassloader );
       if ( !classesWithMains.isEmpty() ) {
         return classesWithMains.get( 0 ).getName();
       }
@@ -342,7 +363,7 @@ public class AmazonElasticMapReduceJobExecutor extends AbstractAmazonJobExecutor
     ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
     URL url = new URL( jarUrl );
     URL[] urls = new URL[] { url };
-    try ( URLClassLoader loader = new URLClassLoader( urls, getClass().getClassLoader() );
+    try ( URLClassLoader loader = new URLClassLoader( urls, parentClassloader );
           JarInputStream jarFile = new JarInputStream( new FileInputStream( new File( url.toURI() ) ) ) ) {
       while ( true ) {
         JarEntry jarEntry = jarFile.getNextJarEntry();
