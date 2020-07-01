@@ -2,7 +2,7 @@
  *
  * Pentaho Big Data
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -23,10 +23,14 @@
 package org.pentaho.amazon;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
+import org.pentaho.amazon.s3.provider.S3Provider;
+import org.pentaho.di.connections.ConnectionManager;
+import org.pentaho.di.connections.vfs.VFSLookupFilter;
 import org.pentaho.di.core.annotations.KettleLifecyclePlugin;
 import org.pentaho.di.core.lifecycle.KettleLifecycleListener;
 import org.pentaho.di.core.lifecycle.LifecycleException;
@@ -42,14 +46,16 @@ import org.pentaho.s3.vfs.S3FileProvider;
  */
 @KettleLifecyclePlugin( id = "AmazonS3FileSystemBootstrap", name = "Amazon S3 FileSystem Bootstrap" )
 public class AmazonS3FileSystemBootstrap implements KettleLifecycleListener {
-  private static Class<?> PKG = AmazonS3FileSystemBootstrap.class;
+  private static Class<?> amazonS3FileSystemBootstrapClass = AmazonS3FileSystemBootstrap.class;
   private LogChannelInterface log = new LogChannel( AmazonS3FileSystemBootstrap.class.getName() );
+  private Supplier<ConnectionManager> connectionManager = ConnectionManager::getInstance;
 
   /**
    * @return the i18n display text for the S3 file system
    */
   public static String getS3FileSystemDisplayText() {
-    return BaseMessages.getString( PKG, "S3VfsFileChooserDialog.FileSystemChoice.S3.Label" );
+    return BaseMessages
+      .getString( amazonS3FileSystemBootstrapClass, "S3VfsFileChooserDialog.FileSystemChoice.S3.Label" );
   }
 
   @Override
@@ -57,13 +63,19 @@ public class AmazonS3FileSystemBootstrap implements KettleLifecycleListener {
     try {
       // Register S3 as a file system type with VFS
       FileSystemManager fsm = KettleVFS.getInstance().getFileSystemManager();
-      if ( fsm instanceof DefaultFileSystemManager ) {
-        if ( !Arrays.asList( fsm.getSchemes() ).contains( S3FileProvider.SCHEME ) ) {
-          ( (DefaultFileSystemManager) fsm ).addProvider( S3FileProvider.SCHEME, new S3FileProvider() );
-        }
+      if ( fsm instanceof DefaultFileSystemManager && !Arrays.asList( fsm.getSchemes() )
+        .contains( S3FileProvider.SCHEME ) ) {
+        ( (DefaultFileSystemManager) fsm ).addProvider( S3FileProvider.SCHEME, new S3FileProvider() );
+      }
+
+      if ( connectionManager.get() != null ) {
+        connectionManager.get().addConnectionProvider( S3FileProvider.SCHEME, new S3Provider() );
+        VFSLookupFilter vfsLookupFilter = new VFSLookupFilter();
+        connectionManager.get().addLookupFilter( vfsLookupFilter );
       }
     } catch ( FileSystemException e ) {
-      log.logError( BaseMessages.getString( PKG, "AmazonSpoonPlugin.StartupError.FailedToLoadS3Driver" ) );
+      log.logError( BaseMessages
+        .getString( amazonS3FileSystemBootstrapClass, "AmazonSpoonPlugin.StartupError.FailedToLoadS3Driver" ) );
     }
   }
 
