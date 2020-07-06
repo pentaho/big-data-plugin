@@ -38,6 +38,10 @@ input[type="file"] {
   background-color: #0f2b5b;
 }
 
+.custom-file-upload:focus {
+  background-color: #0f2b5b;
+}
+
 .select-files {
   overflow: auto;
   margin-bottom: 5px;
@@ -51,4 +55,14 @@ input[type="file"] {
   padding: 1px 4px 4px 0px;
   color: #005DA6;
   cursor: pointer;
+}
+
+.multi-browse-remove:hover {
+  background-color: #0f2b5b;
+  color: #FFF
+}
+
+.multi-browse-remove:focus {
+  background-color: #0f2b5b;
+  color: #FFF
 }

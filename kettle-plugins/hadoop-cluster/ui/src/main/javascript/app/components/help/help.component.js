@@ -36,6 +36,7 @@ define([
     var vm = this;
     vm.$onInit = onInit;
     vm.openLink = openLink;
+    vm.helpKeyDown = helpKeyDown;
 
     /**
      * The $onInit hook of components lifecycle which is called on each controller
@@ -48,6 +49,14 @@ define([
 
     function openLink() {
       open(vm.link ,'','height=600,width=800,scrollbars=yes,toolbar=no,status=no,menubar=no,location=no,resizable=yes');
+    }
+
+    function helpKeyDown( e ) {
+      if (e.which == 13 || e.keyCode == 13 ) {
+        openLink();
+        return false;
+      }
+      return true;
     }
   }
 

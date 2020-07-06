@@ -41,6 +41,8 @@ define([
     vm.toggleOptions = toggleOptions;
     vm.onBodyClick = onBodyClick;
     vm.isShowOptions = false;
+    vm.keyDownOnCurrentValue = keyDownOnCurrentValue;
+    vm.keyDownOnOption = keyDownOnOption;
 
     function onChanges(changes) {
       if (changes.type && changes.type.currentValue !== null && vm.options) {
@@ -68,6 +70,30 @@ define([
       vm.isShowOptions = false;
       vm.onSelect({value: option});
     }
+
+  function keyDownOnCurrentValue($event) {
+    var mainInput = $event.target
+    if ($event.which == 13 || $event.keyCode == 13) {
+      vm.toggleOptions($event);
+      if (vm.isShowOptions) {
+        for (var i = 0; i < vm.options.length; i++) {
+          if (vm.options[i] === vm.selectedValue) {
+          }
+        }
+      }
+    }
+  }
+
+  function keyDownOnOption($event) {
+    var optionSelected = $event.target
+    if ($event.which == 13 || $event.keyCode == 13) {
+      selectOption(optionSelected.textContent)
+      return false;
+    }
+    return true;
+  }
+
+
   }
 
   return {

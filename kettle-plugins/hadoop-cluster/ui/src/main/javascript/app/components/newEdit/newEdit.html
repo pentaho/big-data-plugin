@@ -23,44 +23,60 @@
       </div>
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.hdfsLabel}}</legend>
-        <div class="margin_bottom_15">
-          <img class="variable" ng-src="{{::vm.variableImage}}"/>
-          <div class="port-input">
-            <label for="hdfsPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
-            <input id="hdfsPort" type="text" ng-model="vm.data.model.hdfsPort"/>
-          </div>
-          <img class="variable" ng-src="{{::vm.variableImage}}"/>
-          <div class="fill-remaining">
-            <label for="hdfsHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-            <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHost"/>
-          </div>
+        <div class="margin_bottom_15 hostPortGrid">
+            <div class="hostCell">
+              <img class="variable" ng-src="{{::vm.variableImage}}"/>
+              <div class="fill-remaining">
+                <label for="hdfsHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+                <input id="hdfsHostname" type="text" ng-model="vm.data.model.hdfsHost"/>
+              </div>
+            </div>
+            <div class="portCell">
+              <img class="variable" ng-src="{{::vm.variableImage}}"/>
+              <div class="fill-remaining">
+                <label for="hdfsPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+                <input id="hdfsPort" type="text" ng-model="vm.data.model.hdfsPort"/>
+              </div>
+            </div>
         </div>
         <credentials username="vm.data.model.hdfsUsername" password="vm.data.model.hdfsPassword"></credentials>
       </fieldset>
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.jobTrackerLabel}}</legend>
-        <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="port-input">
-          <label for="jobTrackerPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
-          <input id="jobTrackerPort" type="text" ng-model="vm.data.model.jobTrackerPort"/>
-        </div>
-        <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="fill-remaining">
-          <label for="jobTrackerHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-          <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHost"/>
+        <div class="margin_bottom_15 hostPortGrid">
+          <div class="hostCell">
+            <img class="variable" ng-src="{{::vm.variableImage}}"/>
+            <div class="fill-remaining">
+              <label for="jobTrackerHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+              <input id="jobTrackerHostname" type="text" ng-model="vm.data.model.jobTrackerHost"/>
+            </div>
+          </div>
+          <div class="portCell">
+            <img class="variable" ng-src="{{::vm.variableImage}}"/>
+            <div class="fill-remaining">
+              <label for="jobTrackerPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+              <input id="jobTrackerPort" type="text" ng-model="vm.data.model.jobTrackerPort"/>
+            </div>
+          </div>
         </div>
       </fieldset>
       <fieldset class="margin_bottom_15">
         <legend>{{::vm.zooKeeperLabel}}</legend>
-        <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="port-input">
-          <label for="zooKeeperPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
-          <input id="zooKeeperPort" type="text" ng-model="vm.data.model.zooKeeperPort"/>
-        </div>
-        <img class="variable" ng-src="{{::vm.variableImage}}"/>
-        <div class="fill-remaining">
-          <label for="zooKeeperHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
-          <input id="zooKeeperHostname" type="text" ng-model="vm.data.model.zooKeeperHost"/>
+        <div class="margin_bottom_15 hostPortGrid">
+          <div class="hostCell">
+            <img class="variable" ng-src="{{::vm.variableImage}}"/>
+            <div class="fill-remaining">
+              <label for="zooKeeperHostname" class="margin_bottom_5 text_left">{{::vm.hostnameLabel}}</label>
+              <input id="zooKeeperHostname" type="text" ng-model="vm.data.model.zooKeeperHost"/>
+            </div>
+          </div>
+          <div class="portCell">
+            <img class="variable" ng-src="{{::vm.variableImage}}"/>
+            <div class="fill-remaining">
+              <label for="zooKeeperPort" class="margin_bottom_5 text_left">{{::vm.portLabel}}</label>
+              <input id="zooKeeperPort" type="text" ng-model="vm.data.model.zooKeeperPort"/>
+            </div>
+          </div>
         </div>
       </fieldset>
       <fieldset class="margin_bottom_15">
