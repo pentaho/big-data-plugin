@@ -34,6 +34,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
+import org.pentaho.amazon.s3.LumadaPropertiesCredentials;
+import org.pentaho.amazon.s3.LumadaPropertiesFileCredentialsProvider;
 import org.pentaho.amazon.s3.S3Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +76,10 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       String signatureVersion = s3CommonFileSystemConfigBuilder.getSignatureVersion();
       String pathStyleAccess = s3CommonFileSystemConfigBuilder.getPathStyleAccess();
       boolean access = ( pathStyleAccess == null ) || Boolean.parseBoolean( pathStyleAccess );
+
       AWSCredentialsProvider awsCredentialsProvider = null;
       Regions regions = Regions.DEFAULT_REGION;
+
       if ( !S3Util.isEmpty( accessKey ) && !S3Util.isEmpty( secretKey ) ) {
         AWSCredentials awsCredentials;
         if ( S3Util.isEmpty( sessionToken ) ) {
@@ -88,25 +92,38 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       } else if ( !S3Util.isEmpty( credentialsFilePath ) ) {
         ProfilesConfigFile profilesConfigFile = new ProfilesConfigFile( credentialsFilePath );
         awsCredentialsProvider = new ProfileCredentialsProvider( profilesConfigFile, profileName );
+      } else {
+        try {
+          LumadaPropertiesCredentials awsCredentials =
+            (LumadaPropertiesCredentials) new LumadaPropertiesFileCredentialsProvider().getCredentials();
+          awsCredentialsProvider = new AWSStaticCredentialsProvider( awsCredentials );
+          endpoint = awsCredentials.getEndpointUrl();
+          access = true;
+          signatureVersion = awsCredentials.getApiSignature();
+        } catch ( Exception e ) {
+          logger.info( e.getMessage() );
+        }
       }
 
       if ( !S3Util.isEmpty( endpoint ) ) {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        clientConfiguration.setSignerOverride( S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
+        clientConfiguration.setSignerOverride(
+          S3Util.isEmpty( signatureVersion ) ? S3Util.SIGNATURE_VERSION_SYSTEM_PROPERTY : signatureVersion );
         client = AmazonS3ClientBuilder.standard()
-            .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint,  regions.getName() ) )
-            .withPathStyleAccessEnabled( access )
-            .withClientConfiguration( clientConfiguration )
-            .withCredentials( awsCredentialsProvider )
-            .build();
+          .withEndpointConfiguration( new AwsClientBuilder.EndpointConfiguration( endpoint, regions.getName() ) )
+          .withPathStyleAccessEnabled( access )
+          .withClientConfiguration( clientConfiguration )
+          .withCredentials( awsCredentialsProvider )
+          .build();
       } else {
         client = AmazonS3ClientBuilder.standard()
-            .enableForceGlobalBucketAccess()
-            .withRegion( regions )
-            .withCredentials( awsCredentialsProvider )
-            .build();
+          .enableForceGlobalBucketAccess()
+          .withRegion( regions )
+          .withCredentials( awsCredentialsProvider )
+          .build();
       }
     }
+
     if ( client == null || hasClientChangedCredentials() ) {
       try {
         if ( isRegionSet() ) {
@@ -121,8 +138,8 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
         }
         awsAccessKeyCache = System.getProperty( S3Util.ACCESS_KEY_SYSTEM_PROPERTY );
         awsSecretKeyCache = System.getProperty( S3Util.SECRET_KEY_SYSTEM_PROPERTY );
-      } catch ( Throwable t ) {
-        logger.error( "Could not get an S3Client", t );
+      } catch ( Exception ex ) {
+        logger.error( "Could not get an S3Client", ex );
       }
     }
     return client;
@@ -140,7 +157,8 @@ public abstract class S3CommonFileSystem extends AbstractFileSystem {
       return true;
     }
     //check if configuration file exists in default location
-    File awsConfigFolder = new File( System.getProperty( "user.home" ) + File.separator + S3Util.AWS_FOLDER + File.separator + S3Util.CONFIG_FILE );
+    File awsConfigFolder = new File(
+      System.getProperty( "user.home" ) + File.separator + S3Util.AWS_FOLDER + File.separator + S3Util.CONFIG_FILE );
     return awsConfigFolder.exists();
   }
 }
