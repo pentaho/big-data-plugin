@@ -40,6 +40,8 @@ define([
     var vm = this;
     vm.$onInit = onInit;
     vm.removeFile = removeFile;
+    vm.keydownBrowseButton = keydownBrowseButton;
+    vm.keyDownOnRemove = keyDownOnRemove;
 
     function onInit() {
       if (!vm.placeholder) {
@@ -57,6 +59,24 @@ define([
           return e !== file;
         });
     }
+
+    function keydownBrowseButton(e) { //Hitting enter when browse button has focus works like clicking the button
+      if (e.which == 13 || e.keyCode == 13 ) {
+        var button = document.getElementById("browseButton");
+        button.click();
+        return false;
+      }
+      return true;
+    }
+
+    function keyDownOnRemove(e,file) {
+      if (e.which == 13 || e.keyCode == 13 ) {
+        removeFile(file);
+        return false;
+      }
+      return true;
+    }
+
   }
 
   return {

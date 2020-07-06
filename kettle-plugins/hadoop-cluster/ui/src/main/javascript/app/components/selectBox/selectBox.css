@@ -8,6 +8,14 @@ select-box .select {
   width: 100%;
 }
 
+select-box .select:hover {
+  border: 1px solid #005DA6;
+}
+
+select-box .select:focus {
+  border: 1px solid #005DA6;
+}
+
 select-box .select > div {
   float: left;
   width: 100%;
@@ -46,6 +54,11 @@ select-box .options > li {
 }
 
 select-box .options > li:hover {
+  background-color: #355EA3;
+  color: #ffffff;
+}
+
+select-box .options > li:focus {
   background-color: #355EA3;
   color: #ffffff;
 }

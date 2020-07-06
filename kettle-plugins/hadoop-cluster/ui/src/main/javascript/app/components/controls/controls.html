@@ -7,7 +7,9 @@
       <help link="vm.helpLink"></help>
     </div>
     <div class="rightPane">
-      <button ng-repeat="button in vm.getRightButtons()" class="right" ng-class="button.class" type="button" ng-click="button.onClick()" ng-disabled="button.isDisabled()">
+      <button ng-repeat="button in vm.getRightButtons()" class="right button" ng-class="button.class"
+              type="button" ng-click="button.onClick()" ng-disabled="button.isDisabled()"
+              ng-keydown="vm.onKeyDown($event)" tabindex="0">
         <span>{{::button.label}}</span>
       </button>
     </div>

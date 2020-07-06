@@ -34,6 +34,7 @@ define([
   function controlsController() {
     var vm = this;
     vm.getRightButtons = getRightButtons;
+    vm.onKeyDown = onKeyDown;
 
     function getButtonsByPosition(position) {
       var buttons = [];
@@ -50,7 +51,16 @@ define([
     function getRightButtons() {
       return getButtonsByPosition("right");
     }
+
+    function onKeyDown( e ) {
+      if (e.which == 13 || e.keyCode == 13 ) {
+        e.target.onClick();
+        return false;
+      }
+      return true;
+    }
   }
+
 
   return {
     name: "controls",

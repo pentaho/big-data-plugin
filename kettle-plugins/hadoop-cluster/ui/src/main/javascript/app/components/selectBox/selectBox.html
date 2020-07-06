@@ -1,8 +1,9 @@
 <div class="select" ng-body-click="vm.onBodyClick()">
   <div>
-    <div class="selected_value" ng-click="vm.toggleOptions($event)">{{vm.selectedValue}}</div>
+    <div class="selected_value" ng-keydown="vm.keyDownOnCurrentValue($event)" ng-click="vm.toggleOptions($event)"
+         tabindex="0">{{vm.selectedValue}}</div>
     <ul class="options" ng-if="vm.isShowOptions">
-      <li ng-repeat="option in vm.options" ng-click="vm.selectOption(option)">{{option}}</li>
+      <li id="{{option + '-Id'}}" ng-repeat="option in vm.options" ng-click="vm.selectOption(option)" ng-keydown="vm.keyDownOnOption($event)" tabindex="0">{{option}}</li>
     </ul>
   </div>
 </div>

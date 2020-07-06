@@ -1,15 +1,15 @@
 <fieldset class="margin_bottom_15">
   <legend>{{::vm.label}}</legend>
   <div class="select-files">
-    <label for="files" class="custom-file-upload">{{::vm.buttonLabel}}</label>
+    <label id="browseButton" for="files" tabindex="0" ng-keydown="vm.keydownBrowseButton($event)" class="custom-file-upload">{{::vm.buttonLabel}}</label>
     <div class="fill-remaining">
-      <input id="files" type="file" multi-file-input="vm.model" multiple/>
+      <input id="files" type="file" multi-file-input="vm.model" multiple tabindex="0"/>
     </div>
   </div>
   <div class="selected-files-container">
     <div class="no-files" ng-if="!vm.model || vm.model.length === 0">{{::vm.placeholder}}</div>
     <div ng-repeat="file in vm.model" class="selected-file">
-      <div class="multi-browse-remove" ng-click="vm.removeFile(file)">{{::vm.removeLabel}}</div>
+      <div class="multi-browse-remove" ng-keydown="vm.keyDownOnRemove($event, file)" ng-click="vm.removeFile(file)" tabindex="0">{{::vm.removeLabel}}</div>
       <div class="fill-remaining">{{file.name}}</div>
     </div>
   </div>
