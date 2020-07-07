@@ -34,11 +34,12 @@ define([
     controller: browseController
   };
 
-  browseController.$inject = [];
+  browseController.$inject = ["$timeout"];
 
-  function browseController() {
+  function browseController($timeout) {
     var vm = this;
     vm.$onInit = onInit;
+    vm.keyDown = keyDown;
 
     function onInit() {
       if (!vm.placeholder) {
@@ -48,6 +49,17 @@ define([
         vm.buttonLabel = i18n.get('browse.button.default');
       }
     }
+
+    function keyDown(e,id) {
+      if (e.which == 13 || e.keyCode == 13 ) {
+        $timeout(function() {
+          angular.element('#browse_'+id).trigger('click');
+        },0);
+        return false;
+      }
+      return true;
+    }
+
   }
 
   return {
