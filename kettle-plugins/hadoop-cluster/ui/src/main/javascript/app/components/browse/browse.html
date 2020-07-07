@@ -1,7 +1,7 @@
 <div class="driver-label text_left">{{::vm.label}}</div>
 <div>
   <div class="select-file">
-    <label for="browse_{{::$id}}" class="custom-file-button">{{::vm.buttonLabel}}</label>
+    <label for="browse_{{::$id}}" class="custom-file-button" tabindex="0" ng-keydown="vm.keyDown($event,$id)">{{::vm.buttonLabel}}</label>
     <input id="browse_{{::$id}}" type="file" file-input="vm.model"/>
   </div>
   <div class="fill-remaining">

@@ -24,6 +24,11 @@ input[type="file"] {
 .custom-file-button:hover {
   background-color: #0f2b5b;
 }
+
+.custom-file-button:focus {
+  background-color: #0f2b5b;
+}
+
 .browse-label  {
   border-radius: 5px 0px 0px 5px;
   float: right;
@@ -33,3 +38,4 @@ input[type="file"] {
   font-size: 14px;
   margin-bottom:5px;
 }
+
