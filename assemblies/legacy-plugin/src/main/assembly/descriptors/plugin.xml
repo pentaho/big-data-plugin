@@ -24,6 +24,7 @@
             </outputFileNameMapping>
             <includes>
               <include>pentaho:pentaho-big-data-legacy</include>
+                <include>pentaho:pentaho-big-data-legacy-amazon</include>
             </includes>
         </dependencySet>
         <dependencySet>
