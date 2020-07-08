@@ -568,7 +568,7 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     for ( Map.Entry<String, CachedFileItemStream> siteFile : siteFileSource.entrySet() ) {
       String name = siteFile.getValue().getFieldName();
       if ( isValidConfigurationFile( name ) ) {
-        if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) ) {
+        if ( name.equals( KEYTAB_AUTH_FILE ) || name.equals( KEYTAB_IMPL_FILE ) || !name.endsWith( "-site.xml" ) ) {
           name = extractFileNameFromFullPath( siteFile.getValue().getName() );
           addFileToConfigFolder( siteFile.getValue().getCachedOutputStream(), name, nc );
         } else {

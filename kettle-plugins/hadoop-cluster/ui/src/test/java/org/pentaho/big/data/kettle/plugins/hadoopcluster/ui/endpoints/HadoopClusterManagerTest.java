@@ -84,7 +84,7 @@ import static org.pentaho.big.data.kettle.plugins.hadoopcluster.ui.model.ThinNam
 public class HadoopClusterManagerTest {
   private static final String CORE_SITE = "core-site.xml";
   private static final String HIVE_SITE = "hive-site.xml";
-  private static final String OOZIE_SITE = "oozie-default.xml";
+  private static final String OOZIE_SITE = "oozie-site.xml";
   private static final String YARN_SITE = "yarn-site.xml";
 
   @Mock private Spoon spoon;
@@ -173,7 +173,6 @@ public class HadoopClusterManagerTest {
     verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
     verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
     verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( OOZIE_SITE ), any( String.class ) );
   }
 
   @Test public void testMissingInfoImportNamedCluster() {
@@ -187,7 +186,6 @@ public class HadoopClusterManagerTest {
     verify( namedCluster ).addSiteFile( eq( CORE_SITE ), any( String.class ) );
     verify( namedCluster ).addSiteFile( eq( YARN_SITE ), any( String.class ) );
     verify( namedCluster ).addSiteFile( eq( HIVE_SITE ), any( String.class ) );
-    verify( namedCluster ).addSiteFile( eq( OOZIE_SITE ), any( String.class ) );
     ThinNameClusterModel thinNameClusterModel = hadoopClusterManager.getNamedCluster( ncTestName );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsHost() ) );
     assertTrue( StringUtil.isEmpty( thinNameClusterModel.getHdfsPort() ) );
