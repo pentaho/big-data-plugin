@@ -216,13 +216,25 @@ public class HadoopClusterManagerTest {
     assertTrue( new File( shimTestDir ).exists() );
   }
 
-  @Test public void testEditNamedCluster() {
+  @Test public void testEditNamedCluster() throws Exception {
     ThinNameClusterModel model = new ThinNameClusterModel();
     model.setKerberosSubType( "" );
     model.setName( ncTestName );
     model.setOldName( ncTestName );
     JSONObject result = hadoopClusterManager.editNamedCluster( model, true, getFiles( "/" ) );
-    assertEquals( ncTestName, result.get( "namedCluster" ) );
+    verify( namedClusterService ).update( any(), any() );
+    assertEquals( ncTestName, result.get( "namedCluster" ) );  //Not really testing anything here since result is mocked
+  }
+
+  @Test public void testEditNamedClusterNameChange() throws Exception{
+    String newNcName = "newNcName";
+    ThinNameClusterModel model = new ThinNameClusterModel();
+    model.setKerberosSubType( "" );
+    model.setName( newNcName );
+    model.setOldName( ncTestName );
+    JSONObject result = hadoopClusterManager.editNamedCluster( model, true, getFiles( "/" ) );
+    verify( namedCluster ).setName( newNcName );
+    verify( namedClusterService ).create( any(), any() );
   }
 
   @Test public void testEditRemoveSiteFileNotInModel() {
