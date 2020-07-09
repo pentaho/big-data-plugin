@@ -303,17 +303,20 @@ public class HadoopClusterManager implements RuntimeTestProgressCallback {
     JSONObject response = new JSONObject();
     response.put( NAMED_CLUSTER, "" );
     try {
+      final NamedCluster newNc = namedClusterService.getNamedClusterByName( model.getName(), metaStore );
+      final NamedCluster oldNc = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore );
       // Must get the current shim identifier before the creation of the Named Cluster xml schema for later comparison.
-      String shimId = namedClusterService.getNamedClusterByName( model.getOldName(), metaStore ).getShimIdentifier();
-
-      final List<NamedClusterSiteFile> existingSiteFiles =
-        namedClusterService.getNamedClusterByName( model.getName(), metaStore ).getSiteFiles();
+      String shimId = oldNc.getShimIdentifier();
+      final List<NamedClusterSiteFile> existingSiteFiles = oldNc.getSiteFiles();
 
       NamedCluster nc = convertToNamedCluster( model );
       nc.setSiteFiles( getIntersectionSiteFiles( model, existingSiteFiles ) );
       installSiteFiles( siteFilesSource, nc );
-      namedClusterService.update( nc, metaStore );
-
+      if ( newNc != null ) {
+        namedClusterService.update( nc, metaStore ); //new cluster name exists
+      } else {
+        namedClusterService.create( nc, metaStore ); //new cluster does not exist.  Use creation logic
+      }
 
       File oldConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + model.getOldName() );
       File newConfigFolder = new File( getNamedClusterConfigsRootDir() + fileSeparator + nc.getName() );
